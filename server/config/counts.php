@@ -35,6 +35,10 @@ return [
         'sv_home', 'sv_courses', 'sv_course', 'sv_lesson', 'sv_tools', 'sv_songs', 'sv_part', 'sv_guides', 'sv_other',
         // A trial page's loads, each its own kind and never a section (SiteVisit::TRIALS): outside every growth total.
         'sv_next_grok',
+        // A candidate landing page under test (App\Support\Pages\LandingNextChatgpt): its own loads, in no growth total.
+        'sv_next_chatgpt',
+        // /next-claude, a candidate landing page (SiteVisit::section): its own kind, in no total.
+        'sv_next_claude',
         // A song part page's player played, once a page load at its first play (js/public/song-part-page.js):
         // no song, no part, no path, so guest playing ("Yes, play for guests") can be read against sv_part.
         'part_play',

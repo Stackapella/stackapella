@@ -43,6 +43,7 @@ final class SiteCss
         'courses' => ['courses'],
         // The combined landing's candidate: a page of its own styles, so no other family carries them.
         'nextgrok' => ['next-grok'],
+        'lncl' => ['next-claude'],
         'info' => [],
     ];
 

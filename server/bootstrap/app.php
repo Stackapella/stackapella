@@ -24,8 +24,10 @@ use App\Http\Controllers\Public\HarmonyPageController;
 use App\Http\Controllers\Public\IndexNowKeyController;
 use App\Http\Controllers\Public\InfoPagesController;
 use App\Http\Controllers\Public\IntegrationPagesController;
+use App\Http\Controllers\Public\LandingNextChatgptController;
 use App\Http\Controllers\Public\LandingNextGrokController;
 use App\Http\Controllers\Public\LessonPagesController;
+use App\Http\Controllers\Public\NextClaudeController;
 use App\Http\Controllers\Public\OEmbedController;
 use App\Http\Controllers\Public\OpenSourcePagesController;
 use App\Http\Controllers\Public\ReferencePagesController;
@@ -78,6 +80,7 @@ use App\Support\Admin\StaffDevice;
 use App\Support\Http\ApiError;
 use App\Support\Languages\LanguageMenu;
 use App\Support\Languages\SiteLanguages;
+use App\Support\Pages\LandingNextChatgpt;
 use App\Support\Pages\MudeoArrival;
 use App\Support\Pages\SongCollections;
 use Illuminate\Auth\AuthenticationException;
@@ -149,6 +152,12 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::get('/features/{slug}', [FeaturePagesController::class, 'show'])->where('slug', '[a-z0-9-]{1,40}')->middleware(['nexus', 'throttle:public-pages'])->name('features.page');
             Route::get('/compare', [ComparePagesController::class, 'index'])->middleware(['nexus', 'throttle:public-pages'])->name('compare.index');
             Route::get('/compare/{slug}', [ComparePagesController::class, 'show'])->where('slug', '[a-z0-9-]{1,40}')->middleware(['nexus', 'throttle:public-pages'])->name('compare.page');
+            // A candidate landing page under test beside / (LandingNextChatgptController): its own address in each language it's
+            // written in, in no language's list of pages (so no hreflang and no sitemap), before a language's catch-all.
+            Route::get(LandingNextChatgpt::PATH, LandingNextChatgptController::class)->middleware(['nexus', 'throttle:public-pages'])->name('next-chatgpt.page');
+            foreach (LandingNextChatgpt::LANGUAGES as $language) {
+                Route::get('/'.$language.LandingNextChatgpt::PATH, LandingNextChatgptController::class)->defaults('language', $language)->middleware(['nexus', 'throttle:public-pages'])->name($language.'.next-chatgpt.page');
+            }
             Route::get('/about', [SitePagesController::class, 'about'])->middleware(['nexus', 'throttle:public-pages'])->name('about.page');
             Route::get('/how-it-works', [SitePagesController::class, 'howItWorks'])->middleware(['nexus', 'throttle:public-pages'])->name('how.page');
             Route::get('/press', [SitePagesController::class, 'press'])->middleware(['nexus', 'throttle:public-pages'])->name('press.page');
@@ -220,6 +229,10 @@ return Application::configure(basePath: dirname(__DIR__))
             // Everything else is the PWA: its index.html for app routes, and locally its files. No
             // session: an anonymous visit never makes a session row or sets a cookie (the app's
             // first /api call gets the XSRF-TOKEN cookie when it needs one).
+            // A candidate for the next landing page, private while Hillel tries it (NextClaudeController): its Spanish by its
+            // own route, ahead of the languages' (it's in no language's list, so it has no hreflang and no sitemap line).
+            Route::get('/next-claude', [NextClaudeController::class, 'english'])->middleware(['nexus', 'throttle:public-pages'])->name('next-claude.page');
+            Route::get('/es/next-claude', [NextClaudeController::class, 'spanish'])->middleware(['nexus', 'throttle:public-pages'])->name('next-claude.es');
             // The pages in other languages (config/languages.php), each under /<lang>/.
             SiteLanguages::register(app('router'));
 

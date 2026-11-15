@@ -1,0 +1,379 @@
+/* /next-chatgpt: a candidate landing page under test beside / (server/resources/views/pages/landing-next-chatgpt.blade.php).
+   Written by hand, not built: this file is the source, and nothing else links it. Every rule is under .lnc, so it can't
+   touch another page, and the page loads no other sheet, so no other sheet can touch it. Calm only (light and dark);
+   game mode sees the same page until Hillel picks a candidate.
+
+   The stage is one sticky screen; data-scene (0 to 4, set by js/public/landing-next-chatgpt.js as the captions pass)
+   moves the camera with transitions. The notes move by --p, the player's own position (js/public/mixer.js), so
+   nothing here is timed apart from the audio clock. Without the script the page is scene 0 and reads in full. */
+
+@font-face { font-family: Figtree; font-style: normal; font-weight: 300 900; font-display: swap; src: url('/fonts/figtree-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: Figtree; font-style: normal; font-weight: 300 900; font-display: swap; src: url('/fonts/figtree-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+
+:root {
+    --lnc-bg: #050407; --lnc-ink: #f6f1e7; --lnc-muted: #b7b0a5; --lnc-em: #e8b479; --lnc-gem-ink: #1a1206;
+    --lnc-glass: #ffffff14; --lnc-glass-line: #ffffff2b; --lnc-glass-hi: #ffffff45; --lnc-veil: #050407b8;
+    --lnc-solid: #f6f1e7; --lnc-solid-ink: #121014; --lnc-focus: #fff;
+    --lnc-c1: #ff9139; --lnc-c2: #ffea6b; --lnc-c3: #45eca4; --lnc-c4: #968dfd; --lnc-rec: #ff4d4d;
+    --lnc-band: 14%; --lnc-glow: 0.55; --lnc-shadow: #000000b0;
+    --lnc-pad: clamp(16px, 4vw, 64px); --lnc-ease: cubic-bezier(0.22, 0.8, 0.24, 1); --lnc-move: 0.7s;
+    color-scheme: dark;
+}
+:root[data-theme$='-light'] {
+    --lnc-bg: #f5eddd; --lnc-ink: #1b1714; --lnc-muted: #5b5346; --lnc-em: #82520f; --lnc-gem-ink: #fff;
+    --lnc-glass: #ffffff94; --lnc-glass-line: #ffffffe0; --lnc-glass-hi: #fff; --lnc-veil: #f5edddc7;
+    --lnc-solid: #1b1714; --lnc-solid-ink: #fbf5e8; --lnc-focus: #1b1714;
+    --lnc-c1: #b9480d; --lnc-c2: #8a6d00; --lnc-c3: #0b7c51; --lnc-c4: #5b50d2; --lnc-rec: #c62828;
+    --lnc-band: 11%; --lnc-glow: 0.3; --lnc-shadow: #5b3d1066;
+    color-scheme: light;
+}
+
+.lnc, .lnc *, .lnc *::before, .lnc *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html:has(.lnc) { background: var(--lnc-bg); scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+.lnc { background: var(--lnc-bg); color: var(--lnc-ink); font: 400 clamp(16px, 1.25vw, 19px)/1.5 Figtree, system-ui, -apple-system, 'Segoe UI', sans-serif; -webkit-font-smoothing: antialiased; overflow-x: clip; }
+.lnc a { color: inherit; text-decoration: none; }
+.lnc button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.lnc em { font-style: normal; color: var(--lnc-em); }
+.lnc svg { display: block; flex: none; }
+.lnc [hidden] { display: none !important; }
+.lnc :focus-visible { outline: 2px solid var(--lnc-focus); outline-offset: 3px; border-radius: 6px; }
+.lnc-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.lnc .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.lnc-skip { position: fixed; z-index: 50; left: 12px; top: -80px; padding: 12px 18px; border-radius: 999px; background: var(--lnc-solid); color: var(--lnc-solid-ink) !important; font-weight: 800; }
+.lnc-skip:focus { top: 12px; }
+.lnc-v1 { --c: var(--lnc-c1); } .lnc-v2 { --c: var(--lnc-c2); } .lnc-v3 { --c: var(--lnc-c3); } .lnc-v4 { --c: var(--lnc-c4); }
+
+/* Glass: the page's one material for what floats over the stage. */
+.lnc-top, .lnc-dock, .lnc-btn, .lnc-sharecard, .lnc-facts, .lnc-seg, .lnc-play-lbl {
+    background: var(--lnc-glass); border: 1px solid var(--lnc-glass-line);
+    -webkit-backdrop-filter: blur(18px) saturate(1.4); backdrop-filter: blur(18px) saturate(1.4);
+    box-shadow: inset 0 1px 0 var(--lnc-glass-hi), 0 18px 50px -22px var(--lnc-shadow);
+}
+
+/* The header: slim and see-through; it shrinks on the way down and comes back on the way up or on focus. */
+.lnc-top { position: fixed; z-index: 30; top: 10px; left: 50%; translate: -50% 0; width: min(1240px, calc(100vw - 20px)); height: 56px; padding: 0 8px 0 18px; border-radius: 999px; display: flex; align-items: center; gap: clamp(10px, 2.4vw, 34px); transition: width var(--lnc-move) var(--lnc-ease), height var(--lnc-move) var(--lnc-ease), translate var(--lnc-move) var(--lnc-ease), opacity 0.3s; }
+.lnc-logo { display: flex; align-items: center; gap: 9px; font-weight: 800; font-size: 19px; white-space: nowrap; }
+.lnc-nav { display: flex; gap: clamp(4px, 1.4vw, 22px); font-weight: 600; font-size: 15.5px; overflow: hidden; transition: opacity 0.3s, max-width var(--lnc-move) var(--lnc-ease); max-width: 60vw; }
+.lnc-nav a { padding: 10px 8px; border-radius: 999px; color: var(--lnc-muted); white-space: nowrap; }
+.lnc-nav a:hover, .lnc-nav a:focus-visible { color: var(--lnc-ink); }
+.lnc-top-end { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+.lnc-theme { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; color: var(--lnc-muted); }
+.lnc-theme:hover { color: var(--lnc-ink); }
+.lnc-i-moon { display: none; }
+:root[data-theme$='-light'] .lnc-i-sun { display: none; } :root[data-theme$='-light'] .lnc-i-moon { display: block; }
+.lnc-lang { display: flex; font-weight: 700; font-size: 13.5px; }
+.lnc-lang a { min-width: 40px; height: 44px; display: grid; place-items: center; border-radius: 999px; color: var(--lnc-muted); }
+.lnc-lang a[aria-current] { color: var(--lnc-ink); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 5px; }
+.lnc-open { height: 40px; padding: 0 18px; border-radius: 999px; display: grid; place-items: center; background: var(--lnc-solid); color: var(--lnc-solid-ink) !important; font-weight: 800; font-size: 15px; white-space: nowrap; }
+.lnc-top[data-lnc-top='down']:not(:focus-within):not(:hover) { width: min(330px, calc(100vw - 20px)); height: 48px; gap: 6px; }
+.lnc-top[data-lnc-top='down']:not(:focus-within):not(:hover) .lnc-nav { max-width: 0; opacity: 0; }
+.lnc-top[data-lnc-top='down']:not(:focus-within):not(:hover) .lnc-theme, .lnc-top[data-lnc-top='down']:not(:focus-within):not(:hover) .lnc-lang { position: absolute; opacity: 0; pointer-events: none; }
+.lnc-top[data-lnc-top='down']:not(:focus-within):not(:hover) .lnc-open { height: 34px; }
+
+/* Buttons */
+.lnc-btn { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 24px; border-radius: 999px; font-weight: 700; font-size: 16px; white-space: nowrap; }
+.lnc-btn-solid, .lnc-cta, .lnc-go { background: var(--lnc-solid); color: var(--lnc-solid-ink) !important; border-color: transparent; }
+.lnc-btn-quiet { background: none; border-color: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; padding: 0 6px; text-decoration: underline !important; text-decoration-thickness: 1.5px; text-underline-offset: 5px; }
+.lnc-btn-part { background: color-mix(in srgb, var(--fc, var(--lnc-c2)) 88%, transparent); color: var(--lnc-gem-ink); border-color: transparent; }
+.lnc-note, .lnc-hint, .lnc-credit, .lnc-cue { color: var(--lnc-muted); font-size: 14px; font-weight: 600; }
+.lnc-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 14px; margin-top: 3svh; }
+
+/* The film: the pinned stage and the captions that pass over it. */
+.lnc-film { position: relative; --ph: 30vw; --ppb: 6.2vw; --lane-h: 11.2svh; --gem-h: 3.3svh; --head: 4.4svh; --fc: var(--lnc-c2); }
+.lnc-film[data-focus='soprano'] { --fc: var(--lnc-c1); } .lnc-film[data-focus='tenor'] { --fc: var(--lnc-c3); } .lnc-film[data-focus='bass'] { --fc: var(--lnc-c4); }
+.lnc-pin { position: sticky; top: 0; height: 100svh; overflow: hidden; }
+.lnc-sky { position: absolute; inset: 0; pointer-events: none; background:
+    radial-gradient(60vw 46svh at 8% -6%, color-mix(in srgb, var(--lnc-c1) calc(var(--lnc-glow) * 34%), transparent), transparent 70%),
+    radial-gradient(50vw 50svh at 104% 30%, color-mix(in srgb, var(--lnc-c4) calc(var(--lnc-glow) * 40%), transparent), transparent 70%),
+    radial-gradient(70vw 40svh at 50% 112%, color-mix(in srgb, var(--lnc-c3) calc(var(--lnc-glow) * 36%), transparent), transparent 72%),
+    radial-gradient(40vw 30svh at 78% -8%, color-mix(in srgb, var(--lnc-c2) calc(var(--lnc-glow) * 22%), transparent), transparent 70%); }
+.lnc-pin::after { content: ''; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 22svh -4svh var(--lnc-rec); opacity: 0; transition: opacity var(--lnc-move); }
+.lnc-film[data-scene='3'] .lnc-pin::after { opacity: 0.5; }
+
+.lnc-cap { position: relative; z-index: 4; min-height: 100svh; pointer-events: none; }
+.lnc-cap > *, .lnc-cap-in > * { pointer-events: auto; }
+.lnc-cap-0 { margin-top: -100svh; }
+.lnc h1, .lnc h2 { font-weight: 800; letter-spacing: -0.04em; line-height: 0.95; text-wrap: balance; }
+.lnc h1 { font-size: clamp(50px, 9vw, 158px); position: absolute; left: var(--lnc-pad); top: 13.5svh; }
+.lnc h1 em, .lnc h2 em { display: block; }
+.lnc h2 { font-size: clamp(34px, 5.6vw, 96px); }
+.lnc-cap-side { position: absolute; right: var(--lnc-pad); top: 17svh; width: min(25em, 30vw); display: grid; gap: 2.4svh; justify-items: start; }
+.lnc-lead { color: var(--lnc-muted); font-size: clamp(17px, 1.5vw, 23px); }
+.lnc-hint { position: absolute; right: calc(var(--lnc-pad) + 3vw); top: 36.5svh; }
+.lnc-credit { position: absolute; left: var(--lnc-pad); bottom: 2.6svh; max-width: 44vw; font-weight: 500; font-size: 13px; }
+.lnc-cue { position: absolute; left: 0; right: 0; bottom: 2.6svh; text-align: center; letter-spacing: 0.04em; pointer-events: none !important; }
+.lnc-cue::after { content: ' ↓'; }
+.lnc-film[data-played] .lnc-cue, .lnc-film[data-played] .lnc-credit { visibility: hidden; }
+.lnc-cap-in { position: sticky; top: 0; padding: 13svh var(--lnc-pad) 0; max-width: 62vw; }
+.lnc-kick { font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--lnc-muted); margin-bottom: 1.6svh; }
+.lnc-kick b { color: var(--lnc-ink); font-size: 1.35em; letter-spacing: 0.02em; margin-right: 0.5em; }
+.lnc-body { color: var(--lnc-muted); font-size: clamp(16.5px, 1.45vw, 22px); max-width: 27em; margin-top: 2svh; }
+.lnc-seg { display: inline-flex; margin-top: 3svh; padding: 5px; border-radius: 999px; }
+.lnc-seg span { height: 40px; padding: 0 20px; display: grid; place-items: center; border-radius: 999px; font-weight: 700; font-size: 15px; color: var(--lnc-muted); white-space: nowrap; }
+.lnc-seg .lnc-on { background: var(--fc); color: var(--lnc-gem-ink); }
+.lnc-recdot { display: inline-flex; align-items: center; gap: 9px; height: 46px; padding: 0 20px; border-radius: 999px; font-weight: 800; color: #fff; background: #c62828; box-shadow: 0 0 0 6px #c6282833, 0 0 40px #c6282888; }
+.lnc-recdot b { width: 11px; height: 11px; border-radius: 50%; background: #fff; }
+/* A caption shows while its scene is the stage's (with the script); without it, every caption simply reads. */
+.lnc-film[data-lnc-live] .lnc-cap-step .lnc-cap-in { opacity: 0; translate: 0 3svh; transition: opacity 0.45s, translate var(--lnc-move) var(--lnc-ease); }
+.lnc-film[data-lnc-live][data-scene='1'] [data-lnc-scene='1'] .lnc-cap-in, .lnc-film[data-lnc-live][data-scene='2'] [data-lnc-scene='2'] .lnc-cap-in,
+.lnc-film[data-lnc-live][data-scene='3'] [data-lnc-scene='3'] .lnc-cap-in, .lnc-film[data-lnc-live][data-scene='4'] [data-lnc-scene='4'] .lnc-cap-in { opacity: 1; translate: 0; }
+.lnc-film[data-lnc-live] .lnc-cap-0 > * { transition: opacity 0.45s; }
+.lnc-film[data-lnc-live]:not([data-scene='0']) .lnc-cap-0 > * { opacity: 0; pointer-events: none; }
+
+/* The lanes */
+.lnc-lanes { position: absolute; z-index: 2; left: 0; width: 100vw; top: 42.5svh; display: flex; flex-direction: column; gap: 0.7svh; transform-origin: 0 50%; transform: perspective(1500px) rotateY(-7deg) scale(1.06); transition: top var(--lnc-move) var(--lnc-ease), left var(--lnc-move) var(--lnc-ease), width var(--lnc-move) var(--lnc-ease), transform var(--lnc-move) var(--lnc-ease), gap var(--lnc-move) var(--lnc-ease); }
+.lnc-playhead { position: absolute; z-index: 5; top: -2.5svh; bottom: -2.5svh; left: var(--ph); width: 2px; pointer-events: none; background: linear-gradient(180deg, transparent, var(--lnc-c1) 12%, var(--lnc-c1) 88%, transparent); box-shadow: 0 0 18px 3px color-mix(in srgb, var(--lnc-c1) 75%, transparent); transition: opacity 0.4s; }
+.lnc-lane { position: relative; flex: none; height: var(--lane-h); width: 100%; overflow: hidden; border-block: 1px solid color-mix(in srgb, var(--c) 36%, transparent); border-radius: 0;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--c) calc(var(--lnc-band) * 1.5), transparent), color-mix(in srgb, var(--c) var(--lnc-band), transparent) 45%, color-mix(in srgb, var(--c) calc(var(--lnc-band) * 0.3), transparent));
+    transition: height var(--lnc-move) var(--lnc-ease), width var(--lnc-move) var(--lnc-ease), opacity 0.5s, filter 0.5s, border-radius var(--lnc-move), box-shadow 0.5s, background-color 0.5s; }
+.lnc-tap { position: absolute; inset: 0; z-index: 1; width: 100%; }
+.lnc-tap:focus-visible { outline-offset: -4px; border-radius: 0; }
+.lnc-lane-head { position: absolute; z-index: 2; left: var(--lnc-pad); top: 0.9svh; display: flex; align-items: center; gap: 9px; color: var(--c); pointer-events: none; white-space: nowrap; transition: opacity 0.4s; }
+.lnc-lane-head b { font-weight: 800; font-size: clamp(15px, 1.5vw, 23px); transition: font-size var(--lnc-move) var(--lnc-ease); }
+.lnc-you, .lnc-tag-alone, .lnc-tag-trace, .lnc-tag-take { display: none; }
+.lnc-tag { font: 500 12.5px ui-monospace, 'SF Mono', Menlo, monospace; color: var(--lnc-muted); }
+.lnc-lane[data-solo] .lnc-tag-alone { display: inline; } .lnc-lane[data-solo] .lnc-tag-real::after { content: ' ·'; }
+.lnc-meter { display: flex; align-items: center; gap: 2.5px; height: 16px; }
+.lnc-meter u { width: 3px; height: 5px; border-radius: 2px; background: currentColor; opacity: 0.85; }
+.lnc-film[data-playing] .lnc-lane:not([data-off]) .lnc-meter u { animation: lnc-meter 0.9s ease-in-out infinite alternate; }
+.lnc-meter u:nth-child(2) { animation-delay: -0.3s !important; } .lnc-meter u:nth-child(3) { animation-delay: -0.6s !important; } .lnc-meter u:nth-child(4) { animation-delay: -0.15s !important; }
+@keyframes lnc-meter { from { height: 4px; } to { height: 15px; } }
+.lnc-track { position: absolute; left: 0; top: var(--head); bottom: 1.2svh; width: calc(var(--beats) * var(--ppb)); pointer-events: none; transform: translate3d(calc(var(--ph) - var(--p, 0) * var(--beats) * var(--ppb)), 0, 0); transition: opacity 0.4s, top var(--lnc-move) var(--lnc-ease); }
+.lnc-gem { position: absolute; left: calc(var(--b) * var(--ppb)); width: calc(var(--l) * var(--ppb) - 0.45vw); top: calc(var(--y) * (100% - var(--gem-h))); height: var(--gem-h); min-height: 18px;
+    display: grid; place-items: center; overflow: hidden; border-radius: 999px; font: 800 clamp(11px, calc(var(--gem-h) * 0.48), 30px)/1 Figtree, system-ui, sans-serif; font-style: normal; color: var(--lnc-gem-ink); white-space: nowrap;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--c) 55%, #fff) 0%, var(--c) 48%, color-mix(in srgb, var(--c) 72%, #000) 100%);
+    box-shadow: inset 0 1px 0 #fffb, inset 0 -0.4svh 0.6svh #0003, 0 0.5svh 1.4svh color-mix(in srgb, var(--c) 35%, #0008);
+    transition: left var(--lnc-move) var(--lnc-ease), width var(--lnc-move) var(--lnc-ease), height var(--lnc-move) var(--lnc-ease), top var(--lnc-move) var(--lnc-ease), font-size var(--lnc-move) var(--lnc-ease), opacity 0.25s; }
+.lnc-gem::before { content: ''; position: absolute; left: 6%; right: 28%; top: 9%; height: 32%; border-radius: 999px; background: linear-gradient(180deg, #ffffffc4, #fff0); }
+.lnc-gem[data-sung] { opacity: 0.42; }
+.lnc-gem[data-lit] { overflow: visible; z-index: 2; box-shadow: inset 0 1px 0 #fff, 0 0 0 2px #fff, 0 0 2.4svh 0.8svh color-mix(in srgb, var(--c) 85%, transparent), 0 0 8svh 2svh color-mix(in srgb, var(--c) 40%, transparent); }
+:root[data-theme$='-light'] .lnc-gem[data-lit] { box-shadow: inset 0 1px 0 #fff8, 0 0 0 2px var(--lnc-ink), 0 0 3svh 0.6svh color-mix(in srgb, var(--c) 60%, transparent); }
+.lnc-trace { position: absolute; z-index: 3; pointer-events: none; left: calc(var(--ph) - 5.5 * var(--ppb)); width: calc(5.5 * var(--ppb)); top: calc(var(--head) + var(--gem-h) / 2); bottom: calc(1.2svh + var(--gem-h) / 2); overflow: hidden; opacity: 0; transition: opacity 0.5s; -webkit-mask-image: linear-gradient(90deg, transparent, #000 30%); mask-image: linear-gradient(90deg, transparent, #000 30%); }
+.lnc-trace svg { position: absolute; top: 0; height: 100%; overflow: visible; width: calc(var(--beats) * var(--ppb)); left: calc(5.5 * var(--ppb) - var(--p, 0) * var(--beats) * var(--ppb)); }
+.lnc-trace path { fill: none; stroke: var(--lnc-ink); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.lnc-mine { position: absolute; z-index: 3; right: var(--lnc-pad); top: 50%; translate: 0 -50%; min-height: 36px; padding: 0 15px; border-radius: 999px; border: 1.5px solid var(--c) !important; color: var(--c) !important; background: var(--lnc-veil) !important; font-size: 13.5px !important; font-weight: 700 !important; white-space: nowrap; transition: opacity 0.4s; }
+.lnc-mine::after { content: ''; position: absolute; inset: -6px; }
+.lnc-mine-on { display: none; }
+.lnc-lane.s-is-you .lnc-mine { background: var(--c) !important; color: var(--lnc-gem-ink) !important; }
+.lnc-lane.s-is-you .lnc-mine-on { display: inline; } .lnc-lane.s-is-you .lnc-mine-off { display: none; }
+/* A voice heard alone: its lane lit, the others quiet. Never by colour alone: the lane says "heard alone". */
+.lnc-lane[data-solo] { border-color: var(--c); box-shadow: inset 0 0 12svh -4svh color-mix(in srgb, var(--c) 50%, transparent); }
+.lnc-lanes:has([data-solo]) .lnc-lane:not([data-solo]) .lnc-track, .lnc-lanes:has([data-solo]) .lnc-lane:not([data-solo]) .lnc-lane-head { opacity: 0.32; }
+
+/* Scenes 1 to 3: the camera moves in on one lane; the others fall back. */
+.lnc-film:is([data-scene='1'], [data-scene='2'], [data-scene='3']) .lnc-lanes { transform: none; top: 53svh; }
+.lnc-film:is([data-scene='1'], [data-scene='2']) .lnc-lane:not(.lnc-is-focus) { --lane-h: 3.4svh; --gem-h: 1.5svh; --head: 0.9svh; opacity: 0.55; filter: saturate(0.8); }
+.lnc-film:is([data-scene='1'], [data-scene='2'], [data-scene='3']) .lnc-lane:not(.lnc-is-focus) :is(.lnc-lane-head, .lnc-mine) { opacity: 0; pointer-events: none; }
+.lnc-film:is([data-scene='1'], [data-scene='2'], [data-scene='3']) .lnc-lane:not(.lnc-is-focus) .lnc-gem { min-height: 0; font-size: 0; box-shadow: none; }
+.lnc-film:is([data-scene='1'], [data-scene='2'], [data-scene='3']) .lnc-lane:not(.lnc-is-focus) .lnc-gem::before { display: none; }
+.lnc-film:is([data-scene='1'], [data-scene='2'], [data-scene='3']) .lnc-is-focus { --lane-h: 24svh; --gem-h: 5.8svh; --ppb: 9.6vw; --head: 6svh; border-color: var(--c); margin-block: 1svh;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--c) calc(var(--lnc-band) * 2.6), transparent), color-mix(in srgb, var(--c) calc(var(--lnc-band) * 1.6), transparent) 50%, color-mix(in srgb, var(--c) calc(var(--lnc-band) * 0.8), transparent));
+    box-shadow: 0 0 14svh -2svh color-mix(in srgb, var(--c) 55%, transparent), inset 0 0 12svh -4svh color-mix(in srgb, var(--c) 50%, transparent); }
+.lnc-film:is([data-scene='1'], [data-scene='2'], [data-scene='3']) .lnc-is-focus .lnc-lane-head { top: 1.4svh; }
+.lnc-film:is([data-scene='1'], [data-scene='2'], [data-scene='3']) .lnc-is-focus .lnc-lane-head b { font-size: clamp(20px, 2.2vw, 34px); }
+.lnc-film:is([data-scene='2'], [data-scene='3']) .lnc-is-focus .lnc-trace { opacity: 1; }
+.lnc-film[data-scene='2'] .lnc-is-focus .lnc-tag-trace { display: inline; } .lnc-film[data-scene='2'] .lnc-is-focus .lnc-tag-real { display: none; }
+.lnc-film[data-scene='3'] .lnc-lanes { top: 54svh; }
+.lnc-film[data-scene='3'] .lnc-is-focus { --lane-h: 19svh; }
+.lnc-film[data-scene='3'] .lnc-lane:not(.lnc-is-focus) { --lane-h: 4.6svh; --gem-h: 2svh; --head: 1.4svh; opacity: 0.9; }
+.lnc-film[data-scene='3'] .lnc-is-focus :is(.lnc-name, .lnc-tag-real, .lnc-tag-alone) { display: none; }
+.lnc-film[data-scene='3'] .lnc-is-focus :is(.lnc-you, .lnc-tag-take) { display: inline; }
+.lnc-film:is([data-scene='2'], [data-scene='3'], [data-scene='4']) .lnc-mine { opacity: 0; pointer-events: none; }
+
+/* Scene 4: the notes gather into the four bars. */
+.lnc-film[data-scene='4'] .lnc-lanes { left: 52vw; width: 40vw; top: 24svh; gap: 2.6svh; transform: perspective(1200px) rotateY(-14deg) rotateX(4deg); }
+.lnc-film[data-scene='4'] .lnc-lane { --lane-h: 6.4svh; width: var(--w); border: 0; border-radius: 999px; background: linear-gradient(180deg, color-mix(in srgb, var(--c) 55%, #fff), var(--c) 48%, color-mix(in srgb, var(--c) 72%, #000)); box-shadow: inset 0 2px 0 #fffb, inset 0 -1svh 1.4svh #0003, 0 0 9svh 0.5svh color-mix(in srgb, var(--c) 60%, transparent); }
+.lnc-film[data-scene='4'] :is(.lnc-track, .lnc-lane-head, .lnc-playhead, .lnc-trace) { opacity: 0; }
+.lnc-film[data-scene='4'] .lnc-tap { pointer-events: none; }
+.lnc-sharecard { position: absolute; z-index: 3; right: 10vw; bottom: 17svh; width: min(380px, 30vw); border-radius: 26px; padding: 22px; display: grid; gap: 14px; opacity: 0; translate: 0 4svh; pointer-events: none; transition: opacity 0.5s, translate var(--lnc-move) var(--lnc-ease); }
+.lnc-film[data-scene='4'] .lnc-sharecard { opacity: 1; translate: 0; }
+.lnc-sharecard p { display: grid; } .lnc-sharecard p b { font-weight: 800; font-size: 21px; } .lnc-sharecard p span { color: var(--lnc-muted); font-size: 14.5px; }
+.lnc-who { display: flex; gap: 8px; } .lnc-who .lnc-bubble { width: 40px; height: 40px; font-size: 15px; }
+.lnc-sharebtns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.lnc-sharebtns span { display: flex; align-items: center; justify-content: center; gap: 7px; height: 42px; border-radius: 999px; background: var(--lnc-solid); color: var(--lnc-solid-ink); font-weight: 700; font-size: 14px; white-space: nowrap; }
+.lnc-sharebtns span + span { background: none; color: var(--lnc-ink); box-shadow: inset 0 0 0 1.5px var(--lnc-glass-line); }
+
+/* Bubbles: a circle that stands for a thing (a voice, a lesson, a singer's initials). */
+.lnc-bubble { display: grid; place-items: center; border-radius: 50%; font-style: normal; font-weight: 800; color: var(--lnc-gem-ink);
+    background: radial-gradient(circle at 50% 12%, color-mix(in srgb, var(--c) 45%, #fff) 0 18%, var(--c) 58%, color-mix(in srgb, var(--c) 70%, #000)); box-shadow: inset 0 1px 0 #fff9, inset 0 -3px 6px #0004, 0 3px 10px color-mix(in srgb, var(--c) 45%, transparent); }
+
+/* The dock. Before a press, on the opening scene, it is only Play, large, on the playhead; after, the song's bar. */
+.lnc-dock { position: fixed; z-index: 20; left: 50%; bottom: max(2.4svh, env(safe-area-inset-bottom)); translate: -50% 0; display: none; align-items: center; gap: 12px; height: 62px; padding: 0 8px; border-radius: 999px; white-space: nowrap; }
+.lnc-film[data-ready] .lnc-dock { display: flex; }
+.lnc-play { display: flex; align-items: center; gap: 12px; border-radius: 999px; text-align: left; }
+.lnc-play-disc { position: relative; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: var(--lnc-solid); color: var(--lnc-solid-ink); flex: none; }
+.lnc-play-disc svg { width: 20px; height: 20px; }
+.lnc-i-stop { display: none; }
+.lnc-film[data-playing] .lnc-i-stop { display: block; } .lnc-film[data-playing] .lnc-i-play { display: none; }
+.lnc-play[aria-busy='true'] .lnc-play-disc::after { content: ''; position: absolute; inset: -5px; border-radius: 50%; border: 3px solid transparent; border-top-color: var(--lnc-em); animation: lnc-spin 0.8s linear infinite; }
+@keyframes lnc-spin { to { rotate: 360deg; } }
+.lnc-play-lbl { display: none; }
+.lnc .s-play-hint { position: absolute; left: 50%; bottom: calc(100% + 10px); translate: -50% 0; font-size: 13px; font-weight: 600; color: var(--lnc-muted); white-space: nowrap; }
+.lnc .s-play-hint:empty { display: none; }
+.lnc-time { font-variant-numeric: tabular-nums; font-size: 14.5px; font-weight: 600; color: var(--lnc-muted); min-width: 6.6em; }
+.lnc-chips { display: flex; gap: 2px; padding-left: 10px; border-left: 1px solid var(--lnc-glass-line); }
+.lnc-chip { display: inline-flex; align-items: center; gap: 7px; height: 46px; padding: 0 12px 0 6px; border-radius: 999px; font-size: 14.5px; font-weight: 700; transition: opacity 0.3s, background-color 0.3s; }
+.lnc-chip i { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: 13px; font-weight: 800; color: var(--lnc-gem-ink);
+    background: radial-gradient(circle at 50% 12%, color-mix(in srgb, var(--c) 45%, #fff) 0 18%, var(--c) 58%, color-mix(in srgb, var(--c) 70%, #000)); box-shadow: inset 0 1px 0 #fff9, inset 0 -3px 6px #0004; }
+.lnc-chip[aria-pressed='true'] { background: color-mix(in srgb, var(--c) 24%, transparent); box-shadow: inset 0 0 0 2px var(--c); }
+.lnc-chips:has([aria-pressed='true']) .lnc-chip[aria-pressed='false'] { opacity: 0.5; }
+.lnc-go { display: inline-flex; align-items: center; gap: 8px; height: 46px; padding: 0 20px; border-radius: 999px; font-weight: 800; font-size: 15px; margin-left: 4px; }
+/* Play, large, on the playhead. */
+.lnc-film[data-scene='0']:not([data-played]) .lnc-dock { background: none; border-color: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; left: var(--ph); bottom: auto; top: calc(42.5svh + 29.6svh); translate: calc(-100% + 6.5svh) -50%; height: auto; padding: 0; }
+.lnc-film[data-scene='0']:not([data-played]) :is(.lnc-time, .lnc-chips, .lnc-go) { display: none; }
+.lnc-film[data-scene='0']:not([data-played]) .lnc-play { flex-direction: row-reverse; gap: 16px; text-align: right; }
+.lnc-film[data-scene='0']:not([data-played]) .lnc-play-disc { width: 13svh; height: 13svh; min-width: 84px; min-height: 84px;
+    background: radial-gradient(circle at 50% 10%, #fff 0 12%, var(--lnc-solid) 55%, color-mix(in srgb, var(--lnc-solid) 78%, #000));
+    box-shadow: inset 0 2px 0 #fff, inset 0 -8px 16px #0003, 0 14px 44px var(--lnc-shadow), 0 0 0 1.4svh color-mix(in srgb, var(--lnc-solid) 16%, transparent), 0 0 0 3.4svh color-mix(in srgb, var(--lnc-solid) 7%, transparent), 0 0 12svh 2svh color-mix(in srgb, var(--lnc-c1) 45%, transparent);
+    animation: lnc-breathe 2.6s ease-in-out infinite; }
+:root[data-theme$='-light'] .lnc-film[data-scene='0']:not([data-played]) .lnc-play-disc { background: radial-gradient(circle at 50% 10%, #5a524a 0 12%, var(--lnc-solid) 55%, #000); }
+.lnc-film[data-scene='0']:not([data-played]) .lnc-play-disc svg { width: 5svh; height: 5svh; min-width: 30px; min-height: 30px; }
+@keyframes lnc-breathe { 50% { scale: 1.045; } }
+.lnc-film[data-scene='0']:not([data-played]) .lnc-play-lbl { display: grid; padding: 9px 14px; border-radius: 16px; max-width: 12.5vw; white-space: normal; background: var(--lnc-veil); }
+.lnc-play-lbl b { font-weight: 800; font-size: clamp(15px, 1.35vw, 21px); line-height: 1.15; }
+.lnc-play-lbl small { font-size: 12.5px; font-weight: 600; color: var(--lnc-muted); margin-top: 3px; }
+
+/* The sung line, large, over the dock while it plays. */
+.lnc-words { position: fixed; z-index: 19; left: 0; right: 0; bottom: calc(max(2.4svh, env(safe-area-inset-bottom)) + 74px); text-align: center; pointer-events: none; font-weight: 800; font-size: clamp(22px, 3vw, 46px); line-height: 1.1; letter-spacing: -0.02em; color: color-mix(in srgb, var(--lnc-ink) 45%, transparent); text-shadow: 0 2px 18px var(--lnc-bg), 0 0 4px var(--lnc-bg); }
+.lnc-line { display: none; }
+.lnc-film[data-playing] .lnc-line:has([data-lit]) { display: block; }
+.lnc-words [data-sung] { color: var(--lnc-ink); }
+.lnc-words [data-lit] { color: var(--lnc-ink); text-decoration: underline; text-decoration-color: var(--lnc-em); text-decoration-thickness: 0.09em; text-underline-offset: 0.16em; }
+
+/* Scenes 5 to 7: each its own screen. */
+.lnc-scene { position: relative; z-index: 5; min-height: 100svh; overflow: hidden; background: var(--lnc-bg); padding: 15svh var(--lnc-pad) 16svh; }
+.lnc-scene-in { position: relative; z-index: 2; max-width: 60vw; }
+.lnc-path { position: absolute; z-index: 1; list-style: none; right: 6vw; top: 14svh; width: 44vw; height: 56svh; }
+.lnc-path li { position: absolute; left: calc(var(--i) * 14.2%); bottom: calc(var(--i) * 11% + var(--i) * var(--i) * 0.4%); }
+.lnc-path .lnc-bubble { width: calc(7svh + var(--i) * 0.9svh); height: calc(7svh + var(--i) * 0.9svh); font-size: 2.6svh; opacity: 0.42; }
+.lnc-path li:first-child .lnc-bubble { opacity: 1; box-shadow: inset 0 1px 0 #fff9, 0 0 0 6px color-mix(in srgb, var(--c) 30%, transparent), 0 0 9svh 1svh color-mix(in srgb, var(--c) 70%, transparent); }
+.lnc-facts { position: absolute; z-index: 2; left: var(--lnc-pad); right: var(--lnc-pad); bottom: 14svh; list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); border-radius: 26px; overflow: hidden; }
+.lnc-facts li + li { border-left: 1px solid var(--lnc-glass-line); }
+.lnc-facts a { display: flex; align-items: baseline; gap: 12px; padding: 2.2svh 2vw; color: var(--lnc-muted) !important; font-weight: 600; }
+.lnc-facts a:hover { color: var(--lnc-ink) !important; }
+.lnc-facts b { font-weight: 800; font-size: clamp(28px, 3.6vw, 60px); line-height: 1; color: var(--lnc-ink); letter-spacing: -0.03em; }
+.lnc-choir .lnc-scene-in { max-width: 42vw; }
+.lnc-choir h2 { font-size: clamp(32px, 4.6vw, 80px); }
+.lnc-board { position: absolute; z-index: 1; right: 0; top: 17svh; width: 50vw; }
+.lnc-board ul { list-style: none; display: grid; gap: 0.8svh; }
+.lnc-board li { min-height: 13svh; display: flex; align-items: center; gap: 1.4vw; padding: 0 var(--lnc-pad) 0 2vw; border: 1px solid color-mix(in srgb, var(--c) 40%, transparent); border-right: 0; border-radius: 3svh 0 0 3svh; background: linear-gradient(90deg, color-mix(in srgb, var(--c) calc(var(--lnc-band) * 2), transparent), color-mix(in srgb, var(--c) calc(var(--lnc-band) * 0.6), transparent)); }
+.lnc-board li > b { font-weight: 800; font-size: clamp(17px, 1.9vw, 28px); color: var(--c); width: 7.5vw; min-width: 76px; }
+.lnc-board .lnc-bubble { width: 6svh; height: 6svh; min-width: 34px; min-height: 34px; font-size: clamp(11px, 1.9svh, 17px); flex: none; }
+.lnc-who-name { font-weight: 700; } .lnc-st { margin-left: auto; color: var(--lnc-muted); font-weight: 600; white-space: nowrap; }
+.lnc-board figcaption { padding: 1.4svh var(--lnc-pad) 0 2vw; color: var(--lnc-muted); font-size: 13.5px; }
+.lnc-close { display: grid; align-content: center; justify-items: center; text-align: center; gap: 2.4svh; padding-bottom: 20svh; }
+.lnc-close > * { position: relative; z-index: 2; }
+.lnc-bars { display: grid; gap: 1.4svh; width: min(300px, 42vw); margin-bottom: 2svh; }
+.lnc-bars b { display: block; position: relative; width: var(--w); height: 3.2svh; border-radius: 999px; background: linear-gradient(180deg, color-mix(in srgb, var(--c) 55%, #fff), var(--c) 48%, color-mix(in srgb, var(--c) 72%, #000)); box-shadow: inset 0 2px 0 #fffb, inset 0 -1svh 1.4svh #0003, 0 0 9svh 0.5svh color-mix(in srgb, var(--c) 60%, transparent); }
+.lnc-close h2 { max-width: 14em; font-size: clamp(32px, 5.4vw, 92px); }
+.lnc-cta { display: inline-flex; align-items: center; gap: 12px; min-height: 68px; padding: 0 40px; border-radius: 999px; font-weight: 800; font-size: 21px; white-space: nowrap; box-shadow: 0 0 0 8px color-mix(in srgb, var(--lnc-solid) 14%, transparent), 0 20px 60px -10px color-mix(in srgb, var(--lnc-c1) 60%, transparent); margin-top: 1svh; }
+.lnc-close .lnc-body { margin: 0; }
+.lnc-plans { color: var(--lnc-muted); font-weight: 600; }
+.lnc-plans a { display: inline-flex; align-items: center; gap: 4px; color: var(--lnc-ink) !important; font-weight: 800; text-decoration: underline !important; text-underline-offset: 4px; }
+.lnc-ways { position: absolute !important; left: 0; right: 0; bottom: 12.5svh; display: flex; justify-content: center; flex-wrap: wrap; gap: 0 8px; color: var(--lnc-muted); font-weight: 600; font-size: 15px; padding: 0 16px; }
+.lnc-ways a { padding: 12px 10px; } .lnc-ways a:hover { color: var(--lnc-ink); }
+
+/* The rail */
+.lnc-rail { position: fixed; z-index: 21; right: max(6px, 1.2vw); top: 50%; translate: 0 -50%; display: grid; }
+.lnc-rail a { width: 24px; height: 22px; display: grid; place-items: center; }
+.lnc-rail a::before { content: ''; width: 6px; height: 6px; border-radius: 999px; background: color-mix(in srgb, var(--lnc-ink) 34%, transparent); transition: height 0.3s, background-color 0.3s; }
+.lnc-rail a[aria-current]::before { height: 20px; background: var(--lnc-ink); }
+
+/* A phone: the lanes flat and full width, fewer beats in view, bigger notes; Play a full-width bar under the lanes. */
+@media (max-width: 720px) {
+    .lnc-film { --ph: 26vw; --ppb: 13vw; --lane-h: 9.6svh; --gem-h: 3.1svh; --head: 3.6svh; }
+    .lnc-top { height: 52px; padding: 0 6px 0 12px; gap: 6px; top: 8px; }
+    .lnc-logo span { display: none; }
+    .lnc-nav { position: absolute; left: 0; right: 0; top: calc(100% + 6px); max-width: none; justify-content: space-between; padding: 0 6px; border-radius: 999px; background: var(--lnc-veil); font-size: 14.5px; }
+    .lnc-nav a { padding: 9px 8px; color: var(--lnc-ink); }
+    .lnc-open { padding: 0 14px; font-size: 14px; }
+    .lnc-top[data-lnc-top='down']:not(:focus-within) { width: 150px; }
+    .lnc h1 { font-size: 14.5vw; top: 15svh; } .lnc h2 { font-size: 10.6vw; } .lnc-choir h2 { font-size: 9.4vw; }
+    .lnc-cap-side { left: 16px; right: 16px; top: calc(15svh + 29vw); width: auto; gap: 1.4svh; }
+    .lnc-lead { font-size: 16px; line-height: 1.4; } .lnc-cap-side .lnc-btn { min-height: 44px; }
+    .lnc-hint { top: auto; bottom: calc(100svh - 45.6svh + 6px); font-size: 13px; }
+    .lnc-lanes { top: 46svh; transform: none; }
+    .lnc-lane-head { top: 0.5svh; } .lnc-tag { display: none; font-size: 11.5px; }
+    .lnc-lane[data-solo] .lnc-tag-alone { display: inline; } .lnc-lane[data-solo] .lnc-tag-real::after { content: none; }
+    .lnc-mine { top: 5px; translate: none; right: 8px; min-height: 30px; padding: 0 11px; font-size: 12.5px !important; }
+    .lnc-credit { left: 16px; right: 16px; max-width: none; bottom: 0.8svh; font-size: 11.5px; line-height: 1.3; text-align: center; }
+    .lnc-cue, .lnc-rail { display: none; }
+    .lnc-cap-in { max-width: none; padding-top: 16.5svh; } .lnc-body { font-size: 16px; margin-top: 1.2svh; } .lnc-row, .lnc-seg { margin-top: 1.6svh; } .lnc-note { display: none; }
+    .lnc-film:is([data-scene='1'], [data-scene='2'], [data-scene='3']) .lnc-lanes { top: 55svh; }
+    .lnc-film:is([data-scene='1'], [data-scene='2'], [data-scene='3']) .lnc-is-focus { --lane-h: 18svh; --ppb: 20vw; --gem-h: 4.6svh; --head: 5svh; }
+    .lnc-film[data-scene='3'] .lnc-lanes { top: 56svh; } .lnc-film[data-scene='3'] .lnc-is-focus { --lane-h: 14svh; } .lnc-film[data-scene='3'] .lnc-lane:not(.lnc-is-focus) { --lane-h: 3.8svh; }
+    .lnc-film[data-scene='2'] .lnc-is-focus .lnc-tag-trace, .lnc-film[data-scene='3'] .lnc-is-focus .lnc-tag-take { display: inline; }
+    .lnc-film[data-scene='4'] .lnc-lanes { left: 16px; width: calc(100vw - 32px); top: 46svh; gap: 1.6svh; transform: none; } .lnc-film[data-scene='4'] .lnc-lane { --lane-h: 3.6svh; }
+    .lnc-sharecard { left: 16px; right: 16px; width: auto; bottom: 12svh; padding: 14px; gap: 10px; grid-template-columns: 1fr auto; border-radius: 22px; } .lnc-sharebtns { grid-column: 1 / -1; } .lnc-who .lnc-bubble { width: 32px; height: 32px; font-size: 12px; }
+    .lnc-dock { left: 10px; right: 10px; translate: none; gap: 6px; justify-content: space-between; }
+    .lnc-go, .lnc-chip span { display: none; } .lnc-chips { padding-left: 6px; } .lnc-chip { padding: 0 4px; height: 48px; } .lnc-chip i { width: 38px; height: 38px; } .lnc-time { min-width: 0; font-size: 13.5px; }
+    .lnc-film[data-scene='0']:not([data-played]) .lnc-dock { left: 16px; right: 16px; top: auto; bottom: 6.4svh; translate: none; }
+    .lnc-film[data-scene='0']:not([data-played]) .lnc-play { flex-direction: row; text-align: left; width: 100%; gap: 12px; }
+    .lnc-film[data-scene='0']:not([data-played]) .lnc-play-disc { width: 60px; height: 60px; min-width: 60px; min-height: 60px; box-shadow: inset 0 2px 0 #fff, 0 0 0 7px color-mix(in srgb, var(--lnc-solid) 14%, transparent), 0 0 44px color-mix(in srgb, var(--lnc-c1) 50%, transparent); }
+    .lnc-film[data-scene='0']:not([data-played]) .lnc-play-disc svg { width: 24px; height: 24px; min-width: 0; min-height: 0; }
+    .lnc-film[data-scene='0']:not([data-played]) .lnc-play-lbl { flex: 1; max-width: none; padding: 9px 16px; } .lnc-play-lbl b { font-size: 18px; }
+    .lnc-words { font-size: 6vw; bottom: calc(max(2.4svh, env(safe-area-inset-bottom)) + 70px); }
+    .lnc-scene { padding: 17svh 16px 14svh; } .lnc-scene-in, .lnc-choir .lnc-scene-in { max-width: none; }
+    .lnc-path { position: relative; right: auto; top: auto; width: auto; height: 24svh; margin: 2svh 0 0; } .lnc-path .lnc-bubble { width: calc(4.4svh + var(--i) * 0.5svh); height: calc(4.4svh + var(--i) * 0.5svh); font-size: 1.8svh; }
+    .lnc-facts { position: relative; left: auto; right: auto; bottom: auto; margin-top: 2svh; border-radius: 20px; } .lnc-facts a { display: grid; gap: 2px; padding: 1.4svh 10px; font-size: 12.5px; line-height: 1.25; } .lnc-facts b { font-size: 7.4vw; }
+    .lnc-board { position: relative; right: auto; top: auto; width: auto; margin: 3svh -16px 0; } .lnc-board li { min-height: 8.6svh; border-radius: 0; border-left: 0; gap: 10px; padding: 0 16px; } .lnc-board li > b { width: 76px; font-size: 16px; } .lnc-who-name { font-size: 14.5px; } .lnc-st { font-size: 13px; } .lnc-board figcaption { padding: 1svh 16px 0; }
+    .lnc-close h2 { font-size: 10.2vw; } .lnc-cta { width: 100%; justify-content: center; min-height: 60px; } .lnc-ways { font-size: 13.5px; bottom: 11svh; } .lnc-ways a { padding: 10px 7px; }
+}
+
+/* Reduced motion: a calm still version. Nothing transitions or tilts; the notes stand still a line at a time (the
+   song's four lines of twelve beats) while the playhead crosses them; every control and word is the same. */
+@media (prefers-reduced-motion: reduce) {
+    html:has(.lnc) { scroll-behavior: auto; }
+    .lnc *, .lnc *::before, .lnc *::after { transition: none !important; animation: none !important; }
+    .lnc-lanes, .lnc-film[data-scene='4'] .lnc-lanes { transform: none; }
+    .lnc-film { --lines: 4; }
+    @supports (width: round(down, 1px, 1px)) {
+        .lnc-film { --page: round(down, calc(var(--p, 0) * var(--lines)), 1); --ph: 8vw; --ppb: calc(86vw / (var(--beats) / var(--lines))); }
+        .lnc-film:is([data-scene='1'], [data-scene='2'], [data-scene='3']) .lnc-is-focus { --ppb: calc(86vw / (var(--beats) / var(--lines))); }
+        .lnc-track { transform: translate3d(calc(var(--ph) - var(--page) / var(--lines) * var(--beats) * var(--ppb)), 0, 0); }
+        .lnc-playhead { left: calc(var(--ph) + (var(--p, 0) - var(--page) / var(--lines)) * var(--beats) * var(--ppb)); }
+        .lnc-trace { left: var(--ph); width: calc((var(--p, 0) - var(--page) / var(--lines)) * var(--beats) * var(--ppb)); -webkit-mask-image: none; mask-image: none; }
+        .lnc-trace svg { left: calc(0px - var(--page) / var(--lines) * var(--beats) * var(--ppb)); }
+        @media (min-width: 721px) { .lnc-film[data-scene='0']:not([data-played]) .lnc-dock { left: 30vw; } }
+    }
+}
+
+/* After the first look at the built page. */
+@media (min-width: 721px) {
+    .lnc-film[data-scene='0'] .lnc-mine { right: 13vw; }
+    /* Once it plays, the opening's lanes make room for the sung line and the dock. */
+    .lnc-film[data-scene='0'][data-played] { --lane-h: 9.6svh; --gem-h: 3svh; --head: 3.8svh; }
+    .lnc-film[data-scene='0'][data-played] .lnc-lanes { top: 40.5svh; }
+}
+/* The sung line shows on the opening scene only: in the story the lane's own notes carry the words, large. */
+.lnc:not([data-lnc-scene='0']) .lnc-words { display: none; }
+@media (max-width: 720px) {
+    .lnc-lanes { top: 45svh; }
+    .lnc-film[data-scene='0'][data-played] .lnc-hint { visibility: hidden; }
+}
+@media (max-width: 720px) {
+    .lnc-film[data-scene='0'][data-played] { --lane-h: 8.2svh; --gem-h: 2.9svh; --head: 3.3svh; }
+    .lnc-film[data-scene='0'][data-played] .lnc-lanes { top: 44svh; }
+    .lnc-words { font-size: 5.2vw; padding: 0 12px; }
+    .lnc-scene { padding: 15svh 16px 13svh; }
+    .lnc-board li { min-height: 7.6svh; }
+    .lnc-close { padding-bottom: 13svh; gap: 1.8svh; }
+    .lnc-ways { position: relative !important; bottom: auto; }
+}
+/* The second look: the pills inside the tilted lanes' near side, and room between the story's words and its lanes. */
+@media (min-width: 721px) {
+    .lnc-film[data-scene='0'] .lnc-mine { right: auto; left: 77vw; }
+    .lnc-cap-in { padding-top: 12svh; }
+    .lnc-film:is([data-scene='1'], [data-scene='2'], [data-scene='3']) .lnc-lanes { top: 55.5svh; }
+    .lnc-film:is([data-scene='1'], [data-scene='2']) .lnc-is-focus { --lane-h: 22svh; }
+    .lnc-film:is([data-scene='1'], [data-scene='2']) .lnc-lane:not(.lnc-is-focus) { --lane-h: 2.8svh; --gem-h: 1.3svh; --head: 0.75svh; }
+    .lnc-film[data-scene='3'] .lnc-is-focus { --lane-h: 18svh; }
+    .lnc-film[data-scene='3'] .lnc-lane:not(.lnc-is-focus) { --lane-h: 4.2svh; }
+}
+@media (max-width: 720px) {
+    .lnc-close { padding-top: 12svh; }
+    .lnc-close .lnc-bars { width: 34vw; gap: 1svh; margin-bottom: 0; } .lnc-close .lnc-bars b { height: 2.2svh; }
+    .lnc-close h2 { font-size: 9.2vw; }
+    .lnc-cta { min-height: 56px; margin-top: 0; }
+    .lnc-ways a { padding: 8px 7px; }
+}
