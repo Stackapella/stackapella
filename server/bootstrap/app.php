@@ -24,6 +24,7 @@ use App\Http\Controllers\Public\HarmonyPageController;
 use App\Http\Controllers\Public\IndexNowKeyController;
 use App\Http\Controllers\Public\InfoPagesController;
 use App\Http\Controllers\Public\IntegrationPagesController;
+use App\Http\Controllers\Public\LandingNextGrokController;
 use App\Http\Controllers\Public\LessonPagesController;
 use App\Http\Controllers\Public\OEmbedController;
 use App\Http\Controllers\Public\OpenSourcePagesController;
@@ -181,6 +182,8 @@ return Application::configure(basePath: dirname(__DIR__))
             // Each course's lesson pages (docs/seo-lesson-pages-plan.md); a lesson's or unit's id 301s to its page.
             Route::get('/courses/{course}/{page}', [LessonPagesController::class, 'show'])->where(['course' => '[a-z0-9-]{1,40}', 'page' => '[a-z0-9-]{1,80}'])->middleware(['nexus', 'throttle:public-pages'])->name('courses.lesson');
             Route::get('/pricing', [InfoPagesController::class, 'pricing'])->middleware(['nexus', 'throttle:public-pages'])->name('pricing.page');
+            // The combined landing's candidates (docs/landing-next-grok-plan.md): noindex, in no sitemap, linked from nowhere.
+            Route::get('/next-grok', [LandingNextGrokController::class, 'show'])->middleware(['nexus', 'throttle:public-pages'])->name('next-grok.page');
             Route::get('/help', [InfoPagesController::class, 'help'])->middleware('throttle:public-pages')->name('help.index');
             Route::get('/help/search-index.json', [InfoPagesController::class, 'helpSearch'])->middleware('throttle:public-pages')->name('help.search');
             Route::get('/help/{slug}', [InfoPagesController::class, 'helpPage'])->where('slug', '[a-z0-9-]{1,40}')->middleware('throttle:public-pages')->name('help.page');

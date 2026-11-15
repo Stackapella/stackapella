@@ -377,6 +377,9 @@
     "/js/public/voices.js",
     "/js/public/demo-player.js"
   ],
+  "/js/public/landing-next-grok.js": [
+    "/js/public/landing-next-grok.js"
+  ],
   "/js/public/lang-menu.js": [
     "/js/public/lang-menu.js"
   ],

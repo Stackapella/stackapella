@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Site;
 
 use App\Support\Http\Hosts;
+use App\Support\Languages\SiteLanguages;
 use Illuminate\Http\Request;
 
 /**
@@ -17,6 +18,12 @@ final class SiteVisit
 {
     /** Each section's kind is sv_<section> (config counts.kinds). */
     public const SECTIONS = ['home', 'courses', 'course', 'lesson', 'tools', 'songs', 'part', 'guides', 'other'];
+
+    /**
+     * Trial pages (a design Hillel is comparing), by path: each counts as its own kind, sv_<value>, and is no section,
+     * so the growth totals and comparisons (which read SECTIONS) never include it.
+     */
+    public const TRIALS = ['next-grok' => 'next_grok'];
 
     /** The section a public path belongs to (as Request::path() gives it: "/" for the home, else no leading slash). */
     public static function section(string $path): string
@@ -47,6 +54,8 @@ final class SiteVisit
             return null;
         }
 
-        return 'sv_'.self::section($request->path());
+        $path = trim(SiteLanguages::englishPath('/'.ltrim($request->path(), '/'), app()->getLocale()), '/');
+
+        return 'sv_'.(self::TRIALS[$path] ?? self::section($request->path()));
     }
 }

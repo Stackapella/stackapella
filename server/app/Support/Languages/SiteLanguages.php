@@ -19,6 +19,9 @@ use Illuminate\Routing\Router;
  */
 final class SiteLanguages
 {
+    /** Pages served in other languages but never announced: no hreflang (a trial page kept out of search). */
+    public const UNLISTED = ['next-grok'];
+
     /** @var array<string, array<string, string>>|null each language's page regexes by route name, from the English routes */
     private static ?array $patterns = null;
 
@@ -105,6 +108,10 @@ final class SiteLanguages
      */
     public static function alternatesOf(string $englishPath): array
     {
+        if (in_array(trim($englishPath, '/'), self::UNLISTED, true)) {
+            return [];
+        }
+
         $languages = array_values(array_filter(app(Languages::class)->offered(), static fn (string $language): bool => $language === 'en' || self::serves($language, $englishPath)));
 
         return count($languages) > 1 ? $languages : [];

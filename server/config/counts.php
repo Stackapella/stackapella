@@ -33,6 +33,8 @@ return [
         // Every public page's load by its section only (App\Support\Site\SiteVisit; the footer carries it, site.js
         // sends it): no source, no path beyond the section.
         'sv_home', 'sv_courses', 'sv_course', 'sv_lesson', 'sv_tools', 'sv_songs', 'sv_part', 'sv_guides', 'sv_other',
+        // A trial page's loads, each its own kind and never a section (SiteVisit::TRIALS): outside every growth total.
+        'sv_next_grok',
         // A song part page's player played, once a page load at its first play (js/public/song-part-page.js):
         // no song, no part, no path, so guest playing ("Yes, play for guests") can be read against sv_part.
         'part_play',
