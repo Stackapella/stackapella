@@ -103,3 +103,6 @@ refit();
 const watch = new ResizeObserver(refit);
 for (const button of buttons) if (button.previousElementSibling) watch.observe(button.previousElementSibling);
 addEventListener('resize', refit);
+// And when a font lands: a button beside it that fills its row by flex (a song's hero) keeps its size as game mode's
+// face arrives, while "Link copied" grows in it.
+document.fonts?.addEventListener('loadingdone', refit);

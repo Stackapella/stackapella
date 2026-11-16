@@ -60,7 +60,7 @@ return [
         // A school class code redeemed (docs/school-offer-plan.md), kept with where the device came
         // from, so an outreach organization's link can be seen to bring codes in.
         'school_redeemed',
-        'su_week', 'su_songs', 'su_unit', 'su_risk', 'su_groups', 'su_friends', 'su_voice', 'su_plus', 'su_template', 'su_sheet', 'su_settings', 'su_daily', 'su_school',
+        'su_week', 'su_songs', 'su_unit', 'su_risk', 'su_groups', 'su_friends', 'su_voice', 'su_plus', 'su_template', 'su_sheet', 'su_score', 'su_settings', 'su_daily', 'su_school',
         'ask_acct_week_not', 'ask_acct_songs_not', 'ask_acct_unit_not', 'ask_acct_risk_not', 'ask_acct_settings_not', 'ask_acct_course_not',
         // Sing the first phrase, then ask (Hillel, 2026-11-15): the phrase ask's Not now, and a guest who sang a
         // library song's first phrase to its end (its shown and yes are acct_phrase in the asks).

@@ -31,16 +31,8 @@ export const TIME_SIGNATURES = ['4/4', '3/4', '6/8', '2/4'];
 // Beats per bar lives in js/theory.js (no imports), so arrange.js reaches it without Vue.
 export { beatsPerBar } from './theory.js';
 
-const NOTES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
-
-/** "G" moved up 2 semitones is "A"; minor keys keep their "m". */
-export function transposeKey(key, semitones) {
-    if (!key || !semitones) return key;
-    const minor = key.endsWith('m');
-    const index = NOTES.indexOf(minor ? key.slice(0, -1) : key);
-    if (index < 0) return key;
-    return NOTES[(((index + semitones) % 12) + 12) % 12] + (minor ? 'm' : '');
-}
+// A key moved by semitones lives in js/staff-layout.js (no Vue), so the sheet music writers reach it from a public page.
+export { transposeKey } from './staff-layout.js';
 
 export function formatTime(seconds) {
     const s = Math.max(0, Math.floor(seconds));

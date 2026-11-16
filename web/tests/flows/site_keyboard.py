@@ -29,18 +29,20 @@ def journey(f):
     # The player asks for the song's recording on the media host, which a local server doesn't run.
     f.expected_errors.append("/media/song-audio/")
     f.go("/songs/amazing-grace", "document.querySelector('#song-mixer')?.hasAttribute('data-ready')")
+    # The part you sing comes first (the hero's left column): one stop, the arrows move the choice.
+    tab_to(f, "#song-mixer [data-pick]")
+    assert f.js("document.activeElement.getAttribute('aria-checked')") == "true", "focus lands on the part that's chosen"
+    f.press("ArrowDown")
+    assert f.js("document.activeElement.dataset.pick") == "alto" and f.js("document.activeElement.getAttribute('aria-checked')") == "true", "the arrows choose the next part"
+    assert "alto" in f.js("document.querySelector('[data-learn] [data-learn-label]').textContent").lower(), "Learn follows the pick"
+    # Then the card: Play, each staff's letter (a part alone), the bars, the full score and the downloads.
     tab_to(f, "#song-mixer [data-play]")
     tab_to(f, "#song-mixer [data-voice=soprano] [data-hear-alone]")
     f.press("Enter")
-    assert f.js("document.activeElement.getAttribute('aria-pressed')") == "true", "Enter hears the row alone, and says so"
+    assert f.js("document.activeElement.getAttribute('aria-pressed')") == "true", "Enter hears the staff alone, and says so"
     f.press("Enter")
     assert f.js("document.activeElement.getAttribute('aria-pressed')") == "false", "and Enter again brings every part back"
-    tab_to(f, "#song-mixer [data-pick]")
-    f.press(" ")
-    assert f.js("document.activeElement.getAttribute('aria-checked')") == "true", "Space picks the part"
-    f.press("ArrowDown")
-    assert f.js("document.activeElement.closest('[data-voice]').dataset.voice") == "alto", "the arrows move to the next part"
-    assert "alto" in f.js("document.querySelector('[data-learn] [data-learn-label]').textContent").lower(), "Learn follows the pick"
+    tab_to(f, "#song-mixer [data-score-file=pdf]")
     # The song's sources are named as sources, never a bare number.
     assert f.js("[...document.querySelectorAll('.s-cite a')].every((a) => /\\S/.test(a.getAttribute('aria-label') ?? ''))"), "a citation without a name"
     f.shot("song")

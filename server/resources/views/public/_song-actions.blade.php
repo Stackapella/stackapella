@@ -7,7 +7,7 @@
     @else
         <a href="{{ $song['startUrl'] }}" class="btn-primary btn-lg">{{ __('pages.song.start') }} <x-site.icon name="arrow" size="18" /></a>
     @endif
-    {{-- In the player's foot, Share is the smaller button so Learn keeps its words and arrow. --}}
-    @include('site._share', ['surface' => 'page-song', 'url' => $meta['url'], 'title' => $song['title'], 'lg' => $line === null])
+    {{-- Share stands as tall as Learn beside it (Hillel's design, 2026-11-16). --}}
+    @include('site._share', ['surface' => 'page-song', 'url' => $meta['url'], 'title' => $song['title'], 'lg' => true])
 </div>
 <p class="s-sg-note">{{ __('pages.song.start_note') }} {{ __('pages.song.unsure') }} <a href="/tools/vocal-range-test" class="s-lk">{{ __('pages.song.check_range') }}</a></p>

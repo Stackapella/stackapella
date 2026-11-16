@@ -1,0 +1,1800 @@
+{
+ "id": "greensleeves",
+ "version": 1,
+ "reviewed": true,
+ "title": "Greensleeves",
+ "description": "The English tune of the 1500s in its own old words, \"Alas, my love, you do me wrong\", for 2 to 4 singers: the first verse and the refrain, \"Greensleeves was all my joy\". The soprano sings the tune; the alto, tenor and bass sing the words beneath it on the harmony G. A. Macfarren wrote for it in the 1850s, the tenor moving mostly by step. Gentle and lilting, in a slow 6/8.",
+ "language": "en",
+ "difficulty": "beginner",
+ "genre": [
+  "folk"
+ ],
+ "style": "straight",
+ "tempo": 60,
+ "key": "F#m",
+ "timeSignature": "6/8",
+ "pickupBeats": 0.333333,
+ "credits": {
+  "words": "traditional (English, 16th century), as printed in William Chappell, Popular Music of the Olden Time (1855 to 1859)",
+  "tune": "traditional (English, 16th century)",
+  "arrangement": "Stackapella, on G. A. Macfarren's harmony (1855 to 1859)"
+ },
+ "licence": {
+  "words": "public domain: traditional, 16th century (the ballad licensed in 1580; printed by Chappell in the 1850s)",
+  "tune": "public domain: traditional, 16th century",
+  "arrangement": "original, written for Stackapella on G. A. Macfarren's piano harmony in Chappell's Popular Music of the Olden Time (public domain: published 1855 to 1859, Macfarren died 1887, Chappell 1888): the bass sings the piano's lowest note (an octave higher on \"company\", and the chord's third under \"sleeves was my\" in the last line), the alto and tenor are new, one note a syllable; the tune a whole tone higher, \"company\" in three syllables as Bridge prints it (1923), and breaths written in for beginners",
+  "recordings": "synthesized guides",
+  "checked": null,
+  "source": "William Chappell, Popular Music of the Olden Time, vol. 1 (London: Cramer, Beale & Chappell, [1859?]; issued in parts from 1855), \"Tune of Green Sleeves. Oldest copy.\", p. 230, the harmony by G. A. Macfarren, voice and piano in E minor: the tune, verse 1 and the refrain, and Macfarren's harmony, a whole tone higher in F sharp minor. University of Toronto (Robarts Library) copy, archive.org/details/popularmusicofol01chapuoft (page image 0262). The tune as sung today checked against Frederick Bridge, Shakespearean Music in the Plays and Early Operas (London and Toronto: J. M. Dent & Sons, 1923), \"Greensleeves (The generally accepted Version)\", p. 79, University of Victoria Libraries copy, archive.org/details/shakespeareanmus0000brid (page image 0099), whose \"com-pa-ny\" in three syllables is sung here; not a modern edition"
+ },
+ "order": [
+  "soprano",
+  "alto",
+  "bass",
+  "tenor"
+ ],
+ "voicings": {
+  "2": [
+   "soprano",
+   "alto"
+  ],
+  "3": [
+   "soprano",
+   "alto",
+   "bass"
+  ],
+  "4": [
+   "soprano",
+   "alto",
+   "tenor",
+   "bass"
+  ]
+ },
+ "sections": [
+  {
+   "name": "Verse 1",
+   "startBeat": 0,
+   "endBeat": 16.333333,
+   "phrases": [
+    [
+     0.0,
+     8.166667
+    ],
+    [
+     8.166667,
+     16.333333
+    ]
+   ]
+  },
+  {
+   "name": "Refrain",
+   "startBeat": 16.333333,
+   "endBeat": 32.0,
+   "phrases": [
+    [
+     16.333333,
+     24.333333
+    ],
+    [
+     24.333333,
+     32.0
+    ]
+   ]
+  }
+ ],
+ "chords": [
+  {
+   "beat": 0.0,
+   "root": 6,
+   "quality": "min",
+   "bass": null
+  },
+  {
+   "beat": 0.333333,
+   "root": 2,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 1.333333,
+   "root": 9,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 2.333333,
+   "root": 4,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 4.333333,
+   "root": 6,
+   "quality": "min",
+   "bass": null
+  },
+  {
+   "beat": 5.333333,
+   "root": 2,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 6.333333,
+   "root": 1,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 8.0,
+   "root": 6,
+   "quality": "min",
+   "bass": null
+  },
+  {
+   "beat": 8.333333,
+   "root": 2,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 9.333333,
+   "root": 9,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 10.333333,
+   "root": 4,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 12.333333,
+   "root": 6,
+   "quality": "min",
+   "bass": null
+  },
+  {
+   "beat": 13.333333,
+   "root": 1,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 14.333333,
+   "root": 6,
+   "quality": "min",
+   "bass": null
+  },
+  {
+   "beat": 16.333333,
+   "root": 1,
+   "quality": "min",
+   "bass": null
+  },
+  {
+   "beat": 17.333333,
+   "root": 9,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 18.333333,
+   "root": 4,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 20.333333,
+   "root": 6,
+   "quality": "min",
+   "bass": null
+  },
+  {
+   "beat": 21.333333,
+   "root": 2,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 22.333333,
+   "root": 1,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 24.333333,
+   "root": 1,
+   "quality": "min",
+   "bass": null
+  },
+  {
+   "beat": 25.333333,
+   "root": 9,
+   "quality": "maj",
+   "bass": 1
+  },
+  {
+   "beat": 26.333333,
+   "root": 4,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 28.333333,
+   "root": 6,
+   "quality": "min",
+   "bass": null
+  },
+  {
+   "beat": 29.333333,
+   "root": 1,
+   "quality": "maj",
+   "bass": null
+  },
+  {
+   "beat": 30.333333,
+   "root": 6,
+   "quality": "min",
+   "bass": null
+  }
+ ],
+ "parts": [
+  {
+   "key": "soprano",
+   "name": "Soprano",
+   "melody": true,
+   "range": {
+    "low": 61,
+    "high": 76
+   },
+   "guide": {
+    "type": "notes",
+    "notes": [
+     {
+      "beat": 0.0,
+      "length": 0.333333,
+      "pitch": 66,
+      "lyric": "A-",
+      "br": true
+     },
+     {
+      "beat": 0.333333,
+      "length": 0.666667,
+      "pitch": 69,
+      "lyric": "las!"
+     },
+     {
+      "beat": 1.0,
+      "length": 0.333333,
+      "pitch": 71,
+      "lyric": "my"
+     },
+     {
+      "beat": 1.333333,
+      "length": 0.5,
+      "pitch": 73,
+      "lyric": "love,"
+     },
+     {
+      "beat": 1.833333,
+      "length": 0.166667,
+      "pitch": 74
+     },
+     {
+      "beat": 2.0,
+      "length": 0.333333,
+      "pitch": 73,
+      "lyric": "you"
+     },
+     {
+      "beat": 2.333333,
+      "length": 0.666667,
+      "pitch": 71,
+      "lyric": "do"
+     },
+     {
+      "beat": 3.0,
+      "length": 0.333333,
+      "pitch": 68,
+      "lyric": "me"
+     },
+     {
+      "beat": 3.333333,
+      "length": 0.5,
+      "pitch": 64,
+      "lyric": "wrong,"
+     },
+     {
+      "beat": 3.833333,
+      "length": 0.166667,
+      "pitch": 66
+     },
+     {
+      "beat": 4.0,
+      "length": 0.333333,
+      "pitch": 68,
+      "lyric": "To"
+     },
+     {
+      "beat": 4.333333,
+      "length": 0.666667,
+      "pitch": 69,
+      "lyric": "cast"
+     },
+     {
+      "beat": 5.0,
+      "length": 0.333333,
+      "pitch": 66,
+      "lyric": "me"
+     },
+     {
+      "beat": 5.333333,
+      "length": 0.5,
+      "pitch": 66,
+      "lyric": "off"
+     },
+     {
+      "beat": 5.833333,
+      "length": 0.166667,
+      "pitch": 65
+     },
+     {
+      "beat": 6.0,
+      "length": 0.333333,
+      "pitch": 66,
+      "lyric": "dis-"
+     },
+     {
+      "beat": 6.333333,
+      "length": 0.666667,
+      "pitch": 68,
+      "lyric": "cour-"
+     },
+     {
+      "beat": 7.0,
+      "length": 0.333333,
+      "pitch": 65,
+      "lyric": "teous-"
+     },
+     {
+      "beat": 7.333333,
+      "length": 0.333334,
+      "pitch": 61,
+      "lyric": "ly,"
+     },
+     {
+      "beat": 8.166667,
+      "length": 0.166666,
+      "pitch": 66,
+      "lyric": "And",
+      "br": true
+     },
+     {
+      "beat": 8.333333,
+      "length": 0.666667,
+      "pitch": 69,
+      "lyric": "I"
+     },
+     {
+      "beat": 9.0,
+      "length": 0.333333,
+      "pitch": 71,
+      "lyric": "have"
+     },
+     {
+      "beat": 9.333333,
+      "length": 0.5,
+      "pitch": 73,
+      "lyric": "lov-"
+     },
+     {
+      "beat": 9.833333,
+      "length": 0.166667,
+      "pitch": 74
+     },
+     {
+      "beat": 10.0,
+      "length": 0.333333,
+      "pitch": 73,
+      "lyric": "ed"
+     },
+     {
+      "beat": 10.333333,
+      "length": 0.666667,
+      "pitch": 71,
+      "lyric": "you"
+     },
+     {
+      "beat": 11.0,
+      "length": 0.333333,
+      "pitch": 68,
+      "lyric": "so"
+     },
+     {
+      "beat": 11.333333,
+      "length": 0.5,
+      "pitch": 64,
+      "lyric": "long,"
+     },
+     {
+      "beat": 11.833333,
+      "length": 0.166667,
+      "pitch": 66
+     },
+     {
+      "beat": 12.0,
+      "length": 0.333333,
+      "pitch": 68,
+      "lyric": "De-"
+     },
+     {
+      "beat": 12.333333,
+      "length": 0.5,
+      "pitch": 69,
+      "lyric": "light-"
+     },
+     {
+      "beat": 12.833333,
+      "length": 0.166667,
+      "pitch": 68
+     },
+     {
+      "beat": 13.0,
+      "length": 0.333333,
+      "pitch": 66,
+      "lyric": "ing"
+     },
+     {
+      "beat": 13.333333,
+      "length": 0.5,
+      "pitch": 65,
+      "lyric": "in"
+     },
+     {
+      "beat": 13.833333,
+      "length": 0.166667,
+      "pitch": 63
+     },
+     {
+      "beat": 14.0,
+      "length": 0.333333,
+      "pitch": 65,
+      "lyric": "your"
+     },
+     {
+      "beat": 14.333333,
+      "length": 0.666667,
+      "pitch": 66,
+      "lyric": "com-"
+     },
+     {
+      "beat": 15.0,
+      "length": 0.333333,
+      "pitch": 66,
+      "lyric": "pa-"
+     },
+     {
+      "beat": 15.333333,
+      "length": 0.5,
+      "pitch": 66,
+      "lyric": "ny."
+     },
+     {
+      "beat": 16.333333,
+      "length": 1.0,
+      "pitch": 76,
+      "lyric": "Green-",
+      "br": true
+     },
+     {
+      "beat": 17.333333,
+      "length": 0.5,
+      "pitch": 76,
+      "lyric": "sleeves"
+     },
+     {
+      "beat": 17.833333,
+      "length": 0.166667,
+      "pitch": 75
+     },
+     {
+      "beat": 18.0,
+      "length": 0.333333,
+      "pitch": 73,
+      "lyric": "was"
+     },
+     {
+      "beat": 18.333333,
+      "length": 0.666667,
+      "pitch": 71,
+      "lyric": "all"
+     },
+     {
+      "beat": 19.0,
+      "length": 0.333333,
+      "pitch": 68,
+      "lyric": "my"
+     },
+     {
+      "beat": 19.333333,
+      "length": 0.5,
+      "pitch": 64,
+      "lyric": "joy,"
+     },
+     {
+      "beat": 19.833333,
+      "length": 0.166667,
+      "pitch": 66
+     },
+     {
+      "beat": 20.0,
+      "length": 0.333333,
+      "pitch": 68
+     },
+     {
+      "beat": 20.333333,
+      "length": 0.666667,
+      "pitch": 69,
+      "lyric": "Green-"
+     },
+     {
+      "beat": 21.0,
+      "length": 0.333333,
+      "pitch": 66
+     },
+     {
+      "beat": 21.333333,
+      "length": 0.5,
+      "pitch": 66,
+      "lyric": "sleeves"
+     },
+     {
+      "beat": 21.833333,
+      "length": 0.166667,
+      "pitch": 65
+     },
+     {
+      "beat": 22.0,
+      "length": 0.333333,
+      "pitch": 66,
+      "lyric": "was"
+     },
+     {
+      "beat": 22.333333,
+      "length": 0.666667,
+      "pitch": 68,
+      "lyric": "my"
+     },
+     {
+      "beat": 23.0,
+      "length": 0.333333,
+      "pitch": 65,
+      "lyric": "de-"
+     },
+     {
+      "beat": 23.333333,
+      "length": 0.5,
+      "pitch": 61,
+      "lyric": "light,"
+     },
+     {
+      "beat": 24.333333,
+      "length": 1.0,
+      "pitch": 76,
+      "lyric": "Green-",
+      "br": true
+     },
+     {
+      "beat": 25.333333,
+      "length": 0.5,
+      "pitch": 76,
+      "lyric": "sleeves"
+     },
+     {
+      "beat": 25.833333,
+      "length": 0.166667,
+      "pitch": 75,
+      "lyric": "was"
+     },
+     {
+      "beat": 26.0,
+      "length": 0.333333,
+      "pitch": 73,
+      "lyric": "my"
+     },
+     {
+      "beat": 26.333333,
+      "length": 0.666667,
+      "pitch": 71,
+      "lyric": "heart"
+     },
+     {
+      "beat": 27.0,
+      "length": 0.333333,
+      "pitch": 68,
+      "lyric": "of"
+     },
+     {
+      "beat": 27.333333,
+      "length": 0.5,
+      "pitch": 64,
+      "lyric": "gold,"
+     },
+     {
+      "beat": 27.833333,
+      "length": 0.166667,
+      "pitch": 66
+     },
+     {
+      "beat": 28.0,
+      "length": 0.333333,
+      "pitch": 68,
+      "lyric": "And"
+     },
+     {
+      "beat": 28.333333,
+      "length": 0.5,
+      "pitch": 69,
+      "lyric": "who"
+     },
+     {
+      "beat": 28.833333,
+      "length": 0.166667,
+      "pitch": 68,
+      "lyric": "but"
+     },
+     {
+      "beat": 29.0,
+      "length": 0.333333,
+      "pitch": 66,
+      "lyric": "my"
+     },
+     {
+      "beat": 29.333333,
+      "length": 0.5,
+      "pitch": 65,
+      "lyric": "La-"
+     },
+     {
+      "beat": 29.833333,
+      "length": 0.166667,
+      "pitch": 63
+     },
+     {
+      "beat": 30.0,
+      "length": 0.333333,
+      "pitch": 65,
+      "lyric": "dy"
+     },
+     {
+      "beat": 30.333333,
+      "length": 1.0,
+      "pitch": 66,
+      "lyric": "Green-"
+     },
+     {
+      "beat": 31.333333,
+      "length": 0.666667,
+      "pitch": 66,
+      "lyric": "sleeves."
+     }
+    ]
+   }
+  },
+  {
+   "key": "alto",
+   "name": "Alto",
+   "range": {
+    "low": 56,
+    "high": 66
+   },
+   "guide": {
+    "type": "notes",
+    "notes": [
+     {
+      "beat": 0.0,
+      "length": 0.333333,
+      "pitch": 61,
+      "lyric": "A-",
+      "br": true
+     },
+     {
+      "beat": 0.333333,
+      "length": 0.666667,
+      "pitch": 66,
+      "lyric": "las!"
+     },
+     {
+      "beat": 1.0,
+      "length": 0.333333,
+      "pitch": 66,
+      "lyric": "my"
+     },
+     {
+      "beat": 1.333333,
+      "length": 0.666667,
+      "pitch": 61,
+      "lyric": "love,"
+     },
+     {
+      "beat": 2.0,
+      "length": 0.333333,
+      "pitch": 61,
+      "lyric": "you"
+     },
+     {
+      "beat": 2.333333,
+      "length": 0.666667,
+      "pitch": 56,
+      "lyric": "do"
+     },
+     {
+      "beat": 3.0,
+      "length": 0.333333,
+      "pitch": 56,
+      "lyric": "me"
+     },
+     {
+      "beat": 3.333333,
+      "length": 0.666667,
+      "pitch": 56,
+      "lyric": "wrong,"
+     },
+     {
+      "beat": 4.0,
+      "length": 0.333333,
+      "pitch": 59,
+      "lyric": "To"
+     },
+     {
+      "beat": 4.333333,
+      "length": 0.666667,
+      "pitch": 57,
+      "lyric": "cast"
+     },
+     {
+      "beat": 5.0,
+      "length": 0.333333,
+      "pitch": 57,
+      "lyric": "me"
+     },
+     {
+      "beat": 5.333333,
+      "length": 0.666667,
+      "pitch": 57,
+      "lyric": "off"
+     },
+     {
+      "beat": 6.0,
+      "length": 0.333333,
+      "pitch": 57,
+      "lyric": "dis-"
+     },
+     {
+      "beat": 6.333333,
+      "length": 0.666667,
+      "pitch": 61,
+      "lyric": "cour-"
+     },
+     {
+      "beat": 7.0,
+      "length": 0.333333,
+      "pitch": 61,
+      "lyric": "teous-"
+     },
+     {
+      "beat": 7.333333,
+      "length": 0.333334,
+      "pitch": 61,
+      "lyric": "ly,"
+     },
+     {
+      "beat": 8.166667,
+      "length": 0.166666,
+      "pitch": 61,
+      "lyric": "And",
+      "br": true
+     },
+     {
+      "beat": 8.333333,
+      "length": 0.666667,
+      "pitch": 66,
+      "lyric": "I"
+     },
+     {
+      "beat": 9.0,
+      "length": 0.333333,
+      "pitch": 66,
+      "lyric": "have"
+     },
+     {
+      "beat": 9.333333,
+      "length": 0.666667,
+      "pitch": 61,
+      "lyric": "lov-"
+     },
+     {
+      "beat": 10.0,
+      "length": 0.333333,
+      "pitch": 61,
+      "lyric": "ed"
+     },
+     {
+      "beat": 10.333333,
+      "length": 0.666667,
+      "pitch": 56,
+      "lyric": "you"
+     },
+     {
+      "beat": 11.0,
+      "length": 0.333333,
+      "pitch": 56,
+      "lyric": "so"
+     },
+     {
+      "beat": 11.333333,
+      "length": 0.666667,
+      "pitch": 56,
+      "lyric": "long,"
+     },
+     {
+      "beat": 12.0,
+      "length": 0.333333,
+      "pitch": 59,
+      "lyric": "De-"
+     },
+     {
+      "beat": 12.333333,
+      "length": 0.666667,
+      "pitch": 57,
+      "lyric": "light-"
+     },
+     {
+      "beat": 13.0,
+      "length": 0.333333,
+      "pitch": 57,
+      "lyric": "ing"
+     },
+     {
+      "beat": 13.333333,
+      "length": 0.666667,
+      "pitch": 61,
+      "lyric": "in"
+     },
+     {
+      "beat": 14.0,
+      "length": 0.333333,
+      "pitch": 61,
+      "lyric": "your"
+     },
+     {
+      "beat": 14.333333,
+      "length": 0.666667,
+      "pitch": 57,
+      "lyric": "com-"
+     },
+     {
+      "beat": 15.0,
+      "length": 0.333333,
+      "pitch": 57,
+      "lyric": "pa-"
+     },
+     {
+      "beat": 15.333333,
+      "length": 0.5,
+      "pitch": 57,
+      "lyric": "ny."
+     },
+     {
+      "beat": 16.333333,
+      "length": 1.0,
+      "pitch": 61,
+      "lyric": "Green-",
+      "br": true
+     },
+     {
+      "beat": 17.333333,
+      "length": 0.666667,
+      "pitch": 61,
+      "lyric": "sleeves"
+     },
+     {
+      "beat": 18.0,
+      "length": 0.333333,
+      "pitch": 61,
+      "lyric": "was"
+     },
+     {
+      "beat": 18.333333,
+      "length": 0.666667,
+      "pitch": 56,
+      "lyric": "all"
+     },
+     {
+      "beat": 19.0,
+      "length": 0.333333,
+      "pitch": 56,
+      "lyric": "my"
+     },
+     {
+      "beat": 19.333333,
+      "length": 1.0,
+      "pitch": 59,
+      "lyric": "joy,"
+     },
+     {
+      "beat": 20.333333,
+      "length": 1.0,
+      "pitch": 57,
+      "lyric": "Green-"
+     },
+     {
+      "beat": 21.333333,
+      "length": 0.666667,
+      "pitch": 57,
+      "lyric": "sleeves"
+     },
+     {
+      "beat": 22.0,
+      "length": 0.333333,
+      "pitch": 57,
+      "lyric": "was"
+     },
+     {
+      "beat": 22.333333,
+      "length": 0.666667,
+      "pitch": 61,
+      "lyric": "my"
+     },
+     {
+      "beat": 23.0,
+      "length": 0.333333,
+      "pitch": 61,
+      "lyric": "de-"
+     },
+     {
+      "beat": 23.333333,
+      "length": 0.5,
+      "pitch": 61,
+      "lyric": "light,"
+     },
+     {
+      "beat": 24.333333,
+      "length": 1.0,
+      "pitch": 61,
+      "lyric": "Green-",
+      "br": true
+     },
+     {
+      "beat": 25.333333,
+      "length": 0.5,
+      "pitch": 61,
+      "lyric": "sleeves"
+     },
+     {
+      "beat": 25.833333,
+      "length": 0.166667,
+      "pitch": 61,
+      "lyric": "was"
+     },
+     {
+      "beat": 26.0,
+      "length": 0.333333,
+      "pitch": 64,
+      "lyric": "my"
+     },
+     {
+      "beat": 26.333333,
+      "length": 0.666667,
+      "pitch": 64,
+      "lyric": "heart"
+     },
+     {
+      "beat": 27.0,
+      "length": 0.333333,
+      "pitch": 64,
+      "lyric": "of"
+     },
+     {
+      "beat": 27.333333,
+      "length": 0.666667,
+      "pitch": 59,
+      "lyric": "gold,"
+     },
+     {
+      "beat": 28.0,
+      "length": 0.333333,
+      "pitch": 59,
+      "lyric": "And"
+     },
+     {
+      "beat": 28.333333,
+      "length": 0.5,
+      "pitch": 57,
+      "lyric": "who"
+     },
+     {
+      "beat": 28.833333,
+      "length": 0.166667,
+      "pitch": 57,
+      "lyric": "but"
+     },
+     {
+      "beat": 29.0,
+      "length": 0.333333,
+      "pitch": 57,
+      "lyric": "my"
+     },
+     {
+      "beat": 29.333333,
+      "length": 0.666667,
+      "pitch": 61,
+      "lyric": "La-"
+     },
+     {
+      "beat": 30.0,
+      "length": 0.333333,
+      "pitch": 61,
+      "lyric": "dy"
+     },
+     {
+      "beat": 30.333333,
+      "length": 1.0,
+      "pitch": 57,
+      "lyric": "Green-"
+     },
+     {
+      "beat": 31.333333,
+      "length": 0.666667,
+      "pitch": 57,
+      "lyric": "sleeves."
+     }
+    ]
+   }
+  },
+  {
+   "key": "tenor",
+   "name": "Tenor",
+   "range": {
+    "low": 52,
+    "high": 57
+   },
+   "guide": {
+    "type": "notes",
+    "notes": [
+     {
+      "beat": 0.0,
+      "length": 0.333333,
+      "pitch": 57,
+      "lyric": "A-",
+      "br": true
+     },
+     {
+      "beat": 0.333333,
+      "length": 0.666667,
+      "pitch": 57,
+      "lyric": "las!"
+     },
+     {
+      "beat": 1.0,
+      "length": 0.333333,
+      "pitch": 57,
+      "lyric": "my"
+     },
+     {
+      "beat": 1.333333,
+      "length": 0.666667,
+      "pitch": 57,
+      "lyric": "love,"
+     },
+     {
+      "beat": 2.0,
+      "length": 0.333333,
+      "pitch": 57,
+      "lyric": "you"
+     },
+     {
+      "beat": 2.333333,
+      "length": 0.666667,
+      "pitch": 56,
+      "lyric": "do"
+     },
+     {
+      "beat": 3.0,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "me"
+     },
+     {
+      "beat": 3.333333,
+      "length": 0.666667,
+      "pitch": 52,
+      "lyric": "wrong,"
+     },
+     {
+      "beat": 4.0,
+      "length": 0.333333,
+      "pitch": 56,
+      "lyric": "To"
+     },
+     {
+      "beat": 4.333333,
+      "length": 0.666667,
+      "pitch": 54,
+      "lyric": "cast"
+     },
+     {
+      "beat": 5.0,
+      "length": 0.333333,
+      "pitch": 54,
+      "lyric": "me"
+     },
+     {
+      "beat": 5.333333,
+      "length": 0.666667,
+      "pitch": 54,
+      "lyric": "off"
+     },
+     {
+      "beat": 6.0,
+      "length": 0.333333,
+      "pitch": 54,
+      "lyric": "dis-"
+     },
+     {
+      "beat": 6.333333,
+      "length": 0.666667,
+      "pitch": 53,
+      "lyric": "cour-"
+     },
+     {
+      "beat": 7.0,
+      "length": 0.333333,
+      "pitch": 56,
+      "lyric": "teous-"
+     },
+     {
+      "beat": 7.333333,
+      "length": 0.333334,
+      "pitch": 53,
+      "lyric": "ly,"
+     },
+     {
+      "beat": 8.166667,
+      "length": 0.166666,
+      "pitch": 57,
+      "lyric": "And",
+      "br": true
+     },
+     {
+      "beat": 8.333333,
+      "length": 0.666667,
+      "pitch": 57,
+      "lyric": "I"
+     },
+     {
+      "beat": 9.0,
+      "length": 0.333333,
+      "pitch": 57,
+      "lyric": "have"
+     },
+     {
+      "beat": 9.333333,
+      "length": 0.666667,
+      "pitch": 57,
+      "lyric": "lov-"
+     },
+     {
+      "beat": 10.0,
+      "length": 0.333333,
+      "pitch": 57,
+      "lyric": "ed"
+     },
+     {
+      "beat": 10.333333,
+      "length": 0.666667,
+      "pitch": 56,
+      "lyric": "you"
+     },
+     {
+      "beat": 11.0,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "so"
+     },
+     {
+      "beat": 11.333333,
+      "length": 0.666667,
+      "pitch": 52,
+      "lyric": "long,"
+     },
+     {
+      "beat": 12.0,
+      "length": 0.333333,
+      "pitch": 56,
+      "lyric": "De-"
+     },
+     {
+      "beat": 12.333333,
+      "length": 0.666667,
+      "pitch": 54,
+      "lyric": "light-"
+     },
+     {
+      "beat": 13.0,
+      "length": 0.333333,
+      "pitch": 54,
+      "lyric": "ing"
+     },
+     {
+      "beat": 13.333333,
+      "length": 0.666667,
+      "pitch": 56,
+      "lyric": "in"
+     },
+     {
+      "beat": 14.0,
+      "length": 0.333333,
+      "pitch": 56,
+      "lyric": "your"
+     },
+     {
+      "beat": 14.333333,
+      "length": 0.666667,
+      "pitch": 54,
+      "lyric": "com-"
+     },
+     {
+      "beat": 15.0,
+      "length": 0.333333,
+      "pitch": 54,
+      "lyric": "pa-"
+     },
+     {
+      "beat": 15.333333,
+      "length": 0.5,
+      "pitch": 54,
+      "lyric": "ny."
+     },
+     {
+      "beat": 16.333333,
+      "length": 1.0,
+      "pitch": 52,
+      "lyric": "Green-",
+      "br": true
+     },
+     {
+      "beat": 17.333333,
+      "length": 0.666667,
+      "pitch": 52,
+      "lyric": "sleeves"
+     },
+     {
+      "beat": 18.0,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "was"
+     },
+     {
+      "beat": 18.333333,
+      "length": 0.666667,
+      "pitch": 52,
+      "lyric": "all"
+     },
+     {
+      "beat": 19.0,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "my"
+     },
+     {
+      "beat": 19.333333,
+      "length": 1.0,
+      "pitch": 56,
+      "lyric": "joy,"
+     },
+     {
+      "beat": 20.333333,
+      "length": 1.0,
+      "pitch": 54,
+      "lyric": "Green-"
+     },
+     {
+      "beat": 21.333333,
+      "length": 0.666667,
+      "pitch": 54,
+      "lyric": "sleeves"
+     },
+     {
+      "beat": 22.0,
+      "length": 0.333333,
+      "pitch": 54,
+      "lyric": "was"
+     },
+     {
+      "beat": 22.333333,
+      "length": 0.666667,
+      "pitch": 53,
+      "lyric": "my"
+     },
+     {
+      "beat": 23.0,
+      "length": 0.333333,
+      "pitch": 56,
+      "lyric": "de-"
+     },
+     {
+      "beat": 23.333333,
+      "length": 0.5,
+      "pitch": 53,
+      "lyric": "light,"
+     },
+     {
+      "beat": 24.333333,
+      "length": 1.0,
+      "pitch": 56,
+      "lyric": "Green-",
+      "br": true
+     },
+     {
+      "beat": 25.333333,
+      "length": 0.5,
+      "pitch": 57,
+      "lyric": "sleeves"
+     },
+     {
+      "beat": 25.833333,
+      "length": 0.166667,
+      "pitch": 57,
+      "lyric": "was"
+     },
+     {
+      "beat": 26.0,
+      "length": 0.333333,
+      "pitch": 57,
+      "lyric": "my"
+     },
+     {
+      "beat": 26.333333,
+      "length": 0.666667,
+      "pitch": 56,
+      "lyric": "heart"
+     },
+     {
+      "beat": 27.0,
+      "length": 0.333333,
+      "pitch": 56,
+      "lyric": "of"
+     },
+     {
+      "beat": 27.333333,
+      "length": 0.666667,
+      "pitch": 56,
+      "lyric": "gold,"
+     },
+     {
+      "beat": 28.0,
+      "length": 0.333333,
+      "pitch": 56,
+      "lyric": "And"
+     },
+     {
+      "beat": 28.333333,
+      "length": 0.5,
+      "pitch": 54,
+      "lyric": "who"
+     },
+     {
+      "beat": 28.833333,
+      "length": 0.166667,
+      "pitch": 54,
+      "lyric": "but"
+     },
+     {
+      "beat": 29.0,
+      "length": 0.333333,
+      "pitch": 54,
+      "lyric": "my"
+     },
+     {
+      "beat": 29.333333,
+      "length": 0.666667,
+      "pitch": 56,
+      "lyric": "La-"
+     },
+     {
+      "beat": 30.0,
+      "length": 0.333333,
+      "pitch": 56,
+      "lyric": "dy"
+     },
+     {
+      "beat": 30.333333,
+      "length": 1.0,
+      "pitch": 54,
+      "lyric": "Green-"
+     },
+     {
+      "beat": 31.333333,
+      "length": 0.666667,
+      "pitch": 54,
+      "lyric": "sleeves."
+     }
+    ]
+   }
+  },
+  {
+   "key": "bass",
+   "name": "Bass",
+   "range": {
+    "low": 42,
+    "high": 54
+   },
+   "guide": {
+    "type": "notes",
+    "notes": [
+     {
+      "beat": 0.0,
+      "length": 0.333333,
+      "pitch": 54,
+      "lyric": "A-",
+      "br": true
+     },
+     {
+      "beat": 0.333333,
+      "length": 0.666667,
+      "pitch": 50,
+      "lyric": "las!"
+     },
+     {
+      "beat": 1.0,
+      "length": 0.333333,
+      "pitch": 50,
+      "lyric": "my"
+     },
+     {
+      "beat": 1.333333,
+      "length": 0.666667,
+      "pitch": 45,
+      "lyric": "love,"
+     },
+     {
+      "beat": 2.0,
+      "length": 0.333333,
+      "pitch": 45,
+      "lyric": "you"
+     },
+     {
+      "beat": 2.333333,
+      "length": 0.666667,
+      "pitch": 52,
+      "lyric": "do"
+     },
+     {
+      "beat": 3.0,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "me"
+     },
+     {
+      "beat": 3.333333,
+      "length": 0.666667,
+      "pitch": 52,
+      "lyric": "wrong,"
+     },
+     {
+      "beat": 4.0,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "To"
+     },
+     {
+      "beat": 4.333333,
+      "length": 0.666667,
+      "pitch": 54,
+      "lyric": "cast"
+     },
+     {
+      "beat": 5.0,
+      "length": 0.333333,
+      "pitch": 54,
+      "lyric": "me"
+     },
+     {
+      "beat": 5.333333,
+      "length": 0.666667,
+      "pitch": 50,
+      "lyric": "off"
+     },
+     {
+      "beat": 6.0,
+      "length": 0.333333,
+      "pitch": 50,
+      "lyric": "dis-"
+     },
+     {
+      "beat": 6.333333,
+      "length": 0.666667,
+      "pitch": 49,
+      "lyric": "cour-"
+     },
+     {
+      "beat": 7.0,
+      "length": 0.333333,
+      "pitch": 49,
+      "lyric": "teous-"
+     },
+     {
+      "beat": 7.333333,
+      "length": 0.333334,
+      "pitch": 49,
+      "lyric": "ly,"
+     },
+     {
+      "beat": 8.166667,
+      "length": 0.166666,
+      "pitch": 54,
+      "lyric": "And",
+      "br": true
+     },
+     {
+      "beat": 8.333333,
+      "length": 0.666667,
+      "pitch": 50,
+      "lyric": "I"
+     },
+     {
+      "beat": 9.0,
+      "length": 0.333333,
+      "pitch": 50,
+      "lyric": "have"
+     },
+     {
+      "beat": 9.333333,
+      "length": 0.666667,
+      "pitch": 45,
+      "lyric": "lov-"
+     },
+     {
+      "beat": 10.0,
+      "length": 0.333333,
+      "pitch": 45,
+      "lyric": "ed"
+     },
+     {
+      "beat": 10.333333,
+      "length": 0.666667,
+      "pitch": 52,
+      "lyric": "you"
+     },
+     {
+      "beat": 11.0,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "so"
+     },
+     {
+      "beat": 11.333333,
+      "length": 0.666667,
+      "pitch": 52,
+      "lyric": "long,"
+     },
+     {
+      "beat": 12.0,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "De-"
+     },
+     {
+      "beat": 12.333333,
+      "length": 0.666667,
+      "pitch": 54,
+      "lyric": "light-"
+     },
+     {
+      "beat": 13.0,
+      "length": 0.333333,
+      "pitch": 54,
+      "lyric": "ing"
+     },
+     {
+      "beat": 13.333333,
+      "length": 0.666667,
+      "pitch": 49,
+      "lyric": "in"
+     },
+     {
+      "beat": 14.0,
+      "length": 0.333333,
+      "pitch": 49,
+      "lyric": "your"
+     },
+     {
+      "beat": 14.333333,
+      "length": 0.666667,
+      "pitch": 54,
+      "lyric": "com-"
+     },
+     {
+      "beat": 15.0,
+      "length": 0.333333,
+      "pitch": 54,
+      "lyric": "pa-"
+     },
+     {
+      "beat": 15.333333,
+      "length": 0.5,
+      "pitch": 54,
+      "lyric": "ny."
+     },
+     {
+      "beat": 16.333333,
+      "length": 1.0,
+      "pitch": 49,
+      "lyric": "Green-",
+      "br": true
+     },
+     {
+      "beat": 17.333333,
+      "length": 0.666667,
+      "pitch": 45,
+      "lyric": "sleeves"
+     },
+     {
+      "beat": 18.0,
+      "length": 0.333333,
+      "pitch": 45,
+      "lyric": "was"
+     },
+     {
+      "beat": 18.333333,
+      "length": 0.666667,
+      "pitch": 52,
+      "lyric": "all"
+     },
+     {
+      "beat": 19.0,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "my"
+     },
+     {
+      "beat": 19.333333,
+      "length": 1.0,
+      "pitch": 52,
+      "lyric": "joy,"
+     },
+     {
+      "beat": 20.333333,
+      "length": 1.0,
+      "pitch": 54,
+      "lyric": "Green-"
+     },
+     {
+      "beat": 21.333333,
+      "length": 0.666667,
+      "pitch": 50,
+      "lyric": "sleeves"
+     },
+     {
+      "beat": 22.0,
+      "length": 0.333333,
+      "pitch": 50,
+      "lyric": "was"
+     },
+     {
+      "beat": 22.333333,
+      "length": 0.666667,
+      "pitch": 49,
+      "lyric": "my"
+     },
+     {
+      "beat": 23.0,
+      "length": 0.333333,
+      "pitch": 49,
+      "lyric": "de-"
+     },
+     {
+      "beat": 23.333333,
+      "length": 0.5,
+      "pitch": 49,
+      "lyric": "light,"
+     },
+     {
+      "beat": 24.333333,
+      "length": 1.0,
+      "pitch": 49,
+      "lyric": "Green-",
+      "br": true
+     },
+     {
+      "beat": 25.333333,
+      "length": 0.5,
+      "pitch": 49,
+      "lyric": "sleeves"
+     },
+     {
+      "beat": 25.833333,
+      "length": 0.166667,
+      "pitch": 49,
+      "lyric": "was"
+     },
+     {
+      "beat": 26.0,
+      "length": 0.333333,
+      "pitch": 49,
+      "lyric": "my"
+     },
+     {
+      "beat": 26.333333,
+      "length": 0.666667,
+      "pitch": 52,
+      "lyric": "heart"
+     },
+     {
+      "beat": 27.0,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "of"
+     },
+     {
+      "beat": 27.333333,
+      "length": 0.666667,
+      "pitch": 52,
+      "lyric": "gold,"
+     },
+     {
+      "beat": 28.0,
+      "length": 0.333333,
+      "pitch": 52,
+      "lyric": "And"
+     },
+     {
+      "beat": 28.333333,
+      "length": 0.5,
+      "pitch": 54,
+      "lyric": "who"
+     },
+     {
+      "beat": 28.833333,
+      "length": 0.166667,
+      "pitch": 54,
+      "lyric": "but"
+     },
+     {
+      "beat": 29.0,
+      "length": 0.333333,
+      "pitch": 54,
+      "lyric": "my"
+     },
+     {
+      "beat": 29.333333,
+      "length": 0.666667,
+      "pitch": 49,
+      "lyric": "La-"
+     },
+     {
+      "beat": 30.0,
+      "length": 0.333333,
+      "pitch": 49,
+      "lyric": "dy"
+     },
+     {
+      "beat": 30.333333,
+      "length": 1.0,
+      "pitch": 42,
+      "lyric": "Green-"
+     },
+     {
+      "beat": 31.333333,
+      "length": 0.666667,
+      "pitch": 42,
+      "lyric": "sleeves."
+     }
+    ]
+   }
+  }
+ ]
+}

@@ -535,6 +535,20 @@
         "tune": "Melodía",
         "partWithTune": "{part}, con la melodía encima"
     },
+    "score": {
+        "askTitle": "Gratis con una cuenta",
+        "ask": "Crea una cuenta gratis y la partitura de esta canción es tuya para imprimir y descargar: la partitura completa, cada voz por separado, MusicXML y MIDI.",
+        "signUp": "Crear una cuenta gratis",
+        "signIn": "Ya tengo cuenta",
+        "which": "Qué partitura",
+        "full": "Partitura completa",
+        "musicxml": "Descargar MusicXML",
+        "midi": "Descargar MIDI",
+        "sent": "Tu descarga ha empezado: {file}",
+        "failed": "No se pudo cargar la partitura.",
+        "retry": "Intentar de nuevo",
+        "arranged": "Arreglo de Stackapella"
+    },
     "sheet": {
         "title": "Importar partitura",
         "titleOf": "Importar {title}",
@@ -1439,6 +1453,7 @@
     },
     "auth": {
         "introPhrase": "La canción entera, todas las voces, con tu progreso guardado. Es gratis, y las lecciones no la piden.",
+        "introScore": "La partitura completa, cada voz, MusicXML y MIDI. Es gratis, y las lecciones no la piden.",
         "introLibrary": "Las canciones de la biblioteca piden una cuenta. Es gratis, y las lecciones no la piden.",
         "signIn": "Entrar",
         "intro": "Opcional. Puedes aprender y grabar sin cuenta. Si inicias sesión, tus canciones se sincronizan en todos tus dispositivos.",
@@ -1586,6 +1601,7 @@
             "plus": "Crea una cuenta gratis para Plus",
             "template": "Conserva tu canción con una cuenta gratis",
             "sheet": "Crea una cuenta gratis para importar partituras",
+            "score": "Crea una cuenta gratis para conseguir la partitura",
             "settings": "Crea una cuenta gratis",
             "week": "Conserva tu primera semana con una cuenta gratis",
             "unit": "Conserva tu progreso con una cuenta gratis",

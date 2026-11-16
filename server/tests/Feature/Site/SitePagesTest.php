@@ -375,8 +375,10 @@ final class SitePagesTest extends TestCase
             ->assertSee(__('pages.song.end_title', ['title' => 'Amazing Grace']))
             ->assertSee('href="/songs/happy-birthday"', false);
         $this->assertSame(4, substr_count($html, 'class="s-sg-how-row '));
-        // Nothing looks picked until it is: no row is yours, and Learn names the melody's part (twice: the hero and the close).
-        $this->assertStringNotContainsString('s-is-you', $html);
+        // The tune's part shows chosen from the start, and is (Hillel's design, 2026-11-16): one staff is yours, one choice is
+        // checked, and Learn names that part (twice: the hero and the close).
+        $this->assertSame(1, substr_count($html, 's-is-you'));
+        $this->assertSame(1, preg_match('/aria-checked="true"[^>]*data-pick="soprano"/', $html));
         $this->assertSame(2, substr_count($html, __('pages.song.learn_part', ['part' => 'soprano'])));
         // Its opening line ends on a phrase's end, not part way through the song.
         $line = json_decode((string) preg_replace('/^.*<script type="application\/json" data-song>(.*?)<\/script>.*$/s', '$1', $html), true);

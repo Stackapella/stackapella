@@ -31,6 +31,7 @@ const routes = [
     { name: 'songCourse', pattern: /^\/learn\/s\/([\w-]+)\/?$/, keys: ['id'] }, // a song's course (docs/song-courses-plan.md)
     { name: 'beta', pattern: /^\/beta(?:\/([\w-]+))?\/?$/, keys: ['token'] },
     { name: 'create', pattern: /^\/create(?:\/([\w-]+))?\/?$/, keys: ['draft'] },
+    { name: 'scoreSheet', pattern: /^\/t\/([\w-]+)\/sheet\/?$/, keys: ['id'] }, // a library song's sheet music (views/score-sheet.js)
     { name: 'template', pattern: /^\/t\/([\w-]+)\/?$/, keys: ['id'] },
     { name: 'join', pattern: /^\/join\/([\w-]+)\/?$/, keys: ['token'] },
     { name: 'early', pattern: /^\/early\/([\w-]+)\/?$/, keys: ['code'] },

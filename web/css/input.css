@@ -2032,6 +2032,80 @@ select:disabled {
 .s-sg-try .s-sg-actions { margin-top: 0; gap: 10px; }
 .s-sg-try .s-sg-actions > .btn-primary { flex: 1 1 auto; justify-content: center; }
 .s-sg-try .s-sg-note { margin-top: 10px; font-size: 13.5px; }
+/* A song page's hero with its score (public/_song-score.blade.php, js/public/score.js; Hillel's design, 2026-11-16):
+   at left the part you sing and Learn; at right one card, the player's bar over the score on its sheet. The sheet is
+   paper: white with dark ink in a light theme, a dark sheet with light ink in a dark one. */
+@media (min-width: 900px) { .s-sg-hero .s-xhero-in.s-xcoll-has-try.s-sg-scored { align-items: start; } }
+.s-sg-pick { margin-top: 26px; }
+.s-sg-pick-h { font-size: 13px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; opacity: .82; }
+.s-sg-seg { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(max-content, 1fr); gap: 4px; margin-top: 10px; padding: 4px; max-width: 460px; overflow-x: auto; border-radius: 16px; background: var(--tl); }
+.s-sg-seg button { min-height: 48px; padding: 0 10px; border: 0; border-radius: 12px; background: none; color: inherit; font: inherit; font-size: 15px; font-weight: 650; white-space: nowrap; cursor: pointer; }
+.s-sg-seg button[aria-checked="true"] { background: #faf5ee; color: #1f1a14; box-shadow: 0 1px 2px rgb(0 0 0 / .25); }
+.s-sg-seg button:focus-visible { outline: 2px solid var(--ta); outline-offset: 2px; }
+.s-sg-scored .s-sg-actions { margin-top: 12px; max-width: 460px; }
+.s-sg-scored .s-sg-actions > .btn-primary { flex: 1 1 240px; justify-content: center; }
+.s-sg-scored .s-sg-note { margin-top: 12px; font-size: 14px; }
+.s-score { display: flex; flex-direction: column; gap: 14px; min-width: 0; padding: 18px; border-radius: 24px; background: var(--tl); color: #faf5ee; box-shadow: 0 24px 48px -28px rgb(0 0 0 / .45); }
+.s-score-head { display: flex; align-items: center; gap: 14px; }
+.s-score .s-play { width: 52px; height: 52px; }
+.s-score-now { flex: 1; min-width: 0; display: grid; gap: 8px; }
+.s-score-now p { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
+.s-score-now b { font-weight: 650; }
+.s-score-time { opacity: .82; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.s-score-bar { display: block; height: 4px; overflow: hidden; border-radius: 2px; background: rgb(250 245 238 / .16); }
+.s-score-bar i { display: block; width: calc(var(--p, 0) * 100%); height: 100%; background: var(--ta); }
+.s-score-sheet, .s-score-paper { --paper: #fff; --ink: #1f1a14; background: var(--paper); color: var(--ink); }
+:root[data-theme$="-dark"] .s-score-sheet, :root[data-theme$="-dark"] .s-score-paper { --paper: #17120f; --ink: #f4eee6; }
+.s-score-sheet { padding: 12px 12px 8px; border-radius: 14px; }
+/* The sheet keeps its room before the notes are drawn: a system's height on a phone (the rest grows below the fold), the
+   card's one system on a wide screen, by the number of staves. */
+.s-score-view { position: relative; min-height: calc(var(--staves) * 84px + 20px); }
+.s-score-systems { position: relative; z-index: 1; pointer-events: none; }
+.s-score-systems svg { display: block; width: 100%; height: auto; }
+.s-score-systems svg[hidden] { display: none; }
+@media (min-width: 900px) {
+    .s-score-view { min-height: 0; aspect-ratio: 560 / calc(var(--staves) * 108 + 44); }
+    .s-score-systems { position: absolute; inset: 0; }
+    .s-score-systems svg { height: 100%; }
+}
+/* Each staff's row: its letter (hear this part alone) at its left, the row tinted when the part is yours. */
+.s-score-voice { position: absolute; inset-inline: 0; top: calc((var(--i) + .14) / var(--staves) * 100%); height: calc(.6 / var(--staves) * 100%); border-radius: 10px; pointer-events: none; }
+.s-score-voice.s-is-you { background: color-mix(in srgb, var(--ta) 26%, var(--paper)); }
+.s-score-voice button { position: absolute; inset-inline-start: var(--at, 4px); top: 50%; translate: 0 -50%; z-index: 2; width: 28px; height: 28px; border: 0; border-radius: 50%; font-size: 13px; font-weight: 750; cursor: pointer; pointer-events: auto; --bubble: #f1ebe2; --bubble-ink: #1f1a14; background-color: var(--bubble); } /* its own ground under the gloss, so its letter is dark on light on a dark sheet too */
+.s-score-voice button::after { content: ''; position: absolute; inset: -8px; }
+.s-score-voice.s-is-you button { --bubble: var(--ta); }
+.s-score-voice[data-solo] button { outline: 2px solid var(--ink); outline-offset: 2px; }
+.s-score-voice button:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.s-score-view:not([data-engraved]) .s-score-voice::before { content: ''; position: absolute; inset-inline: 46px 8px; top: 50%; height: 33px; translate: 0 -50%; background: repeating-linear-gradient(to bottom, color-mix(in srgb, var(--ink) 50%, transparent) 0 1px, transparent 1px 8px); }
+/* A staff goes quiet while another part is heard alone; a note and its word light in the part's colour, and thicken, as
+   they sound. */
+.s-score [data-staff][data-quiet], .s-score-paper [data-staff][data-quiet] { opacity: .3; }
+.s-score [data-lit], .s-score-paper [data-lit] { fill: var(--ct); stroke: var(--ct); stroke-width: .7; }
+.s-score-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; font-size: 13px; }
+.s-score-pager { display: inline-flex; align-items: center; gap: 10px; }
+.s-score-pager button { position: relative; display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 50%; background: color-mix(in srgb, var(--ink) 9%, transparent); color: inherit; cursor: pointer; }
+.s-score-pager button::after { content: ''; position: absolute; inset: -6px; }
+.s-score-pager button[data-score-prev] svg { rotate: 180deg; }
+.s-score-pager button:disabled { opacity: .35; cursor: default; }
+.s-score-full-open { display: inline-flex; align-items: center; gap: 5px; min-height: 44px; border: 0; background: none; color: inherit; font: inherit; font-weight: 650; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; cursor: pointer; }
+.s-score-full-open svg { rotate: -45deg; }
+@media (max-width: 899px) { .s-score-foot { display: none; } }
+.s-score-dl { display: flex; flex-wrap: wrap; align-items: center; gap: 0 14px; font-size: 14px; color: rgb(250 245 238 / .8); }
+.s-score-dl em { font-style: normal; color: var(--ta); }
+[data-skin='game'] .s-score-dl em { color: #faf5ee; }
+.s-score-files { display: flex; flex-wrap: wrap; gap: 0 14px; font-weight: 650; }
+.s-score-files a { display: inline-flex; align-items: center; min-height: 44px; color: #faf5ee; text-decoration: underline; text-underline-offset: 3px; }
+/* The whole score, opened under the hero: a printed page's look. */
+.s-score-full { padding-top: 40px; }
+.s-score-full-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+.s-score-full-head h2 { font-size: clamp(20px, 3vw, 26px); font-weight: 800; letter-spacing: -0.01em; }
+.s-score-paper { padding: 40px 56px 24px; border: 1px solid var(--color-line); border-radius: 14px; font-family: Georgia, 'Times New Roman', Times, serif; }
+.s-score-title { text-align: center; font-size: 34px; line-height: 1.1; }
+.s-score-kind { margin-top: 6px; text-align: center; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; }
+.s-score-credits { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin: 18px 0 6px; font-size: 14px; line-height: 1.45; }
+.s-score-credits span:last-child { text-align: end; }
+.s-score-paper svg { display: block; width: 100%; height: auto; margin-top: 10px; }
+.s-score-rights { margin-top: 22px; text-align: center; font-size: 12px; opacity: .8; overflow-wrap: anywhere; }
 /* Check my range keeps one line: the sentence wraps before it, never inside it. */
 .s-sg-note .s-lk { white-space: nowrap; }
 .s-sg-parts { scroll-margin-top: 16px; }

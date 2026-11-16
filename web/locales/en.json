@@ -558,6 +558,20 @@
         "tune": "Tune",
         "partWithTune": "{part}, with the tune above"
     },
+    "score": {
+        "askTitle": "Free with an account",
+        "ask": "Make a free account and this song's sheet music is yours to print and download: the full score, each part on its own, MusicXML and MIDI.",
+        "signUp": "Make a free account",
+        "signIn": "I have an account",
+        "which": "Which sheet",
+        "full": "Full score",
+        "musicxml": "Download MusicXML",
+        "midi": "Download MIDI",
+        "sent": "Your download has started: {file}",
+        "failed": "The sheet music couldn't be loaded.",
+        "retry": "Try again",
+        "arranged": "Arranged by Stackapella"
+    },
     "sheet": {
         "title": "Bring in sheet music",
         "titleOf": "Bring in {title}",
@@ -4177,6 +4191,7 @@
     },
     "auth": {
         "introPhrase": "The whole song, every part, with your progress kept. It's free, and the lessons need none.",
+        "introScore": "The full score, each part, MusicXML and MIDI. It's free, and the lessons need none.",
         "introLibrary": "The library's songs need an account. It's free, and the lessons need none.",
         "signIn": "Sign in",
         "intro": "Optional. You can learn and record without an account. Signing in syncs your songs across your devices.",
@@ -4324,6 +4339,7 @@
             "plus": "Make a free account for Plus",
             "template": "Keep your song with a free account",
             "sheet": "Make a free account to bring in sheet music",
+            "score": "Make a free account to get the sheet music",
             "settings": "Make a free account",
             "week": "Keep your first week with a free account",
             "unit": "Keep your progress with a free account",

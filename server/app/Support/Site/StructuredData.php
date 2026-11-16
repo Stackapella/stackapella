@@ -235,7 +235,7 @@ final class StructuredData
      * @param  array<string, mixed>|null  $story
      * @return list<array<string, mixed>>
      */
-    public static function song(array $song, ?array $story = null): array
+    public static function song(array $song, ?array $story = null, ?string $sheet = null): array
     {
         $composition = [
             '@context' => 'https://schema.org',
@@ -269,6 +269,18 @@ final class StructuredData
                     'duration' => $duration,
                 ],
             ], static fn (mixed $v): bool => $v !== null);
+        }
+        // Its sheet music, where the page shows the score (`$sheet` its name, "Amazing Grace: free SATB sheet music"):
+        // free to read, our arrangement under the content licence. Never where the song is withheld (no score there).
+        if ($sheet !== null) {
+            $composition['workExample'] = [
+                '@type' => 'SheetMusic',
+                'name' => $sheet,
+                'url' => $song['pageUrl'].'#song-full-score',
+                'isAccessibleForFree' => true,
+                'license' => 'https://creativecommons.org/licenses/by-sa/4.0/',
+                'creator' => ['@type' => 'Organization', 'name' => 'Stackapella', 'url' => 'https://stackapella.com'],
+            ];
         }
         if ($story === null) {
             return [$composition];

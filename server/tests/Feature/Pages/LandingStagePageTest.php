@@ -9,6 +9,7 @@ use App\Models\Template;
 use App\Models\TemplateVersion;
 use App\Support\Flags;
 use App\Support\Pages\LandingStage;
+use App\Support\Site\GamePreload;
 use App\Support\Site\SitemapPaths;
 use App\Support\Site\SiteVisit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -248,19 +249,23 @@ final class LandingStagePageTest extends TestCase
 
         foreach (['/', '/es'] as $path) {
             $html = (string) $this->get($path)->assertOk()->getContent();
-            // Its own sheet and the Game mode switch's, and the font asked for at once; none of the site's sheets, and
-            // no game sheet until game mode's dress for it exists (css/landing-game.css).
+            // Its own sheet and the Game mode switch's; none of the site's sheets. Game mode's dress (css/landing-game.css)
+            // is never a link in the page: its address is a meta, the site's preloader asks for it and the fonts (Figtree
+            // outside game mode), and js/game-css.js links it right after the page's own sheet, in game mode only.
             $this->assertSame(2, preg_match_all('/<link rel="stylesheet"/', $html), $path);
             $this->assertMatchesRegularExpression('#<link rel="stylesheet" href="/css/game-toggle\.css(\?v=[0-9a-f]+)?">#', $html, $path);
             $this->assertMatchesRegularExpression('#<link rel="stylesheet" href="/css/landing\.css(\?v=[0-9a-f]+)?">#', $html, $path);
-            $this->assertStringContainsString('<link rel="preload" href="/fonts/figtree-latin.woff2" as="font" type="font/woff2" crossorigin>', $html, $path);
-            foreach (['/site-css/', 'game-css.js', 'css-family', 'cabinet.js'] as $piece) {
+            $this->assertMatchesRegularExpression('#<meta name="game-css" content="/css/landing-game\.css(\?v=[0-9a-f]+)?">#', $html, $path);
+            $this->assertStringContainsString((string) GamePreload::tag(), $html, $path);
+            $this->assertMatchesRegularExpression('#<link rel="stylesheet" href="/css/landing\.css(\?v=[0-9a-f]+)?">\s*<script src="/js/game-css\.js(\?v=[0-9a-f]+)?"></script>#', $html, $path);
+            $this->assertStringNotContainsString('stackapella-pixel', $html, $path);
+            foreach (['/site-css/', 'css-family', 'cabinet.js'] as $piece) {
                 $this->assertStringNotContainsString($piece, $html, $path);
             }
         }
-        // Every class the page uses is in its sheet (or is one the player's script adds).
+        // Every class the page uses is in its sheets, game mode's included (or is one the player's script adds).
         $html = (string) $this->get('/')->getContent();
-        $sheet = file_get_contents(config('app.web_path').'/css/landing.css').file_get_contents(config('app.web_path').'/css/game-toggle.css');
+        $sheet = file_get_contents(config('app.web_path').'/css/landing.css').file_get_contents(config('app.web_path').'/css/game-toggle.css').file_get_contents(config('app.web_path').'/css/landing-game.css');
         preg_match_all('/class="([^"]*)"/', $html, $found);
         $classes = array_unique(array_filter(explode(' ', implode(' ', $found[1]))));
         $missing = array_values(array_filter($classes, static fn (string $class): bool => ! str_contains($sheet, '.'.$class)));

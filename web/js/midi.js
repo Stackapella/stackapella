@@ -2,7 +2,7 @@
 // metre, key and credits, then a track a part, each on its own channel with its name and its words
 // as lyric events. Pure: a template in, the file's bytes out, unit-tested in tests/sheet-music.test.js.
 
-import { keySignature } from './sing.js';
+import { keySignature } from './staff-layout.js';
 import { metreOf, quartersAt, rightsOf } from './musicxml.js';
 import { meterChanges } from './theory.js';
 

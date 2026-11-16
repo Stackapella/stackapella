@@ -4,8 +4,7 @@
 // their notes with MusicXML's syllables; a breath (`br`) is a breath mark on the note before it; the
 // chords go over the melody. Pitches are spelled in the song's key, as the Staff spells them.
 
-import { keySignature, spell } from './sing.js';
-import { transposeKey } from './theme.js';
+import { keySignature, spell, transposeKey } from './staff-layout.js';
 import { bars as barsIn, meterChanges } from './theory.js';
 
 export const DIVISIONS = 24; // per quarter note: halves, thirds, quarters and eighths of a beat are whole numbers

@@ -115,6 +115,7 @@
         '/js/boss.js',
         '/js/course-parts.js',
         '/js/withheld.js',
+        '/js/staff-layout.js',
         '/js/logo-mark.js',
         '/js/public/season.js',
         '/js/song-titles.js',

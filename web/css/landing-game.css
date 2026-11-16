@@ -1,0 +1,267 @@
+/* The home page in game mode: the arcade dress of the page (Hillel, 2026-11-16: "give me a prompt to start the game
+   engine"). A sheet of its own, linked after css/landing.css and only in game mode, so the calm page never
+   fetches it and never changes. Every rule is under [data-skin='game'] on the calm sheet's own .lnf-* classes and the
+   states its script and the player set: a reskin, no new pieces (docs/design-rules.md, the game rules).
+   The look is the 90s arcade reference: pixel caps on a hard shadow for headings and what you press, the screen face
+   (VT323) for small labels, the readable face kept for sentences, square corners, neon frames on hard offset shadows.
+   The note gems, the coins and the bars stay glossy and round (the house rule).
+   Its tokens are the arcade's own (css/input.css, arcade-tokens), copied per colour theme because this page loads no
+   site sheet: a change to a theme's arcade there is made here too. */
+@font-face { font-family: 'Stackapella Pixel'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/stackapella-pixel.woff2') format('woff2'); }
+@font-face { font-family: 'VT323'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/vt323-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'VT323'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/vt323-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+/* The arcade's surfaces and neons, then the calm sheet's own names pointed at them. */
+:root[data-skin='game'] {
+    --g-bg: #120e24; --g-panel: #17122f; --g-well: #0f0b20; --g-line: #3b3270; --g-sh: #05030d;
+    --g-dot: rgb(255 255 255 / .075); --g-scan: rgb(0 0 0 / .18);
+    --g-frame: #8f84ff; --g-pink: #ff4fa8; --g-yellow: #ffd84a; --g-on: #14101f;
+    --g-shade: color-mix(in srgb, var(--g-frame) 55%, transparent);
+    --g-px: 'Stackapella Pixel', ui-monospace, monospace; --g-vt: 'VT323', ui-monospace, monospace;
+    --ground: var(--g-bg); --panel: var(--g-panel); --edge: var(--g-line); --em: var(--g-pink);
+    --mute: color-mix(in srgb, var(--ink) 72%, var(--g-bg)); --btn: var(--g-yellow); --btn-ink: var(--g-on);
+}
+:root[data-skin='game'][data-theme$='-light'] {
+    --g-bg: #f6efe3; --g-panel: #fffaf2; --g-well: #f0e6d5; --g-line: #c9b79c; --g-sh: rgb(60 38 18 / .5);
+    --g-dot: rgb(70 45 20 / .1); --g-scan: rgb(70 45 20 / .03);
+    --g-frame: #5a4ed4; --g-pink: #c81872; --g-yellow: #7f5c00; --g-on: #fffaf2;
+    --g-shade: color-mix(in srgb, var(--g-frame) 30%, transparent);
+}
+:root[data-skin='game'][data-theme='warm-dark'] { --g-bg: #1b110c; --g-panel: #26170f; --g-well: #140c08; --g-line: #5c3a26; --g-sh: #070302; --g-dot: rgb(255 220 190 / .08); --g-scan: rgb(0 0 0 / .2); --g-frame: #ffab6b; }
+:root[data-skin='game'][data-theme='midnight-dark'] { --g-bg: #071226; --g-panel: #0d1c38; --g-well: #050d1c; --g-line: #1f3f70; --g-sh: #02060f; --g-dot: rgb(180 210 255 / .08); --g-scan: rgb(0 0 0 / .2); --g-frame: #5cb8ff; }
+:root[data-skin='game'][data-theme='graphite-dark'] { --g-bg: #141518; --g-panel: #1e2024; --g-well: #101114; --g-line: #3d4047; --g-sh: #050506; --g-dot: rgb(255 255 255 / .06); --g-frame: #a7b0c0; }
+:root[data-skin='game'][data-theme='stage-light'] { --g-bg: #f7f7fa; --g-panel: #fff; --g-well: #eceef3; --g-line: #c4c7d1; --g-sh: rgb(20 20 40 / .45); --g-dot: rgb(0 0 30 / .08); --g-scan: rgb(0 0 30 / .03); --g-frame: #4338ca; }
+:root[data-skin='game'][data-theme='midnight-light'] { --g-bg: #eaf2fc; --g-panel: #fff; --g-well: #dde9f7; --g-line: #9fbde3; --g-sh: rgb(15 40 80 / .45); --g-dot: rgb(20 60 120 / .1); --g-scan: rgb(20 60 120 / .03); --g-frame: #1d5fc2; }
+:root[data-skin='game'][data-theme='graphite-light'] { --g-bg: #efefec; --g-panel: #fbfbf9; --g-well: #e4e4e0; --g-line: #bdbdb6; --g-sh: rgb(40 40 40 / .45); --g-dot: rgb(40 40 40 / .09); --g-scan: rgb(40 40 40 / .03); --g-frame: #4b5263; }
+
+/* Words that differ by skin (x-site.skin): the calm words step aside here. */
+[data-skin='game'] .lnf .s-skin-s { display: none; }
+/* In a heading the calm words stay for a screen reader, and the game's are drawn from data-skin-text. */
+[data-skin='game'] .lnf .s-skin-s.s-skin-sr { display: inline; position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+[data-skin='game'] .lnf .s-skin-g[data-skin-text]::before { content: attr(data-skin-text); }
+
+/* The ground: the arcade's dotted grid with faint scanlines, in place of the washes of light. */
+[data-skin='game'] .lnf { background-image: radial-gradient(circle, var(--g-dot) 1px, transparent 1.6px), repeating-linear-gradient(180deg, transparent 0 2px, var(--g-scan) 2px 3px); background-size: 18px 18px, auto; }
+[data-skin='game'] .lnf-bg { display: none; }
+[data-skin='game'] .lnf-tail { background: none; }
+[data-skin='game'] .lnf :focus-visible { border-radius: 0; }
+[data-skin='game'] .lnf-skip { border-radius: 0; }
+
+/* The top line. */
+[data-skin='game'] .lnf-logo span { font: 400 12px/1 var(--g-px); letter-spacing: 0; }
+[data-skin='game'] .lnf-logo svg { border-radius: 0; }
+[data-skin='game'] .lnf-notes { background: var(--g-panel); box-shadow: inset 0 -2px 0 var(--g-frame); font: 400 19px/1.3 var(--g-vt); letter-spacing: .02em; }
+[data-skin='game'] .lnf-nav a { border-radius: 0; font: 400 20px/1 var(--g-vt); letter-spacing: .04em; text-transform: uppercase; color: var(--ink); }
+[data-skin='game'] :is(.lnf-round, .lnf-open) { border-radius: 0; border: 2px solid var(--g-frame); background: var(--g-panel); box-shadow: 3px 3px 0 var(--g-sh); -webkit-backdrop-filter: none; backdrop-filter: none; }
+[data-skin='game'] .lnf-round { font: 400 18px/1 var(--g-vt); }
+[data-skin='game'] .lnf-open { font: 400 20px/1 var(--g-vt); letter-spacing: .04em; text-transform: uppercase; }
+[data-skin='game'] .lnf-lang ul { border-radius: 0; border: 2px solid var(--g-frame); background: var(--g-panel); box-shadow: 6px 6px 0 var(--g-sh); }
+[data-skin='game'] .lnf-lang li a { border-radius: 0; }
+[data-skin='game'] .lnf[data-tail] .lnf-top { background: var(--g-bg); box-shadow: 0 2px 0 var(--g-line); }
+
+/* Words: pixel caps on a hard shadow for headings; sentences keep the readable face. */
+[data-skin='game'] :is(.lnf-h1, .lnf-h2) { font-family: var(--g-px); font-weight: 400; letter-spacing: 0; line-height: 1.35; text-transform: uppercase; text-shadow: .09em .09em 0 var(--g-shade); }
+[data-skin='game'] .lnf-h1 { font-size: clamp(24px, 4.2vw, 56px); }
+[data-skin='game'] .lnf-h2 { font-size: clamp(18px, 2.6vw, 38px); }
+[data-skin='game'] .lnf-h2-two { font-size: clamp(17px, 2.2vw, 30px); }
+[data-skin='game'] .lnf-kick { font: 400 10px/1.3 var(--g-px); letter-spacing: 0; color: var(--g-yellow); }
+[data-skin='game'] .lnf-kick .s-skin-g { display: contents; }
+[data-skin='game'] .lnf-bars i { height: 8px; border-radius: 0; }
+
+/* What you press: square, on a hard shadow, and it sinks when pressed. */
+[data-skin='game'] :is(.lnf-play, .lnf-prim, .lnf-quiet, .lnf-start, .lnf-disc) { border-radius: 0; transition: translate .06s steps(1), box-shadow .06s steps(1); }
+[data-skin='game'] :is(.lnf-play, .lnf-prim, .lnf-quiet, .lnf-start, .lnf-disc):active { translate: 4px 4px; box-shadow: none; }
+/* Play is PRESS START: the game primary, its round thing a coin slot, its ring a frame that blinks until pressed. */
+[data-skin='game'] .lnf-play { height: auto; min-height: 76px; padding: 10px 28px 10px 12px; background: var(--g-yellow); color: var(--g-on) !important; font: 400 15px/1.35 var(--g-px); text-transform: uppercase; white-space: normal; box-shadow: 6px 6px 0 var(--g-frame); }
+[data-skin='game'] .lnf-play-w small { font: 400 18px/1 var(--g-vt); letter-spacing: .04em; opacity: 1; }
+[data-skin='game'] .lnf-play .lnf-orb { border-radius: 0; background: var(--g-on); color: var(--g-yellow); box-shadow: none; }
+[data-skin='game'] :is(.lnf-play .lnf-orb, .lnf-disc)::after { border-radius: 0; }
+[data-skin='game'] .lnf-play .lnf-orb::after { inset: -5px; border-color: var(--g-on); }
+[data-skin='game'] .lnf-disc::after { border-color: var(--ink); }
+[data-skin='game'] .lnf[data-failed] :is(.lnf-play .lnf-orb, .lnf-disc)::after { border-color: var(--rec); }
+[data-skin='game'] .lnf-load { font: 400 18px/1 var(--g-vt); letter-spacing: .04em; text-transform: uppercase; opacity: 1; }
+[data-skin='game'] .lnf-promise { font: 400 18px/1.25 var(--g-vt); letter-spacing: .02em; }
+[data-skin='game'] .s-play-hint { border-radius: 0; border: 2px solid var(--g-frame); background: var(--g-panel); font: 400 18px/1.1 var(--g-vt); }
+[data-skin='game'] .lnf-quiet { height: auto; min-height: 56px; padding: 8px 20px; border: 2px solid var(--g-frame); background: var(--g-panel); box-shadow: 4px 4px 0 var(--g-sh); font: 400 11px/1.45 var(--g-px); text-transform: uppercase; white-space: normal; -webkit-backdrop-filter: none; backdrop-filter: none; }
+[data-skin='game'] .lnf-quiet[aria-pressed='true'] { background: var(--g-frame); border-color: var(--g-frame); color: var(--g-bg); }
+[data-skin='game'] .lnf-prim { height: auto; min-height: 64px; padding: 10px 28px; background: var(--g-yellow); color: var(--g-on) !important; font: 400 13px/1.45 var(--g-px); text-transform: uppercase; white-space: normal; box-shadow: 6px 6px 0 var(--g-frame); }
+@media (prefers-reduced-motion: no-preference) {
+    [data-skin='game'] .lnf:not([data-played], [data-loading], [data-failed]) :is(.lnf-play .lnf-orb, .lnf-disc)::after { animation: lnfg-blink 1.1s steps(1) infinite; }
+    [data-skin='game'] .lnf[data-loading] :is(.lnf-play .lnf-orb, .lnf-disc)::after { border-style: dashed; animation: lnfg-blink .45s steps(1) infinite; }
+    [data-skin='game'] .lnf[data-loading] .lnf-play .lnf-orb::after { border-color: var(--g-on); }
+    [data-skin='game'] .lnf[data-loading] .lnf-disc::after { border-color: var(--ink); }
+    /* A voice coming in: its lane flashes in its colour, in steps. */
+    [data-skin='game'] .lnf .lnf-ln[data-in]::after { background: var(--c); translate: none; animation: lnfg-flash .55s steps(4) both; }
+}
+@keyframes lnfg-blink { 0% { opacity: 1; scale: 1; } 50%, 100% { opacity: 0; scale: 1; } }
+@keyframes lnfg-flash { from { opacity: .7; } to { opacity: 0; } }
+
+/* The lanes: four neon frames on hard shadows, each in its voice's colour; the gems stay glass. (The Share scene folds
+   the lanes into the mark's bars: those stay as the calm sheet draws them.) */
+[data-skin='game'] .lnf:not([data-scene='4']) .lnf-deck { inset: 0 10px; gap: 12px; }
+[data-skin='game'] .lnf:not([data-scene='4']) .lnf-ln { background: var(--g-well); border: 2px solid var(--c); box-shadow: 5px 5px 0 color-mix(in srgb, var(--c) 38%, var(--g-sh)); }
+/* Waiting for its voice: a dashed, unlit frame. Lit on arrival by the rule above taking over again. */
+[data-skin='game'] .lnf:not([data-scene='4']) .lnf-ln[data-wait] { background: var(--g-well); border: 2px dashed var(--g-line); box-shadow: none; }
+/* The voice heard alone, and the story's chosen voice: a doubled frame on a shadow in its own colour. */
+[data-skin='game'] .lnf:not([data-alone])[data-scene='1'] .lnf-ln.lnf-v1, [data-skin='game'] .lnf:not([data-scene='4']) .lnf-ln[data-solo] { box-shadow: inset 0 0 0 2px var(--c), 5px 5px 0 var(--c); }
+[data-skin='game'] .lnf-lb b { font: 400 12px/1 var(--g-px); letter-spacing: 0; text-transform: uppercase; }
+[data-skin='game'] .lnf-lb small { font: 400 17px/1.05 var(--g-vt); }
+[data-skin='game'] .lnf[data-scene='4'] .lnf-lb b { font-size: 12px; }
+/* Share's four bars keep their glass, on the hard shadow. */
+[data-skin='game'] .lnf[data-scene='4'] .lnf-ln { box-shadow: inset 0 3px 0 rgb(255 255 255 / .75), inset 0 -10px 18px color-mix(in oklab, var(--c) 48%, black), 5px 5px 0 color-mix(in srgb, var(--c) 38%, var(--g-sh)); }
+[data-skin='game'] .lnf[data-scene='4'] .lnf-ln[data-wait] { box-shadow: none; }
+[data-skin='game'] .lnf-mt i { width: 4px; border-radius: 0; }
+[data-skin='game'] .lnf-chip { border-radius: 0; font: 400 16px/1 var(--g-vt); letter-spacing: .05em; }
+[data-skin='game'] .lnf-mine { left: calc(var(--pad) + 200px); padding: 0 8px; border-radius: 0; border-width: 2px; background: var(--g-panel); font: 400 16px/1 var(--g-vt); letter-spacing: .02em; text-transform: uppercase; }
+/* The playhead: a hard bar with a block for its head, no glow. */
+[data-skin='game'] .lnf .lnf-beam { top: -8px; bottom: -8px; width: 4px; margin-left: -2px; border-radius: 0; background: var(--ink); box-shadow: 3px 0 0 var(--g-pink); }
+[data-skin='game'] .lnf .lnf-beam::before { content: ""; position: absolute; left: -6px; top: 0; width: 16px; height: 8px; background: var(--ink); box-shadow: 3px 3px 0 var(--g-pink); }
+/* Who sings, as the song builds: the screen's line. */
+[data-skin='game'] .lnf-now { font: 400 19px/1.1 var(--g-vt); letter-spacing: .05em; text-transform: uppercase; color: var(--g-yellow); }
+[data-skin='game'] :is(.lnf-cue, .lnf-hint) { font: 400 17px/1 var(--g-vt); letter-spacing: .08em; }
+[data-skin='game'] .lnf-dots a::before { width: 8px; height: 8px; border-radius: 0; }
+[data-skin='game'] .lnf-dots a[aria-current='true']::before { height: 22px; background: var(--g-yellow); }
+
+/* The dock: a cabinet's control panel. */
+[data-skin='game'] .lnf-disc { background: var(--g-yellow); color: var(--g-on) !important; box-shadow: 4px 4px 0 var(--g-frame); }
+[data-skin='game'] .lnf-tp { font: 400 21px/1 var(--g-vt); color: var(--ink); }
+[data-skin='game'] .lnf-time { font-size: inherit; }
+/* The words still to come are AA at the screen face's size too. */
+[data-skin='game'] .lnf-line { font: 400 clamp(23px, 2.4vw, 34px)/1.1 var(--g-vt); letter-spacing: 0; color: color-mix(in srgb, var(--ink) 68%, var(--g-bg)); }
+/* The word being sung: a lit block. */
+[data-skin='game'] .lnf-line [data-now] { text-decoration: none; background: var(--g-yellow); color: var(--g-on); box-shadow: 0 0 0 2px var(--g-yellow); }
+[data-skin='game'] .lnf-next { font: 400 18px/1.1 var(--g-vt); }
+[data-skin='game'] .lnf-start { background: var(--g-yellow); color: var(--g-on) !important; font: 400 21px/1 var(--g-vt); letter-spacing: .04em; text-transform: uppercase; box-shadow: 4px 4px 0 var(--g-frame); }
+[data-skin='game'] .lnf-rail { height: 4px; background: linear-gradient(90deg, var(--c1) 0 25%, var(--c2) 25% 50%, var(--c3) 50% 75%, var(--c4) 75%); }
+@media (min-width: 900px) {
+    [data-skin='game'] .lnf-dock { background: var(--g-panel); border-top: 4px solid var(--g-frame); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+
+/* What floats in a scene: a square cabinet panel, framed, on a hard shadow. */
+[data-skin='game'] .lnf .lnf-glass { background: var(--g-panel); border: 2px solid var(--g-frame); border-radius: 0; box-shadow: 8px 8px 0 var(--g-sh); -webkit-backdrop-filter: none; backdrop-filter: none; }
+[data-skin='game'] .lnf-seg { border-radius: 0; border: 2px solid var(--g-frame); background: var(--g-panel); font: 400 18px/1 var(--g-vt); letter-spacing: .04em; text-transform: uppercase; }
+[data-skin='game'] .lnf-seg span { border-radius: 0; padding: 7px 12px; }
+[data-skin='game'] .lnf-share { transform: none; }
+[data-skin='game'] .lnf-share b { font: 400 13px/1.45 var(--g-px); letter-spacing: 0; text-transform: uppercase; }
+[data-skin='game'] .lnf-pair span { border-radius: 0; font: 400 10px/1.3 var(--g-px); text-transform: uppercase; }
+[data-skin='game'] .lnf-pair span + span { background: var(--g-well); box-shadow: inset 0 0 0 2px var(--g-frame); }
+
+/* The strips between sections: the same frames lying down, the song's bars square, the playhead a hard bar. */
+[data-skin='game'] .lnf-floor i { border-block-width: 2px; border-color: var(--c); }
+[data-skin='game'] .lnf-floor b { border-radius: 0; }
+[data-skin='game'] .lnf-floor b[data-lit] { box-shadow: 0 0 0 2px var(--ink); }
+[data-skin='game'] .lnf-floor[data-live] span::after { width: 4px; margin-left: -2px; border-radius: 0; box-shadow: 3px 0 0 var(--g-pink); }
+
+/* Free to learn: three cabinets, each framed in its voice's neon. */
+[data-skin='game'] .lnf .lnf-slab { border-color: var(--c); box-shadow: 8px 8px 0 color-mix(in srgb, var(--c) 38%, var(--g-sh)); }
+[data-skin='game'] .lnf-slab strong { font: 400 clamp(30px, 4.2vw, 60px)/1 var(--g-px); letter-spacing: 0; }
+[data-skin='game'] .lnf-slab b { font: 400 12px/1.5 var(--g-px); letter-spacing: 0; text-transform: uppercase; padding-inline-end: 0; }
+[data-skin='game'] .lnf-slab i { border-radius: 0; background: var(--g-well); box-shadow: inset 0 0 0 2px var(--c); }
+
+/* Choirs: the group as a cabinet; each singer keeps their coin. */
+[data-skin='game'] .lnf-choir-h b { font: 400 12px/1.4 var(--g-px); text-transform: uppercase; }
+[data-skin='game'] .lnf-row small { font: 400 18px/1 var(--g-vt); letter-spacing: .05em; text-transform: uppercase; }
+[data-skin='game'] .lnf-row em { border-radius: 0; border-width: 2px; padding: 5px 8px; font: 400 17px/1 var(--g-vt); letter-spacing: .04em; text-transform: uppercase; }
+[data-skin='game'] .lnf-soon { border-radius: 0; padding: 5px 6px; font: 400 8px/1 var(--g-px); letter-spacing: 0; }
+
+/* The plans and the questions. */
+[data-skin='game'] .lnf-plan h3 { font: 400 14px/1.3 var(--g-px); text-transform: uppercase; flex-wrap: wrap; }
+[data-skin='game'] .lnf-price { font: 400 clamp(22px, 3vw, 38px)/1.25 var(--g-px); letter-spacing: 0; }
+[data-skin='game'] .lnf-price small { font: 400 20px/1 var(--g-vt); }
+[data-skin='game'] .lnf .lnf-plus { border-color: var(--g-yellow); box-shadow: 8px 8px 0 color-mix(in srgb, var(--g-yellow) 38%, var(--g-sh)); }
+[data-skin='game'] .lnf .lnf-faq details { box-shadow: 4px 4px 0 var(--g-sh); }
+[data-skin='game'] .lnf-faq summary { border-radius: 0; font: 400 clamp(21px, 1.8vw, 25px)/1.1 var(--g-vt); letter-spacing: .01em; }
+
+/* The close's mark: its bars keep their glass, on a hard shadow. */
+[data-skin='game'] .lnf-mark i { box-shadow: inset 0 3px 0 rgb(255 255 255 / .75), inset 0 -8px 14px color-mix(in oklab, var(--c) 48%, black), 5px 5px 0 color-mix(in srgb, var(--c) 38%, var(--g-sh)); }
+/* The close: the site's closing band as a CONTINUE? screen. PRESS START over the line, the four ways on as cabinets
+   in their voices' neon, each with its readout. */
+[data-skin='game'] .lnf-close :is(.s-kick, .s-close-kick) { font: 400 12px/1.3 var(--g-px); text-transform: uppercase; color: var(--g-yellow); }
+[data-skin='game'] .lnf-close h2 { font: 400 clamp(24px, 4.2vw, 56px)/1.35 var(--g-px); letter-spacing: 0; text-transform: uppercase; text-shadow: .09em .09em 0 var(--g-shade); }
+[data-skin='game'] .lnf-close .btn-primary.btn-lg { height: auto; min-height: 64px; padding: 10px 28px; border-radius: 0; background: var(--g-yellow); color: var(--g-on) !important; font: 400 13px/1.45 var(--g-px); text-transform: uppercase; white-space: normal; box-shadow: 6px 6px 0 var(--g-frame); transition: translate .06s steps(1), box-shadow .06s steps(1); }
+[data-skin='game'] .lnf-close .btn-primary.btn-lg:active { translate: 4px 4px; box-shadow: none; }
+[data-skin='game'] .lnf-close .s-explore-h { font: 400 11px/1.3 var(--g-px); letter-spacing: 0; color: var(--g-yellow); }
+[data-skin='game'] .lnf-close .s-explore-h::after { height: 2px; background: var(--g-line); }
+[data-skin='game'] .lnf-close .s-explore-way { grid-template-areas: "ic name go" "hud hud hud" "fact fact fact"; border-radius: 0; border: 2px solid var(--c); background: var(--g-panel); box-shadow: 5px 5px 0 color-mix(in srgb, var(--c) 38%, var(--g-sh)); transition: translate .06s steps(1), box-shadow .06s steps(1); }
+[data-skin='game'] .lnf-close .s-explore-way:hover { translate: 0 0; }
+[data-skin='game'] .lnf-close .s-explore-way:active { translate: 4px 4px; box-shadow: none; }
+[data-skin='game'] .lnf-close .s-explore-name { font: 400 12px/1.4 var(--g-px); letter-spacing: 0; text-transform: uppercase; white-space: normal; }
+[data-skin='game'] .lnf-close .s-explore-hud { display: block; grid-area: hud; font: 400 clamp(20px, 2.4vw, 30px)/1.1 var(--g-px); text-transform: uppercase; color: var(--c); }
+[data-skin='game'] .lnf-close .s-explore-hud:empty { display: none; }
+
+/* The letter and the footer: the screen face for their small caps, square buttons. */
+[data-skin='game'] .lnf-foot-wrap { border-top: 4px solid var(--g-frame); background: var(--g-panel); }
+[data-skin='game'] .lnf-foot-wrap .s-brand { font: 400 12px/1 var(--g-px); letter-spacing: 0; }
+[data-skin='game'] .lnf-foot-wrap .s-brand svg { border-radius: 0; }
+[data-skin='game'] .lnf-foot-wrap .s-foot-h { font: 400 10px/1.4 var(--g-px); letter-spacing: 0; color: var(--g-yellow); }
+[data-skin='game'] .lnf-foot-wrap .s-iconbtn { border-radius: 0; border: 2px solid var(--g-frame); background: var(--g-well); }
+[data-skin='game'] .lnf-foot-wrap .s-skin-g { font: 400 10px/1.5 var(--g-px); text-transform: uppercase; color: var(--g-yellow); }
+
+/* Wide: the cabinets stand straight (pixels stay crisp), keeping their steps up and down. */
+@media (min-width: 900px) {
+    [data-skin='game'] .lnf-slab:nth-child(1), [data-skin='game'] .lnf-slab:nth-child(3) { transform: translateY(18px); }
+    [data-skin='game'] .lnf-slab:nth-child(2) { transform: translateY(-14px); }
+    [data-skin='game'] .lnf-choir { transform: none; }
+    /* The first screen: PRESS START and Start singing share a row, so the promise under them clears the lanes. */
+    [data-skin='game'] .lnf-stage [data-s='0'] .lnf-play { padding-inline-end: 20px; font-size: 12px; }
+    [data-skin='game'] .lnf-stage [data-s='0'] .lnf-quiet { padding: 8px 14px; font-size: 10px; }
+}
+
+/* Phone. */
+@media (max-width: 899px) {
+    [data-skin='game'] .lnf-nav a { font-size: 18px; letter-spacing: .02em; }
+    [data-skin='game'] .lnf-open { padding: 0 8px; font-size: 18px; }
+    [data-skin='game'] .lnf-logo span { font-size: 10px; }
+    /* The phone's bare switches (light or dark, the language) stay bare. */
+    [data-skin='game'] .lnf-top .lnf-round[data-lnf-theme], [data-skin='game'] .lnf-lang .lnf-round { border: 0; background: none; box-shadow: none; }
+    [data-skin='game'] .lnf-h1 { font-size: clamp(19px, 6.6vw, 28px); }
+    [data-skin='game'] .lnf-h2 { font-size: clamp(15px, 4.8vw, 20px); }
+    [data-skin='game'] .lnf-h2-two { font-size: clamp(14px, 4.4vw, 18px); }
+    [data-skin='game'] .lnf-kick { font-size: 9px; }
+    [data-skin='game'] .lnf-play { min-height: 66px; padding: 8px 16px 8px 68px; font-size: 13px; }
+    [data-skin='game'] .lnf-play-w small { font-size: 17px; }
+    [data-skin='game'] .lnf-prim { font-size: 12px; padding: 10px 16px; }
+    [data-skin='game'] .lnf-quiet { min-height: 46px; padding: 8px 14px; font-size: 10px; }
+    [data-skin='game'] .lnf:not([data-scene='4']) .lnf-deck { inset: 0 8px; gap: 10px; }
+    [data-skin='game'] .lnf-lb b { font-size: 10px; }
+    [data-skin='game'] .lnf-chip { font-size: 15px; }
+    [data-skin='game'] .lnf-mine { left: auto; padding: 0 12px; }
+    [data-skin='game'] .lnf-mine::before { border-radius: 0; border-width: 2px; background: var(--g-panel); }
+    [data-skin='game'] .lnf-now { font-size: 16px; letter-spacing: .02em; }
+    /* The dock's one pill is one square panel. */
+    [data-skin='game'] .lnf-dock { background: linear-gradient(transparent, var(--g-bg) 34px); }
+    [data-skin='game'] .lnf[data-tail]:not([data-playing]) .lnf-dock { background: none; }
+    [data-skin='game'] .lnf-dock::before { border-radius: 0; border: 2px solid var(--g-frame); background: var(--g-panel); box-shadow: 4px 4px 0 var(--g-sh); }
+    [data-skin='game'] .lnf-tp { font-size: 19px; }
+    [data-skin='game'] .lnf-line { font-size: 21px; }
+    [data-skin='game'] .lnf-start { font-size: 18px; letter-spacing: .02em; box-shadow: 3px 3px 0 var(--g-frame); }
+    [data-skin='game'] .lnf-slab strong { font-size: 28px; }
+    [data-skin='game'] .lnf-slab b { font-size: 10px; }
+    [data-skin='game'] .lnf-share b { font-size: 11px; }
+    [data-skin='game'] .lnf-price { font-size: 24px; white-space: normal; }
+    [data-skin='game'] .lnf-close h2 { font-size: clamp(19px, 6.6vw, 28px); }
+    [data-skin='game'] .lnf-close .btn-primary.btn-lg { font-size: 12px; padding: 10px 16px; }
+    [data-skin='game'] .lnf-close .s-explore-name { font-size: 10px; }
+    /* A tile's name takes a row of its own, so the longest (Herramientas) fits a narrow phone. */
+    [data-skin='game'] .lnf-close .s-explore-way { border-radius: 0; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "ic go" "name name" "hud hud" "fact fact"; }
+    [data-skin='game'] .lnf-close .s-explore-go { justify-self: end; }
+    [data-skin='game'] .lnf .lnf-glass { box-shadow: 5px 5px 0 var(--g-sh); }
+    [data-skin='game'] .lnf .lnf-slab { box-shadow: 5px 5px 0 color-mix(in srgb, var(--c) 38%, var(--g-sh)); }
+    [data-skin='game'] .lnf .lnf-plus { box-shadow: 5px 5px 0 color-mix(in srgb, var(--g-yellow) 38%, var(--g-sh)); }
+}
+@media (max-width: 400px) {
+    [data-skin='game'] .lnf-logo span { font-size: 9px; }
+    [data-skin='game'] .lnf-nav a { font-size: 17px; letter-spacing: 0; }
+    [data-skin='game'] .lnf-open { padding: 0 6px; font-size: 16px; letter-spacing: 0; }
+}
+@media (max-width: 374px) {
+    [data-skin='game'] .lnf-logo span { font-size: 8px; }
+}
+@media (max-width: 359px) {
+    [data-skin='game'] .lnf-nav a { font-size: 15px; }
+    [data-skin='game'] .lnf-play { font-size: 11px; }
+    [data-skin='game'] .lnf-start { font-size: 16px; }
+    [data-skin='game'] .lnf-line { font-size: 19px; }
+    [data-skin='game'] .lnf-now { font-size: 14px; letter-spacing: 0; }
+    [data-skin='game'] .lnf-close .s-explore-name { font: 400 19px/1.1 var(--g-vt); }
+}

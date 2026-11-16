@@ -7,7 +7,7 @@
 
 import { barsOf, clefNameOf, DIVISIONS, measuresOf, metreOf } from './musicxml.js';
 import { chordName } from './notes.js';
-import { keySignature, staffLayout } from './sing.js';
+import { keySignature, staffLayout } from './staff-layout.js';
 
 export const PAGE = 1000; // a system's width, in SVG units; the page scales it to the paper
 export const GAP = 10; // between staff lines
@@ -23,7 +23,7 @@ const WORD_CHAR = 8.5; // a word's width per letter at the print's 15px (and a c
 const HEAD_GAP = 16; // two notes' heads never closer
 const WORD_GAP = 6; // between two words
 
-const wordWidth = (text) => (text ? text.length * WORD_CHAR : 0);
+const roughWidth = (text) => (text ? text.length * WORD_CHAR : 0);
 const SHARP_AT = [8, 5, 9, 6, 3, 7, 4];
 const FLAT_AT = [4, 7, 3, 6, 2, 5, 1];
 const FLAGS = { eighth: 1, '16th': 2, '32nd': 3 };
@@ -53,8 +53,11 @@ export function signaturePositions(key, clef) {
  * with its `x` and, for a note, its staff `position` (0 the bottom line), `accidental`, `ledgers`,
  * `stem`, `flags`, `hollow`, `dot`, `word` and `breath`.
  */
-export function printLayout(template, { partKeys = null, cue = false, names = true, perSystem = null, page = PAGE } = {}) {
-    const edge = names ? NAMES : 8; // where the staves start: after the part names, or at once (a reading line)
+export function printLayout(template, { partKeys = null, cue = false, names = true, perSystem = null, page = PAGE, fill = false, most = null, measure = null } = {}) {
+    const edge = names ? (typeof names === 'number' ? names : NAMES) : 8; // where the staves start: after the part names (a number: a narrower column, for short names), or at once (a reading line)
+    // The engraver's options (js/engrave.js; the app's print leaves them off): `fill` ends a last system more than half
+    // full at the margin, `most` caps a system's bars without widening them, `measure` is a word's true width.
+    const wordWidth = measure ?? roughWidth;
     const key = template.key || 'C';
     const metre = metreOf(template.timeSignature);
     const scale = metre.quarters * DIVISIONS;
@@ -123,11 +126,11 @@ export function printLayout(template, { partKeys = null, cue = false, names = tr
     const groups = [];
     let b = 0;
     while (b < bars.length) {
-        const most = per + (b === 0 && bars[0].pickup ? 1 : 0);
+        const cap = (most ?? per) + (b === 0 && bars[0].pickup ? 1 : 0);
         const room = right - leftOf(groups.length);
         const group = [b];
         let used = widthOf(b);
-        while (group.length < most && b + group.length < bars.length && used + widthOf(b + group.length) <= room + 0.5) {
+        while (group.length < cap && b + group.length < bars.length && used + widthOf(b + group.length) <= room + 0.5) {
             used += widthOf(b + group.length);
             group.push(b + group.length);
         }
@@ -139,7 +142,7 @@ export function printLayout(template, { partKeys = null, cue = false, names = tr
         // Every system but the last fills the line; the last ends where its bars do (and may not run past the page).
         const widths = indexes.map(widthOf);
         const total = widths.reduce((a, w) => a + w, 0);
-        const stretch = s < groups.length - 1 || total > right - left ? (right - left) / total : 1;
+        const stretch = s < groups.length - 1 || total > right - left || (fill && total > (right - left) * 0.6) ? (right - left) / total : 1; // `fill`: a last system more than half full ends at the margin too
         let x = left;
         const sysBars = indexes.map((i, k) => {
             const width = widths[k] * stretch;

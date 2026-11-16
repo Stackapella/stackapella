@@ -76,6 +76,8 @@ body { margin: 0; background: var(--ground); }
 .lnf-note-bar { margin: 0; padding: 10px 20px; } .lnf-note-bar p { margin: 0; } .lnf-notes a { color: inherit; }
 /* Words that differ by skin (x-site.skin): game mode's are hidden everywhere else. */
 :root:not([data-skin="game"]) .s-skin-g { display: none !important; }
+/* A pair inside the kicker's row stays part of its one run of words (no gap opens after it). */
+.lnf-kick .s-skin-s { display: contents; }
 
 /* The ground: light in the four voices' colours (plain gradients, never a blurred layer), and a vignette. */
 .lnf-bg { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: -1; }

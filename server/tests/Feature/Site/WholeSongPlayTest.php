@@ -7,6 +7,7 @@ namespace Tests\Feature\Site;
 use App\Models\Template;
 use App\Support\Pages\Landing;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Blade;
 use Tests\Support\BetaFixtures;
 use Tests\TestCase;
 
@@ -57,7 +58,8 @@ final class WholeSongPlayTest extends TestCase
         $starts = array_values(array_filter(array_slice($line['words'], 1), static fn (array $w): bool => $w['br']));
         $this->assertNotEmpty($starts, 'the opening line holds more than one sung line');
 
-        $html = (string) $this->get('/songs/amazing-grace')->assertOk()->getContent();
+        // The player's own strip (the collections' and the landing's player; a song page reads its words in its score).
+        $html = Blade::render('<x-site.mixer :song="$line" />', ['line' => $line]);
         $this->assertSame(1, preg_match('#<p class="s-lyrics">(.*?)</p>#s', $html, $strip));
         // One block per sung line, each starting with the word the template breaks before.
         $this->assertSame(count($starts) + 1, substr_count($strip[1], '<span data-line>'));

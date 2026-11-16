@@ -17,7 +17,8 @@ on it, then a page that scrolls, the site's footer, and a dock that stays. On a 
 - the dock is Play, the time and Start singing (no voice buttons); the Hear scene's button and the Learn links name the
   voice last heard alone and lead to its part;
 - down the page, a strip of lanes in view is the song itself while it plays, and a picture again once it stops;
-- the top line's Game mode switch is the site's: it turns the skin, the choice is kept, and the page stays calm;
+- the top line's Game mode switch is the site's: it turns the skin, the choice is kept, and the page puts on game mode's
+  dress (css/landing-game.css, loaded then), or stays calm while there is none;
 - the stage's scenes follow the scroll, 0 to 4; after Share the stage lets go and the rest scrolls as a page: nothing
   scrolls inside itself, the lanes end above the dock in every scene, and the last question clears the dock;
 - scrolling never stops or moves the song;
@@ -208,7 +209,7 @@ def strip(f):
 
 
 def game_switch(f):
-    """The top line's Game mode switch is the site's own: it turns the skin, the choice is kept, the page stays calm."""
+    """The top line's Game mode switch is the site's own: it turns the skin, the choice is kept, the page dresses for it."""
     f.run("window.scrollTo(0, 0)")
     switch = "document.querySelector('.lnf-top [data-game-toggle]')"
     assert f.js(f"{switch}.getAttribute('role')") == "switch" and f.js(f"{switch}.getAttribute('aria-checked')") == "false", "the switch, off in the calm skin"
@@ -219,11 +220,17 @@ def game_switch(f):
     f.wait("document.documentElement.dataset.skin === 'game'", timeout=5, what="game mode on")
     assert f.js(f"{switch}.getAttribute('aria-checked')") == "true", "the switch says on"
     assert "game" in f.js("localStorage.getItem('stackapella.appearance') || ''"), "the choice is kept, as the site keeps it"
-    assert "Figtree" in f.js("getComputedStyle(document.querySelector('.lnf-h1')).fontFamily"), "the page stays calm"
+    headline = "getComputedStyle(document.querySelector('.lnf-h1')).fontFamily"
+    if f.js("!!document.querySelector('meta[name=game-css]')"):
+        # Turned on after the first paint, game mode's sheet loads then (theme-boot.js's gameCss) and the page wears it.
+        f.wait(f"!{headline}.split(',')[0].includes('Figtree')", timeout=10, what="the page in game mode's dress")
+    else:
+        assert "Figtree" in f.js(headline), "the page stays calm"
     f.no_sideways("game mode on")
     f.run(f"{switch}.click()")
     f.wait("document.documentElement.dataset.skin === 'serious'", timeout=5, what="game mode off again")
     assert f.js(f"{switch}.getAttribute('aria-checked')") == "false", "the switch says off"
+    f.wait(f"{headline}.includes('Figtree')", timeout=5, what="the calm page again")
 
 
 def recorded_only(base, size):
@@ -474,6 +481,8 @@ def in_game(base):
         if dressed:
             assert "/css/landing-game.css" in sheets and len(sheets) == 3, f"game mode's sheet joins the page's own: {sheets}"
             assert "Figtree" not in font.split(",")[0], f"the headline wears game mode's type: {font}"
+            assert f.js("getComputedStyle(document.querySelector('.lnf-play')).borderRadius") == "0px", "Play is PRESS START, a square key"
+            assert f.js("getComputedStyle(document.querySelector('.lnf-play .s-skin-s')).display") == "none" and f.js("getComputedStyle(document.querySelector('.lnf-play .s-skin-g')).display") != "none", "Play says game mode's words, once"
         else:
             assert sheets == ["/css/landing.css", "/css/game-toggle.css"], f"no game sheet yet: {sheets}"
             assert "Figtree" in font, f"the headline keeps its own type: {font}"

@@ -16,6 +16,7 @@ use App\Support\Pages\SongCollections;
 use App\Support\Pages\SongMeanings;
 use App\Support\Pages\SongPage;
 use App\Support\Pages\SongParts;
+use App\Support\Pages\SongScore;
 use App\Support\Pages\SongsHub;
 use App\Support\Pages\SongStories;
 use App\Support\Rights\RightsHere;
@@ -195,6 +196,8 @@ final class SongPagesController extends Controller
             'quoteN' => $story !== null && is_array($story['quote'] ?? null) ? (collect((array) $story['sources'])->firstWhere('id', $story['quote']['source'])['n'] ?? null) : null,
             // Every open song plays, not only the bundled ones (Hillel, 2026-11-13); none where it's withheld here.
             'line' => $line,
+            // Its score's facts and downloads (SongScore), with the player: never where it's withheld here.
+            'score' => $line !== null ? SongScore::of($template, $song, (float) $line['songBeats'] * 60 / max(1.0, (float) $line['tempo'])) : null,
             // Null where it's free; else the year it's free here (null when that can't be known) and whether the words
             // are withheld too. The view's words are marketing's.
             'rights' => $withheld === null ? null : ['freeFrom' => $withheld['freeFrom'], 'words' => $wordsWithheld],

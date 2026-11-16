@@ -66,6 +66,10 @@ def journey(f):
     one_line(f, "song page")
     f.no_sideways("the song page with its Share")
     f.shot("song page")
+    # Measured once the page has settled: its fonts in and its score (drawn at idle after load) on the page.
+    f.wait("document.readyState === 'complete' && document.fonts.status === 'loaded'"
+           " && (!document.querySelector('[data-score]') || !!document.querySelector('[data-score] svg'))",
+           what="the song page settled")
     width = f.js(f"{BUTTON}.getBoundingClientRect().width")
     f.run(f"{BUTTON}.click()")
     f.wait("window.__copied.length === 1", what="the link copied")

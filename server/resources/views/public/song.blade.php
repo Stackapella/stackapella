@@ -28,7 +28,7 @@
     <meta name="twitter:image" content="{{ $image }}">
     <meta name="twitter:image:alt" content="{{ $imageAlt }}">
     <link rel="canonical" href="{{ $meta['url'] }}">
-    <x-site.json-ld :data="\App\Support\Site\StructuredData::song($song, $story)" />
+    <x-site.json-ld :data="\App\Support\Site\StructuredData::song($song, $story, $line !== null ? __('pages.song.score.full_title.'.($score['voicing'] ?? 'parts'), ['title' => $song['title'], 'count' => count($line['parts'])]) : null)" />
 @endsection
 
 @section('content')
@@ -41,6 +41,9 @@
     @php($tagOf = \App\Support\Pages\SongParts::round($song['genre']) ? static fn (array $card): string => 'tune' : static fn (array $card): string => $card['tag'])
     @php($rangeOf = static fn (array $card): string => __('pages.song.range', ['low' => \App\Support\Pages\Carols::signs($card['low']), 'high' => \App\Support\Pages\Carols::signs($card['high'])]))
     @if ($line !== null)
+        {{-- The score in words (its text alternative): what it is, and each part's range. --}}
+        @php($scoreKind = __('pages.song.score.kind.'.($score['voicing'] ?? 'parts'), ['count' => count($line['parts'])]))
+        @php($scoreAlt = __('pages.song.score.alt', ['title' => $song['title'], 'kind' => $scoreKind, 'time' => $score['time'], 'bars' => __('pages.song.score.alt_bars', ['count' => $score['bars'] ?? 0]), 'ranges' => collect($cards)->map(fn (array $card): string => __('pages.song.score.alt_part', ['part' => $card['name'], 'low' => \App\Support\Pages\Carols::signs($card['low']), 'high' => \App\Support\Pages\Carols::signs($card['high'])]))->implode('; ')]))
         @php($byKey = collect($cards)->keyBy('key'))
         @php($line['parts'] = array_map(static fn (array $part): array => $byKey->has($part['key']) ? [...$part, 'line' => __('pages.song.tag.'.$tagOf($byKey->get($part['key']))), 'rangeLine' => $rangeOf($byKey->get($part['key']))] : $part, $line['parts']))
     @endif
@@ -56,14 +59,15 @@
             {{-- Its collection's motif, where it's true of the song: the hanukkiah only on a Hanukkah song (the arranger's check:
                  Lecha Dodi, a Sabbath hymn, showed it); the other Jewish songs keep the palette without it. --}}
             @include('site._tone-motif', ['key' => $tone === 'jewish-songs' && ! in_array('hanukkah', $song['genre'], true) ? '' : $tone])
-            <div @class(['s-wrap s-xhero-in s-xcoll-in', 's-xcoll-has-try' => $line !== null || $song['previewUrl'] !== null])>
+            {{-- With its player, the two columns are one player (js/public/mixer.js): the part picked at left, the score's
+                 card at right (Hillel's design, 2026-11-16). --}}
+            <div @class(['s-wrap s-xhero-in s-xcoll-in', 's-xcoll-has-try' => $line !== null || $song['previewUrl'] !== null, 's-sg-scored' => $line !== null]) @if ($line !== null) id="song-mixer" data-player role="group" aria-labelledby="song-mixer-title" @endif>
                 <div class="s-xhero-text">
                     <x-site.crumbs :trail="[[__('pages.song.eyebrow'), '/songs'], ...($home !== null ? [[$home['name'], $home['path']]] : []), [$song['title'], null, true]]" :ld="true" />
                     <h1 id="page-h" translate="no">{{ $song['title'] }}</h1>
-                    <p class="s-lead">{{ $story !== null && $story['lead'] !== '' ? $story['lead'] : $song['description'] }}</p>
                     <ul class="s-sg-chips">
                         <li class="s-sg-chip-free">{{ __(($song['account'] ?? false) ? 'pages.song.free_account' : 'pages.song.free') }}</li>
-                        <li>{{ __('pages.songs.parts', ['count' => count($song['parts'])]) }}</li>
+                        <li>{{ ($score['voicing'] ?? null) !== null ? __('pages.song.score.voicing.'.$score['voicing'], ['count' => count($song['parts'])]) : __('pages.songs.parts', ['count' => count($song['parts'])]) }}</li>
                         @if (\Illuminate\Support\Facades\Lang::has('pages.song.difficulty.'.$song['difficulty']))
                             <li>{{ __('pages.song.difficulty.'.$song['difficulty']) }}</li>
                         @endif
@@ -73,16 +77,31 @@
                                 <li>{{ \App\Support\Languages\SongWords::genre($genre) }}</li>
                             @endforeach
                         @endif
+                        {{-- How long it is: its bars and its time, where the page plays it. --}}
+                        @if ($line !== null)
+                            <li>{{ $score['bars'] !== null ? __('pages.song.score.bars_length', ['count' => $score['bars'], 'length' => $score['length']]) : $score['length'] }}</li>
+                        @endif
                     </ul>
-                    @if ($line === null)
-                        @include('public._song-actions')
+                    {{-- The facts first, then the lead (Hillel's design, 2026-11-16). --}}
+                    <p class="s-lead">{{ $story !== null && $story['lead'] !== '' ? $story['lead'] : $song['description'] }}</p>
+                    @if ($line !== null)
+                        {{-- Your part: the tune's until you choose (it shows chosen, and is: the player sings it forward and
+                             Learn names it). One radio a part, read by the player as its picks. --}}
+                        <div class="s-sg-pick">
+                            <p class="s-sg-pick-h" id="song-pick-h">{{ __('pages.song.score.pick') }}</p>
+                            <div class="s-sg-seg" role="radiogroup" aria-labelledby="song-pick-h">
+                                @foreach ($line['parts'] as $part)
+                                    @php($mine = $part['key'] === $line['you'])
+                                    <button type="button" role="radio" aria-checked="{{ $mine ? 'true' : 'false' }}" tabindex="{{ $mine ? '0' : '-1' }}" data-pick="{{ $part['key'] }}" aria-label="{{ $mine ? __('pages.landing.hero.your_part', ['part' => $part['name']]) : __('pages.landing.hero.mine_label', ['part' => $part['name']]) }}" data-label="{{ __('pages.landing.hero.mine_label', ['part' => $part['name']]) }}" data-label-you="{{ __('pages.landing.hero.your_part', ['part' => $part['name']]) }}">{{ $part['name'] }}</button>
+                                @endforeach
+                            </div>
+                        </div>
                     @endif
+                    @include('public._song-actions')
                 </div>
                 @if ($line !== null)
                     <div class="s-sh-try s-xcoll-try s-sg-try">
-                        <x-site.mixer :song="$line" id="song-mixer" :picked="false">
-                            <x-slot:foot>@include('public._song-actions')</x-slot:foot>
-                        </x-site.mixer>
+                        @include('public._song-score')
                     </div>
                 @elseif ($song['previewUrl'] !== null)
                     <div class="s-step s-v1 s-listen">
@@ -93,6 +112,24 @@
                 @endif
             </div>
         </section>
+
+        {{-- The whole score, opened from the card's "Full score": as a printed octavo reads, its title block and its rights
+             line here, its systems engraved by js/public/score.js. Never where the song is withheld (no player, no score). --}}
+        @if ($line !== null)
+            <section class="s-wrap s-score-full" id="song-full-score" data-score-full-view aria-labelledby="song-full-score-h" hidden>
+                <div class="s-score-full-head">
+                    <h2 id="song-full-score-h">{{ __('pages.song.score.full_title.'.($score['voicing'] ?? 'parts'), ['title' => $song['title'], 'count' => count($line['parts'])]) }}</h2>
+                    <button type="button" class="btn-secondary" data-score-full-close>{{ __('pages.song.score.close') }}</button>
+                </div>
+                <div class="s-score-paper" translate="no">
+                    <p class="s-score-title">{{ $song['title'] }}</p>
+                    <p class="s-score-kind">{{ $scoreKind }}</p>
+                    <p class="s-score-credits"><span>{{ $song['credits'][0] ?? '' }}</span><span>{{ $song['credits'][1] ?? '' }}@if (count($song['credits']) > 1)<br>@endif{{ __('pages.song.score.arranged') }}</span></p>
+                    <div data-score-full-systems aria-hidden="true"></div>
+                    <p class="s-score-rights">{{ __('pages.song.score.rights') }}</p>
+                </div>
+            </section>
+        @endif
 
         {{-- Every verse, one sung line a line, stanzas apart; a long line wraps under itself (a hanging indent). --}}
         @if ($lines !== [])
@@ -230,4 +267,5 @@
         <script type="module" src="/js/public/mixer.js"></script>
     @endif
     <script type="module" src="/js/public/song-page.js"></script>
+
 @endsection

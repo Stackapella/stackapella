@@ -39,6 +39,30 @@ return [
         // Hillel's song page design (Danny Boy v2, "Responsive wrapping fixes"): the hero's actions, "Find your part" with
         // each part's one true tag, the words, and the story (App\Support\Pages\SongStories) with its contents and sources.
         'learn_part' => 'Learn the :part part',
+        // The score in the hero's card (public/_song-score, docs/song-sheet-music-plan.md; Hillel's design, 2026-11-16).
+        'score' => [
+            'pick' => 'Which part do you sing?',
+            'voicing' => ['satb' => 'SATB · :count parts', 'round' => 'Round · :count parts'],
+            'bars_length' => ':count bars · :length',
+            'preview_all' => '{2} Preview · both parts|{3} Preview · all three parts|{4} Preview · all four parts|[5,*] Preview · all :count parts',
+            'preview_one' => 'Preview · :part only',
+            'bars' => 'Bars :from–:to of :count',
+            'bar' => 'Bar :from of :count',
+            'prev' => 'The bars before',
+            'next' => 'The next bars',
+            'full' => 'Full score',
+            'close' => 'Close',
+            'download' => 'Download',
+            'download_free' => 'free with an account',
+            'files' => ['pdf' => 'PDF', 'parts' => 'Parts', 'musicxml' => 'MusicXML', 'midi' => 'MIDI'],
+            'full_title' => ['satb' => ':title: free SATB sheet music', 'round' => ':title: free sheet music for the round', 'parts' => ':title: free sheet music in :count parts'],
+            'kind' => ['satb' => 'SATB, a cappella', 'round' => 'A round for :count voices', 'parts' => ':count parts, a cappella'],
+            'arranged' => 'Arranged by Stackapella',
+            'rights' => 'Words and tune: public domain. Arrangement: Stackapella (https://stackapella.com), CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/).',
+            'alt' => 'The sheet music for :title: :kind, in :time, :bars. :ranges.',
+            'alt_bars' => ':count bars',
+            'alt_part' => ':part from :low to :high',
+        ],
         // A song page's <title> and og:title, the longest that fits (SongPage::pageTitle; the SEO audit, 2026-11-13).
         'page_title' => ['full' => ':song: Harmony Parts, Lyrics and Meaning', 'short' => ':song: Harmony Parts and Lyrics', 'shortest' => ':song Harmony Parts'],
         'check_range' => 'Check my range',

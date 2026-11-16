@@ -250,19 +250,26 @@ function setUp(root) {
     // A row you tap to hear its part alone, and again for all of them (the hero's mixer, outside the Studio).
     const alone = new Map([...root.querySelectorAll('[data-voice]')].map((el) => [el.dataset.voice, el.querySelector('[data-hear-alone]')]).filter(([, el]) => el));
     let heardAlone = null; // the part heard alone, last said to the page
-    const marks = [...root.querySelectorAll('[data-beat]')].map((el) => ({
-        el,
-        from: Number(el.dataset.beat) * secondsPerBeat,
-        to: 'length' in el.dataset ? (Number(el.dataset.beat) + Number(el.dataset.length)) * secondsPerBeat : null,
-    }));
-    // A word is lit until the next word starts.
-    const starts = [...new Set(marks.filter((m) => m.to === null).map((m) => m.from))].sort((a, b) => a - b);
-    for (const mark of marks) {
-        if (mark.to === null) mark.to = starts.find((s) => s > mark.from) ?? lineLength;
+    let marks = [];
+    function readMarks() {
+        marks = [...root.querySelectorAll('[data-beat]')].map((el) => ({
+            el,
+            from: Number(el.dataset.beat) * secondsPerBeat,
+            to: 'length' in el.dataset ? (Number(el.dataset.beat) + Number(el.dataset.length)) * secondsPerBeat : null,
+        }));
+        // A word is lit until the next word starts.
+        const starts = [...new Set(marks.filter((m) => m.to === null).map((m) => m.from))].sort((a, b) => a - b);
+        for (const mark of marks) {
+            if (mark.to === null) mark.to = starts.find((s) => s > mark.from) ?? lineLength;
+        }
     }
+    readMarks();
+    // A page that draws its notes later (a song page's score, js/public/score.js) says when they're there.
+    root.addEventListener('mixer-marks', readMarks);
     const time = root.querySelector('[data-time]');
     const toggles = new Map([...voices].map(([key, el]) => [key, el.querySelector('[data-toggle]')]));
-    const picks = new Map([...voices].map(([key, el]) => [key, el.querySelector('[data-pick]')]).filter(([, el]) => el));
+    // A voice's pick is in its row, or anywhere in the player by its key (a song page's "Which part do you sing?").
+    const picks = new Map([...voices].map(([key, el]) => [key, el.querySelector('[data-pick]') ?? root.querySelector(`[data-pick="${key}"]`)]).filter(([, el]) => el));
     const on = new Map(song.parts.map((p) => {
         const toggle = toggles.get(p.key);
         const voice = voices.get(p.key);
