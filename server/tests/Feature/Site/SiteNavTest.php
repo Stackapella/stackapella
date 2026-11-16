@@ -40,7 +40,12 @@ final class SiteNavTest extends TestCase
     {
         $tools = SitePages::toolsHome();
 
-        foreach (['/', '/pricing', '/courses', '/features'] as $path) {
+        // The home page has a top line of its own (pages/landing.blade.php) with the same ways on, and the site's footer.
+        $home = (string) $this->get('/')->assertOk()->getContent();
+        $this->assertMatchesRegularExpression('#<nav class="lnf-nav"[^>]*>.*href="/courses".*href="'.preg_quote($tools, '#').'"#s', $home, 'the home page\'s top line');
+        $this->assertStringContainsString(e(__('pages.nav.groups.learn')), $home);
+        $this->assertStringContainsString(e(__('pages.nav.groups.reference')), $home);
+        foreach (['/pricing', '/courses', '/features'] as $path) {
             $html = (string) $this->get($path)->assertOk()->getContent();
             $this->assertMatchesRegularExpression('#<nav class="s-nav"[^>]*>.*href="/courses".*href="'.preg_quote($tools, '#').'"#s', $html, $path.': the top bar');
             $this->assertMatchesRegularExpression('#<nav class="s-menu-panel"[^>]*>.*href="/courses".*href="'.preg_quote($tools, '#').'"#s', $html, $path.': the phone menu');
@@ -73,18 +78,16 @@ final class SiteNavTest extends TestCase
     {
         $html = (string) $this->get('/')->assertOk()->getContent();
 
-        $how = strpos($html, 'id="steps-h"');
-        $courses = strpos($html, 'data-landing-courses');
-        $tools = strpos($html, 'data-landing-tools');
-        $this->assertNotFalse($how);
-        $this->assertNotFalse($courses);
-        $this->assertNotFalse($tools);
-        $this->assertGreaterThan($how, $courses);
-        $this->assertGreaterThan($courses, $tools);
-
-        $this->assertStringContainsString('href="/features/course"', $html);
-        foreach (Landing::FEATURED_TOOLS as $slug) {
-            $this->assertStringContainsString('href="/tools/'.$slug.'"', $html);
-        }
+        // The four steps on the stage, then the scene that says what's free, each of its three a way in.
+        $share = strpos($html, 'id="lnf-s4"');
+        $free = strpos($html, 'id="lnf-s5"');
+        $this->assertNotFalse($share);
+        $this->assertNotFalse($free);
+        $this->assertLessThan($free, $share);
+        $scene = substr($html, (int) $free, (int) strpos($html, 'id="lnf-s6"') - (int) $free);
+        $this->assertStringContainsString('href="/courses"', $scene);
+        $this->assertStringContainsString('href="/songs"', $scene);
+        $this->assertStringContainsString('href="'.SitePages::toolsHome().'"', $scene);
+        $this->assertStringContainsString('/learn/1-comfortable', $scene);
     }
 }

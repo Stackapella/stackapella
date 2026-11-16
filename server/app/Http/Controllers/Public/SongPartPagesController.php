@@ -9,18 +9,21 @@ use App\Models\Template;
 use App\Support\Pages\PageGone;
 use App\Support\Pages\SongCollections;
 use App\Support\Pages\SongParts;
+use App\Support\Rights\RightsHere;
 use App\Support\Sharing\SongCards;
 use App\Support\Site\Correction;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 /**
  * A song's part page (docs/seo-growth-plan.md, item 1): /songs/<song>/<part>, only for a live,
  * reviewed, public-domain library song (App\Support\Pages\SongParts). Anything else, and every part
  * page until its view exists, is a real 404. No session; cached five minutes like the song pages.
+ * Where the song's copyright still runs (docs/geo-rights-plan.md) the page stays without its player, as the song's does.
  */
 final class SongPartPagesController extends Controller
 {
-    public function show(string $slug, string $part, SongParts $parts, SongCollections $collections, SongCards $cards): Response
+    public function show(Request $request, string $slug, string $part, SongParts $parts, SongCollections $collections, SongCards $cards, RightsHere $rights): Response
     {
         $page = SongParts::open() ? $parts->page($slug, $part) : null;
 
@@ -33,6 +36,12 @@ final class SongPartPagesController extends Controller
 
         // Its link card is its song's (the song page's own, SongCards), not the landing's (the coordinator's audit, 2026-11-11).
         $template = Template::query()->with('currentVersion')->where('slug', $slug)->first();
+
+        // Withheld where the visitor is: no player (the API would refuse its notes), and the page says why.
+        $page['withheld'] = $template !== null && $rights->withheld($template, RightsHere::country($request)) !== null;
+        if ($page['withheld']) {
+            $page['song']['free'] = false;
+        }
 
         Correction::share('part', trim((string) ($page['song']['title'] ?? '').' · '.(string) (is_array($page['part'] ?? null) ? ($page['part']['name'] ?? '') : ''), ' ·'));
 

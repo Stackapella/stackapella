@@ -1,11 +1,14 @@
-/* /next-final, the candidate for the final next landing page (Hillel, 2026-11-15: "a fifth potential final design based
-   on the Claude designs which incoudes any good concpets worth taking from the other designs"). The page's own sheet,
+/* The landing, the site's home page (Hillel, 2026-11-16: "make next-final the main home page"; the design is the
+   candidates' final one, 2026-11-15). The page's own sheet,
    written by hand (no Tailwind, nothing from site.css), every class .lnf-*: one stage that fills the screen for the
    first five scenes (the showreel's four lanes), then a page that scrolls (free, choirs, plans, the finale), a slim
-   see-through top line and a dock that stays (play, the time, the four voices, Start singing). Calm only, light and
-   dark; it has no game dress. js/public/landing-next-final.js sets data-scene, data-alone, data-top, data-tail and
-   --lnf-t (the song's place, in beats) on .lnf; the player (mixer.js) sets data-playing, data-loading, data-failed and
-   data-played there, and data-solo, data-off on a lane.
+   see-through top line and a dock that stays (play, the time, Start singing). Calm only, light and dark; game
+   mode's dress is a sheet of its own (css/landing-game.css, the game agent's, under [data-skin=game]; the top line's
+   Game mode switch is the site's own, css/game-toggle.css). The foot is the site's footer component, dressed here.
+   js/public/landing.js sets data-scene, data-alone, data-top, data-tail, --lnf-t (the song's place, in
+   beats) and --lnf-run (how far through the play, 0 to 1) on .lnf, data-wait and data-in on a lane as the voices join
+   one by one, and data-live on a strip of lanes down the page while it shows the song; the player (mixer.js) sets
+   data-playing, data-loading, data-failed and data-played there, and data-solo, data-off on a lane.
    Two layouts for the stage: pinned (motion allowed and scripts on: it sticks, a scene a screen of scroll) and still
    (reduced motion or no script: nothing pinned, the five scenes panels in order). The still one is the base. */
 @font-face { font-family: Figtree; font-style: normal; font-weight: 300 900; font-display: swap; src: url('/fonts/figtree-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
@@ -44,9 +47,12 @@ body { margin: 0; background: var(--ground); }
 :root[data-theme$="-light"] .lnf-in-dark, :root:not([data-theme$="-light"]) .lnf-in-light { display: none; }
 
 /* The top line: slim and see-through over the stage; smaller on the way down, back on the way up. */
-.lnf-top { position: fixed; z-index: 40; inset: 0 0 auto 0; height: var(--top); padding: 0 var(--pad); display: flex; align-items: center; gap: 10px 22px; font-size: 15px; font-weight: 600; background: linear-gradient(color-mix(in srgb, var(--ground) 82%, transparent), transparent); transition: height .35s var(--ease), font-size .35s var(--ease), background-color .35s; }
+.lnf-top { position: fixed; z-index: 40; inset: var(--lnf-note, 0px) 0 auto 0; height: var(--top); padding: 0 var(--pad); display: flex; align-items: center; gap: 10px 22px; font-size: 15px; font-weight: 600; background: linear-gradient(color-mix(in srgb, var(--ground) 82%, transparent), transparent); transition: height .35s var(--ease), font-size .35s var(--ease), background-color .35s; }
 .lnf-logo { display: inline-flex; align-items: center; gap: 10px; margin-inline-end: auto; font-size: 18px; font-weight: 800; letter-spacing: -.01em; min-height: 44px; }
 .lnf-logo svg { border-radius: 7px; transition: scale .35s var(--ease); }
+/* The mark's Santa hat (Icons::hat; js/public/season.js shows it on the visitor's own 24 and 25 December). */
+.lnf-logo.s-brand { position: relative; } .lnf-logo > .s-hat[hidden] { display: none; }
+.lnf-logo > .s-hat { position: absolute; left: -8px; top: calc(50% - 24px); width: 34px; height: 36px; border-radius: 0; pointer-events: none; filter: drop-shadow(0 1px 1px rgb(0 0 0 / .3)); }
 .lnf-nav { display: flex; gap: 4px; }
 .lnf-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 99px; color: color-mix(in srgb, var(--ink) 78%, transparent); }
 .lnf-nav a:hover { color: var(--ink); background: var(--panel); }
@@ -64,6 +70,12 @@ body { margin: 0; background: var(--ground); }
 .lnf[data-top="small"] .lnf-top:not(:focus-within) .lnf-nav a { min-height: 36px; padding: 0 9px; }
 /* Over the page that scrolls, the top line has a ground of its own. */
 .lnf[data-tail] .lnf-top { background: color-mix(in srgb, var(--ground) 86%, transparent); }
+
+/* A line above the page for someone who came a particular way (an outreach partner's link, the mudeo email's). */
+.lnf-notes { position: relative; z-index: 41; background: color-mix(in srgb, var(--em) 24%, var(--ground)); color: var(--ink); font: 600 14.5px/1.4 Figtree, system-ui, sans-serif; text-align: center; }
+.lnf-note-bar { margin: 0; padding: 10px 20px; } .lnf-note-bar p { margin: 0; } .lnf-notes a { color: inherit; }
+/* Words that differ by skin (x-site.skin): game mode's are hidden everywhere else. */
+:root:not([data-skin="game"]) .s-skin-g { display: none !important; }
 
 /* The ground: light in the four voices' colours (plain gradients, never a blurred layer), and a vignette. */
 .lnf-bg { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: -1; }
@@ -83,6 +95,7 @@ body { margin: 0; background: var(--ground); }
 .lnf-h1 em, .lnf-h2 em { font-style: normal; color: var(--em); }
 .lnf-h2-two em { display: block; } .lnf-h2-two { font-size: clamp(32px, 4.3vw, 66px); }
 .lnf-say { margin: 0 0 20px; font-size: clamp(16.5px, 1.4vw, 20px); line-height: 1.45; color: color-mix(in srgb, var(--ink) 86%, transparent); max-width: 30em; }
+.lnf-promise { margin: 12px 0 0; font-size: 14px; font-weight: 600; line-height: 1.35; color: var(--mute); } .lnf-promise[hidden] { display: none; }
 .lnf-true { margin: -8px 0 16px; font-size: 14.5px; font-weight: 600; color: var(--mute); }
 .lnf-lk { text-decoration: underline !important; text-underline-offset: 4px; font-weight: 700; white-space: nowrap; }
 .lnf-kick { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; font-size: 13px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--mute); }
@@ -95,6 +108,12 @@ body { margin: 0; background: var(--ground); }
 .lnf-play { position: relative; display: inline-flex; align-items: center; gap: 16px; height: 76px; padding: 0 34px 0 12px; border: 0; border-radius: 99px; background: var(--btn); color: var(--btn-ink) !important; font-weight: 800; font-size: 20px; line-height: 1; text-align: start; white-space: nowrap; cursor: pointer; box-shadow: 0 0 0 8px color-mix(in srgb, var(--em) 22%, transparent), 0 0 70px 6px color-mix(in srgb, var(--em) 36%, transparent); }
 .lnf-play .lnf-orb { width: 52px; height: 52px; }
 .lnf-play-w { display: grid; gap: 6px; } .lnf-play-w small { font-size: 13.5px; font-weight: 600; letter-spacing: .01em; opacity: .72; }
+/* While a press waits for the recorded voices (or they couldn't be had), the words under Play and beside the disc say
+   so, with how far the download is; the ring round the button fills with it. */
+.lnf-load:empty, .lnf:is([data-loading], [data-failed]) .lnf-meta, .lnf[data-loading] .lnf-time { display: none; }
+.lnf-play-w .lnf-load { font-variant-numeric: tabular-nums; opacity: .85; }
+.lnf-tp .lnf-load { white-space: nowrap; }
+.lnf[data-failed] .lnf-play-w .lnf-load { opacity: 1; }
 .lnf-quiet { display: inline-flex; align-items: center; gap: 8px; height: 56px; padding: 0 24px; border-radius: 99px; background: var(--panel); border: 1px solid var(--edge); font-size: 17px; font-weight: 700; white-space: nowrap; cursor: pointer; }
 .lnf-quiet[aria-pressed="true"] { border-color: var(--ink); }
 .lnf-prim { display: inline-flex; align-items: center; gap: 10px; height: 64px; padding: 0 32px; border-radius: 99px; background: var(--btn); color: var(--btn-ink) !important; font-size: 19px; font-weight: 800; white-space: nowrap; }
@@ -137,7 +156,7 @@ body { margin: 0; background: var(--ground); }
 .lnf-lb { position: absolute; z-index: 3; left: var(--pad); top: 0; bottom: 0; width: 300px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 5px; pointer-events: none; }
 .lnf-lb b { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 800; line-height: 1; letter-spacing: -.01em; color: var(--c); white-space: nowrap; }
 .lnf-lb small { max-width: 176px; padding-inline-start: 42px; font-size: 14px; font-weight: 500; line-height: 1.2; color: var(--mute); }
-:is(.lnf-row, .lnf-vo) > .lnf-orb { --c: inherit; }
+.lnf-row > .lnf-orb { --c: inherit; }
 .lnf-lb .lnf-orb { --c: inherit; width: 32px; height: 32px; font-size: 13px; font-weight: 800; }
 .lnf-ln .lnf-orb, .lnf-orb[class*="lnf-v"], [class*="lnf-v"] > .lnf-orb { background: radial-gradient(120% 100% at 32% 18%, color-mix(in oklab, var(--c) 45%, white) 0%, var(--c) 46%, color-mix(in oklab, var(--c) 58%, black) 100%); }
 /* A lane too low for two lines keeps its name. */
@@ -146,13 +165,17 @@ body { margin: 0; background: var(--ground); }
 .lnf-mt i:nth-child(2) { height: 16px; } .lnf-mt i:nth-child(3) { height: 11px; } .lnf-mt i:nth-child(4) { height: 6px; }
 @media (prefers-reduced-motion: no-preference) {
     /* A lane's level meter moves while its voice is heard. */
-    .lnf[data-playing] .lnf-ln:not([data-off]) .lnf-mt i { animation: lnf-meter .7s ease-in-out infinite alternate; }
+    .lnf[data-playing] .lnf-ln:not([data-off], [data-wait]) .lnf-mt i { animation: lnf-meter .7s ease-in-out infinite alternate; }
     .lnf[data-playing] .lnf-mt i:nth-child(2) { animation-delay: -.2s; } .lnf[data-playing] .lnf-mt i:nth-child(3) { animation-delay: -.45s; } .lnf[data-playing] .lnf-mt i:nth-child(4) { animation-delay: -.3s; }
     .lnf:not([data-played], [data-loading], [data-failed]) :is(.lnf-play .lnf-orb, .lnf-disc)::after { animation: lnf-breathe 2.4s ease-in-out infinite; }
     .lnf[data-loading] :is(.lnf-play .lnf-orb, .lnf-disc)::after { border-style: solid; border-color: transparent; border-top-color: currentColor; animation: lnf-turn .9s linear infinite; }
     .lnf[data-loading] .lnf-disc::after { border-top-color: var(--ink); }
     .lnf[data-loading] .lnf-play .lnf-orb::after { border-top-color: var(--btn-ink); }
+    .lnf[data-loading][data-load] :is(.lnf-play .lnf-orb, .lnf-disc)::after { animation: none; }
 }
+/* The download's share, once it can be told: the ring fills clockwise (in place of turning). */
+.lnf[data-loading][data-load] :is(.lnf-play .lnf-orb, .lnf-disc)::after { border: 0; color: var(--ink); background: conic-gradient(currentColor calc(var(--lnf-load, 0) * 1turn), color-mix(in srgb, currentColor 22%, transparent) 0); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px)); mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px)); }
+.lnf[data-loading][data-load] .lnf-play .lnf-orb::after { color: var(--btn-ink); }
 @keyframes lnf-meter { from { scale: 1 .45; } to { scale: 1 1.25; } }
 @keyframes lnf-turn { to { rotate: 1turn; } }
 @keyframes lnf-breathe { 0%, 100% { opacity: 0; scale: 1; } 50% { opacity: .9; scale: 1.12; } }
@@ -164,6 +187,20 @@ body { margin: 0; background: var(--ground); }
 /* The voice heard alone glows at its edge, in its own colour. */
 .lnf-ln[data-solo] { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--c) 70%, transparent), 0 0 40px -8px var(--c); }
 .lnf-ln[data-off] { opacity: .3; }
+/* The song builds as the showreel does: a lane whose voice has yet to join waits, dim and still (its glass gone, its
+   notes faint, none of them lit), and lights in its colour as the voice comes in, a band of light crossing it. */
+.lnf .lnf-ln[data-wait] { background: color-mix(in srgb, var(--ink) 3%, transparent); border-color: color-mix(in srgb, var(--ink) 12%, transparent); box-shadow: none; }
+.lnf-g, .lnf-lb { transition: opacity .5s, filter .5s; }
+.lnf-ln[data-wait] .lnf-g, .lnf-ln[data-wait] .lnf-g:is([data-lit], [data-sung]) { opacity: .22; filter: saturate(.2); outline: 0; box-shadow: none; }
+.lnf-ln[data-wait] .lnf-lb { opacity: .5; }
+@media (prefers-reduced-motion: no-preference) {
+    .lnf-ln[data-in]::after { content: ""; position: absolute; z-index: 2; inset: 0; background: linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--c) 60%, white) 50%, transparent 70%); pointer-events: none; animation: lnf-sweep 1.1s var(--ease) both; }
+}
+@keyframes lnf-sweep { from { translate: -100% 0; opacity: .85; } to { translate: 100% 0; opacity: 0; } }
+/* With reduced motion the lanes change state at once. */
+@media (prefers-reduced-motion: reduce) { .lnf-ln, .lnf-g, .lnf-lb, .lnf-floor i { transition: none; } }
+/* What is being heard as the song builds: under the lanes. */
+.lnf-now { margin: 10px 0 0; padding: 0 var(--pad); min-height: 21px; font-size: 14px; font-weight: 700; line-height: 1.5; color: var(--ink); white-space: nowrap; }
 .lnf-beam { display: none; position: absolute; z-index: 5; top: -16px; bottom: -16px; left: var(--ph); width: 3px; margin-left: -1.5px; border-radius: 3px; background: linear-gradient(#fff, #ffd9b0); box-shadow: 0 0 16px 3px #ff9139, 0 0 80px 24px rgb(255 145 57 / .35); pointer-events: none; transition: opacity .5s; }
 :root[data-theme$="-light"] .lnf-beam { background: #a14301; box-shadow: 0 0 22px 2px rgb(161 67 1 / .4); }
 .lnf-trace { position: absolute; left: 0; top: calc(12% + 13cqh); height: 56%; width: calc(var(--lnf-t) * var(--ppb)); overflow: hidden; opacity: 0; transition: opacity .5s; }
@@ -184,18 +221,13 @@ body { margin: 0; background: var(--ground); }
 .lnf-tp { display: flex; align-items: center; gap: 14px; font-size: 15px; font-weight: 600; line-height: 1.2; color: var(--mute); font-variant-numeric: tabular-nums; }
 .lnf-disc { width: 52px; height: 52px; border: 0; cursor: pointer; color: var(--gi) !important; }
 .lnf-time { white-space: nowrap; }
-.lnf-voices { display: flex; gap: 2px; }
-.lnf-vo { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; }
-.lnf-vo .lnf-orb { width: 34px; height: 34px; font-size: 13px; font-weight: 800; transition: scale .3s var(--ease), opacity .3s; }
-.lnf-vo[aria-pressed="true"] .lnf-orb { scale: 1.12; box-shadow: inset 0 2px 0 rgb(255 255 255 / .7), inset 0 -5px 9px color-mix(in oklab, var(--c) 45%, black), 0 0 0 2px var(--ground), 0 0 0 4px var(--c), 0 0 22px 2px var(--c); }
-.lnf[data-alone] .lnf-vo[aria-pressed="false"] .lnf-orb { opacity: .4; }
 .lnf-words { text-align: center; min-width: 0; }
 .lnf-line { margin: 0; overflow: hidden; text-overflow: ellipsis; font-size: clamp(20px, 2.1vw, 30px); font-weight: 800; line-height: 1.12; letter-spacing: -.02em; white-space: nowrap; color: color-mix(in srgb, var(--ink) 50%, transparent); }
 .lnf-line [data-done] { color: var(--ink); }
 .lnf-line [data-now] { color: var(--ink); text-decoration: underline 3px var(--em); text-underline-offset: 6px; }
 .lnf-next { margin: 5px 0 0; font-size: 14px; font-weight: 500; line-height: 1.1; color: var(--mute); min-height: 1.1em; white-space: nowrap; }
 .lnf-start { justify-self: end; display: inline-flex; align-items: center; gap: 8px; height: 52px; padding: 0 24px; border-radius: 99px; background: var(--btn); color: var(--btn-ink) !important; font-size: 16.5px; font-weight: 800; line-height: 1.05; white-space: nowrap; }
-.lnf-rail { position: absolute; left: 0; top: -2px; display: block; height: 3px; width: calc(var(--lnf-t) / var(--beats) * 100%); background: linear-gradient(90deg, var(--c1), var(--c2), var(--c3), var(--c4)); pointer-events: none; }
+.lnf-rail { position: absolute; left: 0; top: -2px; display: block; height: 3px; width: calc(var(--lnf-run, 0) * 100%); background: linear-gradient(90deg, var(--c1), var(--c2), var(--c3), var(--c4)); pointer-events: none; }
 .lnf:not([data-playing]) .lnf-rail { opacity: 0; }
 
 /* What floats in a scene: glass, lit at its edge in a voice's colour (the whole edge, never a stripe). */
@@ -218,7 +250,7 @@ body { margin: 0; background: var(--ground); }
 .lnf-world { --ppb: calc((100vw - var(--ph) - var(--pad)) / 12.4); }
 
 /* ---------- the page that scrolls: free, choirs, plans, the finale ---------- */
-.lnf-tail { position: relative; padding-bottom: calc(var(--bar) + env(safe-area-inset-bottom) + 24px);
+.lnf-tail { position: relative; padding-bottom: 24px;
     background:
         radial-gradient(60vw 50svh at 0% 8%, color-mix(in srgb, var(--c1) 16%, transparent), transparent 70%),
         radial-gradient(60vw 60svh at 100% 34%, color-mix(in srgb, var(--c3) 14%, transparent), transparent 70%),
@@ -227,11 +259,21 @@ body { margin: 0; background: var(--ground); }
 .lnf-tail .lnf-sc { padding-block: clamp(72px, 13svh, 150px); gap: clamp(28px, 5svh, 56px); align-content: center; }
 .lnf-tail .lnf-cap { align-items: start; }
 .lnf-tail .lnf-say { margin-bottom: 0; }
-.lnf-cap-end { grid-template-columns: 1fr; justify-items: center; text-align: center; gap: 22px; } .lnf-cap-end .lnf-go { justify-content: center; }
 /* The lanes, lying down as a floor of light at the foot of a section (a picture only). */
 .lnf-floor { position: absolute; z-index: -1; left: 0; right: 0; bottom: 0; height: min(30svh, 260px); perspective: 900px; perspective-origin: 50% 0; overflow: hidden; pointer-events: none; opacity: .7; -webkit-mask-image: linear-gradient(transparent, #000 60%); mask-image: linear-gradient(transparent, #000 60%); }
 .lnf-floor span { position: absolute; inset: 0 -12% 0 -12%; display: grid; gap: 8px; transform-origin: 50% 100%; transform: rotateX(64deg); }
 .lnf-floor i { --c: var(--c1); border-block: 1px solid color-mix(in srgb, var(--c) 60%, transparent); background: linear-gradient(90deg, transparent 0 6%, var(--c) 6% 15%, transparent 15% 19%, var(--c) 19% 24%, transparent 24% 33%, var(--c) 33% 47%, transparent 47% 52%, var(--c) 52% 58%, transparent 58% 66%, var(--c) 66% 83%, transparent 83%) 0 50% / 100% 34% no-repeat, color-mix(in srgb, var(--c) 12%, transparent); }
+/* While the song plays, a strip in view is the song itself: each band's real notes pass a playhead (the script makes
+   them, a track <u> of bars <b> per band, and lights them); a band whose voice has yet to join stays dim. */
+.lnf-floor i { position: relative; overflow: hidden; transition: opacity .5s, filter .5s; }
+.lnf-floor i[data-wait] { opacity: .25; filter: saturate(.2); }
+.lnf-floor u { display: none; }
+.lnf-floor[data-live] i { background-image: none; }
+.lnf-floor[data-live] u { display: block; position: absolute; inset: 0; translate: calc((var(--lnf-t) - 5) * -6.25%) 0; will-change: translate; }
+.lnf-floor b { position: absolute; left: calc(var(--b) * 6.25%); width: calc(var(--l) * 6.25% - 4px); top: calc(16% + var(--y) * 34%); height: 34%; border-radius: 99px; background: var(--c); opacity: .6; }
+.lnf-floor b[data-sung] { opacity: .28; }
+.lnf-floor b[data-lit] { opacity: 1; filter: brightness(1.25); box-shadow: 0 0 22px 3px var(--c); }
+.lnf-floor[data-live] span::after { content: ""; position: absolute; left: 31.25%; top: 0; bottom: 0; width: 3px; margin-left: -1.5px; border-radius: 3px; background: var(--ink); box-shadow: 0 0 16px 3px var(--em); }
 .lnf-floor i:nth-child(2) { --c: var(--c2); background-position: 7% 50%; } .lnf-floor i:nth-child(3) { --c: var(--c3); background-position: -5% 50%; } .lnf-floor i:nth-child(4) { --c: var(--c4); background-size: 140% 34%; }
 .lnf-slabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
 .lnf-slab { position: relative; padding: 28px 30px 26px; display: block; box-shadow: 0 40px 90px -40px rgb(0 0 0 / .8), inset 0 1px 0 rgb(255 255 255 / .16), 0 0 0 1px color-mix(in srgb, var(--c) 40%, transparent), 0 0 70px -18px var(--c); transition: translate .3s var(--ease); }
@@ -268,13 +310,44 @@ body { margin: 0; background: var(--ground); }
 .lnf-mark { display: grid; gap: clamp(8px, 1.4svh, 14px); width: min(40vw, 460px); }
 .lnf-mark i { height: clamp(18px, 3.6svh, 36px); border-radius: 99px; --c: var(--c1); border: 1px solid color-mix(in oklab, var(--c) 60%, black); background: linear-gradient(180deg, color-mix(in oklab, var(--c) 52%, white) 0%, var(--c) 44%, color-mix(in oklab, var(--c) 62%, black) 100%); box-shadow: inset 0 3px 0 rgb(255 255 255 / .75), inset 0 -8px 14px color-mix(in oklab, var(--c) 48%, black), 0 0 60px -4px var(--c); }
 .lnf-mark i:nth-child(2) { --c: var(--c2); width: 74%; } .lnf-mark i:nth-child(3) { --c: var(--c3); width: 88%; } .lnf-mark i:nth-child(4) { --c: var(--c4); width: 62%; }
-.lnf-ways { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-.lnf-way { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 62px; padding: 0 24px; border-radius: 99px; color: var(--gi) !important; font-size: 18px; font-weight: 800; line-height: 1; background: linear-gradient(180deg, color-mix(in oklab, var(--c) 52%, white) 0%, var(--c) 44%, color-mix(in oklab, var(--c) 64%, black) 100%); box-shadow: inset 0 2px 0 rgb(255 255 255 / .75), inset 0 -6px 10px color-mix(in oklab, var(--c) 48%, black), 0 0 40px -8px var(--c); transition: translate .3s var(--ease); }
+/* The close: the site's closing band (components/site/close-band.blade.php), in this page's dress: the mark, the
+   page's line, Start singing, then "Explore Stackapella", the other four pages, each a glass tile lit in a voice's colour. */
+.lnf-close.s-ink.s-close { text-align: center; }
+/* A heading's words by skin (x-site.skin): the calm ones are its text here. */
+.lnf .s-skin-s.s-skin-sr { display: inline; }
+.lnf-close .s-close-in { display: grid; justify-items: center; gap: 22px; }
+.lnf-close h2 { margin: 0; font-size: clamp(50px, 7.7vw, 112px); font-weight: 800; letter-spacing: -.045em; line-height: .93; text-wrap: balance; } .lnf-close h2 span, .lnf-close h2 em { display: block; } .lnf-close .s-hl-em { font-style: normal; color: var(--em); }
+.lnf-close .s-close-act { display: grid; justify-items: center; gap: 14px; } .lnf-close .s-close-act p { margin: 0; max-width: 30em; font-size: clamp(16.5px, 1.4vw, 20px); line-height: 1.45; color: color-mix(in srgb, var(--ink) 86%, transparent); }
+.lnf-close .btn-primary.btn-lg { display: inline-flex; align-items: center; gap: 10px; height: 64px; padding: 0 32px; border-radius: 99px; background: var(--btn); color: var(--btn-ink) !important; font-size: 19px; font-weight: 800; white-space: nowrap; }
+.lnf-close .s-explore { width: 100%; margin-top: 28px; text-align: start; }
+.lnf-close .s-explore-h { display: flex; align-items: center; gap: 14px; margin: 0; font-size: 13px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--mute); } .lnf-close .s-explore-h::after { content: ""; flex: 1; height: 1px; background: var(--edge); }
+.lnf-close .s-explore ul { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin: 16px 0 0; padding: 0; list-style: none; }
+.lnf-close .s-explore-way { --c: var(--c1); display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "ic name go" "fact fact fact"; align-items: center; gap: 10px 12px; height: 100%; padding: 18px 18px 20px; border-radius: 22px; background: var(--panel); border: 1px solid var(--edge); box-shadow: 0 0 0 1px color-mix(in srgb, var(--c) 36%, transparent), 0 0 60px -22px var(--c); transition: translate .3s var(--ease); }
+.lnf-close .s-explore-way:hover { translate: 0 -4px; }
+.lnf-close .s-hub-courses { --c: var(--c2); } .lnf-close .s-hub-tools { --c: var(--c3); } .lnf-close .s-hub-pricing { --c: var(--c4); } .lnf-close .s-hub-songs { --c: var(--c1); } .lnf-close .s-hub-home { --c: var(--em); }
+.lnf-close .s-explore-ic.bubble { grid-area: ic; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; color: var(--gi); background: var(--c) radial-gradient(120% 100% at 32% 18%, color-mix(in oklab, var(--c) 45%, white) 0%, var(--c) 46%, color-mix(in oklab, var(--c) 58%, black) 100%); box-shadow: inset 0 2px 0 rgb(255 255 255 / .7), inset 0 -4px 7px color-mix(in oklab, var(--c) 45%, black); }
+.lnf-close .s-explore-name { grid-area: name; font-size: 18px; font-weight: 800; letter-spacing: -.015em; white-space: nowrap; } .lnf-close .s-explore-go { grid-area: go; display: grid; color: var(--mute); } .lnf-close .s-explore-hud { display: none; }
+.lnf-close .s-explore-fact { grid-area: fact; font-size: 14.5px; line-height: 1.45; color: var(--mute); } .lnf-close .s-n { color: var(--ink); font-weight: 800; }
+.lnf-close .s-kick, .lnf-close .s-player { margin: 0; }
 /* The glass is a gradient over the voice's own colour (what its words are read against). */
-.lnf-way, .lnf-orb, .lnf-g { background-color: var(--c); }
-.lnf-way:hover { translate: 0 -4px; } .lnf-way small { font-size: 14px; font-weight: 600; opacity: .85; white-space: nowrap; }
-.lnf-legal { display: flex; justify-content: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--mute); }
-.lnf-legal a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 10px; }
+.lnf-orb, .lnf-g { background-color: var(--c); }
+/* A mudeo arrival's letter. */
+.lnf-letter { grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 20px 72px; align-items: start; } .lnf-letter .lnf-say { max-width: 36em; } .lnf-letter .lnf-kick svg { border-radius: 6px; }
+/* The site's own foot (components/site/footer.blade.php), in this page's dress: the mark and its line, the site's
+   pages in their columns, the company's line. It ends clear of the dock. */
+.lnf-foot-wrap { position: relative; padding: 56px var(--pad) calc(var(--bar) + env(safe-area-inset-bottom) + 28px); border-top: 1px solid var(--edge); background: var(--ground); font-size: 15px; line-height: 1.45; }
+.lnf-foot-wrap .s-wrap.s-footer { margin: 0; }
+.lnf-foot-wrap .s-foot-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2.4fr); gap: 40px 64px; }
+.lnf-foot-wrap .s-brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-size: 18px; font-weight: 800; letter-spacing: -.01em; } .lnf-foot-wrap .s-brand svg { border-radius: 7px; }
+.lnf-foot-wrap .s-foot-brand p { margin: 8px 0 0; max-width: 28em; color: var(--mute); } .lnf-foot-wrap .s-foot-xmas { font-weight: 600; }
+.lnf-foot-wrap .s-social { display: flex; gap: 8px; margin-top: 16px; }
+.lnf-foot-wrap .s-iconbtn { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 99px; background: var(--panel); border: 1px solid var(--edge); }
+.lnf-foot-wrap .s-foot-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 32px; }
+.lnf-foot-wrap .s-foot-h { margin: 0 0 6px; font-size: 12.5px; font-weight: 700; line-height: 1.3; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+.lnf-foot-wrap ul { margin: 0; padding: 0; list-style: none; }
+.lnf-foot-wrap .s-flink { display: inline-flex; align-items: center; min-height: 36px; color: color-mix(in srgb, var(--ink) 88%, transparent); } .lnf-foot-wrap .s-flink:hover { text-decoration: underline; text-underline-offset: 4px; }
+.lnf-foot-wrap .s-foot-legal { margin: 28px 0 0; font-size: 13px; color: var(--mute); } .lnf-foot-wrap .s-foot-legal + .s-foot-legal { margin-top: 6px; }
+.lnf-foot-wrap .s-fix-wrap { display: none; }
 .lnf-tail .lnf-sc:last-of-type { gap: 28px; padding-bottom: 24px; }
 
 /* ---------- the stage, pinned: it fills the screen and stays for its five scenes, a scene a screen of scroll ---------- */
@@ -302,6 +375,10 @@ body { margin: 0; background: var(--ground); }
     .lnf-cue { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink); }
     .lnf-hint { display: block; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; transition: opacity .4s; }
     .lnf:is([data-played], [data-alone]) .lnf-hint { opacity: 0; }
+    /* While it plays, the line that says who sings takes the place of the way on, under the lanes of every scene. */
+    .lnf-now { position: absolute; z-index: 8; left: 0; right: 0; bottom: var(--bar); height: 34px; margin: 0; display: flex; align-items: center; pointer-events: none; }
+    .lnf[data-playing]:is([data-scene="1"], [data-scene="2"], [data-scene="3"]) { --foot: 34px; }
+    .lnf[data-playing] .lnf-cue { visibility: hidden; }
     .lnf-dots { position: absolute; z-index: 9; right: 14px; top: 50%; translate: 0 -50%; display: grid; }
     .lnf-dots a { display: grid; place-items: center; width: 24px; height: 24px; }
     .lnf-dots a::before { content: ""; width: 6px; height: 6px; border-radius: 9px; background: color-mix(in srgb, var(--ink) 30%, transparent); transition: height .4s var(--ease), background-color .4s; }
@@ -326,9 +403,12 @@ body { margin: 0; background: var(--ground); }
     .lnf:not([data-alone]):is([data-scene="1"], [data-scene="2"]) .lnf-ln:not(.lnf-v1) .lnf-g::before, .lnf:not([data-alone])[data-scene="3"] .lnf-ln.lnf-v4 .lnf-g::before { display: none; }
     .lnf:not([data-alone]):is([data-scene="1"], [data-scene="2"]) .lnf-ln:not(.lnf-v1) .lnf-lb, .lnf:not([data-alone])[data-scene="3"] .lnf-ln.lnf-v4 .lnf-lb { opacity: .55; }
     .lnf:not([data-scene="0"]) .lnf-mine { opacity: 0; pointer-events: none; visibility: hidden; }
+    /* The voice heard alone keeps its way into the app beside it, whatever the scene. */
+    .lnf:is([data-scene="1"], [data-scene="2"], [data-scene="3"]) .lnf-ln[data-solo] .lnf-mine { opacity: 1; pointer-events: auto; visibility: visible; }
     /* 4: the lanes fold into the mark's four bars. */
     .lnf[data-scene="4"] .lnf-deck { transform: none; inset: 6% auto 10% var(--pad); width: min(46vw, 620px); gap: 18px; justify-content: center; }
     .lnf[data-scene="4"] .lnf-ln { flex: 0 0 15%; border-radius: 99px; border: 1px solid color-mix(in oklab, var(--c) 60%, black); background: linear-gradient(180deg, color-mix(in oklab, var(--c) 52%, white) 0%, var(--c) 44%, color-mix(in oklab, var(--c) 62%, black) 100%); box-shadow: inset 0 3px 0 rgb(255 255 255 / .75), inset 0 -10px 18px color-mix(in oklab, var(--c) 48%, black), 0 0 70px -4px var(--c); opacity: 1; }
+    .lnf[data-scene="4"] .lnf-ln[data-wait] { opacity: .28; box-shadow: none; filter: saturate(.3); }
     .lnf[data-scene="4"] .lnf-ln.lnf-v1 { width: 100%; } .lnf[data-scene="4"] .lnf-ln.lnf-v2 { width: 74%; } .lnf[data-scene="4"] .lnf-ln.lnf-v3 { width: 88%; } .lnf[data-scene="4"] .lnf-ln.lnf-v4 { width: 62%; }
     .lnf[data-scene="4"] .lnf-ln::before { inset: 14% 34% auto 5%; width: auto; height: 22%; border-radius: 99px; background: linear-gradient(90deg, rgb(255 255 255 / .7), transparent); z-index: 1; }
     .lnf[data-scene="4"] :is(.lnf-tr, .lnf-beam, .lnf-mt, .lnf-lb small, .lnf-lb .lnf-orb, .lnf-chip-alone) { display: none; }
@@ -344,7 +424,7 @@ body { margin: 0; background: var(--ground); }
     .lnf-slabs { perspective: 1400px; }
     .lnf-slab:nth-child(1) { transform: rotateY(10deg) translateY(18px); } .lnf-slab:nth-child(2) { transform: translateY(-14px) scale(1.04); } .lnf-slab:nth-child(3) { transform: rotateY(-10deg) translateY(18px); }
     .lnf-choir { transform: perspective(1300px) rotateY(-8deg); }
-    .lnf-after { display: flex; justify-content: center; margin-top: 8px; }
+    .lnf-after { display: flex; justify-content: center; margin-top: 8px; } .lnf-carols { flex-basis: 100%; justify-content: center; text-align: center; }
 }
 @media (max-width: 1180px) and (min-width: 900px) {
     .lnf-money { grid-template-columns: 1fr; }
@@ -360,6 +440,10 @@ body { margin: 0; background: var(--ground); }
     .lnf-logo { flex: 1; } .lnf-lang { order: 10; margin-top: -4px; } .lnf-lang .lnf-round { height: 40px; border: 0; background: none; padding: 0 6px; }
     .lnf-top::after { content: ""; order: 8; width: 100%; }
     .lnf-open { padding: 0 14px; font-size: 14px; } .lnf-round { padding: 0 10px; }
+    /* Game mode's switch keeps its name for a screen reader; on a phone its screen and gem say it. */
+    .lnf-game .gt-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    .lnf .lnf-game.gt { min-height: 44px; padding: 0; border: 0; background: none; box-shadow: none; }
+    .lnf-top .lnf-round[data-lnf-theme] { min-width: 40px; padding: 0; border: 0; background: none; }
     .lnf[data-top="small"] .lnf-top:not(:focus-within) { --top: 52px; } .lnf[data-top="small"] .lnf-top:not(:focus-within) :is(.lnf-nav, .lnf-lang) { display: none; } .lnf[data-top="small"] .lnf-top:not(:focus-within)::after { display: none; }
     /* One still wash of light behind the stage, in place of the five big soft ones. */
     .lnf-bg i { display: none; }
@@ -379,22 +463,22 @@ body { margin: 0; background: var(--ground); }
     .lnf-mine::before { content: ""; position: absolute; inset: 7px 0; border-radius: 99px; border: 1.5px solid var(--c); background: color-mix(in srgb, var(--ground) 80%, var(--c)); z-index: -1; }
     .lnf-foot { justify-content: center; text-align: center; font-size: 12px; } .lnf-cue, .lnf-hint { display: none !important; } .lnf-cred { margin: 0 !important; text-align: center; }
     .lnf-cred-full { display: none; } .lnf-cred-short { display: inline; }
-    /* The dock on a phone: the line being sung, then one pill (play, the four voices, Start singing). */
+    /* The dock on a phone: the line being sung, then one pill (play, the time, Start singing). */
     .lnf-dock { height: auto; padding: 0 10px calc(10px + env(safe-area-inset-bottom)); grid-template-columns: 1fr auto; grid-template-areas: "words words" "tp start"; gap: 0; border: 0; background: linear-gradient(transparent, color-mix(in srgb, var(--ground) 92%, transparent) 34px); -webkit-backdrop-filter: none; backdrop-filter: none; pointer-events: none; }
     .lnf-dock::before { content: ""; grid-area: 2 / 1 / 3 / 3; align-self: stretch; border-radius: 99px; background: color-mix(in srgb, var(--ground) 86%, var(--ink)); border: 1px solid var(--edge); box-shadow: 0 14px 40px -14px rgb(0 0 0 / .7); }
     .lnf-dock > * { pointer-events: auto; }
-    .lnf-words { grid-area: words; height: 44px; display: flex; align-items: center; justify-content: flex-start; padding: 8px 6px 0 82px; pointer-events: none; }
+    .lnf-words { grid-area: words; height: 44px; display: flex; align-items: center; justify-content: center; padding: 8px 6px 0; pointer-events: none; }
     .lnf-line { font-size: 16.5px; letter-spacing: -.01em; min-width: 0; overflow: hidden; text-overflow: ellipsis; } .lnf-next { display: none; }
-    .lnf-tp { grid-area: tp; height: 56px; padding-inline-start: 6px; gap: 4px; } .lnf-disc { width: 44px; height: 44px; }
-    .lnf-time { position: absolute; left: 18px; top: 19px; font-size: 12px; line-height: 1.2; }
-    .lnf-vo { width: 40px; height: 44px; } .lnf-vo .lnf-orb { width: 32px; height: 32px; font-size: 12px; }
+    .lnf-tp { grid-area: tp; height: 56px; padding-inline-start: 6px; gap: 10px; } .lnf-disc { width: 44px; height: 44px; }
+    .lnf-time { font-size: 13px; line-height: 1.2; }
     .lnf-start { grid-area: start; align-self: center; height: 44px; margin-inline-end: 6px; padding: 0 14px; max-width: 7.2em; font-size: 13.5px; white-space: normal; text-align: center; }
     .lnf-rail { top: auto; bottom: 0; }
     /* With nothing playing, the line gives way where a scene needs the room: Share's card, and the page that scrolls. */
     .lnf:is([data-scene="4"], [data-tail]):not([data-playing]) .lnf-words { visibility: hidden; }
     .lnf[data-tail]:not([data-playing]) .lnf-dock { background: none; }
-    .lnf-time { transition: opacity .3s; } .lnf:is([data-scene="4"], [data-tail]):not([data-playing]) .lnf-time { opacity: 0; }
-    .lnf-tail { padding-bottom: calc(76px + env(safe-area-inset-bottom) + 24px); }
+    .lnf-foot-wrap { padding: 40px 18px calc(76px + env(safe-area-inset-bottom) + 28px); }
+    .lnf-foot-wrap .s-foot-grid { grid-template-columns: 1fr; gap: 28px; } .lnf-foot-wrap .s-foot-cols { grid-template-columns: 1fr 1fr; gap: 22px 16px; } .lnf-foot-wrap .s-flink { min-height: 44px; }
+    .lnf-letter { grid-template-columns: 1fr; gap: 14px; }
     .lnf-tail .lnf-sc { padding-block: 64px; gap: 22px; }
     .lnf-two, .lnf-money { grid-template-columns: 1fr; gap: 22px; } .lnf-two .lnf-say { margin-top: 14px; } .lnf-two .lnf-go { margin-top: 18px; }
     .lnf-slabs { grid-template-columns: 1fr; gap: 12px; } .lnf-slab { padding: 14px 20px; display: grid; grid-template-columns: 104px 1fr; align-items: center; column-gap: 8px; border-radius: 22px; } .lnf-slab strong { grid-row: span 2; } .lnf-slab b, .lnf-slab > span { margin: 0; } .lnf-slab > span { font-size: 14px; } .lnf-slab i { display: none; }
@@ -402,7 +486,7 @@ body { margin: 0; background: var(--ground); }
     .lnf-plans { grid-template-columns: 1fr; gap: 12px; } .lnf-plan { padding: 18px 20px; border-radius: 22px; } .lnf-price { font-size: 36px; }
     .lnf-faq { gap: 8px; } .lnf-faq summary { min-height: 52px; padding: 6px 16px; } .lnf-faq details p { padding: 0 16px 14px; font-size: 14.5px; }
     .lnf-share { padding: 16px; border-radius: 22px; } .lnf-share b { font-size: 19px; } .lnf-share p { margin-bottom: 10px; font-size: 14px; } .lnf-orbs .lnf-orb { width: 40px; height: 40px; font-size: 11px; } .lnf-pair span { padding: 11px 4px; }
-    .lnf-ways { grid-template-columns: 1fr 1fr; gap: 10px; } .lnf-way { min-height: 58px; padding: 8px 18px; font-size: 16px; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; border-radius: 22px; } .lnf-way small { font-size: 12.5px; white-space: normal; }
+    .lnf-close .s-explore ul { grid-template-columns: 1fr 1fr; gap: 10px; } .lnf-close .s-explore-way { padding: 14px 14px 16px; border-radius: 18px; } .lnf-close .s-explore-name { font-size: 16px; white-space: normal; } .lnf-close .btn-primary.btn-lg { width: 100%; justify-content: center; } .lnf-close .s-close-act { width: 100%; }
     .lnf-mark { width: 62vw; gap: 9px; }
     .lnf-floor { height: 150px; }
 }
@@ -411,13 +495,24 @@ body { margin: 0; background: var(--ground); }
     /* The lanes end above the dock, whatever the scene (the still page's fixed height is not for here). */
     .lnf-world { height: auto; }
     .lnf[data-scene="0"] { --foot: 26px; } .lnf-foot { height: 26px; }
+    .lnf[data-playing]:is([data-scene="1"], [data-scene="2"], [data-scene="3"]) { --foot: 26px; }
+    .lnf-now { height: 26px; justify-content: center; font-size: 13px; } .lnf[data-scene="4"] .lnf-now { display: none; }
+    .lnf[data-playing] .lnf-cred { visibility: hidden; }
     .lnf[data-scene="1"], .lnf[data-scene="2"] { --ppb: 84px; --split: 52svh; } .lnf[data-scene="3"] { --ppb: 70px; --tilt: 10deg; --split: 48svh; }
     .lnf-seg, .lnf-dots { display: none; }
     .lnf[data-scene="4"] { --split: 42svh; } .lnf[data-scene="4"] .lnf-deck { inset: 0 18px auto 18px; height: 168px; width: auto; gap: 8px; } .lnf[data-scene="4"] .lnf-ln { flex: 0 0 36px; } .lnf[data-scene="4"] .lnf-lb { top: 0; bottom: 0; } .lnf[data-scene="4"] .lnf-ln::before { height: 22%; width: auto; }
     .lnf-share { transform: none; left: 18px; right: 18px; width: auto; top: calc(var(--split) + 182px); }
 }
+/* The phone's first row holds the name, Game mode, light or dark and Open the app: it tightens as the screen narrows. */
+@media (max-width: 400px) {
+    .lnf-top { gap: 0 5px; } .lnf-logo { font-size: 16px; gap: 7px; } .lnf-open { padding: 0 10px; font-size: 13px; }
+}
+@media (max-width: 374px) {
+    .lnf-top { gap: 0 3px; } .lnf-logo { font-size: 15px; gap: 6px; } .lnf-open { padding: 0 8px; font-size: 12.5px; } .lnf-top .lnf-round[data-lnf-theme] { min-width: 36px; }
+}
 @media (max-width: 359px) {
-    .lnf-vo { width: 36px; } .lnf-vo .lnf-orb { width: 30px; height: 30px; } .lnf-start { padding: 0 10px; font-size: 12.5px; }
+    .lnf-logo span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    .lnf-start { padding: 0 10px; font-size: 12.5px; }
     .lnf-nav a { padding: 0 3px; font-size: 13px; }
-    .lnf-time { display: none; } .lnf-words { justify-content: center; padding-left: 6px; } .lnf-line { font-size: 15px; }
+    .lnf-line { font-size: 15px; } .lnf-now { font-size: 12px; }
 }

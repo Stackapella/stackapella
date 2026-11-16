@@ -28,7 +28,8 @@ final class CloseBandTest extends TestCase
 
     public function test_every_one_of_the_five_pages_ends_in_the_one_band_leading_to_the_other_four(): void
     {
-        $paths = ['home' => '/', 'songs' => '/songs', 'courses' => '/courses', 'tools' => '/tools', 'pricing' => '/pricing'];
+        // (The home page, since 2026-11-16, ends in its own finale: the mark, Start singing and the four ways on.)
+        $paths = ['songs' => '/songs', 'courses' => '/courses', 'tools' => '/tools', 'pricing' => '/pricing'];
         foreach ($paths as $page => $path) {
             $html = (string) $this->get($path)->assertOk()->getContent();
             $this->assertSame(1, substr_count($html, 'class="s-ink s-close"'), "{$path}: one closing band");

@@ -2070,6 +2070,8 @@ return [
         'synth' => 'The app\'s own voice',
         'free' => 'Free',
         'plus_note' => 'Its parts play in the app, free with an account.',
+        // Where the song's copyright still runs (docs/geo-rights-plan.md): no player there.
+        'withheld_note' => 'This song is still in copyright where you are, so it can\'t be played here yet.',
         'start' => 'Learn this part in the app',
         // The player panel's foot (the app's Sing slows a phrase, loops it and records: locales/en.json sing.ladder, studio.loop).
         'foot' => 'Slow it down, loop a phrase and record yourself in the app.',

@@ -41,9 +41,6 @@ final class SiteCss
         'tools' => ['tools', 'warmups'],
         'reference' => ['intervals', 'chords', 'voice-types', 'note-frequencies'],
         'courses' => ['courses'],
-        // The combined landing's candidate: a page of its own styles, so no other family carries them.
-        'nextgrok' => ['next-grok'],
-        'lncl' => ['next-claude'],
         'info' => [],
     ];
 

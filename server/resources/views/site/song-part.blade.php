@@ -95,7 +95,7 @@
                 @endif
                 {{-- One primary: the player's Play when it's here, else Learn this part. --}}
                 <div class="s-spart-foot">
-                    <p>{{ __($s['free'] ? 'site.song_part.foot' : 'site.song_part.plus_note') }}</p>
+                    <p>{{ __($s['free'] ? 'site.song_part.foot' : (($songPart['withheld'] ?? false) ? 'site.song_part.withheld_note' : 'site.song_part.plus_note')) }}</p>
                     {{-- The primary and Share as one row, so the foot never gains one (game mode stacks the foot's items). --}}
                     <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;min-width:0;max-width:100%">
                         <a href="{{ $songPart['startUrl'] }}" @class(['btn-secondary' => $s['free'], 'btn-primary' => ! $s['free']]) style="flex:1 1 auto">{{ __('site.song_part.start') }} <x-site.icon name="arrow" size="18" /></a>

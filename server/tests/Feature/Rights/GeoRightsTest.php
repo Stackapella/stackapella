@@ -152,6 +152,33 @@ final class GeoRightsTest extends TestCase
         $this->assertStringContainsString('no-store', (string) $us->headers->get('Cache-Control'));
     }
 
+    public function test_a_part_page_stays_without_its_player_where_the_song_is_withheld(): void
+    {
+        $this->wordsSong();
+        $this->on();
+
+        $mexico = $this->withHeaders(self::visitor('MX'))->get('/songs/words-song/soprano')->assertOk();
+        $this->assertTrue($mexico->viewData('songPart')['withheld']);
+        $this->assertFalse($mexico->viewData('songPart')['song']['free']);
+        $this->assertStringNotContainsString('data-part-player', (string) $mexico->getContent());
+        $this->assertStringContainsString('still in copyright where you are', (string) $mexico->getContent());
+        $this->assertStringContainsString('no-store', (string) $mexico->headers->get('Cache-Control'));
+
+        $us = $this->withHeaders(self::visitor('US'))->get('/songs/words-song/soprano')->assertOk();
+        $this->assertFalse($us->viewData('songPart')['withheld']);
+        $this->assertStringContainsString('data-part-player', (string) $us->getContent());
+        $this->assertStringNotContainsString('still in copyright', (string) $us->getContent());
+    }
+
+    public function test_off_a_part_page_keeps_its_player_everywhere(): void
+    {
+        $this->wordsSong();
+
+        $mexico = $this->withHeaders(self::visitor('MX'))->get('/songs/words-song/soprano')->assertOk();
+        $this->assertFalse($mexico->viewData('songPart')['withheld']);
+        $this->assertStringContainsString('data-part-player', (string) $mexico->getContent());
+    }
+
     public function test_a_plus_stored_song_plays_for_a_guest_except_where_it_is_withheld(): void
     {
         // Every non-bundled song is stored as Plus (2026-11-07), and every open one plays on its page (Hillel, 2026-11-13).

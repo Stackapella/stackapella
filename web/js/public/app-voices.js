@@ -60,9 +60,52 @@ export async function songTemplate(slug) {
     return (await songAnswer(slug)).template;
 }
 
-/** A real voice at `context`'s rate: `{ samples, offsetSeconds }` (its samples start that far into the song). */
-export async function realVoice(guide, context) {
-    const decoded = await context.decodeAudioData(await (await fetch(guide.url)).arrayBuffer());
+/**
+ * A response's bytes, read as they arrive: `progress(loaded, total)` is told after the headers and after every piece
+ * (`total` is the file's length as the server says it, 0 when it doesn't). The bytes as an ArrayBuffer.
+ */
+export async function readBytes(response, progress) {
+    const total = Number(response.headers.get('Content-Length')) || 0;
+    progress(0, total);
+    if (!response.body) {
+        const bytes = await response.arrayBuffer();
+        progress(bytes.byteLength, total || bytes.byteLength);
+        return bytes;
+    }
+    const reader = response.body.getReader();
+    const pieces = [];
+    let loaded = 0;
+    for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        pieces.push(value);
+        loaded += value.byteLength;
+        progress(loaded, total);
+    }
+    const bytes = new Uint8Array(loaded);
+    let at = 0;
+    for (const piece of pieces) {
+        bytes.set(piece, at);
+        at += piece.byteLength;
+    }
+    progress(loaded, total || loaded);
+    return bytes.buffer;
+}
+
+/**
+ * A real voice at `context`'s rate: `{ samples, offsetSeconds }` (its samples start that far into the song). With
+ * `progress` (loaded, total: readBytes), its download is told as it arrives, and a file the server refuses throws.
+ */
+export async function realVoice(guide, context, progress = null) {
+    let bytes;
+    if (progress) {
+        const response = await fetch(guide.url);
+        if (!response.ok) throw new Error(`The voice answered ${response.status}`);
+        bytes = await readBytes(response, progress);
+    } else {
+        bytes = await (await fetch(guide.url)).arrayBuffer();
+    }
+    const decoded = await context.decodeAudioData(bytes);
     const { samples, offsetSeconds } = trimDecoded(decoded.getChannelData(0), guide, context.sampleRate);
     return { samples, offsetSeconds };
 }

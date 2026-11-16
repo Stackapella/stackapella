@@ -12,19 +12,22 @@ use App\Support\SongAudio\SongAudioFiles;
 use Illuminate\Support\Facades\App;
 
 /**
- * /next-claude's data (one of four candidates for the next landing page, Hillel, 2026-11-15: "lets build all 4 so I can
- * experience each of them"): the page is one full-screen stage, the showreel's four lanes of the landing's song, played
- * by the song page's own player (js/public/mixer.js) from the song page's own data. Nothing here is written by hand:
- * the notes, their syllables and the phrases are the template's, the recording is the song's render, and the numbers
- * are the ones the site already reads.
+ * The landing's stage (the home page, pages/landing.blade.php; Hillel, 2026-11-16: "make next-final the main home
+ * page"): one full-screen stage, the showreel's four lanes of the landing's song, played by the song page's own player
+ * (js/public/mixer.js) from the song page's own data. Nothing here is written by hand: the notes, their syllables and
+ * the phrases are the template's, the voices are the song's recordings, and the numbers are the ones the site already
+ * reads.
  */
-final class NextClaude
+final class LandingStage
 {
-    /** The page's path, in English; /es/next-claude is its Spanish. */
-    public const PATH = '/next-claude';
+    /** What a lane's way into the app carries, so a part taken from the landing can be told from one taken on a song page. */
+    public const REF = 'landing-lane';
 
-    /** Where the visitor is said to have come from, on every link into the app. */
-    public const REF = 'next-claude';
+    /** The candidates' old addresses (the four tried on 2026-11-15 and the one chosen): each now leads to the home page. */
+    public const GONE = ['next-grok', 'next-chatgpt', 'next-gemini', 'next-claude', 'next-final'];
+
+    /** How many times a press sings the song through: the voices join one by one, then all four together. */
+    public const PASSES = 2;
 
     /** The questions the page answers, by their key in pages.landing.faq. */
     public const QUESTIONS = ['free', 'read_music', 'headphones', 'privacy'];
@@ -35,7 +38,7 @@ final class NextClaude
      *
      * @return array{song: array<string, mixed>, title: string, beats: float, seconds: string, credit: string|null, lanes: list<array{key: string, name: string, n: int, notes: list<array{beat: float, length: float, y: float, text: string}>, trace: string, learn: string}>, phrases: list<array{from: float, to: float, words: list<array{beat: float, text: string}>}>}|null
      */
-    public static function stage(string $ref = self::REF): ?array
+    private static function lanes(string $ref): ?array
     {
         $template = Template::query()->official()->with('currentVersion')->where('slug', Landing::HERO_SONG)->first();
         $line = $template !== null ? Landing::line($template) : null;
@@ -179,7 +182,7 @@ final class NextClaude
             $parts[] = $parts === [] ? $name : mb_strtolower($name);
         }
 
-        return (string) __('next_claude.sung_by', ['parts' => implode((string) __('next_claude.and'), $parts), 'name' => trim($m[2])]);
+        return (string) __('landing.sung_by', ['parts' => implode((string) __('landing.and'), $parts), 'name' => trim($m[2])]);
     }
 
     /**
@@ -205,5 +208,66 @@ final class NextClaude
         $counts = Explore::counts();
 
         return ['songs' => (int) ($counts['songs'] ?? 0), 'courses' => (int) ($counts['courses'] ?? 0), 'tools' => (int) ($counts['tools'] ?? 0)];
+    }
+
+    /**
+     * The stage, played as the showreel plays it (Hillel, 2026-11-16: "when you press play, the song plays
+     * twice, but the first time it plays each voice is added one by one"): the song's data asks the player
+     * (js/public/mixer.js) for two passes and says the beat each voice joins on, `joins` holds the same beats for the
+     * page, and `seconds` is the length of both passes.
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function stage(): ?array
+    {
+        $stage = self::lanes(self::REF);
+        if ($stage === null) {
+            return null;
+        }
+        $beats = (float) $stage['beats'];
+        $joins = self::joins(array_column($stage['lanes'], 'key'), array_column($stage['phrases'], 'from'), $beats);
+        $stage['joins'] = $joins;
+        $stage['song']['passes'] = self::PASSES;
+        $stage['song']['joins'] = $joins;
+        // Only the recorded voices sing here, never the app's practice voice (Hillel, 2026-11-16: "only play the real
+        // voice audio on the main page, wiat f we have to but show the user porgoress").
+        $stage['song']['realOnly'] = true;
+        // Their breaths are ducked as the showreel's are (Hillel: "one of the singers breaths very loudly, in the past
+        // it was fixed on the home page… can you re-apply the fix?").
+        $stage['song']['quietBreaths'] = true;
+        $seconds = (int) round($beats * self::PASSES * 60 / max(1.0, (float) ($stage['song']['tempo'] ?? 80)));
+        $stage['seconds'] = sprintf('%d:%02d', intdiv($seconds, 60), $seconds % 60);
+
+        return $stage;
+    }
+
+    /**
+     * The beat of the first pass each voice joins on: the first voice sings from the start, the second comes in with
+     * the second sung line, and so on (the lines' first beats, `$starts`); with fewer lines than voices, the rest share
+     * the song evenly. Only beats inside the song.
+     *
+     * @param  list<string>  $keys
+     * @param  list<float>  $starts
+     * @return array<string, float>
+     */
+    public static function joins(array $keys, array $starts, float $beats): array
+    {
+        $joins = [];
+        foreach ($keys as $i => $key) {
+            $beat = (float) ($starts[$i] ?? $beats * $i / max(1, count($keys)));
+            if ($i > 0 && $beat > 0 && $beat < $beats) {
+                $joins[$key] = $beat;
+            }
+        }
+
+        return $joins;
+    }
+
+    /** A singer's initials for their bubble in the choir card ("Priya Shah" is PS): each name's first letter, two at most. */
+    public static function initials(string $name): string
+    {
+        $words = preg_split('/\s+/u', trim($name), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        return mb_strtoupper(implode('', array_map(static fn (string $word): string => mb_substr($word, 0, 1), array_slice($words, 0, 2))));
     }
 }

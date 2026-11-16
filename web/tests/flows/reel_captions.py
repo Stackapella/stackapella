@@ -1,6 +1,4 @@
-"""The landing film's captions (js/public/showreel.js): off by default, with the sound on too; CC turns them on and is
-remembered after a reload; they're written in a line under the film, never drawn on it (the track stays hidden),
-and the end card's credit isn't repeated. On /how-it-works's first screen (Hillel, 2026-11-16) the same frame waits for a
+"""The film (js/public/showreel.js) on /how-it-works's first screen (Hillel, 2026-11-16), where its frame waits for a
 press: the poster and a play button, no video fetched even once the page is scrolled, then the film muted on Play.
 Needs the film's files on the server (Showreel::available) and a page that's scrolled, as a visitor's is."""
 import sys
@@ -29,31 +27,8 @@ def journey(f):
     # A fresh visitor: the setting cleared from a plain file on the same origin, so the page itself loads once.
     f.go("/robots.txt", "document.readyState === 'complete'")
     f.js("(() => { try { localStorage.removeItem('stackapella.reelCaptions'); } catch (e) {} })()")
-    f.go("/", "document.readyState === 'complete'")
-    to_film(f)
-    assert f.js(f"{CC}.getAttribute('aria-pressed')") == "false", "CC starts off"
-    assert f.js(f"{LINE}.hidden"), "captions off by default"
-    assert "showing" not in f.js(MODE), f"never drawn on the picture: {f.js(MODE)}"
-    f.run(f"{SOUND}.click()")
-    time.sleep(0.4)
-    assert f.js(f"{LINE}.hidden"), "the sound alone doesn't turn captions on"
-    f.run(f"{CC}.click()")
-    f.wait(f"!{LINE}.hidden", what="the caption line shown on CC")
-    assert "showing" not in f.js(MODE), "still never drawn on the picture"
-    assert f.js(f"{CC}.getAttribute('aria-pressed')") == "true"
-    assert f.js("localStorage.getItem('stackapella.reelCaptions')") == "on", "remembered"
-    f.wait(f"([...{VIDEO}.textTracks][0].cues || []).length > 0", what="the cues")
-    f.wait(f"{LINE}.textContent.trim().length > 0", timeout=30, what="a cue written under the film")
-    assert "sung by" not in f.js(f"{LINE}.textContent").lower(), "the end card's credit is left to the card"
-    f.shot("captions-on")
-    # Remembered after a reload.
-    f.go("/", "document.readyState === 'complete'")
-    to_film(f)
-    f.wait(f"!{LINE}.hidden", what="captions remembered after a reload")
-    assert f.js(f"{CC}.getAttribute('aria-pressed')") == "true"
-    f.run(f"{CC}.click()")
-    f.wait(f"{LINE}.hidden", what="captions off again")
-    assert f.js("localStorage.getItem('stackapella.reelCaptions')") == "off"
+    # (The film's own band on the home page went with the old landing, 2026-11-16: the home page plays the song itself.
+    # What it checked there, CC and its line under a film that starts by itself, has no page now.)
     on_how_it_works(f)
 
 

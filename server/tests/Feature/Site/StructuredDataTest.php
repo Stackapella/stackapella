@@ -6,6 +6,7 @@ namespace Tests\Feature\Site;
 
 use App\Models\Template;
 use App\Models\TemplateVersion;
+use App\Support\Pages\LandingStage;
 use App\Support\Site\StructuredData;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -26,7 +27,8 @@ final class StructuredDataTest extends TestCase
         $app = $items[2];
         $this->assertSame('GBP', $app['offers'][1]['priceCurrency']);
         $this->assertSame(number_format(config('billing.amounts.gbp.month') / 100, 2, '.', ''), $app['offers'][1]['price']);
-        $this->assertCount(count((array) __('pages.landing.faq')), $items[3]['mainEntity']);
+        // The questions the page shows, no others (App\Support\Pages\LandingStage::QUESTIONS).
+        $this->assertCount(count(LandingStage::QUESTIONS), $items[3]['mainEntity']);
         $this->assertStringNotContainsString(config('site.founder'), json_encode($items));
     }
 

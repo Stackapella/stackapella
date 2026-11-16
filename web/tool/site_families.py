@@ -20,7 +20,7 @@ from pathlib import Path
 OUT = Path(__file__).resolve().parents[2] / "server/resources/site-css-families.json"
 # Pages the sitemap doesn't list, and the variants an arrival link shows (mudeo's letter on the landing and /about: by its
 # ?ref= or the cookie it sets), each read with its query.
-SEEDS = ["/", "/songbook", "/compare", "/note-frequencies", "/?ref=mudeo", "/about?ref=mudeo", "/next-grok"]
+SEEDS = ["/", "/songbook", "/compare", "/note-frequencies", "/?ref=mudeo", "/about?ref=mudeo"]
 CLASS_ATTR = re.compile(r"""(?<=\s)class=(?:"([^"]*)"|'([^']*)')""")
 FAMILY = re.compile(r'<meta name="css-family" content="([a-z]+)">')
 HREF = re.compile(r'''\bhref="([^"#]+)''')

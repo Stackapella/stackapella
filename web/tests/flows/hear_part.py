@@ -56,7 +56,7 @@ def hear(f, path, wait):
 
 def journey(f):
     hear(f, "/songs/hymns", "document.querySelector('main')")
-    hear(f, "/", "document.querySelector('main')")
+    # (The home page's own lanes are heard alone in landing_page.py: it is its own page since 2026-11-16.)
 
 
 run("hear_part", journey, sizes=("narrow", "phone"))

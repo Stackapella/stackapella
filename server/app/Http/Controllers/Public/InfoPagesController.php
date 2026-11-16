@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Support\Admin\StaffDevice;
 use App\Support\Http\Hosts;
 use App\Support\Pages\Landing;
+use App\Support\Pages\LandingStage;
 use App\Support\Pages\MudeoArrival;
 use App\Support\Pages\Prices;
 use App\Support\Site\ComingSoon;
@@ -60,14 +61,15 @@ final class InfoPagesController extends Controller
             'mudeo' => $mudeo,
             'mudeoLetter' => $mudeo ? Landing::mudeoLetter() : [],
             'links' => Landing::links($ref),
-            'hero' => $hero = Landing::hero(),
-            'pictures' => $hero !== null ? Landing::pictures($hero) : null,
-            'way' => Landing::onTheWay(),
-            'who' => SitePages::who(),
-            'stories' => array_values((array) config('pages.stories')),
+            // The stage (App\Support\Pages\LandingStage): the song's four lanes, played as the showreel plays it.
+            'stage' => LandingStage::stage(),
+            'counts' => LandingStage::counts(),
             'price' => $price,
             'plans' => $plans,
-            'faq' => Landing::faq($plans['freeSongs'], $price['yearAsMonth'], OpenSource::on()),
+            'questions' => LandingStage::questions($plans['freeSongs'], $price['yearAsMonth']),
+            'toolsUrl' => SitePages::toolsHome(),
+            // Starting a choir group takes Plus while this switch is on: the choir scene says so.
+            'teams' => Teams::on(),
             // The funnel (App\Actions\Counts\Funnel): whether to send f_site_start at all, and the running
             // experiment ({ id, arms, enrol } or null) the page draws a Start arm for in the browser.
             'funnel' => ['counts' => config('counts.enabled') === true, 'experiment' => app(Funnel::class)->current()],

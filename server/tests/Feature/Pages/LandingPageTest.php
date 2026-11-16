@@ -7,11 +7,8 @@ namespace Tests\Feature\Pages;
 use App\Actions\Counts\Funnel;
 use App\Enums\TemplateAccess;
 use App\Models\Experiment;
-use App\Models\Flag;
 use App\Models\Template;
 use App\Models\TemplateVersion;
-use App\Support\Flags;
-use App\Support\Pages\Carols;
 use App\Support\Pages\Landing;
 use App\Support\Pages\MudeoArrival;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -19,46 +16,13 @@ use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 /**
- * The landing page: the hero that plays a song's first line, the links into the app carrying
- * where the visitor came from, the mudeo letter only for mudeo's singers, and the link card.
+ * The landing page, what it carries for growth and for search whatever its design: the links into the app carrying
+ * where the visitor came from, the mudeo letter only for mudeo's singers, lesson 1's chord promise and its experiment,
+ * the plans' numbers, and the link card. Its stage and its scenes are LandingStagePageTest's.
  */
 final class LandingPageTest extends TestCase
 {
     use RefreshDatabase;
-
-    public function test_the_hero_plays_the_first_line_of_amazing_grace_in_four_voices(): void
-    {
-        $this->amazingGrace();
-
-        $page = $this->get('/')->assertOk();
-        $hero = $page->viewData('hero');
-
-        $this->assertSame('amazing-grace', $hero['song']);
-        $this->assertSame(['soprano', 'alto', 'tenor', 'bass'], array_column($hero['parts'], 'key'));
-        $this->assertSame([1, 2, 3, 4], array_column($hero['parts'], 'color'));
-        foreach ($hero['parts'] as $part) {
-            $this->assertNotSame([], $part['notes']);
-            foreach ($part['notes'] as $note) {
-                $this->assertLessThan(Landing::HERO_END_BEAT, $note['beat']);
-                $this->assertLessThanOrEqual(Landing::HERO_END_BEAT, $note['beat'] + $note['length']);
-            }
-        }
-        $this->assertSame('Amazing grace, how sweet the sound that saved a wretch like me.', Landing::sentence($hero['words']));
-
-        // The player, its data, and the words for anyone who can't hear it.
-        $page->assertSee('data-song', false)->assertSee('/js/public/mixer.js', false);
-        $page->assertSee('data-voice="alto"', false)->assertSee('data-play', false);
-        $this->assertSame('soprano', $hero['you'], 'Melody first.');
-        $page->assertSee('"Amazing grace, how sweet the sound that saved a wretch like me."');
-    }
-
-    public function test_without_the_song_the_landing_has_no_player(): void
-    {
-        $page = $this->get('/')->assertOk();
-
-        $this->assertNull($page->viewData('hero'));
-        $page->assertDontSee('class="s-mixer"', false)->assertSee('href="/learn/1-comfortable"', false);
-    }
 
     public function test_where_the_visitor_came_from_goes_on_into_the_app(): void
     {
@@ -105,49 +69,6 @@ final class LandingPageTest extends TestCase
         $this->assertSame([], $back->headers->getCookies());
     }
 
-    public function test_no_list_of_songs_and_no_songs_link_start_singing_leads_into_the_app(): void
-    {
-        $this->amazingGrace();
-
-        $page = $this->get('/')->assertOk();
-
-        // Hillel: a short catalogue looks thin; the song pages stay, for search and shared links. The one exception is
-        // the carols page, linked in its season only (Hillel, 2026-11-10; CarolsPageTest proves the window). The site's
-        // bar and its phone menu lead to the songbook itself (Hillel, 2026-11-12: "songs courses tools pricing"), and so
-        // does the footer's Learn column (the five pages' cohesion plan, step 0), and so does the closing band's Explore
-        // Stackapella, which leads every one of the five pages to the other four (Hillel, 2026-11-14, choice B).
-        $chrome = '#<header class="s-wrap s-top">.*?</header>|<footer class="s-wrap s-footer">.*?</footer>|<section class="s-ink s-close".*?</section>#s';
-        $body = (string) preg_replace($chrome, '', (string) $page->getContent());
-        preg_match_all('#href="(/songs[^"]*)"#', $body, $links);
-        $this->assertSame([], array_values(array_diff($links[1], [Carols::PATH])));
-        $this->assertDoesNotMatchRegularExpression('#href="/songs#', (string) preg_replace($chrome, '', (string) $this->get('/pricing')->assertOk()->getContent()));
-        $this->get('/songs')->assertOk();
-    }
-
-    public function test_whats_on_the_way_follows_each_features_flag(): void
-    {
-        $page = $this->get('/')->assertOk();
-        $page->assertSee(__('pages.landing.way_title'))->assertSee(__('pages.landing.way.gallery.0'));
-        $this->assertTrue(collect($page->viewData('way'))->firstWhere('key', 'gallery')['soon']);
-        // Each chip goes to its feature's page, which says "Coming soon" until it opens.
-        $page->assertSee('href="/features/gallery"', false)->assertDontSee(__('pages.landing.way.gallery.2'));
-
-        Flag::query()->create(['name' => 'gallery', 'value' => 'on']);
-        $this->app->forgetScopedInstances();
-
-        $open = $this->get('/')->assertOk();
-        $this->assertFalse(collect($open->viewData('way'))->firstWhere('key', 'gallery')['soon']);
-        $open->assertSee('href="/features/gallery"', false)->assertSee(__('pages.landing.way.gallery.2'));
-
-        // Everything open: the section goes.
-        foreach (array_keys(Landing::ON_THE_WAY) as $feature) {
-            $flag = config('site.features.'.$feature.'.flag');
-            is_string($flag) ? Flag::query()->updateOrCreate(['name' => $flag], ['value' => 'on']) : config(['site.features.'.$feature.'.live' => true]);
-        }
-        $this->app->forgetScopedInstances();
-        $this->get('/')->assertOk()->assertDontSee(__('pages.landing.way_title'));
-    }
-
     public function test_the_chord_promise_waits_for_the_arm_while_onb1_enrols(): void
     {
         // No experiment running: the promise shows to everyone, as lesson 1 makes it.
@@ -170,38 +91,10 @@ final class LandingPageTest extends TestCase
 
         $this->get('/')->assertOk()
             ->assertSee('2 GB for your recordings')->assertSee('70 GB for your recordings')
-            // The plan cards are /pricing's (the five-pages plan): the trial named on Plus's button, with its days.
-            ->assertSee(trans_choice('pages.pricing.try_plus', 10, ['days' => 10]))->assertSee(__('pages.pricing.cancel_any_time'))
             ->assertSee('$3.33')->assertSee('$39.99')->assertSee('$0<', false);
 
         config(['billing.prices.month' => null]);
-        $this->get('/')->assertSee(__('pages.landing.plans_paused'))->assertDontSee('Try Plus free');
-    }
-
-    public function test_plus_says_who_it_is_for_and_leaves_choirs_to_the_learning_tracks(): void
-    {
-        foreach (['/', '/pricing'] as $path) {
-            $page = $this->get($path)->assertOk()->assertSee(__('pages.landing.plans_plus_for'))->assertSee(__('pages.landing.plans_free_for'));
-            foreach ((array) __('pages.landing.plans_plus_list') as [$gain]) {
-                $page->assertSee('<strong>'.e($gain).'</strong>', false);
-            }
-            // Said once, so Plus isn't taken for the choir offer.
-            // Counted by where it's read (Hillel, 2026-11-12: For choirs left the header for these lead-ins).
-            $this->assertSame(1, substr_count((string) $page->getContent(), '<a href="/for/choir-directors?ref=for-choirs-'.($path === '/pricing' ? 'pricing' : 'landing').'">'.e(__('pages.landing.plans_choirs_link')).'</a>'));
-        }
-    }
-
-    public function test_hum_a_tune_is_on_the_way_until_it_opens_and_your_own_song_leads_into_the_creator(): void
-    {
-        $page = $this->get('/?ref=hn')->assertOk();
-        $page->assertSee(__('pages.landing.way.your-tune.0'))->assertSee('href="/features/your-tune"', false)->assertDontSee(__('pages.landing.way.your-tune.2'));
-        // Today's way to make your own: Sing it in the creator, from the card after the steps (the hero and the last word keep one CTA).
-        $this->assertSame(1, substr_count((string) $page->getContent(), 'href="/create?ref=hn"'));
-
-        app(Flags::class)->set('your_tune', 'on', null, 'Hum a tune opens');
-        $this->app->forgetScopedInstances();
-
-        $this->get('/')->assertSee(__('pages.landing.way.your-tune.2'));
+        $this->get('/')->assertSee(__('pages.landing.plans_paused'));
     }
 
     public function test_the_landing_is_never_cached_as_one_visitors_page(): void

@@ -2,7 +2,7 @@
 import { useDatabase } from '/js/db.js';
 import { loadTemplate } from '/js/templates.js';
 import { loadProjects, notesSeconds, openProject, startFromTemplate } from '/js/stores/projects.js';
-import { closeSession, levels, listenThenRepeat, openSession, practise, selectPhrase, session, setMode, stopPlayback } from '/js/stores/session.js';
+import { closeSession, levels, listenThenRepeat, openSession, practise, selectPhrase, session, setMode, stopPlayback, updatePart } from '/js/stores/session.js';
 import { guideId } from '/js/practice.js';
 import { assert, close, test } from './harness.js';
 import { useTransport } from '/js/api.js';
@@ -66,6 +66,31 @@ test('session: a project opened while another is still loading wins, and the fir
         await Promise.all([first, second]);
         assert(session.project.id === b.id && session.parts.length === 3, `${session.project?.title}, ${session.parts.length} parts`);
         await closeSession();
+    } finally {
+        useDatabase('stackapella-test');
+    }
+});
+
+test('session: a take scored after Sing closed its song keeps the score with the take, and never throws', async () => {
+    // Sentry 2026-11-16: back to the lesson while the pitch was tracked; the late score read the closed song.
+    await freshDatabase();
+    try {
+        const project = await startFromTemplate(await loadTemplate('amazing-grace'), { singers: 4 });
+        await openSession(project.id);
+        const { ready } = await import('/js/stores/session.js');
+        const { engine } = await import('/js/audio.js');
+        await ready(); // the engine has the song, as it had when the take was recorded
+        const soprano = session.parts.find((p) => p.templatePartKey === 'soprano');
+        await closeSession();
+        assert(session.project === null && engine.projectId?.startsWith(project.id), `closed, the engine still on it: ${engine.projectId}`);
+        updatePart(soprano, { score: { percent: 81, takeId: null }, scoring: null });
+        const { get } = await import('/js/db.js');
+        let saved = null;
+        for (let i = 0; i < 100 && saved?.score?.percent !== 81; i++) {
+            await new Promise((resolve) => setTimeout(resolve, 20));
+            saved = await get('parts', soprano.id);
+        }
+        assert(saved?.score?.percent === 81 && saved.scoring === null, `kept with its take: ${JSON.stringify(saved?.score)}, scoring ${saved?.scoring}`);
     } finally {
         useDatabase('stackapella-test');
     }

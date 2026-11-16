@@ -1449,40 +1449,47 @@ export const SingView = {
             const samples = sessionStore.takeOf(part);
             const notes = sessionStore.templatePart(part)?.guide.notes;
             if (!samples || !notes) return;
+            // What the score needs from the open song, read now: the singer can leave Sing (back to a lesson) while the
+            // pitch is tracked, and the song closes behind them (Sentry, 2026-11-16).
+            const project = this.project;
+            const practice = session.practice;
+            const where = this.ghostWhere;
+            const beatSeconds = this.fullBeatSeconds;
+            const phrases = this.reportPhrases;
+            const startSeconds = part.offsetSeconds + (part.nudgeSeconds || 0);
+            const key = part.templatePartKey;
             const takeId = (await db.get('parts', part.id))?.takeId ?? null; // the take this report is about
             try {
                 const track = await trackInWorker(samples, part.sampleRate);
-                const score = scoreTake(track, notes, {
-                    beatSeconds: this.fullBeatSeconds,
-                    startSeconds: part.offsetSeconds + (part.nudgeSeconds || 0),
-                    transpose: this.project.transpose || 0,
-                    phrases: this.reportPhrases,
-                    timing: audio.latencyEstimated ? 'estimated' : 'measured',
-                });
+                const score = scoreTake(track, notes, { beatSeconds, startSeconds, transpose: project.transpose || 0, phrases, timing: audio.latencyEstimated ? 'estimated' : 'measured' });
                 // The other parts heard in the mic (no headphones): said calmly, and the take doesn't count.
-                const bleed = bleedCheck(samples, part.sampleRate, { notes, beatSeconds: this.fullBeatSeconds, startSeconds: part.offsetSeconds + (part.nudgeSeconds || 0), track });
+                const bleed = bleedCheck(samples, part.sampleRate, { notes, beatSeconds, startSeconds, track });
                 const summary = scoreSummary(score);
                 const change = bleed ? null : sinceLast(previous, summary);
-                const key = part.templatePartKey;
-                const { bests, improved } = phraseBests(session.practice.bests?.[key] ?? {}, summary.phrases);
+                const { bests, improved } = phraseBests(practice?.bests?.[key] ?? {}, summary.phrases);
                 // Recorded again meanwhile: this report is about a take that's gone.
                 if ((await db.get('parts', part.id))?.takeId !== takeId) return;
-                if (this.recorded?.part.id !== part.id) {
+                // Left meanwhile: the song closed, so no report to show; the score is still kept with its take below.
+                const open = session.project === project;
+                if (open && this.recorded?.part.id !== part.id) {
                     sessionStore.updatePart(part, { scoring: null });
                     return;
                 }
-                this.recorded = { ...this.recorded, report: { score, track, change, improved: bleed ? [] : improved, bleed } };
-                if (score.status === 'scored' && !bleed) this.offerGhost(track, score.percent, part.offsetSeconds + (part.nudgeSeconds || 0));
-                if (score.status === 'scored' && !bleed && this.ghostWhere) stampDaily(this.ghostWhere.templateId, this.ghostWhere.partKey); // today's challenge taken
-                if (score.status === 'scored' && !bleed && this.project.template?.id) countSung(this.project.template.id, key); // the challenge sung (any skin)
+                if (open) this.recorded = { ...this.recorded, report: { score, track, change, improved: bleed ? [] : improved, bleed } };
+                if (open && score.status === 'scored' && !bleed) this.offerGhost(track, score.percent, startSeconds);
+                if (score.status === 'scored' && !bleed && where) stampDaily(where.templateId, where.partKey); // today's challenge taken
+                if (score.status === 'scored' && !bleed && project.template?.id) countSung(project.template.id, key); // the challenge sung (any skin)
                 if (score.status === 'scored' && !bleed) {
                     remember({ percent: score.percent, insights: score.insights, tendency: score.tendency }).catch((error) => console.error('Not remembered', error));
-                    if (this.project.template?.id && !this.project.course) tried('singalong'); // breadth: a library song's part scored in Sing
+                    if (project.template?.id && !project.course) tried('singalong'); // breadth: a library song's part scored in Sing
                     if (score.percent >= 90) countDone('excellentTakes', { add: 1 }).catch((error) => console.error('Not counted', error));
-                    // Kept with the take it's about, so it goes up with that take (js/sync.js).
+                    // Kept with the take it's about, so it goes up with that take (js/sync.js), open or not.
                     sessionStore.updatePart(part, { score: { ...summary, takeId }, scoring: null });
-                    session.practice.bests = { ...(session.practice.bests ?? {}), [key]: bests };
-                    sessionStore.savePractice();
+                    // The phrases' bests are the song's own: kept only while it's open (a closed one is saved and gone).
+                    if (open) {
+                        practice.bests = { ...(practice.bests ?? {}), [key]: bests };
+                        sessionStore.savePractice();
+                    }
                 } else {
                     sessionStore.updatePart(part, { scoring: null }); // nothing to keep: the take goes up now
                 }

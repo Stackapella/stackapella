@@ -54,7 +54,8 @@ final class OpenSourceTest extends TestCase
         $this->get('/about')->assertSee('href="/open-source"', false)->assertSee(__('site.about.open_source_title'));
         $this->get('/press')->assertSee(__('site.press.open_source_label'))->assertSee((string) config('site.source.repo'));
         $this->get('/features')->assertSee(__('site.features_open.title'));
-        $this->get('/')->assertSee('href="/open-source"', false)->assertSee(__('pages.landing.faq_open_source.0'))->assertSee(__('pages.landing.faq_privacy_check'));
+        // The home page leads there from its foot (its four questions, since 2026-11-16, don't include this one).
+        $this->get('/')->assertSee('href="/open-source"', false);
         $this->get('/pricing')->assertSee(__('pages.pricing.faq_selfhost.0'));
         $this->get('/sitemap.xml')->assertSee('/open-source')->assertSee('/selfhost')->assertSee('/legal/self-hosting-terms');
     }

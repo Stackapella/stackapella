@@ -53,7 +53,7 @@ final class ShowreelTest extends TestCase
             $this->markTestSkipped('The renders are in place here.');
         }
 
-        $this->get('/')->assertOk()->assertDontSee('data-reel', false)->assertDontSee(__('pages.landing.reel.title'));
+        $this->get('/how-it-works')->assertOk()->assertDontSee('data-reel', false);
     }
 
     public function test_a_manifest_alone_shows_nothing_until_the_videos_can_be_reached(): void
@@ -64,27 +64,23 @@ final class ShowreelTest extends TestCase
             $this->markTestSkipped('The videos are rendered here.');
         }
 
-        $this->get('/')->assertOk()->assertDontSee('data-reel', false);
+        $this->get('/how-it-works')->assertOk()->assertDontSee('data-reel', false);
     }
 
-    public function test_with_its_files_the_film_sits_under_the_hero_from_the_cdn(): void
+    public function test_with_its_files_the_film_comes_from_the_cdn(): void
     {
         $this->withManifest();
         config(['site.showreel.url' => 'https://cdn.example.com/videos/showreel']);
         $version = substr((string) hash_file('sha256', $this->manifest), 0, 10);
 
-        $page = $this->get('/')->assertOk()
-            ->assertSee(__('pages.landing.reel.title'))
+        // (The film's page is How it works: the home page, since 2026-11-16, plays the song itself.)
+        $page = $this->get('/how-it-works')->assertOk()
             // On the CDN each render is its own folder (app:showreel:upload), so a year's cache is safe.
             ->assertSee('data-webm="https://cdn.example.com/videos/showreel/'.$version.'/stackapella-showreel.webm"', false)
             ->assertSee('data-mobile="https://cdn.example.com/videos/showreel/'.$version.'/stackapella-showreel-light-mobile.mp4"', false)
             ->assertSee('<track kind="captions" srclang="en" label="'.__('pages.landing.reel.captions').'" src="/videos/showreel/stackapella-showreel.vtt?v='.$version.'"', false)
             ->assertSee('preload="none"', false)
-            ->assertSee('data-reel-pause', false)
             ->assertSee('data-reel-sound', false);
-
-        $html = (string) $page->getContent();
-        $this->assertLessThan(strpos($html, 'id="reel-h"'), strpos($html, 'id="hero-h"'), 'the film comes after the hero');
 
         $policy = (string) $page->headers->get('Content-Security-Policy');
         $this->assertMatchesRegularExpression('#media-src [^;]*https://cdn\.example\.com#', $policy);
@@ -109,10 +105,8 @@ final class ShowreelTest extends TestCase
         $this->assertStringNotContainsString('id="reel-h"', $html);
         $this->assertSame(1, substr_count($html, '<script type="module" src="/js/public/showreel.js">'));
 
-        // The landing's own film still starts by itself, as it always has.
-        $landing = (string) $this->get('/')->assertOk()->getContent();
-        $this->assertStringContainsString('id="reel-h"', $landing);
-        $this->assertStringNotContainsString('data-reel-press', $landing);
+        // The home page has no film: it plays the song itself.
+        $this->assertStringNotContainsString('data-reel', (string) $this->get('/')->assertOk()->getContent());
     }
 
     public function test_how_it_works_keeps_its_screenshot_while_the_films_files_are_missing(): void
@@ -155,7 +149,7 @@ final class ShowreelTest extends TestCase
 
         // The pages' policy lets the derived host's film and poster through.
         config(['site.showreel.url' => 'https://cdn.example.com/showreel']);
-        $policy = (string) $this->get('/')->headers->get('Content-Security-Policy');
+        $policy = (string) $this->get('/how-it-works')->headers->get('Content-Security-Policy');
         $this->assertMatchesRegularExpression('#media-src [^;]*https://cdn\.example\.com#', $policy);
         $this->assertMatchesRegularExpression('#img-src [^;]*https://cdn\.example\.com#', $policy);
     }

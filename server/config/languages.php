@@ -33,8 +33,6 @@ return [
             'help.index', 'help.page',
             'pricing.page', 'features.index', 'features.page', 'compare.index', 'compare.page', 'for.page',
             'integrations.index', 'integrations.page', 'about.page', 'how.page', 'open-source.page', 'selfhost.page',
-            // The combined landing's candidates (noindex, with no hreflang: SiteLanguages::UNLISTED).
-            'next-grok.page',
         ],
         'de' => [],
     ],

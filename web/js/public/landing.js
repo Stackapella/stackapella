@@ -1,28 +1,42 @@
-// /next-final (server/resources/views/pages/next-final.blade.php): a stage that fills the screen for the first five
+// The landing, the site's home page (server/resources/views/pages/landing.blade.php): a stage that fills the screen for the first five
 // scenes, the song's four lanes on it, then a page that scrolls, and a dock that stays. The sound is the song page's
-// player, js/public/mixer.js, unchanged: this module only reads what it says (data-playing and --p on the page's root,
-// the lanes' data-solo, its mixer-solo event) and presses its own buttons (the dock's disc, a lane). So the page has
-// one clock, the player's: where the song is comes from its --p each frame, and nothing here plays, seeks, pauses or
-// mutes anything. Scrolling changes the scene and never touches the sound.
+// player, js/public/mixer.js: this module only reads what it says (data-playing and --p on the page's root, the lanes'
+// data-solo, its mixer-solo event) and presses its own buttons (the dock's disc, a lane). So the page has one clock,
+// the player's: where the song is comes from its --p each frame, and nothing here plays, seeks, pauses or mutes
+// anything. Scrolling changes the scene and never touches the sound, and the page never scrolls by itself.
 //
-// What it sets, for css/landing-next-final.css:
+// The song plays as the showreel plays it (Hillel, 2026-11-16: "the song plays twice, but the first time it plays each
+// voice is added one by one ... only the first row is active and then, when the second voice comes in it, it's lit
+// up"): the page's data asks the player for two passes and the beat each voice joins on, and this module draws the
+// same beats (a lane's data-join) from the player's place: a lane yet to join waits, dim and still (data-wait), lights
+// as its voice comes in (data-in, a band of light across it), and a line on the stage says who sings. A voice heard
+// alone wins: nothing waits while one is.
+// The strips of lanes between the sections down the page are pictures while nothing plays; while the song plays, each
+// one in view is the song itself (Hillel: "as the song is playing we make the song visible here"): its real notes
+// passing a playhead, from the same place, in this module's one frame loop.
+//
+// What it sets, for css/landing.css:
 // - on <html>: the class lnf-page (the page rests on a scene of the stage as it scrolls);
 // - on .lnf: data-scene (0 to 4, from the scroll: the stage's scenes), data-tail (past the stage, on the page that
 //   scrolls), data-alone (the voice heard alone, while one is), data-top ("small" on the way down, gone on the way up),
 //   --lnf-t, the song's place in beats (the player's while it plays; while it doesn't, a still pose for the scene, so
-//   each story scene shows its moment) and --lnf-page, the sung line's first beat (the still page shows a line at a
-//   time);
-// - on a gem: data-lit while its note sounds, data-sung once it has; on a word of the sung line: data-now, data-done.
+//   each story scene shows its moment), --lnf-page, the sung line's first beat (the still page shows a line at a
+//   time), --lnf-run, how far through both passes the play is (0 to 1, the dock's rail), and --lnf-load with
+//   data-load (the percent) while the voices' download can be told;
+// - on a gem: data-lit while its note sounds, data-sung once it has; on a word of the sung line: data-now, data-done;
+// - on a lane (and its band in each strip): data-wait until its voice joins, data-in once it has;
+// - on a strip (.lnf-floor): data-live while it shows the song (playing, in view, motion allowed).
 // It shows the line being sung (the others hidden), keeps the next one under it, and tells a screen reader, politely,
 // when the song starts and stops and which voice is heard alone.
-// The dock's four voices each press their lane, so a voice is heard alone from any scene; the Hear scene's button does
-// the same, and it and the "Learn the ... part" links name the voice last heard alone.
+// A voice is heard alone by its lane; the Hear scene's button presses a lane too, and it and the "Learn the ... part"
+// links name the voice last heard alone.
 // The lanes are one group for the keyboard: Tab reaches it once, the arrows move between the voices, Space or Enter
 // hears one alone (the lane is a button). With reduced motion or no script the stage's scenes are five still panels (the
 // CSS's base layout); this module then still lights the gems and the words, in place.
-// It also keeps the top line's own switches (light or dark, as the rest of the site stores it) and sends the page's one
-// anonymous count. Tested in tests/landing-next-final.test.js and tests/flows/next_final.py.
-import { countAnon } from './count.js';
+// Only the recorded voices sing on this page (the player's `realOnly`): a press may wait for their download, and this
+// module shows how far it is (the player's mixer-load event) on the Play button and in words, and a failure in words.
+// It also keeps the top line's light or dark switch, as the rest of the site stores it. Game mode's switch, the page's
+// one anonymous count and Admin > Live's heartbeat are the site's own script's (js/public/site.js, with the footer). Tested in tests/landing.test.js and tests/flows/landing_page.py.
 
 const root = document.querySelector('[data-lnf]');
 
@@ -61,6 +75,39 @@ export function noteState(note, beat) {
     return beat >= note.b ? 'lit' : '';
 }
 
+/**
+ * Where a play in passes is: `place` (beats since the play began), `beats` (one time through), `passes`. The pass
+ * (from 0, the last one from its start on) and the beat within it. Pure.
+ */
+export function buildAt(place, beats, passes = 1) {
+    if (!(beats > 0) || !(place > 0)) return { pass: 0, beat: 0 };
+    const pass = Math.max(0, Math.min(passes - 1, Math.floor(place / beats)));
+    return { pass, beat: place - pass * beats };
+}
+
+/** How long before its beat a joining lane lights (beats): its light arrives with its voice, never after it. */
+export const JOIN_LEAD = 0.15;
+
+/** Whether a voice that joins on `join` (a beat of the first pass; 0 sings from the start) is still to come. Pure. */
+export function waiting(join, pass, beat) {
+    return join > 0 && pass === 0 && beat < join - JOIN_LEAD;
+}
+
+/**
+ * What the stage's line says: "alone" while a voice is heard alone, "all" once every voice is in for good (from the
+ * second pass, or a song where none joins), "first" while only the first sings, else "join", with `at`, the last
+ * voice to have come in (`joins` are the voices' beats, in the lanes' order). Pure.
+ */
+export function captionOf(joins, pass, beat, alone = false) {
+    if (alone) return { say: 'alone', at: -1 };
+    if (pass > 0 || !joins.some((join) => join > 0)) return { say: 'all', at: -1 };
+    let at = 0;
+    joins.forEach((join, i) => {
+        if (i > 0 && !waiting(join, pass, beat)) at = i;
+    });
+    return { say: at === 0 ? 'first' : 'join', at };
+}
+
 if (root) {
     setUp();
     chrome();
@@ -70,6 +117,7 @@ function setUp() {
     // The page itself rests on a scene of the stage (css: scroll-snap, only where the stage is pinned).
     document.documentElement.classList.add('lnf-page');
     const beats = Number(root.dataset.beats) || 1;
+    const passes = Number(root.dataset.passes) || 1;
     const scenes = [...root.querySelectorAll('[data-lnf-stage] [data-s]')];
     const still = matchMedia('(prefers-reduced-motion: reduce)');
     const gems = [...root.querySelectorAll('.lnf-g')].map((el) => ({ el, b: Number(el.dataset.b), l: Number(el.dataset.l), state: '' }));
@@ -113,20 +161,32 @@ function setUp() {
     }
 
     const playing = () => root.hasAttribute('data-playing');
-    // The player's own place, 0 to 1 of the song (it writes --p on its root each frame, from its one clock).
-    const place = () => (Number.parseFloat(root.style.getPropertyValue('--p')) || 0) * beats;
-    // Stopped, the song is back at its start (the player's Stop is a stop): the lanes show the scene's still pose.
-    const rest = () => draw(still.matches ? 0 : poseOf(scene));
+    // The player's own place, 0 to 1 of the whole play (it writes --p on its root each frame, from its one clock).
+    const run = () => Number.parseFloat(root.style.getPropertyValue('--p')) || 0;
+    // Stopped, the song is back at its start (the player's Stop is a stop): the lanes show the scene's still pose, and
+    // every lane is lit again.
+    const rest = () => {
+        root.style.setProperty('--lnf-run', '0');
+        draw(still.matches ? 0 : poseOf(scene));
+        build(null);
+        strips(0);
+    };
 
     function tick() {
         if (!playing()) return;
-        draw(place());
+        const p = run();
+        const at = buildAt(p * beats * passes, beats, passes);
+        root.style.setProperty('--lnf-run', String(p));
+        draw(at.beat);
+        build(at);
+        strips(at.beat);
         frame = requestAnimationFrame(tick);
     }
 
     // The player says when it starts and stops (its attribute): the lanes follow from the next frame.
     new MutationObserver(() => {
         cancelAnimationFrame(frame);
+        liven();
         if (playing()) {
             frame = requestAnimationFrame(tick);
             say(live?.dataset.playing);
@@ -144,11 +204,14 @@ function setUp() {
 
     // ---- the voices --------------------------------------------------------------------------------------------
     const lanes = new Map([...root.querySelectorAll('[data-lnf-lanes] [data-voice]')].map((lane) => [lane.dataset.voice, {
+        el: lane,
         name: lane.dataset.name,
+        title: lane.dataset.title ?? lane.dataset.name,
+        join: Number(lane.dataset.join) || 0,
+        wait: false,
         hit: lane.querySelector('[data-hear-alone]'),
         learn: lane.querySelector('[data-lnf-mine]')?.getAttribute('href') ?? null,
     }]));
-    const voices = [...root.querySelectorAll('[data-lnf-voice]')];
     const hear = root.querySelector('[data-lnf-hear]');
     const learns = [...root.querySelectorAll('[data-lnf-learn]')];
     // The voice the Hear scene's button and the Learn links name: the one last heard alone, the first lane's until then.
@@ -174,15 +237,13 @@ function setUp() {
         // Said to the page too: a voice really heard alone outranks a story scene's picture of the lanes.
         if (key) root.dataset.alone = key;
         else delete root.dataset.alone;
-        for (const voice of voices) voice.setAttribute('aria-pressed', String(voice.dataset.lnfVoice === key));
         if (key) named = key;
         if (named) name(named, key !== null);
         const heard = key ? lanes.get(key)?.name : null;
         say(heard ? live?.dataset.alone?.replace(':part', heard) : live?.dataset.all);
     });
 
-    // The dock's voices and the Hear scene's button press a lane's own button: the player hears that, nothing else.
-    for (const voice of voices) voice.addEventListener('click', () => lanes.get(voice.dataset.lnfVoice)?.hit?.click());
+    // The Hear scene's button presses a lane's own button: the player hears that, nothing else.
     hear?.addEventListener('click', () => lanes.get(root.dataset.alone ?? named)?.hit?.click());
 
     // The first scene's big button is the dock's disc, pressed (still inside the press, so the sound may start).
@@ -190,6 +251,125 @@ function setUp() {
     for (const button of root.querySelectorAll('[data-lnf-play]')) {
         button.addEventListener('pointerdown', () => disc?.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })));
         button.addEventListener('click', () => disc?.click());
+    }
+
+    // ---- the recorded voices' download, while a press waits for it -----------------------------------------------
+    // The player says how far it is (mixer-load: bytes over all the voices; total 0 until every file's length is
+    // known): the Play button's ring fills (--lnf-load, data-load) and the words say "Loading the voices… 37%". A
+    // failure says so in the same place, until the next press.
+    const loads = [...root.querySelectorAll('[data-lnf-load]')];
+    let share = null; // 0 to 1 of the download, null while it can't be told
+    function loadWords() {
+        const state = root.hasAttribute('data-loading') ? 'loading' : root.hasAttribute('data-failed') ? 'failed' : '';
+        const known = state === 'loading' && share !== null;
+        if (known) root.dataset.load = String(Math.round(share * 100));
+        else delete root.dataset.load;
+        const percent = known ? `${Math.round(share * 100)}%` : '';
+        for (const el of loads) {
+            const words = el.dataset[state] ?? '';
+            if (el.dataset.lnfLoad !== 'dock') el.textContent = words === '' ? '' : `${words} ${percent}`.trim();
+            else if (words === '') el.textContent = '';
+            else {
+                // In the dock the words give way on a phone (css: .lnf-wide); the percent stays.
+                const wide = document.createElement('span');
+                wide.className = 'lnf-wide';
+                wide.textContent = `${words} `;
+                el.replaceChildren(wide, percent);
+            }
+        }
+    }
+    root.addEventListener('mixer-load', (event) => {
+        const { loaded, total } = event.detail ?? {};
+        share = total > 0 ? Math.max(0, Math.min(1, loaded / total)) : null;
+        root.style.setProperty('--lnf-load', String(share ?? 0));
+        loadWords();
+    });
+    new MutationObserver(loadWords).observe(root, { attributes: true, attributeFilter: ['data-loading', 'data-failed'] });
+
+    // ---- the song building: who has joined ---------------------------------------------------------------------
+    const order = [...lanes.values()];
+    const floors = [...root.querySelectorAll('.lnf-floor')].map((el) => ({ el, bands: [...el.querySelectorAll('i')], seen: false, live: false, notes: null }));
+    const now = root.querySelector('[data-lnf-now]');
+    let said = '';
+
+    // `at` is where the play is ({ pass, beat }), null while nothing plays: each lane waits or is in, and the line says so.
+    function build(at) {
+        const alone = 'alone' in root.dataset;
+        order.forEach((lane, i) => {
+            const wait = at !== null && !alone && waiting(lane.join, at.pass, at.beat);
+            if (at === null) lane.el.removeAttribute('data-in');
+            if (wait === lane.wait) return;
+            // Its voice comes in (not: a voice was heard alone meanwhile, which lights every lane without a word).
+            if (lane.wait && at !== null && !alone) lane.el.setAttribute('data-in', '');
+            if (wait) lane.el.removeAttribute('data-in');
+            lane.wait = wait;
+            lane.el.toggleAttribute('data-wait', wait);
+            for (const floor of floors) floor.bands[i]?.toggleAttribute('data-wait', wait);
+        });
+        if (!now) return;
+        const caption = at === null ? null : captionOf(order.map((lane) => lane.join), at.pass, at.beat, alone);
+        const lane = caption === null ? null : caption.say === 'alone' ? lanes.get(root.dataset.alone) : order[caption.at];
+        const text = caption === null ? '' : (now.dataset[caption.say] ?? '').replace(':part', (caption.say === 'alone' ? lane?.name : lane?.title) ?? '');
+        if (text === said) return;
+        said = text;
+        now.textContent = text;
+        // A screen reader hears each voice come in, and all four; the start, the stop and a voice alone have their own words.
+        if (caption !== null && (caption.say === 'join' || caption.say === 'all')) say(text);
+    }
+
+    // ---- the strips down the page: the song itself while it plays --------------------------------------------------
+    // A strip's notes are made the first time it shows the song: the stage's own gems (their beats, lengths and
+    // heights), a bar each, in a track per band.
+    function notesOf(floor) {
+        const made = [];
+        order.forEach((lane, i) => {
+            const band = floor.bands[i];
+            if (!band) return;
+            const track = document.createElement('u');
+            for (const gem of lane.el.querySelectorAll('.lnf-g')) {
+                const bar = document.createElement('b');
+                for (const name of ['--b', '--l', '--y']) bar.style.setProperty(name, gem.style.getPropertyValue(name));
+                track.append(bar);
+                made.push({ el: bar, b: Number(gem.dataset.b), l: Number(gem.dataset.l), state: '' });
+            }
+            band.append(track);
+        });
+        return made;
+    }
+
+    // Which strips show the song: the ones in view, while it plays and motion is allowed.
+    function liven() {
+        for (const floor of floors) {
+            const on = floor.seen && playing() && !still.matches;
+            if (on === floor.live) continue;
+            floor.live = on;
+            if (on) floor.notes ??= notesOf(floor);
+            floor.el.toggleAttribute('data-live', on);
+        }
+    }
+
+    function strips(beat) {
+        for (const floor of floors) {
+            if (!floor.live) continue;
+            for (const bar of floor.notes) {
+                const state = noteState(bar, beat);
+                if (state === bar.state) continue;
+                bar.state = state;
+                bar.el.toggleAttribute('data-lit', state === 'lit');
+                bar.el.toggleAttribute('data-sung', state === 'sung');
+            }
+        }
+    }
+
+    if ('IntersectionObserver' in window) {
+        const seen = new IntersectionObserver((entries) => {
+            for (const entry of entries) {
+                const floor = floors.find((f) => f.el === entry.target);
+                if (floor) floor.seen = entry.isIntersecting;
+            }
+            liven();
+        });
+        for (const floor of floors) seen.observe(floor.el);
     }
 
     // ---- the lanes, one group for the keyboard -----------------------------------------------------------------
@@ -227,9 +407,13 @@ function setUp() {
         if (!playing()) rest();
     }
 
+    // A line above the page (an outreach partner's, a mudeo arrival's): the top line sits under it while it's in view.
+    const note = document.querySelector('[data-lnf-note]');
+
     function onScroll() {
         queued = false;
         const y = window.scrollY;
+        if (note) root.style.setProperty('--lnf-note', `${Math.max(0, Math.round(note.getBoundingClientRect().bottom))}px`);
         if (!still.matches) show(sceneAt(y, screen()));
         // Past the stage: with nothing pinned that's past its five panels, wherever they end.
         const tail = still.matches ? (root.querySelector('[data-lnf-tail]')?.getBoundingClientRect().top ?? 1) < screen() / 2 : inTail(y, screen());
@@ -255,6 +439,7 @@ function setUp() {
         });
     });
     still.addEventListener('change', () => {
+        liven();
         show(still.matches ? 0 : sceneAt(window.scrollY, screen()));
         if (!playing()) rest();
     });
@@ -273,11 +458,5 @@ function chrome() {
             const game = document.documentElement.dataset.skin !== 'serious';
             window.stackapellaTheme?.choose(game ? { gameMode: light ? 'dark' : 'light' } : { mode: light ? 'dark' : 'light' });
         });
-    }
-    // This page load's one anonymous count, its own kind (never a site section), only for a person (js/automated.js).
-    const visit = document.querySelector('[data-lnf-visit]');
-    if (visit) {
-        const { kind } = JSON.parse(visit.textContent);
-        if (typeof kind === 'string') countAnon(kind);
     }
 }

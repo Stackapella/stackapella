@@ -694,7 +694,8 @@ export async function setVoice(slot, voice) {
 }
 
 export function syncMix() {
-    if (!engine.projectId?.startsWith(session.project.id)) return;
+    // A late change (a take's score worked out after Sing closed the song) has no mix to change.
+    if (!session.project || !engine.projectId?.startsWith(session.project.id)) return;
     const all = levels();
     for (const part of session.parts) {
         engine.updatePart(part.id, voiceMix(part.id, all));

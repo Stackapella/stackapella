@@ -1,0 +1,439 @@
+/* The Game mode switch's rules for a page with a sheet of its own (/next-final): css/input.css's block, from "The Game
+   mode toggle" to "game-elements:start", copied as it is. Never edit it here: change input.css and copy the block
+   again (server/tests/Feature/Pages/NextFinalPageTest.php fails while the two differ). */
+/* The Game mode toggle (the design agent's, designs/game-toggle; js/game-toggle.js): a tiny arcade
+   screen with a note gem for its knob. Self-contained, every rule prefixed gt-. */
+/* ==========================================================================
+   Game mode toggle. Framework-free, no build step, no dependencies.
+
+   The track is a tiny cabinet screen and the knob is a note gem (the only
+   glossy thing). Off: a colourless gem that breathes a four-part halo a few
+   times, then rests. Hover or focus: the screen warms up and four note gems
+   scroll in. Press: the gem squashes. On: the notes stack into the logo, the
+   gem lights pink, the screen hums. Off again: a CRT power-down.
+
+   Markup (any size; see NOTES.md):
+     <button type="button" class="gt gt--pill" role="switch" aria-checked="false" data-game-toggle>
+       <span class="gt-track" aria-hidden="true">
+         <span class="gt-glow"></span>
+         <span class="gt-screen"><span class="gt-picture"><span class="gt-tint"></span><span class="gt-stack"><i></i><i></i><i></i><i></i></span><span class="gt-notes"><i></i><i></i><i></i><i></i></span></span><span class="gt-flash"></span><span class="gt-beam"></span><span class="gt-dot"></span></span>
+         <span class="gt-knob"><span class="gt-halo"></span><span class="gt-body"><span class="gt-gem"></span><span class="gt-gem gt-gem--on"></span><span class="gt-glint"></span></span><span class="gt-burst"><i></i><i></i><i></i><i></i></span></span>
+       </span>
+       <span class="gt-text"><span class="gt-label">Game mode</span></span>
+     </button>
+
+   State lives on the button: aria-checked (true is game). toggle.js adds the
+   transient classes: is-wake, is-pressing, is-turning-on, is-cold,
+   is-turning-off, is-spent, is-attract, is-paused, is-instant, and
+   data-motion="reduce|full". Only transform and opacity are animated.
+   ========================================================================== */
+
+/* ---------- Tokens ---------- */
+.gt {
+    /* Geometry: the pill (header) by default. */
+    --gt-w: 52px;            /* track width */
+    --gt-h: 28px;            /* track height */
+    --gt-pad: 3px;           /* knob inset */
+    --gt-k: calc(var(--gt-h) - 2 * var(--gt-pad));                      /* knob */
+    --gt-travel: calc(var(--gt-w) - var(--gt-k) - 2 * var(--gt-pad));   /* knob travel */
+    --gt-f: calc(var(--gt-w) - var(--gt-k) - 3 * var(--gt-pad));        /* the free lane beside the knob */
+    --gt-cx: calc((var(--gt-w) + var(--gt-k) + var(--gt-pad)) / 2);   /* middle of the lane right of the knob: where the CRT folds to */
+    --gt-dir: 1;             /* -1 in right-to-left pages */
+
+    /* Timing. */
+    --gt-ease-out: cubic-bezier(.22, 1, .36, 1);
+    --gt-ease-in-out: cubic-bezier(.65, 0, .35, 1);
+    --gt-spring: cubic-bezier(.34, 1.56, .64, 1);
+    --gt-crt: cubic-bezier(.7, 0, .84, 0);
+    --gt-t-wake: 260ms;      /* screen warms, notes scroll in (plus 40ms a note) */
+    --gt-t-press: 90ms;      /* squash in; out is 260ms on the spring */
+    --gt-t-on: 420ms;        /* knob travel on the spring */
+    --gt-t-off: 560ms;       /* CRT power-down */
+    --gt-t-breath: 3200ms;   /* one waiting breath; 5 of them, then rest */
+
+    /* Colour: the serious skin, dark. Reads the app's tokens when present. */
+    --gt-ink: var(--color-cream, #ffffff);
+    --gt-muted: var(--color-muted, #cfcfcf);
+    --gt-surface: var(--color-panel, #0e0e0e);
+    --gt-line: var(--color-edge, #303030);
+    --gt-track: #2e2e2e;
+    --gt-track-edge: #6b6b6b;          /* 3.6:1 on the surface (non-text AA) */
+    --gt-knob: #ecebf1;                /* the colourless pearl gem, 12:1 on the track */
+    --gt-gem: #ff4fa8;                 /* the lit gem, the same in every theme */
+    --gt-hot: #ff4fa8;                 /* "Press start" text: 6.4:1 on the surface */
+    --gt-screen: #0c0a17;              /* a screen is always the night cabinet */
+    --gt-cyan: #3be7ff;
+    --gt-s: #ff9a5a; --gt-a: #f5dc5c; --gt-t: #45e3a5; --gt-b: #a998ff;
+    --gt-focus: var(--gt-ink);
+    --gt-status: var(--gt-muted);
+    --gt-glow: 1;                      /* glow strength; lower in light themes */
+}
+[data-theme$="-light"] .gt {
+    --gt-ink: var(--color-cream, #211a15);
+    --gt-muted: var(--color-muted, #564c44);
+    --gt-surface: var(--color-panel, #ffffff);
+    --gt-line: var(--color-edge, #e6ddd1);
+    --gt-track: #ebe3d8;
+    --gt-track-edge: #8f8579;          /* 3.6:1 on white */
+    --gt-knob: #2f2823;                /* a dark glossy bead, 11:1 on the track */
+    --gt-hot: #c81872;                 /* 5.5:1 on white */
+    --gt-cyan: #076f88;
+    --gt-glow: .45;
+}
+[dir="rtl"] .gt { --gt-dir: -1; }
+
+/* The game skin: arcade tokens and type. (Settings rows stay calm: Figtree, no HUD.) */
+[data-skin="game"] .gt {
+    --gt-ink: var(--a-ink, #f7f4ff);
+    --gt-muted: var(--a-muted, #b1abc9);
+    --gt-surface: var(--a-panel, #12101e);
+    --gt-line: var(--a-line-2, #3a3555);
+    --gt-status: var(--gt-cyan);
+    --gt-focus: var(--gt-cyan);
+}
+[data-skin="game"][data-theme$="-light"] .gt,
+[data-skin="game"] [data-theme$="-light"] .gt,
+[data-theme$="-light"] [data-skin="game"] .gt {
+    --gt-ink: var(--a-ink, #1b1530);
+    --gt-muted: var(--a-muted, #554e6b);
+    --gt-surface: var(--a-panel, #ffffff);
+    --gt-line: var(--a-line-2, #d6cbb9);
+    --gt-cyan: #076f88;
+}
+
+/* ---------- The button and its three sizes ---------- */
+.gt {
+    appearance: none; -webkit-appearance: none;
+    position: relative;
+    display: inline-flex; align-items: center; gap: 10px;
+    min-height: 44px; margin: 0; border: 0;
+    font: inherit; color: var(--gt-ink); text-align: start;
+    background: none; cursor: pointer;
+    -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none;
+}
+.gt--pill { padding: 0 15px 0 8px; border-radius: 999px; background: var(--gt-surface); box-shadow: inset 0 0 0 1.5px var(--gt-line); }
+.gt--hero {
+    --gt-w: 88px; --gt-h: 46px; --gt-pad: 4px;
+    gap: 16px; min-height: 66px; padding: 10px 26px 10px 10px; border-radius: 999px;
+    background: var(--gt-surface); box-shadow: inset 0 0 0 1.5px var(--gt-line);
+}
+.gt--row {
+    --gt-w: 56px; --gt-h: 32px; --gt-pad: 3px;
+    display: flex; flex-direction: row-reverse; justify-content: space-between; gap: 16px;
+    width: 100%; padding: 10px 0; border-radius: 12px;
+}
+
+.gt-text { display: grid; gap: 4px; min-width: 0; }
+.gt-label { font-weight: 700; font-size: 15px; line-height: 1.2; }
+.gt--pill .gt-label { font-size: 14px; font-weight: 650; }
+.gt--pill .gt-label, .gt--hero .gt-label, .gt-status { white-space: nowrap; }
+.gt--hero .gt-label { font-size: 18px; font-weight: 800; letter-spacing: -.01em; }
+/* In the game skin the pill speaks HUD and the hero is a marquee; the settings row stays calm. */
+[data-skin="game"] .gt--pill .gt-label { font: 400 10px/1.4 "Stackapella Pixel", ui-monospace, monospace; letter-spacing: .04em; text-transform: uppercase; }
+[data-skin="game"] .gt--hero .gt-label { font: 400 21px/1 "Bungee", "Figtree", system-ui, sans-serif; letter-spacing: .01em; text-transform: uppercase; }
+.gt-hint { font-size: 14px; line-height: 1.4; color: var(--gt-muted); }
+
+/* The hero's status line: Free play, Press start, Game on. Decorative (aria-hidden): aria-checked carries the state. */
+.gt-status { display: grid; font-size: 11px; font-weight: 750; line-height: 1.3; letter-spacing: .14em; text-transform: uppercase; color: var(--gt-status); }
+[data-skin="game"] .gt-status { font: 400 8.5px/1.4 "Stackapella Pixel", ui-monospace, monospace; letter-spacing: .06em; }
+/* One word out (90ms), then the next in (140ms), never both at once. */
+.gt-status > * { grid-area: 1 / 1; opacity: 0; transition: opacity 90ms linear; }
+.gt-st-wake { color: var(--gt-hot); }
+/* "Free play" and "Press start" are the arcade's words: in the serious skin the switch shows only its name.
+   The hero's switch keeps its fixed size, so nothing moves when it's flipped. */
+:root:not([data-skin="game"]) .gt-status { display: none; }
+.gt:not([aria-checked="true"]) .gt-st-idle { opacity: 1; transition: opacity 140ms linear 90ms; }
+.gt:not([aria-checked="true"]).is-wake:not(.is-spent) .gt-st-idle { opacity: 0; transition: opacity 90ms linear; }
+.gt:not([aria-checked="true"]).is-wake:not(.is-spent) .gt-st-wake { opacity: 1; transition: opacity 140ms linear 90ms; }
+.gt[aria-checked="true"] .gt-st-on { opacity: 1; transition: opacity 140ms linear 90ms; }
+
+/* ---------- Focus: a real, visible ring ---------- */
+.gt:focus { outline: none; }
+.gt:focus-visible { outline: 2px solid var(--gt-focus); outline-offset: 3px; }
+[data-skin="game"] .gt:focus-visible { box-shadow: inset 0 0 0 1.5px var(--gt-line), 0 0 0 6px color-mix(in srgb, var(--gt-cyan) 22%, transparent); }
+[data-skin="game"] .gt--row:focus-visible { box-shadow: none; }
+.gt--row:focus-visible { outline-offset: 2px; }
+
+/* ---------- The track ---------- */
+.gt-track {
+    position: relative; flex: none; display: block;
+    width: var(--gt-w); height: var(--gt-h); border-radius: 999px;
+    background: var(--gt-track); box-shadow: inset 0 0 0 1.5px var(--gt-track-edge);
+    transition: transform 260ms var(--gt-spring);
+}
+.gt-track > * { position: absolute; display: block; }
+
+/* The neon edge, lit when on. Its opacity is what moves. */
+.gt-glow {
+    inset: 0; border-radius: inherit; opacity: 0;
+    box-shadow: 0 0 0 1.5px var(--gt-gem),
+        0 0 calc(16px * var(--gt-glow)) 1px color-mix(in srgb, var(--gt-gem) 55%, transparent),
+        inset 0 0 calc(12px * var(--gt-glow)) color-mix(in srgb, var(--gt-gem) 30%, transparent);
+    transition: opacity 360ms ease 120ms;
+}
+
+/* The screen: dark glass with scanlines. Hidden when off; standby on wake; lit when on.
+   The glass (.gt-screen) and the picture on it (.gt-picture) are separate, so a CRT power-down can fold
+   the picture to a line and a dot while the glass stays dark behind it, in light themes too. */
+.gt-screen {
+    inset: 0; border-radius: inherit; overflow: hidden; opacity: 0;
+    background: radial-gradient(120% 150% at 50% -10%, #221b3d 0%, var(--gt-screen) 62%);
+    box-shadow: inset 0 0 0 1.5px #2a2640;
+    transition: opacity var(--gt-t-wake) ease;
+}
+.gt-screen::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(180deg, rgb(255 255 255 / .055) 0 1px, transparent 1px 3px);
+}
+.gt-screen > *, .gt-picture > * { position: absolute; display: block; }
+.gt-picture { inset: 0; }
+.gt-tint { inset: 0; opacity: 0; background: radial-gradient(70% 90% at 30% 50%, rgb(255 79 168 / .3), transparent 72%), radial-gradient(50% 80% at 85% 40%, rgb(59 231 255 / .14), transparent 70%); transition: opacity 300ms ease 120ms; }
+.gt-flash { inset: 0; opacity: 0; background: radial-gradient(closest-side, rgb(255 255 255 / .95), rgb(255 255 255 / .2) 70%, transparent); }
+.gt-beam {
+    left: 5%; right: 5%; top: 50%; height: 2px; margin-top: -1px; border-radius: 2px; opacity: 0;
+    background: #fff; box-shadow: 0 0 3px 1px #fff, 0 0 10px 2px var(--gt-cyan); transform: scaleX(0);
+}
+.gt-dot { inset-inline-start: var(--gt-cx); top: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%; background: #fff; box-shadow: 0 0 6px 2px #fff, 0 0 14px 4px var(--gt-cyan); opacity: 0; }
+
+/* ---------- The notes: a melody that scrolls in on wake; the logo's stack when on ---------- */
+.gt-notes, .gt-stack { inset: 0; }
+.gt-notes i, .gt-stack i {
+    --c: var(--gt-s);
+    position: absolute; top: 50%; inset-inline-start: calc(var(--gt-pad) * 1.6);
+    height: max(2.5px, calc(var(--gt-h) * .11)); margin-top: min(-1.25px, calc(var(--gt-h) * -.055));
+    border-radius: 99px;
+    background: linear-gradient(180deg, color-mix(in oklab, var(--c) 45%, white) 0%, var(--c) 50%, color-mix(in oklab, var(--c) 70%, black) 100%);
+    box-shadow: 0 0 calc(5px * var(--gt-glow)) color-mix(in srgb, var(--c) 70%, transparent);
+}
+.gt-notes i:nth-child(1), .gt-stack i:nth-child(1) { --n: 0; --c: var(--gt-s); --wx: 0;   --wy: .17;  --ow: 1;   --oy: -.22; }
+.gt-notes i:nth-child(2), .gt-stack i:nth-child(2) { --n: 1; --c: var(--gt-a); --wx: .25; --wy: -.02; --ow: .74; --oy: -.074; }
+.gt-notes i:nth-child(3), .gt-stack i:nth-child(3) { --n: 2; --c: var(--gt-t); --wx: .5;  --wy: -.2;  --ow: .88; --oy: .074; }
+.gt-notes i:nth-child(4), .gt-stack i:nth-child(4) { --n: 3; --c: var(--gt-b); --wx: .74; --wy: .03;  --ow: .62; --oy: .22; }
+
+/* The melody: short gems. --xk knob widths plus --xf of the free lane across, --y of the height down. */
+.gt-notes i {
+    --xk: 1; --xf: calc(var(--wx) + 1.1); --y: var(--wy);
+    width: max(4px, calc(var(--gt-f) * .22));
+    transform: translate(calc((var(--xk) * (var(--gt-k) + var(--gt-pad)) + var(--xf) * var(--gt-f)) * var(--gt-dir)), calc(var(--y) * var(--gt-h)));
+    opacity: 0;
+    transition: transform 340ms var(--gt-ease-out) calc(var(--n) * 40ms), opacity 200ms linear calc(var(--n) * 40ms);
+}
+/* off, woken: scrolling in beside the knob, as on the Sing lane */
+.gt:not([aria-checked="true"]).is-wake:not(.is-spent) .gt-notes i { --xf: var(--wx); opacity: 1; }
+/* on: each note runs left past the gem to the start of its row, and hands over to its bar */
+.gt[aria-checked="true"] .gt-notes i {
+    --xk: 0; --xf: 0; --y: var(--oy); opacity: 0;
+    transition: transform 300ms var(--gt-ease-out) calc(var(--n) * 40ms), opacity 120ms linear calc(200ms + var(--n) * 45ms);
+}
+
+/* The stack: four bars, left-aligned like the logo, drawn out from where their notes land. */
+.gt-stack i {
+    width: calc(var(--gt-f) * var(--ow)); transform-origin: 0 50%;
+    transform: translateY(calc(var(--oy) * var(--gt-h))) scaleX(0);
+    opacity: 0;
+    transition: transform 200ms ease-in, opacity 120ms linear;
+}
+[dir="rtl"] .gt-stack i { transform-origin: 100% 50%; }
+.gt[aria-checked="true"] .gt-stack i {
+    transform: translateY(calc(var(--oy) * var(--gt-h))) scaleX(1); opacity: 1;
+    transition: transform 320ms var(--gt-ease-out) calc(200ms + var(--n) * 45ms), opacity 60ms linear calc(200ms + var(--n) * 45ms);
+}
+
+/* ---------- The knob: a gem ---------- */
+.gt-knob {
+    top: var(--gt-pad); inset-inline-start: var(--gt-pad);
+    width: var(--gt-k); height: var(--gt-k);
+    transform: translateX(0);
+    transition: transform var(--gt-t-on) var(--gt-spring);
+}
+.gt-knob > * { position: absolute; display: block; }
+.gt:not([aria-checked="true"]).is-wake:not(.is-spent) .gt-knob { transform: translateX(calc(var(--gt-k) * .12 * var(--gt-dir))); transition-duration: 380ms; }
+.gt[aria-checked="true"] .gt-knob { transform: translateX(calc(var(--gt-travel) * var(--gt-dir))); }
+
+.gt-body { inset: 0; border-radius: 50%; transition: transform 260ms var(--gt-spring); }
+.gt-body > * { position: absolute; display: block; }
+
+/* The gem: the arcade mockup's gloss, round. */
+.gt-gem {
+    --c: var(--gt-knob);
+    inset: 0; border-radius: 50%;
+    background: radial-gradient(120% 120% at 50% 18%, color-mix(in oklab, var(--c) 40%, white) 0%, var(--c) 48%, color-mix(in oklab, var(--c) 66%, black) 100%);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / .7), inset 0 -2px 3px rgb(0 0 0 / .28), 0 1px 2px rgb(0 0 0 / .35);
+}
+.gt-gem::before {
+    content: ""; position: absolute; left: 18%; right: 18%; top: 7%; height: 40%;
+    border-radius: 50% 50% 45% 45% / 70% 70% 40% 40%;
+    background: linear-gradient(180deg, rgb(255 255 255 / .85), rgb(255 255 255 / .06));
+}
+[data-theme$="-light"] .gt-gem { box-shadow: inset 0 1px 0 rgb(255 255 255 / .55), inset 0 -2px 3px rgb(0 0 0 / .3), 0 0 0 1px color-mix(in srgb, var(--c) 55%, black), 0 1px 2px rgb(0 0 0 / .25); }
+.gt-gem--on {
+    --c: var(--gt-gem); opacity: 0;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / .75), inset 0 -2px 3px rgb(0 0 0 / .22), 0 0 calc(12px * var(--gt-glow)) color-mix(in srgb, var(--gt-gem) 70%, transparent);
+    transition: opacity 220ms ease;
+}
+[data-theme$="-light"] .gt-gem--on { box-shadow: inset 0 1px 0 rgb(255 255 255 / .7), inset 0 -2px 3px rgb(0 0 0 / .22), 0 0 0 1px color-mix(in srgb, var(--gt-gem) 55%, black), 0 0 6px color-mix(in srgb, var(--gt-gem) 45%, transparent); }
+.gt:not([aria-checked="true"]).is-wake:not(.is-spent) .gt-gem--on { opacity: .55; }
+[data-theme$="-light"] .gt:not([aria-checked="true"]).is-wake:not(.is-spent) .gt-gem--on { opacity: .9; }
+.gt[aria-checked="true"] .gt-gem--on { opacity: 1; }
+
+/* A glint that sweeps across the gem. */
+.gt-glint { inset: 0; border-radius: 50%; overflow: hidden; }
+.gt-glint::before {
+    content: ""; position: absolute; top: -20%; bottom: -20%; left: 0; width: 38%;
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / .75), transparent);
+    transform: translateX(-160%) skewX(-18deg); opacity: 0;
+}
+
+/* The waiting halo: a ring in the four part colours. */
+.gt-halo {
+    inset: -3px; border-radius: 50%; opacity: 0;
+    background: conic-gradient(from 200deg, var(--gt-s), var(--gt-a), var(--gt-t), var(--gt-b), var(--gt-s));
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2px));
+}
+
+/* The turn-on burst: a ring and four sparks in the part colours. */
+.gt-burst { inset: 0; pointer-events: none; }
+.gt-burst::before {
+    content: ""; position: absolute; inset: -2px; border-radius: 50%; opacity: 0;
+    box-shadow: 0 0 0 2.5px var(--gt-gem), 0 0 14px 2px var(--gt-gem), inset 0 0 8px var(--gt-gem);
+}
+.gt-burst i { position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px; border-radius: 50%; opacity: 0; background: color-mix(in oklab, var(--c) 70%, white); box-shadow: 0 0 6px 1px var(--c); }
+.gt-burst i:nth-child(1) { --c: var(--gt-s); --bx: -1;  --by: -1; }
+.gt-burst i:nth-child(2) { --c: var(--gt-a); --bx: 1;   --by: -1.1; }
+.gt-burst i:nth-child(3) { --c: var(--gt-t); --bx: 1.1; --by: .9; }
+.gt-burst i:nth-child(4) { --c: var(--gt-b); --bx: -.9; --by: 1.05; }
+
+/* ---------- Waking (hover or keyboard focus) ---------- */
+.gt.is-wake:not(.is-spent) .gt-screen { opacity: 1; }
+.gt.is-wake:not(.is-spent) .gt-track { transform: scale(1.04); }
+.gt[aria-checked="true"].is-wake .gt-glow { opacity: 1; transition-delay: 0ms; }
+.gt.is-wake:not(.is-spent) .gt-glint::before { animation: gt-sweep 650ms var(--gt-ease-in-out) 110ms both; }
+.gt[aria-checked="true"].is-wake:not(.is-spent):not(.is-turning-on) .gt-stack i { animation: gt-bop 520ms var(--gt-ease-out) calc(var(--n) * 55ms) both; }
+
+/* ---------- Pressing ---------- */
+.gt.is-pressing .gt-body { transform: scale(1.14, .84); transition: transform var(--gt-t-press) ease-out; }
+.gt.is-pressing .gt-track { transform: scale(.96); transition: transform var(--gt-t-press) ease-out; }
+
+/* ---------- On: lit, with a calm idle shimmer ---------- */
+.gt[aria-checked="true"] .gt-screen { opacity: 1; }
+.gt[aria-checked="true"] .gt-tint { opacity: 1; }
+.gt[aria-checked="true"] .gt-glow { opacity: .85; }
+.gt[aria-checked="true"]:not(.is-turning-on) .gt-glow { animation: gt-hum 4.8s ease-in-out 600ms infinite alternate; }
+.gt[aria-checked="true"]:not(.is-wake) .gt-glint::before { animation: gt-glint 7s var(--gt-ease-in-out) 1.8s infinite; }
+.gt[aria-checked="true"]:not(.is-wake):not(.is-turning-on) .gt-stack i { animation: gt-chase 4.8s ease-in-out calc(600ms + var(--n) * 320ms) infinite; }
+
+/* ---------- Turning on ---------- */
+.gt.is-turning-on .gt-flash { animation: gt-flash 320ms ease-out 60ms both; }
+.gt.is-turning-on.is-cold .gt-screen { animation: gt-glass-on 380ms linear both; }
+.gt.is-turning-on.is-cold .gt-picture { animation: gt-crt-on 380ms var(--gt-ease-out) both; }
+.gt.is-turning-on.is-cold .gt-beam { animation: gt-beam-on 380ms ease-out both; }
+.gt.is-turning-on .gt-burst::before { animation: gt-ring 520ms var(--gt-ease-out) 200ms; }
+.gt.is-turning-on .gt-burst i { animation: gt-spark 560ms var(--gt-ease-out) 210ms; }
+.gt.is-turning-on .gt-st-idle { opacity: 0; transition: none; }
+.gt.is-turning-on .gt-st-wake { animation: gt-press-start 800ms steps(1, end) both; }
+.gt.is-turning-on .gt-st-on { transition-delay: 800ms; }
+
+/* ---------- Turning off: a CRT power-down ---------- */
+.gt.is-turning-off .gt-knob { transition: transform 360ms var(--gt-ease-in-out) 40ms; }
+.gt.is-turning-off .gt-picture { transform-origin: var(--gt-cx) 50%; }
+.gt.is-turning-off .gt-beam { transform-origin: calc(var(--gt-cx) - 5%) 50%; }
+.gt.is-turning-off .gt-gem--on { transition: opacity 280ms ease 100ms; }
+.gt.is-turning-off .gt-glow { transition: opacity 140ms ease; }
+.gt.is-turning-off .gt-screen { animation: gt-glass-off var(--gt-t-off) linear both; }
+.gt.is-turning-off .gt-picture { animation: gt-crt-off var(--gt-t-off) linear both; }
+.gt.is-turning-off .gt-tint { opacity: 1; transition: none; }
+.gt.is-turning-off .gt-beam { animation: gt-beam-off var(--gt-t-off) linear both; }
+.gt.is-turning-off .gt-dot { animation: gt-dot-off var(--gt-t-off) linear both; }
+.gt.is-turning-off .gt-stack i { transform: translateY(calc(var(--oy) * var(--gt-h))) scaleX(1); opacity: 1; transition: none; }
+.gt.is-turning-off .gt-notes i { opacity: 0; transition: none; }
+.gt.is-turning-off .gt-st-idle { transition-delay: 480ms; }
+
+/* ---------- Waiting: a few breaths, then rest ---------- */
+.gt.is-attract:not([aria-checked="true"]) .gt-halo { animation: gt-breathe var(--gt-t-breath) var(--gt-ease-out) 900ms 5 both; }
+.gt.is-attract:not([aria-checked="true"]) .gt-gem--on { animation: gt-blush var(--gt-t-breath) ease-in-out 900ms 5 both; }
+.gt.is-attract:not([aria-checked="true"]) .gt-st-idle { animation: gt-blink var(--gt-t-breath) steps(1, end) 900ms 5 both; }
+
+/* ---------- Paused off-screen or in a hidden tab; instant on first sync ---------- */
+.gt.is-paused, .gt.is-paused *, .gt.is-paused *::before, .gt.is-paused *::after { animation-play-state: paused !important; }
+.gt.is-instant, .gt.is-instant *, .gt.is-instant *::before, .gt.is-instant *::after { transition: none !important; animation: none !important; }
+
+/* ---------- Keyframes (transform and opacity only) ---------- */
+@keyframes gt-breathe {
+    0% { opacity: 0; transform: scale(.9); }
+    10% { opacity: .95; }
+    55%, 100% { opacity: 0; transform: scale(1.75); }
+}
+@keyframes gt-blush { 0%, 100% { opacity: 0; } 18% { opacity: .42; } 50% { opacity: 0; } }
+@keyframes gt-blink { 0% { opacity: 1; } 50% { opacity: .3; } 100% { opacity: 1; } }
+@keyframes gt-hum { from { opacity: .7; } to { opacity: 1; } }
+@keyframes gt-glint {
+    0%, 86% { opacity: 0; transform: translateX(-160%) skewX(-18deg); }
+    87% { opacity: 1; }
+    100% { opacity: 0; transform: translateX(300%) skewX(-18deg); }
+}
+@keyframes gt-sweep {
+    0% { opacity: 0; transform: translateX(-160%) skewX(-18deg); }
+    15% { opacity: 1; }
+    100% { opacity: 0; transform: translateX(300%) skewX(-18deg); }
+}
+@keyframes gt-chase { 0%, 70%, 100% { opacity: 1; } 80% { opacity: .62; } }
+@keyframes gt-bop { 0%, 100% { translate: 0 0; } 35% { translate: 0 -1.5px; } 70% { translate: 0 .5px; } }
+@keyframes gt-flash { 0% { opacity: 0; } 25% { opacity: .55; } 100% { opacity: 0; } }
+@keyframes gt-glass-on { from, to { opacity: 1; } }
+@keyframes gt-glass-off { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes gt-crt-on {
+    0% { opacity: 1; transform: scale(1, .04); }
+    40% { opacity: 1; transform: scale(1, .04); }
+    75% { transform: scale(1, 1.08); }
+    100% { opacity: 1; transform: scale(1, 1); }
+}
+@keyframes gt-beam-on {
+    0% { opacity: 1; transform: scaleX(0); }
+    40% { opacity: 1; transform: scaleX(1); }
+    70%, 100% { opacity: 0; transform: scaleX(1); }
+}
+@keyframes gt-crt-off {
+    0% { opacity: 1; transform: scale(1, 1); animation-timing-function: var(--gt-crt); }
+    36% { opacity: 1; transform: scale(1.04, .05); animation-timing-function: cubic-bezier(.5, 0, .9, .4); }
+    64% { opacity: 0; transform: scale(.02, .05); }
+    100% { opacity: 0; transform: scale(0, .05); }
+}
+@keyframes gt-beam-off {
+    0%, 28% { opacity: 0; transform: scaleX(1); }
+    36% { opacity: 1; transform: scaleX(1); animation-timing-function: cubic-bezier(.5, 0, .9, .4); }
+    64% { opacity: 1; transform: scaleX(.03); }
+    72%, 100% { opacity: 0; transform: scaleX(0); }
+}
+@keyframes gt-dot-off { 0%, 60% { opacity: 0; transform: scale(1); } 66% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0; transform: scale(.3); } }
+@keyframes gt-ring { 0% { opacity: .95; transform: scale(.7); } 100% { opacity: 0; transform: scale(2.05); } }
+@keyframes gt-spark {
+    0% { opacity: 1; transform: translate(0, 0) scale(1); }
+    100% { opacity: 0; transform: translate(calc(var(--bx) * var(--gt-k) * 1.15), calc(var(--by) * var(--gt-k) * .95)) scale(.4); }
+}
+/* "Press start" blinks twice (2.5 a second, under the 3 a second limit), then "Game on". */
+@keyframes gt-press-start { 0% { opacity: 1; } 25% { opacity: 0; } 50% { opacity: 1; } 75%, 100% { opacity: 0; } }
+
+/* ---------- Reduced motion: still, and still clear ---------- */
+/* toggle.js sets data-motion from prefers-reduced-motion (or an app setting). Without JS, the media query does it. */
+.gt[data-motion="reduce"] *, .gt[data-motion="reduce"] *::before, .gt[data-motion="reduce"] *::after { animation: none !important; }
+.gt[data-motion="reduce"] :is(.gt-knob, .gt-body, .gt-track, .gt-notes i, .gt-stack i) { transition: none !important; }
+.gt[data-motion="reduce"] :is(.gt-screen, .gt-glow, .gt-tint, .gt-gem--on, .gt-status > *) { transition: opacity 150ms linear !important; }
+.gt[data-motion="reduce"] .gt-notes i { --xf: var(--wx); }
+.gt[data-motion="reduce"][aria-checked="true"] .gt-notes i { --xk: 1; }
+.gt[data-motion="reduce"].is-wake .gt-track { transform: none; }
+.gt[data-motion="reduce"]:not([aria-checked="true"]).is-wake .gt-knob { transform: none; }
+.gt[data-motion="reduce"].is-pressing :is(.gt-body, .gt-track) { transform: none; }
+@media (prefers-reduced-motion: reduce) {
+    .gt:not([data-motion]) *, .gt:not([data-motion]) *::before, .gt:not([data-motion]) *::after { animation: none !important; transition-duration: 1ms !important; }
+}
+
+/* ---------- Forced colours (Windows high contrast) ---------- */
+@media (forced-colors: active) {
+    .gt--pill, .gt--hero { border: 1px solid ButtonText; }
+    .gt-track { background: Canvas; box-shadow: none; border: 1px solid ButtonText; }
+    .gt-screen, .gt-glow, .gt-halo, .gt-burst, .gt-glint { display: none !important; }
+    .gt-gem { forced-color-adjust: none; background: ButtonText; box-shadow: none; }
+    .gt-gem::before { display: none; }
+    .gt[aria-checked="true"] .gt-gem--on { background: Highlight; }
+}

@@ -67,6 +67,12 @@ final class SiteCssPagesTest extends TestCase
                 }
 
                 $html = (string) $response->assertOk()->getContent();
+                // The home page is its own document with its own sheet (css/landing.css): no family's.
+                if (in_array($page, ['/', '/es'], true)) {
+                    $this->assertStringNotContainsString('/site-css/', $html, $page);
+
+                    continue;
+                }
                 $family = SiteCss::family($page);
                 [$sheet, $game] = $this->linked($html);
                 $lacks = SiteCss::missing($this->web, $family, $html);

@@ -1,7 +1,10 @@
-"""The landing's hero mixer (js/public/mixer.js), as a visitor meets it: signed out, and again with
-the app's service worker installed (someone who has used the app). No console error anywhere (a
-module the page can't load, like a bare 'vue', fails here); Play is there and visible; pressing it
-starts the harmony on the audio clock (the player says it's playing and its playhead moves).
+"""The landing's player (pages/landing.blade.php, js/public/mixer.js), as a visitor meets it: signed out, and again with
+the app's service worker installed (someone who has used the app, at /?landing). No console error anywhere (a module
+the page can't load, like a bare 'vue', fails here); Play is there and visible; pressing it starts the song on the
+audio clock (the page says it's playing and its playhead moves), and Stop stops it.
+
+The landing sings only the recorded voices; they're stubbed here as landing_page.py stubs them (this machine's database
+has none). The whole page is landing_page.py's; this is the sound, on a first visit and after the app.
 
 It runs against the server's own site (the landing is Laravel's), at SITE (default
 http://127.0.0.1:8412, `php -S 127.0.0.1:8412 tool/serve.php` from server/):
@@ -19,61 +22,36 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 import flow  # noqa: E402
+from landing_page import READY, VOICES  # noqa: E402
 
 SITE = os.environ.get("SITE", "http://127.0.0.1:8412")
 WITH_SW = os.environ.get("LANDING_SW", "1") != "0"
-PLAYER = "document.querySelector('#hero [data-play], [data-player] [data-play]')"
+PAGE = "document.getElementById('lnf')"
+PLAY = "document.querySelector('[data-lnf-play]')"
 
 
 def plays(f, label):
-    """The serious skin's four-voice player, then the game skin's cabinet (its recorded take)."""
-    f.go("/?landing", f"{PLAYER} && document.fonts.status === 'loaded'")
-    f.run("window.stackapellaTheme?.choose({ skin: 'serious' }); document.documentElement.dataset.skin = 'serious';")
-    # Play shows once the player is ready (its song loaded).
-    f.wait(f"(() => {{ const b = {PLAYER}; const r = b.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(b).visibility !== 'hidden'; }})()", timeout=20, what=f"{label}: the hero's Play button visible")
-    f.run(f"{PLAYER}.scrollIntoView({{ block: 'center' }}); {PLAYER}.click();")
-    f.wait(f"{PLAYER}.closest('[data-player]').hasAttribute('data-playing')", timeout=20, what=f"{label}: the harmony playing")
-    start = float(f.js(f"{PLAYER}.closest('[data-player]').style.getPropertyValue('--p') || '0'"))
+    """Play is there, a press starts the song on the audio clock, and Stop stops it."""
+    f.go("/?landing", f"{READY} && document.fonts.status === 'loaded'")
+    f.wait(f"(() => {{ const b = {PLAY}; const r = b.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(b).visibility !== 'hidden'; }})()", timeout=20, what=f"{label}: Play visible")
+    f.run(f"{PLAY}.click();")
+    f.wait(f"{PAGE}.hasAttribute('data-playing')", timeout=40, what=f"{label}: the song playing")
+    start = float(f.js(f"{PAGE}.style.getPropertyValue('--p') || '0'"))
     time.sleep(1.2)
-    later = float(f.js(f"{PLAYER}.closest('[data-player]').style.getPropertyValue('--p') || '0'"))
+    later = float(f.js(f"{PAGE}.style.getPropertyValue('--p') || '0'"))
     assert later > start, f"{label}: the playhead didn't move ({start} then {later}): no audio clock running"
+    assert f.js("window.__workers") == [], f"{label}: the practice voice was made: {f.js('window.__workers')}"
     f.shot(label)
-    f.run(f"{PLAYER}.click();")
-    # The game skin, come on with no press (as a page opened in game mode): the hero's slot is the
-    # cabinet, resting on the lane's first frame under PRESS START (Hillel: never by itself).
-    cab = "document.querySelector('[data-cabinet]')"
-    sound = "document.querySelector('[data-cab-sound]')"
-    start = "document.querySelector('[data-cab-press]')"
-    f.run("window.stackapellaTheme?.choose({ skin: 'game' }); document.documentElement.dataset.skin = 'game';")
-    f.wait("document.querySelector('[data-cab-lane] canvas')", timeout=20, what=f"{label}: the cabinet's lane")
-    f.wait(f"{start} && !{start}.hidden", timeout=20, what=f"{label}: PRESS START")
-    time.sleep(1)
-    assert f.js(f"!{cab}.hasAttribute('data-playing')"), f"{label}: the take started by itself"
-    assert f.js(f"{start}.getAttribute('aria-label')"), f"{label}: PRESS START has no name"
-    f.shot(label + "-game-press-start")
-    # One press starts it with sound.
-    f.run(f"{start}.click();")
-    f.wait(f"{sound}.hidden && {cab}.hasAttribute('data-playing') && {start}.hidden", timeout=20, what=f"{label}: the take playing with sound")
-    time.sleep(1.2)
-    assert f.js("document.querySelector('[data-cab-time]').textContent") != "0:00", f"{label}: the take's time didn't move"
-    f.shot(label + "-game")
-    # Game mode off by its toggle stops it; on again it rests under PRESS START, and a press plays it with sound.
-    # The header's Game mode (landing v2: the hero has none of its own; on a phone it's the menu's row).
-    toggle = "([...document.querySelectorAll('.s-top [data-game-toggle]')].find((b) => b.offsetParent) || document.querySelector('.s-menu [data-game-toggle]'))"
-    f.run(f"{toggle}.click();")
-    f.wait(f"document.documentElement.dataset.skin === 'serious' && !{cab}.hasAttribute('data-playing')", timeout=10, what=f"{label}: Game mode off stops the take")
-    f.run(f"{toggle}.click();")
-    f.wait(f"document.documentElement.dataset.skin === 'game' && !{start}.hidden && !{cab}.hasAttribute('data-playing')", timeout=20, what=f"{label}: Game mode on rests under PRESS START")
-    f.run(f"{start}.click();")
-    f.wait(f"{cab}.hasAttribute('data-playing') && {sound}.hidden", timeout=20, what=f"{label}: PRESS START plays the take with sound")
-    f.run("document.querySelector('[data-cab-play]').click();")
-    f.wait(f"!{cab}.hasAttribute('data-playing')", timeout=10, what=f"{label}: the take paused")
+    f.run(f"{PLAY}.click();")
+    f.wait(f"!{PAGE}.hasAttribute('data-playing')", timeout=10, what=f"{label}: stopped")
+
 
 def main():
     failures = []
     for size in ("desktop", "phone"):
         # Signed out, a first visit.
-        f = flow.Flow(SITE, size, "landing_audio")
+        f = flow.Flow(SITE, size, "landing_audio", skin="serious")
+        f.chrome.send("Page.addScriptToEvaluateOnNewDocument", {"source": VOICES})
         try:
             plays(f, "signed-out")
             if not WITH_SW:

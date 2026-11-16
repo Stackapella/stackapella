@@ -543,7 +543,7 @@ final class LanguagesTest extends TestCase
         $this->get('/songs/amazing-grace')->assertOk()->assertSee($english);
 
         // The landing's stages, and the guides a page points to, in Spanish.
-        $this->get('/es')->assertOk()->assertSee('Encuentra tu voz');
+        $this->get('/es')->assertOk()->assertSee('Armonía,')->assertSee('Las cuatro voces');
         $guides = (string) $this->get('/es/courses/ear-training')->assertOk()->getContent();
         $this->assertStringContainsString(e(app(LegalText::class)->read('singing-in-tune', 'es', 'guides')['title']), $guides);
         $this->assertStringNotContainsString(e(app(LegalText::class)->read('singing-in-tune', 'en', 'guides')['title']), $guides);

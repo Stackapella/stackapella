@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-// /next-final's own words (the candidate for the final next landing page, 2026-11-15; forked from next_claude.php). Everything the page says
+// The landing's own words (the home page, pages/landing.blade.php; the design chosen on 2026-11-16). Everything the page says
 // that the landing, the plans or the site already say is read from their keys, so it can't drift from them; only what
-// is new is here. Spanish: lang/es/next_final.json.
+// is new is here. Spanish: lang/es/landing.json.
 return [
     'title' => 'Harmony, made by you | Stackapella',
     'description' => 'Hear Amazing Grace in four voices, take one of them, and see how a harmony becomes yours: learn a part, sing it over the others, share the whole song.',
@@ -18,7 +18,7 @@ return [
     'lede_free' => 'Learning is free.',
     'play' => 'Play :song',
     'stop' => 'Stop',
-    // Under Play's words: what a press commits to.
+    // Under Play's words: what a press commits to (the length is both times through).
     'play_meta' => ':count voices · :length',
     'hint' => 'Tap a voice to hear it alone',
     'scroll' => 'Scroll to see how it works',
@@ -42,7 +42,23 @@ return [
         'alone' => 'The :part alone.',
         'all' => 'All four voices.',
     ],
+    // While the recorded voices download (a press waits for them; the page adds how far, "37%"), and when they can't.
+    'loading' => 'Loading the voices…',
+    'failed' => 'Couldn\'t load the voices. Try again.',
+    // What the stage says as the song builds: the first voice, each voice as it joins, then all four (the second time
+    // through), and a voice heard alone.
+    'build' => [
+        'first' => ':part starts',
+        'join' => ':part joins',
+        'all' => 'All four together. Tap a voice to hear it alone.',
+        'alone' => 'The :part alone. Tap it again for all four.',
+    ],
     'step' => ':n of 4',
+    // Game mode's words for the same things (the facts never differ): Play's words, and a scene's place.
+    'game' => [
+        'play' => 'Press start',
+        'step' => 'Level :n of 4',
+    ],
     // Each scene's heading in three pieces: before its key phrase, the key phrase, after it.
     'hear' => [
         'name' => 'Hear',
@@ -99,13 +115,5 @@ return [
     ],
     'plans' => [
         'body' => 'Learning never needs a card. Plus is for arrangers and creators.',
-    ],
-    'end' => [
-        'songs' => ':count to learn',
-        'courses' => ':count, all free',
-        'tools' => ':count free',
-        'pricing' => 'Free and Plus',
-        'ways' => 'Explore Stackapella',
-        'legal' => 'Help and legal',
     ],
 ];
