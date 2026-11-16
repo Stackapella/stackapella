@@ -1,4 +1,4 @@
-// The landing's film (pages/landing/_showreel.blade.php; server/resources/promo/showreel/README.md).
+// The landing's film (pages/landing/_showreel-film.blade.php, also on /how-it-works; server/resources/promo/showreel/README.md).
 // Nothing loads until the frame is in view and the page has been scrolled; then the cut matching the
 // theme plays muted and loops, and pauses when it leaves the screen or the tab hides. Pause, captions
 // and sound are buttons on the picture. The captions show only when asked for, sound or not, remembered
@@ -7,8 +7,8 @@
 // card. The .vtt itself never changes (a new one would be a new film version on the CDN). A theme switch mid-play seeks
 // the other cut to the same moment and crossfades once it's ready (the CSS shows the cut named on
 // the frame; before the script runs, the theme's). Reduced motion or
-// Save-Data: the poster with a play button, and nothing loads until it's pressed. Phones get the
-// 540p cut.
+// Save-Data, or a frame marked data-reel-press (on a page's first screen: /how-it-works): the poster with a play
+// button, and nothing loads until it's pressed. Phones get the 540p cut.
 
 const box = document.querySelector('[data-reel]');
 
@@ -20,7 +20,7 @@ if (box) {
     const ccButton = box.querySelector('[data-reel-cc]');
     const captionLine = document.querySelector('[data-reel-caption]');
     const CAPTIONS = 'stackapella.reelCaptions';
-    const calm = matchMedia('(prefers-reduced-motion: reduce)').matches || navigator.connection?.saveData === true;
+    const calm = box.hasAttribute('data-reel-press') || matchMedia('(prefers-reduced-motion: reduce)').matches || navigator.connection?.saveData === true;
     const phone = matchMedia('(max-width: 767px)').matches;
     const remembered = () => {
         try {

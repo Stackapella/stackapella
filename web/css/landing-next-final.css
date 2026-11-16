@@ -1,0 +1,423 @@
+/* /next-final, the candidate for the final next landing page (Hillel, 2026-11-15: "a fifth potential final design based
+   on the Claude designs which incoudes any good concpets worth taking from the other designs"). The page's own sheet,
+   written by hand (no Tailwind, nothing from site.css), every class .lnf-*: one stage that fills the screen for the
+   first five scenes (the showreel's four lanes), then a page that scrolls (free, choirs, plans, the finale), a slim
+   see-through top line and a dock that stays (play, the time, the four voices, Start singing). Calm only, light and
+   dark; it has no game dress. js/public/landing-next-final.js sets data-scene, data-alone, data-top, data-tail and
+   --lnf-t (the song's place, in beats) on .lnf; the player (mixer.js) sets data-playing, data-loading, data-failed and
+   data-played there, and data-solo, data-off on a lane.
+   Two layouts for the stage: pinned (motion allowed and scripts on: it sticks, a scene a screen of scroll) and still
+   (reduced motion or no script: nothing pinned, the five scenes panels in order). The still one is the base. */
+@font-face { font-family: Figtree; font-style: normal; font-weight: 300 900; font-display: swap; src: url('/fonts/figtree-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: Figtree; font-style: normal; font-weight: 300 900; font-display: swap; src: url('/fonts/figtree-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@property --lnf-t { syntax: '<number>'; inherits: true; initial-value: 0; }
+
+:root {
+    --c1: #ff9139; --c2: #ffea6b; --c3: #45eca4; --c4: #968dfd;
+    --ink: #f8f1e7; --mute: #b9ad9e; --ground: #050403; --em: #e8b479; --gi: #1b1206; --rec: #ff6b5e;
+    --panel: rgb(255 255 255 / .06); --edge: rgb(255 255 255 / .15); --btn: #f8f1e7; --btn-ink: #15100b;
+    color-scheme: dark; background: var(--ground);
+}
+:root[data-theme$="-light"] {
+    --c1: #a14301; --c2: #7a5a00; --c3: #00704f; --c4: #5b46c4;
+    --ink: #1d1712; --mute: #65584b; --ground: #f5eee1; --em: #82520f; --gi: #fffaf2; --rec: #b3261e;
+    --panel: rgb(255 255 255 / .6); --edge: rgb(60 40 10 / .16); --btn: #1d1712; --btn-ink: #fbf6ec;
+    color-scheme: light;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: var(--ground); }
+.lnf {
+    --pad: max(20px, calc((100vw - 1240px) / 2 + 20px));
+    --top: 72px; --bar: 88px; --foot: 0px; --split: 43svh; --ppb: 84px; --ph: calc(var(--pad) + 310px); --tilt: 9deg;
+    --ease: cubic-bezier(.16, 1, .3, 1);
+    position: relative; isolation: isolate; background: var(--ground); color: var(--ink);
+    font: 400 17px/1.5 Figtree, system-ui, sans-serif; -webkit-font-smoothing: antialiased; overflow-x: clip;
+}
+:where(.lnf) a { color: inherit; text-decoration: none; }
+:where(.lnf) button { font: inherit; color: inherit; }
+.lnf svg { display: block; flex: none; }
+.lnf :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; border-radius: 6px; }
+.lnf-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.lnf-skip { position: fixed; z-index: 60; left: 12px; top: -80px; padding: 12px 18px; border-radius: 12px; background: var(--btn); color: var(--btn-ink) !important; font-weight: 800; }
+.lnf-skip:focus { top: 12px; }
+.lnf-v1 { --c: var(--c1); } .lnf-v2 { --c: var(--c2); } .lnf-v3 { --c: var(--c3); } .lnf-v4 { --c: var(--c4); }
+:root[data-theme$="-light"] .lnf-in-dark, :root:not([data-theme$="-light"]) .lnf-in-light { display: none; }
+
+/* The top line: slim and see-through over the stage; smaller on the way down, back on the way up. */
+.lnf-top { position: fixed; z-index: 40; inset: 0 0 auto 0; height: var(--top); padding: 0 var(--pad); display: flex; align-items: center; gap: 10px 22px; font-size: 15px; font-weight: 600; background: linear-gradient(color-mix(in srgb, var(--ground) 82%, transparent), transparent); transition: height .35s var(--ease), font-size .35s var(--ease), background-color .35s; }
+.lnf-logo { display: inline-flex; align-items: center; gap: 10px; margin-inline-end: auto; font-size: 18px; font-weight: 800; letter-spacing: -.01em; min-height: 44px; }
+.lnf-logo svg { border-radius: 7px; transition: scale .35s var(--ease); }
+.lnf-nav { display: flex; gap: 4px; }
+.lnf-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 99px; color: color-mix(in srgb, var(--ink) 78%, transparent); }
+.lnf-nav a:hover { color: var(--ink); background: var(--panel); }
+.lnf-round { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; height: 44px; padding: 0 12px; border-radius: 99px; background: var(--panel); border: 1px solid var(--edge); font-size: 13px; font-weight: 600; cursor: pointer; list-style: none; }
+.lnf-round::-webkit-details-marker { display: none; }
+.lnf-lang { position: relative; }
+.lnf-lang ul { position: absolute; inset-inline-end: 0; top: calc(100% + 8px); margin: 0; padding: 6px; list-style: none; min-width: 150px; border-radius: 16px; background: color-mix(in srgb, var(--ground) 92%, var(--ink)); border: 1px solid var(--edge); box-shadow: 0 20px 50px -20px rgb(0 0 0 / .6); }
+.lnf-lang li a { display: flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 11px; }
+.lnf-lang li a:hover, .lnf-lang li a[aria-current] { background: var(--panel); }
+.lnf-open { display: inline-flex; align-items: center; height: 44px; padding: 0 18px; border-radius: 99px; background: var(--panel); border: 1px solid var(--edge); font-weight: 700; white-space: nowrap; }
+.lnf[data-top="small"] .lnf-top:not(:focus-within) { --top: 52px; font-size: 13.5px; }
+.lnf[data-top="small"] .lnf-top:not(:focus-within) .lnf-logo span { opacity: 0; width: 0; overflow: hidden; }
+.lnf[data-top="small"] .lnf-top:not(:focus-within) .lnf-logo svg { scale: .85; }
+.lnf[data-top="small"] .lnf-top:not(:focus-within) :is(.lnf-round, .lnf-open) { height: 36px; min-width: 36px; }
+.lnf[data-top="small"] .lnf-top:not(:focus-within) .lnf-nav a { min-height: 36px; padding: 0 9px; }
+/* Over the page that scrolls, the top line has a ground of its own. */
+.lnf[data-tail] .lnf-top { background: color-mix(in srgb, var(--ground) 86%, transparent); }
+
+/* The ground: light in the four voices' colours (plain gradients, never a blurred layer), and a vignette. */
+.lnf-bg { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: -1; }
+.lnf-bg i { position: absolute; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--c) 36%, transparent), transparent); transition: translate 1.2s var(--ease), opacity 1.2s; }
+.lnf-bg i:nth-child(1) { --c: var(--em); width: 70vw; height: 70svh; left: -22vw; top: -34svh; opacity: .55; }
+.lnf-bg i:nth-child(2) { --c: var(--c1); width: 90vw; height: 80svh; left: -30vw; top: 22svh; }
+.lnf-bg i:nth-child(3) { --c: var(--c2); width: 70vw; height: 60svh; left: 22vw; top: 40svh; opacity: .6; }
+.lnf-bg i:nth-child(4) { --c: var(--c3); width: 80vw; height: 70svh; right: -30vw; top: 44svh; opacity: .75; }
+.lnf-bg i:nth-child(5) { --c: var(--c4); width: 110vw; height: 70svh; left: -5vw; top: 66svh; }
+.lnf-bg::after { content: ""; position: absolute; inset: 0; background: radial-gradient(120% 90% at 50% 38%, transparent 42%, color-mix(in srgb, var(--ground) 90%, transparent) 100%); }
+:root[data-theme$="-light"] .lnf-bg i { opacity: .5; }
+
+/* Words. */
+.lnf-h1, .lnf-h2 { margin: 0; font-weight: 800; letter-spacing: -.045em; line-height: .93; text-wrap: balance; }
+.lnf-h1 { font-size: clamp(50px, 7.7vw, 112px); } .lnf-h1 span, .lnf-h1 em { display: block; }
+.lnf-h2 { font-size: clamp(36px, 5.4vw, 84px); line-height: .98; }
+.lnf-h1 em, .lnf-h2 em { font-style: normal; color: var(--em); }
+.lnf-h2-two em { display: block; } .lnf-h2-two { font-size: clamp(32px, 4.3vw, 66px); }
+.lnf-say { margin: 0 0 20px; font-size: clamp(16.5px, 1.4vw, 20px); line-height: 1.45; color: color-mix(in srgb, var(--ink) 86%, transparent); max-width: 30em; }
+.lnf-true { margin: -8px 0 16px; font-size: 14.5px; font-weight: 600; color: var(--mute); }
+.lnf-lk { text-decoration: underline !important; text-underline-offset: 4px; font-weight: 700; white-space: nowrap; }
+.lnf-kick { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; font-size: 13px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--mute); }
+.lnf-bars { display: inline-flex; gap: 4px; } .lnf-bars i { width: 24px; height: 6px; border-radius: 6px; background: color-mix(in srgb, var(--ink) 16%, transparent); }
+.lnf-bars .lnf-on:nth-child(1) { background: var(--c1); } .lnf-bars .lnf-on:nth-child(2) { background: var(--c2); } .lnf-bars .lnf-on:nth-child(3) { background: var(--c3); } .lnf-bars .lnf-on:nth-child(4) { background: var(--c4); }
+.lnf-go { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+
+/* Buttons are flat; glass is for the gems and the round things you press. */
+.lnf-orb { --c: var(--em); position: relative; display: inline-grid; place-items: center; border-radius: 50%; flex: none; color: var(--gi); background: radial-gradient(120% 100% at 32% 18%, color-mix(in oklab, var(--c) 45%, white) 0%, var(--c) 46%, color-mix(in oklab, var(--c) 58%, black) 100%); box-shadow: inset 0 2px 0 rgb(255 255 255 / .7), inset 0 -5px 9px color-mix(in oklab, var(--c) 45%, black), 0 8px 18px -6px color-mix(in srgb, var(--c) 70%, transparent); }
+.lnf-play { position: relative; display: inline-flex; align-items: center; gap: 16px; height: 76px; padding: 0 34px 0 12px; border: 0; border-radius: 99px; background: var(--btn); color: var(--btn-ink) !important; font-weight: 800; font-size: 20px; line-height: 1; text-align: start; white-space: nowrap; cursor: pointer; box-shadow: 0 0 0 8px color-mix(in srgb, var(--em) 22%, transparent), 0 0 70px 6px color-mix(in srgb, var(--em) 36%, transparent); }
+.lnf-play .lnf-orb { width: 52px; height: 52px; }
+.lnf-play-w { display: grid; gap: 6px; } .lnf-play-w small { font-size: 13.5px; font-weight: 600; letter-spacing: .01em; opacity: .72; }
+.lnf-quiet { display: inline-flex; align-items: center; gap: 8px; height: 56px; padding: 0 24px; border-radius: 99px; background: var(--panel); border: 1px solid var(--edge); font-size: 17px; font-weight: 700; white-space: nowrap; cursor: pointer; }
+.lnf-quiet[aria-pressed="true"] { border-color: var(--ink); }
+.lnf-prim { display: inline-flex; align-items: center; gap: 10px; height: 64px; padding: 0 32px; border-radius: 99px; background: var(--btn); color: var(--btn-ink) !important; font-size: 19px; font-weight: 800; white-space: nowrap; }
+.lnf-arrow { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 16px; font-weight: 700; text-decoration: underline !important; text-decoration-color: color-mix(in srgb, var(--ink) 40%, transparent) !important; text-underline-offset: 5px; }
+/* Play and Stop: the player stops and goes back to the start, so the square and the word Stop, never a pause. */
+.lnf-i-stop, .lnf:is([data-playing], [data-loading]) .lnf-i-play { display: none; }
+.lnf:is([data-playing], [data-loading]) .lnf-i-stop { display: inline-flex; }
+.lnf-orb > .lnf-i-play { display: inline-flex; }
+/* The round thing you press says where it is: it breathes until the first press, turns while the voices load, and
+   stands ringed if they couldn't (still, each of them, with reduced motion). */
+:is(.lnf-play .lnf-orb, .lnf-disc)::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--em) 75%, transparent); opacity: 0; pointer-events: none; }
+.lnf[data-loading] :is(.lnf-play .lnf-orb, .lnf-disc)::after { opacity: 1; border-style: dashed; border-color: color-mix(in srgb, var(--ink) 70%, transparent); }
+.lnf-play .lnf-orb::after { border-color: color-mix(in srgb, var(--btn-ink) 55%, transparent); }
+.lnf[data-loading] .lnf-play .lnf-orb::after { border-color: color-mix(in srgb, var(--btn-ink) 70%, transparent); }
+.lnf[data-failed] :is(.lnf-play .lnf-orb, .lnf-disc)::after { opacity: 1; border-style: solid; border-color: var(--rec); }
+.s-play-hint { position: absolute; bottom: calc(100% + 10px); inset-inline-start: 0; z-index: 3; padding: 5px 11px; border-radius: 99px; background: color-mix(in srgb, var(--ground) 92%, var(--ink)); border: 1px solid var(--edge); color: var(--ink); font-size: 13px; font-weight: 600; line-height: 1.2; white-space: nowrap; }
+.s-play-hint:empty { display: none; }
+
+/* The lanes. */
+.lnf-world { position: relative; height: 430px; margin-top: 26px; }
+.lnf-deck { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 10px; }
+.lnf-ln { position: relative; flex: 1 1 0; min-height: 0; overflow: hidden; container-type: size;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--c) 20%, transparent), color-mix(in srgb, var(--c) 9%, transparent));
+    border-block: 1px solid color-mix(in srgb, var(--c) 62%, transparent);
+    box-shadow: 0 0 60px -8px color-mix(in srgb, var(--c) 55%, transparent), inset 0 1px 0 color-mix(in srgb, var(--c) 40%, transparent);
+    transition: flex-grow .8s var(--ease), opacity .5s, background-color .5s, border-color .5s, box-shadow .5s, border-radius .8s var(--ease), width .8s var(--ease); }
+:root[data-theme$="-light"] .lnf-ln { background: linear-gradient(180deg, color-mix(in srgb, var(--c) 18%, #fbf6ec), color-mix(in srgb, var(--c) 9%, #f6efe2)); border-color: color-mix(in srgb, var(--c) 40%, transparent); box-shadow: 0 18px 40px -22px color-mix(in srgb, var(--c) 60%, transparent), inset 0 1px 0 #fff; }
+.lnf-hit { position: absolute; inset: 0; z-index: 1; width: 100%; border: 0; background: none; cursor: pointer; }
+.lnf-hit:focus-visible { outline-offset: -4px; }
+.lnf-tr { position: absolute; inset: 0 auto 0 var(--ph); translate: calc(var(--lnf-page, 0) * var(--ppb) * -1) 0; pointer-events: none; will-change: translate; }
+.lnf-g { position: absolute; left: calc(var(--b) * var(--ppb)); width: calc(var(--l) * var(--ppb) - 6px); top: calc(12% + var(--y) * 56%); height: clamp(16px, 27cqh, 54px); border-radius: 99px;
+    display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap; font-weight: 800; font-size: clamp(10px, 11.5cqh, 22px); line-height: 1; color: var(--gi);
+    background: linear-gradient(180deg, color-mix(in oklab, var(--c) 52%, white) 0%, var(--c) 44%, color-mix(in oklab, var(--c) 66%, black) 100%);
+    border: 1px solid color-mix(in oklab, var(--c) 60%, black);
+    box-shadow: inset 0 1.5px 0 rgb(255 255 255 / .8), inset 0 -4px 7px color-mix(in oklab, var(--c) 48%, black), 0 0 18px -2px color-mix(in srgb, var(--c) 70%, transparent); }
+.lnf-g::before { content: ""; position: absolute; left: 9%; right: 38%; top: 12%; height: 26%; border-radius: 99px; background: linear-gradient(90deg, rgb(255 255 255 / .75), rgb(255 255 255 / 0)); }
+.lnf-g[data-sung] { opacity: .46; }
+.lnf-g[data-lit] { z-index: 2; outline: 2px solid #fff; outline-offset: 3px; filter: brightness(1.2); box-shadow: inset 0 1.5px 0 #fff, 0 0 40px 6px var(--c); }
+:root[data-theme$="-light"] .lnf-g[data-lit] { outline-color: var(--ink); }
+.lnf-lb { position: absolute; z-index: 3; left: var(--pad); top: 0; bottom: 0; width: 300px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 5px; pointer-events: none; }
+.lnf-lb b { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 800; line-height: 1; letter-spacing: -.01em; color: var(--c); white-space: nowrap; }
+.lnf-lb small { max-width: 176px; padding-inline-start: 42px; font-size: 14px; font-weight: 500; line-height: 1.2; color: var(--mute); }
+:is(.lnf-row, .lnf-vo) > .lnf-orb { --c: inherit; }
+.lnf-lb .lnf-orb { --c: inherit; width: 32px; height: 32px; font-size: 13px; font-weight: 800; }
+.lnf-ln .lnf-orb, .lnf-orb[class*="lnf-v"], [class*="lnf-v"] > .lnf-orb { background: radial-gradient(120% 100% at 32% 18%, color-mix(in oklab, var(--c) 45%, white) 0%, var(--c) 46%, color-mix(in oklab, var(--c) 58%, black) 100%); }
+/* A lane too low for two lines keeps its name. */
+@container (max-height: 64px) { .lnf-lb small { display: none; } }
+.lnf-mt { display: inline-flex; align-items: center; gap: 3px; height: 16px; } .lnf-mt i { width: 3px; border-radius: 2px; background: var(--c); height: 8px; }
+.lnf-mt i:nth-child(2) { height: 16px; } .lnf-mt i:nth-child(3) { height: 11px; } .lnf-mt i:nth-child(4) { height: 6px; }
+@media (prefers-reduced-motion: no-preference) {
+    /* A lane's level meter moves while its voice is heard. */
+    .lnf[data-playing] .lnf-ln:not([data-off]) .lnf-mt i { animation: lnf-meter .7s ease-in-out infinite alternate; }
+    .lnf[data-playing] .lnf-mt i:nth-child(2) { animation-delay: -.2s; } .lnf[data-playing] .lnf-mt i:nth-child(3) { animation-delay: -.45s; } .lnf[data-playing] .lnf-mt i:nth-child(4) { animation-delay: -.3s; }
+    .lnf:not([data-played], [data-loading], [data-failed]) :is(.lnf-play .lnf-orb, .lnf-disc)::after { animation: lnf-breathe 2.4s ease-in-out infinite; }
+    .lnf[data-loading] :is(.lnf-play .lnf-orb, .lnf-disc)::after { border-style: solid; border-color: transparent; border-top-color: currentColor; animation: lnf-turn .9s linear infinite; }
+    .lnf[data-loading] .lnf-disc::after { border-top-color: var(--ink); }
+    .lnf[data-loading] .lnf-play .lnf-orb::after { border-top-color: var(--btn-ink); }
+}
+@keyframes lnf-meter { from { scale: 1 .45; } to { scale: 1 1.25; } }
+@keyframes lnf-turn { to { rotate: 1turn; } }
+@keyframes lnf-breathe { 0%, 100% { opacity: 0; scale: 1; } 50% { opacity: .9; scale: 1.12; } }
+.lnf-ln::before { content: ""; position: absolute; z-index: 2; inset: 0 auto 0 0; width: calc(var(--ph) - 60px); background: linear-gradient(90deg, color-mix(in srgb, var(--ground) 90%, var(--c)) calc(100% - 120px), transparent); pointer-events: none; }
+.lnf-mine { position: absolute; z-index: 4; left: calc(var(--pad) + 180px); top: 50%; translate: 0 -50%; display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 99px; border: 1.5px solid var(--c); background: color-mix(in srgb, var(--ground) 80%, var(--c)); font-size: 13.5px; font-weight: 700; white-space: nowrap; transition: opacity .4s; }
+.lnf-chip { display: none; align-items: center; gap: 6px; height: 24px; margin-inline-start: 42px; padding: 0 10px; border-radius: 99px; background: var(--c); color: var(--gi); font-size: 11px; font-weight: 800; line-height: 1; letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; }
+.lnf-chip-rec::before { content: ""; width: 8px; height: 8px; border-radius: 9px; background: currentColor; }
+.lnf-ln[data-solo] .lnf-chip-alone { display: inline-flex; }
+/* The voice heard alone glows at its edge, in its own colour. */
+.lnf-ln[data-solo] { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--c) 70%, transparent), 0 0 40px -8px var(--c); }
+.lnf-ln[data-off] { opacity: .3; }
+.lnf-beam { display: none; position: absolute; z-index: 5; top: -16px; bottom: -16px; left: var(--ph); width: 3px; margin-left: -1.5px; border-radius: 3px; background: linear-gradient(#fff, #ffd9b0); box-shadow: 0 0 16px 3px #ff9139, 0 0 80px 24px rgb(255 145 57 / .35); pointer-events: none; transition: opacity .5s; }
+:root[data-theme$="-light"] .lnf-beam { background: #a14301; box-shadow: 0 0 22px 2px rgb(161 67 1 / .4); }
+.lnf-trace { position: absolute; left: 0; top: calc(12% + 13cqh); height: 56%; width: calc(var(--lnf-t) * var(--ppb)); overflow: hidden; opacity: 0; transition: opacity .5s; }
+.lnf-trace svg { display: block; height: 100%; width: calc(var(--beats) * var(--ppb)); overflow: visible; }
+.lnf-trace path { fill: none; stroke: #fff; stroke-width: 3; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; }
+:root[data-theme$="-light"] .lnf-trace path { stroke: #1d1712; }
+/* Under the lanes in the first scene: the way on, and who is heard. */
+.lnf-foot { display: flex; justify-content: space-between; align-items: center; gap: 24px; margin: 10px 0 0; padding: 0 var(--pad); font-size: 12.5px; font-weight: 500; line-height: 1.35; color: var(--mute); }
+.lnf-foot p { margin: 0; } .lnf-cred { text-align: end; max-width: 62ch; margin-inline-start: auto !important; }
+.lnf-cred-short { display: none; }
+.lnf-cue { display: none; }
+.lnf-hint { display: none; }
+
+/* The dock: it stays, in every scene and down the page. Play, the time, the four voices, the line being sung, and
+   Start singing. */
+.lnf-dock { position: fixed; z-index: 30; inset: auto 0 0 0; height: var(--bar); padding: 0 var(--pad) env(safe-area-inset-bottom); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, auto) minmax(0, 1fr); align-items: center; gap: 20px; background: color-mix(in srgb, var(--ground) 84%, transparent); border-top: 1px solid var(--edge); }
+@supports (backdrop-filter: blur(4px)) { .lnf-dock { backdrop-filter: blur(16px) saturate(1.2); } }
+.lnf-tp { display: flex; align-items: center; gap: 14px; font-size: 15px; font-weight: 600; line-height: 1.2; color: var(--mute); font-variant-numeric: tabular-nums; }
+.lnf-disc { width: 52px; height: 52px; border: 0; cursor: pointer; color: var(--gi) !important; }
+.lnf-time { white-space: nowrap; }
+.lnf-voices { display: flex; gap: 2px; }
+.lnf-vo { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; }
+.lnf-vo .lnf-orb { width: 34px; height: 34px; font-size: 13px; font-weight: 800; transition: scale .3s var(--ease), opacity .3s; }
+.lnf-vo[aria-pressed="true"] .lnf-orb { scale: 1.12; box-shadow: inset 0 2px 0 rgb(255 255 255 / .7), inset 0 -5px 9px color-mix(in oklab, var(--c) 45%, black), 0 0 0 2px var(--ground), 0 0 0 4px var(--c), 0 0 22px 2px var(--c); }
+.lnf[data-alone] .lnf-vo[aria-pressed="false"] .lnf-orb { opacity: .4; }
+.lnf-words { text-align: center; min-width: 0; }
+.lnf-line { margin: 0; overflow: hidden; text-overflow: ellipsis; font-size: clamp(20px, 2.1vw, 30px); font-weight: 800; line-height: 1.12; letter-spacing: -.02em; white-space: nowrap; color: color-mix(in srgb, var(--ink) 50%, transparent); }
+.lnf-line [data-done] { color: var(--ink); }
+.lnf-line [data-now] { color: var(--ink); text-decoration: underline 3px var(--em); text-underline-offset: 6px; }
+.lnf-next { margin: 5px 0 0; font-size: 14px; font-weight: 500; line-height: 1.1; color: var(--mute); min-height: 1.1em; white-space: nowrap; }
+.lnf-start { justify-self: end; display: inline-flex; align-items: center; gap: 8px; height: 52px; padding: 0 24px; border-radius: 99px; background: var(--btn); color: var(--btn-ink) !important; font-size: 16.5px; font-weight: 800; line-height: 1.05; white-space: nowrap; }
+.lnf-rail { position: absolute; left: 0; top: -2px; display: block; height: 3px; width: calc(var(--lnf-t) / var(--beats) * 100%); background: linear-gradient(90deg, var(--c1), var(--c2), var(--c3), var(--c4)); pointer-events: none; }
+.lnf:not([data-playing]) .lnf-rail { opacity: 0; }
+
+/* What floats in a scene: glass, lit at its edge in a voice's colour (the whole edge, never a stripe). */
+.lnf-glass { background: var(--panel); border: 1px solid var(--edge); border-radius: 28px; box-shadow: 0 40px 90px -40px rgb(0 0 0 / .8), inset 0 1px 0 rgb(255 255 255 / .16); }
+:root[data-theme$="-light"] .lnf-glass { box-shadow: 0 40px 80px -40px rgb(80 50 10 / .45), inset 0 1px 0 #fff; }
+@supports (backdrop-filter: blur(4px)) { @media (min-width: 900px) { .lnf-stage .lnf-glass, .lnf-round, .lnf-open, .lnf-stage .lnf-quiet { backdrop-filter: blur(18px) saturate(1.3); } } }
+.lnf-seg { display: inline-flex; margin: 0; padding: 4px; border-radius: 99px; background: var(--panel); border: 1px solid var(--edge); font-size: 13px; font-weight: 700; line-height: 1; }
+.lnf-seg span { padding: 9px 14px; border-radius: 99px; color: var(--mute); } .lnf-seg .lnf-on { background: var(--c1); color: var(--gi); }
+.lnf-share { width: min(400px, 100%); padding: 26px; }
+.lnf-share b { display: block; font-size: 24px; font-weight: 800; line-height: 1.1; letter-spacing: -.02em; } .lnf-share p { margin: 6px 0 16px; color: var(--mute); font-size: 16px; }
+.lnf-orbs { display: flex; gap: 10px; } .lnf-orbs .lnf-orb { width: 52px; height: 52px; font-size: 12px; font-weight: 800; }
+.lnf-pair { display: flex; gap: 10px; margin: 0 !important; } .lnf-pair span { flex: 1; text-align: center; padding: 14px 6px; border-radius: 99px; background: var(--btn); color: var(--btn-ink); font-size: 15px; font-weight: 800; line-height: 1; } .lnf-pair span + span { background: color-mix(in srgb, var(--ink) 12%, transparent); color: var(--ink); }
+
+/* ---------- the stage, still: the base. Nothing pinned; each of its five scenes a panel, in order. ---------- */
+.lnf-stage { position: relative; --beats: 48; padding-top: calc(var(--top) + 24px); }
+.lnf-sc { position: relative; padding: 0 var(--pad); display: grid; gap: 28px; }
+.lnf-stage .lnf-sc ~ .lnf-sc { padding-top: clamp(72px, 12svh, 140px); }
+.lnf-cap { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px 72px; align-items: end; }
+.lnf-snaps, .lnf-dots { display: none; }
+.lnf-world { --ppb: calc((100vw - var(--ph) - var(--pad)) / 12.4); }
+
+/* ---------- the page that scrolls: free, choirs, plans, the finale ---------- */
+.lnf-tail { position: relative; padding-bottom: calc(var(--bar) + env(safe-area-inset-bottom) + 24px);
+    background:
+        radial-gradient(60vw 50svh at 0% 8%, color-mix(in srgb, var(--c1) 16%, transparent), transparent 70%),
+        radial-gradient(60vw 60svh at 100% 34%, color-mix(in srgb, var(--c3) 14%, transparent), transparent 70%),
+        radial-gradient(70vw 60svh at 0% 62%, color-mix(in srgb, var(--c4) 16%, transparent), transparent 70%),
+        radial-gradient(80vw 50svh at 50% 100%, color-mix(in srgb, var(--em) 22%, transparent), transparent 70%); }
+.lnf-tail .lnf-sc { padding-block: clamp(72px, 13svh, 150px); gap: clamp(28px, 5svh, 56px); align-content: center; }
+.lnf-tail .lnf-cap { align-items: start; }
+.lnf-tail .lnf-say { margin-bottom: 0; }
+.lnf-cap-end { grid-template-columns: 1fr; justify-items: center; text-align: center; gap: 22px; } .lnf-cap-end .lnf-go { justify-content: center; }
+/* The lanes, lying down as a floor of light at the foot of a section (a picture only). */
+.lnf-floor { position: absolute; z-index: -1; left: 0; right: 0; bottom: 0; height: min(30svh, 260px); perspective: 900px; perspective-origin: 50% 0; overflow: hidden; pointer-events: none; opacity: .7; -webkit-mask-image: linear-gradient(transparent, #000 60%); mask-image: linear-gradient(transparent, #000 60%); }
+.lnf-floor span { position: absolute; inset: 0 -12% 0 -12%; display: grid; gap: 8px; transform-origin: 50% 100%; transform: rotateX(64deg); }
+.lnf-floor i { --c: var(--c1); border-block: 1px solid color-mix(in srgb, var(--c) 60%, transparent); background: linear-gradient(90deg, transparent 0 6%, var(--c) 6% 15%, transparent 15% 19%, var(--c) 19% 24%, transparent 24% 33%, var(--c) 33% 47%, transparent 47% 52%, var(--c) 52% 58%, transparent 58% 66%, var(--c) 66% 83%, transparent 83%) 0 50% / 100% 34% no-repeat, color-mix(in srgb, var(--c) 12%, transparent); }
+.lnf-floor i:nth-child(2) { --c: var(--c2); background-position: 7% 50%; } .lnf-floor i:nth-child(3) { --c: var(--c3); background-position: -5% 50%; } .lnf-floor i:nth-child(4) { --c: var(--c4); background-size: 140% 34%; }
+.lnf-slabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
+.lnf-slab { position: relative; padding: 28px 30px 26px; display: block; box-shadow: 0 40px 90px -40px rgb(0 0 0 / .8), inset 0 1px 0 rgb(255 255 255 / .16), 0 0 0 1px color-mix(in srgb, var(--c) 40%, transparent), 0 0 70px -18px var(--c); transition: translate .3s var(--ease); }
+.lnf-slab:hover { translate: 0 -6px; }
+.lnf-slab strong { display: block; font-size: clamp(54px, 6.6vw, 96px); font-weight: 800; line-height: .9; letter-spacing: -.05em; color: var(--c); font-variant-numeric: tabular-nums; }
+.lnf-slab b { display: block; margin-top: 10px; font-size: clamp(19px, 1.7vw, 24px); font-weight: 800; line-height: 1.1; letter-spacing: -.02em; } .lnf-slab > span { display: block; margin-top: 6px; color: var(--mute); font-size: 16px; line-height: 1.4; }
+.lnf-slab i { position: absolute; inset-inline-end: 26px; top: 26px; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--ink) 10%, transparent); }
+.lnf-two { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 40px 72px; align-items: center; }
+.lnf-two .lnf-say { margin: 22px 0 0; }
+.lnf-plusline { display: flex; align-items: baseline; gap: 10px; margin: 16px 0 0; max-width: 34em; font-size: 15.5px; font-weight: 600; line-height: 1.4; color: var(--mute); }
+.lnf-two .lnf-go { margin-top: 26px; }
+.lnf-choir { justify-self: end; width: min(480px, 100%); padding: 22px 26px; }
+.lnf-choir p { margin: 0; }
+.lnf-choir-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-bottom: 12px; } .lnf-choir-h b { font-size: 22px; font-weight: 800; line-height: 1; } .lnf-choir-h span { color: var(--mute); font-size: 14px; text-align: end; }
+/* A singer of the group: their initials in their voice's glass, the voice named in its colour, where they've got to. */
+.lnf-row { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid var(--edge); } .lnf-row .lnf-orb { width: 44px; height: 44px; font-size: 14px; font-weight: 800; letter-spacing: .02em; }
+.lnf-row b { display: block; font-size: 17px; font-weight: 700; line-height: 1.1; } .lnf-row small { display: block; margin-top: 4px; color: var(--c); font-size: 13.5px; font-weight: 800; line-height: 1; letter-spacing: .02em; }
+.lnf-row em { margin-inline-start: auto; font-size: 12.5px; font-weight: 700; font-style: normal; line-height: 1; padding: 7px 11px; border-radius: 99px; border: 1px solid var(--edge); color: var(--mute); white-space: nowrap; }
+.lnf-row .lnf-ok { color: var(--c3); border-color: var(--c3); } .lnf-row .lnf-mid { color: var(--c2); border-color: var(--c2); }
+.lnf-choir-n { padding-top: 10px; font-size: 13px; color: var(--mute); border-top: 1px solid var(--edge); }
+.lnf-money { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 26px; align-items: start; }
+.lnf-plans { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.lnf-plan { padding: 24px 26px; } .lnf-plan h3 { margin: 0; font-size: 20px; font-weight: 800; line-height: 1; display: flex; gap: 10px; align-items: center; }
+.lnf-price { margin: 12px 0 2px; font-size: clamp(34px, 4.2vw, 60px); font-weight: 800; line-height: 1; letter-spacing: -.04em; white-space: nowrap; } .lnf-price small { font-size: 16px; font-weight: 600; letter-spacing: 0; color: var(--mute); }
+.lnf-note { margin: 4px 0 0; color: var(--mute); font-size: 14.5px; line-height: 1.45; }
+.lnf-plan ul { margin: 14px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: 15px; line-height: 1.4; } .lnf-plan li { display: flex; gap: 8px; align-items: flex-start; } .lnf-plan li svg { margin-top: 3px; color: var(--c3); }
+.lnf-plus { box-shadow: 0 40px 90px -40px rgb(0 0 0 / .8), inset 0 1px 0 rgb(255 255 255 / .16), 0 0 0 1px color-mix(in srgb, var(--em) 55%, transparent), 0 0 80px -22px var(--em); }
+.lnf-soon { font-size: 10.5px; font-weight: 800; line-height: 1; letter-spacing: .08em; text-transform: uppercase; padding: 5px 8px; border-radius: 99px; background: var(--em); color: var(--gi); white-space: nowrap; }
+.lnf-faq { display: grid; gap: 12px; align-content: start; }
+.lnf-faq details { border-radius: 22px; } .lnf-faq summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 56px; padding: 8px 22px; font-size: clamp(17px, 1.5vw, 20px); font-weight: 800; line-height: 1.2; letter-spacing: -.01em; cursor: pointer; list-style: none; border-radius: 22px; }
+.lnf-faq summary::-webkit-details-marker { display: none; }
+.lnf-faq details p { margin: 0; padding: 0 22px 18px; color: var(--mute); font-size: 15px; line-height: 1.45; }
+.lnf-faq details[open] .lnf-plus-i, .lnf-faq details:not([open]) .lnf-minus-i { display: none; }
+.lnf-mark { display: grid; gap: clamp(8px, 1.4svh, 14px); width: min(40vw, 460px); }
+.lnf-mark i { height: clamp(18px, 3.6svh, 36px); border-radius: 99px; --c: var(--c1); border: 1px solid color-mix(in oklab, var(--c) 60%, black); background: linear-gradient(180deg, color-mix(in oklab, var(--c) 52%, white) 0%, var(--c) 44%, color-mix(in oklab, var(--c) 62%, black) 100%); box-shadow: inset 0 3px 0 rgb(255 255 255 / .75), inset 0 -8px 14px color-mix(in oklab, var(--c) 48%, black), 0 0 60px -4px var(--c); }
+.lnf-mark i:nth-child(2) { --c: var(--c2); width: 74%; } .lnf-mark i:nth-child(3) { --c: var(--c3); width: 88%; } .lnf-mark i:nth-child(4) { --c: var(--c4); width: 62%; }
+.lnf-ways { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.lnf-way { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 62px; padding: 0 24px; border-radius: 99px; color: var(--gi) !important; font-size: 18px; font-weight: 800; line-height: 1; background: linear-gradient(180deg, color-mix(in oklab, var(--c) 52%, white) 0%, var(--c) 44%, color-mix(in oklab, var(--c) 64%, black) 100%); box-shadow: inset 0 2px 0 rgb(255 255 255 / .75), inset 0 -6px 10px color-mix(in oklab, var(--c) 48%, black), 0 0 40px -8px var(--c); transition: translate .3s var(--ease); }
+/* The glass is a gradient over the voice's own colour (what its words are read against). */
+.lnf-way, .lnf-orb, .lnf-g { background-color: var(--c); }
+.lnf-way:hover { translate: 0 -4px; } .lnf-way small { font-size: 14px; font-weight: 600; opacity: .85; white-space: nowrap; }
+.lnf-legal { display: flex; justify-content: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--mute); }
+.lnf-legal a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 10px; }
+.lnf-tail .lnf-sc:last-of-type { gap: 28px; padding-bottom: 24px; }
+
+/* ---------- the stage, pinned: it fills the screen and stays for its five scenes, a scene a screen of scroll ---------- */
+@media (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+    .lnf-page { scroll-snap-type: y proximity; }
+    .lnf-pin { position: relative; }
+    /* The stage lets go at the end of its five screens: the screens of scroll sit under it, not after it. */
+    .lnf-snaps { display: block; margin-top: -100svh; } .lnf-snaps div { height: 100svh; scroll-snap-align: start; }
+    .lnf-stage { position: sticky; top: 0; height: 100svh; overflow: hidden; padding: 0; }
+    .lnf-stage .lnf-sc, .lnf-stage .lnf-sc ~ .lnf-sc { position: absolute; inset: 0; z-index: 7; padding: 0; display: block; opacity: 0; pointer-events: none; translate: 0 26px; transition: opacity .45s, translate .7s var(--ease); }
+    .lnf[data-scene="0"] [data-s="0"], .lnf[data-scene="1"] [data-s="1"], .lnf[data-scene="2"] [data-s="2"], .lnf[data-scene="3"] [data-s="3"], .lnf[data-scene="4"] [data-s="4"] { opacity: 1; translate: 0 0; transition-delay: .12s; }
+    .lnf[data-scene="0"] [data-s="0"] > *, .lnf[data-scene="1"] [data-s="1"] > *, .lnf[data-scene="2"] [data-s="2"] > *, .lnf[data-scene="3"] [data-s="3"] > *, .lnf[data-scene="4"] [data-s="4"] > * { pointer-events: auto; }
+    /* The headline is the first paint: it never waits on a transition. */
+    .lnf-stage .lnf-sc[data-s="0"] { transition: opacity .3s; translate: 0 0; }
+    .lnf-stage .lnf-cap { position: absolute; left: var(--pad); right: var(--pad); top: calc(var(--top) + 20px); height: calc(var(--split) - var(--top) - 30px); }
+    .lnf-stage [data-s="0"] .lnf-cap { grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); gap: 20px 48px; height: calc(var(--split) - var(--top) - 50px); }
+    .lnf-world { position: absolute; z-index: 5; left: 0; right: 0; top: var(--split); bottom: calc(var(--bar) + var(--foot)); height: auto; margin: 0; perspective: 1500px; perspective-origin: 50% 0%; transition: top .8s var(--ease), bottom .8s var(--ease), opacity .6s; }
+    .lnf-deck { transform-origin: 50% 100%; transform: rotateX(var(--tilt)); transition: transform .9s var(--ease), inset .8s var(--ease), width .8s var(--ease); }
+    .lnf-tr { translate: calc(var(--lnf-t) * var(--ppb) * -1) 0; }
+    .lnf-world { --ppb: inherit; }
+    .lnf:not([data-playing]) { transition: --lnf-t 1s var(--ease); }
+    .lnf-beam { display: block; }
+    .lnf[data-scene="0"] { --foot: 34px; }
+    .lnf-foot { position: absolute; left: 0; right: 0; bottom: var(--bar); height: 34px; margin: 0; }
+    .lnf-cue { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink); }
+    .lnf-hint { display: block; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; transition: opacity .4s; }
+    .lnf:is([data-played], [data-alone]) .lnf-hint { opacity: 0; }
+    .lnf-dots { position: absolute; z-index: 9; right: 14px; top: 50%; translate: 0 -50%; display: grid; }
+    .lnf-dots a { display: grid; place-items: center; width: 24px; height: 24px; }
+    .lnf-dots a::before { content: ""; width: 6px; height: 6px; border-radius: 9px; background: color-mix(in srgb, var(--ink) 30%, transparent); transition: height .4s var(--ease), background-color .4s; }
+    .lnf-dots a[aria-current="true"]::before { height: 22px; background: var(--ink); }
+
+    /* Scene dress. 1 and 2: push in on the tune. */
+    .lnf[data-scene="1"], .lnf[data-scene="2"] { --ppb: 128px; --tilt: 5deg; --split: 41svh; }
+    .lnf:not([data-alone])[data-scene="1"] .lnf-ln.lnf-v1, .lnf:not([data-alone])[data-scene="2"] .lnf-ln.lnf-v1 { flex-grow: 4.2; }
+    .lnf:not([data-alone])[data-scene="1"] .lnf-ln.lnf-v1 { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--c) 70%, transparent), 0 0 40px -8px var(--c); }
+    .lnf:not([data-alone])[data-scene="1"] .lnf-v1 .lnf-chip-alone, .lnf:not([data-alone])[data-scene="2"] [data-chip~="2"], .lnf:not([data-alone])[data-scene="3"] [data-chip~="3"], .lnf[data-scene="4"] [data-chip~="4"] { display: inline-flex; }
+    /* A voice really heard alone outranks the story's picture: its lane is the wide, lit one. */
+    .lnf[data-alone]:is([data-scene="1"], [data-scene="2"], [data-scene="3"]) .lnf-ln[data-solo] { flex-grow: 3; }
+    .lnf:not([data-alone])[data-scene="2"] .lnf-trace { opacity: 1; }
+    .lnf-seg { position: absolute; right: var(--pad); top: calc(var(--split) + 14px); z-index: 8; }
+    /* 3: the camera lifts a little (the gems stay readable); the tenor is being recorded. */
+    .lnf[data-scene="3"] { --tilt: 12deg; --ppb: 96px; --split: 40svh; }
+    .lnf:not([data-alone])[data-scene="3"] .lnf-ln.lnf-v3 { flex-grow: 2.2; }
+    /* A lane still waiting for its singer: a debossed track, its notes dashed outlines (a picture of the step; the song, if
+       it's playing, still sounds). */
+    .lnf:not([data-alone]):is([data-scene="1"], [data-scene="2"]) .lnf-ln:not(.lnf-v1), .lnf:not([data-alone])[data-scene="3"] .lnf-ln.lnf-v4 { background: color-mix(in srgb, var(--ink) 3%, transparent); border-color: color-mix(in srgb, var(--ink) 12%, transparent); box-shadow: none; }
+    .lnf:not([data-alone]):is([data-scene="1"], [data-scene="2"]) .lnf-ln:not(.lnf-v1) .lnf-g, .lnf:not([data-alone])[data-scene="3"] .lnf-ln.lnf-v4 .lnf-g { background: none; box-shadow: none; border: 1.5px dashed color-mix(in srgb, var(--ink) 30%, transparent); color: transparent; outline: 0; filter: none; opacity: 1; }
+    .lnf:not([data-alone]):is([data-scene="1"], [data-scene="2"]) .lnf-ln:not(.lnf-v1) .lnf-g::before, .lnf:not([data-alone])[data-scene="3"] .lnf-ln.lnf-v4 .lnf-g::before { display: none; }
+    .lnf:not([data-alone]):is([data-scene="1"], [data-scene="2"]) .lnf-ln:not(.lnf-v1) .lnf-lb, .lnf:not([data-alone])[data-scene="3"] .lnf-ln.lnf-v4 .lnf-lb { opacity: .55; }
+    .lnf:not([data-scene="0"]) .lnf-mine { opacity: 0; pointer-events: none; visibility: hidden; }
+    /* 4: the lanes fold into the mark's four bars. */
+    .lnf[data-scene="4"] .lnf-deck { transform: none; inset: 6% auto 10% var(--pad); width: min(46vw, 620px); gap: 18px; justify-content: center; }
+    .lnf[data-scene="4"] .lnf-ln { flex: 0 0 15%; border-radius: 99px; border: 1px solid color-mix(in oklab, var(--c) 60%, black); background: linear-gradient(180deg, color-mix(in oklab, var(--c) 52%, white) 0%, var(--c) 44%, color-mix(in oklab, var(--c) 62%, black) 100%); box-shadow: inset 0 3px 0 rgb(255 255 255 / .75), inset 0 -10px 18px color-mix(in oklab, var(--c) 48%, black), 0 0 70px -4px var(--c); opacity: 1; }
+    .lnf[data-scene="4"] .lnf-ln.lnf-v1 { width: 100%; } .lnf[data-scene="4"] .lnf-ln.lnf-v2 { width: 74%; } .lnf[data-scene="4"] .lnf-ln.lnf-v3 { width: 88%; } .lnf[data-scene="4"] .lnf-ln.lnf-v4 { width: 62%; }
+    .lnf[data-scene="4"] .lnf-ln::before { inset: 14% 34% auto 5%; width: auto; height: 22%; border-radius: 99px; background: linear-gradient(90deg, rgb(255 255 255 / .7), transparent); z-index: 1; }
+    .lnf[data-scene="4"] :is(.lnf-tr, .lnf-beam, .lnf-mt, .lnf-lb small, .lnf-lb .lnf-orb, .lnf-chip-alone) { display: none; }
+    .lnf[data-scene="4"] .lnf-lb { left: 22px; width: auto; flex-direction: row; align-items: center; gap: 10px; } .lnf[data-scene="4"] .lnf-lb b { color: var(--gi); font-size: 20px; }
+    .lnf[data-scene="4"] .lnf-ln .lnf-chip { background: var(--gi); color: var(--c); margin: 0; }
+    .lnf-share { position: absolute; right: var(--pad); top: calc(var(--split) + 6svh); transform: perspective(1200px) rotateY(-9deg) rotateX(3deg); }
+    .lnf[data-scene="4"] .lnf-bg i:nth-child(2) { translate: 16vw -10svh; }
+}
+
+/* ---------- wide: the page that scrolls leans a little, as the stage does ---------- */
+@media (min-width: 900px) {
+    .lnf-tail .lnf-sc { min-height: 92svh; }
+    .lnf-slabs { perspective: 1400px; }
+    .lnf-slab:nth-child(1) { transform: rotateY(10deg) translateY(18px); } .lnf-slab:nth-child(2) { transform: translateY(-14px) scale(1.04); } .lnf-slab:nth-child(3) { transform: rotateY(-10deg) translateY(18px); }
+    .lnf-choir { transform: perspective(1300px) rotateY(-8deg); }
+    .lnf-after { display: flex; justify-content: center; margin-top: 8px; }
+}
+@media (max-width: 1180px) and (min-width: 900px) {
+    .lnf-money { grid-template-columns: 1fr; }
+    .lnf-cred-full { display: none; } .lnf-cred-short { display: inline; }
+    .lnf-next { display: none; } .lnf-dock { gap: 12px; } .lnf-tp { gap: 8px; }
+}
+
+/* ---------- phone ---------- */
+@media (max-width: 899px) {
+    .lnf { --pad: 18px; --top: 96px; --bar: calc(110px + env(safe-area-inset-bottom)); --split: 46svh; --ppb: 66px; --ph: 96px; --tilt: 7deg; }
+    .lnf-top { flex-wrap: wrap; align-content: center; gap: 0 8px; }
+    .lnf-nav { order: 9; flex: 1; min-width: 0; justify-content: space-between; margin-top: -4px; } .lnf-nav a { min-height: 40px; padding: 0 6px; font-size: 14px; }
+    .lnf-logo { flex: 1; } .lnf-lang { order: 10; margin-top: -4px; } .lnf-lang .lnf-round { height: 40px; border: 0; background: none; padding: 0 6px; }
+    .lnf-top::after { content: ""; order: 8; width: 100%; }
+    .lnf-open { padding: 0 14px; font-size: 14px; } .lnf-round { padding: 0 10px; }
+    .lnf[data-top="small"] .lnf-top:not(:focus-within) { --top: 52px; } .lnf[data-top="small"] .lnf-top:not(:focus-within) :is(.lnf-nav, .lnf-lang) { display: none; } .lnf[data-top="small"] .lnf-top:not(:focus-within)::after { display: none; }
+    /* One still wash of light behind the stage, in place of the five big soft ones. */
+    .lnf-bg i { display: none; }
+    .lnf-bg { background: radial-gradient(120vw 46svh at 0% 44%, color-mix(in srgb, var(--c1) 24%, transparent), transparent 70%), radial-gradient(120vw 46svh at 100% 70%, color-mix(in srgb, var(--c3) 20%, transparent), transparent 70%), radial-gradient(140vw 40svh at 40% 100%, color-mix(in srgb, var(--c4) 26%, transparent), transparent 70%); }
+    .lnf-cap, .lnf-stage [data-s="0"] .lnf-cap { grid-template-columns: 1fr; gap: 12px; align-content: end; }
+    .lnf-h1 { font-size: clamp(44px, 14.6vw, 58px); } .lnf-say { margin-bottom: 14px; } .lnf-kick { margin-bottom: 10px; font-size: 12px; } .lnf-true { display: none; }
+    .lnf-wide { display: none !important; }
+    .lnf-play { height: 66px; width: 100%; justify-content: center; padding: 0 20px 0 64px; font-size: 19px; } .lnf-play .lnf-orb { width: 48px; height: 48px; position: absolute; left: 9px; } .lnf-play-w { gap: 5px; } .lnf-play-w small { font-size: 13px; }
+    .lnf-prim { width: 100%; justify-content: center; } .lnf-quiet { height: 46px; padding: 0 16px; font-size: 14.5px; } .lnf-go { gap: 8px 14px; } .lnf-arrow { font-size: 14.5px; }
+    .lnf-world { height: 340px; } .lnf-deck { gap: 7px; }
+    .lnf-lb { left: 12px; top: 6px; bottom: auto; width: auto; flex-direction: row; align-items: center; z-index: 6; gap: 8px; } .lnf-lb b { font-size: 15px; gap: 7px; } .lnf-lb small { display: none; } .lnf-lb .lnf-orb { width: 20px; height: 20px; font-size: 10px; }
+    .lnf-chip { margin: 0; height: 20px; font-size: 10px; }
+    .lnf-ln::before { z-index: 6; width: 170px; height: 32px; inset: 0 auto auto 0; background: linear-gradient(90deg, color-mix(in srgb, var(--ground) 88%, var(--c)) 62%, transparent); }
+    .lnf-g { top: calc(42% + var(--y) * 24%); height: clamp(16px, 32cqh, 44px); font-size: clamp(11px, 16cqh, 20px); }
+    .lnf-trace { top: calc(42% + 16cqh); height: 24%; }
+    .lnf-mine { left: auto; right: 6px; top: 0; translate: none; height: 44px; padding: 0 12px; font-size: 12.5px; border: 0; background: none; z-index: 7; }
+    .lnf-mine::before { content: ""; position: absolute; inset: 7px 0; border-radius: 99px; border: 1.5px solid var(--c); background: color-mix(in srgb, var(--ground) 80%, var(--c)); z-index: -1; }
+    .lnf-foot { justify-content: center; text-align: center; font-size: 12px; } .lnf-cue, .lnf-hint { display: none !important; } .lnf-cred { margin: 0 !important; text-align: center; }
+    .lnf-cred-full { display: none; } .lnf-cred-short { display: inline; }
+    /* The dock on a phone: the line being sung, then one pill (play, the four voices, Start singing). */
+    .lnf-dock { height: auto; padding: 0 10px calc(10px + env(safe-area-inset-bottom)); grid-template-columns: 1fr auto; grid-template-areas: "words words" "tp start"; gap: 0; border: 0; background: linear-gradient(transparent, color-mix(in srgb, var(--ground) 92%, transparent) 34px); -webkit-backdrop-filter: none; backdrop-filter: none; pointer-events: none; }
+    .lnf-dock::before { content: ""; grid-area: 2 / 1 / 3 / 3; align-self: stretch; border-radius: 99px; background: color-mix(in srgb, var(--ground) 86%, var(--ink)); border: 1px solid var(--edge); box-shadow: 0 14px 40px -14px rgb(0 0 0 / .7); }
+    .lnf-dock > * { pointer-events: auto; }
+    .lnf-words { grid-area: words; height: 44px; display: flex; align-items: center; justify-content: flex-start; padding: 8px 6px 0 82px; pointer-events: none; }
+    .lnf-line { font-size: 16.5px; letter-spacing: -.01em; min-width: 0; overflow: hidden; text-overflow: ellipsis; } .lnf-next { display: none; }
+    .lnf-tp { grid-area: tp; height: 56px; padding-inline-start: 6px; gap: 4px; } .lnf-disc { width: 44px; height: 44px; }
+    .lnf-time { position: absolute; left: 18px; top: 19px; font-size: 12px; line-height: 1.2; }
+    .lnf-vo { width: 40px; height: 44px; } .lnf-vo .lnf-orb { width: 32px; height: 32px; font-size: 12px; }
+    .lnf-start { grid-area: start; align-self: center; height: 44px; margin-inline-end: 6px; padding: 0 14px; max-width: 7.2em; font-size: 13.5px; white-space: normal; text-align: center; }
+    .lnf-rail { top: auto; bottom: 0; }
+    /* With nothing playing, the line gives way where a scene needs the room: Share's card, and the page that scrolls. */
+    .lnf:is([data-scene="4"], [data-tail]):not([data-playing]) .lnf-words { visibility: hidden; }
+    .lnf[data-tail]:not([data-playing]) .lnf-dock { background: none; }
+    .lnf-time { transition: opacity .3s; } .lnf:is([data-scene="4"], [data-tail]):not([data-playing]) .lnf-time { opacity: 0; }
+    .lnf-tail { padding-bottom: calc(76px + env(safe-area-inset-bottom) + 24px); }
+    .lnf-tail .lnf-sc { padding-block: 64px; gap: 22px; }
+    .lnf-two, .lnf-money { grid-template-columns: 1fr; gap: 22px; } .lnf-two .lnf-say { margin-top: 14px; } .lnf-two .lnf-go { margin-top: 18px; }
+    .lnf-slabs { grid-template-columns: 1fr; gap: 12px; } .lnf-slab { padding: 14px 20px; display: grid; grid-template-columns: 104px 1fr; align-items: center; column-gap: 8px; border-radius: 22px; } .lnf-slab strong { grid-row: span 2; } .lnf-slab b, .lnf-slab > span { margin: 0; } .lnf-slab > span { font-size: 14px; } .lnf-slab i { display: none; }
+    .lnf-choir { justify-self: stretch; width: auto; padding: 14px 18px; border-radius: 22px; } .lnf-row { padding: 9px 0; } .lnf-row .lnf-orb { width: 38px; height: 38px; font-size: 12.5px; }
+    .lnf-plans { grid-template-columns: 1fr; gap: 12px; } .lnf-plan { padding: 18px 20px; border-radius: 22px; } .lnf-price { font-size: 36px; }
+    .lnf-faq { gap: 8px; } .lnf-faq summary { min-height: 52px; padding: 6px 16px; } .lnf-faq details p { padding: 0 16px 14px; font-size: 14.5px; }
+    .lnf-share { padding: 16px; border-radius: 22px; } .lnf-share b { font-size: 19px; } .lnf-share p { margin-bottom: 10px; font-size: 14px; } .lnf-orbs .lnf-orb { width: 40px; height: 40px; font-size: 11px; } .lnf-pair span { padding: 11px 4px; }
+    .lnf-ways { grid-template-columns: 1fr 1fr; gap: 10px; } .lnf-way { min-height: 58px; padding: 8px 18px; font-size: 16px; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; border-radius: 22px; } .lnf-way small { font-size: 12.5px; white-space: normal; }
+    .lnf-mark { width: 62vw; gap: 9px; }
+    .lnf-floor { height: 150px; }
+}
+@media (max-width: 899px) and (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+    .lnf-stage .lnf-cap, .lnf-stage [data-s="0"] .lnf-cap { top: calc(var(--top) + 8px); height: calc(var(--split) - var(--top) - 16px); }
+    /* The lanes end above the dock, whatever the scene (the still page's fixed height is not for here). */
+    .lnf-world { height: auto; }
+    .lnf[data-scene="0"] { --foot: 26px; } .lnf-foot { height: 26px; }
+    .lnf[data-scene="1"], .lnf[data-scene="2"] { --ppb: 84px; --split: 52svh; } .lnf[data-scene="3"] { --ppb: 70px; --tilt: 10deg; --split: 48svh; }
+    .lnf-seg, .lnf-dots { display: none; }
+    .lnf[data-scene="4"] { --split: 42svh; } .lnf[data-scene="4"] .lnf-deck { inset: 0 18px auto 18px; height: 168px; width: auto; gap: 8px; } .lnf[data-scene="4"] .lnf-ln { flex: 0 0 36px; } .lnf[data-scene="4"] .lnf-lb { top: 0; bottom: 0; } .lnf[data-scene="4"] .lnf-ln::before { height: 22%; width: auto; }
+    .lnf-share { transform: none; left: 18px; right: 18px; width: auto; top: calc(var(--split) + 182px); }
+}
+@media (max-width: 359px) {
+    .lnf-vo { width: 36px; } .lnf-vo .lnf-orb { width: 30px; height: 30px; } .lnf-start { padding: 0 10px; font-size: 12.5px; }
+    .lnf-nav a { padding: 0 3px; font-size: 13px; }
+    .lnf-time { display: none; } .lnf-words { justify-content: center; padding-left: 6px; } .lnf-line { font-size: 15px; }
+}

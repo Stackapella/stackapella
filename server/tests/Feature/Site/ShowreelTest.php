@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Site;
 
+use App\Support\Flags;
 use App\Support\Site\Showreel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -88,6 +89,42 @@ final class ShowreelTest extends TestCase
         $policy = (string) $page->headers->get('Content-Security-Policy');
         $this->assertMatchesRegularExpression('#media-src [^;]*https://cdn\.example\.com#', $policy);
         $this->assertMatchesRegularExpression('#img-src [^;]*https://cdn\.example\.com#', $policy);
+    }
+
+    public function test_how_it_works_shows_the_film_on_its_first_screen_waiting_for_a_press(): void
+    {
+        $this->withManifest();
+        config(['site.showreel.url' => 'https://cdn.example.com/videos/showreel']);
+
+        $html = (string) $this->get('/how-it-works')->assertOk()->getContent();
+        $first = (string) strstr((string) strstr($html, 'id="page-h"'), 'id="first-h"', true);
+
+        // The landing's frame in the head, beside the headline, in place of the screenshot: a poster and a play button,
+        // nothing fetched until it's pressed, sized for its column. The landing's band and its heading stay the landing's.
+        $this->assertMatchesRegularExpression('#<figure class="s-reel" data-reel\s+data-reel-press\s#', $first);
+        $this->assertStringContainsString('preload="none"', $first);
+        $this->assertStringContainsString('data-reel-start', $first);
+        $this->assertStringContainsString('sizes="(min-width: 1200px) 580px, (min-width: 900px) 47vw, 100vw"', $first);
+        $this->assertStringNotContainsString('learn-a-part--notes', $html);
+        $this->assertStringNotContainsString('id="reel-h"', $html);
+        $this->assertSame(1, substr_count($html, '<script type="module" src="/js/public/showreel.js">'));
+
+        // The landing's own film still starts by itself, as it always has.
+        $landing = (string) $this->get('/')->assertOk()->getContent();
+        $this->assertStringContainsString('id="reel-h"', $landing);
+        $this->assertStringNotContainsString('data-reel-press', $landing);
+    }
+
+    public function test_how_it_works_keeps_its_screenshot_while_the_films_files_are_missing(): void
+    {
+        config(['app.is_nexus' => true, 'app.coming_soon' => false, 'site.showreel.url' => '/videos/showreel']);
+        app(Flags::class)->set('lang_es', 'on', null, 'test');
+        // The Spanish film's renders are only ever on the CDN, so here its page has a manifest and no videos.
+        if (! is_file(public_path('videos/showreel/es/manifest.json')) || is_file(public_path('videos/showreel/es/stackapella-showreel.mp4'))) {
+            $this->markTestSkipped('The Spanish film is not in the state this checks.');
+        }
+
+        $this->get('/es/how-it-works')->assertOk()->assertDontSee('data-reel', false)->assertSee('s-heroshot', false);
     }
 
     public function test_the_films_address_comes_from_the_cdn_with_no_setting_of_its_own(): void

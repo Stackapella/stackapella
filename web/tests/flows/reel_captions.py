@@ -1,6 +1,7 @@
 """The landing film's captions (js/public/showreel.js): off by default, with the sound on too; CC turns them on and is
 remembered after a reload; they're written in a line under the film, never drawn on it (the track stays hidden),
-and the end card's credit isn't repeated.
+and the end card's credit isn't repeated. On /how-it-works's first screen (Hillel, 2026-11-16) the same frame waits for a
+press: the poster and a play button, no video fetched even once the page is scrolled, then the film muted on Play.
 Needs the film's files on the server (Showreel::available) and a page that's scrolled, as a visitor's is."""
 import sys
 import time
@@ -53,6 +54,25 @@ def journey(f):
     f.run(f"{CC}.click()")
     f.wait(f"{LINE}.hidden", what="captions off again")
     assert f.js("localStorage.getItem('stackapella.reelCaptions')") == "off"
+    on_how_it_works(f)
+
+
+# Media requests rarely show in resource timing, so a video counts as fetched once it has a source.
+VIDEOS = "[...document.querySelectorAll('video')].filter((v) => v.currentSrc || v.getAttribute('src')).length + performance.getEntriesByType('resource').filter((r) => /\\.(mp4|webm)/.test(r.name)).length"
+
+
+def on_how_it_works(f):
+    f.go("/how-it-works", "document.readyState === 'complete'")
+    f.wait(f"!!{REEL}", what="the film on the first screen")
+    f.js("window.scrollBy(0, 40)")
+    time.sleep(1.5)
+    assert f.js(f"getComputedStyle(document.querySelector('[data-reel-start]')).display") == "grid", "Play shows on the poster"
+    assert not f.js(f"{REEL}.hasAttribute('data-playing')"), "it never starts by itself"
+    assert f.js(VIDEOS) == 0, "no video fetched before a press"
+    f.run("document.querySelector('[data-reel-start]').click()")
+    f.wait(f"{REEL}.hasAttribute('data-playing')", timeout=30, what="the film playing on Play")
+    assert f.js(f"{VIDEOS} > 0 && {VIDEO}.muted"), "it plays muted, the sound a press away"
+    f.shot("how-it-works-playing")
 
 
 run("reel_captions", journey)

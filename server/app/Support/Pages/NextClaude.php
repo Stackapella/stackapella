@@ -35,7 +35,7 @@ final class NextClaude
      *
      * @return array{song: array<string, mixed>, title: string, beats: float, seconds: string, credit: string|null, lanes: list<array{key: string, name: string, n: int, notes: list<array{beat: float, length: float, y: float, text: string}>, trace: string, learn: string}>, phrases: list<array{from: float, to: float, words: list<array{beat: float, text: string}>}>}|null
      */
-    public static function stage(): ?array
+    public static function stage(string $ref = self::REF): ?array
     {
         $template = Template::query()->official()->with('currentVersion')->where('slug', Landing::HERO_SONG)->first();
         $line = $template !== null ? Landing::line($template) : null;
@@ -70,7 +70,7 @@ final class NextClaude
                 'notes' => $notes,
                 'trace' => self::trace($notes),
                 // The song page's own way into the app for a part (SongPagesController's `learn`).
-                'learn' => Hosts::app('/?'.http_build_query(['song' => $template->slug, 'part' => $key, 'ref' => self::REF])),
+                'learn' => Hosts::app('/?'.http_build_query(['song' => $template->slug, 'part' => $key, 'ref' => $ref])),
             ];
         }
 
@@ -80,6 +80,8 @@ final class NextClaude
             'beats' => (float) $line['songBeats'],
             'seconds' => (string) $line['length'],
             'credit' => self::sungBy($audio['credit'] ?? null, $names),
+            // The recording's whole credit, as written (English): /next-final shows it where there's room.
+            'credited' => $audio['credit'] ?? null,
             'lanes' => $lanes,
             'phrases' => self::phrases($data, $parts, (float) $line['songBeats']),
         ];

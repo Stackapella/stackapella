@@ -384,6 +384,16 @@
   "/js/public/landing-next-claude.js": [
     "/js/public/landing-next-claude.js"
   ],
+  "/js/public/landing-next-final.js": [
+    "/js/public/landing-next-final.js",
+    "/js/public/count.js",
+    "/js/automated.js"
+  ],
+  "/js/public/landing-next-gemini.js": [
+    "/js/public/landing-next-gemini.js",
+    "/js/public/count.js",
+    "/js/automated.js"
+  ],
   "/js/public/landing-next-grok.js": [
     "/js/public/landing-next-grok.js"
   ],

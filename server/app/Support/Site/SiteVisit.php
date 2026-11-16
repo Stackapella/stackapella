@@ -34,6 +34,7 @@ final class SiteVisit
             $parts === [] => 'home',
             // A candidate landing page, counted apart and in no growth read (it isn't one of SECTIONS).
             in_array(implode('/', $parts), ['next-claude', 'es/next-claude'], true) => 'next_claude',
+            in_array(implode('/', $parts), ['next-final', 'es/next-final'], true) => 'next_final',
             $parts[0] === 'courses' => match (count($parts)) {
                 1 => 'courses',
                 2 => 'course',

@@ -2,7 +2,8 @@
      doesn't ... make them consistent"): the landing's four steps opened out. The head with a real Sing
      screen; the four voices, four steps (the landing's own section); the first lesson from Start to a
      harmony; the four voices to hear (the hero's mixer, when the song is in the library); what you
-     need; and the last word. Both skins. Words: lang/en/site.php `how`. --}}
+     need; and the last word. Both skins. Words: lang/en/site.php `how`. The head shows the landing's film in place
+     of the screen once its files are there (Hillel, 2026-11-16). --}}
 @extends('public.layout')
 
 @section('head')
@@ -25,7 +26,14 @@
                         @endif
                     </div>
                 </div>
-                <div class="s-card3d s-heroshot"><x-site.appshot id="learn-a-part--notes" :alt="__('site.how.shot_alt')" /></div>
+                {{-- The landing's film beside the steps' headline (Hillel, 2026-11-16: "find another page where we can use the
+                     show reel"): its poster with a play button, nothing fetched until it's pressed. Until the film's files are
+                     there, the real Learn a part screen, so the frame is never empty. --}}
+                @if (\App\Support\Site\Showreel::available())
+                    <div>@include('pages.landing._showreel-film', ['reelPress' => true, 'reelSizes' => '(min-width: 1200px) 580px, (min-width: 900px) 47vw, 100vw'])</div>
+                @else
+                    <div class="s-card3d s-heroshot"><x-site.appshot id="learn-a-part--notes" :alt="__('site.how.shot_alt')" /></div>
+                @endif
             </div>
         </section>
 

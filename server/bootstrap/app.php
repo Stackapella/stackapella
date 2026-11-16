@@ -25,9 +25,11 @@ use App\Http\Controllers\Public\IndexNowKeyController;
 use App\Http\Controllers\Public\InfoPagesController;
 use App\Http\Controllers\Public\IntegrationPagesController;
 use App\Http\Controllers\Public\LandingNextChatgptController;
+use App\Http\Controllers\Public\LandingNextGeminiController;
 use App\Http\Controllers\Public\LandingNextGrokController;
 use App\Http\Controllers\Public\LessonPagesController;
 use App\Http\Controllers\Public\NextClaudeController;
+use App\Http\Controllers\Public\NextFinalController;
 use App\Http\Controllers\Public\OEmbedController;
 use App\Http\Controllers\Public\OpenSourcePagesController;
 use App\Http\Controllers\Public\ReferencePagesController;
@@ -193,6 +195,10 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::get('/pricing', [InfoPagesController::class, 'pricing'])->middleware(['nexus', 'throttle:public-pages'])->name('pricing.page');
             // The combined landing's candidates (docs/landing-next-grok-plan.md): noindex, in no sitemap, linked from nowhere.
             Route::get('/next-grok', [LandingNextGrokController::class, 'show'])->middleware(['nexus', 'throttle:public-pages'])->name('next-grok.page');
+            // The landing's next version, the gemini variant (docs/landing-next-gemini-plan.md): a candidate at its own address,
+            // in English and Spanish; never indexed, in no sitemap, linked from nowhere.
+            Route::get('/next-gemini', LandingNextGeminiController::class)->middleware(['nexus', 'throttle:public-pages'])->name('next-gemini.page');
+            Route::get('/es/next-gemini', LandingNextGeminiController::class)->defaults('language', 'es')->middleware(['nexus', 'throttle:public-pages'])->name('next-gemini.es');
             Route::get('/help', [InfoPagesController::class, 'help'])->middleware('throttle:public-pages')->name('help.index');
             Route::get('/help/search-index.json', [InfoPagesController::class, 'helpSearch'])->middleware('throttle:public-pages')->name('help.search');
             Route::get('/help/{slug}', [InfoPagesController::class, 'helpPage'])->where('slug', '[a-z0-9-]{1,40}')->middleware('throttle:public-pages')->name('help.page');
@@ -233,6 +239,9 @@ return Application::configure(basePath: dirname(__DIR__))
             // own route, ahead of the languages' (it's in no language's list, so it has no hreflang and no sitemap line).
             Route::get('/next-claude', [NextClaudeController::class, 'english'])->middleware(['nexus', 'throttle:public-pages'])->name('next-claude.page');
             Route::get('/es/next-claude', [NextClaudeController::class, 'spanish'])->middleware(['nexus', 'throttle:public-pages'])->name('next-claude.es');
+            // The candidate for the final one, /next-claude with the best of the other three (NextFinalController), private the same way.
+            Route::get('/next-final', [NextFinalController::class, 'english'])->middleware(['nexus', 'throttle:public-pages'])->name('next-final.page');
+            Route::get('/es/next-final', [NextFinalController::class, 'spanish'])->middleware(['nexus', 'throttle:public-pages'])->name('next-final.es');
             // The pages in other languages (config/languages.php), each under /<lang>/.
             SiteLanguages::register(app('router'));
 

@@ -39,6 +39,11 @@ return [
         'sv_next_chatgpt',
         // /next-claude, a candidate landing page (SiteVisit::section): its own kind, in no total.
         'sv_next_claude',
+        // /next-final, the candidate for the final one: its own kind, in no total.
+        'sv_next_final',
+        // The landing's next version, the gemini variant (App\Support\Pages\LandingNextGemini): its own loads, in no
+        // section, so the growth totals never count them.
+        'sv_next_gemini',
         // A song part page's player played, once a page load at its first play (js/public/song-part-page.js):
         // no song, no part, no path, so guest playing ("Yes, play for guests") can be read against sv_part.
         'part_play',
