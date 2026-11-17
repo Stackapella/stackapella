@@ -319,7 +319,7 @@ test('site mixer: a song that asks for the recorded voices only never sings with
     const workers = [];
     window.Worker = class extends Made {
         constructor(url, options) {
-            workers.push(String(url));
+            if (String(url).includes('synth-worker')) workers.push(String(url)); // the practice voice's (breaths are softened in another)
             super(url, options);
         }
     };
@@ -375,13 +375,13 @@ test('site mixer: a song that asks for the recorded voices only never sings with
     }
 });
 
-test('site mixer: a page that asks has each recorded voice\'s breaths ducked before it plays, in the gaps of its own notes', async () => {
+test('site mixer: a recorded voice\'s breaths are softened before it plays, in the gaps of its own notes', async () => {
     const root = document.createElement('div');
     root.dataset.player = '';
     root.hidden = true;
     // One part: a note of two beats, two beats' rest, a note of two beats, at 120 a minute (three seconds).
     const notes = [{ beat: 0, length: 2, pitch: 57 }, { beat: 4, length: 2, pitch: 57 }];
-    const song = { song: 'test-breaths', version: 1, tempo: 120, beats: 6, realOnly: true, quietBreaths: true, parts: [{ key: 'tenor', notes }] };
+    const song = { song: 'test-breaths', version: 1, tempo: 120, beats: 6, realOnly: true, parts: [{ key: 'tenor', notes }] };
     root.innerHTML = `<script type="application/json" data-song>${JSON.stringify(song)}</script><button data-play data-label-play="Play" data-label-stop="Stop"></button>`;
     document.body.append(root);
     // Its recording: the two notes, and a breath (noise) in the rest, 1.3 to 1.7 s in.

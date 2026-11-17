@@ -68,14 +68,14 @@ WAITS = "[...document.querySelectorAll('[data-lnf-lanes] [data-voice][data-wait]
 NOW = "document.querySelector('[data-lnf-now]').textContent"
 # The recorded voices, for a machine whose database has none: the song's own answer (/api/templates/<song>) gains a
 # default voice for each part, and each voice's file is a tone made here, served in pieces (window.__voiceDelay ms
-# apart, so a download can be watched; window.__voiceFail refuses them). Every Worker made is kept (the app's practice
-# voice is sung by one: the page must never make it).
+# apart, so a download can be watched; window.__voiceFail refuses them). The practice voice's worker is kept if it's
+# ever made (js/synth-worker.js sings it: the page must never make it; the worker that softens breaths is another).
 VOICES = """(() => {
     const SECONDS = 36.2, RATE = 8000, FRAMES = Math.round(SECONDS * RATE);
     const tones = { soprano: 523, alto: 392, tenor: 330, bass: 196 };
     window.__voiceDelay = /voiceslow/.test(location.search) ? 220 : 0; window.__voiceFail = /voicefail/.test(location.search);
     window.__workers = []; const W = window.Worker;
-    window.Worker = class extends W { constructor(url, options) { window.__workers.push(String(url)); super(url, options); } };
+    window.Worker = class extends W { constructor(url, options) { if (String(url).includes('synth-worker')) window.__workers.push(String(url)); super(url, options); } };
     const wav = (hz) => { const b = new ArrayBuffer(44 + FRAMES * 2), v = new DataView(b); const text = (at, t) => [...t].forEach((c, i) => v.setUint8(at + i, c.charCodeAt(0)));
         text(0, 'RIFF'); v.setUint32(4, 36 + FRAMES * 2, true); text(8, 'WAVEfmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
         v.setUint32(24, RATE, true); v.setUint32(28, RATE * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); text(36, 'data'); v.setUint32(40, FRAMES * 2, true);
@@ -274,8 +274,9 @@ def recorded_only(base, size):
         f.wait(f"{root}.hasAttribute('data-playing')", timeout=60, what="the song starting once the voices are in")
         assert f.js(load) == "" and f.js(f"{root}.dataset.load") is None, "the loading words are gone once it plays"
         assert f.js("window.__workers") == [], f"the practice voice is never made: {f.js('window.__workers')}"
-        assert f.js("performance.getEntriesByType('resource').some((r) => r.name.includes('/js/public/breaths.js'))"), "the voices' breaths are ducked before they sing"
-        assert "Amazing Grace" in f.js("document.querySelector('[data-lnf-live]').textContent"), "a screen reader hears it play"
+        assert f.js("performance.getEntriesByType('resource').some((r) => r.name.includes('/js/soften-breaths.js'))"), "the voices' breaths are ducked before they sing"
+        # (The page clears its live line and writes it on the next frame, so a screen reader hears a repeat: waited for.)
+        f.wait("document.querySelector('[data-lnf-live]').textContent.includes('Amazing Grace')", timeout=5, what="a screen reader hears it play")
         time.sleep(1.5)
         assert f.js(STATE)["p"] > 0, "and it moves"
         f.run("document.querySelector('[data-play]').click()")

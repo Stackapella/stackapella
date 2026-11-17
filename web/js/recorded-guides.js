@@ -8,6 +8,7 @@
 // ignores it decodes the priming too, which is spotted by the length and skipped.
 
 import * as db from './db.js';
+import { softenBreaths } from './soften-breaths.js';
 
 const PRIMING_FRAMES = 1024; // ffmpeg's AAC encoder delay, at the file's rate
 
@@ -22,12 +23,17 @@ export function recordingApplies({ recording, version, template, transpose = 0, 
 /**
  * The guide's audio at `sampleRate` (the AudioContext's), decoded with `decode` (the context's
  * decodeAudioData): `{ samples, sampleRate, offsetSeconds }`.
+ * With the part's `notes` and the song's `secondsPerBeat`, its breaths are softened as it's decoded (js/soften-breaths.js;
+ * Hillel, 2026-11-16: a library voice always plays so): once, on this decode's own samples, before whoever asked
+ * keeps them, so nothing is done when it plays. Every player of a library voice passes them.
  */
-export async function loadRecordedGuide(recording, { key, sampleRate, decode, fetchImpl = fetch }) {
+export async function loadRecordedGuide(recording, { key, sampleRate, decode, fetchImpl = fetch, notes = null, secondsPerBeat = 0 }) {
     // The bytes are this call's own (fetched, or read from the device), so decoding may take them.
     const bytes = await fileFor(recording, key, fetchImpl);
     const buffer = await decode(bytes);
-    return trimDecoded(buffer.getChannelData(0), recording, sampleRate);
+    const voice = trimDecoded(buffer.getChannelData(0), recording, sampleRate);
+    if (notes) await softenBreaths(voice.samples, sampleRate, notes, secondsPerBeat, voice.offsetSeconds);
+    return voice;
 }
 
 /** The decoded samples, priming skipped and cut to the exact length, and the guide's offset. */

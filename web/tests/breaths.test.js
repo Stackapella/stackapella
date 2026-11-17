@@ -1,7 +1,8 @@
-// The breaths of a recorded voice, ducked (js/public/breaths.js, the showreel's own code shared as it is): only the
+// The breaths of a recorded voice, ducked (js/breaths.js, the showreel's own code shared as it is; js/soften-breaths.js is how the app and the site call it): only the
 // unpitched air in the gaps a part's notes leave, every sung note untouched, and nothing clicks where a gap starts or ends.
 import { assert, test } from './harness.js';
-import { duckBreaths, gaps } from '/js/public/breaths.js';
+import { duckBreaths, gaps } from '/js/breaths.js';
+import { breathWindows, softenBreaths, softened } from '/js/soften-breaths.js';
 
 const RATE = 48000;
 const rms = (x, from, to) => {
@@ -74,4 +75,50 @@ test('breaths: a held note through a gap, and a gap too short to judge, are left
     assert(rms(after, 1.2, 1.8) > rms(held, 1.2, 1.8) * 0.97, 'pitched sound in a gap is kept');
     const short = voice();
     assert(duckBreaths(Float32Array.from(short), RATE, [[1.4, 1.42]]).every((v, i) => v === short[i]), 'a gap shorter than a frame changes nothing');
+});
+
+test('breaths: a voice that starts part way into the song has its gaps moved by its offset, and a part with no notes has none', () => {
+    const near = (a, b) => Math.abs(a - b) < 1e-9;
+    const plain = breathWindows(NOTES, 0.5);
+    assert(plain.length === 1 && near(plain[0][0], 0.65) && near(plain[0][1], 2.1), `at the song's start: ${JSON.stringify(plain)}`);
+    const late = breathWindows(NOTES, 0.5, 0.5);
+    assert(near(late[0][0], 0.15) && near(late[0][1], 1.6), `half a second in: ${JSON.stringify(late)}`);
+    assert(breathWindows([], 0.5).length === 0 && breathWindows(null, 0.5).length === 0 && breathWindows(NOTES, 0).length === 0, 'no notes or no tempo: no gaps');
+});
+
+test('breaths: softened in place while a voice loads, or as a copy that leaves a take as it was', async () => {
+    const original = voice();
+    // In place, for a voice just decoded: the same array, its breath ducked.
+    const decoded = Float32Array.from(original);
+    const same = await softenBreaths(decoded, RATE, NOTES, 0.5);
+    assert(same === decoded && rms(decoded, 1.35, 1.65) < rms(original, 1.35, 1.65) * 0.05, 'in place, the breath ducked');
+    // A copy, for a take: the take's own samples are never changed, and the two ways agree sample for sample.
+    const take = Float32Array.from(original);
+    const copy = softened(take, RATE, NOTES, 0.5);
+    assert(copy !== take && take.every((v, i) => v === original[i]), 'the take is as it was');
+    assert(copy.every((v, i) => v === decoded[i]), 'the copy is what softening in place gives');
+    // A take recorded from half a second into the song: the same breath, half a second earlier in its samples.
+    const shifted = original.subarray(RATE / 2);
+    const moved = softened(shifted, RATE, NOTES, 0.5, 0.5);
+    assert(rms(moved, 0.85, 1.15) < rms(shifted, 0.85, 1.15) * 0.05 && rms(moved, 0.2, 0.45) > rms(shifted, 0.2, 0.45) * 0.97, 'the gaps follow the take\'s start');
+    // No notes to tell breaths by: the very same array, untouched.
+    assert(softened(take, RATE, [], 0.5) === take && (await softenBreaths(take, RATE, null, 0.5)) === take && take.every((v, i) => v === original[i]), 'a part nobody wrote is left alone');
+});
+
+test('breaths: a library voice is softened as the app decodes it, by its part\'s notes, and left alone without them', async () => {
+    const { loadRecordedGuide } = await import('/js/recorded-guides.js');
+    const original = voice();
+    const recording = { url: '/never/library-voice.m4a', sampleRate: RATE, frames: original.length, offsetFrames: 0 };
+    const fetchImpl = async () => new Response(new Uint8Array(8));
+    const decode = async () => ({ getChannelData: () => Float32Array.from(original) });
+    const plain = await loadRecordedGuide(recording, { key: 'test-breaths@1:plain', sampleRate: RATE, decode, fetchImpl });
+    assert(plain.samples.every((v, i) => v === original[i]), 'without notes the voice is as recorded');
+    const soft = await loadRecordedGuide(recording, { key: 'test-breaths@1:soft', sampleRate: RATE, decode, fetchImpl, notes: NOTES, secondsPerBeat: 0.5 });
+    assert(rms(soft.samples, 1.35, 1.65) < rms(original, 1.35, 1.65) * 0.05, `with its notes the breath is ducked: ${rms(soft.samples, 1.35, 1.65)}`);
+    assert(rms(soft.samples, 0.1, 0.6) === rms(original, 0.1, 0.6) && soft.offsetSeconds === 0, 'and its notes are as sung');
+    // A voice that starts after the song does: the gaps are placed by where it starts.
+    const late = { ...recording, url: '/never/library-voice-late.m4a', frames: original.length - RATE / 2, offsetFrames: RATE / 2 };
+    const lateDecode = async () => ({ getChannelData: () => Float32Array.from(original.subarray(RATE / 2)) });
+    const moved = await loadRecordedGuide(late, { key: 'test-breaths@1:late', sampleRate: RATE, decode: lateDecode, fetchImpl, notes: NOTES, secondsPerBeat: 0.5 });
+    assert(moved.offsetSeconds === 0.5 && rms(moved.samples, 0.85, 1.15) < 0.005, `placed by its offset: ${rms(moved.samples, 0.85, 1.15)}`);
 });

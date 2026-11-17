@@ -232,9 +232,6 @@ final class LandingStage
         // Only the recorded voices sing here, never the app's practice voice (Hillel, 2026-11-16: "only play the real
         // voice audio on the main page, wiat f we have to but show the user porgoress").
         $stage['song']['realOnly'] = true;
-        // Their breaths are ducked as the showreel's are (Hillel: "one of the singers breaths very loudly, in the past
-        // it was fixed on the home page… can you re-apply the fix?").
-        $stage['song']['quietBreaths'] = true;
         $seconds = (int) round($beats * self::PASSES * 60 / max(1.0, (float) ($stage['song']['tempo'] ?? 80)));
         $stage['seconds'] = sprintf('%d:%02d', intdiv($seconds, 60), $seconds % 60);
 

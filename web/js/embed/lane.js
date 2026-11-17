@@ -36,6 +36,7 @@ import { token } from '../colors.js';
 import { trackInWorker, VOICED_CLARITY } from '../pitchtrack.js';
 import { follow, voiceFollower } from '../livevoice.js';
 import { catalogueGuides, realVoice, songTemplate } from '../public/app-voices.js';
+import { softenBreaths } from '../soften-breaths.js';
 import { expressiveTrack, renderTrack } from './take.js';
 
 /** The keyboard's notes in the page's language (notes.js pageNaming): Do5 on a Spanish page, C5 on an English one. */
@@ -307,7 +308,10 @@ export function mount(el, { take: takeUrl = null, song: songSource = null, zoom 
         const voiceOf = async (key, i) => {
             if (guides?.[key] && !(key === song.take.part && state.voice === 'synth')) {
                 try {
-                    return await real(guides[key]);
+                    // A library voice plays with its breaths softened, by its own part's notes (js/soften-breaths.js).
+                    const voice = await real(guides[key]);
+                    await softenBreaths(voice.samples, rate, song.parts[key], 60 / song.template.tempo, voice.offsetSeconds);
+                    return voice;
                 } catch (error) {
                     console.warn('A real voice could not load: the synth sings it', error);
                 }

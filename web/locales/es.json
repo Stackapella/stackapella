@@ -632,6 +632,8 @@
         "pan": "Paneo",
         "timing": "Sincronía",
         "timingHint": "Adelántala si esta voz suena tarde, retrásala si suena pronto.",
+        "softBreaths": "Suavizar las respiraciones",
+        "softBreathsHint": "Baja las respiraciones entre frases. Tu toma no cambia.",
         "rerecord": "Regrabar",
         "clearTake": "Eliminar toma",
         "delete": "Eliminar voz",

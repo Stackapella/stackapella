@@ -1,0 +1,187 @@
+/*
+ * Glass: the note gem's numbers and the bubble, for the app and the public pages alike (docs/glass-spec.md; Hillel,
+ * 2026-11-16: the home page takes the app's glass, "it also unifies the experience"). css/input.css @imports this file,
+ * so the built sheets (app.css, site.css) carry it; a page without them can link it. Hand-written.
+ *
+ * The --gem-* properties between the gem-spec markers are js/gem-spec.js's numbers, by the same names
+ * (gemProperties): tests/glass.test.js fails if one differs, or is missing on either side. Lengths are unitless px
+ * (calc(var(--gem-edge-width) * 1px)), shares 0 to 1.
+ */
+
+/* gem-spec:start */
+:root {
+    --gem-radius: 0.38;
+    --gem-body-top: 0.42;
+    --gem-body-flat-from: 0.3;
+    --gem-body-flat-to: 0.7;
+    --gem-body-bottom: 0.32;
+    --gem-edge-width: 1.5;
+    --gem-edge-dark: 0.45;
+    --gem-edge-light: 0.5;
+    --gem-gloss-x0: 0.12;
+    --gem-gloss-x1: 0.78;
+    --gem-gloss-y0: 0.07;
+    --gem-gloss-y1: 0.29;
+    --gem-gloss-dark: 0.7;
+    --gem-gloss-light: 0.85;
+    --gem-foot-width: 1;
+    --gem-foot-at: 0.11;
+    --gem-foot-white: 0.5;
+    --gem-foot-alpha: 0.75;
+    --gem-drop-a-dy: 3;
+    --gem-drop-a-spread: -1;
+    --gem-drop-a-dark: 0.32;
+    --gem-drop-a-light: 0.14;
+    --gem-drop-b-dy: 4;
+    --gem-drop-b-spread: 1;
+    --gem-drop-b-dark: 0.18;
+    --gem-drop-b-light: 0.07;
+    --gem-glow-dark-blur: 14;
+    --gem-glow-dark-alpha: 0.6;
+    --gem-glow-light-blur: 10;
+    --gem-glow-light-alpha: 0.4;
+    --gem-level-next: 0.3;
+    --gem-level-now: 0.8;
+    --gem-level-hit: 1;
+    --gem-ring-knockout: 3;
+    --gem-ring-width: 2;
+    --gem-ring-keyline: 1;
+    --gem-ink-dark: #17110a;
+    --gem-ink-light: #ffffff;
+    --gem-ghost-fill: 0.07;
+    --gem-ghost-edge: 1.5;
+    --gem-ghost-edge-alpha: 0.55;
+    --gem-ghost-height: 0.7;
+    --gem-settled-body: 0.4;
+    --gem-settled-edge: 0.65;
+    --gem-settled-gloss: 0.3;
+    --gem-settled-drop-a: 0.5;
+    --gem-hit-pop: 1.05;
+    --gem-hit-pop-ms: 250;
+    --gem-hit-flash-ms: 500;
+    --gem-hit-tick-width: 2;
+    --gem-hit-tick-max: 15;
+    --gem-hit-tick-of-h: 0.42;
+    --gem-hit-tick-end: 6;
+    --gem-words-weight: 750;
+    --gem-words-of-h: 0.44;
+    --gem-words-min: 11;
+    --gem-words-max: 20;
+    --gem-words-tracking: 0.005;
+    --gem-words-inset: 6;
+    --gem-words-min-gem: 18;
+    --gem-words-above-size: 12;
+    --gem-words-above-weight: 700;
+    --gem-words-above-gap: 4;
+    --gem-words-above-clear: 6;
+    --gem-motion-next-s: 0.45;
+    --gem-motion-onset-ms: 90;
+    --gem-motion-release-ms: 160;
+    --gem-motion-settle-ms: 240;
+    --gem-motion-join-ms: 900;
+    --gem-motion-join-fade-ms: 300;
+    --gem-motion-join-deg: 100;
+    --gem-lane-tint: 0.14;
+}
+/* gem-spec:end */
+
+/* Bubbles (Hillel, 2026-11-08: "i really like the bubble effect for HC by my name ... circles in the app we'll add a
+   bubble effect to"; "this is for serious mode, game mode can have its own thing"; docs/bubble-circles-plan.md). The
+   gem's glass for serious mode's circles that stand for a thing: path nodes, done days, people, play discs. The light
+   sits above the icon and the body colour is flat across the middle, so the icon keeps the flat fill's contrast.
+   Set --bubble (the colour) and --bubble-ink (the icon). Never a Tailwind ring-* or an inline box-shadow on a bubble:
+   rings are outlines or --bubble-ring. */
+.bubble {
+    --bubble: var(--color-accent);
+    --bubble-ink: var(--color-accent-ink);
+    --bubble-hi: 0.75; /* the body's share in the light at the top (1 = no light) */
+    --bubble-spec: 0.75; /* the crescent's strength */
+    --bubble-glow: 0.35; /* the coloured glow under it */
+    --bubble-rim: 1.5px;
+    --bubble-drop: 0 2px 3px rgb(0 0 0 / 0.3);
+    --bubble-glow-shape: 0 4px 10px -4px;
+    --bubble-ring: 0 0 0 0 transparent; /* the halo (.bubble-now) */
+    isolation: isolate;
+    border-radius: 999px;
+    color: var(--bubble-ink);
+    background: radial-gradient(120% 90% at 35% 6%,
+        color-mix(in oklab, var(--bubble) calc(var(--bubble-hi) * 100%), white) 0%,
+        var(--bubble) 16%,
+        var(--bubble) 86%,
+        color-mix(in oklab, var(--bubble) 72%, black) 100%);
+    border: var(--bubble-rim) solid color-mix(in oklab, var(--bubble) 60%, black);
+    box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.55),
+        inset 0 -1px 0 color-mix(in oklab, var(--bubble) 70%, white),
+        var(--bubble-glow-shape) color-mix(in oklab, var(--bubble) calc(var(--bubble-glow) * 100%), transparent),
+        var(--bubble-drop),
+        var(--bubble-ring);
+}
+@layer components {
+    .bubble { position: relative; } /* as .gem: an `absolute` utility still wins */
+}
+/* The crescent: above the icon box (its tilted end reaches about 26% down; the icon box starts at 28 to 32%). The light
+   and the crescent end above the box because the part colours carry their icons at about 4.6:1 flat: any light under
+   an icon takes it under 4.5 (tests/flows/bubble_contrast.py measures the real pixels). */
+.bubble::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    left: 27%;
+    top: 5%;
+    width: 42%;
+    height: 17%;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgb(255 255 255 / var(--bubble-spec)), rgb(255 255 255 / 0));
+    transform: rotate(-10deg);
+    pointer-events: none;
+}
+:root[data-theme$="-light"] .bubble {
+    --bubble-glow: 0.18;
+    --bubble-drop: 0 1px 3px rgb(0 0 0 / 0.22);
+}
+/* A filled bubble's rim is deeper in a light theme; a clear one keeps its own edge (and a challenge its cream). */
+:root[data-theme$="-light"] .bubble:not(.bubble-clear) { border-color: color-mix(in oklab, var(--bubble) 50%, black); }
+/* Upcoming: a clear pearl. No glow, a quieter crescent, the checkbox edge (3:1 on the panel) for its rim. */
+.bubble-clear {
+    --bubble: var(--color-raised);
+    --bubble-ink: var(--color-muted);
+    --bubble-glow: 0;
+    --bubble-spec: 0.5;
+}
+.bubble.bubble-clear { border-color: var(--box-edge); }
+/* A challenge not yet done: cream ink and a 2 px cream rim, as its plain ring was. */
+.bubble-challenge { --bubble-ink: var(--color-cream); }
+.bubble.bubble-challenge { border: 2px solid var(--color-cream); }
+/* The play and record discs (docs/bubble-circles-plan.md, step 5): Play in the primary, Record in its red (a white dot),
+   and while recording the Stop disc red with its red halo, so recording is never mistaken for anything else. A large
+   Play keeps its ring of the raised colour around it (it was ring-8). */
+.bubble-primary { --bubble: var(--primary); --bubble-ink: var(--primary-ink); }
+/* In a dark theme the primary is cream, and its glow spread a white haze under Sing's transport: a softer one there. */
+:root:not([data-theme$="-light"]) .bubble-primary { --bubble-glow: 0.14; }
+.bubble-record { --bubble: var(--color-record); --bubble-ink: var(--color-record-label); }
+.bubble-ringed { --bubble-ring: 0 0 0 8px color-mix(in srgb, var(--color-raised) 70%, transparent); }
+/* The one now: its halo, in its own colour. */
+.bubble-now { --bubble-ring: 0 0 0 var(--bubble-halo, 6px) color-mix(in srgb, var(--bubble) 24%, transparent); }
+/* Sizes: small (24 to 32 px), medium (the default, 36 to 48), large (56 to 80). */
+.bubble-sm { --bubble-rim: 1px; --bubble-drop: 0 1px 2px rgb(0 0 0 / 0.28); --bubble-glow: 0; --bubble-spec: 0.65; --bubble-halo: 4px; }
+.bubble-lg { --bubble-rim: 2px; --bubble-drop: 0 3px 6px rgb(0 0 0 / 0.32); --bubble-glow-shape: 0 8px 18px -6px; --bubble-glow: 0.45; --bubble-spec: 0.8; }
+:root[data-theme$="-light"] .bubble-sm { --bubble-drop: 0 1px 2px rgb(0 0 0 / 0.2); }
+:root[data-theme$="-light"] .bubble-lg { --bubble-drop: 0 3px 6px rgb(0 0 0 / 0.22); --bubble-glow: 0.22; }
+.bubble-clear.bubble-lg, .bubble-clear.bubble-sm { --bubble-glow: 0; }
+/* Pressed, hovered, focused: the light above the icon and the glow change, never the body under it. */
+:is(button, a).bubble { cursor: pointer; transition: box-shadow 150ms ease, transform 100ms ease; }
+:is(button, a).bubble:hover { --bubble-hi: 0.65; --bubble-glow: 0.45; }
+:root[data-theme$="-light"] :is(button, a).bubble:hover { --bubble-glow: 0.28; }
+:is(button, a).bubble:active:not(:disabled) { transform: translateY(1px); --bubble-drop: 0 1px 1px rgb(0 0 0 / 0.3); }
+:is(button, a).bubble:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+.bubble-now:focus-visible { outline-offset: calc(var(--bubble-halo, 6px) + 2px); } /* outside the halo */
+.bubble:disabled, .bubble[aria-disabled="true"] { --bubble-glow: 0; --bubble-spec: 0.35; opacity: 0.55; cursor: not-allowed; }
+@media (prefers-reduced-motion: reduce) {
+    :is(button, a).bubble { transition: none; }
+    :is(button, a).bubble:active:not(:disabled) { transform: none; }
+}
+@media (prefers-contrast: more) {
+    .bubble { --bubble-hi: 1; --bubble-spec: 0.35; }
+    .bubble.bubble-clear { border-color: var(--color-cream); }
+}

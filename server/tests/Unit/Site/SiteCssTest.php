@@ -56,8 +56,9 @@ final class SiteCssTest extends TestCase
 
     public function test_a_page_family_by_its_path_in_any_language(): void
     {
-        $this->assertSame('landing', SiteCss::family('/'));
-        $this->assertSame('landing', SiteCss::family('/es'));
+        // The home page is its own document with its own sheet: were a page of the layout ever at / or /es, it would be info's.
+        $this->assertSame('info', SiteCss::family('/'));
+        $this->assertSame('info', SiteCss::family('/es'));
         $this->assertSame('songs', SiteCss::family('/songs'));
         $this->assertSame('songs', SiteCss::family('/es/songs/amazing-grace/alto'));
         $this->assertSame('songs', SiteCss::family('/songbook'));

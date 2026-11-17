@@ -167,6 +167,8 @@
         '/js/notes.js',
         '/js/recorded-guides.js',
         '/js/guide-voice.js',
+        '/js/soften-breaths.js',
+        '/js/breaths.js',
     ];
     // preload_list.py: learn end
     if (opens === 'lesson') for (const module of LEARN) preload(module);
@@ -240,6 +242,7 @@
         '/js/components/library-filters.js',
         '/js/library-filter.js',
         '/js/be-the-voice.js',
+        '/js/soften-breaths.js',
         '/js/workout.js',
         '/js/reading-lines.js',
         '/js/results.js',
@@ -251,6 +254,7 @@
         '/js/reminders.js',
         '/js/game-toggle.js',
         '/js/accent-colours.js',
+        '/js/breaths.js',
         '/js/synth.js',
         '/js/next-up.js',
         '/js/unit-song.js',

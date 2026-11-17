@@ -655,6 +655,8 @@
         "pan": "Pan",
         "timing": "Timing",
         "timingHint": "Nudge earlier if this part sounds late, later if it's early.",
+        "softBreaths": "Soften breaths",
+        "softBreathsHint": "Quietens the breaths between phrases. Your take itself isn't changed.",
         "rerecord": "Re-record",
         "clearTake": "Delete take",
         "delete": "Delete part",

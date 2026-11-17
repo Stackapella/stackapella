@@ -14,6 +14,7 @@ const STEM_W = 1.2;
 const LINE_W = 1.1; // a staff line
 const BAR_W = 1.6;
 const BEAM = 5; // a beam's thickness: half a space
+const SPACING = 0.6; // a note's room grows as its length to this power (printed music's spacing; 1 would be in proportion)
 const BEAM_GAP = 7.5; // from one beam's top to the next's
 const LYRIC = 15; // the words' size
 const TEXT = "Georgia, 'Times New Roman', Times, serif"; // i18n-ignore: the words' face
@@ -92,9 +93,9 @@ export function engrave(template, { glyphs = GLYPHS, widths = WIDTHS, nameOf = (
     const measure = (text) => (text ? textWidth(text, LYRIC, widths) : 0);
     // Whole part names need a little more room than the app's print gives them ("Soprano" in the words' face).
     if (options.names === undefined || options.names === true) options = { ...options, names: 80 };
-    let layout = printLayout(song, { fill: true, measure, ...options });
+    let layout = printLayout(song, { fill: true, measure, spacing: SPACING, ...options });
     for (let most = Math.max(...layout.systems.map((sys) => sys.bars.length)) - 1; most >= 1; most--) {
-        const tighter = printLayout(song, { fill: true, measure, ...options, most });
+        const tighter = printLayout(song, { fill: true, measure, spacing: SPACING, ...options, most });
         if (tighter.systems.length > layout.systems.length) break;
         layout = tighter;
     }
@@ -174,16 +175,15 @@ export function engrave(template, { glyphs = GLYPHS, widths = WIDTHS, nameOf = (
         const edge = sys.edge ?? layout.edge;
         const out = [];
         const top = sys.staves[0].y;
-        const bottom = sys.staves.at(-1).y + STAFF;
         const named = options.names !== false;
-        // The line that starts the system, and the bracket joining its staves.
-        if (sys.staves.length > 1) {
-            out.push(`<rect x="${edge - BAR_W / 2}" y="${top}" width="${BAR_W}" height="${bottom - top}"/>`);
-            if (named) out.push(`<rect x="${edge - 10}" y="${top - 2}" width="4.5" height="${bottom - top + 4}"/>`, use('bracketTop', edge - 10, top - 2), use('bracketBottom', edge - 10, bottom + 2));
-        }
+        // Each staff as laid out, moved down by the room the words over it needed (below).
+        const staves = sys.staves.map((st) => ({ ...st }));
+        let shift = 0;
         if (sys.barNumber) out.push(`<text x="${edge + 1}" y="${r(top - 20)}" font-size="11" font-style="italic">${sys.barNumber}</text>`);
         const boxes = []; // a round's entry numbers on this system: each box's left, top and number
-        sys.staves.forEach((st, k) => {
+        staves.forEach((st, k) => {
+            st.y += shift;
+            st.lyricY += shift;
             const y = (position) => yOf(st, position);
             const ink = st.cue ? ' opacity="0.55"' : '';
             const g = [];
@@ -279,6 +279,15 @@ export function engrave(template, { glyphs = GLYPHS, widths = WIDTHS, nameOf = (
                     }
                 }
             }
+            // The words move down where a stem or beam below the staff would reach them (quick notes beamed under it,
+            // a barbershop bar's), and every staff below with them.
+            // (A word's tall letters stand 11 over its line; a beam, lying along the words, keeps 3 more clear of them.)
+            const hang = Math.max(-Infinity, ...notes.filter((it) => it.stem === 'down').map((it) => it.stemEnd + (it.beamed ? 14 : 11)));
+            const need = st.words ? Math.ceil(hang - st.lyricY) : 0;
+            if (need > 0) {
+                st.lyricY += need;
+                shift += need;
+            }
 
             for (const it of st.items) {
                 if (it.kind === 'rest') {
@@ -359,6 +368,12 @@ export function engrave(template, { glyphs = GLYPHS, widths = WIDTHS, nameOf = (
             }
             out.push(`<g data-staff="${esc(st.key)}"${ink}>${g.join('')}</g>`);
         });
+        // The line that starts the system, and the bracket joining its staves.
+        const bottom = staves.at(-1).y + STAFF;
+        if (staves.length > 1) {
+            out.push(`<rect x="${edge - BAR_W / 2}" y="${top}" width="${BAR_W}" height="${bottom - top}"/>`);
+            if (named) out.push(`<rect x="${edge - 10}" y="${top - 2}" width="4.5" height="${bottom - top + 4}"/>`, use('bracketTop', edge - 10, top - 2), use('bracketBottom', edge - 10, bottom + 2));
+        }
         for (const box of boxes) out.push(`<g class="eg-entry"><rect x="${r(box.x)}" y="${r(box.top)}" width="16" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.1"/><text x="${r(box.x + 8)}" y="${r(box.top + 12.5)}" font-size="12.5" font-weight="700" text-anchor="middle">${box.n}</text></g>`);
         // The tempo over the first system: above an entry's number where the two would meet.
         let lift = 0;
@@ -371,7 +386,7 @@ export function engrave(template, { glyphs = GLYPHS, widths = WIDTHS, nameOf = (
         }
         const width = Math.max(sys.right + 2, options.page ?? layout.width ?? 0);
         // A staff with no word on this system may still carry the line after one held from the system before.
-        const tall = Math.max(sys.height, ...sys.staves.map((st, k) => (marks[s][k].lines.length ? st.lyricY + 8 : 0)));
+        const tall = Math.max(sys.height + shift, ...staves.map((st, k) => (marks[s][k].lines.length ? st.lyricY + 8 : 0)));
         // Room over the top staff for the tempo, the bar number and the clef's curl (and a round's entry numbers).
         const pad = boxes.length ? Math.max(24 + lift, Math.ceil(4 - Math.min(...boxes.map((box) => box.top), top - 38 - lift))) : 24;
         return {
@@ -379,7 +394,7 @@ export function engrave(template, { glyphs = GLYPHS, widths = WIDTHS, nameOf = (
             height: tall + pad,
             pad,
             bars: [sys.bars[0].index, sys.bars.at(-1).index],
-            staves: sys.staves.map((st) => ({ key: st.key, top: st.y + pad, bottom: st.y + STAFF + pad })),
+            staves: staves.map((st) => ({ key: st.key, top: st.y + pad, bottom: st.y + STAFF + pad })),
             svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 ${-pad} ${r(width)} ${r(tall + pad)}" fill="currentColor" font-family="${TEXT}" style="font-size-adjust:none" data-system="${s}">${out.join('')}</svg>`,
         };
     });

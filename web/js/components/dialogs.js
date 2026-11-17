@@ -622,10 +622,11 @@ export const ExportDialog = {
 
 /** A part's settings: name, level, pan, timing nudge, re-record and delete. */
 export const PartDialog = {
-    components: { Modal, Icon, ReportVoice },
+    components: { Modal, Icon, ReportVoice, Switch },
     // voice: the session's guideVoices entry for a template slot ({ kind, credit, why }), or null.
+    // breaths: this part's take can have its breaths softened (it has a take, and the song's own notes to tell them by).
     // theirs: in a friend's project, the name of who sang this part (it's theirs to change), else null.
-    props: { part: { type: Object, required: true }, shownName: { type: String, required: true }, color: { type: String, default: '' }, slot: Boolean, recorded: Boolean, harmonise: Boolean, voice: { type: Object, default: null }, recording: Boolean, theirs: { type: String, default: null } },
+    props: { part: { type: Object, required: true }, breaths: Boolean, shownName: { type: String, required: true }, color: { type: String, default: '' }, slot: Boolean, recorded: Boolean, harmonise: Boolean, voice: { type: Object, default: null }, recording: Boolean, theirs: { type: String, default: null } },
     emits: ['update', 'rerecord', 'delete', 'close', 'clear', 'practise', 'voice', 'trim', 'harmonise'],
     data() {
         return { name: this.shownName, field, label, primary, secondary, reportingVoice: null };
@@ -671,6 +672,7 @@ export const PartDialog = {
                         <input type="range" dir="ltr" min="-60" max="60" step="1" :value="nudgeMs" class="range mt-2 w-full [--p:0%]" @input="nudge(+$event.target.value)" />
                         <span class="mt-1 block text-sm text-muted">{{ t('part.timingHint') }}</span>
                     </label>
+                    <Switch v-if="breaths" data-ui="soften-breaths" :on="!!part.softBreaths" :label="t('part.softBreaths')" :hint="t('part.softBreathsHint')" @change="$emit('update', { softBreaths: !part.softBreaths })" />
                 </div>
                 <div class="flex flex-wrap items-center gap-3 px-6 pt-5">
                     <span class="me-auto text-sm font-semibold text-muted" :class="slot && recorded ? 'basis-full sm:basis-auto' : ''">{{ slot && recorded ? t('part.yourTake') : '' }}</span>

@@ -50,7 +50,7 @@ def main():
     failed = None
     try:
         email = f"offline-{int(time.time())}@example.com"
-        make = f'$u = App\\Models\\User::factory()->create(["email" => "{email}", "password" => bcrypt("{PASSWORD}")]); echo $u->id;'
+        make = f'$u = App\\Models\\User::factory()->create(["email" => "{email}", "password" => bcrypt("{PASSWORD}"), "birth_month" => 5, "birth_year" => 1990]); echo $u->id;'  # born, as sign-up asks: no "When were you born?" over Sing
         subprocess.run(["php", "artisan", "tinker", "--execute", make], cwd=SERVER, check=True, capture_output=True)
         sign_in(f, email, PASSWORD)
         f.wait(f"(await import('/js/stores/account.js')).account.me?.email === {json.dumps(email)}", timeout=20, what="signed in")

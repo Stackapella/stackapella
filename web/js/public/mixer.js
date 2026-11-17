@@ -53,10 +53,11 @@
 // made, a press waits for every part's recording however long that takes (a second press cancels), the player says how
 // far the download is (the event mixer-load on its root, { loaded, total } in bytes over all the voices, total 0 until
 // every file's length is known), and if a recording can't be had the press fails honestly and the next one tries again.
-// With `quietBreaths` too, each recording's breaths are ducked as the showreel's are (Hillel: "one of the singers
-// breaths very loudly, in the past it was fixed on the home page… can you re-apply the fix?"): js/public/breaths.js,
-// only the unpitched air in the gaps the song's own notes leave, every sung note untouched; done once a voice is
-// decoded, a gap at a time so the page never stalls, before anything plays.
+//
+// A recorded voice always sings with its breaths softened, on every page (Hillel, 2026-11-16: "Library voices on"; first
+// on the home page: "one of the singers breaths very loudly ... can you re-apply the fix?"): js/soften-breaths.js, only
+// the unpitched air in the gaps the song's own notes leave, every sung note untouched; done once a voice is decoded, a
+// gap at a time so the page never stalls, before anything plays. (A song's render has it in its own audio.)
 
 import { heardTime } from '../../engine/clock.js';
 import { renderGuide } from '../guides.js';
@@ -239,7 +240,6 @@ function setUp(root) {
     // Only the recorded voices (a page's own option): each is the whole song already, so nothing joins a line.
     const realOnly = song.realOnly === true;
     const whole = wholeSong && !realOnly;
-    const quietBreaths = realOnly && song.quietBreaths === true;
     // One time through the song, and the whole play: the same unless the page asks for more passes (buildOf).
     const single = (wholeSong ? Number(song.songBeats) : song.beats) * secondsPerBeat;
     const { passes, joins } = buildOf(song, single / secondsPerBeat);
@@ -347,7 +347,7 @@ function setUp(root) {
             if (!guides[part.key]) return;
             try {
                 voices[part.key] = await realVoice(guides[part.key], decoder, arrived(part.key));
-                if (quietBreaths) await quieted(part.key, voices[part.key]);
+                await quieted(part.key, voices[part.key]);
             } catch (error) {
                 console.warn('A real voice could not load: the synth sings it', error);
             }
@@ -356,22 +356,14 @@ function setUp(root) {
         return voices;
     })());
     const ready = () => synthVoices();
-    // A recorded voice with its breaths ducked (js/public/breaths.js, loaded only for a page that asks): in the gaps
-    // its part's notes leave in the whole song, a gap at a time with the page's own work let in between. A voice whose
-    // notes can't be read keeps its breaths, and still sings.
+    // A recorded voice with its breaths softened (js/soften-breaths.js, loaded once a recorded voice is here): in the
+    // gaps its part's notes leave in the whole song (the catalogue's; the page's own line where the whole song can't
+    // be read, a Plus song signed out), a gap at a time with the page's own work let in between. A voice whose notes
+    // can't be read keeps its breaths, and still sings.
     async function quieted(key, voice) {
         try {
-            const [{ gaps, duckBreaths }, parts] = await Promise.all([import('./breaths.js'), fullParts()]);
-            const notes = parts.find((part) => part.key === key)?.notes ?? [];
-            if (!notes.length) return;
-            for (const [from, to] of gaps(notes, secondsPerBeat)) {
-                duckBreaths(voice.samples, RATE, [[from - voice.offsetSeconds, to - voice.offsetSeconds]]);
-                await new Promise((resolve) => {
-                    const channel = new MessageChannel();
-                    channel.port1.onmessage = () => resolve();
-                    channel.port2.postMessage(null);
-                });
-            }
+            const [{ softenBreaths }, parts] = await Promise.all([import('../soften-breaths.js'), fullParts().catch(() => song.parts)]);
+            await softenBreaths(voice.samples, RATE, parts.find((part) => part.key === key)?.notes, secondsPerBeat, voice.offsetSeconds);
         } catch (error) {
             console.warn('A voice keeps its breaths: they could not be quieted', error); // i18n-ignore
         }

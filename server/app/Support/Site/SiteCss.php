@@ -10,8 +10,9 @@ use Throwable;
 
 /**
  * A public page's stylesheets, only the rules its page family can use (docs/css-split-plan.md, step 4). css/site.css and
- * css/site-game.css are every public page's rules, about 62 and 19 KB gz, render-blocking; a family (the landing, the
- * songs, the tools, the reference pages, the courses, the rest) uses about half. The layout links
+ * css/site-game.css are every public page's rules, about 62 and 19 KB gz, render-blocking; a family (the songs, the
+ * tools, the reference pages, the courses, the rest) uses about half. (The home page is its own document with its own
+ * sheet, css/landing.css: no family's.) The layout links
  * /site-css/<family>.css?v=<version> and names /site-css/<family>-game.css in its game-css meta (Public\SiteCssController):
  * the whole sheet less every rule none of whose selectors could match with the classes the family can show, in the
  * sheet's own order, each in its @media. Nothing that could match is left out and nothing moves, so a page looks exactly
@@ -36,7 +37,6 @@ final class SiteCss
 
     /** Each family, and the first segments of the paths it serves (a language's /es/ left off); any other page is info. */
     public const FAMILIES = [
-        'landing' => [''],
         'songs' => ['songs', 'songbook'],
         'tools' => ['tools', 'warmups'],
         'reference' => ['intervals', 'chords', 'voice-types', 'note-frequencies'],
@@ -81,7 +81,7 @@ final class SiteCss
             }
         }
 
-        return array_key_exists($segments[0], (array) config('languages.site')) ? 'landing' : 'info';
+        return 'info';
     }
 
     /**

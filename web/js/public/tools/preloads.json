@@ -399,7 +399,9 @@
     "/js/automated.js",
     "/js/pitchtrack.js",
     "/js/db.js",
-    "/js/dsp.js"
+    "/js/soften-breaths.js",
+    "/js/dsp.js",
+    "/js/breaths.js"
   ],
   "/js/public/moving.js": [
     "/js/public/moving.js",
@@ -480,12 +482,14 @@
     "/js/pitchtrack.js",
     "/js/livevoice.js",
     "/js/public/app-voices.js",
+    "/js/soften-breaths.js",
     "/js/embed/take.js",
     "/js/camera.js",
     "/js/glass.js",
     "/js/scoring.js",
     "/js/pitch-display.js",
     "/js/recorded-guides.js",
+    "/js/breaths.js",
     "/js/db.js"
   ],
   "/js/public/songbook.js": [

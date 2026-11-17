@@ -53,11 +53,12 @@ export function signaturePositions(key, clef) {
  * with its `x` and, for a note, its staff `position` (0 the bottom line), `accidental`, `ledgers`,
  * `stem`, `flags`, `hollow`, `dot`, `word` and `breath`.
  */
-export function printLayout(template, { partKeys = null, cue = false, names = true, perSystem = null, page = PAGE, fill = false, most = null, measure = null, namesAfter = null } = {}) {
+export function printLayout(template, { partKeys = null, cue = false, names = true, perSystem = null, page = PAGE, fill = false, most = null, measure = null, namesAfter = null, spacing = 1 } = {}) {
     const edge = names ? (typeof names === 'number' ? names : NAMES) : 8; // where the staves start: after the part names (a number: a narrower column, for short names), or at once (a reading line)
     // The engraver's options (js/engrave.js; the app's print leaves them off): `fill` ends a last system more than half
-    // full at the margin, `most` caps a system's bars without widening them, `measure` is a word's true width, and
-    // `namesAfter` a narrower column after the first system (a round's letters stand only at its first).
+    // full at the margin, `most` caps a system's bars without widening them, `measure` is a word's true width,
+    // `namesAfter` a narrower column after the first system (a round's letters stand only at its first), and `spacing`
+    // how a note's room grows with its length (1 in proportion).
     const edgeOf = (s) => (s > 0 && namesAfter !== null ? namesAfter : edge);
     const wordWidth = measure ?? roughWidth;
     const key = template.key || 'C';
@@ -167,8 +168,14 @@ export function printLayout(template, { partKeys = null, cue = false, names = tr
                 const sp = spacingOf[bar.index];
                 const room = bar.time ? TIME_CHANGE : 0; // a time signature written after this bar line
                 const inner = bar.width - sp.startPad - room - sp.endPad;
-                const gaps = sp.onsets.map((o, k) => (k === 0 ? (o / sp.length) * inner : Math.max(sp.needs[k], ((o - sp.onsets[k - 1]) / sp.length) * inner)));
-                let tail = sp.onsets.length ? ((sp.length - sp.onsets.at(-1)) / sp.length) * inner : 0;
+                // Each note's room grows with its length: in proportion (1, the app's print), or slower (`spacing` < 1, the
+                // engraver's), as printed music does, so a half note doesn't take four eighths' room from them.
+                const grow = (d) => (d > 0 ? d ** spacing : 0);
+                const steps = sp.onsets.map((o, k) => o - (k === 0 ? 0 : sp.onsets[k - 1]));
+                const last = sp.onsets.length ? sp.length - sp.onsets.at(-1) : 0;
+                const whole = spacing === 1 ? sp.length : steps.reduce((a, d) => a + grow(d), 0) + grow(last) || 1;
+                const gaps = steps.map((d, k) => (k === 0 ? (grow(d) / whole) * inner : Math.max(sp.needs[k], (grow(d) / whole) * inner)));
+                let tail = (grow(last) / whole) * inner;
                 const over = gaps.reduce((a, g) => a + g, 0) + tail - inner;
                 if (over > 0) {
                     // Pushed past the bar: give back from the time-spaced gaps (never from what the words need).

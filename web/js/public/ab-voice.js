@@ -14,6 +14,7 @@
 // No import map (public_imports_check.py).
 
 import { renderGuide } from '../guides.js';
+import { softenBreaths } from '../soften-breaths.js';
 import { catalogueGuides, placed, realVoice } from './app-voices.js';
 import { audio } from './voices.js';
 
@@ -52,6 +53,8 @@ export async function abVoice({ song, part, with: under = 'all', recording = nul
         if (!guides[key]) return null;
         try {
             const voice = await realVoice(guides[key], context);
+            // A library voice plays with its breaths softened, by its own part's notes (js/soften-breaths.js).
+            await softenBreaths(voice.samples, rate, song.parts.find((p) => p.key === key)?.notes, 60 / song.tempo, voice.offsetSeconds);
             return placed(voice.samples, voice.offsetSeconds, rate, length);
         } catch (error) {
             console.warn('A real voice could not load: the synth sings it', error);

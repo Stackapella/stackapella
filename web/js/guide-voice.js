@@ -24,6 +24,9 @@ export async function partVoice(template, part, sampleRate, synth) {
                 key: guideKey(template.id, template.version, part.key, recording.id),
                 sampleRate,
                 decode: (bytes) => decoder.decodeAudioData(bytes),
+                // Its breaths softened, as wherever a library voice plays (js/soften-breaths.js).
+                notes: part.guide?.notes ?? null,
+                secondsPerBeat: 60 / template.tempo,
             });
             return { samples: voice.samples, offsetSeconds: voice.offsetSeconds, real: true };
         } catch (error) {

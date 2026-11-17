@@ -35,6 +35,7 @@ import { account } from './account.js';
 import { mayChangePart } from '../sync.js';
 import { FADE_SECONDS, joinPoints, matchGain, soundsDifferent, splice } from '../patch.js';
 import { heardSpan, lineUp, trimmedSamples, trimsOf } from '../trim.js';
+import { softened, softenedCopy } from '../soften-breaths.js';
 import { trackPeaks } from '../share.js';
 import { compress, DEFAULT_ROOM, impulseResponse, levelGains, limit, polishRender, ROOMS, spread } from '../polish.js';
 import { prefs } from './prefs.js';
@@ -244,11 +245,74 @@ function isMelody(part) {
 }
 
 /**
+ * Whether a part's take can have its breaths softened: it has a take, and its part of the song has notes to tell the
+ * breaths by (their gaps). A part nobody wrote, in a song made from nothing, has none: the switch isn't offered.
+ */
+export function canSoftenBreaths(part) {
+    return kept.samples.has(part.id) && (templatePart(part)?.guide?.notes?.length ?? 0) > 0;
+}
+
+// Each take's softened copy, made once for the take and where it sits (a WeakMap by the take's own samples).
+const softTakes = new WeakMap();
+
+/**
+ * A take as it's heard and exported: with its part's "Soften breaths" on (part.softBreaths; Hillel, 2026-11-16: "own
+ * takes optional"), a copy with the breaths softened (js/soften-breaths.js), the gaps placed by where the take sits in
+ * the song (its offset and its nudge); else the take itself, the very same samples, so with the switch off nothing
+ * changes anywhere. The take as recorded (kept.samples) is never changed: scoring, re-singing and saving read that.
+ */
+function heardTake(part, samples = kept.samples.get(part.id)) {
+    const how = softening(part, samples);
+    if (!how) return samples;
+    const made = softTakes.get(samples);
+    if (made?.key === how.key) return made.samples;
+    // Not made ahead (softenTake): made here, at once.
+    const soft = softened(samples, part.sampleRate, how.notes, how.secondsPerBeat, how.offset);
+    softTakes.set(samples, { key: how.key, samples: soft });
+    return soft;
+}
+
+/** How a part's take is softened, or null when it isn't: its notes, the song's seconds a beat, where the take sits, and a key for all of it. */
+function softening(part, samples) {
+    if (!part.softBreaths || !samples) return null;
+    const notes = templatePart(part)?.guide?.notes;
+    if (!notes?.length) return null;
+    const secondsPerBeat = 60 / (session.project?.bpm || 90);
+    const offset = part.offsetSeconds + (part.nudgeSeconds || 0);
+    return { notes, secondsPerBeat, offset, key: `${part.sampleRate}|${secondsPerBeat}|${offset}|${templatePart(part).key}` };
+}
+
+/**
+ * A part's softened take made ahead, off the main thread (js/soften-worker.js), so whoever plays or exports it next
+ * finds it ready (heardTake): before the engine takes the project's takes, and when the switch or the timing changes.
+ */
+async function softenTake(part) {
+    const samples = kept.samples.get(part.id);
+    const how = softening(part, samples);
+    if (!how || softTakes.get(samples)?.key === how.key) return;
+    const soft = await softenedCopy(samples, part.sampleRate, how.notes, how.secondsPerBeat, how.offset);
+    softTakes.set(samples, { key: how.key, samples: soft });
+}
+
+// Every take's change of how it's heard, in turn: a file made right after the switch waits for it (renderMix).
+let takesHeard = Promise.resolve();
+
+/** A part's take put into the engine again, as it's heard now (its breaths softened or not), where the engine has the project. */
+function reloadTake(part) {
+    takesHeard = takesHeard.then(async () => {
+        await softenTake(part);
+        const samples = kept.samples.get(part.id);
+        if (samples && engine.projectId?.startsWith(session.project?.id)) engine.setPart(part.id, engineSamples(part, samples), part.sampleRate, voiceMix(part.id));
+    }).catch((error) => console.warn('A take could not be put back as it is heard now', error)); // i18n-ignore
+    return takesHeard;
+}
+
+/**
  * What the engine plays for a take: its kept stretch (the trims), and with Hear it polished on,
  * levelled and gently compressed as Make it sound good does (the take itself stays dry).
  */
 function engineSamples(part, samples) {
-    const stretch = trimmedSamples(samples, part.sampleRate, trimsOf(part));
+    const stretch = trimmedSamples(heardTake(part, samples), part.sampleRate, trimsOf(part));
     if (!polishedNow()) return stretch;
     const [gain] = levelGains([{ samples: stretch, sampleRate: part.sampleRate, melody: isMelody(part) }]);
     return compress(stretch.map((v) => v * gain), part.sampleRate);
@@ -310,6 +374,9 @@ async function readyNow() {
     if (!stillOpen(id)) return false;
     const loaded = `${session.project.id}:${session.guidesVersion}`;
     if (engine.projectId !== loaded) {
+        // Takes whose breaths are softened are made ready first, off the main thread (softenTake).
+        await Promise.all(session.parts.map(softenTake));
+        if (!stillOpen(id)) return false;
         applyRoom();
         [...engine.parts.keys()].forEach((id) => engine.removePart(id));
         for (const part of session.parts) {
@@ -493,6 +560,9 @@ async function renderOne(part, { template, transpose, sampleRate, voices, speed 
                     key: guideKey(template.id, template.version, part.templatePartKey, recording.id),
                     sampleRate,
                     decode: (bytes) => decoder.decodeAudioData(bytes),
+                    // A library voice plays with its breaths softened, by its own part's notes (js/soften-breaths.js).
+                    notes: templatePart(part)?.guide?.notes ?? null,
+                    secondsPerBeat: 60 / template.tempo,
                 }).catch((error) => {
                     kept.failedVoices.add(recording.url);
                     throw error;
@@ -752,6 +822,10 @@ export function clearReview() {
 
 export function updatePart(part, fields) {
     Object.assign(part, fields);
+    // Soften breaths switched: the take is heard the other way from now. Its timing moved while it's on: the gaps move
+    // with the take, once the slider rests (below).
+    if ('softBreaths' in fields) reloadTake(part);
+    const moved = part.softBreaths && 'nudgeSeconds' in fields;
     syncMix();
     clearTimeout(kept.partSaves.get(part));
     kept.partSaves.delete(part);
@@ -764,6 +838,7 @@ export function updatePart(part, fields) {
     }
     kept.partSaves.set(part, setTimeout(() => {
         kept.partSaves.delete(part);
+        if (moved) reloadTake(part);
         persist(() => savePart(plainPart(part)));
     }, 400));
 }
@@ -1653,6 +1728,7 @@ export async function renderMix({ chords = false, room = null, track = null, onl
     if (!(await ready())) throw new Error('The project was closed');
     await kept.voicesDone;
     if (!(await ready())) throw new Error('The project was closed');
+    await takesHeard; // a take whose Soften breaths was just switched is in the engine as it's heard now
     let all = asMixed ? mixLevels() : levels();
     // Sing's chords never go in a file; Export's "Piano chords underneath" adds the song's own, on piano.
     all.set(BACKING, { audible: false, volume: 0, pan: 0 });
@@ -1712,14 +1788,15 @@ export async function shareMix({ room = null, partId = null } = {}) {
 
 /**
  * Stems (Plus): each recorded part on its own, dry, as a mono WAV's samples at its take's rate, lined
- * up from the song's start (so they line up again in any editor), its trims kept. [{ part, samples, sampleRate }]
+ * up from the song's start (so they line up again in any editor), its trims kept, and its breaths softened where the
+ * part's switch says so (heardTake). [{ part, samples, sampleRate }]
  */
 export function renderStems() {
     const length = session.contentLength + 0.5;
     return session.parts.filter((part) => kept.samples.get(part.id)).map((part) => {
         const sampleRate = part.sampleRate;
         const out = new Float32Array(Math.ceil(length * sampleRate));
-        const stretch = trimmedSamples(kept.samples.get(part.id), sampleRate, trimsOf(part));
+        const stretch = trimmedSamples(heardTake(part), sampleRate, trimsOf(part));
         const at = Math.round((part.offsetSeconds + (part.nudgeSeconds || 0)) * sampleRate + trimsOf(part).start);
         for (let i = Math.max(0, -at); i < stretch.length && at + i < out.length; i++) out[at + i] = stretch[i];
         return { part, samples: out, sampleRate };
@@ -1761,7 +1838,7 @@ async function polishedMix(all, room, lengthSeconds, sampleRate, piano = null) {
             const level = all.get(id);
             const playing = engine.parts.get(id);
             if (!level?.audible || !playing) continue;
-            const samples = id === part.id ? trimmedSamples(kept.samples.get(part.id), part.sampleRate, trimsOf(part)) : playing.buffer.getChannelData(0);
+            const samples = id === part.id ? trimmedSamples(heardTake(part), part.sampleRate, trimsOf(part)) : playing.buffer.getChannelData(0);
             const sampleRate = id === part.id ? part.sampleRate : playing.buffer.sampleRate;
             voices.push({ samples, sampleRate, offsetSeconds: voiceMix(id, all).offsetSeconds, volume: level.volume, pan: level.pan, spread: level.spread ?? partSpread(part, all), audible: true, melody: isMelody(part) });
         }

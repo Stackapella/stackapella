@@ -56,9 +56,9 @@ final class LandingStagePageTest extends TestCase
         $this->get('/es')->assertOk()->assertSee('data-join="Se suma: :part"', false)->assertSee('Las cuatro juntas.', false);
         // Only the recorded voices sing here, and the page has the words for their download and for a failure.
         $this->assertTrue($stage['song']['realOnly']);
-        // Their breaths are ducked by the showreel's own code, shared as it is: the two files never differ.
-        $this->assertTrue($stage['song']['quietBreaths']);
-        $this->assertFileEquals(resource_path('promo/showreel/js/breaths.js'), config('app.web_path').'/js/public/breaths.js', 'js/public/breaths.js is the showreel\'s breaths.js: copy it again');
+        // Their breaths are softened by the showreel's own code, shared as it is (every recorded voice's, on every
+        // page and in the app: js/soften-breaths.js): the two files never differ.
+        $this->assertFileEquals(resource_path('promo/showreel/js/breaths.js'), config('app.web_path').'/js/breaths.js', 'js/breaths.js is the showreel\'s breaths.js: copy it again');
         $page->assertSee('data-loading="Loading the voices…"', false)->assertSee('Couldn&#039;t load the voices. Try again.', false);
         $this->get('/es')->assertSee('Cargando las voces…', false)->assertSee('No se pudieron cargar las voces.', false);
     }

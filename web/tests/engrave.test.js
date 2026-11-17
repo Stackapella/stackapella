@@ -44,6 +44,15 @@ test('engrave: every note once with its beat, every word, and well-formed system
                 const sung = sorted.filter((n) => n.lyric).map((n) => n.lyric.replace(/-$/, ''));
                 assert(words.join('|') === sung.join('|'), `${what} ${part.key}: its words`);
             }
+            // A beam under a staff never reaches its words: they move down for it.
+            for (const doc of docs) {
+                for (const staff of doc.querySelectorAll('[data-staff]')) {
+                    const line = Math.min(...[...staff.querySelectorAll('.eg-word')].map((el) => Number(el.getAttribute('y'))));
+                    const beams = [...staff.querySelectorAll(':scope > path')].map((p) => p.getAttribute('d')).filter((d) => /^M[\d. -]+L[\d. -]+L[\d. -]+L[\d. -]+Z$/.test(d));
+                    const low = Math.max(...beams.flatMap((d) => d.match(/[\d.-]+/g).map(Number).filter((_, i) => i % 2)));
+                    assert(!Number.isFinite(line) || !beams.length || low <= line - 13.5, `${what} ${staff.getAttribute('data-staff')}: a beam at ${low} over words at ${line}`);
+                }
+            }
             // Only signs we carry.
             for (const doc of docs) for (const use of doc.querySelectorAll('use')) assert(use.getAttribute('href').slice(4) in GLYPHS, `${what}: ${use.getAttribute('href')}`);
         }
