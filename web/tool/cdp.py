@@ -294,14 +294,21 @@ class Chrome:
         """A paused request to the CDN: a pinned file from the cache, anything else on to the network."""
         url = params["request"]["url"]
         body = cdn_cache.body_for(url, self.cdn[url]) if url in self.cdn else None
-        if body is None:
-            self.send("Fetch.continueRequest", {"requestId": params["requestId"]})
-            return
-        self.send("Fetch.fulfillRequest", {"requestId": params["requestId"], "responseCode": 200, "body": base64.b64encode(body).decode(), "responseHeaders": [
-            {"name": "Content-Type", "value": "application/javascript; charset=utf-8"},
-            {"name": "Access-Control-Allow-Origin", "value": "*"},
-            {"name": "Cache-Control", "value": "public, max-age=31536000, immutable"},
-        ]})
+        try:
+            if body is None:
+                self.send("Fetch.continueRequest", {"requestId": params["requestId"]})
+                return
+            self.send("Fetch.fulfillRequest", {"requestId": params["requestId"], "responseCode": 200, "body": base64.b64encode(body).decode(), "responseHeaders": [
+                {"name": "Content-Type", "value": "application/javascript; charset=utf-8"},
+                {"name": "Access-Control-Allow-Origin", "value": "*"},
+                {"name": "Cache-Control", "value": "public, max-age=31536000, immutable"},
+            ]})
+        except RuntimeError as error:
+            # A navigation that cancels the paused request before this answer (a page left mid-load) ends it, and
+            # Chrome no longer knows its id: the request is gone, with no one waiting for it (2026-11-17,
+            # site_integration under load; flows/cdn_cancelled.py). Every other error still fails the call.
+            if "Invalid InterceptionId" not in str(error):
+                raise
 
     def evaluate(self, expression, await_promise=True):
         result = self.send("Runtime.evaluate", {"expression": expression, "awaitPromise": await_promise, "returnByValue": True})

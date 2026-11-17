@@ -245,42 +245,6 @@
     }
 }
 
-/* The small volume and pan sliders in each part row. */
-.mini-range {
-    appearance: none;
-    height: 14px;
-    background: transparent;
-
-    &::-webkit-slider-runnable-track {
-        height: 3px;
-        border-radius: 2px;
-        background: var(--color-line);
-    }
-
-    &::-webkit-slider-thumb {
-        appearance: none;
-        margin-top: -4.5px;
-        width: 12px;
-        height: 12px;
-        border-radius: 3px;
-        background: var(--color-cream);
-    }
-
-    &::-moz-range-track {
-        height: 3px;
-        border-radius: 2px;
-        background: var(--color-line);
-    }
-
-    &::-moz-range-thumb {
-        width: 12px;
-        height: 12px;
-        border: 0;
-        border-radius: 3px;
-        background: var(--color-cream);
-    }
-}
-
 /* Each count-in number pops in on the beat. */
 .count-pop {
     animation: count-pop 0.35s ease-out;
@@ -545,17 +509,6 @@
     }
 }
 
-/* "Your turn" in listen-then-repeat. */
-.turn-pulse {
-    animation: turn-pulse 1s ease-in-out infinite;
-}
-
-@keyframes turn-pulse {
-    50% {
-        opacity: 0.45;
-    }
-}
-
 /*
  * Every dropdown: our own chevron (the browsers' differ, and sit against the edge), inset from the
  * end as far as the field's text is from its start, with room so a long choice never runs under it.
@@ -579,11 +532,6 @@ select:disabled {
     opacity: 0.45;
 }
 
-/* Sing: recording adds a red edge (your turn itself is a band at the top, in js/components/sing). */
-.record-edge {
-    box-shadow: inset 0 0 0 4px var(--color-record);
-}
-
 .sing-controls {
     transition: opacity 0.4s;
 }
@@ -593,7 +541,6 @@ select:disabled {
         transition: none;
     }
 
-    .turn-pulse,
     .count-pop,
     .animate-pulse {
         animation: none;
@@ -9297,10 +9244,6 @@ main:has(> .s-close) .s-ink:not(.s-close) { padding-block: var(--k-sec); margin-
     --ge-glow: 0.35;
 }
 
-/* The HUD type: small, uppercase, never sentences. */
-[data-skin='game'] .ge-hudtype { font: 400 10px/1.4 var(--ge-hud); letter-spacing: 0.06em; text-transform: uppercase; }
-[data-skin='game'] .ge-display { font-family: var(--ge-display); font-weight: 400; text-transform: uppercase; letter-spacing: 0.01em; font-size-adjust: var(--arc-ex, none); }
-
 /* A course with "meter": "plain" (First steps to belting: nothing that reads as power) keeps the plain bars: its
    lessons put "meter" in data-game-off (game/effects.js courseRules). */
 /* Sing's HUD, as a reskin of the recording stage's own pieces (Hillel: "reskinned these elements"):
@@ -9535,9 +9478,7 @@ main:has(> .s-close) .s-ink:not(.s-close) { padding-block: var(--k-sec); margin-
 [data-skin='game'] .ge-map-path path.is-lit { stroke: var(--ge-unit); }
 [data-skin='game'] .ge-map ol { position: absolute; inset: 0; }
 [data-skin='game'] .ge-map-stop { position: absolute; width: max-content; display: flex; align-items: center; gap: 0.75rem; transform: translate(-1.75rem, -1.75rem); }
-[data-skin='game'] .ge-map-stop.is-end { flex-direction: row-reverse; transform: translate(calc(-100% + 1.75rem), -1.75rem); text-align: end; }
 :root[dir='rtl'][data-skin='game'] .ge-map-stop { transform: translate(1.75rem, -1.75rem); }
-:root[dir='rtl'][data-skin='game'] .ge-map-stop.is-end { transform: translate(calc(100% - 1.75rem), -1.75rem); }
 [data-skin='game'] .ge-map-node { position: relative; display: grid; place-items: center; flex: none; width: 3.5rem; height: 3.5rem; border-radius: 50%; border: 2px solid var(--color-line); background: var(--color-ink); color: var(--color-muted); transition: transform 160ms ease-out; }
 [data-skin='game'] .ge-map-node:not(:disabled):hover { transform: scale(1.06); }
 [data-skin='game'] .ge-map-node:disabled { cursor: not-allowed; opacity: 0.55; }
@@ -9558,7 +9499,6 @@ main:has(> .s-close) .s-ink:not(.s-close) { padding-block: var(--k-sec); margin-
 [data-skin='game'] .ge-map-node.is-now.is-picked { box-shadow: var(--coin-face), 0 0 0 5px var(--color-ink), 0 0 0 8px var(--color-accent); } /* the one you're on keeps its accent ring when picked */
 [data-skin='game'] .ge-map-num { font: 400 13px/1 var(--ge-hud); }
 [data-skin='game'] .ge-map-here { position: absolute; bottom: calc(100% + 0.2rem); inset-inline-start: 50%; translate: -50% 0; white-space: nowrap; padding: 0.2rem 0.45rem; border-radius: 6px; background: var(--ge-cyan); color: #04121a; font: 400 9px/1.4 var(--ge-hud); text-transform: uppercase; letter-spacing: 0.04em; }
-[data-skin='game'] .ge-map-stop.is-end .ge-map-here { inset-inline-start: auto; inset-inline-end: 1.75rem; translate: 50% 0; }
 [data-skin='game'][data-theme$='-light'] .ge-map-here { color: #fff; }
 [data-skin='game'] .ge-map-label { display: grid; justify-items: start; gap: 0.2rem; max-width: min(17rem, 58vw); }
 /* Over a title (Hillel's 98.png): "You are here" sits in the label's own stack, never over the node. */
@@ -9632,7 +9572,6 @@ main:has(> .s-close) .s-ink:not(.s-close) { padding-block: var(--k-sec); margin-
 @media (prefers-reduced-motion: reduce) { [data-skin='game'] [data-replay]::before { animation: none; } }
 /* Right to left: the centred tags move back by half their own width the other way. */
 :root[dir='rtl'][data-skin='game'] :is(.ge-1p, .ge-map-here) { translate: 50% 0; }
-:root[dir='rtl'][data-skin='game'] .ge-map-stop.is-end .ge-map-here { translate: -50% 0; }
 
 /* Two last moments: the CRT boot of the session's first Sing lane (it folds open from a bright line,
    0.4 s, before any take), and a small screen shake (3 px, 200 ms) as NEW RECORD lands and on a
