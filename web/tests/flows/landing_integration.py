@@ -1,6 +1,6 @@
 """The landing's player (pages/landing.blade.php, js/public/mixer.js), on the real server's home page: Play sings the
 song on the audio clock and the words light up in turn; a lane pressed mid-song is heard alone without stopping the
-song, and pressed again brings all four back; Stop ends it and puts it back at its start. The theme switch flips light
+song, and pressed again brings all four back; Stop ends it and puts it back at its start. Language and appearance flips light
 and dark and is kept. The recorded voices are stubbed as landing_page.py stubs them (this machine's database has none);
 the whole page is landing_page.py's. Needs the server's page:
 `python3 -I tests/flows/landing_integration.py http://127.0.0.1:8000`.
@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
-from landing_page import READY, STATE, VOICES  # noqa: E402
+from landing_page import FLIP, READY, STATE, VOICES  # noqa: E402
 
 PAGE = "document.getElementById('lnf')"
 
@@ -47,16 +47,16 @@ def journey(f):
     time.sleep(0.5)
     assert f.js(STATE)["time"].startswith("0:00"), "Stop puts the song back at its start"
 
-    # Light and dark by the top line's switch, kept for the next page.
+    # Light and dark by the top line's Language and appearance, kept for the next page.
     was = f.js("document.documentElement.dataset.theme")
-    f.run("document.querySelector('[data-lnf-theme]').click()")
+    f.run(FLIP)
     f.wait(f"document.documentElement.dataset.theme !== {was!r}", timeout=5, what="the other look")
     now = f.js("document.documentElement.dataset.theme")
     assert was.endswith("-light") != now.endswith("-light"), f"the switch flips light and dark: {was} then {now}"
     f.go("/pricing", "document.querySelector('main')")
     assert f.js("document.documentElement.dataset.theme") == now, "the choice is kept on the next page"
     f.go("/", READY)
-    f.run("document.querySelector('[data-lnf-theme]').click()")
+    f.run(FLIP)
     f.wait(f"document.documentElement.dataset.theme === {was!r}", timeout=5, what="the first look again")
 
 

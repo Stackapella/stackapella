@@ -62,10 +62,15 @@ def journey(f):
     for width in WIDTHS:
         site = logo_at(f, SITE, width)
         assert site and site["mark"][2] == 30 and site["mark"][3] == 30, f"the site's mark at {width}: {site}"
-        assert (site["word"] is None) == (width < 360), f"the site's wordmark at {width}: {site}"
+        # Below 420 the site's bar gives the name's room to Language and appearance (Hillel, 2026-11-16: "combine the two
+        # buttons"; 460 with a language's code), and the mark stands for it, as the app's does below 360.
+        assert (site["word"] is None) == (width < 420), f"the site's wordmark at {width}: {site}"
         for path in APP:
             app = logo_at(f, path, width)
-            assert app == site, f"{path} at {width} px: the app's logo {app}, the site's {site}"
+            if site["word"] is None and width >= 360:
+                assert app["mark"] == site["mark"] and app["word"] is not None, f"{path} at {width} px: the app's mark {app}, the site's {site}"
+            else:
+                assert app == site, f"{path} at {width} px: the app's logo {app}, the site's {site}"
         f.shot(f"logo-{width}")
     # Chrome's text size set larger (Hillel's: the app's 72rem column grew past its 1200 px bar, so "the whole header is
     # narrower"): the logo stays the site's, and Home's content stays on the bar's row.

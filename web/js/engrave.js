@@ -237,14 +237,17 @@ export function engrave(template, { glyphs = GLYPHS, widths = WIDTHS, nameOf = (
             }
             for (const group of beams) {
                 // One direction for the group, by its note furthest from the middle line; the beam leans with the notes,
-                // by a space at most, and moves out until its shortest stem is long enough.
+                // by a space at most and a quarter of its length, so a leap between two close notes never stands it
+                // on end, and moves out until its shortest stem is long enough.
                 const far = group.reduce((a, it) => (Math.abs(it.position - 4) > Math.abs(a.position - 4) ? it : a));
                 const up = far.position < 4;
                 const dir = up ? -1 : 1;
                 group.forEach((it) => (it.stem = up ? 'up' : 'down'));
                 const [a, z] = [group[0], group.at(-1)];
-                const lean = Math.max(-GAP, Math.min(GAP, (y(z.position) - y(a.position)) / 2));
-                const slope = lean / (stemX(z) - stemX(a));
+                const span = stemX(z) - stemX(a);
+                const most = Math.min(GAP, Math.max(HALF / 2, span / 4));
+                const lean = Math.max(-most, Math.min(most, (y(z.position) - y(a.position)) / 2));
+                const slope = lean / span;
                 let base = y(a.position) + dir * STEM;
                 const at = (it) => base + (stemX(it) - stemX(a)) * slope;
                 const short = Math.min(...group.map((it) => dir * (at(it) - y(it.position))));

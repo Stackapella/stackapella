@@ -54,11 +54,20 @@
 [data-skin='game'] .lnf-logo svg { border-radius: 0; }
 [data-skin='game'] .lnf-notes { background: var(--g-panel); box-shadow: inset 0 -2px 0 var(--g-frame); font: 400 19px/1.3 var(--g-vt); letter-spacing: .02em; }
 [data-skin='game'] .lnf-nav a { border-radius: 0; font: 400 20px/1 var(--g-vt); letter-spacing: .04em; text-transform: uppercase; color: var(--ink); }
-[data-skin='game'] :is(.lnf-round, .lnf-open) { border-radius: 0; border: 2px solid var(--g-frame); background: var(--g-panel); box-shadow: 3px 3px 0 var(--g-sh); -webkit-backdrop-filter: none; backdrop-filter: none; }
-[data-skin='game'] .lnf-round { font: 400 18px/1 var(--g-vt); }
+[data-skin='game'] :is(.lnf-look > .s-look-btn, .lnf-open) { border-radius: 0; border: 2px solid var(--g-frame); background: var(--g-panel); box-shadow: 3px 3px 0 var(--g-sh); -webkit-backdrop-filter: none; backdrop-filter: none; }
+[data-skin='game'] .lnf-look > .s-look-btn { font: 400 18px/1 var(--g-vt); letter-spacing: .04em; }
 [data-skin='game'] .lnf-open { font: 400 20px/1 var(--g-vt); letter-spacing: .04em; text-transform: uppercase; }
-[data-skin='game'] .lnf-lang ul { border-radius: 0; border: 2px solid var(--g-frame); background: var(--g-panel); box-shadow: 6px 6px 0 var(--g-sh); }
-[data-skin='game'] .lnf-lang li a { border-radius: 0; }
+/* Language and appearance's menu (the site header's own, css/game-toggle.css): a square framed panel on the hard shadow,
+   its headings in pixel caps, Light, Dark and Auto the arcade's segmented control with the picked one lit. */
+[data-skin='game'] .lnf .lnf-look { --lk-ink: var(--ink); --lk-mute: var(--mute); --lk-panel: var(--g-panel); --lk-raised: var(--g-well); --lk-line: var(--g-line); --lk-em: var(--g-yellow); }
+[data-skin='game'] .lnf-look .s-look-panel { border-radius: 0; border: 2px solid var(--g-frame); background: var(--g-panel); box-shadow: 6px 6px 0 var(--g-sh); }
+@media (min-width: 48rem) { [data-skin='game'] .lnf-look .s-look-panel { width: 300px; } }
+[data-skin='game'] .lnf-look .s-look-h { font: 400 9px/1.3 var(--g-px); letter-spacing: 0; color: var(--g-yellow); }
+[data-skin='game'] .lnf-look :is(.s-look-langs a, .s-look-seg, .s-look-seg button, .gt--row) { border-radius: 0; }
+[data-skin='game'] .lnf-look :is(.s-look-langs a, .s-look-seg button) { font: 400 20px/1 var(--g-vt); letter-spacing: .02em; }
+[data-skin='game'] .lnf-look .s-look-seg { background: var(--g-well); box-shadow: inset 0 0 0 2px var(--g-line); }
+[data-skin='game'] .lnf-look .s-look-seg [aria-pressed='true'] { background: var(--g-yellow); color: var(--g-on); box-shadow: none; }
+[data-skin='game'] .lnf-look .s-look-group + .s-look-group { border-top: 2px solid var(--g-line); }
 [data-skin='game'] .lnf[data-tail] .lnf-top { background: var(--g-bg); box-shadow: 0 2px 0 var(--g-line); }
 
 /* Words: pixel caps on a hard shadow for headings; sentences keep the readable face. */
@@ -214,8 +223,6 @@
     [data-skin='game'] .lnf-nav a { font-size: 18px; letter-spacing: .02em; }
     [data-skin='game'] .lnf-open { padding: 0 8px; font-size: 18px; }
     [data-skin='game'] .lnf-logo span { font-size: 10px; }
-    /* The phone's bare switches (light or dark, the language) stay bare. */
-    [data-skin='game'] .lnf-top .lnf-round[data-lnf-theme], [data-skin='game'] .lnf-lang .lnf-round { border: 0; background: none; box-shadow: none; }
     [data-skin='game'] .lnf-h1 { font-size: clamp(19px, 6.6vw, 28px); }
     [data-skin='game'] .lnf-h2 { font-size: clamp(15px, 4.8vw, 20px); }
     [data-skin='game'] .lnf-h2-two { font-size: clamp(14px, 4.4vw, 18px); }

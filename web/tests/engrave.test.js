@@ -59,6 +59,12 @@ test('engrave: quick notes in one beat share a beam and lose their flags; one al
     assert(!soprano.querySelector('use[href^="#eg-flag"]'), 'beamed notes carry no flags');
     const alone = { ...template, parts: template.parts.map((p) => (p.key === 'soprano' ? { ...p, guide: { ...p.guide, notes: p.guide.notes.filter((n) => n.beat !== 3.5) } } : p)) };
     assert(parse(engrave(alone).systems[0].svg).querySelector('[data-staff="soprano"] use[href^="#eg-flag8th"]'), 'an eighth alone keeps its flag');
+    // A leap between two close notes (here an octave, on a phone's narrow system) leans its beam by a quarter of its
+    // length at most, never stands it on end.
+    const leap = { ...template, parts: template.parts.map((p) => (p.key === 'soprano' ? { ...p, guide: { ...p.guide, notes: p.guide.notes.map((n) => (n.beat === 3.5 ? { ...n, pitch: n.pitch + 12 } : n)) } } : p)) };
+    const beam = parse(engrave(leap, { page: 430, perSystem: 3, names: 54 }).systems[0].svg).querySelector('[data-staff="soprano"] > path[d$="Z"]');
+    const [x1, y1, x2, y2] = beam.getAttribute('d').match(/^M([\d.-]+) ([\d.-]+)L([\d.-]+) ([\d.-]+)/).slice(1).map(Number);
+    assert(Math.abs(y2 - y1) <= (x2 - x1) / 4 + 0.05, `the leap's beam leans ${(y2 - y1).toFixed(1)} over ${(x2 - x1).toFixed(1)}`);
 });
 
 test('engrave: part names where asked, none where the page has its own; the signs come as one hidden block', async () => {

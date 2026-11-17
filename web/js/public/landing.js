@@ -35,8 +35,8 @@
 // CSS's base layout); this module then still lights the gems and the words, in place.
 // Only the recorded voices sing on this page (the player's `realOnly`): a press may wait for their download, and this
 // module shows how far it is (the player's mixer-load event) on the Play button and in words, and a failure in words.
-// It also keeps the top line's light or dark switch, as the rest of the site stores it. Game mode's switch, the page's
-// one anonymous count and Admin > Live's heartbeat are the site's own script's (js/public/site.js, with the footer). Tested in tests/landing.test.js and tests/flows/landing_page.py.
+// The top line's Language and appearance is the site header's own (js/public/look-menu.js); Game mode's switch, the
+// page's one anonymous count and Admin > Live's heartbeat are the site's own script's (js/public/site.js, with the footer). Tested in tests/landing.test.js and tests/flows/landing_page.py.
 
 const root = document.querySelector('[data-lnf]');
 
@@ -108,10 +108,7 @@ export function captionOf(joins, pass, beat, alone = false) {
     return { say: at === 0 ? 'first' : 'join', at };
 }
 
-if (root) {
-    setUp();
-    chrome();
-}
+if (root) setUp();
 
 function setUp() {
     // The page itself rests on a scene of the stage (css: scroll-snap, only where the stage is pinned).
@@ -447,16 +444,4 @@ function setUp() {
     onScroll();
     rest();
     root.dataset.ready = '';
-}
-
-// The top line's own switches, and the page's count.
-function chrome() {
-    // Light or dark, the same stored choice as the rest of the site (js/theme-boot.js); this page is calm in either.
-    for (const button of root.querySelectorAll('[data-lnf-theme]')) {
-        button.addEventListener('click', () => {
-            const light = (document.documentElement.dataset.theme ?? '').endsWith('-light');
-            const game = document.documentElement.dataset.skin !== 'serious';
-            window.stackapellaTheme?.choose(game ? { gameMode: light ? 'dark' : 'light' } : { mode: light ? 'dark' : 'light' });
-        });
-    }
 }

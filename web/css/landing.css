@@ -4,7 +4,7 @@
    first five scenes (the showreel's four lanes), then a page that scrolls (free, choirs, plans, the finale), a slim
    see-through top line and a dock that stays (play, the time, Start singing). Calm only, light and dark; game
    mode's dress is a sheet of its own (css/landing-game.css, the game agent's, under [data-skin=game]; the top line's
-   Game mode switch is the site's own, css/game-toggle.css). The foot is the site's footer component, dressed here.
+   Game mode switch and Language and appearance are the site's own, css/game-toggle.css). The foot is the site's footer component, dressed here.
    js/public/landing.js sets data-scene, data-alone, data-top, data-tail, --lnf-t (the song's place, in
    beats) and --lnf-run (how far through the play, 0 to 1) on .lnf, data-wait and data-in on a lane as the voices join
    one by one, and data-live on a strip of lanes down the page while it shows the song; the player (mixer.js) sets
@@ -44,7 +44,6 @@ body { margin: 0; background: var(--ground); }
 .lnf-skip { position: fixed; z-index: 60; left: 12px; top: -80px; padding: 12px 18px; border-radius: 12px; background: var(--btn); color: var(--btn-ink) !important; font-weight: 800; }
 .lnf-skip:focus { top: 12px; }
 .lnf-v1 { --c: var(--c1); } .lnf-v2 { --c: var(--c2); } .lnf-v3 { --c: var(--c3); } .lnf-v4 { --c: var(--c4); }
-:root[data-theme$="-light"] .lnf-in-dark, :root:not([data-theme$="-light"]) .lnf-in-light { display: none; }
 
 /* The top line: slim and see-through over the stage; smaller on the way down, back on the way up. */
 .lnf-top { position: fixed; z-index: 40; inset: var(--lnf-note, 0px) 0 auto 0; height: var(--top); padding: 0 var(--pad); display: flex; align-items: center; gap: 10px 22px; font-size: 15px; font-weight: 600; background: linear-gradient(color-mix(in srgb, var(--ground) 82%, transparent), transparent); transition: height .35s var(--ease), font-size .35s var(--ease), background-color .35s; }
@@ -56,17 +55,16 @@ body { margin: 0; background: var(--ground); }
 .lnf-nav { display: flex; gap: 4px; }
 .lnf-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 99px; color: color-mix(in srgb, var(--ink) 78%, transparent); }
 .lnf-nav a:hover { color: var(--ink); background: var(--panel); }
-.lnf-round { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; height: 44px; padding: 0 12px; border-radius: 99px; background: var(--panel); border: 1px solid var(--edge); font-size: 13px; font-weight: 600; cursor: pointer; list-style: none; }
-.lnf-round::-webkit-details-marker { display: none; }
-.lnf-lang { position: relative; }
-.lnf-lang ul { position: absolute; inset-inline-end: 0; top: calc(100% + 8px); margin: 0; padding: 6px; list-style: none; min-width: 150px; border-radius: 16px; background: color-mix(in srgb, var(--ground) 92%, var(--ink)); border: 1px solid var(--edge); box-shadow: 0 20px 50px -20px rgb(0 0 0 / .6); }
-.lnf-lang li a { display: flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 11px; }
-.lnf-lang li a:hover, .lnf-lang li a[aria-current] { background: var(--panel); }
+/* Language and appearance: the site header's own pill and menu (css/game-toggle.css carries its rules), in this page's
+   colours. */
+.lnf .lnf-look { --lk-ink: var(--ink); --lk-mute: var(--mute); --lk-btn: var(--panel); --lk-btn-line: var(--edge); --lk-panel: color-mix(in srgb, var(--ground) 92%, var(--ink)); --lk-raised: var(--panel); --lk-line: var(--edge); --lk-em: var(--em); --lk-gutter: var(--pad); }
+.lnf-look .s-look-panel { box-shadow: 0 20px 50px -20px rgb(0 0 0 / .6); }
 .lnf-open { display: inline-flex; align-items: center; height: 44px; padding: 0 18px; border-radius: 99px; background: var(--panel); border: 1px solid var(--edge); font-weight: 700; white-space: nowrap; }
 .lnf[data-top="small"] .lnf-top:not(:focus-within) { --top: 52px; font-size: 13.5px; }
 .lnf[data-top="small"] .lnf-top:not(:focus-within) .lnf-logo span { opacity: 0; width: 0; overflow: hidden; }
 .lnf[data-top="small"] .lnf-top:not(:focus-within) .lnf-logo svg { scale: .85; }
-.lnf[data-top="small"] .lnf-top:not(:focus-within) :is(.lnf-round, .lnf-open) { height: 36px; min-width: 36px; }
+.lnf[data-top="small"] .lnf-top:not(:focus-within) :is(.s-look-btn, .lnf-open) { height: 36px; min-width: 36px; }
+.lnf[data-top="small"] .lnf-top:not(:focus-within) .lnf-look:not(.s-look--lang) > .s-look-btn { width: 36px; }
 .lnf[data-top="small"] .lnf-top:not(:focus-within) .lnf-nav a { min-height: 36px; padding: 0 9px; }
 /* Over the page that scrolls, the top line has a ground of its own. */
 .lnf[data-tail] .lnf-top { background: color-mix(in srgb, var(--ground) 86%, transparent); }
@@ -235,7 +233,7 @@ body { margin: 0; background: var(--ground); }
 /* What floats in a scene: glass, lit at its edge in a voice's colour (the whole edge, never a stripe). */
 .lnf-glass { background: var(--panel); border: 1px solid var(--edge); border-radius: 28px; box-shadow: 0 40px 90px -40px rgb(0 0 0 / .8), inset 0 1px 0 rgb(255 255 255 / .16); }
 :root[data-theme$="-light"] .lnf-glass { box-shadow: 0 40px 80px -40px rgb(80 50 10 / .45), inset 0 1px 0 #fff; }
-@supports (backdrop-filter: blur(4px)) { @media (min-width: 900px) { .lnf-stage .lnf-glass, .lnf-round, .lnf-open, .lnf-stage .lnf-quiet { backdrop-filter: blur(18px) saturate(1.3); } } }
+@supports (backdrop-filter: blur(4px)) { @media (min-width: 900px) { .lnf-stage .lnf-glass, .lnf-look > .s-look-btn, .lnf-open, .lnf-stage .lnf-quiet { backdrop-filter: blur(18px) saturate(1.3); } } }
 .lnf-seg { display: inline-flex; margin: 0; padding: 4px; border-radius: 99px; background: var(--panel); border: 1px solid var(--edge); font-size: 13px; font-weight: 700; line-height: 1; }
 .lnf-seg span { padding: 9px 14px; border-radius: 99px; color: var(--mute); } .lnf-seg .lnf-on { background: var(--c1); color: var(--gi); }
 .lnf-share { width: min(400px, 100%); padding: 26px; }
@@ -429,6 +427,10 @@ body { margin: 0; background: var(--ground); }
     .lnf-after { display: flex; justify-content: center; margin-top: 8px; } .lnf-carols { flex-basis: 100%; justify-content: center; text-align: center; }
 }
 @media (max-width: 1180px) and (min-width: 900px) {
+    /* A narrow desktop, as the site header: Game mode shows its switch alone (its name stays for a screen reader), so the
+       top line fits in Spanish too. */
+    .lnf-game .gt-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    .lnf .lnf-game.gt--pill { padding-inline: 8px; }
     .lnf-money { grid-template-columns: 1fr; }
     .lnf-cred-full { display: none; } .lnf-cred-short { display: inline; }
     .lnf-next { display: none; } .lnf-dock { gap: 12px; } .lnf-tp { gap: 8px; }
@@ -439,14 +441,13 @@ body { margin: 0; background: var(--ground); }
     .lnf { --pad: 18px; --top: 96px; --bar: calc(110px + env(safe-area-inset-bottom)); --split: 46svh; --ppb: 66px; --ph: 96px; --tilt: 7deg; }
     .lnf-top { flex-wrap: wrap; align-content: center; gap: 0 8px; }
     .lnf-nav { order: 9; flex: 1; min-width: 0; justify-content: space-between; margin-top: -4px; } .lnf-nav a { min-height: 40px; padding: 0 6px; font-size: 14px; }
-    .lnf-logo { flex: 1; } .lnf-lang { order: 10; margin-top: -4px; } .lnf-lang .lnf-round { height: 40px; border: 0; background: none; padding: 0 6px; }
+    .lnf-logo { flex: 1; }
     .lnf-top::after { content: ""; order: 8; width: 100%; }
-    .lnf-open { padding: 0 14px; font-size: 14px; } .lnf-round { padding: 0 10px; }
-    /* Game mode's switch keeps its name for a screen reader; on a phone its screen and gem say it. */
-    .lnf-game .gt-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-    .lnf .lnf-game.gt { min-height: 44px; padding: 0; border: 0; background: none; box-shadow: none; }
-    .lnf-top .lnf-round[data-lnf-theme] { min-width: 40px; padding: 0; border: 0; background: none; }
-    .lnf[data-top="small"] .lnf-top:not(:focus-within) { --top: 52px; } .lnf[data-top="small"] .lnf-top:not(:focus-within) :is(.lnf-nav, .lnf-lang) { display: none; } .lnf[data-top="small"] .lnf-top:not(:focus-within)::after { display: none; }
+    .lnf-open { padding: 0 14px; font-size: 14px; }
+    /* Game mode is in Language and appearance's menu on a phone, as on every page; the menu opens under the first row. */
+    .lnf-top > .lnf-game { display: none; }
+    .lnf .lnf-look { --lk-top: 56px; }
+    .lnf[data-top="small"] .lnf-top:not(:focus-within) { --top: 52px; } .lnf[data-top="small"] .lnf-top:not(:focus-within) .lnf-nav { display: none; } .lnf[data-top="small"] .lnf-top:not(:focus-within)::after { display: none; }
     /* One still wash of light behind the stage, in place of the five big soft ones. */
     .lnf-bg i { display: none; }
     .lnf-bg { background: radial-gradient(120vw 46svh at 0% 44%, color-mix(in srgb, var(--c1) 24%, transparent), transparent 70%), radial-gradient(120vw 46svh at 100% 70%, color-mix(in srgb, var(--c3) 20%, transparent), transparent 70%), radial-gradient(140vw 40svh at 40% 100%, color-mix(in srgb, var(--c4) 26%, transparent), transparent 70%); }
@@ -505,12 +506,12 @@ body { margin: 0; background: var(--ground); }
     .lnf[data-scene="4"] { --split: 42svh; } .lnf[data-scene="4"] .lnf-deck { inset: 0 18px auto 18px; height: 168px; width: auto; gap: 8px; } .lnf[data-scene="4"] .lnf-ln { flex: 0 0 36px; } .lnf[data-scene="4"] .lnf-lb { top: 0; bottom: 0; } .lnf[data-scene="4"] .lnf-ln::before { height: 22%; width: auto; }
     .lnf-share { transform: none; left: 18px; right: 18px; width: auto; top: calc(var(--split) + 182px); }
 }
-/* The phone's first row holds the name, Game mode, light or dark and Open the app: it tightens as the screen narrows. */
+/* The phone's first row holds the name, Language and appearance and Open the app: it tightens as the screen narrows. */
 @media (max-width: 400px) {
     .lnf-top { gap: 0 5px; } .lnf-logo { font-size: 16px; gap: 7px; } .lnf-open { padding: 0 10px; font-size: 13px; }
 }
 @media (max-width: 374px) {
-    .lnf-top { gap: 0 3px; } .lnf-logo { font-size: 15px; gap: 6px; } .lnf-open { padding: 0 8px; font-size: 12.5px; } .lnf-top .lnf-round[data-lnf-theme] { min-width: 36px; }
+    .lnf-top { gap: 0 3px; } .lnf-logo { font-size: 15px; gap: 6px; } .lnf-open { padding: 0 8px; font-size: 12.5px; }
 }
 @media (max-width: 359px) {
     .lnf-logo span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }

@@ -1352,7 +1352,6 @@ select:disabled {
 .s-nav a[aria-current="page"] { color: var(--color-cream); }
 .s-iconbtn { @apply glass-bubble; width: 44px; height: 44px; flex: none; border-radius: 999px; display: grid; place-items: center; color: var(--color-muted); cursor: pointer; }
 .s-iconbtn:hover { color: var(--color-cream); }
-.s-top > [data-theme-toggle] { display: none; }
 .s-dark-only { display: none; }
 :root[data-theme$="-dark"] .s-dark-only { display: inline; }
 :root[data-theme$="-dark"] .s-light-only { display: none; }
@@ -1362,21 +1361,10 @@ select:disabled {
 .s-menu-panel { position: absolute; inset-inline-end: 0; top: calc(100% + 8px); z-index: 30; width: min(280px, calc(100vw - 32px)); display: grid; padding: 8px; border-radius: 20px; background: var(--color-panel); border: 1px solid var(--color-line); box-shadow: 0 20px 50px color-mix(in srgb, var(--color-cream) 14%, transparent); }
 .s-menu-panel a, .s-menu-panel button { display: flex; align-items: center; gap: 10px; min-height: 48px; padding-inline: 12px; border-radius: 12px; font-weight: 650; color: var(--color-cream); text-align: start; cursor: pointer; }
 .s-menu-panel a:hover, .s-menu-panel button:hover { background: var(--color-raised); }
-/* The language menu (LanguageMenu; Hillel, 2026-11-12: "Header switcher"): a globe and the language's code, never
-   wrapping, in the bar at every width from 320 px; its panel lists each language by its own name. */
-.s-lang { position: relative; flex: none; }
-.s-lang summary { list-style: none; }
-.s-lang summary::-webkit-details-marker { display: none; }
-.s-langbtn { @apply glass-bubble; height: 44px; min-width: 44px; padding-inline: 10px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; color: var(--color-muted); font-size: 13px; font-weight: 750; letter-spacing: .04em; white-space: nowrap; cursor: pointer; }
-.s-langbtn:hover, .s-lang[open] > .s-langbtn { color: var(--color-cream); }
-.s-langbtn > svg { flex: none; }
-.s-lang-panel { position: absolute; inset-inline-end: 0; top: calc(100% + 8px); z-index: 30; min-width: 168px; display: grid; padding: 8px; border-radius: 20px; background: var(--color-panel); border: 1px solid var(--color-line); box-shadow: 0 20px 50px color-mix(in srgb, var(--color-cream) 14%, transparent); }
-.s-lang-panel a { display: flex; align-items: center; min-height: 48px; padding-inline: 12px; border-radius: 12px; font-weight: 650; color: var(--color-cream); white-space: nowrap; }
-.s-lang-panel a:hover, .s-lang-panel a:focus-visible { background: var(--color-raised); }
-.s-lang-panel a[aria-current="true"] { background: var(--color-raised); font-weight: 800; }
-/* On a phone the menu's button sits in the header's left half (the logo, then it, then Open the app and the menu), so its
-   panel opens from the button's start edge: from its end it ran off the screen's start (38 px at 320, both skins). */
-@media (max-width: 47.99rem) { .s-lang-panel { inset-inline-end: auto; inset-inline-start: 0; } }
+/* Language and appearance (x-site.look-menu, the "Language and appearance" block's rules): a globe and the language's
+   code, never wrapping, in the bar at every width from 320 px. On a phone its menu opens under the header, from the
+   header's own edge. */
+.s-top { position: relative; }
 .s-banner { background: var(--color-raised); border-bottom: 1px solid var(--color-line); }
 .s-banner p { display: flex; flex-wrap: wrap; align-items: center; gap: 0 12px; min-height: 48px; padding-block: 6px; font-size: 14.5px; line-height: 1.4; }
 .s-banner .s-lk { white-space: nowrap; }
@@ -1672,9 +1660,13 @@ select:disabled {
 .s-foot-legal { margin-top: 36px; padding-top: 20px; border-top: 1px solid var(--color-line); font-size: 13px; }
 .s-flink { display: inline-flex; align-items: center; min-height: 44px; font-weight: 500; color: var(--color-muted); }
 
-/* With the language menu the bar needs about 410 px: on a narrower phone the mark stands for the name, as below 360. */
+/* With Language and appearance in the bar it needs about 410 px (430 with a language's code): on a narrower phone the
+   mark stands for the name, as below 360. */
+@media (max-width: 419.98px) {
+    .s-top:has(> .s-look) .s-brand .s-word { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
 @media (max-width: 459px) {
-    .s-top:has(> .s-lang) .s-brand .s-word { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .s-top:has(> .s-look--lang) .s-brand .s-word { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }
 
 /* From 360 to 389 px the name, Open the app and the menu all fit, but only just: the button a little narrower keeps the
@@ -1685,6 +1677,10 @@ select:disabled {
 
 @media (max-width: 359px) {
     .s-brand .s-word { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    /* The mark, Language and appearance, Open the app and the menu at 320 in either language: a little closer. */
+    .s-top { gap: 6px; }
+    .s-top > .btn-primary { padding-inline: 14px; }
+    .s-top .s-look--lang > .s-look-btn { padding-inline: 9px; gap: 4px; }
     .s-rv-slots span { font-size: 0; gap: 0; }
     .s-rv-slots i { font-size: 11px; }
 }
@@ -1694,7 +1690,6 @@ select:disabled {
     .s-top { height: calc(80px + env(safe-area-inset-top)); gap: 12px; }
     .s-nav { display: flex; margin-inline-end: 8px; }
     .s-top > .s-menu { display: none; }
-    .s-top > [data-theme-toggle] { display: grid; }
     .s-banner p { justify-content: center; font-size: 15px; }
     .s-hero { padding-block: 36px 0; text-align: center; }
     .s-hero .s-eyebrow { justify-content: center; font-size: 13px; }
@@ -1751,7 +1746,7 @@ select:disabled {
 /* Another language's nav is longer (Spanish: Canciones, Cursos, Herramientas, Precios) and its language button joins the
    row, so at 900 the row ran 33 px into the margin: there the phone header holds until 960. */
 @media (min-width: 900px) and (max-width: 959.98px) {
-    :root:not(:lang(en)) :is(.s-nav, .s-top > [data-theme-toggle]) { display: none; }
+    :root:not(:lang(en)) .s-nav { display: none; }
     :root:not(:lang(en)) .s-top > .s-menu { display: block; }
 }
 
@@ -9265,10 +9260,9 @@ main:has(> .s-close) .s-ink:not(.s-close) { padding-block: var(--k-sec); margin-
 :root[data-skin="game"] body.s-arcade .s-card3d { border-radius: 22px; background: var(--color-panel); border: 1px solid var(--a-line); box-shadow: 0 30px 80px -40px rgb(0 0 0 / .8), 0 0 60px -30px color-mix(in srgb, var(--a-pink) calc(30% * var(--a-glow)), transparent); }
 :root[data-skin="game"] body.s-arcade .s-ink .s-card3d { background: var(--a-raised); }
 /* Game mode's toggle (components/site/game-toggle, the gt- rules below): the pill in the header from
-   900px, the calm row in the phone menu, and the hero's own on the landing. */
+   900px, the calm row in Language and appearance's menu below that, and the hero's own on the landing. */
 .s-top > .gt--pill { display: none; }
 @media (min-width: 900px) { .s-top > .gt--pill { display: inline-flex; } }
-.s-menu-panel .gt--row { padding: 10px 12px; }
 /* Shown once theme-boot keeps the skin (it sets data-skin), so the choice is remembered. */
 :root:not([data-skin]) [data-game-toggle] { display: none !important; }
 /* Words that differ by skin: both are in the page; the other skin's is hidden (no flash, no script). */
@@ -9884,6 +9878,81 @@ main:has(> .s-close) .s-ink:not(.s-close) { padding-block: var(--k-sec); margin-
     .gt-gem { forced-color-adjust: none; background: ButtonText; box-shadow: none; }
     .gt-gem::before { display: none; }
     .gt[aria-checked="true"] .gt-gem--on { background: Highlight; }
+}
+
+/* Language and appearance (components/site/look-menu, js/public/look-menu.js; Hillel, 2026-11-16: "combine the two
+   buttons"): one flat pill in a header, a globe and the language's code (the look's own icon when only English is
+   open), and its menu: Language, Appearance (Light, Dark, Auto) and, below 900 px where the header has no Game mode
+   pill, Game mode. Every rule prefixed s-look and every colour a token below, read from the site's theme tokens; the
+   home page's sheet (css/landing.css) sets them from its own. Game mode's arcade dress is the arcade's block. */
+.s-look {
+    --lk-ink: var(--color-cream, #f8f1e7);
+    --lk-mute: var(--color-muted, #b9ad9e);
+    --lk-btn: var(--color-panel, #14100c);
+    --lk-btn-line: var(--color-edge, #303030);
+    --lk-panel: var(--color-panel, #14100c);
+    --lk-raised: var(--color-raised, #241d17);
+    --lk-line: var(--color-line, #352c26);
+    --lk-em: var(--s-hl-em, #e8b479);
+    position: relative; flex: none;
+}
+.s-look > summary { list-style: none; }
+.s-look > summary::-webkit-details-marker { display: none; }
+.s-look-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    height: 44px; min-width: 44px; padding-inline: 12px; border-radius: 999px;
+    background: var(--lk-btn); box-shadow: inset 0 0 0 1.5px var(--lk-btn-line); color: var(--lk-mute);
+    font-size: 13px; font-weight: 750; letter-spacing: .04em; white-space: nowrap; cursor: pointer; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.s-look:not(.s-look--lang) > .s-look-btn { padding: 0; width: 44px; }
+.s-look-btn:hover, .s-look[open] > .s-look-btn { color: var(--lk-ink); }
+.s-look-btn:focus-visible { outline: 2px solid var(--lk-ink); outline-offset: 2px; }
+.s-look-btn svg { display: block; flex: none; }
+.s-look-code { line-height: 1; }
+.s-look-in-light, .s-look-in-dark { display: inline-flex; }
+:root[data-theme$="-light"] .s-look-in-dark, :root:not([data-theme$="-light"]) .s-look-in-light { display: none; }
+.s-look-panel {
+    position: absolute; z-index: 45; inset-inline-end: 0; top: calc(100% + 8px);
+    width: min(272px, calc(100vw - 32px)); display: grid; gap: 4px; padding: 8px; border-radius: 20px;
+    background: var(--lk-panel); color: var(--lk-ink); border: 1px solid var(--lk-line);
+    box-shadow: 0 20px 50px -12px rgb(0 0 0 / .35);
+    font-size: 15px; font-weight: 400; line-height: 1.3; letter-spacing: normal; text-align: start; text-transform: none;
+}
+.s-look-group + .s-look-group { margin-top: 4px; padding-top: 8px; border-top: 1px solid var(--lk-line); }
+.s-look-h { margin: 4px 12px 6px; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--lk-mute); }
+.s-look-langs { display: grid; margin: 0; padding: 0; list-style: none; }
+.s-look-langs a {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding-inline: 12px;
+    border-radius: 12px; font-weight: 650; color: var(--lk-ink); text-decoration: none; white-space: nowrap;
+}
+.s-look-langs a:hover { background: var(--lk-raised); }
+.s-look-langs svg { flex: none; color: var(--lk-em); visibility: hidden; }
+.s-look-langs a[aria-current="true"] { font-weight: 800; }
+.s-look-langs a[aria-current="true"] svg { visibility: visible; }
+.s-look-seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; margin: 0 4px 4px; padding: 4px; border-radius: 14px; background: var(--lk-raised); }
+.s-look-seg button {
+    appearance: none; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 0;
+    margin: 0; padding: 0 6px; border: 0; border-radius: 10px; background: none;
+    font: inherit; font-size: 14px; font-weight: 700; color: var(--lk-mute); white-space: nowrap; cursor: pointer;
+}
+.s-look-seg button:hover { color: var(--lk-ink); }
+.s-look-seg [aria-pressed="true"] { background: var(--lk-panel); color: var(--lk-ink); box-shadow: inset 0 0 0 1.5px var(--lk-em); }
+.s-look-panel :is(a, button):focus-visible { outline: 2px solid var(--lk-ink); outline-offset: -2px; }
+.s-look-game { display: none; padding-inline: 12px; }
+.s-look-game .gt--row { padding-block: 6px; }
+/* A phone: Game mode joins the menu, and the menu opens under the header from its start edge, as wide as the screen
+   allows (the pill sits mid-bar, so from its own edge it ran off the screen). */
+@media (max-width: 899.98px) {
+    .s-look-game { display: block; }
+}
+@media (max-width: 47.99rem) {
+    .s-look { position: static; }
+    .s-look-panel { inset-inline: var(--lk-gutter, 16px) auto; top: var(--lk-top, calc(100% - 4px)); width: min(320px, calc(100% - 2 * var(--lk-gutter, 16px))); }
+}
+@media (forced-colors: active) {
+    .s-look-btn, .s-look-panel { border: 1px solid ButtonText; }
+    .s-look-seg [aria-pressed="true"] { outline: 2px solid Highlight; }
 }
 
 /* game-elements:start. Game mode's 90s arcade moments (docs/game-elements-plan.md), the game agent's.
@@ -10993,8 +11062,16 @@ main:has(> .s-close) .s-ink:not(.s-close) { padding-block: var(--k-sec); margin-
 /* The tools' frame (marketing's _brand-row and the Theme menu; docs/tools-plan.md, "Tool page frame": "Game: the pixel
    wordmark with its pink shadow, a square Theme button with a hard shadow"): the row's wordmark in the pixel face, the
    Theme button and its menu square and framed, the menu's light/dark switch as the arcade's segmented control. */
-:root[data-skin='game'][data-gs] body.s-arcade :is(.s-tmenu > .s-iconbtn, .s-top .s-iconbtn, .s-top .s-langbtn) { border-radius: 0; background: var(--arc-panel); box-shadow: inset 0 0 0 var(--arc-edge-w) var(--arc-purple), var(--arc-shadow); }
-:root[data-skin='game'][data-gs] body.s-arcade .s-lang-panel a { border-radius: 0; }
+:root[data-skin='game'][data-gs] body.s-arcade :is(.s-tmenu > .s-iconbtn, .s-top .s-iconbtn, .s-top .s-look-btn) { border-radius: 0; background: var(--arc-panel); box-shadow: inset 0 0 0 var(--arc-edge-w) var(--arc-purple), var(--arc-shadow); }
+/* Language and appearance's menu (x-site.look-menu) as the arcade's: square, its headings in the HUD's pixel caps, the
+   languages square rows, Light, Dark and Auto the arcade's segmented control, the one picked lit in cyan. */
+:root[data-skin='game'][data-gs] body.s-arcade .s-look { --lk-ink: var(--color-cream); --lk-mute: var(--color-muted); --lk-raised: var(--arc-bg); --lk-em: var(--arc-cyan); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-look-btn { font-family: var(--a-hud); font-size: 10px; font-weight: 400; letter-spacing: .06em; font-size-adjust: var(--arc-ex, none); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-look-h { font-family: var(--a-hud); font-size: 9.5px; font-weight: 400; color: var(--arc-cyan); font-size-adjust: var(--arc-ex, none); }
+:root[data-skin='game'][data-gs] body.s-arcade :is(.s-look-langs a, .s-look-seg, .s-look-seg button, .s-look-game .gt--row) { border-radius: 0; }
+:root[data-skin='game'][data-gs] body.s-arcade .s-look-seg { background: var(--arc-panel); box-shadow: inset 0 0 0 var(--arc-edge-w) var(--color-cream), var(--arc-shadow); }
+:root[data-skin='game'][data-gs] body.s-arcade .s-look-seg [aria-pressed='true'] { background: var(--arc-cyan); color: var(--arc-bg); box-shadow: none; }
+:root[data-skin='game'][data-gs] body.s-arcade .s-look-group + .s-look-group { border-top: var(--arc-edge-w) solid var(--arc-line); }
 /* The header's nav (marketing's header-nav: Songs, Courses, Tools, Pricing) in the HUD's pixel caps, the page you're on
    underlined in the accent as well as lit (state never by colour alone), and the phone menu a square framed panel on
    the hard shadow. The pixel caps are wider: from 900 px the row ran 31 px into the page's margin (Spanish too), so
@@ -11006,13 +11083,13 @@ main:has(> .s-close) .s-ink:not(.s-close) { padding-block: var(--k-sec); margin-
 :root[data-skin='game'][data-gs] body.s-arcade .s-top > .btn-primary { flex: none; }
 @media (max-width: 359.98px) { :root[data-skin='game'][data-gs] body.s-arcade .s-top > .btn-primary { padding-inline: 8px; font-size: 0.9em; } }
 @media (min-width: 900px) and (max-width: 959.98px) {
-    :root[data-skin='game'][data-gs] body.s-arcade :is(.s-nav, .s-top > [data-theme-toggle]) { display: none; }
+    :root[data-skin='game'][data-gs] body.s-arcade .s-nav { display: none; }
     :root[data-skin='game'][data-gs] body.s-arcade .s-top > .s-menu { display: block; }
 }
 /* Another language's nav is longer in the pixel caps and its language button joins the row (Spanish: 432 px against
    English's 337), so there the phone header holds until 1152. */
 @media (min-width: 900px) and (max-width: 1151.98px) {
-    :root[data-skin='game'][data-gs]:not(:lang(en)) body.s-arcade :is(.s-nav, .s-top > [data-theme-toggle]) { display: none; }
+    :root[data-skin='game'][data-gs]:not(:lang(en)) body.s-arcade .s-nav { display: none; }
     :root[data-skin='game'][data-gs]:not(:lang(en)) body.s-arcade .s-top > .s-menu { display: block; }
 }
 /* The landing's closing heading in another language (Spanish's "encontrarla." is 353 px in the pixel face at 38 px, its
@@ -11024,7 +11101,7 @@ main:has(> .s-close) .s-ink:not(.s-close) { padding-block: var(--k-sec); margin-
 :root[data-skin='game'][data-gs] body.s-arcade .s-gmixer .s-mixer { border-radius: 0; border: var(--arc-frame) solid var(--color-accent); box-shadow: var(--arc-shadow); }
 :root[data-skin='game'][data-gs] body.s-arcade .s-gmixer :is(.s-ch, .s-ch-pick, .s-play, .s-you) { border-radius: 0; }
 :root[data-skin='game'][data-gs] body.s-arcade .s-gstep .s-disc { border-radius: 0; font-family: var(--a-hud); font-size: 13px; font-weight: 400; font-size-adjust: var(--arc-ex, none); }
-:root[data-skin='game'][data-gs] body.s-arcade :is(.s-tmenu-panel, .s-lang-panel) { border-radius: 0; border: var(--arc-edge-w) solid var(--arc-purple); background: var(--arc-panel); box-shadow: var(--arc-shadow); }
+:root[data-skin='game'][data-gs] body.s-arcade :is(.s-tmenu-panel, .s-look-panel) { border-radius: 0; border: var(--arc-edge-w) solid var(--arc-purple); background: var(--arc-panel); box-shadow: var(--arc-shadow); }
 :root[data-skin='game'][data-gs] body.s-arcade .s-tmenu :is(.s-seg2, .s-seg2 button, .s-tmenu-sw) { border-radius: 0; }
 :root[data-skin='game'][data-gs] body.s-arcade .s-tmenu .s-seg2 { background: var(--arc-panel); box-shadow: inset 0 0 0 var(--arc-edge-w) var(--color-cream), var(--arc-shadow); }
 /* Below a tool (marketing's About panel and More free tools; docs/tools/below-the-fold.md, "Both skins"): the panel

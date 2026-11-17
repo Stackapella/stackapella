@@ -554,8 +554,9 @@ final class LanguagesTest extends TestCase
         config(['app.is_nexus' => true, 'app.coming_soon' => false]);
         app(SyncOfficialTemplates::class)->handle();
 
-        // Only English open: no menu.
-        $this->get('/songs/amazing-grace')->assertOk()->assertDontSee('data-lang-menu', false);
+        // Only English open: no languages; the pill is the look's own icon, its menu Appearance alone.
+        $this->get('/songs/amazing-grace')->assertOk()->assertDontSee('data-lang-menu', false)
+            ->assertSee('class="s-look" data-look-menu', false)->assertSee('aria-label="Language and appearance"', false)->assertSee('s-look-in-light', false);
 
         app(Flags::class)->set('lang_es', 'on', null, 'Spanish checked');
         $english = (string) $this->get('/songs/amazing-grace')->assertOk()->getContent();
@@ -566,12 +567,16 @@ final class LanguagesTest extends TestCase
         $spanish = (string) $this->get('/es/songs/amazing-grace')->assertOk()->getContent();
         $this->assertStringContainsString('href="'.Hosts::publicUrl().'/songs/amazing-grace" hreflang="en" lang="en" data-lang-choice="en"', $spanish);
         $this->assertMatchesRegularExpression('/data-lang-choice="es"\s+aria-current="true"/', $spanish);
-        // Open the app opens in Spanish too, and the menu sits just before it (Hillel: "between the light/dark toggle and
-        // open the app buttons").
+        // Open the app opens in Spanish too, and the languages and light and dark are one pill just before it (Hillel,
+        // 2026-11-16: "combine the two buttons"), named in Spanish with its globe and code.
         $this->assertStringContainsString('lang=es', (string) str($spanish)->before('" class="btn-primary"')->afterLast('href="'));
-        $this->assertStringContainsString('</details>', (string) str($spanish)->after('data-lang-menu')->before('class="btn-primary"'));
-        $this->assertStringNotContainsString('data-theme-toggle', (string) str($spanish)->after('data-lang-menu')->before('class="btn-primary"'));
-        $this->assertStringContainsString('data-theme-toggle', (string) str($spanish)->after('class="s-wrap s-top"')->before('data-lang-menu'));
+        $look = (string) str($spanish)->after('class="s-wrap s-top"')->before('class="btn-primary"')->after('data-look-menu');
+        $this->assertStringContainsString('</details>', $look);
+        $this->assertStringContainsString('data-lang-menu', $look);
+        $this->assertStringContainsString('data-look-mode="system"', $look);
+        $this->assertStringContainsString('aria-label="Idioma y apariencia: Español"', $look);
+        $this->assertStringContainsString('>ES</span>', $look);
+        $this->assertStringNotContainsString('data-theme-toggle', $spanish);
 
         // A page with no Spanish twin offers the Spanish home.
         $this->assertStringContainsString('href="'.Hosts::publicUrl().'/es" hreflang="es"', (string) $this->get('/legal/terms')->getContent());

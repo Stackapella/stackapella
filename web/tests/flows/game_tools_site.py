@@ -76,8 +76,8 @@ def check(f, path):
     if f.js("!!document.querySelector('.s-tbrand')"):
         if f.js("!!document.querySelector('[data-tool-key] > *')"):
             assert f.js("getComputedStyle(document.querySelector('[data-tool-key] > *')).borderTopLeftRadius") == "0px", f"{path}: a square key control"
-    # The site header's icon buttons (the menu, light and dark) square.
-    shown = "[...document.querySelectorAll('.s-top .s-iconbtn')].filter((b) => b.offsetWidth)"
+    # The site header's icon buttons (the menu) and Language and appearance's pill square.
+    shown = "[...document.querySelectorAll('.s-top .s-iconbtn, .s-top .s-look-btn')].filter((b) => b.offsetWidth)"
     if f.js(f"{shown}.length"):
         assert f.js(f"{shown}.every((b) => getComputedStyle(b).borderTopLeftRadius === '0px')"), f"{path}: a round icon button in the header"
     # Below the tool: the About panel framed like the stage card, the directory's tiles square.

@@ -77,10 +77,14 @@ final class LandingStagePageTest extends TestCase
         $this->amazingGrace();
 
         $html = (string) $this->get('/')->assertOk()->getContent();
-        // The same control as the site header's (its component), once, before light and dark.
-        $this->assertSame(1, substr_count($html, 'data-game-toggle'));
+        // The same control as the site header's (its component), before Language and appearance, and again in that
+        // menu for a phone (Hillel, 2026-11-16: "combine the two buttons"); light and dark only there.
+        $this->assertSame(2, substr_count($html, 'data-game-toggle'));
         $this->assertStringContainsString('role="switch"', $html);
-        $this->assertLessThan(strpos($html, 'data-lnf-theme'), strpos($html, 'data-game-toggle'));
+        $this->assertLessThan(strpos($html, 'data-look-menu'), strpos($html, 'data-game-toggle'));
+        $this->assertSame(1, substr_count($html, 'data-look-menu'));
+        $this->assertSame(3, substr_count($html, 'data-look-mode="'));
+        $this->assertStringNotContainsString('data-lnf-theme', $html);
         $this->assertStringContainsString('/css/game-toggle.css', $html);
         // Its rules are the site sheet's own block, copied as it is: the copy never drifts.
         $web = (string) config('app.web_path');

@@ -250,6 +250,14 @@ return [
         'credit' => 'Stackapella, by Hillel Coren',
         'menu' => 'Menu',
         'theme' => 'Switch between light and dark',
+        // Language and appearance, the header's one pill (x-site.look-menu; Hillel, 2026-11-16: "combine the two
+        // buttons"): its name (read with the current values after it), its groups and Light, Dark or Auto (the device's).
+        'look' => 'Language and appearance',
+        'look_language' => 'Language',
+        'appearance' => 'Appearance',
+        'light' => 'Light',
+        'dark' => 'Dark',
+        'auto' => 'Auto',
         'coming_soon' => 'Coming soon',
     ],
 

@@ -25,9 +25,48 @@ def tab_to(f, selector, limit=60):
     raise AssertionError(f"never reached {selector} by Tab")
 
 
+def look_menu(f):
+    """Language and appearance (the header's one pill; Hillel, 2026-11-16: "combine the two buttons"): Enter opens it on
+    the current choice, the arrows move, Tab stays inside, a look keeps it open, Escape closes it and focus goes back."""
+    pill = "document.querySelector('header.s-top [data-look-menu] > summary')"
+    f.run(f"{pill}.focus()")
+    assert f.js(f"{pill}.getAttribute('aria-expanded')") == "false", "closed, and says so"
+    name = f.js(f"{pill}.getAttribute('aria-label')")
+    assert name.startswith("Language and appearance: "), f"the pill's name says its values: {name}"
+    f.press("Enter")
+    f.wait(f"document.querySelector('header.s-top [data-look-menu]').open && {pill}.getAttribute('aria-expanded') === 'true'", timeout=5, what="Enter opens it, and it says so")
+    start = f.js("document.activeElement?.matches('[data-lang-choice][aria-current=true], [data-look-mode][aria-pressed=true]') ?? false")
+    assert start, "focus is on the current choice"
+    assert f.js(SHOWN), "focus is shown there"
+    first = f.js("document.activeElement.textContent.trim()")
+    f.press("ArrowDown")
+    assert f.js("document.activeElement.textContent.trim()") != first, "the arrows move"
+    for _ in range(8):
+        f.press("Tab")
+        assert f.js("!!document.activeElement.closest('header.s-top .s-look-panel')"), "Tab stays inside while it's open"
+    f.run("document.querySelector('header.s-top [data-look-mode=light]').focus()")
+    f.press("Enter")
+    f.wait("document.documentElement.dataset.theme.endsWith('-light')", timeout=5, what="Light")
+    assert f.js("document.querySelector('header.s-top [data-look-menu]').open"), "a look keeps it open"
+    assert f.js("document.querySelector('header.s-top [data-look-mode=light]').getAttribute('aria-pressed')") == "true", "Light says it's picked"
+    phone = f.js("innerWidth < 900")
+    game_row = f.js("getComputedStyle(document.querySelector('header.s-top .s-look-game')).display") != "none"
+    assert game_row == phone, f"Game mode is in the menu on a phone only: {game_row}"
+    f.shot("look-open")
+    f.press("Escape")
+    f.wait("!document.querySelector('header.s-top [data-look-menu]').open", timeout=5, what="Escape closes it")
+    assert f.js(f"document.activeElement === {pill}"), "and focus goes back to the pill"
+    f.run("document.querySelector('header.s-top [data-look-menu]').open = true")
+    f.run("document.querySelector('header.s-top [data-look-mode=dark]').click()")
+    f.wait("document.documentElement.dataset.theme.endsWith('-dark')", timeout=5, what="Dark again")
+    f.run("document.querySelector('header.s-top [data-look-menu]').open = false")
+
+
 def journey(f):
     # The player asks for the song's recording on the media host, which a local server doesn't run.
     f.expected_errors.append("/media/song-audio/")
+    f.go("/songs/amazing-grace", "document.querySelector('#song-mixer')?.hasAttribute('data-ready')")
+    look_menu(f)
     f.go("/songs/amazing-grace", "document.querySelector('#song-mixer')?.hasAttribute('data-ready')")
     # The part you sing comes first (the hero's left column): one stop, the arrows move the choice.
     tab_to(f, "#song-mixer [data-pick]")

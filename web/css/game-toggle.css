@@ -1,6 +1,7 @@
-/* The Game mode switch's rules for a page with a sheet of its own (/next-final): css/input.css's block, from "The Game
-   mode toggle" to "game-elements:start", copied as it is. Never edit it here: change input.css and copy the block
-   again (server/tests/Feature/Pages/NextFinalPageTest.php fails while the two differ). */
+/* The Game mode switch's rules, and Language and appearance's, for a page with a sheet of its own (the home page):
+   css/input.css's block, from "The Game mode toggle" to "game-elements:start", copied as it is. Never edit it here:
+   change input.css and copy the block again (server/tests/Feature/Pages/LandingStagePageTest.php fails while the two
+   differ). */
 /* The Game mode toggle (the design agent's, designs/game-toggle; js/game-toggle.js): a tiny arcade
    screen with a note gem for its knob. Self-contained, every rule prefixed gt-. */
 /* ==========================================================================
@@ -436,4 +437,79 @@
     .gt-gem { forced-color-adjust: none; background: ButtonText; box-shadow: none; }
     .gt-gem::before { display: none; }
     .gt[aria-checked="true"] .gt-gem--on { background: Highlight; }
+}
+
+/* Language and appearance (components/site/look-menu, js/public/look-menu.js; Hillel, 2026-11-16: "combine the two
+   buttons"): one flat pill in a header, a globe and the language's code (the look's own icon when only English is
+   open), and its menu: Language, Appearance (Light, Dark, Auto) and, below 900 px where the header has no Game mode
+   pill, Game mode. Every rule prefixed s-look and every colour a token below, read from the site's theme tokens; the
+   home page's sheet (css/landing.css) sets them from its own. Game mode's arcade dress is the arcade's block. */
+.s-look {
+    --lk-ink: var(--color-cream, #f8f1e7);
+    --lk-mute: var(--color-muted, #b9ad9e);
+    --lk-btn: var(--color-panel, #14100c);
+    --lk-btn-line: var(--color-edge, #303030);
+    --lk-panel: var(--color-panel, #14100c);
+    --lk-raised: var(--color-raised, #241d17);
+    --lk-line: var(--color-line, #352c26);
+    --lk-em: var(--s-hl-em, #e8b479);
+    position: relative; flex: none;
+}
+.s-look > summary { list-style: none; }
+.s-look > summary::-webkit-details-marker { display: none; }
+.s-look-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    height: 44px; min-width: 44px; padding-inline: 12px; border-radius: 999px;
+    background: var(--lk-btn); box-shadow: inset 0 0 0 1.5px var(--lk-btn-line); color: var(--lk-mute);
+    font-size: 13px; font-weight: 750; letter-spacing: .04em; white-space: nowrap; cursor: pointer; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.s-look:not(.s-look--lang) > .s-look-btn { padding: 0; width: 44px; }
+.s-look-btn:hover, .s-look[open] > .s-look-btn { color: var(--lk-ink); }
+.s-look-btn:focus-visible { outline: 2px solid var(--lk-ink); outline-offset: 2px; }
+.s-look-btn svg { display: block; flex: none; }
+.s-look-code { line-height: 1; }
+.s-look-in-light, .s-look-in-dark { display: inline-flex; }
+:root[data-theme$="-light"] .s-look-in-dark, :root:not([data-theme$="-light"]) .s-look-in-light { display: none; }
+.s-look-panel {
+    position: absolute; z-index: 45; inset-inline-end: 0; top: calc(100% + 8px);
+    width: min(272px, calc(100vw - 32px)); display: grid; gap: 4px; padding: 8px; border-radius: 20px;
+    background: var(--lk-panel); color: var(--lk-ink); border: 1px solid var(--lk-line);
+    box-shadow: 0 20px 50px -12px rgb(0 0 0 / .35);
+    font-size: 15px; font-weight: 400; line-height: 1.3; letter-spacing: normal; text-align: start; text-transform: none;
+}
+.s-look-group + .s-look-group { margin-top: 4px; padding-top: 8px; border-top: 1px solid var(--lk-line); }
+.s-look-h { margin: 4px 12px 6px; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--lk-mute); }
+.s-look-langs { display: grid; margin: 0; padding: 0; list-style: none; }
+.s-look-langs a {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding-inline: 12px;
+    border-radius: 12px; font-weight: 650; color: var(--lk-ink); text-decoration: none; white-space: nowrap;
+}
+.s-look-langs a:hover { background: var(--lk-raised); }
+.s-look-langs svg { flex: none; color: var(--lk-em); visibility: hidden; }
+.s-look-langs a[aria-current="true"] { font-weight: 800; }
+.s-look-langs a[aria-current="true"] svg { visibility: visible; }
+.s-look-seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; margin: 0 4px 4px; padding: 4px; border-radius: 14px; background: var(--lk-raised); }
+.s-look-seg button {
+    appearance: none; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 0;
+    margin: 0; padding: 0 6px; border: 0; border-radius: 10px; background: none;
+    font: inherit; font-size: 14px; font-weight: 700; color: var(--lk-mute); white-space: nowrap; cursor: pointer;
+}
+.s-look-seg button:hover { color: var(--lk-ink); }
+.s-look-seg [aria-pressed="true"] { background: var(--lk-panel); color: var(--lk-ink); box-shadow: inset 0 0 0 1.5px var(--lk-em); }
+.s-look-panel :is(a, button):focus-visible { outline: 2px solid var(--lk-ink); outline-offset: -2px; }
+.s-look-game { display: none; padding-inline: 12px; }
+.s-look-game .gt--row { padding-block: 6px; }
+/* A phone: Game mode joins the menu, and the menu opens under the header from its start edge, as wide as the screen
+   allows (the pill sits mid-bar, so from its own edge it ran off the screen). */
+@media (max-width: 899.98px) {
+    .s-look-game { display: block; }
+}
+@media (max-width: 47.99rem) {
+    .s-look { position: static; }
+    .s-look-panel { inset-inline: var(--lk-gutter, 16px) auto; top: var(--lk-top, calc(100% - 4px)); width: min(320px, calc(100% - 2 * var(--lk-gutter, 16px))); }
+}
+@media (forced-colors: active) {
+    .s-look-btn, .s-look-panel { border: 1px solid ButtonText; }
+    .s-look-seg [aria-pressed="true"] { outline: 2px solid Highlight; }
 }

@@ -44,6 +44,11 @@ import flow  # noqa: E402
 
 SITE = os.environ.get("SITE", "http://127.0.0.1:8412")
 READY = "document.querySelector('[data-lnf]')?.dataset.ready !== undefined && document.getElementById('lnf')?.hasAttribute('data-ready')"
+# Light or dark, from the top line's Language and appearance (the site header's own pill; Hillel, 2026-11-16: "combine
+# the two buttons"): the menu opened, the other look pressed, the menu closed.
+FLIP = """(() => { const menu = document.querySelector('.lnf-top [data-look-menu]'); menu.open = true;
+    const light = (document.documentElement.dataset.theme ?? '').endsWith('-light');
+    menu.querySelector(`[data-look-mode=${light ? 'dark' : 'light'}]`).click(); menu.open = false; })()"""
 # Every beacon the page sends, and every request for sound, kept for the checks.
 WATCH = """window.__beacons = []; const send = Navigator.prototype.sendBeacon;
     Navigator.prototype.sendBeacon = function (url, data) { try { data?.text?.().then((t) => window.__beacons.push([String(url), t])); } catch (e) { window.__beacons.push([String(url), '']); } return send.apply(this, arguments); };"""
@@ -209,9 +214,17 @@ def strip(f):
 
 
 def game_switch(f):
-    """The top line's Game mode switch is the site's own: it turns the skin, the choice is kept, the page dresses for it."""
+    """The top line's Game mode switch is the site's own: it turns the skin, the choice is kept, the page dresses for it.
+    On a phone it's in Language and appearance's menu, as on every page (Hillel, 2026-11-16: "combine the two buttons")."""
     f.run("window.scrollTo(0, 0)")
-    switch = "document.querySelector('.lnf-top [data-game-toggle]')"
+    phone = f.js("innerWidth < 900")
+    if phone:
+        assert f.js("getComputedStyle(document.querySelector('.lnf-top > .lnf-game')).display") == "none", "no Game mode pill in a phone's top line"
+        f.run("document.querySelector('.lnf-top [data-look-menu]').open = true")
+        switch = "document.querySelector('.lnf-top .s-look-game [data-game-toggle]')"
+    else:
+        assert f.js("getComputedStyle(document.querySelector('.lnf-top .s-look-game')).display") == "none", "on a desktop the menu has no second Game mode"
+        switch = "document.querySelector('.lnf-top > [data-game-toggle]')"
     assert f.js(f"{switch}.getAttribute('role')") == "switch" and f.js(f"{switch}.getAttribute('aria-checked')") == "false", "the switch, off in the calm skin"
     assert "Game mode" in f.js(f"{switch}.textContent"), "it has its name"
     box = f.js(f"(() => {{ const r = {switch}.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height), r.left >= 0 && r.right <= innerWidth]; }})()")
@@ -231,6 +244,7 @@ def game_switch(f):
     f.wait("document.documentElement.dataset.skin === 'serious'", timeout=5, what="game mode off again")
     assert f.js(f"{switch}.getAttribute('aria-checked')") == "false", "the switch says off"
     f.wait(f"{headline}.includes('Figtree')", timeout=5, what="the calm page again")
+    f.run("document.querySelector('.lnf-top [data-look-menu]').open = false")
 
 
 def recorded_only(base, size):
@@ -345,15 +359,17 @@ def scenes(f, before):
 
 
 def theme(f):
-    """Light and dark by the top line's switch, the site's own stored choice."""
+    """Light and dark by the top line's Language and appearance, the site's own stored choice."""
     was = f.js("document.documentElement.dataset.theme")
     ground = f.js("getComputedStyle(document.querySelector('.lnf')).backgroundColor")
-    f.run("document.querySelector('[data-lnf-theme]').click()")
+    pill = f.js("(() => { const r = document.querySelector('.lnf-top .s-look-btn').getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height), r.left >= 0 && r.right <= innerWidth]; })()")
+    assert pill[0] >= 44 and pill[1] >= 44 and pill[2], f"the pill is big enough to press, inside the top line: {pill}"
+    f.run(FLIP)
     f.wait(f"document.documentElement.dataset.theme !== {was!r}", timeout=5, what="the other look")
     now = f.js("document.documentElement.dataset.theme")
     assert was.endswith("-light") != now.endswith("-light"), f"the switch changes light and dark: {was} then {now}"
     assert f.js("getComputedStyle(document.querySelector('.lnf')).backgroundColor") != ground, "the page's ground follows"
-    f.run("document.querySelector('[data-lnf-theme]').click()")
+    f.run(FLIP)
     f.wait(f"document.documentElement.dataset.theme === {was!r}", timeout=5, what="the first look again")
 
 

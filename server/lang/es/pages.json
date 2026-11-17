@@ -1579,5 +1579,10 @@
     ":part from :low to :high": ":part de :low a :high",
     "Download": "Descargar",
     "Close": "Cerrar",
-    "Parts": "Voces"
+    "Parts": "Voces",
+    "Language and appearance": "Idioma y apariencia",
+    "Appearance": "Apariencia",
+    "Light": "Claro",
+    "Dark": "Oscuro",
+    "Auto": "Automático"
 }

@@ -26,7 +26,7 @@ ROW = """(() => {
   const first = [...document.body.children].find((el) => el.tagName !== 'SCRIPT');
   const name = [...(row?.querySelectorAll('.s-brand span') ?? [])].find((s) => s.textContent.trim() === 'Stackapella');
   return JSON.stringify({ first: first === row, top: row ? Math.round(row.getBoundingClientRect().top) : null,
-    mark: seen(row?.querySelector('.s-brand svg:not(.s-hat)')), name: seen(name), theme: innerWidth < 900 || seen(row?.querySelector(':scope > [data-theme-toggle]')), barTheme: !!bar?.querySelector('[data-theme-menu-button], [data-theme-toggle]'),
+    mark: seen(row?.querySelector('.s-brand svg:not(.s-hat)')), name: innerWidth < 420 || seen(name), theme: seen(row?.querySelector(':scope > [data-look-menu] > summary')), barTheme: !!bar?.querySelector('[data-theme-menu-button], [data-theme-toggle], [data-look-menu]'),
     home: row?.querySelector('.s-brand')?.getAttribute('href') ?? null });
 })()"""
 

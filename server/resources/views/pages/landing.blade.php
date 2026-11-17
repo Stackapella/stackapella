@@ -87,21 +87,11 @@
                 <a href="{{ $toolsUrl }}">{{ __('pages.nav.tools') }}</a>
                 <a href="/pricing">{{ __('pages.nav.pricing') }}</a>
             </nav>
-            {{-- Game mode on or off: the site header's own switch, where it has it (before light and dark). --}}
+            {{-- Game mode on or off: the site header's own switch, where it has it (before Language and appearance); on a
+                 phone it's in that pill's menu, as on every page. --}}
             <x-site.game-toggle size="pill" class="lnf-game" />
-            <button type="button" class="lnf-round" data-lnf-theme aria-label="{{ __('pages.nav.theme') }}"><span class="lnf-in-light"><x-site.icon name="moon" size="18" /></span><span class="lnf-in-dark"><x-site.icon name="sun" size="18" /></span></button>
-            @php($languages = \App\Support\Languages\LanguageMenu::for(request())['choices'] ?? [])
-            @if (count($languages) > 1)
-                @php($here = collect($languages)->firstWhere('current', true))
-                <details class="lnf-lang" data-lang-menu>
-                    <summary class="lnf-round" aria-label="{{ __('pages.nav.language', ['language' => $here['name'] ?? '']) }}"><x-site.icon name="globe" size="18" /><span aria-hidden="true">{{ strtoupper($here['code'] ?? '') }}</span></summary>
-                    <ul role="list">
-                        @foreach ($languages as $choice)
-                            <li><a href="{{ $choice['url'] }}" hreflang="{{ $choice['code'] }}" lang="{{ $choice['code'] }}" data-lang-choice="{{ $choice['code'] }}" @if ($choice['current']) aria-current="true" @endif>{{ $choice['name'] }}</a></li>
-                        @endforeach
-                    </ul>
-                </details>
-            @endif
+            {{-- Language and appearance, the site header's own pill (Hillel, 2026-11-16: "combine the two buttons"). --}}
+            <x-site.look-menu class="lnf-look" />
             <a href="{{ $links['app'] }}" class="lnf-open">{{ __('pages.nav.open_app') }}</a>
         </header>
 
@@ -415,7 +405,6 @@
     @php($funnelData = $funnel ?? ['counts' => false, 'experiment' => null])
     <script type="application/json" data-funnel>@json($funnelData)</script>
     <script type="module" src="/js/public/funnel.js"></script>
-    <script type="module" src="/js/public/lang-menu.js"></script>
     <script type="module" src="/js/public/mixer.js"></script>
     <script type="module" src="/js/public/landing.js"></script>
 </body>

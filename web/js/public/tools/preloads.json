@@ -377,11 +377,12 @@
   "/js/public/landing.js": [
     "/js/public/landing.js"
   ],
-  "/js/public/lang-menu.js": [
-    "/js/public/lang-menu.js"
-  ],
   "/js/public/lesson-try.js": [
     "/js/public/lesson-try.js"
+  ],
+  "/js/public/look-menu.js": [
+    "/js/public/look-menu.js",
+    "/js/public/lang-menu.js"
   ],
   "/js/public/mixer.js": [
     "/js/public/mixer.js",
