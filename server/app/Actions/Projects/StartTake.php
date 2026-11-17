@@ -15,6 +15,7 @@ use App\Support\Storage\Uploads;
 use App\Support\Sync\SyncSeq;
 use App\Support\Trust\TrustLevel;
 use App\Support\Usage\Plans;
+use App\Support\Usage\PrivateSongs;
 use App\Support\Usage\UploadBytes;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -28,7 +29,7 @@ use Illuminate\Validation\ValidationException;
  */
 final class StartTake
 {
-    public function __construct(private readonly Plans $plans, private readonly TrustLevel $trust, private readonly SyncSeq $seq, private readonly Uploads $uploads, private readonly UploadBytes $bytes) {}
+    public function __construct(private readonly Plans $plans, private readonly TrustLevel $trust, private readonly SyncSeq $seq, private readonly Uploads $uploads, private readonly UploadBytes $bytes, private readonly PrivateSongs $private) {}
 
     /**
      * @param  array{id: string, partId: string, sampleRate: int, frames: int, offsetFrames: int, bytes: int, sha256: string, scores?: array<string, mixed>|null}  $data
@@ -92,9 +93,16 @@ final class StartTake
 
         $this->plans->ensureEditable($owner, $part->project);
 
+        // A shared private arrangement: every person's own Plus, the owner's too, and nobody's covers anyone else's
+        // (the plus_private switch, Hillel 2026-11-17: "They keep singing" when the creator's Plus ends).
+        if ($this->private->needsPlusFor($user, $part->project)) {
+            throw PrivateSongs::refusal();
+        }
+
         // A friend singing on someone's song: only while its owner has Plus (docs/pricing-plan.md, 2026-11-12). The
-        // owner singing their own song alone is always free.
-        if ($part->project->user_id !== $user->id && ! $this->plans->sharedOpen($owner)) {
+        // owner singing their own song alone is always free. Not a private arrangement while plus_private is on: there
+        // each person's own Plus decides, above.
+        if ($part->project->user_id !== $user->id && ! $this->private->governs($part->project) && ! $this->plans->sharedOpen($owner)) {
             throw new Refusal(403, 'shared_paused');
         }
 

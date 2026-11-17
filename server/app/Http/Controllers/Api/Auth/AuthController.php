@@ -122,6 +122,9 @@ final class AuthController extends Controller
             // Teaming up is Plus (the plus_teams switch, docs/pricing-plan.md): the app asks for Plus before Start a group and
             // Invite singers, and shows paused songs and choirs, only while it's on.
             'plusTeams' => $flags->on('plus_teams'),
+            // Shared private arrangements need everyone's own Plus (the plus_private switch, Hillel 2026-11-17): the app
+            // shows the Plus sheet on opening one without Plus, and says so on the Plus page, only while it's on.
+            'plusPrivate' => $flags->on('plus_private'),
             // The browser error reporter's DSN (public by design: its envelopes come to /log/errors).
             'sentryDsn' => is_string($dsn = config('sentry.browser_dsn')) && $dsn !== '' ? $dsn : null,
         ]]);

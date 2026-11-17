@@ -32,9 +32,11 @@ const MOMENTS = {
     // Teaming up is Plus (docs/pricing-plan.md, top): starting a choir group, inviting a friend (frontend's words).
     group_start: tk('plus.moment.groupStart'),
     invite_friend: tk('plus.moment.inviteFriend'),
+    // Shared private arrangements need everyone's own Plus (plus_private, Hillel 2026-11-17).
+    private_shared: tk('plus.moment.privateShared'),
 };
 // Once Plus is on, the way back to what led here (components/plus-moment.js keepNext), by its moment.
-const NEXT_WORDS = { group_start: tk('plus.next.groupStart'), invite_friend: tk('plus.next.inviteFriend') };
+const NEXT_WORDS = { group_start: tk('plus.next.groupStart'), invite_friend: tk('plus.next.inviteFriend'), private_shared: tk('plus.next.inviteFriend') };
 const CARRY_ON = tk('plus.next.carryOn');
 // docs/features.md, "Free and Plus, side by side": the extras Plus adds for you, then what's free for every
 // singer. `free: null` is a dash (Free hasn't it); a row the same on both shows only under Everything.

@@ -91,9 +91,10 @@
             "enum": [
                 "limit",
                 "plus_ended",
+                "plus_needed",
                 null
             ],
-            "description": "Readable (and exportable as WAV), not editable: beyond a plan's project limit after a downgrade (only where an install sets one; none does since 2026-11-07). Null: editable. `plus_ended`: a friend's view of someone's song whose owner's Plus has ended: paused, listen and keep every take, record nothing new (docs/pricing-plan.md, 2026-11-12)."
+            "description": "Readable (and exportable as WAV), not editable: beyond a plan's project limit after a downgrade (only where an install sets one; none does since 2026-11-07). Null: editable. `plus_ended`: a friend's view of someone's song whose owner's Plus has ended: paused, listen and keep every take, record nothing new (docs/pricing-plan.md, 2026-11-12). `plus_needed`: a shared private arrangement (a live link, or another singer on it) and the viewer, its owner too, has no Plus of their own, with the plus_private switch on: listed, every take kept, nothing new recorded, and the app shows the Plus sheet on opening it (Hillel, 2026-11-17)."
         }
     }
 }

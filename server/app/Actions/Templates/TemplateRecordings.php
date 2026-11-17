@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Support\Storage\ReceivedUploads;
 use App\Support\Storage\Uploads;
 use App\Support\Usage\Plans;
+use App\Support\Usage\PrivateSongs;
 use DateTimeInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -46,6 +47,9 @@ final class TemplateRecordings
 
                 return $existing;
             }
+
+            // A shared private arrangement is read-only for a creator without Plus (plus_private, Hillel 2026-11-17).
+            app(PrivateSongs::class)->ensureMayOpen($user, $template);
 
             $parts = array_column((array) ($template->currentVersion->data['parts'] ?? []), 'key');
 

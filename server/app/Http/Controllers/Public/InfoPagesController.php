@@ -20,6 +20,7 @@ use App\Support\Site\SitePages;
 use App\Support\Site\Teams;
 use App\Support\Templates\Catalogue;
 use App\Support\Trust\Country;
+use App\Support\Usage\PrivateSongs;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -94,6 +95,12 @@ final class InfoPagesController extends Controller
         $rows = (array) Teams::words('pages.pricing.rows');
         // Coaching only once it's open (it waits for after launch, docs/decisions.md).
         $groups = ComingSoon::open('coaching') ? self::PRICING_GROUPS : array_map(static fn (array $keys): array => array_values(array_diff($keys, ['coaching'])), self::PRICING_GROUPS);
+        // Shared private arrangements need everyone's own Plus while the plus_private switch is on (Hillel, 2026-11-17).
+        $private = app(PrivateSongs::class)->on();
+        if ($private) {
+            $rows['private_shared'] = (array) Lang::get('pages.pricing.private_row');
+            $groups['others'] = [...$groups['others'], 'private_shared'];
+        }
 
         return response()->view('pages.pricing', [
             'title' => __('pages.pricing.title'),
@@ -111,6 +118,7 @@ final class InfoPagesController extends Controller
             'smallPrint' => (array) Lang::get('pages.pricing.small_print'),
             'faq' => array_map(static fn (array $qa): array => [$qa[0], str_replace(':days', (string) config('billing.trial_days'), (string) $qa[1])], [
                 ...(array) Teams::words('pages.pricing.faq'),
+                ...($private ? [(array) Lang::get('pages.pricing.faq_private')] : []),
                 ...(OpenSource::on() ? [(array) Lang::get('pages.pricing.faq_selfhost')] : []),
             ]),
         ], 200, $this->headers(varies: true));

@@ -139,7 +139,7 @@ async function send(record, { retried = false } = {}) {
         // still to send when it's newer than what went.
         const now = (await db.get('templates', record.id)) ?? record;
         const newer = JSON.stringify(now.template) !== JSON.stringify(record.template) || now.visibility !== record.visibility || now.libraryOptIn !== record.libraryOptIn;
-        return keep({ ...now, savedVersion: data.version, state: data.readOnly ? 'readOnly' : 'saved', pending: newer, ...(data.imported ? { imported: true } : {}), ...(newer ? {} : { visibility: data.visibility, libraryOptIn: data.libraryOptIn }) });
+        return keep({ ...now, savedVersion: data.version, state: data.readOnly ? 'readOnly' : 'saved', pending: newer, plusNeeded: data.plusNeeded === true, given: data.given === true, plusRefused: record.plusRefused === true && data.visibility === 'private', ...(data.imported ? { imported: true } : {}), ...(newer ? {} : { visibility: data.visibility, libraryOptIn: data.libraryOptIn }) });
     } catch (error) {
         if (!(error instanceof ApiError)) throw error;
         const now = (await db.get('templates', record.id)) ?? record;
@@ -154,6 +154,17 @@ async function send(record, { retried = false } = {}) {
             // until the template changes (a 422 used to be resent on every sync).
             console.warn('The account refused the template', error.errors);
             return keep({ ...now, state: 'invalid', invalid: { reasons: problemsIn(error), for: JSON.stringify(now.template), round: REFUSAL_ROUND } });
+        }
+        if (error.code === 'plus_required') {
+            // Shared private arrangements need everyone's own Plus (plus_private, Hillel 2026-11-17). Turning its link on
+            // without Plus: kept as Only me, and sent again that way (plusRefused, for the screen's Plus sheet). A shared
+            // song of yours while you have no Plus: read-only, kept here as it is, and sent once Plus is on.
+            if (!now.plusNeeded && now.visibility === 'unlisted' && !retried) {
+                const kept = { ...now, visibility: 'private', plusRefused: true };
+                await db.put('templates', kept);
+                return send(kept, { retried: true });
+            }
+            return keep({ ...now, plusNeeded: true, state: 'plusNeeded', refusedFor: refusalKey(now) });
         }
         if (error.code === 'imported_private') {
             // Someone else's song from sheet music (a choir group's), or an import asked to be shared: it
@@ -175,6 +186,8 @@ export const REFUSAL_ROUND = 1;
 /** Refused by the account (422) in this round and not changed since: waits for an edit instead of going again. */
 export function refusedAsItIs(record) {
     if (record.state === 'importedPrivate') return record.refusedFor === refusalKey(record);
+    // Waiting for Plus (plus_private): tried again once the account says it's open (templates.mine's plusNeeded false).
+    if (record.state === 'plusNeeded') return record.plusNeeded === true && record.refusedFor === refusalKey(record);
     return record.state === 'invalid' && record.invalid?.round === REFUSAL_ROUND && record.invalid?.for === JSON.stringify(repairTemplate(record.template).template);
 }
 
@@ -261,10 +274,13 @@ async function syncMine() {
         for (const item of server) {
             const record = here.get(item.id);
             const unsent = record?.pending;
+            // Shared while this account has no Plus (plus_private), and a song we gave them: as the account says.
+            const flags = { plusNeeded: item.plusNeeded === true, given: item.given === true };
             if (record && (unsent || item.version <= record.savedVersion)) {
                 const settled = record.state !== 'saved' && !unsent;
                 const marked = item.imported && !record.imported; // a copy the account marked as an import
-                if (settled || marked) await db.put('templates', { ...record, ...(settled ? { state: item.readOnly ? 'readOnly' : 'saved' } : {}), ...(marked ? { imported: true } : {}) });
+                const flagged = record.plusNeeded !== flags.plusNeeded || record.given !== flags.given;
+                if (settled || marked || flagged) await db.put('templates', { ...record, ...flags, ...(settled ? { state: item.readOnly ? 'readOnly' : 'saved' } : {}), ...(marked ? { imported: true } : {}) });
                 continue;
             }
             const { data } = await api.templates.show(item.id);
@@ -274,6 +290,7 @@ async function syncMine() {
                 visibility: item.visibility,
                 libraryOptIn: item.libraryOptIn,
                 ...(item.imported ? { imported: true } : {}),
+                ...flags,
                 savedVersion: item.version,
                 state: item.readOnly ? 'readOnly' : 'saved',
                 pending: false,

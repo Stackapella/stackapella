@@ -11,6 +11,7 @@ use App\Models\Take;
 use App\Models\User;
 use App\Support\Sync\SyncSeq;
 use App\Support\Usage\Plans;
+use App\Support\Usage\PrivateSongs;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -36,6 +37,9 @@ final class PartTakes
         $part = $this->reachablePart($user, $partUuid);
         $takes = Take::query()->with('recorder')->where('part_id', $part->id)->whereNull('binned_at')->where('status', '!=', Take::FAILED)
             ->orderByDesc('created_at')->orderByDesc('id')->get();
+        // A shared private arrangement without the person's own Plus (plus_private): only the takes they recorded.
+        $private = app(PrivateSongs::class);
+        $takes = $takes->filter(fn (Take $take): bool => $private->mayHear($user, $take, $part->project))->values();
         $pitch = Score::query()->whereIn('take_uuid', $takes->pluck('uuid'))->get(['take_uuid', 'summary'])
             ->mapWithKeys(static fn (Score $s): array => is_numeric($s->summary['pitchPercent'] ?? null) ? [(string) $s->take_uuid => $s->summary['pitchPercent'] + 0] : [])->all();
 

@@ -10,6 +10,7 @@
             "id": "amazing-grace",
             "title": "Amazing Grace"
         },
-        "expiresAt": "2026-11-10T11:00:00Z"
+        "expiresAt": "2026-11-10T11:00:00Z",
+        "plusNeeded": false
     }
 }

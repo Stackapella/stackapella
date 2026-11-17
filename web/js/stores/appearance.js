@@ -3,8 +3,8 @@
 // Midnight and Sky, Graphite and Paper), any with any. Plum went (Hillel, 2026-10-27): a choice of it
 // shows as the mode's own colour. Kept on this device (js/theme-boot.js
 // applies it before the page paints) and, signed in, on the account, so a new device picks it up.
-// Until the person chooses, the app is dark, and a colour not chosen is the mode's own (Stage in
-// dark, Warm in light).
+// Until the person chooses, serious mode follows the device (Auto; Hillel, 2026-11-17: "Auto everywhere,
+// calm") and game mode is dark; a colour not chosen is the mode's own (Stage in dark, Warm in light).
 
 import { reactive } from 'vue';
 import { api } from '../api.js';
@@ -132,7 +132,7 @@ export function setGameMode(mode) {
 }
 
 /** The light or dark chosen for the skin showing: game mode's own, or serious mode's. */
-export const modeChosen = () => (game() ? appearance.gameMode ?? 'dark' : appearance.mode ?? 'dark');
+export const modeChosen = () => (game() ? appearance.gameMode ?? 'dark' : appearance.mode ?? 'system');
 
 /** The mode showing now (Match my device resolved). */
 export const shownMode = () => (appearance.theme.endsWith('-light') ? 'light' : 'dark');
@@ -144,7 +144,7 @@ export const shownColour = () => appearance.theme.split('-')[0];
  * Chooses a mode, colour or accent: shown at once, kept here, and sent to the account. A colour
  * left unchosen (null) stays the mode's own; a null accent is the palette's own.
  */
-export async function setAppearance({ mode = appearance.mode ?? 'dark', colour = appearance.colour, accent = appearance.accent, customAccent = appearance.customAccent } = {}) {
+export async function setAppearance({ mode = appearance.mode ?? 'system', colour = appearance.colour, accent = appearance.accent, customAccent = appearance.customAccent } = {}) {
     // A custom accent (accent 'custom') carries its colour; any other choice drops it.
     const custom = accent === 'custom' ? customAccent ?? null : null;
     Object.assign(appearance, { mode, colour: colour ?? null, accent: accent ?? null, customAccent: custom });

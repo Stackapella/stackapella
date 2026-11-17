@@ -12,6 +12,8 @@
         "imported",
         "rightsConfirmedAt",
         "readOnly",
+        "plusNeeded",
+        "given",
         "recordings",
         "createdAt",
         "updatedAt",
@@ -63,6 +65,14 @@
         "readOnly": {
             "type": "boolean",
             "description": "Over the free limit after a downgrade: usable, but takes no new versions."
+        },
+        "given": {
+            "type": "boolean",
+            "description": "A song we made and gave this account (the partner's named confirmation, Template::isGiven): never counted toward the free plan's private arrangements, and never needs Plus to share. Their own copy of one is false."
+        },
+        "plusNeeded": {
+            "type": "boolean",
+            "description": "Shared (a live link, or another singer on a project made from it) while its creator has no Plus, with the plus_private switch on (docs/pricing-plan.md, top): kept, with every take, but read-only, and the app shows the Plus sheet on opening it. It opens again with Plus, or once it's theirs alone."
         },
         "recordings": {
             "type": "array",

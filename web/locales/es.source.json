@@ -2975,7 +2975,8 @@
             "inviteFriend": "Singing your song with friends comes with Plus. Everyone you invite joins free.",
             "mp3": "MP3 export is on Plus. WAV is free.",
             "stems": "Each part on its own is on Plus.",
-            "privateTemplate": "Your first private arrangement is free. Plus keeps as many as you like."
+            "privateTemplate": "Your first private arrangement is free. Plus keeps as many as you like.",
+            "privateShared": "Shared private arrangements need Plus for everyone in them."
         },
         "yours": "Your plan",
         "manage": "Manage your plan",
@@ -3855,6 +3856,24 @@
         },
         "accept": {
             "paused": "{name}'s song is paused for now, so it can't take new singers. Try the link again later, or ask {name}."
+        },
+        "private": {
+            "ownTitle": "Your song is shared",
+            "ownText": "Once a private arrangement has a link or other singers on it, everyone in it needs their own Plus, you too. Your takes are kept. On your own, one private arrangement stays free.",
+            "otherTitle": "Sing {name}'s song with Plus",
+            "songTitle": "Sing this song with Plus",
+            "otherText": "Private arrangements shared between singers need Plus for everyone in them. Your takes are kept, and it opens the moment Plus is on.",
+            "joinText": "Private arrangements shared between singers need Plus for everyone in them, you included. Once Plus is on, you can join.",
+            "linkTitle": "Share your song with Plus",
+            "linkText": "A link shares your private arrangement, so everyone who opens it needs their own Plus, you too. On your own, one private arrangement stays free.",
+            "inviteTitle": "Invite singers with Plus",
+            "inviteText": "Once a private arrangement has other singers on it, everyone in it needs their own Plus: you and everyone you invite. On your own, one private arrangement stays free.",
+            "noteTitle": "This song needs Plus",
+            "noteOwn": "It has a link or other singers on it, so it needs your Plus. Your takes are kept, and it opens the moment Plus is on.",
+            "noteOther": "{name} shared this private arrangement, so it needs your own Plus. Your takes are kept, and it opens the moment Plus is on.",
+            "noteSong": "This private arrangement is shared, so it needs your own Plus. Your takes are kept, and it opens the moment Plus is on.",
+            "noteAction": "Get Plus",
+            "tag": "Needs Plus"
         }
     },
     "join": {

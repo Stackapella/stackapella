@@ -1017,7 +1017,8 @@ const SHOTS_BY_CUT = {
     // Hark! The Herald's: the carols page, then the lanes
     harkr: [
         { a: 0, set: 'planes', wash: 2, soft: true, planes: carolsPage },
-        { a: B(SC.lanes), set: 'lanes', cam: carolCam, trail: true, hold: true },
+        // SC is null outside a season cut, and this table is built for every cut
+        { a: SC ? B(SC.lanes) : 0, set: 'lanes', cam: carolCam, trail: true, hold: true },
         { a: B(CUE.end), set: 'lanes', mark: 'end', wordsAt: B(CUE.end) + 0.7, cam: carolEnd },
     ],
     // Oy Chanukah's: the same as Maoz Tzur's

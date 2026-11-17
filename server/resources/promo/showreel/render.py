@@ -222,7 +222,13 @@ lang = str(A.get('lang') or 'en')
 if lang not in ('en', 'es'):
     raise SystemExit(f'no language {lang}: en, es (js/words.js and capture.py --lang={lang} first)')
 out_dir = Path(A['dir']).resolve() if 'dir' in A else (OUT if lang == 'en' else OUT / lang)
-suffix = '-light' if theme == 'light' else ''
+# --skin=calm: the calm look's cut (Hillel: calm mode has no pink, docs/design-rules.md): the film's accent is the warm
+# one, the site's --s-hl-em, and its files carry "-calm" (stackapella-showreel-calm-light.mp4). Without it, game's cut,
+# whose files are the ones the film always had; the arcade shots inside either cut keep game's pink.
+if A.get('skin') not in (None, 'calm', 'game'):
+    raise SystemExit(f"no skin {A.get('skin')}: calm, game")
+skin = 'calm' if A.get('skin') == 'calm' else 'game'
+suffix = ('-calm' if skin == 'calm' else '') + ('-light' if theme == 'light' else '')
 # The frame of each format: lib.js's FORMATS, which the page checks against this (window.FRAME).
 FORMATS = {'wide': (1920, 1080), 'vertical': (1080, 1920), 'square': (1080, 1080), 'thumb': (480, 480)}
 fmt = A.get('launch') or A.get('format') or ('vertical' if cut in ('social', 'carols', 'hanukkah') else 'wide')
@@ -233,7 +239,7 @@ LAUNCH = 'stackapella-launch'
 
 
 def page_url(scale):
-    return f'http://127.0.0.1:{http_port}{PAGE}?render=1&scale={scale}&theme={theme}&format={fmt}&season={season}&cut={cut}' + (f'&lang={lang}' if lang != 'en' else '')
+    return f'http://127.0.0.1:{http_port}{PAGE}?render=1&scale={scale}&theme={theme}&format={fmt}&season={season}&cut={cut}' + (f'&lang={lang}' if lang != 'en' else '') + ('&skin=calm' if skin == 'calm' else '')
 
 
 def launch(i, scale):
@@ -243,6 +249,8 @@ def launch(i, scale):
     shown = b.cdp.eval('window.THEME')
     if shown != theme:
         raise RuntimeError(f'asked for the {theme} cut but the page rendered {shown}')
+    if b.cdp.eval('document.documentElement.dataset.skin') != skin:
+        raise RuntimeError(f'asked for the {skin} skin but the page rendered another')
     return b
 
 
@@ -259,7 +267,7 @@ def stills():
     b = launch(0, scale)
     try:
         for t in [float(x) for x in str(A['stills']).split(',')]:
-            f = out / f'{theme}-t{t:05.2f}.png'
+            f = out / f'{theme}{"-calm" if skin == "calm" else ""}-t{t:05.2f}.png'
             f.write_bytes(b.grab(t, 'png'))
             print(f)
     finally:

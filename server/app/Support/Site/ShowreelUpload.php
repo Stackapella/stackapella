@@ -139,8 +139,13 @@ final class ShowreelUpload
     private static function pageFiles(string $language = 'en'): array
     {
         $files = Showreel::files($language);
+        $urls = [$files['captions']];
+        // game's cuts and calm's (calm's are game's own files until its manifest lists its own)
+        foreach (['dark', 'light', 'calm-dark', 'calm-light'] as $cut) {
+            $urls = [...$urls, ...array_values(array_diff_key($files[$cut], ['posterSet' => 1])),
+                ...array_map(static fn (string $entry): string => explode(' ', $entry)[0], explode(', ', $files[$cut]['posterSet']))];
+        }
 
-        return [...array_values(array_diff_key($files['dark'], ['posterSet' => 1])), ...array_values(array_diff_key($files['light'], ['posterSet' => 1])), $files['captions'],
-            ...array_map(static fn (string $entry): string => explode(' ', $entry)[0], [...explode(', ', $files['dark']['posterSet']), ...explode(', ', $files['light']['posterSet'])])];
+        return array_values(array_unique($urls));
     }
 }

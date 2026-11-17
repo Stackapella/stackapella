@@ -136,6 +136,7 @@ export const SingView = {
                     :recording="recording" :recorded-seconds="recordedSeconds" :count-in="countIn" :about="about" :badge="settingsBadge"
                     @back="leave" @part="dialog = 'part'" @settings="dialog = 'settings'" :marked="hearingChanged" />
                 <LockedBanner v-if="locked" :reason="locked" :owner="project?.shared?.owner?.name ?? ''" class="mx-4 mt-2 md:mx-6" />
+                <PrivatePlus v-if="plusSheet" :kind="project?.shared ? 'other' : 'own'" :name="project?.shared?.owner?.name ?? ''" @close="plusSheet = false" />
                 <!-- A lesson's step done here (sung long enough, or recorded): the way back, where its Finish now waits. Secondary: the coach keeps the one primary. -->
                 <div v-if="lessonDone && !recording" class="mx-4 mt-2 flex justify-end md:mx-6" data-lesson-back>
                     <button type="button" class="btn-secondary btn-sm max-sm:w-full" @click="backToLesson"><Icon name="back" :size="16" /> {{ t('sing.lessonBack') }}</button>

@@ -5,14 +5,19 @@
 import { reactive, watch } from 'vue';
 import { account } from './stores/account.js';
 
-export const teams = reactive({ on: false });
+// `private`: shared private arrangements need everyone's own Plus (the plus_private switch, auth.config plusPrivate;
+// Hillel, 2026-11-17). Off, nothing here asks for Plus on opening a song.
+export const teams = reactive({ on: false, private: false });
 
 // Mirrors auth.config as main.js loads it at start (and as it's read again later): no request of its own, so a module
 // that only asks (plan.js's lockReason) never fetches auth.config just by being imported.
 watch(
     () => account.config,
     (config) => {
-        if (config) teams.on = config.plusTeams === true;
+        if (config) {
+            teams.on = config.plusTeams === true;
+            teams.private = config.plusPrivate === true;
+        }
     },
     { immediate: true, flush: 'sync' }, // sync: set before anything awaiting the config reads it
 );

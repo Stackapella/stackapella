@@ -146,6 +146,7 @@ export const StudioView = {
                 </header>
 
                 <LockedBanner v-if="locked" :reason="locked" :owner="project?.shared?.owner?.name ?? ''" class="mx-3 mt-1 md:mx-5" />
+                <PrivatePlus v-if="plusSheet" :kind="project?.shared ? 'other' : 'own'" :name="project?.shared?.owner?.name ?? ''" @close="plusSheet = false" />
                 <p v-if="project.shared" class="mx-3 mt-1 rounded-2xl bg-raised px-4 py-3 text-sm text-cream md:mx-5" role="status">
                     {{ project.shared.removed ? t('together.noLonger') : t('together.banner', { owner: project.shared.owner?.name ?? '' }) }}
                     <button v-if="!project.shared.removed" type="button" class="link ms-1" @click="dialog = 'together'">{{ t('together.who') }}</button>

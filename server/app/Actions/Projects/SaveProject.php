@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Support\Sync\SyncSeq;
 use App\Support\Templates\Catalogue;
 use App\Support\Usage\Plans;
+use App\Support\Usage\PrivateSongs;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -124,7 +125,14 @@ final class SaveProject
 
         $template = Template::query()->where('slug', $slug)->whereNotNull('owner_id')->first();
 
-        if ($template === null || $template->owner_id === $user->id || $template->visibility === 'unlisted' || $this->catalogue->inGroup($template, $user)) {
+        if ($template === null || $template->owner_id === $user->id || $this->catalogue->inGroup($template, $user)) {
+            return;
+        }
+
+        if ($template->visibility === 'unlisted') {
+            // By its link, a shared private arrangement needs the person's own Plus (plus_private, Hillel 2026-11-17).
+            app(PrivateSongs::class)->ensureMayOpen($user, $template);
+
             return;
         }
 

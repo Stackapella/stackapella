@@ -1,0 +1,5 @@
+{
+    "message": "Forbidden.",
+    "code": "plus_required",
+    "reason": "private_shared"
+}

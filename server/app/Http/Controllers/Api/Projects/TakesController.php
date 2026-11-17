@@ -16,6 +16,7 @@ use App\Http\Resources\Projects\PartResource;
 use App\Http\Resources\Projects\TakeResource;
 use App\Models\Take;
 use App\Models\User;
+use App\Support\Usage\PrivateSongs;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
@@ -44,9 +45,17 @@ final class TakesController extends Controller
         return $this->take($complete->handle($user, $take));
     }
 
-    public function show(string $take, Owned $owned, #[CurrentUser] User $user): JsonResponse
+    public function show(string $take, Owned $owned, PrivateSongs $private, #[CurrentUser] User $user): JsonResponse
     {
-        return $this->take($owned->reachableTake($user, $take));
+        $found = $owned->reachableTake($user, $take);
+
+        // Another singer's take on a shared private arrangement needs the listener's own Plus (plus_private); their
+        // own takes always play.
+        if (! $private->mayHear($user, $found, $found->loadMissing('project')->project)) {
+            throw PrivateSongs::refusal();
+        }
+
+        return $this->take($found);
     }
 
     public function restore(RestoreTakeRequest $request, string $take, RestoreTake $restore, #[CurrentUser] User $user): JsonResponse

@@ -16,6 +16,8 @@ use App\Models\ProjectMember;
 use App\Models\Template;
 use App\Models\User;
 use App\Support\Sharing\SharedPage;
+use App\Support\Usage\Plans;
+use App\Support\Usage\PrivateSongs;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -88,7 +90,7 @@ final class CollaborationController extends Controller
         return response()->noContent();
     }
 
-    public function showInvite(Request $request, string $token, ManageInvites $invites): JsonResponse
+    public function showInvite(Request $request, string $token, ManageInvites $invites, PrivateSongs $private, Plans $plans): JsonResponse
     {
         $invite = $invites->open($token);
         // An invite to sing a part, opened (an anonymous count by surface: SharedPage).
@@ -103,6 +105,9 @@ final class CollaborationController extends Controller
             'partName' => $invite->part_name,
             'song' => $song !== null ? ['id' => $song->slug, 'title' => $song->title] : null,
             'expiresAt' => $invite->expires_at->utc()->toIso8601ZuluString(),
+            // A shared private arrangement needs the joiner's own Plus (plus_private): the app shows the Plus sheet
+            // before Join. True for a guest too (they make an account first).
+            'plusNeeded' => $private->governs($project) && ! ($request->user() instanceof User && $plans->isPlus($request->user())),
         ]]);
     }
 

@@ -16,11 +16,12 @@ import './lang-menu.js';
 
 const ITEMS = 'a[href], button:not([disabled])';
 
-/** The light or dark chosen for the skin showing now: 'light', 'dark' or 'system' (dark until chosen). */
+/** The light or dark chosen for the skin showing now: 'light', 'dark' or 'system' (until chosen, Auto in serious mode, dark in game mode). */
 export function currentMode(theme = window.stackapellaTheme, root = document.documentElement) {
     const choice = theme?.chosen?.() ?? {};
     const mode = root.dataset.skin === 'serious' ? choice.mode : choice.gameMode;
-    return mode === 'light' || mode === 'system' ? mode : 'dark';
+    if (mode === 'light' || mode === 'dark' || mode === 'system') return mode;
+    return root.dataset.skin === 'serious' ? 'system' : 'dark';
 }
 
 /** The change that picks `mode` for the skin showing now. */

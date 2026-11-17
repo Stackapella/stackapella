@@ -93,6 +93,9 @@ export function lockReason(project) {
     // A friend's song paused because its starter's Plus ended (teaming up is Plus, behind plus_teams): listened to and kept,
     // nothing new recorded until it opens again.
     if (project.readOnly === 'plus_ended' && project.shared && teams.on) return 'plus_ended';
+    // A shared private arrangement without this person's own Plus (plus_private, Hillel 2026-11-17), its creator too: kept,
+    // every take with it, nothing new recorded, and the Plus sheet on opening it.
+    if (project.readOnly === 'plus_needed' && teams.private) return 'plus_needed';
     return project.readOnly === 'limit' ? 'limit' : null;
 }
 

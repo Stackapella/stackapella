@@ -325,6 +325,7 @@ const SHELL = [
     '/js/components/boss.js',
     '/js/components/plus-moment.js',
     '/js/components/paused-note.js',
+    '/js/components/private-plus.js',
     '/js/components/learn-visual.js',
     '/js/home.js',
     '/js/home-today.js',

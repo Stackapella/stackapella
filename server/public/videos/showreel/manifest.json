@@ -14,6 +14,76 @@
       "sha256": "434a23090d563939c20fb2f08d986537b90baa9fa4bd0c116cd0a4273fa71a36"
     },
     {
+      "name": "stackapella-showreel-calm-light-mobile.mp4",
+      "bytes": 7987001,
+      "sha256": "77589a92be579de1162ae0c7c45da220eb4aea74966defb26c0884dbac308a2b"
+    },
+    {
+      "name": "stackapella-showreel-calm-light-poster-1440.webp",
+      "bytes": 15392,
+      "sha256": "223cb5d299c697a975406c33421a56890553e70b4d074f58600987df336e770b"
+    },
+    {
+      "name": "stackapella-showreel-calm-light-poster-1920.webp",
+      "bytes": 21662,
+      "sha256": "a9e26452aeb8bb97a089596940948cb7430e984f305df2c28a515037e25db7d9"
+    },
+    {
+      "name": "stackapella-showreel-calm-light-poster-960.webp",
+      "bytes": 10196,
+      "sha256": "81cb47c3934e96c4a9d715de44121d68aea7831466cfa691743ac87fcbfc20c8"
+    },
+    {
+      "name": "stackapella-showreel-calm-light-poster.jpg",
+      "bytes": 56245,
+      "sha256": "70484f0da1935ac0247bd9c7b5f08ebfcee2aaa004d222e3d2cdfc604e357e22"
+    },
+    {
+      "name": "stackapella-showreel-calm-light.mp4",
+      "bytes": 21261133,
+      "sha256": "d7798568fe03c0a23892d485c1402b137ab44181047c9a95120ea9543754f283"
+    },
+    {
+      "name": "stackapella-showreel-calm-light.webm",
+      "bytes": 21136126,
+      "sha256": "0272da512dc10cada14be2fd564e2ce320ad61a757e75e502cc62434b6878ccc"
+    },
+    {
+      "name": "stackapella-showreel-calm-mobile.mp4",
+      "bytes": 7998796,
+      "sha256": "832f8ec8e5bb77987673ff14118206178699df2fb59eaea1fbf7a4d7032a740f"
+    },
+    {
+      "name": "stackapella-showreel-calm-poster-1440.webp",
+      "bytes": 16594,
+      "sha256": "b0e7ba494ddfba29dd179f7862030ebd60d6c7eae1d1d1f611b61e62c866b1f1"
+    },
+    {
+      "name": "stackapella-showreel-calm-poster-1920.webp",
+      "bytes": 23406,
+      "sha256": "b8814019210f6b918826adedc412513e29236478643ecd1d532d2c8a5e4f2d8c"
+    },
+    {
+      "name": "stackapella-showreel-calm-poster-960.webp",
+      "bytes": 10840,
+      "sha256": "0e4642bc0284bb5027d9e022c75eda9d60614374ce655dcd5468a435959b6986"
+    },
+    {
+      "name": "stackapella-showreel-calm-poster.jpg",
+      "bytes": 57067,
+      "sha256": "d5bac3c7bcd486e52e58e6e3e0c9595fd206e583eb29b2fcee8d5d0e01a6b2c9"
+    },
+    {
+      "name": "stackapella-showreel-calm.mp4",
+      "bytes": 21277829,
+      "sha256": "af628ef001952df13ff1f66633ef38d2a8f39ce55fed27da5694b09153b02012"
+    },
+    {
+      "name": "stackapella-showreel-calm.webm",
+      "bytes": 21157212,
+      "sha256": "74a6be1ffc66985ca2e841edb5dcba078f72d8689e8cbf126c7f3876a3a845b6"
+    },
+    {
       "name": "stackapella-showreel-light-mobile.mp4",
       "bytes": 7988575,
       "sha256": "41d000128a5dd9739aac09c02d212e8225b0f63ddfe16d0a2d7b1e5cf9db7848"

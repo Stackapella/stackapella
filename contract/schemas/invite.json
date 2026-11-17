@@ -14,7 +14,8 @@
                 "partKey",
                 "partName",
                 "song",
-                "expiresAt"
+                "expiresAt",
+                "plusNeeded"
             ],
             "properties": {
                 "projectTitle": {
@@ -67,6 +68,10 @@
                 "expiresAt": {
                     "type": "string",
                     "format": "date-time"
+                },
+                "plusNeeded": {
+                    "type": "boolean",
+                    "description": "Joining needs the joiner's own Plus: a shared private arrangement while the plus_private switch is on (docs/pricing-plan.md, top). True for a guest too. The app shows the Plus sheet before Join; false or missing, as before."
                 }
             }
         }

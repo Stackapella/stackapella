@@ -10,6 +10,7 @@ import { liveSession } from '../stores/session-live.js';
 import { shownTitle } from '../project-title.js';
 import { Modal, toast } from './ui.js';
 import { PausedNote } from './paused-note.js';
+import { PrivateNote } from './private-plus.js';
 
 /** "4.2 MB", "1.1 GB", in the person's language. */
 export function formatBytes(bytes) {
@@ -90,11 +91,12 @@ const LOCKED_ACTION = { limit: tk('locked.choose') };
 
 /** A project that can be played and exported, not changed: why, and the way out. */
 export const LockedBanner = {
-    components: { PausedNote },
+    components: { PausedNote, PrivateNote },
     props: { reason: { type: String, required: true }, owner: { type: String, default: '' } }, // owner: whose song it is (a paused one)
     setup: () => ({ LOCKED, LOCKED_ACTION, navigate }),
     template: `
         <PausedNote v-if="reason === 'plus_ended'" :title="t('together.paused.songTitle')" :text="t('together.paused.songMember', { name: owner })" />
+        <PrivateNote v-else-if="reason === 'plus_needed'" :own="!owner" :name="owner" />
         <div v-else class="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl bg-raised px-4 py-3 text-sm text-cream" role="status">
             <span class="min-w-0 flex-1">{{ t(LOCKED[reason]) }}</span>
             <a v-if="reason === 'limit'" href="/storage" class="btn-go" @click.prevent="navigate('/storage')">{{ t(LOCKED_ACTION.limit) }}</a>

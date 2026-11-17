@@ -80,7 +80,10 @@ final class ShowreelTest extends TestCase
             ->assertSee('data-mobile="https://cdn.example.com/videos/showreel/'.$version.'/stackapella-showreel-light-mobile.mp4"', false)
             ->assertSee('<track kind="captions" srclang="en" label="'.__('pages.landing.reel.captions').'" src="/videos/showreel/stackapella-showreel.vtt?v='.$version.'"', false)
             ->assertSee('preload="none"', false)
-            ->assertSee('data-reel-sound', false);
+            ->assertSee('data-reel-sound', false)
+            // game's two cuts and calm's two, one frame (js/public/showreel.js shows the look's)
+            ->assertSee('<video class="s-reel-v" data-cut="calm-light"', false)
+            ->assertSee('<img class="s-reel-poster" data-cut="calm-dark"', false);
 
         $policy = (string) $page->headers->get('Content-Security-Policy');
         $this->assertMatchesRegularExpression('#media-src [^;]*https://cdn\.example\.com#', $policy);
@@ -192,6 +195,46 @@ final class ShowreelTest extends TestCase
             }
             if (is_dir(dirname($spanish)) && (scandir(dirname($spanish)) ?: []) === ['.', '..']) {
                 rmdir(dirname($spanish));
+            }
+        }
+    }
+
+    public function test_calm_has_its_own_amber_cuts_once_rendered_and_games_until_then(): void
+    {
+        $this->withManifest();
+        config(['site.showreel.url' => 'https://media.example.com/showreel']);
+        $manifest = public_path('videos/showreel/zz/manifest.json');
+        $this->assertFileDoesNotExist($manifest, 'a real render is never overwritten by this test');
+        $write = static function (array $names) use ($manifest): void {
+            if (! is_dir(dirname($manifest))) {
+                mkdir(dirname($manifest), 0755, true);
+            }
+            file_put_contents($manifest, json_encode(['lang' => 'zz', 'files' => array_map(static fn (string $name): array => ['name' => $name], $names)], JSON_THROW_ON_ERROR));
+        };
+
+        try {
+            // A film rendered before calm had its own cuts: calm plays game's, never an empty frame.
+            $write(['stackapella-showreel.mp4', 'stackapella-showreel-light.mp4']);
+            $old = Showreel::files('zz');
+            $this->assertSame($old['dark'], $old['calm-dark']);
+            $this->assertSame($old['light'], $old['calm-light']);
+
+            // With them (render.py --skin=calm): calm's own files, game's left as they were.
+            $write(['stackapella-showreel.mp4', 'stackapella-showreel-light.mp4', 'stackapella-showreel-calm.mp4', 'stackapella-showreel-calm-light.mp4']);
+            $reel = Showreel::files('zz');
+            $at = 'https://media.example.com/showreel/'.Showreel::version('zz').'/';
+            $this->assertSame($at.'stackapella-showreel.mp4', $reel['dark']['mp4']);
+            $this->assertSame($at.'stackapella-showreel-light.webm', $reel['light']['webm']);
+            $this->assertSame($at.'stackapella-showreel-calm.mp4', $reel['calm-dark']['mp4']);
+            $this->assertSame($at.'stackapella-showreel-calm-light-mobile.mp4', $reel['calm-light']['mobile']);
+            $this->assertSame($at.'stackapella-showreel-calm-light-poster.jpg', $reel['calm-light']['poster']);
+            $this->assertStringContainsString($at.'stackapella-showreel-calm-poster-960.webp 960w', $reel['calm-dark']['posterSet']);
+        } finally {
+            if (is_file($manifest)) {
+                unlink($manifest);
+            }
+            if (is_dir(dirname($manifest)) && (scandir(dirname($manifest)) ?: []) === ['.', '..']) {
+                rmdir(dirname($manifest));
             }
         }
     }

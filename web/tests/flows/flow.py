@@ -48,6 +48,10 @@ class Flow:
         # Also as someone who has already interacted (js/automated.js holds counts until a real press; the flows press by
         # script, which isn't one).
         self.as_person()
+        # The device's light or dark (FLOW_SCHEME=light or dark), as a phone or laptop set to it: serious mode follows it
+        # until a choice (Hillel, 2026-11-17: "Auto everywhere, calm"). Dark unless asked, the look every flow was written
+        # against; the gate runs the flows that care under both.
+        self.scheme(os.environ.get("FLOW_SCHEME", "dark"))
         self.step = 0
         # Substrings of console errors this journey causes on purpose. Without a server, the
         # app's start-up calls (the catalogue, the account, coming soon, Admin > Live's heartbeat) are 404s, all handled.
@@ -63,6 +67,12 @@ class Flow:
     def as_robot(self):
         """From the next page on, navigator.webdriver is true again: a crawler's visit, as js/automated.js sees it."""
         self.chrome.send("Page.removeScriptToEvaluateOnNewDocument", {"identifier": self.person})
+        return self
+
+    def scheme(self, value):
+        """From now on the device prefers `value` ('light' or 'dark'; '' is the browser's own), on this page and the next."""
+        if BROWSER == "chrome":
+            self.chrome.send("Emulation.setEmulatedMedia", {"features": [{"name": "prefers-color-scheme", "value": value or ""}]})
         return self
 
     def go(self, path, wait=None):

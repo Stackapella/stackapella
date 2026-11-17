@@ -1000,6 +1000,10 @@ return [
         ],
         // The trial's answer while checkout is paused: no trial to take yet.
         'faq_trial_paused' => 'Not yet: Plus isn\'t open. Everything in Free works now, with no card.',
+        // Shared private arrangements need everyone's own Plus (the plus_private switch, Hillel 2026-11-17): a row in
+        // With others and a question, shown only while it's on. The same words as the app's Plus sheet.
+        'private_row' => ['Sharing a private arrangement with other singers', 'No', 'Yes, with Plus for each singer'],
+        'faq_private' => ['Can I share a private arrangement?', 'Yes, with Plus. Once a private arrangement has a link or other singers on it, everyone in it needs their own Plus, you too. On your own, one private arrangement stays free. Choir groups are covered by their leader\'s Plus, and finished mixes and videos stay free to hear.'],
         // Once Stackapella is open source (the open_source flag).
         'faq_selfhost' => ['Can I run it myself?', 'Yes. Stackapella is open source, so you can run it on your own server with every Plus feature, free. Most singers don\'t need to: stackapella.com is free to start.'],
     ],

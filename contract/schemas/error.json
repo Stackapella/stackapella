@@ -34,9 +34,10 @@
         "reason": {
             "type": "string",
             "enum": [
-                "limit"
+                "limit",
+                "private_shared"
             ],
-            "description": "A 403 project_read_only only: why it's read-only (limit: beyond a plan's project limit, where an install sets one)."
+            "description": "A 403 project_read_only: why it's read-only (limit: beyond a plan's project limit, where an install sets one). A 403 plus_required: `private_shared` when it's a shared private arrangement needing the person's own Plus (the plus_private switch, Hillel 2026-11-17), so the app words its Plus sheet for that."
         },
         "usedBytes": {
             "type": "integer",

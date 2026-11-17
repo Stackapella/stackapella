@@ -34,6 +34,9 @@ import { lazyComponent } from '../game/modules.js';
 const PartBoard = lazyComponent('boards', 'PartBoard'); // game mode's only: loaded with game mode
 import { game } from '../skin.js';
 import { songTitle } from '../song-titles.js';
+import { PrivateNote, PrivatePlus, privateRefusal } from '../components/private-plus.js';
+import { isPlus } from '../stores/plan.js';
+import { teams } from '../teams.js';
 
 const STATES = {
     saved: { tone: 'good', label: tk('template.state.saved') },
@@ -44,6 +47,7 @@ const STATES = {
     unverified: { tone: 'warn', label: tk('template.state.unverified') },
     invalid: { tone: 'warn', label: tk('template.state.invalid') },
     importedPrivate: { tone: 'warn', label: tk('template.state.device') },
+    plusNeeded: { tone: 'warn', label: tk('together.private.noteTitle') }, // shared while you have no Plus (plus_private)
 };
 const DIFFICULTY = { beginner: tk('templates.difficulty.beginner'), intermediate: tk('templates.difficulty.intermediate'), advanced: tk('templates.difficulty.advanced') };
 
@@ -57,12 +61,13 @@ const BOARD_GRANTS = new Set(['free', 'plus', 'month', 'kept', 'beta', 'admin', 
 export const hasBoards = ({ own, grant, visibility, boards = null }) => (own ? visibility === 'public' : typeof boards === 'boolean' ? boards : BOARD_GRANTS.has(grant));
 
 export const TemplateView = {
-    components: { AccountWall, Field, Icon, AppScreen, PartBoard, ShareIdea },
+    components: { AccountWall, Field, Icon, AppScreen, PartBoard, ShareIdea, PrivateNote, PrivatePlus },
     props: { id: { type: String, required: true } },
-    data: () => ({ directed: null, template: null, grant: null, boards: null, missing: false, failed: false, singers: 4, picked: null, player: null, playingPart: null, starting: false, changing: false, details: { description: '', words: '', tune: '' }, backingUp: false }),
+    data: () => ({ directed: null, template: null, grant: null, boards: null, missing: false, failed: false, plusNeeded: false, plusSheet: '', singers: 4, picked: null, player: null, playingPart: null, starting: false, changing: false, details: { description: '', words: '', tune: '' }, backingUp: false }),
     setup: () => ({ STATES, DIFFICULTY, account, signInTo, signUpFor, keyLabel, midiName, templatePartName, singerOptions, formatTime, goBack, paint, PART_COLORS, game, songTitle }),
     template: `
         <AppScreen :title="template ? songTitle(template) : t('template.title')" :title-is-content="!!template" back="/" measure="">
+            <PrivatePlus v-if="plusSheet" :kind="plusSheet" @close="plusSheet = ''" />
             <!-- Signed out, a private song is a 404 too: a director opening their choir's song from an email, on a device they've never signed in on, signs in and comes back to it (docs/agents/handoff-frontend2.md, choir tracks stage 1) -->
             <div v-if="missing && !account.me" class="card space-y-4 p-6" role="alert" data-template-sign-in>
                 <p class="text-cream">{{ t('template.signInToOpen') }}</p>
@@ -72,6 +77,7 @@ export const TemplateView = {
                 </div>
             </div>
             <p v-else-if="missing" class="card p-6 text-cream" role="alert">{{ t('template.missing') }}</p>
+            <PrivateNote v-else-if="plusNeeded" />
             <p v-else-if="failed" class="card p-6 text-cream" role="alert">{{ failed }}</p>
             <p v-else-if="!template" class="text-muted" role="status">{{ t('create.loading') }}</p>
             <!-- From 900 px (Hillel's width design; he agreed for this screen, 2026-11-11): the part picker at left,
@@ -164,11 +170,12 @@ export const TemplateView = {
                     <!-- Share as an idea (docs/ideas-app-plan.md): a backed-up song of your own, once Ideas is open -->
                     <ShareIdea v-if="account.me && record.state === 'saved' && !otherAuthor && !imported" :template="template" :template-id="id" />
                     <!-- An import stays private to you and your groups (contract/api.md, imported_private): no idea, no link, so neither is offered -->
+                    <PrivateNote v-if="ownPlusNeeded" own />
                     <p v-if="account.me && imported" class="text-sm text-muted" data-template-choir-private>{{ t('template.choirPrivate') }}</p>
                     <fieldset v-else-if="account.me" class="grid gap-3 sm:grid-cols-2" :disabled="changing || otherAuthor">
                         <legend class="sr-only">{{ t('create.save.visibility') }}</legend>
                         <label v-for="v in ['private', 'unlisted']" :key="v" class="radio-card">
-                            <input type="radio" name="visibility" class="radio mt-px" :checked="(record.visibility === 'unlisted') === (v === 'unlisted')" @change="visibility(v)" />
+                            <input type="radio" name="visibility" class="radio mt-px" :checked="(record.visibility === 'unlisted') === (v === 'unlisted')" @change="visibility(v, $event)" />
                             <span><span class="block font-semibold text-cream">{{ v === 'unlisted' ? t('create.save.unlisted') : t('create.save.private') }}</span><span class="block text-sm text-muted">{{ v === 'unlisted' ? t('create.save.unlistedHint') : t('create.save.privateHint') }}</span></span>
                         </label>
                         <p v-if="otherAuthor" class="text-sm text-muted sm:col-span-2">{{ t('create.save.otherHint') }}</p>
@@ -195,6 +202,10 @@ export const TemplateView = {
         },
         record() {
             return mine.list.find((r) => r.id === this.id) ?? null;
+        },
+        /** Your own song, shared while you have no Plus (plus_private): read-only, kept, the Plus sheet. */
+        ownPlusNeeded() {
+            return teams.private && this.record?.plusNeeded === true;
         },
         otherAuthor() {
             return this.template?.licence?.words === LICENCE.other;
@@ -268,12 +279,19 @@ export const TemplateView = {
             const shown = own ? null : (await api.templates.show(this.id)).data;
             this.template = own ?? validateTemplate(shown.template);
             this.grant = own ? 'own' : shown.grant;
+            // Your own song, shared while you have no Plus (plus_private): the Plus sheet as it opens; it stays yours to hear.
+            if (this.ownPlusNeeded) this.plusSheet = 'own';
             this.boards = own ? null : shown.boards ?? null;
             this.singers = Math.max(...singerOptions(this.template));
             this.pickBest();
         } catch (error) {
-            if (error?.code === 'not_found' || error?.status === 404) this.missing = true;
-            else {
+            // Signed out, a shared private arrangement by its link (plus_private) asks for an account first, as a private song does.
+            if (error?.code === 'not_found' || error?.status === 404 || (error?.code === 'account_required' && !account.me)) this.missing = true;
+            else if (privateRefusal(error)) {
+                // Someone's shared private arrangement, without this account's own Plus: the Plus sheet, never an error.
+                this.plusNeeded = true;
+                this.plusSheet = 'other';
+            } else {
                 console.warn('The template did not load', error);
                 this.failed = error?.code === 'offline' ? t('common.offline') : t('template.failed');
             }
@@ -363,13 +381,29 @@ export const TemplateView = {
                 this.backingUp = false;
             }
         },
-        async visibility(value) {
+        async visibility(value, event) {
+            // Turning the link on shares a private arrangement, so it needs Plus (plus_private): the sheet, and the
+            // choice stays on Only me (a song we gave you is exempt).
+            if (value === 'unlisted' && teams.private && !isPlus() && !this.record?.given && this.record?.visibility !== 'unlisted') {
+                this.keepPrivate(event);
+                this.plusSheet = 'link';
+                return;
+            }
             this.changing = true;
             try {
-                await setVisibility(this.id, value);
+                const saved = await setVisibility(this.id, value);
+                if (saved?.plusRefused) {
+                    this.keepPrivate(event);
+                    this.plusSheet = 'link';
+                }
             } finally {
                 this.changing = false;
             }
+        },
+        /** The radios back on Only me (the link wasn't turned on). */
+        keepPrivate(event) {
+            const radios = event?.target?.closest('fieldset')?.querySelectorAll('input[type=radio]') ?? [];
+            radios.forEach((radio, i) => (radio.checked = i === 0));
         },
         async copyLink() {
             try {

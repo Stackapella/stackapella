@@ -26,6 +26,7 @@ use App\Support\Templates\PersonsTemplate;
 use App\Support\Trust\IpHash;
 use App\Support\Trust\Limits;
 use App\Support\Trust\SecurityLog;
+use App\Support\Usage\PrivateSongs;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -187,6 +188,13 @@ final class TemplatesController extends Controller
             $user !== null && ! $song->isImported() && $this->inProject($song, $user) => 'project',
             default => throw new Refusal(404, 'not_found'),
         };
+
+        // A shared private arrangement needs Plus for everyone in it (the plus_private switch, Hillel 2026-11-17): by
+        // its link or a project, someone without Plus meets the Plus sheet (a guest, an account first). Its owner keeps
+        // reading it (their devices sync it; the app shows them the sheet), and a choir group stays covered by its leader.
+        if (in_array($grant, ['link', 'project'], true) && app(PrivateSongs::class)->needsPlus($user, $song)) {
+            throw $user === null ? new Refusal(403, 'account_required') : PrivateSongs::refusal();
+        }
 
         $number = $request->validated('version');
         $version = $number !== null ? TemplateVersion::query()->where('template_id', $song->id)->where('version', (int) $number)->first() : $song->currentVersion;

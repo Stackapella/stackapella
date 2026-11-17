@@ -802,7 +802,7 @@ body { margin: 0; background: var(--ground); }
     .lnf-foot { justify-content: center; text-align: center; font-size: 12px; } .lnf-cue, .lnf-hint { display: none !important; } .lnf-cred { margin: 0 !important; text-align: center; }
     .lnf-cred-full { display: none; } .lnf-cred-short { display: inline; }
     /* The dock on a phone: the line being sung, then one pill (play, the time, Start singing). */
-    .lnf-dock { height: auto; padding: 0 10px calc(10px + env(safe-area-inset-bottom)); grid-template-columns: 1fr auto; grid-template-areas: "words words" "tp start"; gap: 0; border: 0; background: linear-gradient(transparent, color-mix(in srgb, var(--ground) 92%, transparent) 34px); -webkit-backdrop-filter: none; backdrop-filter: none; pointer-events: none; }
+    .lnf-dock { height: auto; padding: 0 10px calc(10px + env(safe-area-inset-bottom)); grid-template-columns: 1fr auto; grid-template-areas: "words words" "tp start"; gap: 0; border: 0; background: linear-gradient(transparent, var(--ground) 10px); /* solid behind the sung line, so the page never shows through its words */ -webkit-backdrop-filter: none; backdrop-filter: none; pointer-events: none; }
     .lnf-dock::before { content: ""; grid-area: 2 / 1 / 3 / 3; align-self: stretch; border-radius: 99px; background: color-mix(in srgb, var(--ground) 86%, var(--ink)); border: 1px solid var(--edge); box-shadow: 0 14px 40px -14px rgb(0 0 0 / .7); }
     .lnf-dock > * { pointer-events: auto; }
     .lnf-words { grid-area: words; height: 44px; display: flex; align-items: center; justify-content: center; padding: 8px 6px 0; pointer-events: none; }

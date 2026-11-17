@@ -68,6 +68,7 @@ use App\Support\Stats\GrowthStart;
 use App\Support\Templates\Catalogue;
 use App\Support\Trust\Limits;
 use App\Support\Usage\Plans;
+use App\Support\Usage\PrivateSongs;
 use App\Support\Web\AppShell;
 use Illuminate\Cache\Repository;
 use Illuminate\Contracts\Foundation\Application;
@@ -124,6 +125,7 @@ final class AppServiceProvider extends ServiceProvider
 
         // One per request: it works out which projects are read-only once.
         $this->app->scoped(Plans::class);
+        $this->app->scoped(PrivateSongs::class);
         $this->app->scoped(Gallery::class);
         $this->app->scoped(Catalogue::class);
         $this->app->scoped(LessonPagesBuilt::class);

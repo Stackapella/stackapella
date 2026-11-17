@@ -14,10 +14,23 @@ import { micError } from './components/dialogs.js';
 import { soundChecked } from './components/beta.js';
 import { toast } from './components/ui.js';
 import { lockReason } from './stores/plan.js';
+import { PrivatePlus } from './components/private-plus.js';
 
 const LOCKED_TOAST = { limit: tk('locked.limit'), plus_ended: tk('together.paused.songRecord') };
 
 export const RecordSetup = {
+    components: { PrivatePlus },
+    // A shared private arrangement without this person's own Plus (`locked` is plus_needed, behind plus_private): the Plus
+    // sheet as it opens and on Record, never an error; closed, the song plays as it is, with the calm note.
+    data: () => ({ plusSheet: false }),
+    watch: {
+        locked: {
+            handler(now, before) {
+                if (now === 'plus_needed' && before !== 'plus_needed') this.plusSheet = true;
+            },
+            immediate: true,
+        },
+    },
     methods: {
         async recordOrStop() {
             if (this.busy) return;
@@ -27,6 +40,11 @@ export const RecordSetup = {
             }
             // A read-only project plays and exports, but takes no new recordings.
             const locked = lockReason(sessionStore.session.project);
+            if (locked === 'plus_needed') {
+                this.plusSheet = true; // the Plus sheet, never an error (js/components/private-plus.js)
+                this.rerecordId = null;
+                return;
+            }
             if (locked) {
                 toast(t(LOCKED_TOAST[locked]), { seconds: 8 });
                 this.rerecordId = null;

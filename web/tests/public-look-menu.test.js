@@ -11,7 +11,7 @@ const key = (el, k, shiftKey = false) => el.dispatchEvent(new KeyboardEvent('key
 test('look menu: each skin keeps its own light or dark, Auto is the device, and the name says the values', () => {
     const root = document.createElement('div');
     root.dataset.skin = 'serious';
-    same(currentMode({ chosen: () => ({}) }, root), 'dark', 'dark until chosen');
+    same(currentMode({ chosen: () => ({}) }, root), 'system', 'calm is Auto until chosen');
     same(currentMode({ chosen: () => ({ mode: 'light', gameMode: 'dark' }) }, root), 'light', 'calm reads mode');
     same(currentMode({ chosen: () => ({ mode: 'system' }) }, root), 'system', 'Auto');
     same(JSON.stringify(modeChange('system', root)), '{"mode":"system"}');

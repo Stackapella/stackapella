@@ -32,7 +32,8 @@
                 "songRequests",
                 "languages",
                 "withheldSongs",
-                "plusTeams"
+                "plusTeams",
+                "plusPrivate"
             ],
             "properties": {
                 "methods": {
@@ -266,6 +267,10 @@
                 "plusTeams": {
                     "type": "boolean",
                     "description": "Teaming up is Plus (the plus_teams switch, docs/pricing-plan.md): while true, starting a group or inviting a friend asks for Plus, and paused songs and choirs show as paused. False: singing together is free, as before."
+                },
+                "plusPrivate": {
+                    "type": "boolean",
+                    "description": "Shared private arrangements need everyone's own Plus (the plus_private switch, docs/pricing-plan.md, top): while true, opening one without Plus shows the Plus sheet (templates.show's plus_required, a project's readOnly plus_needed, templates.mine's plusNeeded, invites.show's plusNeeded). False: as before."
                 }
             }
         }

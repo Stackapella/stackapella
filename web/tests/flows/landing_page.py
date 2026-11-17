@@ -2,6 +2,8 @@
 2026-11-16: "make next-final the main home page"): a stage that fills the screen for five scenes, the song's four lanes
 on it, then a page that scrolls, the site's footer, and a dock that stays. On a desktop and a phone:
 
+- with no light or dark chosen, the calm page is the device's from the first paint, the browser bar's colour too (a song
+  page too);
 - the first frame is the server's: the headline, the four lanes and every gem are there before any script, and nothing
   sounds until a press (the recorded voices start coming in a quiet moment);
 - only the recorded voices sing (they're stubbed here: this machine's database has none): a press waits for their
@@ -407,6 +409,23 @@ def scenes(f, before):
     assert f.js("getComputedStyle(document.querySelector('.lnf-disc .lnf-i-play')).display") != "none", "the disc says Play again"
 
 
+FIRST_PAINT = "new MutationObserver((_, o) => { if (document.body) { window.__firstPaint = [document.documentElement.dataset.theme, document.querySelector('meta[name=theme-color]')?.content]; o.disconnect(); } }).observe(document, { childList: true, subtree: true });"
+
+
+def unchosen(f):
+    """Nothing chosen yet, the calm skin follows the device from the first paint, here and on a song page (Hillel,
+    2026-11-17: "Auto everywhere, calm"): light on a light phone or laptop, dark on a dark one, the browser bar's colour too."""
+    first = f.chrome.send("Page.addScriptToEvaluateOnNewDocument", {"source": FIRST_PAINT})["identifier"]
+    for device, want in (("light", ["warm-light", "#faf5ee"]), ("dark", ["stage-dark", "#000000"])):
+        f.scheme(device)
+        for path in ("/", "/songs/amazing-grace"):
+            f.go(path, "document.readyState !== 'loading'")
+            assert f.js("JSON.parse(localStorage.getItem('stackapella.appearance') || '{}').mode ?? null") is None, "no light or dark chosen"
+            assert f.js("window.__firstPaint") == want, f"{path} on a {device} device: {f.js('window.__firstPaint')}, not {want}"
+    f.chrome.send("Page.removeScriptToEvaluateOnNewDocument", {"identifier": first})
+    f.scheme(os.environ.get("FLOW_SCHEME", "dark"))
+
+
 def theme(f):
     """Light and dark by the top line's Language and appearance, the site's own stored choice."""
     was = f.js("document.documentElement.dataset.theme")
@@ -565,6 +584,7 @@ def main():
         f.chrome.send("Page.addScriptToEvaluateOnNewDocument", {"source": WATCH})
         f.chrome.send("Page.addScriptToEvaluateOnNewDocument", {"source": VOICES})
         try:
+            unchosen(f)
             f.go("/", READY)
             first_frame(f)
             scenes(f, play_and_solo(f))

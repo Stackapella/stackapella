@@ -402,7 +402,7 @@ export const ProjectsView = {
             return this.yourSongs.map((item) => {
                 if (item.kind === 'project') {
                     const p = item.p;
-                    const tag = p.notSaved && account.me ? [t('cloud.notSaved'), true] : p.readOnly === 'plus_ended' && p.shared && teams.on ? [t('together.paused.tag'), true] : p.readOnly ? [t('cloud.readOnly'), true] : p.shared ? [p.shared.removed ? t('together.cardGone') : t('together.cardWith', { owner: p.shared.owner?.name ?? '' }), false] : p.course ? [t('home.projects.fromCourse'), false] : [null, false];
+                    const tag = p.notSaved && account.me ? [t('cloud.notSaved'), true] : p.readOnly === 'plus_ended' && p.shared && teams.on ? [t('together.paused.tag'), true] : p.readOnly === 'plus_needed' && teams.private ? [t('together.private.tag'), true] : p.readOnly ? [t('cloud.readOnly'), true] : p.shared ? [p.shared.removed ? t('together.cardGone') : t('together.cardWith', { owner: p.shared.owner?.name ?? '' }), false] : p.course ? [t('home.projects.fromCourse'), false] : [null, false];
                     // A unit's song (retention row 8) with a take kept says how much of it is you: "1 of 4 parts is you"; in game
                     // mode its cover's rows for your parts are lit, the others hollow.
                     const yours = p.course?.unitSong && p.recordedCount > 0 && p.template;

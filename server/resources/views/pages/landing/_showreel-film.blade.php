@@ -1,11 +1,12 @@
 {{-- The film's frame (server/resources/promo/showreel/README.md), shared by the landing's "See it in action" band
      (_showreel) and the first screen of /how-it-works (Hillel, 2026-11-16: "find another page where we can use the show
-     reel"): 16:9, the cut matching the theme, the language's own film. Driven by js/public/showreel.js. $reelPress: the
+     reel"): 16:9, the cut matching the look (game's, or calm's amber one: Hillel, 2026-11-17) and the theme, the
+     language's own film. Driven by js/public/showreel.js. $reelPress: the
      poster with a play button and nothing fetched until it's pressed (as under reduced motion), where the frame is on the
      first screen. $reelSizes: the posters' sizes, the frame's width on the page. --}}
 @php($reel = \App\Support\Site\Showreel::files())
 <figure class="s-reel" data-reel @if ($reelPress ?? false) data-reel-press @endif data-play-label="{{ __('pages.landing.reel.play') }}" data-pause-label="{{ __('pages.landing.reel.pause') }}" data-sound-on="{{ __('pages.landing.reel.sound_on') }}" data-sound-off="{{ __('pages.landing.reel.sound_off') }}" data-captions-on="{{ __('pages.landing.reel.captions_on') }}" data-captions-off="{{ __('pages.landing.reel.captions_off') }}">
-    @foreach (['dark', 'light'] as $cut)
+    @foreach (['dark', 'light', 'calm-dark', 'calm-light'] as $cut)
         <video class="s-reel-v" data-cut="{{ $cut }}" data-webm="{{ $reel[$cut]['webm'] }}" data-mp4="{{ $reel[$cut]['mp4'] }}" data-mobile="{{ $reel[$cut]['mobile'] }}" muted loop playsinline preload="none" aria-label="{{ __('pages.landing.reel.label') }}">
             <track kind="captions" srclang="{{ $reel['language'] }}" label="{{ __('pages.landing.reel.captions') }}" src="{{ $reel['captions'] }}">
         </video>

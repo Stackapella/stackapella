@@ -2975,7 +2975,8 @@
             "inviteFriend": "Cantar tu canción con amigos viene con Plus. Todas las personas que invites se unen gratis.",
             "mp3": "La exportación en MP3 es de Plus. WAV es gratis.",
             "stems": "Cada voz por separado es de Plus.",
-            "privateTemplate": "Tu primer arreglo privado es gratis. Plus guarda todos los que quieras."
+            "privateTemplate": "Tu primer arreglo privado es gratis. Plus guarda todos los que quieras.",
+            "privateShared": "Los arreglos privados que se comparten necesitan Plus para cada cantante."
         },
         "yours": "Tu plan",
         "manage": "Gestionar tu plan",
@@ -3855,6 +3856,24 @@
         },
         "accept": {
             "paused": "La canción de {name} está en pausa por ahora, así que no puede sumar cantantes nuevos. Vuelve a probar el enlace más tarde o pregúntale a {name}."
+        },
+        "private": {
+            "ownTitle": "Tu canción está compartida",
+            "ownText": "Cuando un arreglo privado tiene un enlace u otros cantantes, cada persona necesita su propio Plus, también tú. Tus tomas se guardan. Solo para ti, un arreglo privado sigue siendo gratis.",
+            "otherTitle": "Canta la canción de {name} con Plus",
+            "songTitle": "Canta esta canción con Plus",
+            "otherText": "Los arreglos privados que se comparten necesitan Plus para cada cantante. Tus tomas se guardan y se abre en cuanto tengas Plus.",
+            "joinText": "Los arreglos privados que se comparten necesitan Plus para cada cantante, también para ti. En cuanto tengas Plus, podrás unirte.",
+            "linkTitle": "Comparte tu canción con Plus",
+            "linkText": "Un enlace comparte tu arreglo privado, así que cada persona que lo abra necesita su propio Plus, también tú. Solo para ti, un arreglo privado sigue siendo gratis.",
+            "inviteTitle": "Invita a cantantes con Plus",
+            "inviteText": "Cuando un arreglo privado tiene otros cantantes, cada persona necesita su propio Plus: tú y cada persona que invites. Solo para ti, un arreglo privado sigue siendo gratis.",
+            "noteTitle": "Esta canción necesita Plus",
+            "noteOwn": "Tiene un enlace u otros cantantes, así que necesita tu Plus. Tus tomas se guardan y se abre en cuanto tengas Plus.",
+            "noteOther": "{name} compartió este arreglo privado, así que necesita tu propio Plus. Tus tomas se guardan y se abre en cuanto tengas Plus.",
+            "noteSong": "Este arreglo privado está compartido, así que necesita tu propio Plus. Tus tomas se guardan y se abre en cuanto tengas Plus.",
+            "noteAction": "Hazte Plus",
+            "tag": "Necesita Plus"
         }
     },
     "join": {

@@ -8,6 +8,7 @@ use App\Actions\Templates\Library;
 use App\Models\Template;
 use App\Models\TemplateRecording;
 use App\Support\Usage\Plans;
+use App\Support\Usage\PrivateSongs;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -42,6 +43,10 @@ final class OwnTemplateResource extends JsonResource
             'parent' => Library::parent($template),
             // Lists work it out once for all (read_only); one template on its own asks.
             'readOnly' => (bool) ($template->hasAttribute('read_only') ? $template->getAttribute('read_only') : ($template->owner !== null && app(Plans::class)->templateReadOnly($template->owner, $template))),
+            // Shared while its creator has no Plus (plus_private, Hillel 2026-11-17): kept, read-only, the Plus sheet.
+            'plusNeeded' => $template->owner !== null && app(PrivateSongs::class)->needsPlus($template->owner, $template),
+            // A song we made and gave them (admin.people.songs.create): never counted, never needs Plus to share.
+            'given' => $template->isGiven(),
             'recordings' => $template->recordings->sortBy('id')->map(static fn (TemplateRecording $recording): array => self::recording($recording))->values()->all(),
             'createdAt' => $template->created_at?->utc()->toIso8601ZuluString(),
             'updatedAt' => $template->updated_at?->utc()->toIso8601ZuluString(),

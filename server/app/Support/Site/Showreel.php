@@ -40,9 +40,11 @@ final class Showreel
     }
 
     /**
-     * The files the frame needs, for each cut.
+     * The files the frame needs, for each cut: game's dark and light (the film's files as they always were) and calm's
+     * (render.py --skin=calm: the same film with calm's amber accent, never pink; Hillel, 2026-11-17). A film without
+     * calm cuts in its manifest gives calm game's, so a page never shows an empty frame.
      *
-     * @return array{dark: array<string, string>, light: array<string, string>, captions: string, language: string}
+     * @return array{dark: array<string, string>, light: array<string, string>, 'calm-dark': array<string, string>, 'calm-light': array<string, string>, captions: string, language: string}
      */
     public static function files(?string $language = null): array
     {
@@ -57,7 +59,21 @@ final class Showreel
 
         // The captions come from the site itself (committed beside the manifest): a <track> from
         // another origin needs CORS on the CDN, and without it the captions silently never show.
-        return ['dark' => $cut(''), 'light' => $cut('-light'), 'captions' => '/videos/showreel/'.self::folder($language).self::NAME.'.vtt?v='.self::version($language), 'language' => $language];
+        $calm = self::hasCalm($language) ? '-calm' : '';
+
+        return ['dark' => $cut(''), 'light' => $cut('-light'), 'calm-dark' => $cut($calm), 'calm-light' => $cut($calm.'-light'), 'captions' => '/videos/showreel/'.self::folder($language).self::NAME.'.vtt?v='.self::version($language), 'language' => $language];
+    }
+
+    /** Whether a language's manifest lists calm's own cuts. */
+    private static function hasCalm(string $language): bool
+    {
+        $manifest = self::manifest($language);
+        if (! is_file($manifest)) {
+            return false;
+        }
+        $files = json_decode((string) file_get_contents($manifest), true)['files'] ?? null;
+
+        return is_array($files) && in_array(self::NAME.'-calm.mp4', array_column($files, 'name'), true);
     }
 
     /** The files' host, for the pages' Content-Security-Policy when it isn't this one. */

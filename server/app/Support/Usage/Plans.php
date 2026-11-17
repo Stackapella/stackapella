@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Support\Flags;
 use App\Support\Sync\SyncSeq;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -109,10 +110,25 @@ final class Plans
      * As readOnlyOf, for whoever is looking: a friend on someone's song sees it paused (`plus_ended`) once its owner's
      * Plus has ended (docs/pricing-plan.md, 2026-11-12: whoever starts the shared song needs Plus).
      *
-     * @return 'limit'|'plus_ended'|null
+     * A shared private arrangement's project reads `plus_needed` for whoever has no Plus of their own, its owner too
+     * (the plus_private switch, Hillel 2026-11-17): listed, every take kept, the app's Plus sheet on opening. There the
+     * rule is per person, so the owner's Plus ending pauses nobody else.
+     *
+     * @return 'limit'|'plus_ended'|'plus_needed'|null
      */
     public function readOnlyFor(Project $project, ?int $viewerId): ?string
     {
+        $private = app(PrivateSongs::class);
+        if ($viewerId !== null && $private->governs($project)) {
+            $signedIn = Auth::user();
+            $viewer = $signedIn instanceof User && $signedIn->id === $viewerId ? $signedIn : User::query()->find($viewerId);
+            if ($viewer !== null && $private->needsPlusFor($viewer, $project)) {
+                return 'plus_needed';
+            }
+
+            return $this->readOnlyOf($project);
+        }
+
         if ($viewerId !== null && $viewerId !== $project->user_id) {
             $this->ownerPlus[$project->user_id] ??= ($owner = User::query()->find($project->user_id)) !== null && $this->sharedOpen($owner);
             if (! $this->ownerPlus[$project->user_id]) {

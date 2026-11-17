@@ -106,4 +106,27 @@ final class ShowreelUploadTest extends TestCase
         $check()->expectsOutputToContain('missing what the pages use')->assertFailed();
         $this->assertSame([], Storage::disk('media')->allFiles());
     }
+
+    public function test_a_render_with_calms_cuts_needs_all_of_them(): void
+    {
+        // render.py --skin=calm: calm's amber cuts beside game's, each with its phone cut and posters.
+        $calm = ['stackapella-showreel-calm.webm', 'stackapella-showreel-calm.mp4', 'stackapella-showreel-calm-mobile.mp4', 'stackapella-showreel-calm-poster.jpg',
+            'stackapella-showreel-calm-poster-960.webp', 'stackapella-showreel-calm-poster-1440.webp', 'stackapella-showreel-calm-poster-1920.webp',
+            'stackapella-showreel-calm-light.webm', 'stackapella-showreel-calm-light.mp4', 'stackapella-showreel-calm-light-mobile.mp4', 'stackapella-showreel-calm-light-poster.jpg',
+            'stackapella-showreel-calm-light-poster-960.webp', 'stackapella-showreel-calm-light-poster-1440.webp', 'stackapella-showreel-calm-light-poster-1920.webp'];
+        $entries = static function (array $names): array {
+            return array_map(static fn (string $name): array => ['name' => $name, 'bytes' => strlen('render of '.$name), 'sha256' => hash('sha256', 'render of '.$name)], $names);
+        };
+        foreach ($calm as $name) {
+            File::put($this->renders.'/'.$name, 'render of '.$name);
+        }
+        $check = fn () => $this->artisan('app:showreel:upload', ['--from' => $this->renders, '--check' => true]);
+
+        $this->manifest(['film' => 'Harmony, made by you', 'files' => $entries([...self::NAMES, ...$calm])]);
+        $check()->expectsOutputToContain('31 files')->assertSuccessful();
+
+        // One of calm's left out of the manifest while the pages ask for it: refused.
+        $this->manifest(['film' => 'Harmony, made by you', 'files' => $entries([...self::NAMES, ...array_diff($calm, ['stackapella-showreel-calm-light-mobile.mp4'])])]);
+        $check()->expectsOutputToContain('missing what the pages use: stackapella-showreel-calm-light-mobile.mp4')->assertFailed();
+    }
 }

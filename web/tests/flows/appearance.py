@@ -1,11 +1,11 @@
-"""The theme picker (docs/decisions.md, "themes", and "the theme picker, refined"): dark and Stage until a
-choice; the home's Theme button opens one panel with Light, Dark and Auto, the five named colours and
-the accents; choosing
-shows at once and keeps the panel open (to compare); arrow keys move through a group; Escape and a
+"""The theme picker (docs/decisions.md, "themes", and "the theme picker, refined"): until a choice, serious mode is the
+device's light or dark from the first paint (Hillel, 2026-11-17: "Auto everywhere, calm") and game mode dark; the
+home's Theme button opens one panel with Light, Dark and Auto, the five named colours and the accents; choosing shows at once and keeps the panel open (to compare); arrow keys move through a group; Escape and a
 click outside close it; Settings has the same panel inline; the choice survives a reload (set before
 the page paints). Signed out.
 """
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -21,6 +21,16 @@ def t(f, key):
 
 def theme(f):
     return f.js("document.documentElement.dataset.theme")
+
+
+# What the page shows as <body> first arrives (before any of it can paint): the theme and the browser bar's colour.
+FIRST_PAINT = "new MutationObserver((_, o) => { if (document.body) { window.__firstPaint = [document.documentElement.dataset.theme, document.querySelector('meta[name=theme-color]')?.content]; o.disconnect(); } }).observe(document, { childList: true, subtree: true });"
+BAR = {"stage-dark": "#000000", "warm-light": "#faf5ee"}  # theme-boot.js COLOURS
+
+
+def unchosen(f, device):
+    """The theme with no light or dark chosen, on a device set to `device`."""
+    return "stage-dark" if f.skin == "game" or device == "dark" else "warm-light"
 
 
 PANEL = "document.querySelector('#app header [role=dialog], [role=dialog]')"
@@ -44,7 +54,20 @@ def journey(f):
     f.run(f"localStorage.setItem('stackapella.appearance', JSON.stringify({{ skin: '{f.skin}', at: Date.now() }}));")
     f.go("/?api=mock&as=signedOut", "document.querySelector('#app header')")
     assert f.js("document.documentElement.dataset.skin") == f.skin, f"the run's skin kept: {f.js('document.documentElement.dataset.skin')}"
-    assert theme(f) == "stage-dark", f"dark and Stage until a choice: {theme(f)}"
+    device = os.environ.get("FLOW_SCHEME", "dark")
+    assert theme(f) == unchosen(f, device), f"until a choice, {unchosen(f, device)} on a {device} device: {theme(f)}"
+    # The device's light and dark, each from the first paint with no flash, the browser bar's colour (Safari's too) with it.
+    first = f.chrome.send("Page.addScriptToEvaluateOnNewDocument", {"source": FIRST_PAINT})["identifier"]
+    for other in ("light", "dark"):
+        f.scheme(other)
+        f.go("/?api=mock&as=signedOut", "document.querySelector('#app header')")
+        want = unchosen(f, other)
+        assert f.js("window.__firstPaint") == [want, BAR[want]], f"a {other} device, nothing chosen: {f.js('window.__firstPaint')}, not {want}"
+        f.shot(f"unchosen-{other}")
+    f.chrome.send("Page.removeScriptToEvaluateOnNewDocument", {"identifier": first})
+    f.scheme(device)
+    f.go("/?api=mock&as=signedOut", "document.querySelector('#app header')")
+    assert theme(f) == unchosen(f, device), theme(f)
     f.wait("document.querySelector('#app header button[aria-haspopup=dialog]')", what="the Theme button")
     f.wait("document.querySelector('#app header button[aria-haspopup=dialog]')", what="the Theme button"); f.run("document.querySelector('#app header button[aria-haspopup=dialog]').click()")
     f.wait(PANEL, what="the panel")

@@ -380,7 +380,8 @@ export function createSync(deps) {
         // Waiting on the person (an email to confirm, room to make, a plan): kept, and sent again on
         // every run until it goes, so a recording is never dropped.
         // shared_paused: a friend's song whose owner's Plus ended (docs/pricing-plan.md, teaming up); it goes once it's back.
-        if (code === 'storage_limit' || code === 'email_unverified' || code === 'project_read_only' || code === 'shared_paused') {
+        // plus_required: a shared private arrangement without the singer's own Plus (plus_private); it goes once Plus is on.
+        if (code === 'storage_limit' || code === 'email_unverified' || code === 'project_read_only' || code === 'shared_paused' || code === 'plus_required') {
             const part = await db.get('parts', entry.targetId);
             if (part) await db.put('parts', { ...part, takeWaiting: code });
             state.waiting = code;
@@ -541,6 +542,9 @@ export function createSync(deps) {
                 changed.push({ kind: 'part', id: server.id, projectId: server.projectId });
             } catch (error) {
                 if (error?.code === 'offline') throw error;
+                // A friend's take on a shared private arrangement, while this account has no Plus (plus_private): what
+                // plays here stays, and it comes down once Plus is on (the project's next change brings it).
+                if (error?.code === 'plus_required') continue;
                 console.warn('A part did not come down; trying again next time', server.id, error);
                 recheck.add(server.projectId);
             }
@@ -675,6 +679,12 @@ export function createSync(deps) {
         if (!local || local.version !== shown.project.version || JSON.stringify(local.shared) !== JSON.stringify(shared)) {
             await db.put('projects', { ...projectFromServer(shown.project, local), shared });
             changed.push({ kind: 'project', id });
+        }
+        // A shared private arrangement without this person's own Plus (plus_private): the song and every take already
+        // here stay, untouched, until Plus is on (the others' new takes would be refused).
+        if (shown.project.readOnly === 'plus_needed') {
+            if (changed.length) deps.onChange?.(changed);
+            return changed;
         }
         const takes = new Map(shown.takes.map((t) => [t.id, t]));
         const listed = new Set(shown.parts.map((p) => p.id));

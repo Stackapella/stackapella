@@ -57,6 +57,13 @@
     color-scheme: dark;
 }
 
+/* the calm look's cut (render.py --skin=calm): calm mode has no pink (Hillel, docs/design-rules.md), so its accent is
+   the site's warm one, --s-hl-em (#82520f on light, #e8b479 on dark): the words "made by you.", the washes, the key
+   light, the flash, the motes and every brand glow. #stage.arcade sets its own pink above, so the game shots inside
+   the film stay game's. */
+:root[data-skin="calm"] { --accent: #82520f; }
+:root[data-skin="calm"][data-theme="dark"] { --accent: #e8b479; }
+
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: #111; color: var(--cream); font-family: var(--font); }
 body.render { background: var(--ink); overflow: hidden; }

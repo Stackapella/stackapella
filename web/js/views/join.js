@@ -2,7 +2,8 @@
 // invites.accept; Hillel's 75.png, components/invite-card.js): who invited you, to which song and
 // part, the parts with yours lit. Signed in, Accept brings the song to this device and opens it;
 // signed out, your email goes on to make the account (or Apple or Google), and the link is kept.
-// A link that's been used, taken back or run out says so kindly.
+// A link that's been used, taken back or run out says so kindly. A shared private arrangement needs the joiner's own
+// Plus (plus_private, Hillel 2026-11-17): the Plus sheet before Join (and on Join), with the way back here.
 
 import { api } from '../api.js';
 import { t, tk } from '../i18n.js';
@@ -12,6 +13,9 @@ import { joinedProject } from '../stores/cloud.js';
 import { loadProjects } from '../stores/projects.js';
 import { InviteAccept, InviteCard } from '../components/invite-card.js';
 import { PausedNote } from '../components/paused-note.js';
+import { PrivatePlus, privateRefusal } from '../components/private-plus.js';
+import { isPlus, loadBilling } from '../stores/plan.js';
+import { teams } from '../teams.js';
 
 const GONE = {
     invite_used: tk('join.used'),
@@ -22,11 +26,12 @@ const GONE = {
 };
 
 export const JoinView = {
-    components: { InviteAccept, InviteCard, PausedNote },
+    components: { InviteAccept, InviteCard, PausedNote, PrivatePlus },
     props: { token: { type: String, required: true } },
-    data: () => ({ invite: null, problem: null, joining: false, paused: false }),
+    data: () => ({ invite: null, problem: null, joining: false, paused: false, plusSheet: false }),
     setup: () => ({ account, navigate }),
     template: `
+        <PrivatePlus v-if="plusSheet" kind="join" :name="invite?.owner.name ?? ''" :next="'/join/' + token" @close="plusSheet = false" />
         <InviteCard :from="invite?.owner.name ?? ''" :kind="kind" :lead="lead" :song="invite?.song?.id ?? 'amazing-grace'" :part="invite?.partKey ?? 'alto'" :sign-in="'/signin?next=/join/' + token">
             <template v-if="problem || !invite" #top>
                 <p v-if="problem" class="text-lg text-cream" role="alert">{{ problem }}</p>
@@ -56,12 +61,21 @@ export const JoinView = {
     async created() {
         try {
             this.invite = (await api.invites.show(this.token)).data;
+            if (this.needsPlus()) this.plusSheet = true;
         } catch (error) {
             this.problem = GONE[error?.code] ? t(GONE[error.code]) : error?.code === 'offline' ? t('common.offline') : t('join.failed');
         }
     },
     methods: {
+        /** Joining this one needs the person's own Plus, and they haven't it (a guest makes an account first). */
+        needsPlus() {
+            return teams.private && this.invite?.plusNeeded === true && !!account.me && !isPlus();
+        },
         async join() {
+            if (this.needsPlus()) {
+                this.plusSheet = true;
+                return;
+            }
             this.joining = true;
             try {
                 const { data } = await api.invites.accept(this.token);
@@ -71,6 +85,11 @@ export const JoinView = {
             } catch (error) {
                 if (error?.code === 'shared_paused') {
                     this.paused = true;
+                    return;
+                }
+                if (privateRefusal(error)) {
+                    loadBilling().catch((reason) => console.info('The plan was not read again', reason?.message ?? reason));
+                    this.plusSheet = true;
                     return;
                 }
                 this.problem = GONE[error?.code] ? t(GONE[error.code]) : error?.code === 'offline' ? t('common.offline') : t('join.failed');

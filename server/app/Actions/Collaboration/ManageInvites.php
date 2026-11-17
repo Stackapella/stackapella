@@ -12,6 +12,7 @@ use App\Models\ProjectMember;
 use App\Models\User;
 use App\Support\Templates\Imported;
 use App\Support\Usage\Plans;
+use App\Support\Usage\PrivateSongs;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -22,7 +23,7 @@ use Illuminate\Support\Str;
  */
 final class ManageInvites
 {
-    public function __construct(private readonly Owned $owned, private readonly Plans $plans) {}
+    public function __construct(private readonly Owned $owned, private readonly Plans $plans, private readonly PrivateSongs $private) {}
 
     /**
      * @return array{invite: ProjectInvite, url: string}
@@ -37,6 +38,12 @@ final class ManageInvites
             // A song made from imported sheet music stays with its singer (and their choir groups).
             if (Imported::project($project)) {
                 Imported::refuse();
+            }
+
+            // A private arrangement's project: sharing it needs its creator's own Plus whatever plus_teams says (the
+            // plus_private switch, Hillel 2026-11-17).
+            if ($this->private->governs($project) && ! $this->plans->isPlus($user)) {
+                throw PrivateSongs::refusal();
             }
 
             // Singing together needs Plus on the side that starts it, and everyone invited joins free (docs/pricing-plan.md,
@@ -101,8 +108,15 @@ final class ManageInvites
             Owned::live($project);
 
             // The song's owner no longer has Plus: paused, nobody new joins (a calm note, nothing to buy).
-            if (! $this->plans->sharedOpen($owner)) {
+            $private = $this->private->governs($project);
+            if (! $this->plans->sharedOpen($owner) || ($private && ! $this->plans->isPlus($owner))) {
                 throw new Refusal(403, 'shared_paused');
+            }
+
+            // A private arrangement: everyone who joins needs their own Plus (plus_private; the app shows the Plus sheet
+            // first, with the trial where the account still has it).
+            if ($private && ! $this->plans->isPlus($user)) {
+                throw PrivateSongs::refusal();
             }
 
             if (ProjectMember::query()->where('project_id', $project->id)->count() >= $this->plans->singerLimit($owner)) {

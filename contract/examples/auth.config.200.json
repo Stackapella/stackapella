@@ -50,6 +50,7 @@
             "en"
         ],
         "withheldSongs": [],
-        "plusTeams": false
+        "plusTeams": false,
+        "plusPrivate": false
     }
 }

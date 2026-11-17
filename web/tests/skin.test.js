@@ -25,6 +25,10 @@ test('skin: game unless serious is chosen, kept through other choices, and back 
         assert(document.documentElement.dataset.skin === 'game', `the default: ${document.documentElement.dataset.skin}`);
         theme.choose({ skin: 'serious' });
         assert(document.documentElement.dataset.skin === 'serious', 'serious chosen');
+        // No light or dark chosen: serious mode is the device's (Hillel, 2026-11-17: "Auto everywhere, calm"), and turning
+        // game mode off stores no dark of its own.
+        const device = matchMedia('(prefers-color-scheme: dark)').matches ? '-dark' : '-light';
+        assert(theme.chosen().mode === null && document.documentElement.dataset.theme.endsWith(device), `serious, nothing chosen, is the device's ${device}: ${document.documentElement.dataset.theme}, ${theme.chosen().mode}`);
         theme.choose({ mode: 'light' });
         assert(document.documentElement.dataset.skin === 'serious' && theme.chosen().skin === 'serious', 'a new mode kept the skin');
         assert(document.documentElement.dataset.theme.endsWith('-light'), 'serious and light shows light');

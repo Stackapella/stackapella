@@ -97,6 +97,7 @@
         '/js/project-title.js',
         '/js/teams.js',
         '/js/components/paused-note.js',
+        '/js/components/private-plus.js',
         '/js/audio.js',
         '/js/mic-help.js',
         '/js/mic-check.js',

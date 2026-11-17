@@ -1,11 +1,12 @@
 // The landing's film (pages/landing/_showreel-film.blade.php, also on /how-it-works; server/resources/promo/showreel/README.md).
 // Nothing loads until the frame is in view and the page has been scrolled; then the cut matching the
-// theme plays muted and loops, and pauses when it leaves the screen or the tab hides. Pause, captions
+// look and the theme plays muted (game's cuts under data-skin="game", calm's amber ones otherwise: Hillel,
+// 2026-11-17, calm mode has no pink) and loops, and pauses when it leaves the screen or the tab hides. Pause, captions
 // and sound are buttons on the picture. The captions show only when asked for, sound or not, remembered
 // on this device, and never on the picture: the track stays hidden and its cue is written in a line under
 // the film (Hillel, 2026-11-08: they covered the film's own words), the end card's credit left to the
-// card. The .vtt itself never changes (a new one would be a new film version on the CDN). A theme switch mid-play seeks
-// the other cut to the same moment and crossfades once it's ready (the CSS shows the cut named on
+// card. The .vtt itself never changes (a new one would be a new film version on the CDN). A theme or skin switch mid-play
+// seeks the other cut to the same moment and crossfades once it's ready (the CSS shows the cut named on
 // the frame; before the script runs, the theme's). Reduced motion or
 // Save-Data, or a frame marked data-reel-press (on a page's first screen: /how-it-works): the poster with a play
 // button, and nothing loads until it's pressed. Phones get the 540p cut.
@@ -31,9 +32,14 @@ if (box) {
     };
     const state = { inView: false, scrolled: false, started: !calm, held: false, sound: false, captions: remembered() };
 
-    const cutNow = () => (document.documentElement.dataset.theme?.endsWith('-light') ? 'light' : 'dark');
+    /** The look's cut: game's "dark" or "light", or calm's "calm-dark" or "calm-light" (a page without a skin is calm). */
+    const cutNow = () => {
+        const root = document.documentElement;
+        const theme = root.dataset.theme?.endsWith('-light') ? 'light' : 'dark';
+        return root.dataset.skin === 'game' ? theme : `calm-${theme}`;
+    };
     let cut = cutNow();
-    box.dataset.cut = cut; // the cut shown: the theme's, until a switch mid-play hands over
+    box.dataset.cut = cut; // the cut shown: the look's, until a switch mid-play hands over
     const active = () => videos[cut];
 
     /** A cut's file, once: the small one on a phone, else WebM where it plays. */
@@ -152,7 +158,7 @@ if (box) {
     }, { threshold: 0.4 }).observe(box);
     document.addEventListener('visibilitychange', settle);
 
-    // A theme switch: the other cut picks up at the same moment, with the same sound. The one showing
+    // A theme or skin switch: the other cut picks up at the same moment, with the same sound. The one showing
     // keeps playing until the other has its moment ready (its metadata, then the seek a little ahead),
     // then they crossfade and the first pauses. Switched back before that: the other stops instead.
     new MutationObserver(() => {
@@ -190,5 +196,5 @@ if (box) {
             load(to);
             to.load();
         }
-    }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-skin'] });
 }

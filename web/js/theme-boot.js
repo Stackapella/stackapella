@@ -154,16 +154,16 @@
     }
     function apply() {
         const choice = chosen();
-        // Not chosen yet: dark, as the app has always looked (Hillel's default until he picks). Game mode
-        // turns dark by itself and keeps its own choice (Hillel: "auto set to dark but show toggle to
-        // return to light"); serious mode's is kept apart, so each skin comes back as it was left.
+        // Not chosen yet: serious (calm) mode follows the device, light or dark (Hillel, 2026-11-17: "Auto
+        // everywhere, calm"). Game mode turns dark by itself and keeps its own choice (Hillel: "auto set to dark
+        // but show toggle to return to light"); serious mode's is kept apart, so each skin comes back as it was left.
         const game = choice.skin !== 'serious';
         // Game mode turned on with its sheet not loaded yet: the page stays exactly as it is until it has, then turns.
         if (game && booted && !gameReady()) {
             gameCss().then(() => apply());
             return document.documentElement.dataset.theme;
         }
-        const wanted = game ? choice.gameMode || 'dark' : choice.mode;
+        const wanted = game ? choice.gameMode || 'dark' : choice.mode || 'system';
         const mode = wanted === 'light' || wanted === 'dark' ? wanted : wanted === 'system' ? (system.matches ? 'dark' : 'light') : 'dark';
         // A colour not chosen is the mode's own: Stage in dark, Warm in light (docs/decisions.md).
         const colour = FAMILIES.includes(choice.colour) ? choice.colour : mode === 'dark' ? 'stage' : 'warm';
@@ -196,11 +196,11 @@
     function choose(change) {
         const before = chosen();
         const pick = (name) => (change && name in change ? change[name] : before[name]) ?? null;
-        const choice = { mode: pick('mode') ?? 'dark', gameMode: pick('gameMode'), colour: pick('colour'), accent: pick('accent'), customAccent: pick('customAccent'), skin: pick('skin') === 'serious' ? 'serious' : 'game', at: Date.now() };
+        const choice = { mode: pick('mode'), gameMode: pick('gameMode'), colour: pick('colour'), accent: pick('accent'), customAccent: pick('customAccent'), skin: pick('skin') === 'serious' ? 'serious' : 'game', at: Date.now() };
         // A light or dark chosen in game mode (the app's or the site's) is game mode's own: serious mode's stays as it was.
         if (choice.skin === 'game' && change && 'mode' in change && !('gameMode' in change)) {
             choice.gameMode = change.mode;
-            choice.mode = before.mode ?? 'dark';
+            choice.mode = before.mode ?? null; // not chosen: Auto
         }
         try {
             window.localStorage.setItem('stackapella.appearance', JSON.stringify(choice));

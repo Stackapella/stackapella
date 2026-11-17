@@ -153,7 +153,15 @@ async function ensureTemplate(id) {
     if (!ref || Array.isArray(ref.parts)) return;
     const { loadTemplate } = await import('../templates.js');
     let template = await loadTemplate(ref.id).catch(() => null);
-    if (!template || template.version !== ref.version) template = (await api.templates.show(ref.id, { version: ref.version })).data.template;
+    if (!template || template.version !== ref.version) {
+        // A shared private arrangement without this person's own Plus (plus_private): it comes once Plus is on.
+        const shown = await api.templates.show(ref.id, { version: ref.version }).catch((error) => {
+            if (error?.code === 'plus_required') return null;
+            throw error;
+        });
+        if (!shown) return;
+        template = shown.data.template;
+    }
     await db.put('projects', { ...(await db.get('projects', id)), template });
 }
 

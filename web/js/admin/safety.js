@@ -49,6 +49,7 @@ const FLAGS = {
     lang_de: tk('admin.flag.lang_de'),
     geo_rights: tk('admin.flag.geo_rights'),
     plus_teams: tk('admin.flag.plus_teams'),
+    plus_private: tk('admin.flag.plus_private'),
     growth_fresh_start: tk('admin.flag.growth_fresh_start'),
 };
 const FLAG_HINTS = {
@@ -88,6 +89,7 @@ const FLAG_HINTS = {
     lang_de: tk('admin.flagHint.lang_de'),
     geo_rights: tk('admin.flagHint.geo_rights'),
     plus_teams: tk('admin.flagHint.plus_teams'),
+    plus_private: tk('admin.flagHint.plus_private'),
     growth_fresh_start: tk('admin.flagHint.growth_fresh_start'),
 };
 // Safety's own: the emergency controls, each a pause or a lockdown. Every other flag, a new one included, is a feature

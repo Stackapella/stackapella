@@ -3289,12 +3289,25 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-reel-v, .s-reel-poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: opacity .45s; }
 .s-reel-poster { z-index: 1; pointer-events: none; }
 .s-reel[data-playing] .s-reel-poster { opacity: 0; }
-:root[data-theme$="-light"] .s-reel:not([data-cut]) [data-cut="dark"], :root:not([data-theme$="-light"]) .s-reel:not([data-cut]) [data-cut="light"],
-.s-reel[data-cut="light"] [data-cut="dark"], .s-reel[data-cut="dark"] [data-cut="light"] { opacity: 0; pointer-events: none; }
-/* The other theme's poster isn't shown at all, so the browser never fetches it (a lazy image out of the layout loads
-   only once it's shown; backend's speed check, 2026-11-08: both posters loaded, about 28 KB each). */
-:root[data-theme$="-light"] .s-reel:not([data-cut]) .s-reel-poster[data-cut="dark"], :root:not([data-theme$="-light"]) .s-reel:not([data-cut]) .s-reel-poster[data-cut="light"],
-.s-reel[data-cut="light"] .s-reel-poster[data-cut="dark"], .s-reel[data-cut="dark"] .s-reel-poster[data-cut="light"] { display: none; }
+/* Four cuts, one shown: game's "dark" and "light", calm's amber "calm-dark" and "calm-light" (Hillel, 2026-11-17: calm
+   mode has no pink). The one named on the frame (js/public/showreel.js), else, before the script, the look's: game's
+   under data-skin="game", calm's otherwise, light or dark by the theme. The others' posters aren't shown at all, so
+   the browser never fetches them (a lazy image out of the layout loads only once it's shown; backend's speed check,
+   2026-11-08: both posters loaded, about 28 KB each). */
+.s-reel-v[data-cut] { opacity: 0; pointer-events: none; }
+.s-reel-poster[data-cut] { display: none; }
+.s-reel[data-cut="dark"] .s-reel-v[data-cut="dark"], .s-reel[data-cut="light"] .s-reel-v[data-cut="light"],
+.s-reel[data-cut="calm-dark"] .s-reel-v[data-cut="calm-dark"], .s-reel[data-cut="calm-light"] .s-reel-v[data-cut="calm-light"],
+:root[data-skin="game"]:not([data-theme$="-light"]) .s-reel:not([data-cut]) .s-reel-v[data-cut="dark"],
+:root[data-skin="game"][data-theme$="-light"] .s-reel:not([data-cut]) .s-reel-v[data-cut="light"],
+:root:not([data-skin="game"]):not([data-theme$="-light"]) .s-reel:not([data-cut]) .s-reel-v[data-cut="calm-dark"],
+:root:not([data-skin="game"])[data-theme$="-light"] .s-reel:not([data-cut]) .s-reel-v[data-cut="calm-light"] { opacity: 1; pointer-events: auto; }
+.s-reel[data-cut="dark"] .s-reel-poster[data-cut="dark"], .s-reel[data-cut="light"] .s-reel-poster[data-cut="light"],
+.s-reel[data-cut="calm-dark"] .s-reel-poster[data-cut="calm-dark"], .s-reel[data-cut="calm-light"] .s-reel-poster[data-cut="calm-light"],
+:root[data-skin="game"]:not([data-theme$="-light"]) .s-reel:not([data-cut]) .s-reel-poster[data-cut="dark"],
+:root[data-skin="game"][data-theme$="-light"] .s-reel:not([data-cut]) .s-reel-poster[data-cut="light"],
+:root:not([data-skin="game"]):not([data-theme$="-light"]) .s-reel:not([data-cut]) .s-reel-poster[data-cut="calm-dark"],
+:root:not([data-skin="game"])[data-theme$="-light"] .s-reel:not([data-cut]) .s-reel-poster[data-cut="calm-light"] { display: block; }
 .s-reel-btn { position: absolute; bottom: 16px; z-index: 2; width: 44px; height: 44px; border-radius: 99px; display: grid; place-items: center; color: var(--color-cream); cursor: pointer; }
 .s-reel-pause { inset-inline-start: 16px; }
 .s-reel-sound { inset-inline-end: 16px; }

@@ -2318,6 +2318,7 @@ Grace", "bpm": 80, "key": "G", "timeSignature": "3/4", "template": { "id": "amaz
 | 409 | `binned` | `error.json` | `projects.save.binned.json` |
 | 422 | `validation_failed` | `error.json` | `projects.save.validation_failed.json` |
 | 403 | `owner_only` | `error.json` | `projects.save.owner_only.json` |
+| 403 | `plus_required` | `error.json` | `projects.save.plus_required.json` |
 
 #### `projects.delete`
 
@@ -2412,6 +2413,7 @@ Start sending a take. **Request:** `{ "id": "<uuid>", "partId": "<uuid>", "sampl
 | 403 | `not_your_part` | `error.json` | `takes.create.not_your_part.json` |
 | 429 | `rate_limited` | `error.json` | `takes.create.rate_limited.json` |
 | 403 | `shared_paused` | `error.json` | `takes.create.shared_paused.json` |
+| 403 | `plus_required` | `error.json` | `takes.create.plus_required.json` |
 
 #### `takes.complete`
 
@@ -2434,6 +2436,7 @@ A take, with `url` (the FLAC, valid 15 minutes) once it's `ready`. **Request:** 
 |---|---|---|---|
 | 200 |  | `takes.show.json` | `takes.show.200.json` |
 | 404 | `not_found` | `error.json` | `takes.show.not_found.json` |
+| 403 | `plus_required` | `error.json` | `takes.show.plus_required.json` |
 
 #### `takes.restore`
 
@@ -2652,6 +2655,24 @@ is told). Where the song's copyright still runs in the visitor's country (docs/g
 `geo_rights`), it is `451 not_available_here` with `freeFrom`, the year it's free there (null when that can't
 be known); admins and editors still open it. **Request:** `?version=` (optional).
 
+**Shared private arrangements need everyone's own Plus** (Hillel, 2026-11-17; behind the `plus_private`
+switch, `auth.config`'s `plusPrivate`; docs/pricing-plan.md, top). A private arrangement is a person's own
+template that isn't public, isn't a listed Idea and isn't a song we gave them (`Template::isGiven`). It is
+shared once it has a live link (`unlisted`) or anyone besides its owner sings on a project made from it; a
+choir group stays outside the rule (its leader's Plus covers its members). Alone, it stays free. Shared, each
+person needs their own Plus, the creator too, and nobody's covers anyone else's. Each refusal below is
+`403 plus_required` with `reason: "private_shared"`, so the app words its Plus sheet for this:
+- `templates.show` by its link or a project: `403 plus_required` (signed out by its link: `403
+  account_required`); its owner still reads it, with `templates.mine`'s `plusNeeded`;
+- the project reads `readOnly: "plus_needed"` for that person; `takes.create` answers `403 plus_required`,
+  `takes.show` the same for another singer's take, and `parts.takes.list` lists only their own takes;
+- `invites.create` and turning the link on (`templates.update` or `templates.save` to `unlisted`) need the
+  creator's Plus; a shared song's new version or guide (`templates.save`, `templates.recordings.create`)
+  too; `invites.show` says `plusNeeded`, and `invites.accept` answers `403 plus_required` without it;
+- naming a song by its link in a project (`projects.save`) needs it too.
+Nothing is deleted: the song stays listed with every take, and it opens again the moment Plus is back (or,
+for its creator, once it's theirs alone). Finished mixes and videos (`/h/` links) stay free to hear.
+
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 |  | `templates.show.json` | `templates.show.200.json` |
@@ -2659,6 +2680,7 @@ be known); admins and editors still open it. **Request:** `?version=` (optional)
 | 404 | `not_found` | `error.json` | `templates.show.not_found.json` |
 | 429 | `rate_limited` | `error.json` | `templates.show.rate_limited.json` |
 | 451 | `not_available_here` | `error.json` | `templates.show.not_available_here.json` |
+| 403 | `plus_required` | `error.json` | `templates.show.plus_required.json` |
 
 #### `billing.prices`
 
@@ -2699,7 +2721,8 @@ Start Checkout. **Request:** `{ "interval": "year", "currency": "usd", "trial": 
 - `moment` is the upgrade moment that led here, counted on the server, never in the browser: the
   solo extras, `storage_limit`, `mp3`, `stems`, `guide` (your own recorded guide),
   `private_template` or `settings`, and since 2026-11-12 starting something shared, `group_start`
-  (Start a group) or `invite_friend` (a friend on your song) (anything else, an older app's
+  (Start a group) or `invite_friend` (a friend on your song), and since 2026-11-17 `private_shared`
+  (a shared private arrangement, behind `plus_private`) (anything else, an older app's
   `plus_song` too, is kept as `other`);
 - `startNowConsent` (optional): true when the person ticked the consent to start at once. Where
   `billing.prices` says it's needed and it isn't true, `422 validation_failed` on
@@ -3293,6 +3316,7 @@ copyright policy's repeat-infringer rule) can't make a new one: `403 import_bloc
 | 422 | `validation_failed` | `error.json` | `templates.save.validation_failed.json` |
 | 422 | `imported_private` | `error.json` | `templates.save.imported_private.json` |
 | 403 | `import_closed` | `error.json` | `templates.save.import_closed.json` |
+| 403 | `plus_required` | `error.json` | `templates.save.plus_required.json` |
 
 #### `templates.update`
 
@@ -3306,6 +3330,7 @@ Who may open it, and the library opt-in. **Request:** `{ "visibility": "unlisted
 | 404 | `not_found` | `error.json` | `templates.update.not_found.json` |
 | 422 | `validation_failed` | `error.json` | `templates.update.validation_failed.json` |
 | 422 | `imported_private` | `error.json` | `templates.update.imported_private.json` |
+| 403 | `plus_required` | `error.json` | `templates.update.plus_required.json` |
 
 #### `templates.delete`
 
@@ -3337,6 +3362,7 @@ part's earlier recording once it's ready. The `upload` works for 10 minutes.
 | 403 | `storage_limit` | `error.json` | `templates.recordings.create.storage_limit.json` |
 | 404 | `not_found` | `error.json` | `templates.recordings.create.not_found.json` |
 | 422 | `validation_failed` | `error.json` | `templates.recordings.create.validation_failed.json` |
+| 403 | `plus_required` | `error.json` | `templates.recordings.create.plus_required.json` |
 
 #### `templates.recordings.complete`
 
@@ -3489,6 +3515,7 @@ invite, or one you've already joined, answers the project as it is. **Request:**
 | 410 | `invite_used` | `error.json` | `invites.accept.invite_used.json` |
 | 404 | `not_found` | `error.json` | `invites.accept.not_found.json` |
 | 403 | `shared_paused` | `error.json` | `invites.accept.shared_paused.json` |
+| 403 | `plus_required` | `error.json` | `invites.accept.plus_required.json` |
 
 #### Choir groups
 

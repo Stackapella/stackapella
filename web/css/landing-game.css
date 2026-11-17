@@ -243,7 +243,7 @@
     [data-skin='game'] .lnf-mine::before { border-radius: 0; border-width: 2px; background: var(--g-panel); }
     [data-skin='game'] .lnf-now { font-size: 16px; letter-spacing: .02em; }
     /* The dock's one pill is one square panel. */
-    [data-skin='game'] .lnf-dock { background: linear-gradient(transparent, var(--g-bg) 34px); }
+    [data-skin='game'] .lnf-dock { background: linear-gradient(transparent, var(--g-bg) 10px); } /* solid behind the sung line */
     [data-skin='game'] .lnf[data-tail]:not([data-playing]) .lnf-dock { background: none; }
     [data-skin='game'] .lnf-dock::before { border-radius: 0; border: 2px solid var(--g-frame); background: var(--g-panel); box-shadow: 4px 4px 0 var(--g-sh); }
     [data-skin='game'] .lnf-tp { font-size: 19px; }

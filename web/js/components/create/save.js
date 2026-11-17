@@ -16,6 +16,9 @@ import { keyLabel } from '../../theme.js';
 import { Field, Notice } from '../form.js';
 import { Icon } from '../icon.js';
 import { toast } from '../ui.js';
+import { PrivatePlus } from '../private-plus.js';
+import { isPlus } from '../../stores/plan.js';
+import { teams } from '../../teams.js';
 
 const AUTHORSHIP = { mine: tk('create.save.mine'), traditional: tk('create.save.traditional'), other: tk('create.save.other') };
 const VISIBILITY = [
@@ -46,13 +49,14 @@ export function friendlyProblem(problem) {
 }
 
 export const SaveStep = {
-    components: { Field, Icon, Notice },
+    components: { Field, Icon, Notice, PrivatePlus },
     props: { draft: { type: Object, required: true }, finished: { type: Object, required: true }, problems: { type: Array, required: true }, saving: Boolean },
     emits: ['change', 'save', 'goto'],
-    data: () => ({ trying: false }),
+    data: () => ({ trying: false, linkPlus: false }),
     setup: () => ({ AUTHORSHIP, DIFFICULTY, VISIBILITY, PREVIEW_H, friendlyProblem, keyLabel }),
     template: `
         <section class="space-y-6">
+            <PrivatePlus v-if="linkPlus" kind="link" @close="linkPlus = false" />
             <div>
                 <h2 class="text-4xl font-extrabold tracking-tight text-cream">{{ t('create.save.title') }}</h2>
                 <p class="mt-2 text-muted">{{ t('create.save.hint') }}</p>
@@ -101,7 +105,7 @@ export const SaveStep = {
                         <legend class="mb-3 text-xs font-bold uppercase tracking-widest text-muted">{{ t('create.save.visibility') }}</legend>
                         <div class="grid gap-3 sm:grid-cols-2">
                             <label v-for="v in VISIBILITY" :key="v.key" class="radio-card has-[:disabled]:cursor-default has-[:disabled]:opacity-45">
-                                <input type="radio" name="visibility" class="radio mt-px" :checked="(draft.visibility === 'unlisted') === (v.key === 'unlisted')" @change="$emit('change', { visibility: v.key })" />
+                                <input type="radio" name="visibility" class="radio mt-px" :checked="(draft.visibility === 'unlisted') === (v.key === 'unlisted')" @change="pickVisibility(v.key, $event)" />
                                 <span><span class="block font-semibold text-cream">{{ t(v.title) }}</span><span class="block text-sm text-muted">{{ t(v.hint) }}</span></span>
                             </label>
                         </div>
@@ -185,6 +189,19 @@ export const SaveStep = {
         },
     },
     methods: {
+        /**
+         * Anyone with the link shares a private arrangement, so it needs Plus (plus_private, Hillel 2026-11-17): without
+         * it, the Plus sheet, and the choice stays on Only me.
+         */
+        pickVisibility(key, event) {
+            const given = mine.list.find((r) => r.id === this.draft.template?.id)?.given === true; // a song we gave: exempt
+            if (key === 'unlisted' && teams.private && !isPlus() && !given) {
+                event.target.closest('fieldset')?.querySelectorAll('input[name=visibility]').forEach((radio, i) => (radio.checked = i === 0));
+                this.linkPlus = true;
+                return;
+            }
+            this.$emit('change', { visibility: key });
+        },
         setTemplate(fields) {
             this.$emit('change', { template: { ...this.draft.template, ...fields } });
         },

@@ -5,11 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>
 // ?theme=light|dark picks the cut. Without it the preview follows the OS, but a render (?render=1)
-// always names its theme, so the same command renders the same film anywhere.
+// always names its theme, so the same command renders the same film anywhere. ?skin=calm is the calm look's cut
+// (film.css: the warm accent, never pink); without it, game's.
 (() => {
     const q = new URLSearchParams(location.search);
     const light = q.has('theme') ? q.get('theme') === 'light' : !q.has('render') && matchMedia('(prefers-color-scheme: light)').matches;
     document.documentElement.dataset.theme = light ? 'light' : 'dark';
+    document.documentElement.dataset.skin = q.get('skin') === 'calm' ? 'calm' : 'game';
 })();
 </script>
 <link rel="stylesheet" href="film.css">

@@ -137,14 +137,22 @@ python3 render.py --stills=2.95,12.6,28.2 --theme=light --out=stills   # PNG sti
 The outputs go to `server/public/videos/showreel/` (see below):
 
 ```bash
-for th in dark light; do
-  python3 render.py --final  --theme=$th     # 1920x1080 60fps, WebM (VP9 + Opus) and MP4 (H.264 + AAC)
-  python3 render.py --mobile --theme=$th     # 960x540 30fps MP4
-  python3 render.py --posters --theme=$th    # the poster: JPEG, and WebP at 960, 1440 and 1920
-done
+for sk in game calm; do for th in dark light; do
+  python3 render.py --final  --theme=$th --skin=$sk    # 1920x1080 60fps, WebM (VP9 + Opus) and MP4 (H.264 + AAC)
+  python3 render.py --mobile --theme=$th --skin=$sk    # 960x540 30fps MP4
+  python3 render.py --posters --theme=$th --skin=$sk   # the poster: JPEG, and WebP at 960, 1440 and 1920
+done; done
 python3 render.py --audio                    # the soundtrack alone: WAV, M4A, Opus (run --voices first)
 python3 render.py --manifest                 # manifest.json: every file's name, size and sha256
 ```
+
+**Two looks, four cuts** (Hillel, 2026-11-17: calm mode has no pink). `--skin=game` (the default) is game's cut, the
+film's files as they always were (`stackapella-showreel{,-light}*`). `--skin=calm` is calm's: the same film with
+the accent in calm's amber, the site's `--s-hl-em` (#82520f light, #e8b479 dark), on "made by you.", the key light,
+the flashes, the motes, the share card's tick and dot and the brand glows; the arcade shots inside it keep game's
+pink. Its files carry `-calm` (`stackapella-showreel-calm{,-light}*`). The page plays game's under
+`data-skin="game"` and calm's otherwise (`Showreel::files`, `js/public/showreel.js`); a manifest without calm's
+cuts gives calm game's.
 
 `--from`/`--to` render a range, `--workers=N` sets parallel Chrome instances, `--port-base=N` and
 `--http=N` move the ports so two renders can run at once, `--keep` leaves the frames behind,

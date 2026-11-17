@@ -23,6 +23,7 @@ use App\Support\Templates\SheetImport;
 use App\Support\Templates\TemplateRules;
 use App\Support\Trust\TrustLevel;
 use App\Support\Usage\Plans;
+use App\Support\Usage\PrivateSongs;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -158,6 +159,9 @@ final class OwnTemplates
                 throw new Refusal(403, 'template_limit');
             }
 
+            // A link shares a private arrangement, so its creator needs Plus (plus_private, Hillel 2026-11-17).
+            app(PrivateSongs::class)->ensureMayLink($user, $template, $template->visibility, $visibility);
+
             // Settings, not the song: which templates stay editable after a downgrade goes by when
             // the song last changed, so this doesn't move it.
             $template->timestamps = false;
@@ -247,6 +251,11 @@ final class OwnTemplates
                 throw new Refusal(403, 'template_read_only');
             }
 
+            // A shared private arrangement is read-only for a creator without Plus (plus_private): their song is kept,
+            // and it opens again with Plus, or once it's theirs alone (the link off, the singers gone).
+            app(PrivateSongs::class)->ensureMayOpen($user, $template);
+            app(PrivateSongs::class)->ensureMayLink($user, $template, $template->visibility, $visibility);
+
             // Staying in the library: declared again. Leaving it: off the Featured shelf.
             if ($template->isPublic() && ($visibility === null || $visibility === 'public') && $declaration === null) {
                 throw ValidationException::withMessages(['declaration' => __('validation.template_declaration')]);
@@ -258,6 +267,7 @@ final class OwnTemplates
                 throw new Refusal(403, 'template_limit');
             }
 
+            app(PrivateSongs::class)->ensureMayLink($user, new Template, null, $visibility);
             $template = new Template(['slug' => $uuid, 'access' => TemplateAccess::Free]);
             $template->forceFill(['owner_id' => $user->id, 'visibility' => $visibility ?? 'private', 'library_opt_in' => $libraryOptIn ?? false, 'parent_id' => $parentId !== null ? $this->parent($user, $parentId)->id : null]);
         }

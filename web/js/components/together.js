@@ -19,6 +19,8 @@ import { isPlus } from '../stores/plan.js';
 import { teams } from '../teams.js';
 import { PausedNote } from './paused-note.js';
 import { PlusMoment } from './plus-moment.js';
+import { PrivatePlus, privateRefusal } from './private-plus.js';
+import { mine } from '../stores/templates.js';
 import { changed, leftProject, syncNow } from '../stores/cloud.js';
 import { storedProject } from '../stores/projects.js';
 import { Icon } from './icon.js';
@@ -26,13 +28,14 @@ import { Notice } from './form.js';
 import { Modal, toast } from './ui.js';
 
 export const TogetherSheet = {
-    components: { AccountWall, Icon, Modal, Notice, PausedNote, PlusMoment },
+    components: { AccountWall, Icon, Modal, Notice, PausedNote, PlusMoment, PrivatePlus },
     props: { project: { type: Object, required: true }, parts: { type: Array, default: () => [] } },
     emits: ['close', 'add-part', 'left'],
-    data: () => ({ members: null, invites: [], failed: null, partKey: '', made: null, busy: false, removing: null, leaving: false, addKey: '', stored: null, saving: false, askPlus: false, refusedPlus: false }),
+    data: () => ({ members: null, invites: [], failed: null, partKey: '', made: null, busy: false, removing: null, leaving: false, addKey: '', stored: null, saving: false, askPlus: false, refusedPlus: false, refusedPrivate: false }),
     setup: () => ({ account, templatePartName, formatDate, teams }),
     template: `
-        <PlusMoment v-if="plusFirst" :title="t('together.invite.plusTitle')" :text="t('together.invite.plusText')" from="invite_friend" :next="backHere" price @close="$emit('close')" />
+        <PrivatePlus v-if="plusFirst && privateSong" kind="invite" :next="backHere" @close="$emit('close')" />
+        <PlusMoment v-else-if="plusFirst" :title="t('together.invite.plusTitle')" :text="t('together.invite.plusText')" from="invite_friend" :next="backHere" price @close="$emit('close')" />
         <Modal v-else :title="t('together.title')" :subtitle="singer ? '' : t('together.hint')" wide @close="$emit('close')">
             <div class="space-y-5">
                 <p v-if="singer" class="text-muted">{{ t('together.singerHint', { owner: project.shared.owner?.name ?? '' }) }}</p>
@@ -123,7 +126,8 @@ export const TogetherSheet = {
                 </template>
             </div>
             <!-- Inviting needs Plus (behind plus_teams): a short sheet on top, the way back is this song. -->
-            <PlusMoment v-if="askPlus" :title="t('together.invite.plusTitle')" :text="t('together.invite.plusText')" from="invite_friend" :next="backHere" price @close="askPlus = false" />
+            <PrivatePlus v-if="askPlus && (privateSong || refusedPrivate)" kind="invite" :next="backHere" @close="askPlus = false" />
+            <PlusMoment v-else-if="askPlus" :title="t('together.invite.plusTitle')" :text="t('together.invite.plusText')" from="invite_friend" :next="backHere" price @close="askPlus = false" />
         </Modal>`,
     computed: {
         /**
@@ -131,7 +135,16 @@ export const TogetherSheet = {
          * on, and nobody singing in it yet (friends found as it loads bring the sheet back, with its paused note).
          */
         plusFirst() {
-            return !this.singer && !!account.me && teams.on && !selfHosted() && !isPlus() && !(this.members ?? []).some((m) => m.role === 'singer');
+            return !this.singer && !!account.me && (teams.on || this.privateSong) && !selfHosted() && !isPlus() && !(this.members ?? []).some((m) => m.role === 'singer');
+        },
+        /**
+         * Your own private arrangement's song, behind plus_private (Hillel, 2026-11-17): sharing it needs everyone's own
+         * Plus, so the sheet says that rather than "everyone you invite joins free". Not a song we gave you (exempt).
+         */
+        privateSong() {
+            const id = this.project.template?.id;
+            const own = teams.private && id ? mine.list.find((r) => r.id === id) : null;
+            return !!own && own.visibility !== 'public' && own.given !== true;
         },
         /** Back to this song with this sheet open: after making an account, and once Plus is on. */
         backHere() {
@@ -143,7 +156,8 @@ export const TogetherSheet = {
         },
         /** The starter's song with friends in it, paused for them because the starter's Plus ended. */
         ownerPaused() {
-            return teams.on && !this.singer && !selfHosted() && !isPlus() && (this.members ?? []).some((m) => m.role === 'singer');
+            // A private arrangement's friends keep singing on their own Plus (plus_private): never paused for them.
+            return teams.on && !this.privateSong && !this.singer && !selfHosted() && !isPlus() && (this.members ?? []).some((m) => m.role === 'singer');
         },
         singer() {
             return !!this.project.shared;
@@ -205,6 +219,7 @@ export const TogetherSheet = {
             } catch (error) {
                 if (error?.code === 'plus_required') {
                     this.refusedPlus = this.askPlus = true; // the plan changed elsewhere: the moment, not an error
+                    this.refusedPrivate = privateRefusal(error);
                     return;
                 }
                 this.failed = error?.code === 'invite_limit' ? t('together.limit') : error?.code === 'imported_private' ? t('together.imported') : error?.code === 'offline' ? t('common.offline') : t('together.notMade');
