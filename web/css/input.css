@@ -11237,6 +11237,27 @@ main:has(> .s-close) .s-ink:not(.s-close) { padding-block: var(--k-sec); margin-
 @media (max-width: 399.98px) { :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-hub-eyebrow { white-space: normal; text-wrap: balance; } }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-hub-dots b { width: 8px; height: 8px; }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-sh-try .s-mixer { border: var(--arc-edge-w) solid var(--arc-pink); border-radius: 0; box-shadow: 8px 8px 0 var(--arc-shadow-c); }
+/* A song page's score card in game mode (the sheet music plan's card, reskinned): framed as the mixer it took the place
+   of, its title a HUD label, its time in the yellow digits, its progress a segmented power bar, square corners around
+   the sheet and the singer's own staff, and its downloads as chips. The paper and its notation stay as printed, and the
+   staves' letters keep their glass (gems). The card is the song's dark tint in every theme, so its yellow and its chips
+   are set for a dark ground rather than the theme's. */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-score { border: var(--arc-edge-w) solid var(--arc-pink); border-radius: 0; box-shadow: 8px 8px 0 var(--arc-shadow-c); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-score .s-play { box-shadow: 3px 3px 0 var(--arc-shadow-c); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-score-now p { align-items: baseline; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-score-now b { font-family: var(--a-hud); font-size: 11px; font-weight: 400; line-height: 1.6; letter-spacing: .06em; text-transform: uppercase; font-size-adjust: var(--arc-ex, none); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-score-time { opacity: 1; color: #ffd84a; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-score-bar { height: 8px; border-radius: 0; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-score-bar i { background: repeating-linear-gradient(90deg, var(--ta) 0 6px, transparent 6px 8px); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-score-sheet, .s-score-paper, .s-score-voice) { border-radius: 0; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-score-sheet { box-shadow: 4px 4px 0 rgb(0 0 0 / .35); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-score-paper { box-shadow: 8px 8px 0 var(--arc-shadow-c); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-score-full-open { font-family: var(--a-hud); font-size: 11px; font-weight: 400; letter-spacing: .06em; text-transform: uppercase; font-size-adjust: var(--arc-ex, none); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-score-dl { gap: 8px 14px; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-score-dl > span:first-child { font-family: var(--a-hud); font-size: 11px; font-weight: 400; line-height: 1.6; letter-spacing: .06em; text-transform: uppercase; color: #ffd84a; font-size-adjust: var(--arc-ex, none); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-score-files { gap: 10px; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-score-files a { padding-inline: 12px; border: var(--arc-edge-w) solid rgb(250 245 238 / .45); background: rgb(0 0 0 / .3); color: #faf5ee; box-shadow: 3px 3px 0 rgb(0 0 0 / .45); font-size: 17px; font-weight: 400; text-decoration: none; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-score-files a:active { translate: 3px 3px; box-shadow: none; }
 @media (min-width: 900px) { :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-sh-hero { grid-template-columns: minmax(0, 52fr) minmax(0, 48fr); } }
 /* Labels never wrap in game: the plan's action ("Try Plus free for 7 days") and the landing's share step ("Share a link")
    stay on one line, a size smaller on a narrow phone (the game buttons' rule otherwise wraps them, balanced). */
