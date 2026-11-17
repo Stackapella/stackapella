@@ -28,6 +28,337 @@
     color-scheme: light;
 }
 *, *::before, *::after { box-sizing: border-box; }
+/* The app's glass (Hillel, 2026-11-16: the home page takes the app's glass, "it also unifies the experience"):
+   css/glass.css's gem numbers, the bubble and the note gem, copied here so the page keeps one sheet. */
+/* glass:start (tool/glass_copy.py writes this from css/glass.css; never edit it here) */
+/* gem-spec:start */
+:root {
+    --gem-radius: 0.38;
+    --gem-body-top: 0.42;
+    --gem-body-flat-from: 0.3;
+    --gem-body-flat-to: 0.7;
+    --gem-body-bottom: 0.32;
+    --gem-edge-width: 1.5;
+    --gem-edge-dark: 0.45;
+    --gem-edge-light: 0.5;
+    --gem-gloss-x0: 0.12;
+    --gem-gloss-x1: 0.78;
+    --gem-gloss-y0: 0.07;
+    --gem-gloss-y1: 0.29;
+    --gem-gloss-dark: 0.7;
+    --gem-gloss-light: 0.85;
+    --gem-foot-width: 1;
+    --gem-foot-at: 0.11;
+    --gem-foot-white: 0.5;
+    --gem-foot-alpha: 0.75;
+    --gem-drop-a-dy: 3;
+    --gem-drop-a-spread: -1;
+    --gem-drop-a-dark: 0.32;
+    --gem-drop-a-light: 0.14;
+    --gem-drop-b-dy: 4;
+    --gem-drop-b-spread: 1;
+    --gem-drop-b-dark: 0.18;
+    --gem-drop-b-light: 0.07;
+    --gem-glow-dark-blur: 14;
+    --gem-glow-dark-alpha: 0.6;
+    --gem-glow-light-blur: 10;
+    --gem-glow-light-alpha: 0.4;
+    --gem-level-next: 0.3;
+    --gem-level-now: 0.8;
+    --gem-level-hit: 1;
+    --gem-ring-knockout: 3;
+    --gem-ring-width: 2;
+    --gem-ring-keyline: 1;
+    --gem-ink-dark: #17110a;
+    --gem-ink-light: #ffffff;
+    --gem-ghost-fill: 0.07;
+    --gem-ghost-edge: 1.5;
+    --gem-ghost-edge-alpha: 0.55;
+    --gem-ghost-height: 0.7;
+    --gem-settled-body: 0.4;
+    --gem-settled-edge: 0.65;
+    --gem-settled-gloss: 0.3;
+    --gem-settled-drop-a: 0.5;
+    --gem-hit-pop: 1.05;
+    --gem-hit-pop-ms: 250;
+    --gem-hit-flash-ms: 500;
+    --gem-hit-tick-width: 2;
+    --gem-hit-tick-max: 15;
+    --gem-hit-tick-of-h: 0.42;
+    --gem-hit-tick-end: 6;
+    --gem-words-weight: 750;
+    --gem-words-of-h: 0.44;
+    --gem-words-min: 11;
+    --gem-words-max: 20;
+    --gem-words-tracking: 0.005;
+    --gem-words-inset: 6;
+    --gem-words-inset-of-r: 0.5;
+    --gem-words-step: 12;
+    --gem-words-min-gem: 18;
+    --gem-words-above-size: 12;
+    --gem-words-above-weight: 700;
+    --gem-words-above-gap: 4;
+    --gem-words-above-clear: 6;
+    --gem-motion-next-s: 0.45;
+    --gem-motion-onset-ms: 90;
+    --gem-motion-release-ms: 160;
+    --gem-motion-settle-ms: 240;
+    --gem-motion-join-ms: 900;
+    --gem-motion-join-fade-ms: 300;
+    --gem-motion-join-deg: 100;
+    --gem-lane-tint: 0.14;
+}
+/* gem-spec:end */
+
+/* Bubbles (Hillel, 2026-11-08: "i really like the bubble effect for HC by my name ... circles in the app we'll add a
+   bubble effect to"; "this is for serious mode, game mode can have its own thing"; docs/bubble-circles-plan.md). The
+   gem's glass for serious mode's circles that stand for a thing: path nodes, done days, people, play discs. The light
+   sits above the icon and the body colour is flat across the middle, so the icon keeps the flat fill's contrast.
+   Set --bubble (the colour) and --bubble-ink (the icon). Never a Tailwind ring-* or an inline box-shadow on a bubble:
+   rings are outlines or --bubble-ring. */
+.bubble {
+    --bubble: var(--color-accent);
+    --bubble-ink: var(--color-accent-ink);
+    --bubble-hi: 0.75; /* the body's share in the light at the top (1 = no light) */
+    --bubble-spec: 0.75; /* the crescent's strength */
+    --bubble-glow: 0.35; /* the coloured glow under it */
+    --bubble-rim: 1.5px;
+    --bubble-drop: 0 2px 3px rgb(0 0 0 / 0.3);
+    --bubble-glow-shape: 0 4px 10px -4px;
+    --bubble-ring: 0 0 0 0 transparent; /* the halo (.bubble-now) */
+    isolation: isolate;
+    border-radius: 999px;
+    color: var(--bubble-ink);
+    background: radial-gradient(120% 90% at 35% 6%,
+        color-mix(in oklab, var(--bubble) calc(var(--bubble-hi) * 100%), white) 0%,
+        var(--bubble) 16%,
+        var(--bubble) 86%,
+        color-mix(in oklab, var(--bubble) 72%, black) 100%);
+    border: var(--bubble-rim) solid color-mix(in oklab, var(--bubble) 60%, black);
+    box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.55),
+        inset 0 -1px 0 color-mix(in oklab, var(--bubble) 70%, white),
+        var(--bubble-glow-shape) color-mix(in oklab, var(--bubble) calc(var(--bubble-glow) * 100%), transparent),
+        var(--bubble-drop),
+        var(--bubble-ring);
+}
+@layer components {
+    .bubble { position: relative; } /* as .gem: an `absolute` utility still wins */
+}
+/* The crescent: above the icon box (its tilted end reaches about 26% down; the icon box starts at 28 to 32%). The light
+   and the crescent end above the box because the part colours carry their icons at about 4.6:1 flat: any light under
+   an icon takes it under 4.5 (tests/flows/bubble_contrast.py measures the real pixels). */
+.bubble::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    left: 27%;
+    top: 5%;
+    width: 42%;
+    height: 17%;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgb(255 255 255 / var(--bubble-spec)), rgb(255 255 255 / 0));
+    transform: rotate(-10deg);
+    pointer-events: none;
+}
+:root[data-theme$="-light"] .bubble {
+    --bubble-glow: 0.18;
+    --bubble-drop: 0 1px 3px rgb(0 0 0 / 0.22);
+}
+/* A filled bubble's rim is deeper in a light theme; a clear one keeps its own edge (and a challenge its cream). */
+:root[data-theme$="-light"] .bubble:not(.bubble-clear) { border-color: color-mix(in oklab, var(--bubble) 50%, black); }
+/* Upcoming: a clear pearl. No glow, a quieter crescent, the checkbox edge (3:1 on the panel) for its rim. */
+.bubble-clear {
+    --bubble: var(--color-raised);
+    --bubble-ink: var(--color-muted);
+    --bubble-glow: 0;
+    --bubble-spec: 0.5;
+}
+.bubble.bubble-clear { border-color: var(--box-edge); }
+/* A challenge not yet done: cream ink and a 2 px cream rim, as its plain ring was. */
+.bubble-challenge { --bubble-ink: var(--color-cream); }
+.bubble.bubble-challenge { border: 2px solid var(--color-cream); }
+/* The play and record discs (docs/bubble-circles-plan.md, step 5): Play in the primary, Record in its red (a white dot),
+   and while recording the Stop disc red with its red halo, so recording is never mistaken for anything else. A large
+   Play keeps its ring of the raised colour around it (it was ring-8). */
+.bubble-primary { --bubble: var(--primary); --bubble-ink: var(--primary-ink); }
+/* In a dark theme the primary is cream, and its glow spread a white haze under Sing's transport: a softer one there. */
+:root:not([data-theme$="-light"]) .bubble-primary { --bubble-glow: 0.14; }
+.bubble-record { --bubble: var(--color-record); --bubble-ink: var(--color-record-label); }
+.bubble-ringed { --bubble-ring: 0 0 0 8px color-mix(in srgb, var(--color-raised) 70%, transparent); }
+/* The one now: its halo, in its own colour. */
+.bubble-now { --bubble-ring: 0 0 0 var(--bubble-halo, 6px) color-mix(in srgb, var(--bubble) 24%, transparent); }
+/* Sizes: small (24 to 32 px), medium (the default, 36 to 48), large (56 to 80). */
+.bubble-sm { --bubble-rim: 1px; --bubble-drop: 0 1px 2px rgb(0 0 0 / 0.28); --bubble-glow: 0; --bubble-spec: 0.65; --bubble-halo: 4px; }
+.bubble-lg { --bubble-rim: 2px; --bubble-drop: 0 3px 6px rgb(0 0 0 / 0.32); --bubble-glow-shape: 0 8px 18px -6px; --bubble-glow: 0.45; --bubble-spec: 0.8; }
+:root[data-theme$="-light"] .bubble-sm { --bubble-drop: 0 1px 2px rgb(0 0 0 / 0.2); }
+:root[data-theme$="-light"] .bubble-lg { --bubble-drop: 0 3px 6px rgb(0 0 0 / 0.22); --bubble-glow: 0.22; }
+.bubble-clear.bubble-lg, .bubble-clear.bubble-sm { --bubble-glow: 0; }
+/* Pressed, hovered, focused: the light above the icon and the glow change, never the body under it. */
+:is(button, a).bubble { cursor: pointer; transition: box-shadow 150ms ease, transform 100ms ease; }
+:is(button, a).bubble:hover { --bubble-hi: 0.65; --bubble-glow: 0.45; }
+:root[data-theme$="-light"] :is(button, a).bubble:hover { --bubble-glow: 0.28; }
+:is(button, a).bubble:active:not(:disabled) { transform: translateY(1px); --bubble-drop: 0 1px 1px rgb(0 0 0 / 0.3); }
+:is(button, a).bubble:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+.bubble-now:focus-visible { outline-offset: calc(var(--bubble-halo, 6px) + 2px); } /* outside the halo */
+.bubble:disabled, .bubble[aria-disabled="true"] { --bubble-glow: 0; --bubble-spec: 0.35; opacity: 0.55; cursor: not-allowed; }
+@media (prefers-reduced-motion: reduce) {
+    :is(button, a).bubble { transition: none; }
+    :is(button, a).bubble:active:not(:disabled) { transform: none; }
+}
+@media (prefers-contrast: more) {
+    .bubble { --bubble-hi: 1; --bubble-spec: 0.35; }
+    .bubble.bubble-clear { border-color: var(--color-cream); }
+}
+
+/* The note gem in the DOM (docs/glass-spec.md 0, 1): js/glass.js's gemBar in CSS, the same numbers, so a gem on a page
+   without a canvas (the home page) is the app's. Set --gem-c (the colour), --gem-h (its height, unitless px; or
+   --gem-hl, a length, where the height is a clamp of the page's) and --gem-surf (the colour under it); data-state "settled" or "ghost", data-ring for the note being sung, --gem-g its
+   glow level. tests/flows/glass_parity.py compares it with the canvas pixel for pixel in every theme. */
+.gem-note {
+    --gem-c: var(--color-part-1);
+    --gem-h: 34;
+    --gem-hl: calc(var(--gem-h) * 1px);
+    --gem-g: 0;
+    --gem-surf: var(--color-ink);
+    --gem-ring: var(--color-cream);
+    --gem-edge: var(--gem-edge-dark);
+    --gem-gloss: var(--gem-gloss-dark);
+    --gem-drop-a: var(--gem-drop-a-dark);
+    --gem-drop-b: var(--gem-drop-b-dark);
+    --gem-glow-blur: var(--gem-glow-dark-blur);
+    --gem-glow-alpha: var(--gem-glow-dark-alpha);
+    --gem-base: var(--gem-c);
+    --gem-rim: color-mix(in srgb, var(--gem-c), black calc(var(--gem-edge) * 100%));
+    --gem-glow: 0 0 calc(var(--gem-glow-blur) * 1px) color-mix(in srgb, var(--gem-c) calc(var(--gem-glow-alpha) * var(--gem-g) * 100%), transparent);
+    --gem-drops: 0 calc(var(--gem-drop-b-dy) * 1px) 0 calc(var(--gem-drop-b-spread) * 1px) rgb(0 0 0 / var(--gem-drop-b)),
+        0 calc(var(--gem-drop-a-dy) * 1px) 0 calc(var(--gem-drop-a-spread) * 1px) rgb(0 0 0 / var(--gem-drop-a));
+    --gem-ringed: 0 0 0 0 transparent, 0 0 0 0 transparent, 0 0 0 0 transparent; /* as many as the ring's, so it eases in layer by layer */
+    position: relative;
+    isolation: isolate;
+    box-sizing: border-box;
+    height: var(--gem-hl);
+    border-radius: calc(var(--gem-hl) * var(--gem-radius));
+    border: calc(var(--gem-edge-width) * 1px) solid var(--gem-rim);
+    background: linear-gradient(180deg,
+        color-mix(in srgb, var(--gem-base), white calc(var(--gem-body-top) * 100%)) 0%,
+        var(--gem-base) calc(var(--gem-body-flat-from) * 100%),
+        var(--gem-base) calc(var(--gem-body-flat-to) * 100%),
+        color-mix(in srgb, var(--gem-base), black calc(var(--gem-body-bottom) * 100%)) 100%) border-box;
+    box-shadow: var(--gem-ringed), var(--gem-glow), var(--gem-drops);
+}
+:root[data-theme$="-light"] .gem-note {
+    --gem-edge: var(--gem-edge-light);
+    --gem-gloss: var(--gem-gloss-light);
+    --gem-drop-a: var(--gem-drop-a-light);
+    --gem-drop-b: var(--gem-drop-b-light);
+    --gem-glow-blur: var(--gem-glow-light-blur);
+    --gem-glow-alpha: var(--gem-glow-light-alpha);
+}
+/* The gloss pill (positions inside the edge, so less its width) and the foot line, on whole pixels from the top as the
+   canvas draws them. */
+.gem-note::before, .gem-note::after { content: ""; position: absolute; pointer-events: none; }
+.gem-note::before {
+    left: calc(max(1px, var(--gem-hl) * var(--gem-gloss-x0)) - var(--gem-edge-width) * 1px);
+    right: calc((1 - var(--gem-gloss-x1)) * 100% + (1 - var(--gem-gloss-x1)) * var(--gem-edge-width) * 2px - var(--gem-edge-width) * 1px);
+    top: calc(round(var(--gem-hl) * var(--gem-gloss-y0), 1px) - var(--gem-edge-width) * 1px);
+    height: round(var(--gem-hl) * (var(--gem-gloss-y1) - var(--gem-gloss-y0)), 1px);
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgb(255 255 255 / var(--gem-gloss)), rgb(255 255 255 / 0));
+}
+.gem-note::after {
+    left: calc(var(--gem-hl) * var(--gem-radius) - var(--gem-edge-width) * 1px);
+    right: calc(var(--gem-hl) * var(--gem-radius) - var(--gem-edge-width) * 1px);
+    top: calc(round(var(--gem-hl) * (1 - var(--gem-foot-at)) - var(--gem-foot-width) * 0.5px, 1px) - var(--gem-edge-width) * 1px);
+    height: calc(var(--gem-foot-width) * 1px);
+    background: color-mix(in srgb, color-mix(in srgb, var(--gem-c), white calc(var(--gem-foot-white) * 100%)) calc(var(--gem-foot-alpha) * 100%), transparent);
+}
+/* Settled: the colour at 40% over the ground under it, its edge at 65%, a quiet gloss, no foot line, half drop A. */
+.gem-note[data-state="settled"] {
+    --gem-base: color-mix(in srgb, var(--gem-c) calc(var(--gem-settled-body) * 100%), var(--gem-surf));
+    --gem-rim: color-mix(in srgb, var(--gem-c) calc(var(--gem-settled-edge) * 100%), var(--gem-surf));
+    --gem-gloss: var(--gem-settled-gloss);
+    --gem-drops: 0 calc(var(--gem-drop-a-dy) * 1px) 0 calc(var(--gem-drop-a-spread) * 1px) rgb(0 0 0 / calc(var(--gem-drop-a) * var(--gem-settled-drop-a)));
+}
+.gem-note[data-state="settled"]::after { display: none; }
+/* Ghost (another part) and waiting (a voice not joined): an outline, nothing else. */
+.gem-note[data-state="ghost"] {
+    background: color-mix(in srgb, var(--gem-c) calc(var(--gem-ghost-fill) * 100%), transparent);
+    border: calc(var(--gem-ghost-edge) * 1px) dashed color-mix(in srgb, var(--gem-c) calc(var(--gem-ghost-edge-alpha) * 100%), transparent);
+    box-shadow: none;
+}
+.gem-note[data-state="ghost"]::before, .gem-note[data-state="ghost"]::after { display: none; }
+/* The ring round the note being sung: a knockout and a keyline in the ground under it, the theme's text colour between
+   (game mode: the arcade's yellow, and no soft glow). */
+.gem-note[data-ring] {
+    --gem-ringed: 0 0 0 calc(var(--gem-ring-knockout) * 1px) var(--gem-surf),
+        0 0 0 calc((var(--gem-ring-knockout) + var(--gem-ring-width)) * 1px) var(--gem-ring),
+        0 0 0 calc((var(--gem-ring-knockout) + var(--gem-ring-width) + var(--gem-ring-keyline)) * 1px) var(--gem-surf);
+}
+:root[data-skin="game"] .gem-note { --gem-ring: var(--arc-yellow, #ffd84a); --gem-glow: 0 0 0 0 transparent; }
+/* Motion (docs/glass-spec.md 4): a note settles over the settle time, its colour easing to the settled shade; the ring
+   comes in over the onset time and goes over the release time (a transition takes the time of the state it goes to).
+   A page that moves --gem-g itself (the next note's ramp) does so a frame at a time. */
+@property --gem-base { syntax: '<color>'; inherits: false; initial-value: transparent; }
+@property --gem-rim { syntax: '<color>'; inherits: false; initial-value: transparent; }
+.gem-note {
+    transition: --gem-base calc(var(--gem-motion-settle-ms) * 1ms) cubic-bezier(.16, 1, .3, 1),
+        --gem-rim calc(var(--gem-motion-settle-ms) * 1ms) cubic-bezier(.16, 1, .3, 1),
+        box-shadow calc(var(--gem-motion-release-ms) * 1ms) ease-out;
+}
+.gem-note[data-ring] { transition-duration: calc(var(--gem-motion-settle-ms) * 1ms), calc(var(--gem-motion-settle-ms) * 1ms), calc(var(--gem-motion-onset-ms) * 1ms); }
+@media (prefers-reduced-motion: reduce) { .gem-note { transition: none; } }
+/* The words (docs/glass-spec.md 2): a .gem-word inside the gem, placed by js/glass.js's gemFit, which the page runs and
+   writes as data-fit ("in", "above" or "none") and --gem-word-px (the size it chose) on the gem. "in": from the start
+   inset, in the gem's ink (--gem-ink, by contrast; a Settled gem's in the page's text, --gem-text); "above": small, over
+   the gem and clear of a ring, in --gem-text; "none": not shown. Never clipped. Before a fit, nothing shows. */
+.gem-note { --gem-ink: var(--gem-ink-dark); --gem-text: var(--color-cream); --gem-word-px: 12; }
+.gem-word {
+    position: absolute;
+    left: calc(max(var(--gem-words-inset) * 1px, var(--gem-hl) * var(--gem-radius) * var(--gem-words-inset-of-r)) - var(--gem-edge-width) * 1px);
+    top: 50%;
+    translate: 0 -50%;
+    visibility: hidden;
+    white-space: nowrap;
+    pointer-events: none;
+    font: var(--gem-words-weight) calc(var(--gem-word-px) * 1px) / 1 Figtree, system-ui, sans-serif;
+    letter-spacing: calc(var(--gem-words-tracking) * var(--gem-word-px) * 1px);
+    color: var(--gem-ink);
+}
+.gem-note[data-fit="in"] > .gem-word { visibility: visible; }
+.gem-note[data-state="settled"] > .gem-word { color: var(--gem-text); }
+.gem-note[data-fit="above"] > .gem-word {
+    visibility: visible;
+    left: calc(var(--gem-edge-width) * -1px);
+    top: auto;
+    bottom: calc(100% + (var(--gem-ring-knockout) + var(--gem-ring-width) + var(--gem-ring-keyline) + var(--gem-words-above-gap)) * 1px - var(--gem-edge-width) * 1px);
+    translate: none;
+    font: var(--gem-words-above-weight) calc(var(--gem-words-above-size) * 1px) / 1 Figtree, system-ui, sans-serif;
+    letter-spacing: 0;
+    color: var(--gem-text);
+}
+
+/* A voice joining: one band of its colour crosses its lane (the studio, the first take of a part; the home page, each
+   voice coming in). Set --gem-c on it; it sits over the lane, absolutely, and is gone when it ends. */
+.gem-join {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    overflow: hidden;
+    pointer-events: none;
+    --gem-join-band: color-mix(in srgb, color-mix(in srgb, var(--gem-c), white 45%) 55%, transparent);
+}
+:root[data-theme$="-light"] .gem-join { --gem-join-band: color-mix(in srgb, var(--gem-c) 30%, transparent); }
+.gem-join::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 30%, var(--gem-join-band) 50%, transparent 70%);
+    animation: gem-join calc(var(--gem-motion-join-ms) * 1ms) cubic-bezier(.16, 1, .3, 1) both;
+}
+@keyframes gem-join { from { translate: -100% 0; } to { translate: 100% 0; } }
+@media (prefers-reduced-motion: reduce) { .gem-join { display: none; } }
+/* glass:end */
 body { margin: 0; background: var(--ground); }
 .lnf {
     --pad: max(20px, calc((100vw - 1240px) / 2 + 20px));
@@ -39,7 +370,9 @@ body { margin: 0; background: var(--ground); }
 :where(.lnf) a { color: inherit; text-decoration: none; }
 :where(.lnf) button { font: inherit; color: inherit; }
 .lnf svg { display: block; flex: none; }
-.lnf :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; border-radius: 6px; }
+.lnf :focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 6px; }
+/* Outside the disc's ring while one shows (the invite, loading, a failure). */
+.lnf:is(:not([data-played]), [data-loading], [data-failed]) .lnf-disc:focus-visible { outline-offset: 9px; border-radius: 50%; }
 .lnf-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 .lnf-skip { position: fixed; z-index: 60; left: 12px; top: -80px; padding: 12px 18px; border-radius: 12px; background: var(--btn); color: var(--btn-ink) !important; font-weight: 800; }
 .lnf-skip:focus { top: 12px; }
@@ -104,7 +437,9 @@ body { margin: 0; background: var(--ground); }
 .lnf-go { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
 
 /* Buttons are flat; glass is for the gems and the round things you press. */
-.lnf-orb { --c: var(--em); position: relative; display: inline-grid; place-items: center; border-radius: 50%; flex: none; color: var(--gi); background: radial-gradient(120% 100% at 32% 18%, color-mix(in oklab, var(--c) 45%, white) 0%, var(--c) 46%, color-mix(in oklab, var(--c) 58%, black) 100%); box-shadow: inset 0 2px 0 rgb(255 255 255 / .7), inset 0 -5px 9px color-mix(in oklab, var(--c) 45%, black), 0 8px 18px -6px color-mix(in srgb, var(--c) 70%, transparent); }
+.lnf { --ring: var(--ink); }
+/* The round things are the app's bubble (.bubble, above), in the voice's colour: .lnf-orb sets where and how big. */
+.lnf-orb { --c: var(--em); --bubble: var(--c); --bubble-ink: var(--gi); position: relative; display: inline-grid; place-items: center; flex: none; }
 .lnf-play { position: relative; display: inline-flex; align-items: center; gap: 16px; height: 76px; padding: 0 34px 0 12px; border: 0; border-radius: 99px; background: var(--btn); color: var(--btn-ink) !important; font-weight: 800; font-size: 20px; line-height: 1; text-align: start; white-space: nowrap; cursor: pointer; box-shadow: 0 0 0 8px color-mix(in srgb, var(--em) 22%, transparent), 0 0 70px 6px color-mix(in srgb, var(--em) 36%, transparent); }
 .lnf-play .lnf-orb { width: 52px; height: 52px; }
 .lnf-play-w { display: grid; gap: 6px; } .lnf-play-w small { font-size: 13.5px; font-weight: 600; letter-spacing: .01em; opacity: .72; }
@@ -122,11 +457,12 @@ body { margin: 0; background: var(--ground); }
 .lnf-i-stop, .lnf:is([data-playing], [data-loading]) .lnf-i-play { display: none; }
 .lnf:is([data-playing], [data-loading]) .lnf-i-stop { display: inline-flex; }
 .lnf-orb > .lnf-i-play { display: inline-flex; }
-/* The round thing you press says where it is: it breathes until the first press, turns while the voices load, and
-   stands ringed if they couldn't (still, each of them, with reduced motion). */
-:is(.lnf-play .lnf-orb, .lnf-disc)::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--em) 75%, transparent); opacity: 0; pointer-events: none; }
+/* The round thing you press says where it is, by the bubble's one ring (docs/glass-spec.md 3: 3 px clear, 3 px wide,
+   in the text colour of what it sits on): it breathes until the first press, turns while the voices load, fills as
+   their share can be told, and stands ringed if they couldn't (still, each of them, with reduced motion). */
+:is(.lnf-play .lnf-orb, .lnf-disc)::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 3px solid color-mix(in srgb, var(--ink) 70%, transparent); opacity: 0; pointer-events: none; }
 .lnf[data-loading] :is(.lnf-play .lnf-orb, .lnf-disc)::after { opacity: 1; border-style: dashed; border-color: color-mix(in srgb, var(--ink) 70%, transparent); }
-.lnf-play .lnf-orb::after { border-color: color-mix(in srgb, var(--btn-ink) 55%, transparent); }
+.lnf-play .lnf-orb::after { border-color: color-mix(in srgb, var(--btn-ink) 70%, transparent); }
 .lnf[data-loading] .lnf-play .lnf-orb::after { border-color: color-mix(in srgb, var(--btn-ink) 70%, transparent); }
 .lnf[data-failed] :is(.lnf-play .lnf-orb, .lnf-disc)::after { opacity: 1; border-style: solid; border-color: var(--rec); }
 .s-play-hint { position: absolute; bottom: calc(100% + 10px); inset-inline-start: 0; z-index: 3; padding: 5px 11px; border-radius: 99px; background: color-mix(in srgb, var(--ground) 92%, var(--ink)); border: 1px solid var(--edge); color: var(--ink); font-size: 13px; font-weight: 600; line-height: 1.2; white-space: nowrap; }
@@ -144,21 +480,20 @@ body { margin: 0; background: var(--ground); }
 .lnf-hit { position: absolute; inset: 0; z-index: 1; width: 100%; border: 0; background: none; cursor: pointer; }
 .lnf-hit:focus-visible { outline-offset: -4px; }
 .lnf-tr { position: absolute; inset: 0 auto 0 var(--ph); translate: calc(var(--lnf-page, 0) * var(--ppb) * -1) 0; pointer-events: none; will-change: translate; }
-.lnf-g { position: absolute; left: calc(var(--b) * var(--ppb)); width: calc(var(--l) * var(--ppb) - 6px); top: calc(12% + var(--y) * 56%); height: clamp(16px, 27cqh, 54px); border-radius: 99px;
-    display: flex; align-items: center; justify-content: center; overflow: hidden; white-space: nowrap; font-weight: 800; font-size: clamp(10px, 11.5cqh, 22px); line-height: 1; color: var(--gi);
-    background: linear-gradient(180deg, color-mix(in oklab, var(--c) 52%, white) 0%, var(--c) 44%, color-mix(in oklab, var(--c) 66%, black) 100%);
-    border: 1px solid color-mix(in oklab, var(--c) 60%, black);
-    box-shadow: inset 0 1.5px 0 rgb(255 255 255 / .8), inset 0 -4px 7px color-mix(in oklab, var(--c) 48%, black), 0 0 18px -2px color-mix(in srgb, var(--c) 70%, transparent); }
-.lnf-g::before { content: ""; position: absolute; left: 9%; right: 38%; top: 12%; height: 26%; border-radius: 99px; background: linear-gradient(90deg, rgb(255 255 255 / .75), rgb(255 255 255 / 0)); }
-.lnf-g[data-sung] { opacity: .46; }
-.lnf-g[data-lit] { z-index: 2; outline: 2px solid #fff; outline-offset: 3px; filter: brightness(1.2); box-shadow: inset 0 1.5px 0 #fff, 0 0 40px 6px var(--c); }
-:root[data-theme$="-light"] .lnf-g[data-lit] { outline-color: var(--ink); }
+/* A note is the app's gem (.gem-note, above: docs/glass-spec.md), in its voice's colour and as tall as the lane allows;
+   the ground under it is the lane's tint. js/public/landing.js sets data-ring on the note sounding, data-state="settled"
+   once it has, --gem-g on each lane's next note as it nears, and the words' place (data-fit). Ink by contrast: the
+   page's four voices take the dark ink in a dark theme and the light one in a light theme (landing_page.py checks). */
+.lnf-g { position: absolute; left: calc(var(--b) * var(--ppb)); width: calc(var(--l) * var(--ppb) - 6px); top: calc(12% + var(--y) * 56%);
+    --gem-c: var(--c); --gem-hl: clamp(16px, 27cqh, 54px); --gem-surf: color-mix(in srgb, var(--c) calc(var(--gem-lane-tint) * 100%), var(--ground));
+    --gem-ring: var(--ink); --gem-text: var(--ink); --gem-ink: var(--gem-ink-dark); }
+:root[data-theme$="-light"] .lnf-g { --gem-ink: var(--gem-ink-light); }
+.lnf-g[data-ring] { z-index: 2; --gem-g: var(--gem-level-now); }
 .lnf-lb { position: absolute; z-index: 3; left: var(--pad); top: 0; bottom: 0; width: 300px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 5px; pointer-events: none; }
 .lnf-lb b { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 800; line-height: 1; letter-spacing: -.01em; color: var(--c); white-space: nowrap; }
 .lnf-lb small { max-width: 176px; padding-inline-start: 42px; font-size: 14px; font-weight: 500; line-height: 1.2; color: var(--mute); }
 .lnf-row > .lnf-orb { --c: inherit; }
 .lnf-lb .lnf-orb { --c: inherit; width: 32px; height: 32px; font-size: 13px; font-weight: 800; }
-.lnf-ln .lnf-orb, .lnf-orb[class*="lnf-v"], [class*="lnf-v"] > .lnf-orb { background: radial-gradient(120% 100% at 32% 18%, color-mix(in oklab, var(--c) 45%, white) 0%, var(--c) 46%, color-mix(in oklab, var(--c) 58%, black) 100%); }
 /* A lane too low for two lines keeps its name. */
 @container (max-height: 64px) { .lnf-lb small { display: none; } }
 .lnf-mt { display: inline-flex; align-items: center; gap: 3px; height: 16px; } .lnf-mt i { width: 3px; border-radius: 2px; background: var(--c); height: 8px; }
@@ -168,9 +503,8 @@ body { margin: 0; background: var(--ground); }
     .lnf[data-playing] .lnf-ln:not([data-off], [data-wait]) .lnf-mt i { animation: lnf-meter .7s ease-in-out infinite alternate; }
     .lnf[data-playing] .lnf-mt i:nth-child(2) { animation-delay: -.2s; } .lnf[data-playing] .lnf-mt i:nth-child(3) { animation-delay: -.45s; } .lnf[data-playing] .lnf-mt i:nth-child(4) { animation-delay: -.3s; }
     .lnf:not([data-played], [data-loading], [data-failed]) :is(.lnf-play .lnf-orb, .lnf-disc)::after { animation: lnf-breathe 2.4s ease-in-out infinite; }
-    .lnf[data-loading] :is(.lnf-play .lnf-orb, .lnf-disc)::after { border-style: solid; border-color: transparent; border-top-color: currentColor; animation: lnf-turn .9s linear infinite; }
-    .lnf[data-loading] .lnf-disc::after { border-top-color: var(--ink); }
-    .lnf[data-loading] .lnf-play .lnf-orb::after { border-top-color: var(--btn-ink); }
+    .lnf[data-loading] :is(.lnf-play .lnf-orb, .lnf-disc)::after { border-style: solid; border-color: color-mix(in srgb, var(--ink) 22%, transparent); border-top-color: var(--ink); animation: lnf-turn .9s linear infinite; }
+    .lnf[data-loading] .lnf-play .lnf-orb::after { border-color: color-mix(in srgb, var(--btn-ink) 22%, transparent); border-top-color: var(--btn-ink); }
     .lnf[data-loading][data-load] :is(.lnf-play .lnf-orb, .lnf-disc)::after { animation: none; }
 }
 /* The download's share, once it can be told: the ring fills clockwise (in place of turning). */
@@ -178,7 +512,7 @@ body { margin: 0; background: var(--ground); }
 .lnf[data-loading][data-load] .lnf-play .lnf-orb::after { color: var(--btn-ink); }
 @keyframes lnf-meter { from { scale: 1 .45; } to { scale: 1 1.25; } }
 @keyframes lnf-turn { to { rotate: 1turn; } }
-@keyframes lnf-breathe { 0%, 100% { opacity: 0; scale: 1; } 50% { opacity: .9; scale: 1.12; } }
+@keyframes lnf-breathe { 0%, 100% { opacity: 0; scale: 1; } 50% { opacity: .6; scale: 1.08; } }
 .lnf-ln::before { content: ""; position: absolute; z-index: 2; inset: 0 auto 0 0; width: calc(var(--ph) - 60px); background: linear-gradient(90deg, color-mix(in srgb, var(--ground) 90%, var(--c)) calc(100% - 120px), transparent); pointer-events: none; }
 .lnf-mine { position: absolute; z-index: 4; left: calc(var(--pad) + 180px); top: 50%; translate: 0 -50%; display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 99px; border: 1.5px solid var(--c); background: color-mix(in srgb, var(--ground) 80%, var(--c)); font-size: 13.5px; font-weight: 700; white-space: nowrap; transition: opacity .4s; }
 .lnf-chip { display: none; align-items: center; gap: 6px; height: 24px; margin-inline-start: 42px; padding: 0 10px; border-radius: 99px; background: var(--c); color: var(--gi); font-size: 11px; font-weight: 800; line-height: 1; letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; }
@@ -190,15 +524,17 @@ body { margin: 0; background: var(--ground); }
 /* The song builds as the showreel does: a lane whose voice has yet to join waits, dim and still (its glass gone, its
    notes faint, none of them lit), and lights in its colour as the voice comes in, a band of light crossing it. */
 .lnf .lnf-ln[data-wait] { background: color-mix(in srgb, var(--ink) 3%, transparent); border-color: color-mix(in srgb, var(--ink) 12%, transparent); box-shadow: none; }
-.lnf-g, .lnf-lb { transition: opacity .5s, filter .5s; }
-.lnf-ln[data-wait] .lnf-g, .lnf-ln[data-wait] .lnf-g:is([data-lit], [data-sung]) { opacity: .22; filter: saturate(.2); outline: 0; box-shadow: none; }
+.lnf-lb { transition: opacity .5s, filter .5s; }
+/* A voice not in yet: its notes are ghosts (the app's other parts), whatever their state: an outline and a faint fill. */
+.lnf-ln[data-wait] .lnf-g { background: color-mix(in srgb, var(--gem-c) calc(var(--gem-ghost-fill) * 100%), transparent); border: calc(var(--gem-ghost-edge) * 1px) dashed color-mix(in srgb, var(--gem-c) calc(var(--gem-ghost-edge-alpha) * 100%), transparent); box-shadow: none; }
+.lnf-ln[data-wait] .lnf-g::before, .lnf-ln[data-wait] .lnf-g::after, .lnf-ln[data-wait] .lnf-g > .gem-word { display: none; }
 .lnf-ln[data-wait] .lnf-lb { opacity: .5; }
 @media (prefers-reduced-motion: no-preference) {
     .lnf-ln[data-in]::after { content: ""; position: absolute; z-index: 2; inset: 0; background: linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--c) 60%, white) 50%, transparent 70%); pointer-events: none; animation: lnf-sweep 1.1s var(--ease) both; }
 }
 @keyframes lnf-sweep { from { translate: -100% 0; opacity: .85; } to { translate: 100% 0; opacity: 0; } }
 /* With reduced motion the lanes change state at once. */
-@media (prefers-reduced-motion: reduce) { .lnf-ln, .lnf-g, .lnf-lb, .lnf-floor i { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .lnf-ln, .lnf-lb, .lnf-floor i { transition: none; } }
 /* What is being heard as the song builds: under the lanes. */
 .lnf-now { margin: 10px 0 0; padding: 0 var(--pad); min-height: 21px; font-size: 14px; font-weight: 700; line-height: 1.5; color: var(--ink); white-space: nowrap; }
 .lnf-beam { display: none; position: absolute; z-index: 5; top: -16px; bottom: -16px; left: var(--ph); width: 3px; margin-left: -1.5px; border-radius: 3px; background: linear-gradient(#fff, #ffd9b0); box-shadow: 0 0 16px 3px #ff9139, 0 0 80px 24px rgb(255 145 57 / .35); pointer-events: none; transition: opacity .5s; }
@@ -219,7 +555,7 @@ body { margin: 0; background: var(--ground); }
 .lnf-dock { position: fixed; z-index: 30; inset: auto 0 0 0; height: var(--bar); padding: 0 var(--pad) env(safe-area-inset-bottom); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, auto) minmax(0, 1fr); align-items: center; gap: 20px; background: color-mix(in srgb, var(--ground) 84%, transparent); border-top: 1px solid var(--edge); }
 @supports (backdrop-filter: blur(4px)) { .lnf-dock { backdrop-filter: blur(16px) saturate(1.2); } }
 .lnf-tp { display: flex; align-items: center; gap: 14px; font-size: 15px; font-weight: 600; line-height: 1.2; color: var(--mute); font-variant-numeric: tabular-nums; }
-.lnf-disc { width: 52px; height: 52px; border: 0; cursor: pointer; color: var(--gi) !important; }
+.lnf-disc { width: 52px; height: 52px; cursor: pointer; color: var(--gi) !important; }
 .lnf-time { white-space: nowrap; }
 .lnf-words { text-align: center; min-width: 0; }
 .lnf-line { margin: 0; overflow: hidden; text-overflow: ellipsis; font-size: clamp(20px, 2.1vw, 30px); font-weight: 800; line-height: 1.12; letter-spacing: -.02em; white-space: nowrap; color: color-mix(in srgb, var(--ink) 50%, transparent); }
@@ -325,12 +661,10 @@ body { margin: 0; background: var(--ground); }
 .lnf-close .s-explore-way { --c: var(--c1); display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "ic name go" "fact fact fact"; align-items: center; gap: 10px 12px; height: 100%; padding: 18px 18px 20px; border-radius: 22px; background: var(--panel); border: 1px solid var(--edge); box-shadow: 0 0 0 1px color-mix(in srgb, var(--c) 36%, transparent), 0 0 60px -22px var(--c); transition: translate .3s var(--ease); }
 .lnf-close .s-explore-way:hover { translate: 0 -4px; }
 .lnf-close .s-hub-courses { --c: var(--c2); } .lnf-close .s-hub-tools { --c: var(--c3); } .lnf-close .s-hub-pricing { --c: var(--c4); } .lnf-close .s-hub-songs { --c: var(--c1); } .lnf-close .s-hub-home { --c: var(--em); }
-.lnf-close .s-explore-ic.bubble { grid-area: ic; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; color: var(--gi); background: var(--c) radial-gradient(120% 100% at 32% 18%, color-mix(in oklab, var(--c) 45%, white) 0%, var(--c) 46%, color-mix(in oklab, var(--c) 58%, black) 100%); box-shadow: inset 0 2px 0 rgb(255 255 255 / .7), inset 0 -4px 7px color-mix(in oklab, var(--c) 45%, black); }
+.lnf-close .s-explore-ic.bubble { grid-area: ic; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; --bubble: var(--c); --bubble-ink: var(--gi); }
 .lnf-close .s-explore-name { grid-area: name; font-size: 18px; font-weight: 800; letter-spacing: -.015em; white-space: nowrap; } .lnf-close .s-explore-go { grid-area: go; display: grid; color: var(--mute); } .lnf-close .s-explore-hud { display: none; }
 .lnf-close .s-explore-fact { grid-area: fact; font-size: 14.5px; line-height: 1.45; color: var(--mute); } .lnf-close .s-n { color: var(--ink); font-weight: 800; }
 .lnf-close .s-kick, .lnf-close .s-player { margin: 0; }
-/* The glass is a gradient over the voice's own colour (what its words are read against). */
-.lnf-orb, .lnf-g { background-color: var(--c); }
 /* A mudeo arrival's letter. */
 .lnf-letter { grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 20px 72px; align-items: start; } .lnf-letter .lnf-say { max-width: 36em; } .lnf-letter .lnf-kick svg { border-radius: 6px; }
 /* The site's own foot (components/site/footer.blade.php), in this page's dress: the mark and its line, the site's
@@ -399,8 +733,9 @@ body { margin: 0; background: var(--ground); }
     /* A lane still waiting for its singer: a debossed track, its notes dashed outlines (a picture of the step; the song, if
        it's playing, still sounds). */
     .lnf:not([data-alone]):is([data-scene="1"], [data-scene="2"]) .lnf-ln:not(.lnf-v1), .lnf:not([data-alone])[data-scene="3"] .lnf-ln.lnf-v4 { background: color-mix(in srgb, var(--ink) 3%, transparent); border-color: color-mix(in srgb, var(--ink) 12%, transparent); box-shadow: none; }
-    .lnf:not([data-alone]):is([data-scene="1"], [data-scene="2"]) .lnf-ln:not(.lnf-v1) .lnf-g, .lnf:not([data-alone])[data-scene="3"] .lnf-ln.lnf-v4 .lnf-g { background: none; box-shadow: none; border: 1.5px dashed color-mix(in srgb, var(--ink) 30%, transparent); color: transparent; outline: 0; filter: none; opacity: 1; }
-    .lnf:not([data-alone]):is([data-scene="1"], [data-scene="2"]) .lnf-ln:not(.lnf-v1) .lnf-g::before, .lnf:not([data-alone])[data-scene="3"] .lnf-ln.lnf-v4 .lnf-g::before { display: none; }
+    .lnf:not([data-alone]):is([data-scene="1"], [data-scene="2"]) .lnf-ln:not(.lnf-v1) .lnf-g, .lnf:not([data-alone])[data-scene="3"] .lnf-ln.lnf-v4 .lnf-g { background: color-mix(in srgb, var(--gem-c) calc(var(--gem-ghost-fill) * 100%), transparent); border: calc(var(--gem-ghost-edge) * 1px) dashed color-mix(in srgb, var(--gem-c) calc(var(--gem-ghost-edge-alpha) * 100%), transparent); box-shadow: none; }
+    .lnf:not([data-alone]):is([data-scene="1"], [data-scene="2"]) .lnf-ln:not(.lnf-v1) .lnf-g::before, .lnf:not([data-alone]):is([data-scene="1"], [data-scene="2"]) .lnf-ln:not(.lnf-v1) .lnf-g::after, .lnf:not([data-alone])[data-scene="3"] .lnf-ln.lnf-v4 .lnf-g::before, .lnf:not([data-alone])[data-scene="3"] .lnf-ln.lnf-v4 .lnf-g::after { display: none; }
+    .lnf:not([data-alone]):is([data-scene="1"], [data-scene="2"]) .lnf-ln:not(.lnf-v1) .lnf-g > .gem-word, .lnf:not([data-alone])[data-scene="3"] .lnf-ln.lnf-v4 .lnf-g > .gem-word { display: none; }
     .lnf:not([data-alone]):is([data-scene="1"], [data-scene="2"]) .lnf-ln:not(.lnf-v1) .lnf-lb, .lnf:not([data-alone])[data-scene="3"] .lnf-ln.lnf-v4 .lnf-lb { opacity: .55; }
     .lnf:not([data-scene="0"]) .lnf-mine { opacity: 0; pointer-events: none; visibility: hidden; }
     /* The voice heard alone keeps its way into the app beside it, whatever the scene. */
@@ -460,7 +795,7 @@ body { margin: 0; background: var(--ground); }
     .lnf-lb { left: 12px; top: 6px; bottom: auto; width: auto; flex-direction: row; align-items: center; z-index: 6; gap: 8px; } .lnf-lb b { font-size: 15px; gap: 7px; } .lnf-lb small { display: none; } .lnf-lb .lnf-orb { width: 20px; height: 20px; font-size: 10px; }
     .lnf-chip { margin: 0; height: 20px; font-size: 10px; }
     .lnf-ln::before { z-index: 6; width: 170px; height: 32px; inset: 0 auto auto 0; background: linear-gradient(90deg, color-mix(in srgb, var(--ground) 88%, var(--c)) 62%, transparent); }
-    .lnf-g { top: calc(42% + var(--y) * 24%); height: clamp(16px, 32cqh, 44px); font-size: clamp(11px, 16cqh, 20px); }
+    .lnf-g { top: calc(42% + var(--y) * 24%); --gem-hl: clamp(16px, 32cqh, 44px); }
     .lnf-trace { top: calc(42% + 16cqh); height: 24%; }
     .lnf-mine { left: auto; right: 6px; top: 0; translate: none; height: 44px; padding: 0 12px; font-size: 12.5px; border: 0; background: none; z-index: 7; }
     .lnf-mine::before { content: ""; position: absolute; inset: 7px 0; border-radius: 99px; border: 1.5px solid var(--c); background: color-mix(in srgb, var(--ground) 80%, var(--c)); z-index: -1; }

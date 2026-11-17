@@ -189,12 +189,13 @@
 }
 
 /* The note gem in the DOM (docs/glass-spec.md 0, 1): js/glass.js's gemBar in CSS, the same numbers, so a gem on a page
-   without a canvas (the home page) is the app's. Set --gem-c (the colour), --gem-h (its height, unitless px) and
-   --gem-surf (the colour under it); data-state "settled" or "ghost", data-ring for the note being sung, --gem-g its
+   without a canvas (the home page) is the app's. Set --gem-c (the colour), --gem-h (its height, unitless px; or
+   --gem-hl, a length, where the height is a clamp of the page's) and --gem-surf (the colour under it); data-state "settled" or "ghost", data-ring for the note being sung, --gem-g its
    glow level. tests/flows/glass_parity.py compares it with the canvas pixel for pixel in every theme. */
 .gem-note {
     --gem-c: var(--color-part-1);
     --gem-h: 34;
+    --gem-hl: calc(var(--gem-h) * 1px);
     --gem-g: 0;
     --gem-surf: var(--color-ink);
     --gem-ring: var(--color-cream);
@@ -209,12 +210,12 @@
     --gem-glow: 0 0 calc(var(--gem-glow-blur) * 1px) color-mix(in srgb, var(--gem-c) calc(var(--gem-glow-alpha) * var(--gem-g) * 100%), transparent);
     --gem-drops: 0 calc(var(--gem-drop-b-dy) * 1px) 0 calc(var(--gem-drop-b-spread) * 1px) rgb(0 0 0 / var(--gem-drop-b)),
         0 calc(var(--gem-drop-a-dy) * 1px) 0 calc(var(--gem-drop-a-spread) * 1px) rgb(0 0 0 / var(--gem-drop-a));
-    --gem-ringed: 0 0 0 0 transparent;
+    --gem-ringed: 0 0 0 0 transparent, 0 0 0 0 transparent, 0 0 0 0 transparent; /* as many as the ring's, so it eases in layer by layer */
     position: relative;
     isolation: isolate;
     box-sizing: border-box;
-    height: calc(var(--gem-h) * 1px);
-    border-radius: calc(var(--gem-h) * var(--gem-radius) * 1px);
+    height: var(--gem-hl);
+    border-radius: calc(var(--gem-hl) * var(--gem-radius));
     border: calc(var(--gem-edge-width) * 1px) solid var(--gem-rim);
     background: linear-gradient(180deg,
         color-mix(in srgb, var(--gem-base), white calc(var(--gem-body-top) * 100%)) 0%,
@@ -235,17 +236,17 @@
    canvas draws them. */
 .gem-note::before, .gem-note::after { content: ""; position: absolute; pointer-events: none; }
 .gem-note::before {
-    left: calc(max(1px, var(--gem-h) * var(--gem-gloss-x0) * 1px) - var(--gem-edge-width) * 1px);
+    left: calc(max(1px, var(--gem-hl) * var(--gem-gloss-x0)) - var(--gem-edge-width) * 1px);
     right: calc((1 - var(--gem-gloss-x1)) * 100% + (1 - var(--gem-gloss-x1)) * var(--gem-edge-width) * 2px - var(--gem-edge-width) * 1px);
-    top: calc(round(var(--gem-h) * var(--gem-gloss-y0) * 1px, 1px) - var(--gem-edge-width) * 1px);
-    height: round(var(--gem-h) * (var(--gem-gloss-y1) - var(--gem-gloss-y0)) * 1px, 1px);
+    top: calc(round(var(--gem-hl) * var(--gem-gloss-y0), 1px) - var(--gem-edge-width) * 1px);
+    height: round(var(--gem-hl) * (var(--gem-gloss-y1) - var(--gem-gloss-y0)), 1px);
     border-radius: 999px;
     background: linear-gradient(180deg, rgb(255 255 255 / var(--gem-gloss)), rgb(255 255 255 / 0));
 }
 .gem-note::after {
-    left: calc(var(--gem-h) * var(--gem-radius) * 1px - var(--gem-edge-width) * 1px);
-    right: calc(var(--gem-h) * var(--gem-radius) * 1px - var(--gem-edge-width) * 1px);
-    top: calc(round(var(--gem-h) * (1 - var(--gem-foot-at)) * 1px - var(--gem-foot-width) * 0.5px, 1px) - var(--gem-edge-width) * 1px);
+    left: calc(var(--gem-hl) * var(--gem-radius) - var(--gem-edge-width) * 1px);
+    right: calc(var(--gem-hl) * var(--gem-radius) - var(--gem-edge-width) * 1px);
+    top: calc(round(var(--gem-hl) * (1 - var(--gem-foot-at)) - var(--gem-foot-width) * 0.5px, 1px) - var(--gem-edge-width) * 1px);
     height: calc(var(--gem-foot-width) * 1px);
     background: color-mix(in srgb, color-mix(in srgb, var(--gem-c), white calc(var(--gem-foot-white) * 100%)) calc(var(--gem-foot-alpha) * 100%), transparent);
 }
@@ -272,6 +273,47 @@
         0 0 0 calc((var(--gem-ring-knockout) + var(--gem-ring-width) + var(--gem-ring-keyline)) * 1px) var(--gem-surf);
 }
 :root[data-skin="game"] .gem-note { --gem-ring: var(--arc-yellow, #ffd84a); --gem-glow: 0 0 0 0 transparent; }
+/* Motion (docs/glass-spec.md 4): a note settles over the settle time, its colour easing to the settled shade; the ring
+   comes in over the onset time and goes over the release time (a transition takes the time of the state it goes to).
+   A page that moves --gem-g itself (the next note's ramp) does so a frame at a time. */
+@property --gem-base { syntax: '<color>'; inherits: false; initial-value: transparent; }
+@property --gem-rim { syntax: '<color>'; inherits: false; initial-value: transparent; }
+.gem-note {
+    transition: --gem-base calc(var(--gem-motion-settle-ms) * 1ms) cubic-bezier(.16, 1, .3, 1),
+        --gem-rim calc(var(--gem-motion-settle-ms) * 1ms) cubic-bezier(.16, 1, .3, 1),
+        box-shadow calc(var(--gem-motion-release-ms) * 1ms) ease-out;
+}
+.gem-note[data-ring] { transition-duration: calc(var(--gem-motion-settle-ms) * 1ms), calc(var(--gem-motion-settle-ms) * 1ms), calc(var(--gem-motion-onset-ms) * 1ms); }
+@media (prefers-reduced-motion: reduce) { .gem-note { transition: none; } }
+/* The words (docs/glass-spec.md 2): a .gem-word inside the gem, placed by js/glass.js's gemFit, which the page runs and
+   writes as data-fit ("in", "above" or "none") and --gem-word-px (the size it chose) on the gem. "in": from the start
+   inset, in the gem's ink (--gem-ink, by contrast; a Settled gem's in the page's text, --gem-text); "above": small, over
+   the gem and clear of a ring, in --gem-text; "none": not shown. Never clipped. Before a fit, nothing shows. */
+.gem-note { --gem-ink: var(--gem-ink-dark); --gem-text: var(--color-cream); --gem-word-px: 12; }
+.gem-word {
+    position: absolute;
+    left: calc(max(var(--gem-words-inset) * 1px, var(--gem-hl) * var(--gem-radius) * var(--gem-words-inset-of-r)) - var(--gem-edge-width) * 1px);
+    top: 50%;
+    translate: 0 -50%;
+    visibility: hidden;
+    white-space: nowrap;
+    pointer-events: none;
+    font: var(--gem-words-weight) calc(var(--gem-word-px) * 1px) / 1 Figtree, system-ui, sans-serif;
+    letter-spacing: calc(var(--gem-words-tracking) * var(--gem-word-px) * 1px);
+    color: var(--gem-ink);
+}
+.gem-note[data-fit="in"] > .gem-word { visibility: visible; }
+.gem-note[data-state="settled"] > .gem-word { color: var(--gem-text); }
+.gem-note[data-fit="above"] > .gem-word {
+    visibility: visible;
+    left: calc(var(--gem-edge-width) * -1px);
+    top: auto;
+    bottom: calc(100% + (var(--gem-ring-knockout) + var(--gem-ring-width) + var(--gem-ring-keyline) + var(--gem-words-above-gap)) * 1px - var(--gem-edge-width) * 1px);
+    translate: none;
+    font: var(--gem-words-above-weight) calc(var(--gem-words-above-size) * 1px) / 1 Figtree, system-ui, sans-serif;
+    letter-spacing: 0;
+    color: var(--gem-text);
+}
 
 /* A voice joining: one band of its colour crosses its lane (the studio, the first take of a part; the home page, each
    voice coming in). Set --gem-c on it; it sits over the lane, absolutely, and is gone when it ends. */

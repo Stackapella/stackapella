@@ -23,7 +23,10 @@
 //   each story scene shows its moment), --lnf-page, the sung line's first beat (the still page shows a line at a
 //   time), --lnf-run, how far through both passes the play is (0 to 1, the dock's rail), and --lnf-load with
 //   data-load (the percent) while the voices' download can be told;
-// - on a gem: data-lit while its note sounds, data-sung once it has; on a word of the sung line: data-now, data-done;
+// - on a gem (the app's glass, css/glass.css's .gem-note, copied into landing.css): data-ring while its note sounds,
+//   data-state="settled" once it has, --gem-g as the next note nears (the app's ramp, docs/glass-spec.md 4), and its
+//   words' place, data-fit with --gem-word-px (js/glass.js's gemFit, once the font is in and on every resize);
+//   on a word of the sung line: data-now, data-done;
 // - on a lane (and its band in each strip): data-wait until its voice joins, data-in once it has;
 // - on a strip (.lnf-floor): data-live while it shows the song (playing, in view, motion allowed).
 // It shows the line being sung (the others hidden), keeps the next one under it, and tells a screen reader, politely,
@@ -76,6 +79,17 @@ export function noteState(note, beat) {
 }
 
 /**
+ * The glow of a note still to come (docs/glass-spec.md 4): none until the last min(0.45 s, 1 beat) before it, then
+ * rising as t squared to the "next" level. `beatSeconds`: one beat's length. Pure.
+ */
+export function nextGlow(note, beat, beatSeconds, level = 0.3, lead = 0.45) {
+    if (!(beat > 0) || !(beatSeconds > 0) || beat >= note.b) return 0;
+    const span = Math.min(lead, beatSeconds) / beatSeconds;
+    const t = 1 - (note.b - beat) / span;
+    return t <= 0 ? 0 : level * t * t;
+}
+
+/**
  * Where a play in passes is: `place` (beats since the play began), `beats` (one time through), `passes`. The pass
  * (from 0, the last one from its start on) and the beat within it. Pure.
  */
@@ -117,7 +131,14 @@ function setUp() {
     const passes = Number(root.dataset.passes) || 1;
     const scenes = [...root.querySelectorAll('[data-lnf-stage] [data-s]')];
     const still = matchMedia('(prefers-reduced-motion: reduce)');
-    const gems = [...root.querySelectorAll('.lnf-g')].map((el) => ({ el, b: Number(el.dataset.b), l: Number(el.dataset.l), state: '' }));
+    const gems = [...root.querySelectorAll('.lnf-g')].map((el) => ({ el, b: Number(el.dataset.b), l: Number(el.dataset.l), state: '', glow: 0, word: el.textContent.trim() }));
+    let song = {};
+    try {
+        song = JSON.parse(root.querySelector('[data-song]')?.textContent ?? '{}') ?? {};
+    } catch {
+        song = {};
+    }
+    const beatSeconds = 60 / (Number(song.tempo) || 80);
     const lines = [...root.querySelectorAll('.lnf-line')].map((el) => ({
         el,
         from: Number(el.dataset.from),
@@ -136,10 +157,18 @@ function setUp() {
         root.style.setProperty('--lnf-t', String(beat));
         for (const gem of gems) {
             const state = noteState(gem, beat);
+            // The next note's glow rises frame by frame while the song plays (not in a still pose, nor with reduced motion).
+            const glow = state === '' && playing() && !still.matches ? Math.round(nextGlow(gem, beat, beatSeconds) * 100) / 100 : 0;
+            if (glow !== gem.glow) {
+                gem.glow = glow;
+                if (glow > 0) gem.el.style.setProperty('--gem-g', String(glow));
+                else gem.el.style.removeProperty('--gem-g');
+            }
             if (state === gem.state) continue;
             gem.state = state;
-            gem.el.toggleAttribute('data-lit', state === 'lit');
-            gem.el.toggleAttribute('data-sung', state === 'sung');
+            gem.el.toggleAttribute('data-ring', state === 'lit');
+            if (state === 'sung') gem.el.dataset.state = 'settled';
+            else delete gem.el.dataset.state;
         }
         if (!lines.length) return;
         const at = phraseAt(lines, beat);
@@ -444,4 +473,47 @@ function setUp() {
     onScroll();
     rest();
     root.dataset.ready = '';
+    fitWords();
+
+    // ---- the gems' words: the app's fit ladder (docs/glass-spec.md 2) ---------------------------------------------
+    // Once the page is up (the glass module comes after the first paint), and again when the font is in and whenever a
+    // lane changes size: each gem's word inside it, smaller, above it, or not at all, the same in every state.
+    function fitWords() {
+        import('../glass.js').then(({ gemFit, whenWordsReady }) => {
+            const probe = document.createElement('canvas').getContext('2d');
+            const place = () => {
+                for (const track of root.querySelectorAll('[data-lnf-lanes] .lnf-tr')) {
+                    const own = gems.filter((gem) => gem.el.parentElement === track);
+                    own.forEach((gem, i) => {
+                        const box = getComputedStyle(gem.el);
+                        const w = Number.parseFloat(box.width);
+                        const h = Number.parseFloat(box.height);
+                        if (!(w > 0) || !(h > 0)) return;
+                        const x = gem.el.offsetLeft;
+                        const next = own[i + 1];
+                        const fit = gemFit(probe, { x, y: gem.el.offsetTop, w, h, word: gem.word, nextX: next ? next.el.offsetLeft : Infinity, bounds: { top: 0, right: Infinity } });
+                        const span = gem.el.querySelector('.gem-word');
+                        if (span && fit.text && span.textContent !== fit.text) span.textContent = fit.text;
+                        const px = /(\d+(?:\.\d+)?)px/.exec(fit.font ?? '')?.[1];
+                        if (px) gem.el.style.setProperty('--gem-word-px', px);
+                        gem.el.dataset.fit = fit.where;
+                    });
+                }
+            };
+            place();
+            whenWordsReady(place);
+            if ('ResizeObserver' in window) {
+                let queued = false;
+                const again = new ResizeObserver(() => {
+                    if (queued) return;
+                    queued = true;
+                    requestAnimationFrame(() => {
+                        queued = false;
+                        place();
+                    });
+                });
+                for (const lane of lanes.values()) again.observe(lane.el);
+            }
+        }, () => {});
+    }
 }

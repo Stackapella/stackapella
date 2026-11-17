@@ -55,7 +55,7 @@ WATCH = """window.__beacons = []; const send = Navigator.prototype.sendBeacon;
 STATE = """(() => { const s = document.getElementById('lnf'); return {
     playing: s.hasAttribute('data-playing'), p: Number.parseFloat(s.style.getPropertyValue('--p')) || 0,
     t: Number.parseFloat(s.style.getPropertyValue('--lnf-t')) || 0,
-    lit: s.querySelectorAll('.lnf-g[data-lit]').length, sung: s.querySelectorAll('.lnf-g[data-sung]').length,
+    lit: s.querySelectorAll('.lnf-g[data-ring]').length, sung: s.querySelectorAll('.lnf-g[data-state=settled]').length,
     line: [...s.querySelectorAll('.lnf-line')].find((l) => !l.hidden)?.textContent.trim() ?? '',
     now: s.querySelectorAll('.lnf-line [data-now]').length,
     alone: [...s.querySelectorAll('[data-voice][data-solo]')].map((l) => l.dataset.voice),
@@ -110,9 +110,9 @@ def scroll_to(f, scene):
 def first_frame(f):
     # As the server sends it, before any script: the headline, the lanes, the gems, the first sung line.
     html = f.js("fetch(location.pathname).then((r) => r.text())")
-    for piece in ('class="lnf-h1"', 'data-voice="soprano"', 'data-voice="bass"', 'class="lnf-g"', 'class="lnf-line"', 'data-scene="0"'):
+    for piece in ('class="lnf-h1"', 'data-voice="soprano"', 'data-voice="bass"', 'class="lnf-g gem-note"', 'class="lnf-line"', 'data-scene="0"'):
         assert piece in html, f"the page as served has {piece}"
-    assert html.count('class="lnf-g"') > 60, "every note of the song is a gem in the page"
+    assert html.count('class="lnf-g gem-note"') > 60, "every note of the song is a gem in the page"
     assert f.js("document.querySelectorAll('h1').length") == 1, "one h1"
     state = f.js(STATE)
     assert not state["playing"] and state["lit"] == 0 and state["scene"] == "0", f"at rest nothing plays or is lit: {state}"
@@ -126,6 +126,43 @@ def first_frame(f):
     scripts = f.js("performance.getEntriesByType('resource').map((r) => new URL(r.name).pathname).filter((n) => n.endsWith('.js'))")
     assert "/js/public/cabinet.js" not in scripts, f"the old landing's game isn't loaded: {scripts}"
     assert f.js("performance.getEntriesByType('resource').some((r) => r.name.includes('/fonts/figtree-latin.woff2'))"), "the font is asked for at once"
+
+
+GLASS = """(() => {
+    const lin = (c) => ((c /= 255) <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+    const probe = Object.assign(document.createElement('canvas'), { width: 1, height: 1 }).getContext('2d', { willReadFrequently: true });
+    const rgb = (colour) => { probe.clearRect(0, 0, 1, 1); probe.fillStyle = colour; probe.fillRect(0, 0, 1, 1); return [...probe.getImageData(0, 0, 1, 1).data].slice(0, 3); };
+    const lum = (c) => { const [r, g, b] = rgb(c); return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b); };
+    const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+    const gems = [...document.querySelectorAll('[data-lnf-lanes] .lnf-g')];
+    const lanes = [...document.querySelectorAll('[data-lnf-lanes] [data-voice]')].map((lane) => {
+        const gem = getComputedStyle(lane.querySelector('.lnf-g'));
+        const c = gem.getPropertyValue('--c').trim(), ink = gem.getPropertyValue('--gem-ink').trim();
+        const dark = gem.getPropertyValue('--gem-ink-dark').trim(), light = gem.getPropertyValue('--gem-ink-light').trim();
+        return { voice: lane.dataset.voice, ink: Math.round(ratio(ink, c) * 100) / 100, best: rgb(ink).join() === rgb(ratio(dark, c) >= ratio(light, c) ? dark : light).join() };
+    });
+    const ring = document.querySelector('.lnf-g[data-ring]');
+    return {
+        lanes,
+        fitted: gems.filter((g) => g.dataset.fit).length, gems: gems.length,
+        inside: gems.filter((g) => g.dataset.fit === 'in').length,
+        clipped: gems.filter((g) => g.dataset.fit === 'in' && g.querySelector('.gem-word').getBoundingClientRect().right > g.getBoundingClientRect().right + 0.5).length,
+        ring: ring ? getComputedStyle(ring).boxShadow.split(/,(?![^(]*\\))/).length : 0,
+        old: gems.some((g) => getComputedStyle(g).outlineStyle !== 'none' || getComputedStyle(g).filter !== 'none'),
+    };
+})()"""
+
+
+def glass(f):
+    """The gems are the app's (docs/glass-spec.md): ink by contrast at 4.5:1 or better, every gem's words placed by the
+    fit (none clipped), the note sounding ringed, and none of the old outline or filter left."""
+    f.wait("document.querySelectorAll('[data-lnf-lanes] .lnf-g[data-fit]').length === document.querySelectorAll('[data-lnf-lanes] .lnf-g').length", timeout=10, what="every gem's words placed")
+    g = f.js(GLASS)
+    for lane in g["lanes"]:
+        assert lane["ink"] >= 4.5 and lane["best"], f"a gem's words are its ink by contrast, 4.5:1 or better: {lane}"
+    assert g["inside"] > 20 and g["clipped"] == 0, f"words inside their gems, none clipped: {g}"
+    assert g["ring"] >= 6, f"the note sounding has the ring (knockout, ring, keyline): {g}"
+    assert not g["old"], f"no gem keeps the old outline or filter: {g}"
 
 
 def play_and_solo(f):
@@ -143,8 +180,11 @@ def play_and_solo(f):
     assert a["time"].endswith("/ 1:12") and f.js("document.querySelector('.lnf-play-w small').textContent").endswith("1:12"), f"the time is both passes: {a['time']}"
     assert f.js(WAITS) == ["alto", "tenor", "bass"], f"only the first lane is lit at the start: {f.js(WAITS)}"
     assert "soprano" in f.js(NOW).lower(), f"the stage says who sings: {f.js(NOW)!r}"
-    dim = f.js("(() => { const g = (v) => Number(getComputedStyle(document.querySelector(`[data-voice=${v}] .lnf-g`)).opacity); return [g('soprano'), g('bass')]; })()")
-    assert dim[1] < 0.4 and dim[0] > dim[1], f"a waiting lane's notes are faint: {dim}"
+    # A waiting lane's notes are the app's ghosts (a dashed outline, no glass, no words); the singing lane's are glass.
+    edges = f.js("(() => { const g = (v) => getComputedStyle(document.querySelector(`[data-voice=${v}] .lnf-g`)).borderTopStyle; return [g('soprano'), g('bass')]; })()")
+    assert edges == ["solid", "dashed"], f"a waiting lane's notes are ghosts, the singing lane's glass: {edges}"
+    assert f.js("getComputedStyle(document.querySelector('[data-voice=bass] .lnf-g'), '::before').display") == "none", "a ghost has no gloss"
+    glass(f)
     assert f.js("getComputedStyle(document.querySelector('[data-voice=bass] .lnf-mt i')).animationName") == "none", "a waiting lane's meter is still"
 
     # The alto alone, by its lane; then all four again, and the song never goes back.
@@ -237,6 +277,14 @@ def game_switch(f):
     if f.js("!!document.querySelector('meta[name=game-css]')"):
         # Turned on after the first paint, game mode's sheet loads then (theme-boot.js's gameCss) and the page wears it.
         f.wait(f"!{headline}.split(',')[0].includes('Figtree')", timeout=10, what="the page in game mode's dress")
+        # The note gems' ring is the arcade's yellow, as in the app's game lane (docs/glass-spec.md 4), with no soft glow;
+        # the square Play orb and the disc keep no glass crescent.
+        rgb = "((c) => { const p = document.createElement('i'); p.style.color = c; document.body.append(p); const v = getComputedStyle(p).color; p.remove(); return v; })"
+        ring = f.js(f"{rgb}(getComputedStyle(document.querySelector('[data-lnf-lanes] .lnf-g')).getPropertyValue('--gem-ring'))")
+        yellow = f.js(f"{rgb}(getComputedStyle(document.documentElement).getPropertyValue('--g-yellow'))")
+        assert ring == yellow, f"a gem's ring is game mode's yellow: {ring} against {yellow}"
+        assert f.js("getComputedStyle(document.querySelector('[data-lnf-lanes] .lnf-g')).getPropertyValue('--gem-glow').trim().startsWith('0 0 0 0')"), "no soft glow in game mode"
+        assert f.js("[...document.querySelectorAll('.lnf-play .lnf-orb, .lnf-disc')].every((o) => getComputedStyle(o, '::before').display === 'none')"), "the square orb and disc have no crescent"
     else:
         assert "Figtree" in f.js(headline), "the page stays calm"
     f.no_sideways("game mode on")

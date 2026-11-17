@@ -109,7 +109,7 @@ final class LandingStagePageTest extends TestCase
         // Every note of every part is a gem in the page, each with where it sits and (when it has one) its syllable.
         $notes = array_sum(array_map(static fn (array $lane): int => count($lane['notes']), $stage['lanes']));
         $this->assertGreaterThan(0, $notes);
-        $this->assertSame($notes, substr_count((string) $page->getContent(), 'class="lnf-g"'));
+        $this->assertSame($notes, substr_count((string) $page->getContent(), 'class="lnf-g gem-note"'));
         foreach ($stage['lanes'] as $lane) {
             foreach ($lane['notes'] as $note) {
                 $this->assertGreaterThanOrEqual(0.0, $note['y']);
@@ -159,7 +159,7 @@ final class LandingStagePageTest extends TestCase
         $this->assertLessThan(strpos($html, 'id="lnf-s5"'), strpos($html, 'data-lnf-tail'));
         // The choir card shows each sample singer's own initials.
         foreach (['PS', 'SL', 'KO', 'TO'] as $initials) {
-            $this->assertStringContainsString('<span class="lnf-orb">'.$initials.'</span>', $html);
+            $this->assertStringContainsString('<span class="lnf-orb bubble">'.$initials.'</span>', $html);
         }
         // The home page is on the arcade screen in game mode, as the public layout marks it (data-gs).
         $this->assertMatchesRegularExpression('/<html[^>]*\bdata-gs\b/', (string) $page->getContent());

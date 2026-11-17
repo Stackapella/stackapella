@@ -109,7 +109,7 @@
                                 <div class="lnf-go">
                                     @if ($stage !== null)
                                         {{-- What a press commits to: the song, how many voices, how long. --}}
-                                        <button type="button" class="lnf-play" data-lnf-play><span class="lnf-orb" aria-hidden="true"><span class="lnf-i-play"><x-site.icon name="play" size="22" /></span><span class="lnf-i-stop"><x-site.icon name="stop" size="22" /></span></span><span class="lnf-play-w"><span class="lnf-i-play">@if ($gameSheet)<x-site.skin :game="__('landing.game.play')" :serious="__('landing.play', ['song' => $song])" />@else{{ __('landing.play', ['song' => $song]) }}@endif</span><span class="lnf-i-stop">{{ __('landing.stop') }}</span><small class="lnf-meta">{{ __('landing.play_meta', ['count' => count($stage['lanes']), 'length' => $stage['seconds']]) }}</small><small class="lnf-load" data-lnf-load data-loading="{{ __('landing.loading') }}" data-failed="{{ __('landing.failed') }}"></small></span></button>
+                                        <button type="button" class="lnf-play" data-lnf-play><span class="lnf-orb bubble" aria-hidden="true"><span class="lnf-i-play"><x-site.icon name="play" size="22" /></span><span class="lnf-i-stop"><x-site.icon name="stop" size="22" /></span></span><span class="lnf-play-w"><span class="lnf-i-play">@if ($gameSheet)<x-site.skin :game="__('landing.game.play')" :serious="__('landing.play', ['song' => $song])" />@else{{ __('landing.play', ['song' => $song]) }}@endif</span><span class="lnf-i-stop">{{ __('landing.stop') }}</span><small class="lnf-meta">{{ __('landing.play_meta', ['count' => count($stage['lanes']), 'length' => $stage['seconds']]) }}</small><small class="lnf-load" data-lnf-load data-loading="{{ __('landing.loading') }}" data-failed="{{ __('landing.failed') }}"></small></span></button>
                                     @endif
                                     <a href="{{ $links['start'] }}" class="lnf-quiet lnf-wide" data-funnel-start>{{ __('pages.landing.start') }}</a>
                                 </div>
@@ -149,7 +149,7 @@
                                         <button type="button" class="lnf-hit" data-hear-alone aria-pressed="false" aria-label="{{ __('pages.landing.hero.hear_only', ['part' => mb_strtolower($lane['name'])]) }}" data-label="{{ __('pages.landing.hero.hear_only', ['part' => mb_strtolower($lane['name'])]) }}" data-label-back="{{ __('pages.landing.hero.hear_all_back') }}"></button>
                                         <div class="lnf-tr" aria-hidden="true">
                                             @foreach ($lane['notes'] as $note)
-                                                <span class="lnf-g" data-b="{{ $note['beat'] }}" data-l="{{ $note['length'] }}" style="--b: {{ $note['beat'] }}; --l: {{ $note['length'] }}; --y: {{ $note['y'] }}">{{ $note['length'] >= 1 ? $note['text'] : '' }}</span>
+                                                <span class="lnf-g gem-note" data-b="{{ $note['beat'] }}" data-l="{{ $note['length'] }}" style="--b: {{ $note['beat'] }}; --l: {{ $note['length'] }}; --y: {{ $note['y'] }}"><span class="gem-word">{{ $note['text'] }}</span></span>
                                             @endforeach
                                             {{-- Your pitch as Sing draws it, shown in the Sing along scene, up to where the song is. --}}
                                             @if ($loop->first && $lane['trace'] !== '')
@@ -157,7 +157,7 @@
                                             @endif
                                         </div>
                                         <div class="lnf-lb" aria-hidden="true">
-                                            <b><span class="lnf-orb">{{ mb_substr($lane['name'], 0, 1) }}</span>{{ $lane['name'] }}<i class="lnf-mt"><i></i><i></i><i></i><i></i></i></b>
+                                            <b><span class="lnf-orb bubble bubble-sm">{{ mb_substr($lane['name'], 0, 1) }}</span>{{ $lane['name'] }}<i class="lnf-mt"><i></i><i></i><i></i><i></i></i></b>
                                             <small>{{ __('pages.landing.hero.roles.'.$lane['key']) }}</small>
                                             <span class="lnf-chip lnf-chip-alone" data-chip="alone">{{ __('landing.alone') }}</span>
                                             @if ($loop->first)
@@ -218,7 +218,7 @@
                                 <div class="lnf-glass lnf-share" aria-hidden="true">
                                     <b>{{ __('pages.landing.steps.share.every', ['song' => $song]) }}</b>
                                     <p>{{ __('landing.share.card') }}</p>
-                                    <p class="lnf-orbs">@for ($i = 1; $i <= 4; $i++)<span class="lnf-orb lnf-v{{ $i }}">{{ __('pages.landing.steps.voice.you') }}</span>@endfor</p>
+                                    <p class="lnf-orbs">@for ($i = 1; $i <= 4; $i++)<span class="lnf-orb bubble lnf-v{{ $i }}">{{ __('pages.landing.steps.voice.you') }}</span>@endfor</p>
                                     <p class="lnf-pair"><span>{{ __('pages.landing.steps.share.link') }}</span><span>{{ __('pages.landing.steps.share.video') }}</span></p>
                                 </div>
                             @endif
@@ -291,7 +291,7 @@
                                 @foreach ($stage['lanes'] as $lane)
                                     @php($state = $states[$loop->index] ?? ['waiting', ''])
                                     @php($singer = (string) ($singers[$loop->index] ?? ''))
-                                    <p class="lnf-row lnf-v{{ $lane['n'] }}"><span class="lnf-orb">{{ \App\Support\Pages\LandingStage::initials($singer) }}</span><span><b>{{ $singer }}</b><small>{{ $lane['name'] }}</small></span><em class="{{ $state[1] }}">{{ __('landing.choir.'.$state[0]) }}</em></p>
+                                    <p class="lnf-row lnf-v{{ $lane['n'] }}"><span class="lnf-orb bubble">{{ \App\Support\Pages\LandingStage::initials($singer) }}</span><span><b>{{ $singer }}</b><small>{{ $lane['name'] }}</small></span><em class="{{ $state[1] }}">{{ __('landing.choir.'.$state[0]) }}</em></p>
                                 @endforeach
                                 <p class="lnf-choir-n">{{ __('landing.choir.note') }}</p>
                             </div>
@@ -378,7 +378,7 @@
             <div class="lnf-dock" role="group" aria-label="{{ __('landing.dock', ['song' => $song]) }}">
                 <i class="lnf-rail" aria-hidden="true"></i>
                 <div class="lnf-tp">
-                    <button type="button" class="lnf-disc lnf-orb" data-play aria-label="{{ __('pages.landing.hero.play') }}" data-label-play="{{ __('pages.landing.hero.play') }}" data-label-stop="{{ __('pages.landing.hero.stop') }}"><span class="lnf-i-play"><x-site.icon name="play" size="20" /></span><span class="lnf-i-stop"><x-site.icon name="stop" size="20" /></span></button>
+                    <button type="button" class="lnf-disc lnf-orb bubble" data-play aria-label="{{ __('pages.landing.hero.play') }}" data-label-play="{{ __('pages.landing.hero.play') }}" data-label-stop="{{ __('pages.landing.hero.stop') }}"><span class="lnf-i-play"><x-site.icon name="play" size="20" /></span><span class="lnf-i-stop"><x-site.icon name="stop" size="20" /></span></button>
                     <span class="lnf-time"><span class="lnf-sr">{{ __('landing.time') }}</span> <span data-time>0:00 / {{ $stage['seconds'] }}</span></span>
                     {{-- How far the recorded voices' download is, while a press waits for them (the script writes it; a failure
                          is said over the disc, by the player). --}}

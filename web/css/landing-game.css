@@ -18,6 +18,7 @@
     --g-bg: #120e24; --g-panel: #17122f; --g-well: #0f0b20; --g-line: #3b3270; --g-sh: #05030d;
     --g-dot: rgb(255 255 255 / .075); --g-scan: rgb(0 0 0 / .18);
     --g-frame: #8f84ff; --g-pink: #ff4fa8; --g-yellow: #ffd84a; --g-on: #14101f;
+    --arc-yellow: var(--g-yellow);
     --g-shade: color-mix(in srgb, var(--g-frame) 55%, transparent);
     --g-px: 'Stackapella Pixel', ui-monospace, monospace; --g-vt: 'VT323', 'VT323 Fallback', ui-monospace, monospace;
     --ground: var(--g-bg); --panel: var(--g-panel); --edge: var(--g-line); --em: var(--g-pink);
@@ -135,6 +136,10 @@
 
 /* The dock: a cabinet's control panel. */
 [data-skin='game'] .lnf-disc { background: var(--g-yellow); color: var(--g-on) !important; box-shadow: 4px 4px 0 var(--g-frame); }
+/* The arcade's Play orb and dock disc stay flat square buttons: no glass crescent, rim or press dip (glass is for gems and coins). The round orbs keep their glass. */
+:root[data-skin='game'] .lnf :is(.lnf-play .lnf-orb, .lnf-disc) { border: 0; }
+:root[data-skin='game'] .lnf :is(.lnf-play .lnf-orb, .lnf-disc)::before { display: none; }
+:root[data-skin='game'] .lnf .lnf-disc:active { transform: none; }
 [data-skin='game'] .lnf-tp { font: 400 21px/1 var(--g-vt); color: var(--ink); }
 [data-skin='game'] .lnf-time { font-size: inherit; }
 /* The words still to come are AA at the screen face's size too. */

@@ -1,7 +1,7 @@
 // The landing's page script (js/public/landing.js): what it works out from the scroll and from the song's
 // place, as pure functions. The page itself is tests/flows/landing_page.py.
 import { assert, test } from './harness.js';
-import { JOIN_LEAD, PINNED, buildAt, captionOf, inTail, noteState, phraseAt, poseOf, sceneAt, waiting } from '/js/public/landing.js';
+import { JOIN_LEAD, PINNED, buildAt, captionOf, inTail, nextGlow, noteState, phraseAt, poseOf, sceneAt, waiting } from '/js/public/landing.js';
 
 const assertEq = (actual, expected) => assert(JSON.stringify(actual) === JSON.stringify(expected), `${JSON.stringify(actual)} should be ${JSON.stringify(expected)}`);
 
@@ -33,6 +33,18 @@ test('landing: a note is lit while it sounds and sung once it has, and nothing i
     const note = { b: 2, l: 1.5 };
     assertEq([0, 1.9, 2, 3.4, 3.5, 9].map((beat) => noteState(note, beat)), ['', '', 'lit', 'lit', 'sung', 'sung']);
     assertEq(noteState({ b: 0, l: 1 }, 0), '');
+});
+
+test('landing: the next note glows as it nears, the app\'s ramp: none until min(0.45 s, 1 beat) before it, then t squared to 0.3', () => {
+    const note = { b: 4, l: 1 };
+    // At 60 bpm a beat is 1 s, so the ramp is the last 0.45 beats.
+    assertEq(nextGlow(note, 3.5, 1), 0);
+    assert(Math.abs(nextGlow(note, 4 - 0.225, 1) - 0.3 * 0.25) < 1e-9, 'half way: a quarter of the level');
+    assert(Math.abs(nextGlow(note, 3.99999, 1) - 0.3) < 1e-3, 'at its start: the level');
+    assertEq(nextGlow(note, 4, 1), 0);
+    // At 200 bpm a beat (0.3 s) is shorter than 0.45 s: the ramp is the last beat.
+    assert(nextGlow(note, 3.1, 0.3) > 0 && nextGlow(note, 2.9, 0.3) === 0, 'one beat at a fast tempo');
+    assertEq(nextGlow(note, 0, 1), 0);
 });
 
 test('landing: a play in two passes is the first time through, then the second from its own start', () => {
