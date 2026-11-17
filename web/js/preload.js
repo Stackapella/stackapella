@@ -198,6 +198,7 @@
         '/js/game/popups.js',
         '/js/waitforme.js',
         '/js/lesson-scores.js',
+        '/js/gem-spec.js',
         '/js/style-scores.js',
         '/js/harmony.js',
         '/js/tuning.js',

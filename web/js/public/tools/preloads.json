@@ -485,6 +485,7 @@
     "/js/soften-breaths.js",
     "/js/embed/take.js",
     "/js/camera.js",
+    "/js/gem-spec.js",
     "/js/glass.js",
     "/js/scoring.js",
     "/js/pitch-display.js",

@@ -3,7 +3,8 @@
 // make a free account and comes back to the same link; signed in, the song is engraved on its page (js/engrave.js, the
 // score the song page shows), the full score or one part, and what the link asked for happens once: the browser's print
 // (Print, or save as a PDF) or the file's download. A song withheld where the singer is says so, as its sheet does
-// elsewhere in the app (the API refuses it). Black on white, and only the page prints.
+// elsewhere in the app (the API refuses it), to a guest too, before any invitation. Black on white, and only the page
+// prints.
 
 import { engrave, glyphDefs } from '../engrave.js';
 import { t } from '../i18n.js';
@@ -11,9 +12,9 @@ import { rightsOf } from '../musicxml.js';
 import { goBack, navigate } from '../router.js';
 import { sheetAsk, sheetFile, sheetPart, writtenParts } from '../sheet-files.js';
 import { songTitle } from '../song-titles.js';
-import { account, loadAccount } from '../stores/account.js';
+import { account, loadAccount, loadAuthConfig } from '../stores/account.js';
 import { loadTemplate, templatePartName } from '../templates.js';
-import { notHereLine } from '../withheld.js';
+import { notHereLine, withheldSongs } from '../withheld.js';
 import { signInTo, signUpFor } from '../components/account-wall.js';
 
 const PAPER = { background: '#fff', color: '#000', fontFamily: "Georgia, 'Times New Roman', Times, serif" }; // i18n-ignore: paper, and the words' face
@@ -110,9 +111,15 @@ export const ScoreSheetView = {
         async load() {
             this.state = 'loading';
             await loadAccount().catch(() => {});
-            // A guest: the invitation, and back here once there's an account. Nothing is read or made before it.
+            // A guest: the invitation, and back here once there's an account. Nothing is read or made before it, except
+            // for a song withheld where they are (auth.config's list, public): that is said first, as no account would
+            // open it here (the coordinator, 2026-11-17). Its refusal gives the line, with the year it opens here.
             if (!account.me) {
-                this.state = 'guest';
+                const config = await loadAuthConfig().catch(() => null);
+                if (withheldSongs(config).has(this.id)) {
+                    this.notHere = await loadTemplate(this.id).then(() => '', (error) => notHereLine(error) ?? '');
+                }
+                this.state = this.notHere ? 'withheld' : 'guest';
                 return;
             }
             try {

@@ -77,6 +77,7 @@ export const StudioView = {
         pageScroll: PAGE_SCROLL.matches, // phones and short screens: the page scrolls as one (docs/studio-words-plan.md, the banner room section)
         dockHeight: 0, // the docked transport's height, the page's bottom padding
         recordsFromStart: true, // the studio always records from 0:00, Hillel's ask (record-setup.js)
+        joining: {}, // part id: a part's first take just joined the mix (its lane's one sweep, docs/glass-spec.md 4)
         renaming: null, // the part whose name is being edited in its row
         accountTakes: {}, // part id -> the account's kept takes for it (parts.takes.list), once its row opens
         hearingTake: null, // { id, audio } while a kept take plays on its own
@@ -218,6 +219,7 @@ export const StudioView = {
                                                 :offset-seconds="guideVoices[part.id]?.offsetSeconds || 0" :length-seconds="length" :color="paint(part.color)" dim />
                                             <div v-if="rowFocus === part.id && templatePart(part)" class="absolute inset-0"><NotesView :notes="templatePart(part).guide.notes" :transpose="project.transpose || 0"
                                                 :beat-seconds="beatSeconds" :length-seconds="length" :color="paint(part.color)" :position="position" :label="focusNoteNames" /></div>
+                                            <div v-if="joining[part.id]" class="gem-join" :style="{ '--gem-c': paint(part.color) }" aria-hidden="true" data-join-sweep @animationend="joinEnded(part.id)"></div>
                                         </template>
                                         <template #open>
                                             <!-- The open row (Hillel's studio redesign): Level and Pan with their values, Timing, four equal actions, then the takes. -->
@@ -368,6 +370,8 @@ export const StudioView = {
             <RangeDialog v-if="dialog === 'range'" :template="project.template" :transpose="project.transpose || 0" @close="dialog = null" @use="useRange" />
         </div>`,
     computed: {
+        /** The parts with a take, once the project is ready (null while it loads, so loading never sweeps). */
+        takenIds: (vm) => (vm.preparing || !vm.parts.length ? null : vm.parts.filter(hasTake).map((p) => p.id)),
         /** Where a recording stops by itself: a song's own length, or the first track's end (not the track being recorded over). */
         songEnd() {
             if (this.project?.template) return lengthBeats(this.project.template) * this.beatSeconds;
@@ -664,6 +668,16 @@ export const StudioView = {
         if (this.isTemplate) sessionStore.refreshVoices();
     },
     watch: {
+        // A part's first take joins the mix: its lane's one sweep (Hillel's join, the home page's, once per part; never
+        // for a later take or in Sing). Remembered for the session, so a take deleted and sung again doesn't sweep twice.
+        takenIds(now, before) {
+            if (!before || !now) return;
+            const swept = (() => { try { return JSON.parse(sessionStorage.getItem('stackapella.joined') || '[]'); } catch { return []; } })();
+            const fresh = now.filter((id) => !before.includes(id) && !swept.includes(id));
+            if (!fresh.length) return;
+            this.joining = { ...this.joining, ...Object.fromEntries(fresh.map((id) => [id, true])) };
+            try { sessionStorage.setItem('stackapella.joined', JSON.stringify([...swept, ...fresh].slice(-200))); } catch { /* a private window keeps none */ }
+        },
         // A beta part (Hillel's screenshot): the row to record is in view before Record, under the banner.
         'betaPart.id': {
             handler(id) {
@@ -773,6 +787,10 @@ export const StudioView = {
         closeMic(); // opened for this session's recordings; the mic light goes out on leaving
     },
     methods: {
+        joinEnded(id) {
+            const { [id]: _, ...rest } = this.joining;
+            this.joining = rest;
+        },
         navigate,
         nameOf(part) {
             return slotName(part, this.project?.template);

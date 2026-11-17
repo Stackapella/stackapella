@@ -1,10 +1,12 @@
-// Glass gems on a canvas: the .gem recipe in css/input.css (ux-spec 2.6a) drawn for the lanes, so a
-// note in Sing, on the Stage or in the creator looks like the star gems and the keyboard's note. A
-// body brighter at the top and deeper at the bottom, a darker edge, a gloss along the top, a
-// refraction line along the bottom, a coloured glow and a shadow under it. Light themes: less glow,
-// more edge and shadow. Also the stage the notes sit on (faint pitch lines, a floor glow, slow specks
-// in the accent, a vignette), the playhead as a glowing beam, and the sparkle burst of a note hit.
-// Colours are worked out once per colour and kept; nothing here is a per-frame filter.
+// Glass gems on a canvas: the one recipe for a note (docs/glass-spec.md), every number from js/gem-spec.js, which
+// css/glass.css carries too, so the home page's DOM gem is this one. A body light at the top, flat across the middle
+// (the words sit there) and deep at the bottom; an edge; a gloss pill that ends above the words; a foot line; two
+// drops; a glow by state; and round the note being sung, the ring: a knockout and a keyline in the colour under the
+// lane with the theme's text colour between (Hillel: "yes, add the ring to the app too"). Also the stage the notes sit
+// on, the playhead's beam and a hit's sparkles. Colours are worked out once per colour and kept; nothing here is a
+// per-frame filter, and nothing keeps time: callers pass where each envelope is.
+
+import { GEM } from './gem-spec.js';
 
 const shadeCache = new Map();
 let probe = null;
@@ -29,113 +31,321 @@ export function mixColor(a, b, t) {
     return css(mix(rgbOf(a), rgbOf(b), t));
 }
 
-/** The gem's shades for a colour: kept, so a frame only reads them. */
-export function shades(color, { light = false } = {}) {
-    const key = `${color}|${light}`;
+/** WCAG relative luminance of [r, g, b]. */
+function luminance(rgb) {
+    const [r, g, b] = rgb.map((v) => {
+        const c = v / 255;
+        return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/** WCAG contrast of two colours (any CSS form): 1 to 21. */
+export function contrast(a, b) {
+    const [x, y] = [luminance(rgbOf(a)), luminance(rgbOf(b))].sort((p, q) => q - p);
+    return (x + 0.05) / (y + 0.05);
+}
+
+/** The words on a gem of `color`: GEM.ink's dark or light, whichever has the higher contrast on it. */
+export function gemInk(color) {
+    return contrast(color, GEM.ink.dark) >= contrast(color, GEM.ink.light) ? GEM.ink.dark : GEM.ink.light;
+}
+
+/** The gem's shades for a colour: kept, so a frame only reads them. `surf`: the colour under the lane (for Settled). */
+export function shades(color, { light = false, surf = null } = {}) {
+    const key = `${color}|${light}|${surf}`;
     if (shadeCache.has(key)) return shadeCache.get(key);
     const base = rgbOf(color);
+    const under = surf ? rgbOf(surf) : light ? WHITE : BLACK;
     const grey = mix(base, [128, 128, 128], 0.7);
-    const lum = (0.2126 * base[0] + 0.7152 * base[1] + 0.0722 * base[2]) / 255;
+    const calm = mix(under, base, GEM.settled.body);
     const out = {
-        top: css(mix(base, WHITE, 0.42)),
+        top: css(mix(base, WHITE, GEM.body.top)),
         body: css(base),
-        bottom: css(mix(base, BLACK, 0.32)),
-        edge: css(mix(base, BLACK, light ? 0.5 : 0.45)),
-        band: css(mix(base, WHITE, 0.5), 0.75),
-        glow: css(base, light ? 0.35 : 0.7),
+        bottom: css(mix(base, BLACK, GEM.body.bottom)),
+        edge: css(mix(base, BLACK, light ? GEM.edge.light : GEM.edge.dark)),
+        band: css(mix(base, WHITE, GEM.foot.white), GEM.foot.alpha),
+        glow: css(base, light ? GEM.glow.lightAlpha : GEM.glow.darkAlpha),
         faint: css(base, light ? 0.55 : 0.5),
+        // Settled: c at 40% over the colour under the lane, its edge at 65%; the same light and depth.
+        settledTop: css(mix(calm, WHITE, GEM.body.top)),
+        settledBody: css(calm),
+        settledBottom: css(mix(calm, BLACK, GEM.body.bottom)),
+        settledEdge: css(mix(under, base, GEM.settled.edge)),
+        // The result cards' quiet gem (a missed note there), as it was.
         dimTop: css(mix(grey, WHITE, 0.25)),
         dimBottom: css(mix(grey, BLACK, 0.3)),
         dimEdge: css(mix(grey, BLACK, 0.4)),
-        // A label on the gem: dark on a light colour, white on a deep one (AA either way).
-        ink: lum > 0.5 ? '#111111' : '#ffffff',
+        ghostFill: css(base, GEM.ghost.fill),
+        ghostEdge: css(base, GEM.ghost.edgeAlpha),
+        ink: gemInk(color),
+        rgb: base,
+        settledRgb: calm,
     };
     shadeCache.set(key, out);
     return out;
 }
 
+/** The colour under `el` (a gem canvas): its nearest ancestor's own solid background, else `fallback`. */
+export function surfaceUnder(el, fallback) {
+    for (let node = el?.parentElement; node; node = node.parentElement) {
+        const bg = getComputedStyle(node).backgroundColor;
+        const alpha = /rgba\([^)]*,\s*([\d.]+)\)/.exec(bg)?.[1];
+        if (bg && bg !== 'transparent' && (alpha === undefined || Number(alpha) >= 0.99)) return bg;
+    }
+    return fallback;
+}
+
+/** A gem's corner radius at `h` by `w`. */
+export const gemRadius = (w, h) => Math.max(0, Math.min(GEM.radius * h, w / 2));
+
 function rounded(g, x, y, w, h, r) {
     g.beginPath();
-    if (g.roundRect) g.roundRect(x, y, w, h, r);
+    if (g.roundRect) g.roundRect(x, y, Math.max(0, w), Math.max(0, h), Math.max(0, Math.min(r, w / 2, h / 2)));
     else g.rect(x, y, w, h);
 }
 
+/** CSS `0 dy 0 spread` round the gem (x, y, w, h, r) as a canvas path. */
+const spread = (g, x, y, w, h, r, dy, s) => rounded(g, x - s, y + dy - s, w + 2 * s, h + 2 * s, r + s);
+
+const lerpRgb = (a, b, t) => (t <= 0 ? a : t >= 1 ? b : mix(a, b, t));
+
 /**
- * A gem bar (a note) at (x, y), `w` by `h`, in `color`. `glow` 0 to 1 (the note now, a hit),
- * `rim`: a bright outline colour (the note now, a selected note), `dim`: missed or past (greyed,
- * never hidden), `lift`: a dragged note's raised shadow (px), `pop`: a scale about its centre (a
- * hit's 1.05), `ghost`: another part's note (faint, flat), `light`: a light theme.
+ * A gem bar (a note) at (x, y), `w` by `h`, in `color`:
+ * - `state`: 'upcoming' (the full recipe; also next, now, hit and kept, told apart by glow, ring and tick), 'settled'
+ *   (past, not hit), 'ghost' (another part, or a voice not joined: an outline);
+ * - `settle` 0 to 1: how far into Settled (the 240 ms ease from the audio clock; 1 when `state` is 'settled');
+ * - `glow`: the state's glow level g (next ramps to GEM.level.next, now GEM.level.now, a hit flashes 1);
+ * - `ring`: { color, surf, t } round the note being sung (`t` 0 to 1: its onset or release, from the audio clock);
+ * - `surf`: the colour under the lane; `light`: a light theme; `game`: game mode (no soft glow);
+ * - `pop`: a scale about its centre (a hit's 1.05); `lift`: a dragged note's raised drop (px).
+ * Old names still read: `dim` is Settled, `rim` (a colour) is the ring.
  */
-export function gemBar(g, x, y, w, h, color, { glow = 0, rim = null, dim = false, lift = 0, pop = 1, ghost = false, light = false } = {}) {
+export function gemBar(g, x, y, w, h, color, opts = {}) {
     if (w <= 0 || h <= 0) return;
-    const s = shades(color, { light });
-    const r = Math.min(h / 2, 9, w / 2);
+    const { glow = 0, pop = 1, lift = 0, light = false, game = false } = opts;
+    const surf = opts.surf ?? opts.ring?.surf ?? null;
+    const ring = opts.ring ?? (opts.rim ? { color: opts.rim, surf, t: 1 } : null);
+    const state = opts.state ?? (opts.ghost ? 'ghost' : opts.dim ? 'settled' : 'upcoming');
+    const settle = state === 'settled' ? 1 : Math.max(0, Math.min(1, opts.settle ?? 0));
+    const s = shades(color, { light, surf });
+    const r = gemRadius(w, h);
     g.save();
     if (pop !== 1) {
         g.translate(x + w / 2, y + h / 2);
         g.scale(pop, pop);
         g.translate(-(x + w / 2), -(y + h / 2));
     }
-    if (ghost) {
-        // Another part: a faint dashed outline, so yours stay the only gems.
-        g.fillStyle = light ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)';
+    if (state === 'ghost') {
+        g.fillStyle = s.ghostFill;
         rounded(g, x, y, w, h, r);
         g.fill();
         g.setLineDash([4, 3]);
-        g.lineWidth = 1.25;
-        g.strokeStyle = s.faint;
+        g.lineWidth = GEM.ghost.edge;
+        g.strokeStyle = s.ghostEdge;
+        rounded(g, x + GEM.ghost.edge / 2, y + GEM.ghost.edge / 2, w - GEM.ghost.edge, h - GEM.ghost.edge, r - GEM.ghost.edge / 2);
         g.stroke();
         g.setLineDash([]);
         g.restore();
         return;
     }
-    // The shadow under it (two soft steps, no blur filter): deeper when lifted.
-    g.fillStyle = light ? 'rgba(0,0,0,0.14)' : 'rgba(0,0,0,0.32)';
-    rounded(g, x + 1, y + 2.5 + lift, w - 2, h, r);
+    // The drops: A (half when Settled), B (none when Settled).
+    const dropA = (light ? GEM.dropA.light : GEM.dropA.dark) * (1 - settle * (1 - GEM.settled.dropA));
+    const dropB = (light ? GEM.dropB.light : GEM.dropB.dark) * (1 - settle);
+    g.fillStyle = `rgba(0,0,0,${dropA})`;
+    spread(g, x, y, w, h, r, GEM.dropA.dy + lift, GEM.dropA.spread);
     g.fill();
-    g.fillStyle = light ? 'rgba(0,0,0,0.07)' : 'rgba(0,0,0,0.18)';
-    rounded(g, x - 1, y + 4 + lift * 1.6, w + 2, h, r);
-    g.fill();
-    // The body, glowing when asked (one blurred fill: only the note now and a hit glow).
+    if (dropB > 0) {
+        g.fillStyle = `rgba(0,0,0,${dropB})`;
+        spread(g, x, y, w, h, r, GEM.dropB.dy + lift * 1.6, GEM.dropB.spread);
+        g.fill();
+    }
+    // The body: light, flat, deep; eased toward Settled.
+    const top = settle ? css(lerpRgb(rgbOf(s.top), rgbOf(s.settledTop), settle)) : s.top;
+    const flat = settle ? css(lerpRgb(s.rgb, s.settledRgb, settle)) : s.body;
+    const bottom = settle ? css(lerpRgb(rgbOf(s.bottom), rgbOf(s.settledBottom), settle)) : s.bottom;
     const body = g.createLinearGradient(0, y, 0, y + h);
-    body.addColorStop(0, dim ? s.dimTop : s.top);
-    body.addColorStop(0.48, dim ? s.dimTop : s.body);
-    body.addColorStop(1, dim ? s.dimBottom : s.bottom);
-    if (glow > 0 && !dim) {
-        g.shadowColor = s.glow;
-        g.shadowBlur = (light ? 8 : 16) * glow;
+    body.addColorStop(0, top);
+    body.addColorStop(GEM.body.flatFrom, flat);
+    body.addColorStop(GEM.body.flatTo, flat);
+    body.addColorStop(1, bottom);
+    if (glow > 0 && !game) {
+        g.shadowColor = css(s.rgb, (light ? GEM.glow.lightAlpha : GEM.glow.darkAlpha) * glow);
+        g.shadowBlur = light ? GEM.glow.lightBlur : GEM.glow.darkBlur;
     }
     g.fillStyle = body;
     rounded(g, x, y, w, h, r);
     g.fill();
     g.shadowBlur = 0;
-    g.lineWidth = 1.5;
-    g.strokeStyle = dim ? s.dimEdge : s.edge;
+    g.shadowColor = 'transparent';
+    // The edge, inside the box (as a CSS border).
+    const edgeW = GEM.edge.width;
+    g.lineWidth = edgeW;
+    g.strokeStyle = settle ? css(lerpRgb(rgbOf(s.edge), rgbOf(s.settledEdge), settle)) : s.edge;
+    rounded(g, x + edgeW / 2, y + edgeW / 2, w - edgeW, h - edgeW, r - edgeW / 2);
     g.stroke();
-    // The gloss along the top, and the refraction line along the bottom.
-    if (h >= 8 && w >= 8) {
-        const gloss = g.createLinearGradient(0, y + 1, 0, y + h * 0.48);
-        gloss.addColorStop(0, `rgba(255,255,255,${dim ? 0.25 : light ? 0.85 : 0.7})`);
+    // The gloss pill: above the words.
+    const gx = x + Math.max(1, GEM.gloss.x0 * h);
+    const gw = x + GEM.gloss.x1 * w - gx;
+    // Whole pixels from the gem's top (as css/glass.css rounds them), so the gloss and the foot are crisp.
+    const gy = y + Math.round(GEM.gloss.y0 * h);
+    const gh = Math.round((GEM.gloss.y1 - GEM.gloss.y0) * h);
+    if (gw > gh && gh >= 1) {
+        const strength = (light ? GEM.gloss.light : GEM.gloss.dark) * (1 - settle) + GEM.settled.gloss * settle;
+        const gloss = g.createLinearGradient(0, gy, 0, gy + gh);
+        gloss.addColorStop(0, `rgba(255,255,255,${strength})`);
         gloss.addColorStop(1, 'rgba(255,255,255,0)');
         g.fillStyle = gloss;
-        rounded(g, x + 2.5, y + 1.5, Math.max(0, w * 0.78 - 2.5), h * 0.44, Math.max(1, r * 0.8));
+        rounded(g, gx, gy, gw, gh, gh / 2);
         g.fill();
-        if (!dim && w > 2 * r + 4) {
-            g.strokeStyle = s.band;
-            g.lineWidth = 1;
-            g.beginPath();
-            g.moveTo(x + r, y + h - 2.5);
-            g.lineTo(x + w - r, y + h - 2.5);
-            g.stroke();
-        }
     }
-    if (rim) {
-        g.strokeStyle = rim;
-        g.lineWidth = 2;
-        rounded(g, x - 1.5, y - 1.5, w + 3, h + 3, r + 1.5);
-        g.stroke();
+    // The foot line (none when Settled).
+    if (settle < 1 && w > 2 * r + 2) {
+        g.fillStyle = css(mix(s.rgb, WHITE, GEM.foot.white), GEM.foot.alpha * (1 - settle));
+        g.fillRect(x + r, y + Math.round(h - GEM.foot.at * h - GEM.foot.width / 2), w - 2 * r, GEM.foot.width);
+    }
+    // The ring: knockout, ring, keyline, outward; the knockout closes in from 6 to 3 px as it comes on.
+    if (ring && (ring.t ?? 1) > 0) {
+        const t = Math.min(1, ring.t ?? 1);
+        const knock = GEM.ring.knockout * (2 - t);
+        const under = ring.surf ?? surf;
+        g.globalAlpha = t;
+        const stroke = (out, width, colour) => {
+            if (!colour) return;
+            g.lineWidth = width;
+            g.strokeStyle = colour;
+            rounded(g, x - out, y - out, w + 2 * out, h + 2 * out, r + out);
+            g.stroke();
+        };
+        stroke(knock / 2, knock, under);
+        stroke(knock + GEM.ring.width / 2, GEM.ring.width, ring.color);
+        stroke(knock + GEM.ring.width + GEM.ring.keyline / 2, GEM.ring.keyline, under);
+        g.globalAlpha = 1;
     }
     g.restore();
+}
+
+/** The room a hit's tick takes at a gem's end (its size, its gap from the end, and 4 px before it). */
+export const tickRoom = (h) => Math.min(GEM.hit.tickMax, GEM.hit.tickOfH * h) + GEM.hit.tickEnd + 4;
+
+/**
+ * A hit's tick: 2 px, min(15, 0.42h), 6 px from the gem's end, in the ink. `outside`: when the gem's words fill it,
+ * the tick sits just above the gem's end instead (clear of a ring), in `color` (the theme's text), so a hit is never
+ * colour alone and the word never moves for it.
+ */
+export function gemTick(g, x, y, w, h, ink, { outside = false, color = ink, ringed = false } = {}) {
+    const size = Math.min(GEM.hit.tickMax, GEM.hit.tickOfH * h, outside ? GEM.words.aboveSize : Infinity);
+    const right = x + w - GEM.hit.tickEnd;
+    const ring = ringed ? GEM.ring.knockout + GEM.ring.width + GEM.ring.keyline : 0;
+    const cy = outside ? y - ring - GEM.words.aboveGap - size / 2 : y + h / 2;
+    g.save();
+    g.strokeStyle = outside ? color : ink;
+    g.lineWidth = GEM.hit.tickWidth;
+    g.lineCap = 'round';
+    g.lineJoin = 'round';
+    g.beginPath();
+    g.moveTo(right - size, cy);
+    g.lineTo(right - size * 0.62, cy + size * 0.38);
+    g.lineTo(right, cy - size * 0.4);
+    g.stroke();
+    g.restore();
+}
+
+const widths = new Map();
+let fontsSeen = -1;
+if (typeof document !== 'undefined' && document.fonts?.addEventListener) document.fonts.addEventListener('loadingdone', () => widths.clear());
+/** A text's width in `font` with `spacing` (cached; cleared when a font arrives, so a fallback's width never sticks). */
+function measure(g, font, text, spacing = '0px') {
+    const fonts = typeof document !== 'undefined' && document.fonts ? document.fonts.size : 0;
+    if (fonts !== fontsSeen) {
+        widths.clear();
+        fontsSeen = fonts;
+    }
+    const key = `${font}|${spacing}|${text}`;
+    if (!widths.has(key)) {
+        g.save();
+        g.font = font;
+        if ('letterSpacing' in g) g.letterSpacing = spacing;
+        widths.set(key, g.measureText(text).width);
+        g.restore();
+    }
+    return widths.get(key);
+}
+
+/** A gem's word as shown: its trailing hyphens dropped ("maz-" is "maz"). */
+export const gemWord = (word) => String(word ?? '').replace(/-+$/, '').trim();
+
+/** The syllable's size on a gem `h` tall. */
+export const wordSize = (h) => Math.max(GEM.words.min, Math.min(GEM.words.max, GEM.words.ofH * h));
+
+/** Says (once) when Figtree 750 is ready, so a canvas drawn before it can draw again. */
+export function whenWordsReady(redraw) {
+    if (typeof document === 'undefined' || !document.fonts?.load) return;
+    document.fonts.load(`${GEM.words.weight} 12px Figtree`).then(() => redraw(), () => {});
+    document.fonts.ready.then(() => redraw(), () => {});
+}
+
+/**
+ * Where a gem's words go by the fit ladder (docs/glass-spec.md 2), the same in every state: word and note name inside,
+ * the word alone inside, the word alone at GEM.words.step px, above the gem (only if it ends GEM.words.aboveClear px before `nextX` and, clear of a ring,
+ * stays inside `bounds`), or nothing. Never clipped. `reserve` (a hit's tick) only lets the name give way: the word
+ * stays where it is, and the tick goes above the gem when the word fills it. Returns { where, text, font, end, ... }.
+ */
+export function gemFit(g, { x, y, w, h, word, name = '', nextX = Infinity, bounds = null, reserve = 0 }) {
+    const said = gemWord(word);
+    const r = gemRadius(w, h);
+    const inset = Math.max(GEM.words.inset, GEM.words.insetOfR * r);
+    const size = wordSize(h);
+    const fontAt = (px) => `${GEM.words.weight} ${px}px Figtree, system-ui, sans-serif`;
+    const spacingAt = (px) => `${(GEM.words.tracking * px).toFixed(2)}px`;
+    const room = w - inset - GEM.words.inset;
+    const inside = (text, px, space) => {
+        const width = measure(g, fontAt(px), text, spacingAt(px));
+        return width <= space ? { where: 'in', text, font: fontAt(px), spacing: spacingAt(px), x: x + inset, end: x + inset + width } : null;
+    };
+    if (h >= GEM.words.minGem) {
+        const both = said && name ? `${said} ${name}` : '';
+        const one = said || name;
+        // Word and name, the word alone, then the word alone a step smaller (never under the floor), before it goes above.
+        const fit = (both && inside(both, size, room - Math.max(0, reserve - GEM.words.inset)))
+            || (one && inside(one, size, room))
+            || (one && GEM.words.step < size && inside(one, Math.max(GEM.words.min, GEM.words.step), room));
+        if (fit) return fit;
+    }
+    const text = said || name;
+    if (text) {
+        const small = `${GEM.words.aboveWeight} ${GEM.words.aboveSize}px Figtree, system-ui, sans-serif`;
+        const end = x + measure(g, small, text);
+        // Inside the lane whether or not a ring is round it, so the choice never changes as the note comes and goes.
+        const clear = GEM.ring.knockout + GEM.ring.width + GEM.ring.keyline;
+        const fits = !bounds || (y - clear - GEM.words.aboveGap - GEM.words.aboveSize >= bounds.top && end <= bounds.right);
+        if (end <= nextX - GEM.words.aboveClear && fits) return { where: 'above', text, font: small, spacing: '0px', x, end };
+    }
+    return { where: 'none', text: '', end: x };
+}
+
+/**
+ * The words on a gem (gemFit's choice), drawn: `ink` inside; `above`, the colour above it; `ringed`, a word above
+ * clears the ring. Returns the fit.
+ */
+export function gemWords(g, { x, y, w, h, word, name = '', ink, above, nextX = Infinity, bounds = null, reserve = 0, ringed = false }) {
+    const fit = gemFit(g, { x, y, w, h, word, name, nextX, bounds, reserve });
+    if (fit.where === 'none' || (fit.where === 'above' && !above)) return fit;
+    g.save();
+    g.textBaseline = 'middle';
+    g.textAlign = 'left';
+    g.font = fit.font;
+    if ('letterSpacing' in g) g.letterSpacing = fit.spacing;
+    if (fit.where === 'in') {
+        g.fillStyle = ink;
+        g.fillText(fit.text, fit.x, y + h / 2 + 0.5);
+    } else {
+        const ring = ringed ? GEM.ring.knockout + GEM.ring.width + GEM.ring.keyline : 0;
+        g.fillStyle = above;
+        g.fillText(fit.text, fit.x, y - ring - GEM.words.aboveGap - GEM.words.aboveSize / 2);
+    }
+    g.restore();
+    return fit;
 }
 
 /** A hit's sparkle burst from (cx, cy), `age` seconds in (gone after 0.5 s): small four-point glints. */

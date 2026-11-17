@@ -4,7 +4,8 @@
 // current phrase's note names as text for screen readers.
 
 import { midiName } from '../dsp.js';
-import { gemBar } from '../glass.js';
+import { GEM } from '../gem-spec.js';
+import { gemBar, surfaceUnder } from '../glass.js';
 import { breathComma } from '../lane-painter.js';
 import { sungEnd } from '../scoring.js';
 
@@ -63,17 +64,39 @@ export const NotesView = {
             const brick = Math.max(8, Math.min(26, row * 0.78));
             let current = null;
             const cream = getComputedStyle(canvas).getPropertyValue('--color-cream').trim() || '#f3ead8';
+            // The spec's states (docs/glass-spec.md 1, 4) from the playing position: the next note's glow comes up, the
+            // note now rings, a past note settles. The ring: the theme's text colour (game mode's yellow) between two
+            // knockouts in the row's own colour.
+            const game = document.documentElement.dataset.skin === 'game';
+            const ringColour = game ? getComputedStyle(document.documentElement).getPropertyValue('--arc-yellow').trim() || '#ffd84a' : cream;
+            const surf = surfaceUnder(canvas, getComputedStyle(canvas).getPropertyValue('--color-ink').trim() || '#15110e');
+            const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+            const lead = Math.min(GEM.motion.nextS, this.beatSeconds);
+            const nextIndex = this.notes.findIndex((n) => n.beat * this.beatSeconds > this.position);
+            const ringed = [];
             for (const [index, note] of this.notes.entries()) {
                 const start = note.beat * this.beatSeconds;
                 const end = sungEnd(this.notes, index) * this.beatSeconds;
                 const pitch = note.pitch + this.transpose;
                 const y = (high - pitch) * row + (row - brick) / 2;
                 const now = this.position >= start && this.position < end;
-                gemBar(g, x(start), y, Math.max(4, x(end) - x(start) - 2), brick, this.color, { glow: now ? 0.8 : 0, rim: now ? 'rgba(255,255,255,0.9)' : null, dim: !now && this.position > 0, light });
+                const playing = this.position > 0;
+                const into = this.position - start;
+                const after = this.position - end;
+                const ring = now ? (still ? 1 : 1 - (1 - Math.min(1, into / (GEM.motion.onsetMs / 1000))) ** 4) : 0;
+                const ahead = start - this.position;
+                const ramp = playing && index === nextIndex && ahead < lead ? (still ? 1 : (1 - ahead / lead) ** 2) : 0;
+                const settle = playing && after >= 0 ? (still ? 1 : 1 - (1 - Math.min(1, after / (GEM.motion.settleMs / 1000))) ** 5) : 0;
+                const args = [g, x(start), y, Math.max(4, x(end) - x(start) - 2), brick, this.color, {
+                    glow: now ? GEM.level.next + (GEM.level.now - GEM.level.next) * ring : GEM.level.next * ramp,
+                    ring: now ? { color: ringColour, surf, t: ring } : null, settle, surf, light, game }];
+                if (now) ringed.push(args);
+                else gemBar(...args);
                 if (now) current = { x: x(start) + Math.min(14, (x(end) - x(start)) / 2), y: (high - pitch) * row, name: midiName(pitch) };
                 // Breathe here: the comma just after the note, where the next line begins.
                 if (end < (note.beat + note.length) * this.beatSeconds - 1e-6) breathComma(g, x(end) + 3, Math.max(6, y - 6), Math.max(8, Math.min(11, brick * 0.5)), cream);
             }
+            for (const args of ringed) gemBar(...args); // the note now on top of its neighbours
             this.current = current;
         },
     },

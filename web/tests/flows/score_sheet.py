@@ -91,5 +91,27 @@ def journey(f):
     f.shot("withheld")
     f.run("sessionStorage.removeItem('stackapella.scenario')")
 
+    # A guest on a song withheld where they are hears that first, never an invitation to a song no account would open
+    # here: in English and in Spanish.
+    for lang, line in (("en", "isn't available where you are yet"), ("es", "no está disponible donde estás")):
+        f.go(f"/?api=mock&scenario=&as=signedOut&lang={lang}", "document.querySelector('#app header')")
+        f.run("sessionStorage.setItem('stackapella.mockWithheld', JSON.stringify(['silent-night'])); sessionStorage.setItem('stackapella.scenario', 'templates.show:not_available_here')")
+        f.go(f"/t/silent-night/sheet?get=pdf&ref=song-page&lang={lang}", SETTLED)
+        f.run(CATCH)
+        assert f.js(STATE) == "withheld", f"a guest on a withheld song ({lang}): {f.js(STATE)}"
+        said = f.js("document.querySelector('[data-score-withheld]').textContent")
+        assert line in said, f"it says why ({lang}): {said!r}"
+        assert not f.js("!!document.querySelector('[data-score-ask], [data-score-signup]')"), f"no invitation ({lang})"
+        assert f.js("window.prints") == 0 and f.js("window.downloads.length") == 0, f"nothing prints or downloads ({lang})"
+        f.shot(f"withheld-guest-{lang}")
+        f.run("sessionStorage.removeItem('stackapella.scenario'); sessionStorage.removeItem('stackapella.mockWithheld')")
+
+    # And a guest on a song free here, with that list in hand, is invited as ever.
+    f.go("/?api=mock&scenario=&as=signedOut", "document.querySelector('#app header')")
+    f.run("sessionStorage.setItem('stackapella.mockWithheld', JSON.stringify(['silent-night']))")
+    f.go("/t/amazing-grace/sheet?get=pdf&ref=song-page", SETTLED)
+    assert f.js(STATE) == "guest", f"a guest on a song free here is invited: {f.js(STATE)}"
+    f.run("sessionStorage.removeItem('stackapella.mockWithheld')")
+
 
 run("score_sheet", journey, sizes=("phone", "desktop"))

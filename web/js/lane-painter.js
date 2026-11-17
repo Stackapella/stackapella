@@ -6,15 +6,26 @@
 
 import { token } from './colors.js';
 import { camera, frameFor, moodFor, phraseFrame, stepCamera, viewOf, CAMERA } from './camera.js';
-import { beam, gemBar, shades, sparkles, stage, vignette } from './glass.js';
+import { GEM } from './gem-spec.js';
+import { beam, gemBar, gemTick, gemWords, shades, sparkles, stage, tickRoom, vignette, whenWordsReady } from './glass.js';
 import { sungEnd } from './scoring.js';
 
 const NOW_AT = 0.28; // the now line's place across the lane
 const KEYS = 34; // the keyboard's width
 const EDGE = 22; // room at the top and bottom for the chords and the other parts' names
 const BLACK = new Set([1, 3, 6, 8, 10]);
-const PULSE_BEFORE = 1.2; // the next note breathes this long before it starts (seconds)
-const HIT_SECONDS = 0.5; // a hit's flash, pop and sparkles
+const HIT_SECONDS = GEM.hit.flashMs / 1000; // a hit's flash and sparkles
+// The envelopes (docs/glass-spec.md 4), all from the audio clock: the next note's glow ramp, the ring's onset and
+// release, the settle, the hit's pop.
+const ONSET = GEM.motion.onsetMs / 1000;
+const RELEASE = GEM.motion.releaseMs / 1000;
+const SETTLE = GEM.motion.settleMs / 1000;
+const POP = GEM.hit.popMs / 1000;
+const clamp01 = (t) => Math.max(0, Math.min(1, t));
+const easeOut = (t) => 1 - (1 - t) ** 3;
+// cubic-bezier(.2,.8,.2,1) and (.16,1,.3,1), near enough on a canvas: a quick start, a long soft end.
+const onsetCurve = (t) => 1 - (1 - t) ** 4;
+const settleCurve = (t) => 1 - (1 - t) ** 5;
 const stillMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 
 /** What a lane draws, and its defaults (the Lane's props). */
@@ -73,18 +84,20 @@ export class LanePainter {
         this.host = host;
         Object.assign(this, LANE_DEFAULTS);
         this.cam = camera();
-        this.hitAt = new Map();
+        this.hitAt = new Map(); // beat: the audio position (seconds) the note was hit at
         this.inTuneFor = 0;
         this.drawnAt = 0;
         this.readTokens();
+        whenWordsReady(() => this.draw());
     }
 
     /** What to draw (any of LANE_DEFAULTS' keys); the notes' timing is worked out again when they change. */
     set(props) {
         const notesChanged = ['notes', 'beatSeconds', 'transpose', 'words'].some((k) => k in props && props[k] !== this[k]);
         if ('lit' in props && props.lit !== this.lit) {
-            // A note just hit: its flash, pop and sparkles start now.
-            for (const beat of props.lit) if (!this.lit?.has(beat)) this.hitAt.set(beat, performance.now());
+            // A note just hit: its flash, pop and sparkles start here, on the audio clock.
+            const at = props.position ?? this.position;
+            for (const beat of props.lit) if (!this.lit?.has(beat)) this.hitAt.set(beat, at);
         }
         Object.assign(this, props);
         if (notesChanged || !this.timed) this.retime();
@@ -116,6 +129,7 @@ export class LanePainter {
         this.record = token('record', '#f0654a');
         this.accent = token('accent', '#ff79da');
         this.light = (document.documentElement.dataset.theme ?? '').endsWith('-light');
+        this.arcYellow = getComputedStyle(document.documentElement).getPropertyValue('--arc-yellow').trim() || '#ffd84a';
     }
 
     /** Stops any frame still to come (the lane is going). */
@@ -182,45 +196,66 @@ export class LanePainter {
         g.clip();
         // Game mode's ghost: under the gems, so it never covers a note to come.
         this.drawGhost(g, { x, mid, left, width });
-        // The other parts: faint outlines at their real pitches.
+        // The other parts: ghosts (a dashed outline) at their real pitches, 0.7 of a bar tall.
         const tolH = rowH * (2 * this.tolerance) / 100;
         const barH = Math.max(tolH, Math.min(34, Math.max(14, rowH * 1.25)));
         for (const other of this.others) {
             for (const n of other.notes) {
                 const pitch = n.pitch + this.transpose;
                 if (pitch < low - 1 || pitch > high + 1) continue; // out of the lane: its name at the edge says where it is
-                gemBar(g, x(seconds(n.beat)), mid(pitch) - barH * 0.35, seconds(n.length) * pps - 3, barH * 0.7, other.color, { ghost: true, light: this.light });
+                const gh = barH * GEM.ghost.height;
+                gemBar(g, x(seconds(n.beat)), mid(pitch) - gh / 2, seconds(n.length) * pps - 3, gh, other.color, { state: 'ghost', light: this.light });
             }
         }
-        // Your notes as glass gems (Hillel: chunky, glossy, alive): at least as tall as the
-        // tolerance; filled where you sang in tune, the whole gem lit with a tick once hit; the
-        // next breathing as the playhead nears, the note now rimmed and glowing; a hit flashes,
-        // pops and sparkles; a missed note dims, never red. Labels bold inside when they fit.
+        // Your notes as glass gems (docs/glass-spec.md 1): upcoming the full recipe; the next one's glow comes up over its
+        // last moment; the note now glows with the ring round it (the theme's text colour between two knockouts in the
+        // lane's ground; game mode's yellow, no soft glow); a hit pops and flashes and keeps its tick; a past note not
+        // hit settles to its colour at 40% (listening isn't failing). Every envelope from the audio position.
+        const game = document.documentElement.dataset.skin === 'game';
+        const ring = game ? this.arcYellow : this.cream;
         const ink = shades(this.color, { light: this.light }).ink;
-        const fontSize = Math.max(10, Math.min(14, barH * 0.5));
-        g.textBaseline = 'middle';
         const next = this.notes.find((n) => seconds(n.beat) > this.position);
+        const lead = Math.min(GEM.motion.nextS, this.beatSeconds);
+        const drawn = [];
         this.notes.forEach((n, index) => {
             const from = x(seconds(n.beat));
             const w = seconds(n.length) * pps - 3;
             if (from > width || from + w < left) return;
             const pitch = n.pitch + this.transpose;
             const top = mid(pitch) - barH / 2;
-            const past = seconds(n.beat + n.length) <= this.position;
+            const start = seconds(n.beat);
+            const end = seconds(n.beat + n.length);
             const lit = this.lit.has(n.beat);
             const isNow = n === nowNote;
-            const hitAge = this.hitAt.has(n.beat) ? (clock - this.hitAt.get(n.beat)) / 1000 : Infinity;
-            const fresh = !still && hitAge < HIT_SECONDS;
-            const ahead = next === n ? seconds(n.beat) - this.position : Infinity;
-            const pulse = !still && ahead < PULSE_BEFORE ? (0.35 + 0.35 * Math.sin(clock / 180)) * (1 - ahead / PULSE_BEFORE) : 0;
-            if (lit) {
-                gemBar(g, from, top, w, barH, this.color, { glow: fresh ? 1 - hitAge / HIT_SECONDS : 0.25, pop: fresh ? 1 + 0.05 * Math.sin(Math.PI * Math.min(1, hitAge / 0.25)) : 1, rim: isNow ? this.cream : null, light: this.light });
-            } else if (past) {
-                gemBar(g, from, top, w, barH, this.color, { dim: true, light: this.light });
-            } else {
-                // Not sung yet: the whole gem, bright (it breathes when next); where you were in
-                // tune, a light sheen over it, filling as you sing.
-                gemBar(g, from, top, w, barH, this.color, { glow: isNow ? 0.8 : pulse, rim: isNow ? this.cream : null, light: this.light });
+            const into = this.position - start;
+            const after = this.position - end;
+            const hitAge = this.hitAt.has(n.beat) ? this.position - this.hitAt.get(n.beat) : Infinity;
+            const fresh = !still && hitAge >= 0 && hitAge < HIT_SECONDS;
+            let glow = 0;
+            let ringT = 0;
+            if (isNow) {
+                const on = still ? 1 : onsetCurve(clamp01(into / ONSET));
+                ringT = on;
+                glow = GEM.level.next + (GEM.level.now - GEM.level.next) * on;
+            } else if (after >= 0 && after < RELEASE && !still) {
+                ringT = 1 - easeOut(clamp01(after / RELEASE));
+                glow = GEM.level.now * ringT;
+            } else if (n === next && start - this.position < lead) {
+                const t = still ? 1 : 1 - (start - this.position) / lead;
+                glow = GEM.level.next * t * t;
+            }
+            if (fresh) glow = Math.max(glow, isNow ? GEM.level.hit - (GEM.level.hit - GEM.level.now) * easeOut(hitAge / HIT_SECONDS) : GEM.level.hit * (1 - easeOut(hitAge / HIT_SECONDS)));
+            const pop = fresh && hitAge < POP ? 1 + (GEM.hit.pop - 1) * Math.sin(Math.PI * hitAge / POP) : 1;
+            const settle = lit || after < 0 ? 0 : still ? 1 : settleCurve(clamp01(after / SETTLE));
+            drawn.push({ n, index, from, w, top, pitch, isNow, lit, settle, fresh, hitAge, ringT, sheen: !lit && after < 0,
+                options: { glow, pop, settle, ring: ringT > 0 ? { color: ring, surf: this.ink, t: ringT } : null, surf: this.ink, light: this.light, game } });
+        });
+        // A ringed gem (the note now, or one letting go) on top of its neighbours.
+        for (const d of [...drawn.filter((d) => !d.ringT), ...drawn.filter((d) => d.ringT)]) {
+            const { n, from, w, top, sheen } = d;
+            gemBar(g, from, top, w, barH, this.color, d.options);
+            if (sheen) {
+                // Where you were in tune, a light sheen over it, filling as you sing.
                 for (const [a, b] of this.hits.get(n.beat) ?? []) {
                     const sx = Math.max(from, x(a));
                     const sw = Math.min(from + w, x(b)) - sx;
@@ -234,31 +269,26 @@ export class LanePainter {
                     g.restore();
                 }
             }
-            if (lit && w > 18) this.tick(g, from + w - 10, mid(pitch), Math.min(8, barH * 0.5), ink);
+        }
+        // The words after every gem, so a word above one is never under the next; then a hit's tick, inside at the
+        // gem's end, or just above it when the word fills the gem (the word never moves for a hit).
+        for (const d of drawn) {
+            const { n, index, from, w, top, pitch, lit, settle, fresh, hitAge, ringT } = d;
             if (fresh) sparkles(g, from + w / 2, mid(pitch), hitAge, this.color, { seed: index });
-            // The word and the name: bold inside the gem when they fit, else just above it.
-            const word = this.wordAt.get(Math.round(n.beat * 1000)) ?? '';
-            const name = this.noteName(pitch);
-            const label = [word, name].filter(Boolean).join(' ');
-            const room = w - (lit ? 26 : 10);
-            g.font = `800 ${fontSize}px system-ui, sans-serif`;
-            const inside = barH >= 18 && (lit || isNow || !past);
-            const fits = (text) => text && g.measureText(text).width < room;
-            const text = fits(label) ? label : fits(word) ? word : fits(name) ? name : '';
-            if (inside && text) {
-                // On the gem: dark or white by its colour (AA); a missed one is grey, so cream at 70%.
-                g.fillStyle = past && !lit ? this.cream : ink;
-                g.globalAlpha = past && !lit ? 0.7 : 1;
-                g.fillText(text, Math.round(from + 7), Math.round(mid(pitch)) + 0.5);
-                g.globalAlpha = 1;
-            } else if (label) {
-                const roomAbove = (this.notes[index + 1] ? x(seconds(this.notes[index + 1].beat)) : width) - from - 6;
-                g.font = `700 ${Math.max(10, Math.min(13, fontSize))}px system-ui, sans-serif`;
-                g.fillStyle = past ? this.muted : this.cream;
-                const above = g.measureText(label).width < roomAbove ? label : g.measureText(name).width < roomAbove ? name : '';
-                if (above) g.fillText(above, Math.round(from + 2), Math.round(top - 8));
-            }
-        });
+            const following = this.notes[index + 1];
+            const fit = gemWords(g, {
+                x: from, y: top, w, h: barH,
+                word: this.wordAt.get(Math.round(n.beat * 1000)) ?? '',
+                name: this.noteName(pitch),
+                ink: settle >= 0.5 ? this.cream : ink,
+                above: settle > 0 ? this.muted : this.cream,
+                nextX: following ? x(seconds(following.beat)) : width,
+                bounds: { top: EDGE, right: width },
+                reserve: lit ? tickRoom(barH) : 0,
+                ringed: ringT > 0,
+            });
+            if (lit && w > 18) gemTick(g, from, top, w, barH, ink, { outside: fit.where === 'in' && fit.end > from + w - tickRoom(barH), color: this.cream, ringed: ringT > 0 });
+        }
         // A breath mark (a comma, as on a score) where you breathe before a new line: the last half
         // beat of the note before it, which scoring forgives (js/scoring.js sungEnd).
         this.notes.forEach((n, index) => {
@@ -309,7 +339,7 @@ export class LanePainter {
             g.restore();
         }
         // Something still moving (a hit's sparkles, the camera settling, the next note breathing) while paused: draw again.
-        const moving = !still && ([...this.hitAt.values()].some((at) => clock - at < HIT_SECONDS * 1000) || Math.abs(this.cam.vc) + Math.abs(this.cam.vs) > 0.05);
+        const moving = !still && Math.abs(this.cam.vc) + Math.abs(this.cam.vs) > 0.05;
         cancelAnimationFrame(this.again);
         if (moving) this.again = requestAnimationFrame(() => this.draw());
     }
@@ -455,16 +485,6 @@ export class LanePainter {
         g.fillStyle = shades(this.color, { light: this.light }).ink;
         g.textBaseline = 'middle';
         g.fillText(text, x0 + 11, y0 + h / 2 + 0.5);
-    }
-    tick(g, cx, cy, size, ink = this.ink) {
-        g.strokeStyle = ink;
-        g.lineWidth = 2;
-        g.lineCap = 'round';
-        g.beginPath();
-        g.moveTo(cx - size * 0.45, cy);
-        g.lineTo(cx - size * 0.12, cy + size * 0.33);
-        g.lineTo(cx + size * 0.5, cy - size * 0.35);
-        g.stroke();
     }
     breathMark(g, cx, cy, size) {
         breathComma(g, cx, cy, size, this.cream);

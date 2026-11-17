@@ -35,10 +35,11 @@ export const GEM = Object.freeze({
     // A hit: pop to `pop` and back over popMs, glow from 1 to `now` over flashMs; its tick `tickWidth` px in the ink,
     // min(tickMax, tickOfH x h) px, `tickEnd` px from the gem's end.
     hit: { pop: 1.05, popMs: 250, flashMs: 500, tickWidth: 2, tickMax: 15, tickOfH: 0.42, tickEnd: 6 },
-    // The syllable: Figtree `weight`, clamp(min, ofH x h, max) px, start-aligned at max(inset, r). None inside a gem
-    // under `minGem` px tall. Above the gem when it won't fit: `aboveSize` px `aboveWeight`, `aboveGap` px over its
-    // top, only if it ends `aboveClear` px before the next gem.
-    words: { weight: 750, ofH: 0.44, min: 11, max: 20, tracking: 0.005, inset: 6, minGem: 18, aboveSize: 12, aboveWeight: 700, aboveGap: 4, aboveClear: 6 },
+    // The syllable: Figtree `weight`, clamp(min, ofH x h, max) px, start-aligned at max(inset, insetOfR x r) (Hillel,
+    // 2026-11-17: "Half margin + 12px step"). None inside a gem under `minGem` px tall. Too long: the word alone, then
+    // the word alone at `step` px, then above the gem: `aboveSize` px `aboveWeight`, `aboveGap` px over its top, only
+    // if it ends `aboveClear` px before the next gem.
+    words: { weight: 750, ofH: 0.44, min: 11, max: 20, tracking: 0.005, inset: 6, insetOfR: 0.5, step: 12, minGem: 18, aboveSize: 12, aboveWeight: 700, aboveGap: 4, aboveClear: 6 },
     // Motion, from the audio clock: next's glow ramp over the last min(nextS s, 1 beat); ms for the rest. The join's
     // band is `joinDeg` degrees wide.
     motion: { nextS: 0.45, onsetMs: 90, releaseMs: 160, settleMs: 240, joinMs: 900, joinFadeMs: 300, joinDeg: 100 },

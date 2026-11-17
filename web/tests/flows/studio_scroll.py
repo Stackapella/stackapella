@@ -83,8 +83,7 @@ def journey(f):
     f.click_t("studio.recordNamed", {"name": bass})
     f.wait("document.querySelector('[data-headphones]')", what="the headphones question")
     f.click_t("headphones.start")
-    f.wait("document.querySelector('[data-timing]')", what="the timing check")
-    f.click_t("timing.skip")
+    # No timing check first: the first take records with the estimate, the check offered after it (Hillel, 2026-11-15).
     f.wait(f"{AUDIO}.engine.playing?.recording && document.querySelector('[data-recording-row]')", what="recording")
     f.wait(f"{AUDIO}.engine.ctx.currentTime > {AUDIO}.engine.playing.startTime + 2", what="2 s recorded")
     f.run("await new Promise((r) => setTimeout(r, 600))")  # a smooth scroll settles

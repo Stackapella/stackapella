@@ -35,6 +35,7 @@ import { heardFrame, HINT_AFTER, HOLD_TO_LIGHT, praise, startWaiting } from '../
 import { counted, learning } from '../stores/learning.js';
 import { PLAY_SCORERS, rhythmOptions, withRhythm } from '../lesson-scores.js';
 import { keepFirstTake } from './then-and-now.js';
+import { GEM } from '../gem-spec.js';
 import { ReadStave } from '../lesson-steps.js'; // loaded when a staff step needs it
 import { chipCountIn } from '../game/modules.js';
 import { styleBend } from '../style-scores.js';
@@ -681,11 +682,21 @@ export const Exercise = {
             if (n.listenOnly) return { ghost: true };
             const toSing = this.mode === 'listen' || this.mode === 'try' || this.exercise.turn === false || i >= this.shown.length - this.laid.target.length;
             if (!toSing) return { ghost: true };
+            // The spec's states (docs/glass-spec.md 1, 4), each envelope from the audio clock's beat: the next note's glow
+            // over its last min(0.45 s, 1 beat), the ring's onset, the settle of a past note not hit.
             const now = this.running && this.beatNow >= n.beat && this.beatNow < n.beat + n.length;
             const past = this.running && this.beatNow >= n.beat + n.length;
-            const next = this.running && !now && n.beat > this.beatNow && n.beat - this.beatNow < 1.5 && !this.shown.some((m, k) => k !== i && m.beat > this.beatNow && m.beat < n.beat);
+            const next = this.running && !now && n.beat > this.beatNow && !this.shown.some((m, k) => k !== i && m.beat > this.beatNow && m.beat < n.beat);
             const lit = this.litNow(i);
-            return { dim: !lit && past && this.mode !== 'listen', rim: now, glow: now ? 0.8 : lit ? 0.25 : 0, next, hitAt: lit ? this.hitAt[i] : null };
+            const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+            const into = (this.beatNow - n.beat) * this.beatSeconds;
+            const after = (this.beatNow - n.beat - n.length) * this.beatSeconds;
+            const lead = Math.min(GEM.motion.nextS, this.beatSeconds);
+            const ahead = (n.beat - this.beatNow) * this.beatSeconds;
+            const ring = now ? (still ? 1 : 1 - (1 - Math.min(1, into / (GEM.motion.onsetMs / 1000))) ** 4) : 0;
+            const ramp = next && ahead < lead ? (still ? 1 : (1 - ahead / lead) ** 2) : 0;
+            const settle = past && !lit ? (still ? 1 : 1 - (1 - Math.min(1, after / (GEM.motion.settleMs / 1000))) ** 5) : 0;
+            return { settle, rim: now, ringT: ring, glow: now ? GEM.level.next + (GEM.level.now - GEM.level.next) * ring : GEM.level.next * ramp, hitAt: lit ? this.hitAt[i] : null };
         },
         /**
          * How a note is drawn under the exercise's `lights` (Improvising a harmony): "full", "faint"
@@ -715,7 +726,7 @@ export const Exercise = {
             const past = this.running && this.beatNow >= n.beat + n.length;
             return n.choices.map((pitch) => {
                 const chosen = this.chosen[i] === pitch;
-                return { ...this.place({ ...n, pitch }), color: this.color, ...state, dim: !open.includes(pitch) || (past && !chosen), glow: chosen ? 0.8 : state.rim ? 0.25 : 0, hitAt: chosen ? state.hitAt : null };
+                return { ...this.place({ ...n, pitch }), color: this.color, ...state, settle: !open.includes(pitch) || (past && !chosen) ? 1 : 0, glow: chosen ? GEM.level.now : state.rim ? GEM.level.next : 0, hitAt: chosen ? state.hitAt : null };
             });
         },
         /** The choices still open at shown note `i`, after the note you sang before it (js/harmony.js), against the first partner line. */

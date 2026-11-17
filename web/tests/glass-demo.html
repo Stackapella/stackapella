@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en" data-theme="stage-dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Glass parity</title>
+    <!-- One gem, two renderers (docs/glass-spec.md 5): js/glass.js's gemBar on a canvas beside css/glass.css's .gem-note,
+         every state by the four parts by three heights, on the lane's ground. tests/flows/glass_parity.py shoots it in
+         each theme and compares each pair's pixels. ?theme=... picks the theme. -->
+    <link rel="stylesheet" href="/css/app.css">
+    <style>
+        body { margin: 0; padding: 16px; background: var(--color-ink); }
+        #grid { display: grid; grid-template-columns: repeat(2, max-content); gap: 0 24px; background: var(--color-ink); }
+        .cell { position: relative; width: 160px; height: 90px; background: var(--color-ink); }
+        .cell canvas { position: absolute; inset: 0; width: 160px; height: 90px; }
+        .cell .gem-note { position: absolute; left: 24px; width: 112px; }
+        *, *::before, *::after { transition: none !important; animation: none !important; }
+    </style>
+</head>
+<body>
+    <div id="grid"></div>
+    <script type="module">
+        import { gemBar, gemFit, gemInk, gemRadius, tickRoom } from '/js/glass.js';
+        const theme = new URLSearchParams(location.search).get('theme') ?? 'stage-dark';
+        document.documentElement.dataset.theme = theme;
+        const light = theme.endsWith('-light');
+        const root = getComputedStyle(document.documentElement);
+        const token = (name) => root.getPropertyValue(`--color-${name}`).trim();
+        const surf = token('ink');
+        const ring = token('cream');
+        // The states the spec draws solid (dashed ones, the ghost, are left out: browsers choose their own dashes).
+        const STATES = [
+            { name: 'upcoming', canvas: {}, dom: {} },
+            { name: 'next', canvas: { glow: 0.3 }, dom: { g: 0.3 } },
+            { name: 'now', canvas: { glow: 0.8, ring: { color: ring, surf, t: 1 } }, dom: { g: 0.8, ring: true } },
+            { name: 'settled', canvas: { state: 'settled' }, dom: { state: 'settled' } },
+        ];
+        const pairs = [];
+        const grid = document.getElementById('grid');
+        for (const state of STATES) {
+            for (let part = 1; part <= 4; part++) {
+                for (const h of [22, 34, 54]) {
+                    const colour = token(`part-${part}`);
+                    const top = Math.round((90 - h) / 2);
+                    const a = document.createElement('div');
+                    a.className = 'cell';
+                    const canvas = document.createElement('canvas');
+                    const ratio = window.devicePixelRatio || 1;
+                    canvas.width = 160 * ratio;
+                    canvas.height = 90 * ratio;
+                    const g = canvas.getContext('2d');
+                    g.scale(ratio, ratio);
+                    gemBar(g, 24, top, 112, h, colour, { ...state.canvas, surf, light });
+                    a.append(canvas);
+                    const b = document.createElement('div');
+                    b.className = 'cell';
+                    const gem = document.createElement('div');
+                    gem.className = 'gem-note';
+                    gem.style.top = `${top}px`;
+                    gem.style.setProperty('--gem-c', colour);
+                    gem.style.setProperty('--gem-h', String(h));
+                    gem.style.setProperty('--gem-surf', surf);
+                    if (state.dom.g) gem.style.setProperty('--gem-g', String(state.dom.g));
+                    if (state.dom.state) gem.dataset.state = state.dom.state;
+                    if (state.dom.ring) gem.dataset.ring = '';
+                    b.append(gem);
+                    grid.append(a, b);
+                    // Where the words sit (the flat band, between the insets) and their colour; a pixel in the ring's middle.
+                    const inset = Math.max(6, gemRadius(112, h));
+                    const band = { x: 24 + inset, y: top + Math.ceil(0.3 * h), w: 112 - 2 * inset, h: Math.floor(0.4 * h) };
+                    const ink = state.name === 'settled' ? ring : gemInk(colour);
+                    pairs.push({ state: state.name, part, h, a, b, band, ink, ringAt: state.dom.ring ? { x: 80, y: top - 4 } : null });
+                }
+            }
+        }
+        window.__pairs = pairs.map(({ state, part, h, a, b, band, ink, ringAt }) => {
+            const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+            return { state, part, h, a: { x: ra.left + scrollX, y: ra.top + scrollY }, b: { x: rb.left + scrollX, y: rb.top + scrollY }, w: 160, hgt: 90, band, ink, ringAt, surf };
+        });
+        // The words' place is the same in every state: for each height and width, a few words and names, the fit for
+        // a note upcoming, next, now, settled and hit (a hit reserves its tick's room). Any difference is a word that
+        // would jump as its note changes state.
+        await document.fonts.load('750 15px Figtree');
+        const probe = document.createElement('canvas').getContext('2d');
+        const WORDS = [['that', 'B3'], ['a', 'D4'], ['wretch', 'G4'], ['maz-', 'B3'], ['sound', 'B3'], ['grace,', 'D4'], ['', 'E4']];
+        const jumps = [];
+        for (const h of [14, 22, 28, 34, 54]) {
+            for (let w = 12; w <= 240; w += 2) {
+                for (const [word, name] of WORDS) {
+                    const at = (reserve) => gemFit(probe, { x: 40, y: 60, w, h, word, name, nextX: 40 + w + 3, bounds: { top: 0, right: 2000 }, reserve }).where;
+                    const states = { upcoming: at(0), next: at(0), now: at(0), settled: at(0), hit: at(tickRoom(h)) };
+                    if (new Set(Object.values(states)).size > 1) jumps.push({ h, w, word, states });
+                }
+            }
+        }
+        window.__jumps = jumps;
+        window.__ready = true;
+    </script>
+</body>
+</html>
