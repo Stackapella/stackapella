@@ -10,6 +10,8 @@
 @font-face { font-family: 'Stackapella Pixel'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/stackapella-pixel.woff2') format('woff2'); }
 @font-face { font-family: 'VT323'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/vt323-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
 @font-face { font-family: 'VT323'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/vt323-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+/* Until VT323 arrives, a local monospace sized and spaced to match it, so nothing moves when it swaps in (as input.css). */
+@font-face { font-family: 'VT323 Fallback'; src: local('Courier New'), local('CourierNewPSMT'), local('Droid Sans Mono'), local('DroidSansMono'), local('Menlo-Regular'); size-adjust: 66.66%; ascent-override: 120.01%; descent-override: 30%; line-gap-override: 0%; }
 
 /* The arcade's surfaces and neons, then the calm sheet's own names pointed at them. */
 :root[data-skin='game'] {
@@ -17,7 +19,7 @@
     --g-dot: rgb(255 255 255 / .075); --g-scan: rgb(0 0 0 / .18);
     --g-frame: #8f84ff; --g-pink: #ff4fa8; --g-yellow: #ffd84a; --g-on: #14101f;
     --g-shade: color-mix(in srgb, var(--g-frame) 55%, transparent);
-    --g-px: 'Stackapella Pixel', ui-monospace, monospace; --g-vt: 'VT323', ui-monospace, monospace;
+    --g-px: 'Stackapella Pixel', ui-monospace, monospace; --g-vt: 'VT323', 'VT323 Fallback', ui-monospace, monospace;
     --ground: var(--g-bg); --panel: var(--g-panel); --edge: var(--g-line); --em: var(--g-pink);
     --mute: color-mix(in srgb, var(--ink) 72%, var(--g-bg)); --btn: var(--g-yellow); --btn-ink: var(--g-on);
 }

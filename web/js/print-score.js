@@ -53,10 +53,12 @@ export function signaturePositions(key, clef) {
  * with its `x` and, for a note, its staff `position` (0 the bottom line), `accidental`, `ledgers`,
  * `stem`, `flags`, `hollow`, `dot`, `word` and `breath`.
  */
-export function printLayout(template, { partKeys = null, cue = false, names = true, perSystem = null, page = PAGE, fill = false, most = null, measure = null } = {}) {
+export function printLayout(template, { partKeys = null, cue = false, names = true, perSystem = null, page = PAGE, fill = false, most = null, measure = null, namesAfter = null } = {}) {
     const edge = names ? (typeof names === 'number' ? names : NAMES) : 8; // where the staves start: after the part names (a number: a narrower column, for short names), or at once (a reading line)
     // The engraver's options (js/engrave.js; the app's print leaves them off): `fill` ends a last system more than half
-    // full at the margin, `most` caps a system's bars without widening them, `measure` is a word's true width.
+    // full at the margin, `most` caps a system's bars without widening them, `measure` is a word's true width, and
+    // `namesAfter` a narrower column after the first system (a round's letters stand only at its first).
+    const edgeOf = (s) => (s > 0 && namesAfter !== null ? namesAfter : edge);
     const wordWidth = measure ?? roughWidth;
     const key = template.key || 'C';
     const metre = metreOf(template.timeSignature);
@@ -115,7 +117,7 @@ export function printLayout(template, { partKeys = null, cue = false, names = tr
     const per = perSystem ?? barsPerSystem(template.timeSignature);
     const signatureWidth = (clef) => signaturePositions(key, clef).length * ACCIDENTAL;
     const fullBar = metre.perBar * scale;
-    const leftOf = (s) => edge + CLEF + signatureWidth('treble') + (s === 0 ? TIME : 0) + 8;
+    const leftOf = (s) => edgeOf(s) + CLEF + signatureWidth('treble') + (s === 0 ? TIME : 0) + 8;
     const right = page - 2;
     // One width per division for every system, so a short last system ends early (ragged right), as before.
     const unit = (right - leftOf(1)) / (per * fullBar);
@@ -247,6 +249,7 @@ export function printLayout(template, { partKeys = null, cue = false, names = tr
             barNumber: s === 0 ? null : first + (bars[0].pickup ? 0 : 1),
             first: s === 0,
             last: s === groups.length - 1,
+            ...(namesAfter !== null ? { edge: edgeOf(s) } : {}), // (only when asked: the app's print stays as pinned)
             left,
             right: widthUsed,
             bars: sysBars,

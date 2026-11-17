@@ -50,16 +50,17 @@ final class SongScore
     }
 
     /**
-     * The song as the engraver reads it (js/engrave.js), and no more: its key, time, tempo and upbeat, and each part's
-     * notes with their words and breaths. In the page itself, so showing the score reads nothing from the API (a guest's
-     * reads are capped by network; the coordinator, 2026-11-16). Everyone may see every note (Hillel's choice).
+     * The song as the engraver reads it (js/engrave.js), and no more: its key, time, tempo, upbeat and genres (a round is
+     * written on one staff), and each part's notes with their words and breaths. In the page itself, so showing the
+     * score reads nothing from the API (a guest's reads are capped by network; the coordinator, 2026-11-16). Everyone
+     * may see every note (Hillel's choice).
      *
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
     public static function notes(array $data): array
     {
-        $song = array_intersect_key($data, array_flip(['key', 'timeSignature', 'tempo', 'pickupBeats', 'meters']));
+        $song = array_intersect_key($data, array_flip(['key', 'timeSignature', 'tempo', 'pickupBeats', 'meters', 'genre']));
         $song['parts'] = array_values(array_map(static fn (array $part): array => [
             'key' => (string) ($part['key'] ?? ''),
             ...(($part['melody'] ?? false) === true ? ['melody' => true] : []),

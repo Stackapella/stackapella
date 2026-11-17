@@ -17,6 +17,8 @@ const BEAM = 5; // a beam's thickness: half a space
 const BEAM_GAP = 7.5; // from one beam's top to the next's
 const LYRIC = 15; // the words' size
 const TEXT = "Georgia, 'Times New Roman', Times, serif"; // i18n-ignore: the words' face
+// The words are spaced by the face's own widths, so the page's font-size-adjust (game mode's screen type) never reaches
+// them: each system resets it.
 const FLAG = ['', '8th', '16th', '32nd'];
 const REST = { whole: 'restWhole', half: 'restHalf', quarter: 'restQuarter', eighth: 'rest8th', '16th': 'rest16th', '32nd': 'rest32nd' };
 const REST_AT = { whole: 6, half: 4, quarter: 4, eighth: 4, '16th': 4, '32nd': 4 };
@@ -37,11 +39,36 @@ export function textWidth(text, size, widths = WIDTHS) {
 }
 
 /**
+ * A round's voices, when the song is one whose every voice sings the first one's notes from its own entry (an octave
+ * apart at most, a later voice perhaps stopping early to finish with the others): `{ lead, voices: [{ key, off }] }`,
+ * `off` in beats after the first voice, in order of entry. Else null.
+ */
+export function roundOf(template) {
+    if (!(template.genre ?? []).includes('round')) return null;
+    const parts = (template.parts ?? []).filter((p) => p.guide?.notes?.length);
+    if (parts.length < 2) return null;
+    const sorted = (part) => [...part.guide.notes].sort((a, b) => a.beat - b.beat);
+    const lead = sorted(parts[0]);
+    const voices = [];
+    for (const part of parts) {
+        const notes = sorted(part);
+        const off = notes[0].beat - lead[0].beat;
+        const copy = notes.length <= lead.length && notes.every((n, i) => Math.abs(n.beat - off - lead[i].beat) < 1e-6 && Math.abs(n.length - lead[i].length) < 1e-6 && (n.pitch - lead[i].pitch) % 12 === 0 && (n.lyric ?? '') === (lead[i].lyric ?? ''));
+        if (!copy || (voices.length && off <= voices.at(-1).off)) return null;
+        voices.push({ key: part.key, off });
+    }
+    return { lead: parts[0], voices };
+}
+
+/**
  * The song as engraved systems: `{ systems: [{ svg, width, height, bars, staves }], layout }` (`bars` the system's first
  * and last bar numbers, `staves` each staff's key and the top and bottom of its five lines, for a page's own controls).
  * `nameOf(key, first)` a part's name (whole on the first system, short after; '' for none, where the page has its own);
  * `tempo` false to leave the tempo mark out; the rest is printLayout's. Each note and word carries its part, its
  * `data-beat` and `data-length` (the song's beats), so a player can light it as it sounds.
+ * A round (Hillel's choice, 2026-11-16) is written as a round is printed: its tune once, on one staff, with each voice's
+ * entry numbered over the note it comes in on (no names, unless a width is asked for). Each of its notes also carries
+ * `data-echo` ("alto:8 tenor:16"), each later voice and how many beats after the first it sings that note.
  */
 export function engrave(template, { glyphs = GLYPHS, widths = WIDTHS, nameOf = (key) => key, tempo = true, ...options } = {}) {
     // An a cappella octavo carries no chord names: the parts are the harmony.
@@ -56,7 +83,10 @@ export function engrave(template, { glyphs = GLYPHS, widths = WIDTHS, nameOf = (
             return gap > 1e-6 && gap < quarter - 1e-6 ? { ...n, length: n.length + gap } : n;
         }) } };
     };
-    const song = { ...template, chords: [], parts: template.parts.map(whole) };
+    // A round, written whole (not one of its parts on its own sheet).
+    const round = options.partKeys ? null : roundOf(template);
+    if (round && (options.names === undefined || options.names === true)) options = { ...options, names: false };
+    const song = { ...template, chords: [], parts: (round ? [round.lead] : template.parts).map(whole) };
     // Even systems: the fewest systems the words allow, then as few bars a system as keeps that count, so the last
     // system is never two lonely bars; and it ends at the margin like the rest.
     const measure = (text) => (text ? textWidth(text, LYRIC, widths) : 0);
@@ -73,10 +103,20 @@ export function engrave(template, { glyphs = GLYPHS, widths = WIDTHS, nameOf = (
     const tw = (text, size = LYRIC) => textWidth(text, size, widths);
     // Each part's notes in the order the layout numbers them (by beat), for when each sounds.
     const sung = new Map(template.parts.map((p) => [p.key, [...(p.guide?.notes ?? [])].sort((a, b) => a.beat - b.beat)]));
+    const echo = round ? ` data-echo="${round.voices.slice(1).map((v) => `${esc(v.key)}:${r(v.off)}`).join(' ')}"` : '';
     const when = (key, note) => {
         const n = sung.get(key)?.[note];
-        return n ? ` data-beat="${r(n.beat)}" data-length="${r(n.length)}"` : '';
+        return n ? ` data-beat="${r(n.beat)}" data-length="${r(n.length)}"${echo}` : '';
     };
+    // A round's entries: the note each voice comes in on, numbered 1, 2, 3 in order.
+    const entries = new Map();
+    if (round) {
+        const lead = sung.get(round.lead.key);
+        round.voices.forEach((v, i) => {
+            const at = lead.findIndex((n) => n.beat >= lead[0].beat + v.off - 1e-6);
+            if (at >= 0 && !entries.has(at)) entries.set(at, i + 1);
+        });
+    }
     const yOf = (st, position) => st.y + (8 - position) * HALF;
 
     // Each staff's notes through the whole song, to find what runs over a system's end: a syllable's notes (its slur
@@ -131,7 +171,7 @@ export function engrave(template, { glyphs = GLYPHS, widths = WIDTHS, nameOf = (
     }
 
     const systems = layout.systems.map((sys, s) => {
-        const edge = layout.edge;
+        const edge = sys.edge ?? layout.edge;
         const out = [];
         const top = sys.staves[0].y;
         const bottom = sys.staves.at(-1).y + STAFF;
@@ -142,11 +182,7 @@ export function engrave(template, { glyphs = GLYPHS, widths = WIDTHS, nameOf = (
             if (named) out.push(`<rect x="${edge - 10}" y="${top - 2}" width="4.5" height="${bottom - top + 4}"/>`, use('bracketTop', edge - 10, top - 2), use('bracketBottom', edge - 10, bottom + 2));
         }
         if (sys.barNumber) out.push(`<text x="${edge + 1}" y="${r(top - 20)}" font-size="11" font-style="italic">${sys.barNumber}</text>`);
-        if (sys.first && tempo && template.tempo) {
-            const x = edge + 30 + signaturePositions(template.key || 'C', 'treble').length * 9;
-            const dotted = beat === 36;
-            out.push(`<g transform="translate(${r(x)} ${r(top - 20)}) scale(0.72)">${use('metNoteQuarterUp', 0, 0)}${dotted ? use('metAugmentationDot', 16, 0) : ''}</g>`, `<text x="${r(x + (dotted ? 17 : 13))}" y="${r(top - 19)}" font-size="14" font-weight="700">= ${esc(template.tempo)}</text>`);
-        }
+        const boxes = []; // a round's entry numbers on this system: each box's left, top and number
         sys.staves.forEach((st, k) => {
             const y = (position) => yOf(st, position);
             const ink = st.cue ? ' opacity="0.55"' : '';
@@ -265,6 +301,13 @@ export function engrave(template, { glyphs = GLYPHS, widths = WIDTHS, nameOf = (
                 }
                 if (it.dot) n.push(use('augmentationDot', it.x + hw / 2 + 3, y(it.position % 2 === 0 ? it.position + 1 : it.position)));
                 g.push(`<g class="eg-note" data-part="${esc(st.key)}" data-note="${it.note}"${st.cue ? '' : when(st.key, it.note)}>${n.join('')}</g>`);
+                if (entries.has(it.note) && !it.tieIn) {
+                    // Over the note and its stem, and clear of the staff.
+                    const head = y(it.position) - 7;
+                    const above = Math.min(st.y - 6, head - 5, it.stem === 'up' && !it.stemless ? it.stemEnd - 5 : head - 5);
+                    boxes.push({ x: it.x - 8, top: above - 16, n: entries.get(it.note) });
+                    entries.delete(it.note);
+                }
                 if (it.breath && st.items[st.items.indexOf(it) + 1]?.kind !== 'rest') g.push(use('breathMarkComma', it.x + 13, st.y - 4));
                 if (it.lyric) g.push(`<text class="eg-word" data-part="${esc(st.key)}" data-note="${it.note}"${st.cue ? '' : when(st.key, it.note)} x="${r(it.lyric.x)}" y="${r(st.lyricY)}" font-size="${LYRIC}">${esc(it.lyric.text)}</text>`);
             }
@@ -313,17 +356,28 @@ export function engrave(template, { glyphs = GLYPHS, widths = WIDTHS, nameOf = (
             }
             out.push(`<g data-staff="${esc(st.key)}"${ink}>${g.join('')}</g>`);
         });
+        for (const box of boxes) out.push(`<g class="eg-entry"><rect x="${r(box.x)}" y="${r(box.top)}" width="16" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.1"/><text x="${r(box.x + 8)}" y="${r(box.top + 12.5)}" font-size="12.5" font-weight="700" text-anchor="middle">${box.n}</text></g>`);
+        // The tempo over the first system: above an entry's number where the two would meet.
+        let lift = 0;
+        if (sys.first && tempo && template.tempo) {
+            const x = edge + 30 + signaturePositions(template.key || 'C', 'treble').length * 9;
+            const dotted = beat === 36;
+            const end = x + (dotted ? 17 : 13) + tw(`= ${template.tempo}`, 14);
+            for (const box of boxes) if (box.x < end + 4 && box.x + 16 > x - 4 && box.top < top - 14) lift = Math.max(lift, top - 14 - box.top + 3);
+            out.push(`<g transform="translate(${r(x)} ${r(top - 20 - lift)}) scale(0.72)">${use('metNoteQuarterUp', 0, 0)}${dotted ? use('metAugmentationDot', 16, 0) : ''}</g>`, `<text x="${r(x + (dotted ? 17 : 13))}" y="${r(top - 19 - lift)}" font-size="14" font-weight="700">= ${esc(template.tempo)}</text>`);
+        }
         const width = Math.max(sys.right + 2, options.page ?? layout.width ?? 0);
         // A staff with no word on this system may still carry the line after one held from the system before.
         const tall = Math.max(sys.height, ...sys.staves.map((st, k) => (marks[s][k].lines.length ? st.lyricY + 8 : 0)));
-        const pad = 24; // room over the top staff for the tempo, the bar number and the clef's curl
+        // Room over the top staff for the tempo, the bar number and the clef's curl (and a round's entry numbers).
+        const pad = boxes.length ? Math.max(24 + lift, Math.ceil(4 - Math.min(...boxes.map((box) => box.top), top - 38 - lift))) : 24;
         return {
             width,
             height: tall + pad,
             pad,
             bars: [sys.bars[0].index, sys.bars.at(-1).index],
             staves: sys.staves.map((st) => ({ key: st.key, top: st.y + pad, bottom: st.y + STAFF + pad })),
-            svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 ${-pad} ${r(width)} ${r(tall + pad)}" fill="currentColor" font-family="${TEXT}" data-system="${s}">${out.join('')}</svg>`,
+            svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 ${-pad} ${r(width)} ${r(tall + pad)}" fill="currentColor" font-family="${TEXT}" style="font-size-adjust:none" data-system="${s}">${out.join('')}</svg>`,
         };
     });
     return { systems, layout };

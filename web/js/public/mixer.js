@@ -256,6 +256,12 @@ function setUp(root) {
             el,
             from: Number(el.dataset.beat) * secondsPerBeat,
             to: 'length' in el.dataset ? (Number(el.dataset.beat) + Number(el.dataset.length)) * secondsPerBeat : null,
+            // A round's note, written once (js/engrave.js): its own part, and each later voice that sings it so many
+            // beats after.
+            echo: 'echo' in el.dataset ? [{ key: el.dataset.part, after: 0 }, ...el.dataset.echo.split(' ').filter(Boolean).map((pair) => {
+                const [key, beats] = pair.split(':');
+                return { key, after: Number(beats) * secondsPerBeat };
+            })] : null,
         }));
         // A word is lit until the next word starts.
         const starts = [...new Set(marks.filter((m) => m.to === null).map((m) => m.from))].sort((a, b) => a - b);
@@ -438,6 +444,15 @@ function setUp(root) {
             for (const [key, row] of rows) row.toggleAttribute('data-sounding', now.has(key));
         }
         for (const mark of marks) {
+            if (mark.echo) {
+                // Lit while any voice heard sings it, saying which ones (a round's score follows one of them).
+                const live = play !== null && at > 0 ? mark.echo.filter((v) => on.get(v.key) !== false) : [];
+                const singing = live.filter((v) => at >= mark.from + v.after && at < mark.to + v.after).map((v) => v.key).join(' ');
+                if (!singing) mark.el.removeAttribute('data-lit');
+                else if (mark.el.getAttribute('data-lit') !== singing) mark.el.setAttribute('data-lit', singing);
+                mark.el.toggleAttribute('data-sung', !singing && live.some((v) => at >= mark.from + v.after));
+                continue;
+            }
             const lit = play !== null && at > 0 && at >= mark.from && at < mark.to;
             mark.el.toggleAttribute('data-lit', lit);
             mark.el.toggleAttribute('data-sung', play !== null && at > 0 && at >= mark.from && !lit);

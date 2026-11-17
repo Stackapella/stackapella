@@ -349,6 +349,22 @@ test('fonts: every face is served from our own address, and every file is there'
     for (const file of files) assert((await fetch(file, { method: 'HEAD' })).ok, `${file} is served`);
 });
 
+test('fonts: game mode sizes VT323 by its width and every other face as before', async () => {
+    const css = await (await fetch('/css/input.css', { cache: 'no-store' })).text();
+    assert(/font-family: 'VT323 Fallback';[^}]*size-adjust: 66\.66%/.test(css), 'VT323\'s fallback matched to its width');
+    assert(/--arc-screen: 'VT323', 'VT323 Fallback'/.test(css), 'the screen face falls back to it');
+    const wrong = [];
+    for (const [, selector, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+        if (!/data-skin=['"]game['"]|s-arcade/.test(selector) || /(^|[;\s])font:\s/.test(body)) continue;
+        const face = body.match(/font-family:\s*([^;]+)/)?.[1].trim();
+        const sizes = [...body.matchAll(/font-size-adjust:\s*([^;]+)/g)].map((m) => m[1].trim());
+        const name = selector.trim().split('\n').pop().slice(0, 90);
+        if (face && !/arc-screen|VT323|^inherit$/.test(face) && !sizes.length) wrong.push(`${name}: a face without font-size-adjust: var(--arc-ex, none)`);
+        if (sizes.some((v) => /^(none|[\d.]+)$/.test(v)) && !sizes.some((v) => v.startsWith('ch-width')) && !/--arc-ex:/.test(body)) wrong.push(`${name}: an x-height value without --arc-ex`);
+    }
+    assert(!wrong.length, wrong.slice(0, 5).join('; '));
+});
+
 test('game NEW RECORD: the letters take the part colours in turn', () => {
     const word = letters('New record');
     assert(word.map((l) => l.char).join('') === 'New record', 'every letter');

@@ -63,6 +63,7 @@ final class SongScoreTest extends TestCase
         $data = (array) $template->currentVersion->data;
         $this->assertSame($data['key'], $embedded['key']);
         $this->assertSame($data['timeSignature'], $embedded['timeSignature']);
+        $this->assertSame($data['genre'] ?? null, $embedded['genre'] ?? null, 'its genres, so a round is written as one');
         foreach ($data['parts'] as $i => $part) {
             $this->assertSame($part['key'], $embedded['parts'][$i]['key']);
             $this->assertCount(count($part['guide']['notes']), $embedded['parts'][$i]['guide']['notes']);

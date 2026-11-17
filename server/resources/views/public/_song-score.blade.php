@@ -4,6 +4,8 @@
      from the song the player reads (js/public/mixer.js plays it and lights each note as it sounds); until then, and
      without the script, the sheet keeps its staves' room. `$line` is the player's song, `$score` SongScore::of(). --}}
 @php($count = count($line['parts']))
+{{-- A round is written on one staff, its letters all beside it (js/engrave.js). --}}
+@php($staves = $score['voicing'] === 'round' ? 1 : $count)
 <div class="s-score" data-score data-slug="{{ $line['song'] }}">
     <script type="application/json" data-song>@json($line)</script>
     {{-- Every note, for the engraver: in the page, so the score reads nothing more (SongScore::notes). --}}
@@ -19,10 +21,10 @@
         </div>
     </div>
     <div class="s-score-sheet" translate="no">
-        <div class="s-score-view" data-score-view style="--staves: {{ $count }}">
+        <div class="s-score-view" data-score-view @if ($staves === 1 && $count > 1) data-round @endif style="--staves: {{ $staves }}">
             @foreach ($line['parts'] as $i => $part)
                 {{-- The staff's letter: hear this part alone, again for all of them (the mixer's own hear-alone). --}}
-                <span @class(['s-score-voice', 's-is-you' => $part['key'] === $line['you']]) data-voice="{{ $part['key'] }}" data-name="{{ mb_strtolower($part['name']) }}" style="--i: {{ $i }}">
+                <span @class(['s-score-voice', 's-is-you' => $part['key'] === $line['you']]) data-voice="{{ $part['key'] }}" data-name="{{ mb_strtolower($part['name']) }}" style="--i: {{ $staves === 1 ? 0 : $i }}">
                     <button type="button" class="bubble" data-hear-alone aria-pressed="false" aria-label="{{ __('pages.landing.hero.hear_only', ['part' => $part['name']]) }}" data-label="{{ __('pages.landing.hero.hear_only', ['part' => $part['name']]) }}" data-label-back="{{ __('pages.landing.hero.hear_all_back') }}">{{ mb_substr($part['name'], 0, 1) }}</button>
                 </span>
             @endforeach
