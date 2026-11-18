@@ -184,7 +184,7 @@ final class SongCollectionsTest extends TestCase
 
         $html = (string) $this->get('/songs/hymns')->assertOk()->getContent();
         $this->assertMatchesRegularExpression('#<span class="s-xbar" aria-hidden="true"><i style="--lo: [\d.]+%; --hi: [\d.]+%"></i></span>#', $html);
-        $this->assertStringContainsString('Bars show each part on one scale, E2 to G5. The line is middle C.', $html);
+        $this->assertStringContainsString('Bars show each part on one scale, E2 to A5. The line is middle C.', $html);
         // At most three across (Hillel); the hymns' last card isn't left alone when their count leaves one over.
         $this->assertStringNotContainsString('s-xcards-4', $html);
         preg_match_all('#<article id="carol-#', $html, $cards);

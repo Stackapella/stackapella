@@ -1925,7 +1925,7 @@ select:disabled {
 .s-sg-voice b { font-weight: 750; color: var(--color-cream); }
 .s-sg-voice .s-lk, .s-sg-voices-note .s-lk { position: relative; z-index: 2; }
 .s-spart-be { margin-top: 16px; font-size: 14.5px; line-height: 1.55; color: var(--color-muted); }
-.s-spart-be > .s-lk:first-child { display: inline-block; margin-bottom: 4px; }
+.s-spart-be > .s-lk:first-child { display: inline-block; } /* its tap padding cancelled top and bottom, so the first line keeps the paragraph's spacing (Hillel, 2026-11-18) */
 .s-sg-voices-note { margin-top: 18px; max-width: 60em; font-size: 14.5px; line-height: 1.55; color: var(--color-muted); }
 .s-sg-words-in { display: grid; gap: 24px; }
 @media (min-width: 900px) { .s-sg-words-in { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 48px; } }
@@ -7760,6 +7760,186 @@ main:has(> .s-close) .s-ink:not(.s-close) { padding-block: var(--k-sec); margin-
 .cp-imp .cp-fact p:first-child { padding-inline-end: 28px; }
 @media (min-width: 700px) { .cp-imp-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (min-width: 1100px) { .cp-imp-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* Backing vocals (site/courses/backing-vocals): Hillel's design (2026-11-18, ~/Code/course-designs/backing-vocals),
+   the backing parts as stacked coloured lanes, like a multitrack. The parts' own colours (s-v1 pad, s-v2 doo-wop, s-v3
+   answers, s-v4 a real song: --c, --ci, --ct) and the theme's tokens only, so calm light and dark and game all draw it.
+   The hero's "behind" with a copy in each backing part's colour; Shenandoah's lanes in one panel with a playhead (still
+   under reduced motion); the units with their strips; a sample result card; the setlist beside singing safely;
+   Amazing Grace's four parts on the dark band; every lesson's page (course.blade.php's nav) in four unit columns. */
+.cp-bv-hero { padding-top: 20px; }
+.cp-bv-top { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; margin-top: 24px; }
+.cp-bv-open { display: inline-flex; align-items: center; gap: 8px; padding: 6px 13px; border-radius: 99px; background: color-mix(in srgb, var(--color-good) 16%, var(--color-ink)); color: var(--color-cream); font-size: 13.5px; font-weight: 650; white-space: nowrap; }
+.cp-bv-open-dot { flex: none; width: 8px; height: 8px; border-radius: 99px; background: var(--color-good); }
+.cp-bv-hero h1 { margin-top: 20px; font-size: clamp(50px, 12.5vw, 96px); line-height: .95; font-weight: 900; letter-spacing: -0.045em; }
+.cp-bv-line { display: block; }
+.cp-bv-behind { padding-inline-end: .14em; text-shadow: .04em .04em 0 var(--color-part-3), .08em .08em 0 var(--color-part-2), .12em .12em 0 var(--color-part-1); }
+.cp-bv-lead { font-size: clamp(17px, 1.6vw, 19px); line-height: 1.55; color: var(--color-muted); max-width: 52ch; text-wrap: pretty; }
+.cp-bv-btns { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.cp-bv-btns > a { white-space: nowrap; }
+@media (max-width: 639px) {
+    .cp-bv-btns { flex-direction: column; align-items: stretch; }
+    .cp-bv-btns > a { justify-content: center; width: 100%; }
+}
+@media (prefers-reduced-motion: no-preference) {
+    .cp-bv-open-dot { animation: cp-bv-pulse 2s ease-in-out infinite; }
+    .cp-bv-panel:not([data-playing]) .cp-bv-ph { animation: cp-bv-sweep 15.24s linear infinite; }
+}
+@keyframes cp-bv-pulse { 50% { opacity: .35; } }
+@keyframes cp-bv-sweep { from { left: 0%; } to { left: 100%; } }
+
+/* The multitrack: names in a column, a lane a row, the bar lines and the playhead over every lane. */
+.cp-bv-panel { margin-top: clamp(36px, 5vw, 56px); padding: clamp(18px, 2.4vw, 28px); border-radius: 22px; background: var(--color-panel); border: 1px solid var(--color-edge); box-shadow: 0 30px 60px -40px rgb(60 40 20 / .35); }
+.cp-bv-panel-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; margin-bottom: 22px; }
+.cp-bv-panel-head .s-kick { flex: 1 1 auto; }
+.cp-bv-quiet { color: var(--color-muted); letter-spacing: .1em; }
+.cp-bv-panel-note { font-size: 14px; color: var(--color-muted); }
+.cp-bv-play { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 18px 0 7px; border-radius: 99px; background: var(--fill-2, var(--color-raised)); color: var(--color-cream); font-size: 15px; font-weight: 700; white-space: nowrap; }
+.cp-bv-play:hover { background: var(--fill-3, var(--color-line)); }
+.cp-bv-play:focus-visible { outline: 3px solid var(--color-cream); outline-offset: 2px; }
+.cp-bv-play-icon { position: relative; flex: none; width: 30px; height: 30px; border-radius: 99px; background: var(--color-cream); }
+.cp-bv-play-icon::before { content: ""; position: absolute; inset-block-start: 9px; inset-inline-start: 11px; border-block: 6px solid transparent; border-inline-start: 10px solid var(--color-ink); }
+.cp-bv-play[aria-pressed="true"] .cp-bv-play-icon::before { inset: 10px; border: 0; border-radius: 2px; background: var(--color-ink); }
+.cp-bv-fig { margin: 0; }
+.cp-bv-tracks { container-type: inline-size; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 10px 14px; }
+.cp-bv-name { grid-column: 1; display: flex; align-items: center; height: 34px; font-size: 13px; font-weight: 700; color: var(--ci, var(--color-cream)); }
+.cp-bv-lane { grid-column: 2; position: relative; z-index: 1; height: 34px; }
+.cp-bv-is-lead { --c: var(--color-cream); --ci: var(--color-cream); --ct: var(--color-ink); }
+.cp-bv-seg { position: absolute; inset-block: 0; display: flex; align-items: center; padding-inline: 6px 3px; overflow: hidden; white-space: nowrap; border-radius: 8px; border-inline-end: 3px solid transparent; background: var(--c); background-clip: padding-box; color: var(--ct); font-size: 12px; font-weight: 700; transition: opacity .08s; }
+.cp-bv-grid { grid-column: 2; position: relative; z-index: 0; pointer-events: none; background-image: repeating-linear-gradient(to right, var(--color-edge) 0 1px, transparent 1px 25%); }
+.cp-bv-over { grid-column: 2; position: relative; z-index: 2; pointer-events: none; }
+.cp-bv-ph { position: absolute; inset-block: -8px; inset-inline-start: calc(var(--p, 0) * 100%); width: 2px; margin-inline-start: -1px; border-radius: 1px; background: var(--color-cream); }
+.cp-bv-panel[data-playing] .cp-bv-lane .cp-bv-seg { opacity: .45; }
+.cp-bv-panel[data-playing] .cp-bv-lane .cp-bv-seg[data-on] { opacity: 1; }
+/* A word shows only where its note is wide enough for all of it (js/public/backing-vocals.js measures; a phone: the
+   long notes' alone), never cut. */
+.cp-bv-seg[data-cut] > span { visibility: hidden; }
+@container (max-width: 560px) {
+    .cp-bv-name, .cp-bv-lane { height: 28px; }
+    .cp-bv-name { font-size: 12px; }
+    .cp-bv-seg { border-radius: 6px; border-inline-end-width: 2px; }
+}
+.cp-bv-source { margin-top: 18px; font-size: 13.5px; line-height: 1.5; color: var(--color-muted); max-width: 80ch; }
+.cp-bv-learn { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: 16px 28px; margin-top: 22px; padding-top: 22px; border-top: 1px solid var(--color-edge); }
+.cp-bv-learn li { display: flex; gap: 10px; font-size: 15px; line-height: 1.5; color: var(--color-muted); }
+.cp-bv-learn b { color: var(--color-cream); }
+.cp-bv-key { flex: none; width: 10px; height: 10px; margin-top: 6px; border-radius: 3px; background: var(--c); }
+
+/* The sections. */
+.cp-bv-sec { padding-top: clamp(64px, 9vw, 120px); }
+.cp-bv-h2 { font-size: clamp(32px, 4vw, 48px); line-height: 1.02; font-weight: 800; letter-spacing: -0.035em; text-wrap: balance; }
+.cp-bv-h2-s { margin-top: 14px; font-size: clamp(28px, 3.4vw, 40px); line-height: 1.05; }
+.cp-bv-h2-l { margin-top: 16px; font-size: clamp(38px, 5vw, 64px); line-height: .98; letter-spacing: -0.045em; font-weight: 900; }
+.cp-bv-p { margin-top: 16px; font-size: 17px; line-height: 1.6; color: var(--color-muted); max-width: 56ch; text-wrap: pretty; }
+.cp-bv-num { flex: none; width: 24px; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: .04em; color: var(--color-muted); }
+
+/* The units: a ruled list, each unit's number in its colour beside a strip of its technique, its lessons at right. */
+.cp-bv-units-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 16px; }
+.cp-bv-count { font-size: 13px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--color-muted); }
+.cp-bv-units { margin-top: 32px; border-top: 1px solid var(--color-cream); }
+.cp-bv-unit { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px 48px; padding-block: 32px; border-bottom: 1px solid var(--color-edge); }
+.cp-bv-unit-head { display: flex; align-items: baseline; gap: 14px; }
+.cp-bv-unit-n { font-size: 56px; font-weight: 900; line-height: .9; letter-spacing: -0.05em; color: var(--ci); font-variant-numeric: tabular-nums; }
+.cp-bv-unit h3 { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+.cp-bv-unit-sub { margin-top: 4px; font-size: 15px; line-height: 1.45; color: var(--color-muted); }
+.cp-bv-strip { display: grid; gap: 6px; margin-top: 22px; background-image: repeating-linear-gradient(to right, var(--color-edge) 0 1px, transparent 1px 25%); }
+.cp-bv-strip-lane { position: relative; height: 16px; }
+.cp-bv-strip-lane i { position: absolute; inset-block: 0; border-radius: 5px; border-inline-end: 3px solid transparent; background: var(--c); background-clip: padding-box; }
+.cp-bv-strip .cp-bv-ghost { --c: color-mix(in srgb, var(--color-cream) 16%, transparent); }
+.cp-bv-strip .cp-bv-is-lead { --c: color-mix(in srgb, var(--color-cream) 55%, transparent); }
+.cp-bv-lessons li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; min-height: 46px; padding-block: 8px; border-bottom: 1px dashed var(--color-edge); font-size: 16px; }
+.cp-bv-lessons a { padding-block: 10px; margin-block: -10px; font-weight: 550; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--color-cream) 30%, transparent); text-underline-offset: 4px; }
+.cp-bv-lessons a:hover { text-decoration-color: currentColor; }
+.cp-bv-lessons .s-free { margin: 0; }
+
+/* What the app listens for, beside the sample card. */
+.cp-bv-hears { display: grid; grid-template-columns: minmax(0, 1fr); gap: 36px 72px; align-items: start; }
+.cp-bv-card { padding: clamp(20px, 2.5vw, 28px); border-radius: 22px; background: var(--color-panel); border: 1px solid var(--color-edge); }
+.cp-bv-sample { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; font-size: 14px; line-height: 1.45; color: var(--color-muted); }
+.cp-bv-sample b { padding: 3px 10px; border-radius: 99px; background: var(--fill-2, var(--color-raised)); color: var(--color-cream); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+.cp-bv-dots { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; margin-top: 20px; }
+.cp-bv-dots li { aspect-ratio: 1; border-radius: 99px; background: var(--c); border: 2px solid var(--c); }
+.cp-bv-dots .cp-bv-miss { background: transparent; border-color: var(--color-line); }
+.cp-bv-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 24px; }
+.cp-bv-stats b { display: block; font-size: 40px; font-weight: 900; line-height: 1; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.cp-bv-stats small { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; color: var(--color-muted); }
+.cp-bv-stats span { display: block; margin-top: 6px; font-size: 14px; color: var(--color-muted); }
+.cp-bv-phones { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--color-edge); font-size: 14.5px; line-height: 1.5; color: var(--color-muted); }
+.cp-bv-phones b { color: var(--color-cream); }
+
+/* The setlist, numbered, beside singing safely. */
+.cp-bv-songs { display: grid; grid-template-columns: minmax(0, 1fr); gap: 40px 72px; }
+.cp-bv-setlist { margin-top: 16px; border-top: 1px solid var(--color-cream); }
+.cp-bv-setlist li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 2px 14px; align-items: baseline; padding-block: 14px; border-bottom: 1px solid var(--color-edge); }
+.cp-bv-setlist b { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+.cp-bv-credit { grid-column: 2; font-size: 14px; line-height: 1.45; color: var(--color-muted); }
+.cp-bv-safe { display: grid; gap: 14px; margin-top: 16px; padding: 22px; border-radius: 18px; background: color-mix(in srgb, var(--color-cream) 6%, var(--color-ink)); font-size: 16px; line-height: 1.45; }
+.cp-bv-safe li { display: flex; gap: 10px; align-items: flex-start; }
+.cp-bv-safe svg { flex: none; margin-top: 2px; color: var(--color-part-ink-2); }
+
+/* New to harmony: the dark band, Amazing Grace's four parts beside the words. */
+.cp-bv-today { margin-top: clamp(64px, 9vw, 120px); }
+.cp-bv-today-in { display: grid; grid-template-columns: minmax(0, 1fr); gap: 40px 72px; align-items: center; }
+.cp-bv-grace { margin: 0; padding: clamp(18px, 2.4vw, 26px); border-radius: 22px; background: color-mix(in srgb, var(--color-cream) 6%, transparent); }
+.cp-bv-grace .s-kick { margin-bottom: 18px; }
+.cp-bv-tracks-sm .cp-bv-name { height: 28px; color: var(--color-muted); }
+.cp-bv-tracks-sm .cp-bv-lane { height: 28px; }
+.cp-bv-tracks-sm .cp-bv-seg { border-radius: 7px; font-size: 11.5px; }
+.cp-bv-grid-3 { background-image: repeating-linear-gradient(to right, color-mix(in srgb, var(--color-cream) 14%, transparent) 0 1px, transparent 1px 25%); }
+
+/* Every lesson's page (course.blade.php's nav, after this page): plain links in four unit columns, each headed in its
+   unit's colour. */
+.cp-bv ~ [data-lesson-pages] > h3 { margin-top: 26px; padding-top: 12px; border-top: 3px solid var(--c); font-size: 14px; color: var(--color-muted); }
+.cp-bv ~ [data-lesson-pages] > h3:nth-of-type(4n+1) { --c: var(--color-part-1); }
+.cp-bv ~ [data-lesson-pages] > h3:nth-of-type(4n+2) { --c: var(--color-part-2); }
+.cp-bv ~ [data-lesson-pages] > h3:nth-of-type(4n+3) { --c: var(--color-part-3); }
+.cp-bv ~ [data-lesson-pages] > h3:nth-of-type(4n+4) { --c: var(--color-part-4); }
+.cp-bv ~ [data-lesson-pages] .s-cards { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.cp-bv ~ [data-lesson-pages] .s-card,
+:root[data-skin='game'][data-gs] body.s-arcade .cp-bv ~ [data-lesson-pages] .s-card { gap: 3px; height: auto; padding: 8px 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
+.cp-bv ~ [data-lesson-pages] .s-card b { font-size: 15.5px; font-weight: 700; }
+.cp-bv ~ [data-lesson-pages] .s-card:hover b { text-decoration: underline; text-underline-offset: 3px; }
+.cp-bv ~ [data-lesson-pages] .s-card span:not(.s-soon) { font-size: 14px; line-height: 1.4; }
+
+@media (min-width: 600px) {
+    .cp-bv-setlist li { grid-template-columns: 28px minmax(0, 1fr) auto; }
+    .cp-bv-credit { grid-column: 3; max-width: 44ch; text-align: end; font-size: 13.5px; }
+    .cp-bv ~ [data-lesson-pages] { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px; align-items: start; }
+    .cp-bv ~ [data-lesson-pages] > h2 { grid-column: 1 / -1; }
+    .cp-bv ~ [data-lesson-pages] > h3:nth-of-type(odd), .cp-bv ~ [data-lesson-pages] > ul:nth-of-type(odd) { grid-column: 1; }
+    .cp-bv ~ [data-lesson-pages] > h3:nth-of-type(even), .cp-bv ~ [data-lesson-pages] > ul:nth-of-type(even) { grid-column: 2; }
+    .cp-bv ~ [data-lesson-pages] > h3:nth-of-type(-n+2) { grid-row: 2; }
+    .cp-bv ~ [data-lesson-pages] > ul:nth-of-type(-n+2) { grid-row: 3; }
+    .cp-bv ~ [data-lesson-pages] > h3:nth-of-type(n+3) { grid-row: 4; }
+    .cp-bv ~ [data-lesson-pages] > ul:nth-of-type(n+3) { grid-row: 5; }
+}
+@media (min-width: 900px) {
+    .cp-bv-hero { padding-top: 32px; }
+    .cp-bv-top { grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); align-items: end; gap: 40px 64px; margin-top: 28px; }
+    .cp-bv-top > :last-child { padding-bottom: 8px; }
+    .cp-bv-unit { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cp-bv-hears { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cp-bv-songs { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+    .cp-bv-today-in { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cp-bv ~ [data-lesson-pages] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .cp-bv ~ [data-lesson-pages] > h3:nth-of-type(n) { grid-row: 2; }
+    .cp-bv ~ [data-lesson-pages] > ul:nth-of-type(n) { grid-row: 3; }
+    .cp-bv ~ [data-lesson-pages] > h3:nth-of-type(1), .cp-bv ~ [data-lesson-pages] > ul:nth-of-type(1) { grid-column: 1; }
+    .cp-bv ~ [data-lesson-pages] > h3:nth-of-type(2), .cp-bv ~ [data-lesson-pages] > ul:nth-of-type(2) { grid-column: 2; }
+    .cp-bv ~ [data-lesson-pages] > h3:nth-of-type(3), .cp-bv ~ [data-lesson-pages] > ul:nth-of-type(3) { grid-column: 3; }
+    .cp-bv ~ [data-lesson-pages] > h3:nth-of-type(4), .cp-bv ~ [data-lesson-pages] > ul:nth-of-type(4) { grid-column: 4; }
+}
+
+/* The game skin: the arcade's pixel headings and HUD labels, square lanes and cards (the shared course rule squares
+   the rest), the hero's "behind" dropping its copies in hard pixel steps. */
+:root[data-skin="game"] body.s-arcade :is(.cp-bv-h2, .cp-bv-unit-n, .cp-bv-stats b) { font-family: var(--arc-pixel); font-weight: 400; letter-spacing: 0; font-size-adjust: .58; --arc-ex: .58; line-height: 1.25; text-shadow: .06em .06em 0 var(--arc-shade); }
+:root[data-skin="game"] body.s-arcade .cp-bv-h2 { font-size: clamp(22px, 3vw, 34px); }
+:root[data-skin="game"] body.s-arcade .cp-bv-h2-l { font-size: clamp(24px, 3.6vw, 40px); }
+:root[data-skin="game"] body.s-arcade .cp-bv-behind { text-shadow: .06em .06em 0 var(--color-part-3), .12em .12em 0 var(--color-part-2), .18em .18em 0 var(--color-part-1); }
+:root[data-skin="game"] body.s-arcade :is(.cp-bv-count, .cp-bv-sample b, .cp-bv-open) { font-family: var(--a-hud); font-weight: 400; font-size: 11px; font-size-adjust: var(--arc-ex, none); letter-spacing: .06em; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .cp-bv-unit h3 { font-size: 17px; line-height: 1.35; }
+:root[data-skin="game"] body.s-arcade :is(.cp-bv-panel, .cp-bv-card) { border: var(--arc-edge-w, 2px) solid var(--arc-line); box-shadow: var(--arc-shadow); }
+:root[data-skin="game"] body.s-arcade :is(.cp-bv-seg, .cp-bv-strip-lane i, .cp-bv-key) { border-radius: 0; }
 
 /* The free course (site/features/course): the course map. A winding road of eight stops in the parts'
    four colours (the last ringed for Plus), ending in the four stacked bars of a song you sang every

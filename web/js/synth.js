@@ -176,8 +176,8 @@ export function renderPart(notes, { bpm, sampleRate, transpose = 0, speed = 1, h
  * of every note stays within about 5 cents of it (tests/synth.test.js). Cents unless said.
  */
 export const HUMAN = {
-    full: { scoopShare: 0.45, scoop: [35, 85], overshoot: 9, glideWithin: 4, drift: 9, vibrato: [20, 32], vibratoAfter: [0.22, 0.4], vibratoFrom: 0.4, wander: 0.45, jitter: 2.5, shimmer: 0.05, loudness: 1.6, swell: 0.22, onset: 0.012, breath: 0.06, aspiration: 0.012, vowel: 0.12, tail: 0.32 },
-    guide: { scoopShare: 0.3, scoop: [25, 45], overshoot: 3, glideWithin: 4, drift: 2, vibrato: [9, 13], vibratoAfter: [0.3, 0.45], vibratoFrom: 0.5, wander: 0.3, jitter: 0.8, shimmer: 0.025, loudness: 0.8, swell: 0.15, onset: 0.006, breath: 0.035, aspiration: 0.008, vowel: 0.05, tail: 0 },
+    full: { scoopShare: 0.45, scoop: [35, 85], overshoot: 9, glideWithin: 4, drift: 9, vibrato: [20, 32], vibratoAfter: [0.22, 0.4], vibratoFrom: 0.4, wander: 0.45, jitter: 2.5, shimmer: 0.05, loudness: 1.6, swell: 0.22, onset: 0.012, breath: 0, aspiration: 0, vowel: 0.12, tail: 0.32 },
+    guide: { scoopShare: 0.3, scoop: [25, 45], overshoot: 3, glideWithin: 4, drift: 2, vibrato: [9, 13], vibratoAfter: [0.3, 0.45], vibratoFrom: 0.5, wander: 0.3, jitter: 0.8, shimmer: 0.025, loudness: 0.8, swell: 0.15, onset: 0.006, breath: 0, aspiration: 0, vowel: 0.05, tail: 0 },
 };
 
 /** A seeded random source, 0 to 1 (mulberry32): the same seed, the same voice, every render. */
@@ -210,7 +210,9 @@ const ease = (x) => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
  * that settles), glides from a close note before it, drifts a few cents, and on a long note grows a
  * vibrato that starts late, wanders around 5.5 a second and swells then eases. Loudness swells and
  * fades across each phrase, varies a little note to note and shimmers; onsets wander a few ms. A soft
- * breath before each phrase, aspiration under the tone, and the vowel's colour moves a little.
+ * breath before each phrase and aspiration under the tone (both off since Hillel, 2026-11-18: "no need for air on the
+ * songs with our virtual voices"; in quiet passages they sounded like a brush between notes; a style may still ask for
+ * them), and the vowel's colour moves a little.
  * Seeded, so a render is always the same. A note with its own vibrato or bend (a course's) keeps
  * exactly the pitch it asks for.
  */

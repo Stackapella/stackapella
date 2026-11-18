@@ -10,8 +10,10 @@
 // blocked, Sing it stopped, and the reason was a line under the lane, off the screen): the others play at once, and a
 // mic that can't be had says so in a chip on the lane itself, where the eye is; once it's allowed (or plugged in) the
 // player listens again by itself, mid-song.
-// A small toggle at the lane's corner shows the part as sheet music instead (part-sheet.js: your part, the tune cued
-// above it, lit as it sounds), remembered on this device.
+// A small toggle at the lane's corner shows the part as moving notes or as sheet music (part-sheet.js: your part, the
+// tune cued above it, lit as it sounds). Sheet music first (Hillel, 2026-11-18: "make the sheet music the default
+// choice, if someone toggles game mode then auto switch the song to notes"): game mode turned on shows the notes, now
+// or as the page opens; a view picked by hand is kept for that skin on this device.
 // The part sings with its real singer's voice where it has one, and a small toggle swaps it for the synth.
 // "Open in the app" takes the song and the part there (startUrl: /?song=<slug>&part=<key>). The words come
 // from the page, in its language. A Plus song (the API refuses it signed out) never mounts a player: the
@@ -23,7 +25,18 @@ import { playState } from './play-state.js';
 import { segmented } from './tool-layout.js';
 import { mountPartSheet } from './part-sheet.js';
 
-const VIEW_KEY = 'stk-part-view'; // 'lane' or 'sheet', this device's choice (a convenience: nothing breaks without it)
+// The view picked by hand, per skin ('lane' or 'sheet'): this device's choice, a convenience (nothing breaks without it).
+const VIEW_KEY = 'stk-part-view';
+const skinNow = () => (document.documentElement.dataset.skin === 'serious' ? 'serious' : 'game');
+/** Game mode turned on by the singer (now or before), not the site's default look for a first visit. */
+const gameChosen = () => {
+    try {
+        return window.stackapellaTheme?.chosen?.().skin === 'game';
+    } catch (error) {
+        console.warn('The look chosen could not be read', error); // i18n-ignore
+        return false;
+    }
+};
 const LANE_ICON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="3" y="5" width="8" height="4" rx="2"/><rect x="13" y="10" width="8" height="4" rx="2"/><rect x="6" y="15" width="9" height="4" rx="2"/></svg>';
 const SHEET_ICON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 6h20M2 9.5h20M2 13h20M2 16.5h20M2 20h20" opacity=".55"/><ellipse cx="9" cy="16.5" rx="2.6" ry="1.9" fill="currentColor" stroke="none" transform="rotate(-20 9 16.5)"/><path d="M11.4 15.8V4.5" stroke-width="1.8"/></svg>';
 const attr = (text) => String(text ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
@@ -72,7 +85,7 @@ export function mountPartPlayer(el, { slug, part, url = null, startUrl = '', wor
 
     const lane = mountLane($('part-lane'), { song: { slug, part, url }, words, open: listen }); // listen: a stand-in mic for the flows
 
-    // The lane or the sheet music, from the toggle at the lane's corner; this device remembers the choice.
+    // The lane or the sheet music, from the toggle at the lane's corner; a hand-picked view is kept per skin.
     const sheet = mountPartSheet($('part-sheet'), { lane, part });
     // The sheet is taller than the lane on a phone (a line of music needs the room), and ends above the toggle's strip.
     const view = (key, remember = true) => {
@@ -83,7 +96,7 @@ export function mountPartPlayer(el, { slug, part, url = null, startUrl = '', wor
         sheet.show(key === 'sheet').catch((error) => console.warn('The sheet music could not be drawn', error)); // i18n-ignore
         if (!remember) return;
         try {
-            localStorage.setItem(VIEW_KEY, key);
+            localStorage.setItem(`${VIEW_KEY}:${skinNow()}`, key);
         } catch (error) {
             console.warn('The view choice is not kept on this device', error); // i18n-ignore
         }
@@ -92,11 +105,25 @@ export function mountPartPlayer(el, { slug, part, url = null, startUrl = '', wor
         const button = event.target instanceof Element ? event.target.closest('[data-view]') : null;
         if (button) view(button.dataset.view);
     });
-    try {
-        if (localStorage.getItem(VIEW_KEY) === 'sheet') view('sheet', false);
-    } catch (error) {
-        console.warn('The view choice is not read on this device', error); // i18n-ignore
-    }
+    /** This skin's view: the one picked by hand here, else the notes in game mode turned on, else the sheet music. */
+    const preferred = () => {
+        let picked = null;
+        try {
+            picked = localStorage.getItem(`${VIEW_KEY}:${skinNow()}`);
+        } catch (error) {
+            console.warn('The view choice is not read on this device', error); // i18n-ignore
+        }
+        if (picked === 'lane' || picked === 'sheet') return picked;
+        return skinNow() === 'game' && gameChosen() ? 'lane' : 'sheet';
+    };
+    view(preferred(), false);
+    // Game mode toggled on (or off) while the page is open: the view follows the skin.
+    let skinShown = skinNow();
+    document.addEventListener('stackapella:theme', () => {
+        if (skinNow() === skinShown) return;
+        skinShown = skinNow();
+        view(preferred(), false);
+    });
     const show = { playing: false, starting: false };
     let lit = 0;
     let passed = 0;

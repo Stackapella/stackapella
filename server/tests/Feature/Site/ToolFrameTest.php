@@ -61,6 +61,12 @@ final class ToolFrameTest extends TestCase
             // Light and dark is the header's, in Language and appearance, where every page has it (Hillel, 2026-11-13 and
             // 2026-11-16); the tool bar has none.
             $this->assertStringContainsString('data-look-mode="dark"', $top, "{$path}: light and dark in the header");
+            if ($path === '/tools') {
+                // The hub has no tool bar (Hillel, 2026-11-18): its heading names it, and it has no key control.
+                $this->assertStringNotContainsString('data-tool-bar', $body, '/tools: no tool bar on the hub');
+
+                continue;
+            }
             $bar = substr($body, (int) strpos($body, '<div class="s-wrap s-tbrand'));
             $bar = substr($bar, 0, (int) strpos($bar, '</div>', (int) strpos($bar, 's-tbrand-end')) + 6);
             $this->assertStringNotContainsString('data-theme-menu-button', $bar, "{$path}: no theme button in the tool bar");

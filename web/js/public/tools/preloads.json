@@ -291,6 +291,11 @@
   "/js/public/app-prefetch.js": [
     "/js/public/app-prefetch.js"
   ],
+  "/js/public/backing-vocals.js": [
+    "/js/public/backing-vocals.js",
+    "/js/public/voices.js",
+    "/js/public/demo-player.js"
+  ],
   "/js/public/barbershop.js": [
     "/js/public/barbershop.js",
     "/js/public/voices.js"

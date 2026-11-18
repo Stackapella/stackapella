@@ -6,6 +6,9 @@
      is a tool page's trail, below the tool. --}}
 @php($ix = (array) \Illuminate\Support\Facades\Lang::get('site.tools.index'))
 <x-site.header :app-url="$links['app']" :home="'/?'.http_build_query(['ref' => is_string($ref ?? null) ? $ref : (is_string($toolSlug ?? null) ? 'tool-'.$toolSlug : 'tools')])" />
+{{-- The hub has no bar (Hillel, 2026-11-18: "remove the extra 'Free tools' at the top of /tools and the bars above and
+     below"): its own heading already names it, and it has no key control. --}}
+@if ($bar ?? true)
 <div @class(['s-wrap s-tbrand', 's-tbrand-tool' => $onTool ?? false]) data-tool-bar>
     {{-- The page's trail back up (Hillel, 2026-11-08: "show breadcrumbs ... at the top of each tool"), "Tools / Tuner",
          or, on a page with no parent (the hub), its name in quiet text. --}}
@@ -21,3 +24,4 @@
         @endif
     </div>
 </div>
+@endif

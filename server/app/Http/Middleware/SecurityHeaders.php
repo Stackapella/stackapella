@@ -71,8 +71,9 @@ final class SecurityHeaders
         // A public page that listens: Perfect your pitch's page lets a visitor try the pitch meter, the
         // Course feature and beginners' pages try "Find your comfortable note", and the singing-in-tune
         // guide's Bullseye echoes five notes (the mic opens only on a tap; the pitch is worked out on
-        // the device, nothing recorded or sent).
-        $listens = $request->is('courses/perfect-your-pitch', 'features/course', 'for/beginners', 'guides/singing-in-tune', ...self::listeningTools());
+        // the device, nothing recorded or sent). A song's part page too: its player's Sing it follows the singer's voice
+        // (js/public/part-player.js; Hillel, 2026-11-18: with the mic forbidden here, Sing it said the mic was blocked).
+        $listens = $request->is('courses/perfect-your-pitch', 'features/course', 'for/beginners', 'guides/singing-in-tune', 'songs/*/*', 'es/songs/*/*', ...self::listeningTools());
 
         $headers->set('X-Content-Type-Options', 'nosniff');
         if (! $headers->has('Referrer-Policy')) {

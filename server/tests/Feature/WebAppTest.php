@@ -166,6 +166,14 @@ final class WebAppTest extends TestCase
         $admin->assertHeader('X-Frame-Options', 'DENY');
     }
 
+    public function test_a_song_part_page_may_use_the_microphone_but_a_song_page_may_not(): void
+    {
+        // Sing it on a part page follows the singer's voice (js/public/part-player.js); the song's own page doesn't listen.
+        $this->assertStringContainsString('microphone=(self)', (string) $this->get('/songs/amazing-grace/alto')->headers->get('Permissions-Policy'));
+        $this->assertStringContainsString('microphone=(self)', (string) $this->get('/es/songs/amazing-grace/alto')->headers->get('Permissions-Policy'));
+        $this->assertStringContainsString('microphone=()', (string) $this->get('/songs/amazing-grace')->headers->get('Permissions-Policy'));
+    }
+
     public function test_the_import_map_is_hashed(): void
     {
         $this->assertNotEmpty(app(AppShell::class)->scriptHashes());

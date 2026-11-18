@@ -30,6 +30,18 @@ def journey(f):
     f.go("/tests/part-player-demo.html", P)
     f.wait(f"{P}.duration() > 10", what="the song and its part, loaded when seen")
     f.no_sideways("the player, before it plays")
+    # Sheet music first (Hillel, 2026-11-18), whatever the site's default look; game mode turned on shows the notes, and
+    # back in calm the sheet returns (nothing picked by hand yet).
+    pressed = "document.querySelector('[data-ui=part-view] [aria-pressed=true]').dataset.view"
+    f.wait("document.querySelector('[data-ui=part-sheet] svg')", what="the sheet music, the first view")
+    assert f.js(pressed) == "sheet", "sheet music is the first view"
+    f.run("window.stackapellaTheme.choose({ skin: 'serious' })")
+    f.wait(f"{pressed} === 'sheet'", what="calm keeps the sheet music")
+    f.run("window.stackapellaTheme.choose({ skin: 'game' })")
+    f.wait(f"{pressed} === 'lane' && document.querySelector('[data-ui=part-sheet]').hidden", what="game mode turned on shows the notes")
+    f.run(f"window.stackapellaTheme.choose({{ skin: '{f.skin}' }})")
+    f.wait(f"document.documentElement.dataset.skin === '{f.skin}'", what="the run's own skin again")
+    f.run("document.querySelector('[data-ui=part-view] [data-view=lane]').click()")  # the rest of the journey starts on the notes
     # At 320 px (the game skin's wider type too) the ways to play fit on one row, in their short words.
     f.chrome.send("Emulation.setDeviceMetricsOverride", {"width": 320, "height": 720, "deviceScaleFactor": 2, "mobile": True})
     f.js("new Promise((r) => setTimeout(r, 300))")

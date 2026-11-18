@@ -11244,6 +11244,46 @@ return [
                 'scoring' => ['game' => 'Up to three stars for the notes on pitch, and in the answers on the beat, and XP.', 'serious' => 'The same take says it plainly, like "21 of 24 notes on pitch" or "93% on pitch and time", with no stars or XP.'],
                 'safety' => ['Easy volume, softer than the tune.', 'Stop if anything tightens or hurts.'],
                 'songs' => [['Shenandoah', 'Traditional, public domain'], ['Swing Low, Sweet Chariot', 'Spiritual, public domain'], ['Michael, Row the Boat Ashore', 'Traditional, public domain'], ['Home on the Range', 'Traditional, 1870s, public domain'], ['Amazing Grace', 'Public domain hymn (words 1779, tune 1829)'], ['The doo-wop lead and every backing part', 'Written for the course']],
+                // Its own page (site/courses/backing-vocals, Hillel's design, 2026-11-18): the backing parts as stacked
+                // lanes, like a multitrack. The headline in three pieces, so "behind" can carry its coloured copies.
+                'bv' => [
+                    'headline' => ['The sound', 'behind', 'the song.'],
+                    'open' => 'Open now · free',
+                    'panel' => [
+                        'kick' => 'Shenandoah · the lead and three backing parts',
+                        'note' => 'The lead stays out front. Everything else is yours.',
+                        'play' => 'Play it',
+                        'stop' => 'Stop',
+                        'lanes' => ['lead' => 'The lead', 'pad' => 'Pad', 'doo' => 'Doo-wop', 'answer' => 'Answer'],
+                        'alt' => 'Shenandoah\'s first two lines as four lanes: the tune on top, a held "oo" pad under it, short doo-wah figures, and answers in the tune\'s long notes.',
+                        'source' => 'The tune and the pad are the course\'s own (Shenandoah\'s pad, unit 1). The doo-wop and answer parts are drawn on the same chords, to show where each kind sits.',
+                    ],
+                    'units_h' => 'Four ways to sit behind a lead.',
+                    'units' => ['A held pad that moves with the chords', '"Doo-wah" and "bop" figures, stacked three high', 'Fill the lead\'s gaps, come back in on time', 'A pad, then answers, then three parts of your own'],
+                    'hears_h' => 'Your notes, your cut-offs, your timing. Said plainly.',
+                    'hears' => [
+                        'It hears your notes on pitch, and in some lessons your cut-offs, when you come back in, and whether your answers land on the beat.',
+                        'Volume and blend aren\'t scored: the course asks you to listen. In your headphones, could you hear the lead over yourself?',
+                    ],
+                    'sample' => [
+                        'kick' => 'A sample result',
+                        'note' => 'Sample numbers, to show how a take is said. Not a singer\'s score.',
+                        'of' => 'of :n',
+                        'hit' => 'notes on pitch',
+                        'time' => 'on pitch and time',
+                        'dots' => 'A sample take: 21 of 24 notes on pitch.',
+                    ],
+                    'headphones' => ['Headphones on for every lesson.', 'Through a speaker, the lead and your earlier takes rest while you sing.'],
+                    'setlist' => 'The setlist',
+                    'today' => [
+                        'kick' => 'New to harmony?',
+                        'title' => 'Start with the beginner course.',
+                        'body' => 'Short lessons from your first note, with your notes lighting up as you hit them. In unit 7 you sing all four parts of Amazing Grace. Free, like every course.',
+                        'panel' => 'Amazing Grace · four parts',
+                        'alt' => 'Amazing Grace\'s first line as four lanes, soprano, alto, tenor and bass, each note a block in its part\'s colour.',
+                        'parts' => ['Soprano', 'Alto', 'Tenor', 'Bass'],
+                    ],
+                ],
             ],
             // Sea shanties and work songs (the courses lead, content c4a7c4a and 51fcca8; it replaces Overtone singing).
             // Every song printed before 1927. No modern shanty craze, no living people, no nautical puns.

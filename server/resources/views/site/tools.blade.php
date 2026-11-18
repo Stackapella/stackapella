@@ -15,7 +15,7 @@
 @endsection
 
 @section('content')
-    @include('site.tools._brand-row')
+    @include('site.tools._brand-row', ['bar' => false])
     <main>
         {{-- The hub hero (the five pages' kit): the words at left, the page's thing to try at right: Most used, one panel
              of three rows (Hillel's yes to the design direction, 2026-11-14). It stays put while a chip filters. --}}

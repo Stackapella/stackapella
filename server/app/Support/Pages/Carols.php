@@ -21,10 +21,10 @@ final class Carols
     /**
      * The songbook's one scale for every part's range bar, on every collection and the carols page (the UX review of
      * Hillel's Jewish Songs redesign, 2026-11-12: one shared scale, so a bar means the same notes on every page): E2 to
-     * G5, MIDI 40 to 79, the lowest and highest notes of any open part (SongbookScaleTest checks every one fits), and
+     * A5, MIDI 40 to 81 (A5 since Handel's Messiah choruses opened, 2026-11-18), the lowest and highest notes of any open part (SongbookScaleTest checks every one fits), and
      * middle C (60) marked on it.
      */
-    public const SCALE = [40, 79];
+    public const SCALE = [40, 81];
 
     public const MIDDLE_C = 60;
 
