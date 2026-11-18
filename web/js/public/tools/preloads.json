@@ -313,6 +313,17 @@
   "/js/public/carols.js": [
     "/js/public/carols.js"
   ],
+  "/js/public/classical-singing-basics.js": [
+    "/js/public/classical-singing-basics.js",
+    "/js/engrave.js",
+    "/js/engrave-glyphs.js",
+    "/js/print-score.js",
+    "/js/musicxml.js",
+    "/js/notes.js",
+    "/js/staff-layout.js",
+    "/js/theory.js",
+    "/js/dsp.js"
+  ],
   "/js/public/coming-up.js": [
     "/js/public/coming-up.js"
   ],
@@ -336,7 +347,8 @@
     "/js/public/voices.js",
     "/js/public/demo-player.js"
   ],
-  "/js/public/ear-training.js": [
+  "/js/public/ear-training-page.js": [
+    "/js/public/ear-training-page.js",
     "/js/public/ear-training.js",
     "/js/public/voices.js",
     "/js/public/demo-player.js"

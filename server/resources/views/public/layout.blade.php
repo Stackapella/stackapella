@@ -68,7 +68,9 @@
 {{-- The arcade look on every public page; a page where people read or decide (help, legal, a guide)
      says @section('calm') and keeps the colours without the HUD type, glow or scanlines. --}}
 {{-- Help's index is where people pick a topic, so it takes the arcade look; its articles, where people read, stay calm. --}}
-<body @class(['min-h-dvh bg-ink font-sans text-cream antialiased s-arcade', 's-calm' => $__env->hasSection('calm') && ! request()->is('help')])>
+{{-- A course page names its course on the body (data-course), so its own look reaches the shared parts below its <main>: the
+     lesson list and the footer (Hillel's course redesigns, 2026-11-18). --}}
+<body @class(['min-h-dvh bg-ink font-sans text-cream antialiased s-arcade', 's-calm' => $__env->hasSection('calm') && ! request()->is('help')]) @hasSection('course') data-course="@yield('course')" @endif>
     {{-- Someone who came by an organization's outreach link (a known o- tag; Landing::links): one quiet
          line to the partner offer, above everything else. Nobody else sees it. --}}
     @if (is_string($links['partner'] ?? null) && ! request()->is('for/organizations'))

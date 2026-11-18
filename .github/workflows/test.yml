@@ -65,12 +65,14 @@ jobs:
       # and it tries again. Each try is bounded, and so is the step, so a hung mirror fails fast instead of eating
       # the job's time (2026-11-11: an apt hang cancelled a run at its limit).
       # 2026-11-18: the runner's own EC2 mirror crawled for an hour and timed this out twice: after the first try,
-      # the later tries switch to the main Ubuntu archive.
+      # the later tries switch to the main Ubuntu archive (its mirror list too: the third timeout kept the EC2 mirror through it).
       - name: ffmpeg (the takes' checks and the guides)
         timeout-minutes: 10
         run: |
           for attempt in 1 2 3; do
             timeout 150 sudo apt-get install -yq --no-install-recommends ffmpeg && exit 0
+            # The runner reads its mirrors from a list (mirror+file:/etc/apt/apt-mirrors.txt), so point that list at the main archive too.
+            [ -f /etc/apt/apt-mirrors.txt ] && printf 'http://archive.ubuntu.com/ubuntu\tpriority:1\n' | sudo tee /etc/apt/apt-mirrors.txt > /dev/null
             sudo sed -i -E 's#https?://[a-z0-9.-]*\.ec2\.archive\.ubuntu\.com/ubuntu#http://archive.ubuntu.com/ubuntu#g; s#https?://azure\.archive\.ubuntu\.com/ubuntu#http://archive.ubuntu.com/ubuntu#g' /etc/apt/sources.list /etc/apt/sources.list.d/*.sources 2>/dev/null || true
             timeout 150 sudo apt-get update -q -o Acquire::Retries=3 || true
           done

@@ -11,9 +11,14 @@
 //   button goes down, and the release is measured against the clock (never a timer): within
 //   RELEASE_ON_TIME of the end glows, otherwise the page says how far off, in tenths of a second. The
 //   course gives no timing credit from RELEASE_ZERO off; here that's where "close" stops.
-// The words are the view's (data attributes).
+// The words are the view's (data attributes). Space anywhere on the page (not in a control) holds too, while the demo is
+// in view. The roll's header says the phase and how long the note has been held, drawn per frame (never timed).
+//
+// The page's breath, visuals only (requestAnimationFrame and CSS transitions, still under reduced motion, where the
+// server's end state stays): the hero's held note breathes in, holds its 9.4 steady seconds and stops clean, again and
+// again while it's in view; and each section label's bar fills to its place as it comes into view.
 
-import { audio, hz, line, voice } from './voices.js';
+import { audio, hz, line, reducedMotion, voice } from './voices.js';
 import { finish, play, when } from './demo-player.js';
 // The course's own release rules, copied from web/js/pitch-skills.js (RELEASE_ON_TIME, RELEASE_ZERO): importing
 // that module would bring the app's vibrato and synth code onto this page (about 67 KB). Keep them in step.
@@ -27,6 +32,8 @@ const heardSay = demo?.querySelector('[data-br-heard]');
 const button = demo?.querySelector('[data-br-hold]');
 const trace = demo?.querySelector('[data-br-trace]');
 const head = demo?.querySelector('[data-br-head]');
+const phase = demo?.querySelector('[data-br-phase]');
+const readout = demo?.querySelector('[data-br-readout]');
 
 const BEAT = 1; // tempo 60
 const NOTE = 57; // do: A3, 220 Hz, in the middle of most voices
@@ -52,7 +59,14 @@ function cents(b) {
 
 const heard = (c) => c.currentTime - (c.outputLatency || 0); // what's being heard now, on the clock
 
-const tenths = (s) => new Intl.NumberFormat(document.documentElement.lang || 'en', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(Math.round(s * 10) / 10);
+const TENTHS = new Intl.NumberFormat(document.documentElement.lang || 'en', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const tenths = (s) => TENTHS.format(Math.round(s * 10) / 10);
+
+// The roll's header: the phase in words (data-phase-*), and the seconds held.
+function setPhase(name) {
+    const text = words[`phase${name[0].toUpperCase()}${name.slice(1)}`] ?? '';
+    if (phase.textContent !== text) phase.textContent = text;
+}
 
 // ---- Listen first: A steady, B running out -----------------------------------------------------
 
@@ -86,6 +100,8 @@ let hold = null; // { t0, released, frame } while the button is down
 function draw(c, h) {
     const b = Math.max(0, Math.min(heard(c) - h.t0, (END + AIR) * BEAT) / BEAT);
     const into = b - START;
+    readout.textContent = into > 0 ? words.second.replace(':n', tenths(into * BEAT)) : '';
+    if (!h.released) setPhase(into <= 0 ? 'count' : into > END - START ? 'sag' : 'hold');
     head.setAttribute('cx', X(b).toFixed(1));
     head.setAttribute('cy', Y(into > 0 ? cents(into) : 0).toFixed(1));
     if (into > 0) {
@@ -98,6 +114,8 @@ function draw(c, h) {
 
 function reset() {
     trace.setAttribute('d', '');
+    readout.textContent = '';
+    setPhase('ready');
     head.setAttribute('cx', String(X(0)));
     head.setAttribute('cy', String(Y(0)));
     button.removeAttribute('data-on');
@@ -155,7 +173,9 @@ function sing({ live }) {
             draw(c, mine);
             if (hold === mine) hold = null;
             demo.querySelector('[data-br-bar]').removeAttribute('data-on');
-            say.textContent = heard(c) - t0 >= END * BEAT + AIR * BEAT - 0.2 ? words.ranOut : words.ready;
+            const ranOut = heard(c) - t0 >= END * BEAT + AIR * BEAT - 0.2;
+            say.textContent = ranOut ? words.ranOut : words.ready;
+            setPhase(ranOut ? 'sag' : 'ready');
         },
     };
 }
@@ -173,6 +193,7 @@ function letGo() {
     draw(c, mine);
     demo.querySelector('[data-br-bar]').removeAttribute('data-on');
     say.textContent = at < START * BEAT ? words.tooSoon : judge(at - END * BEAT);
+    setPhase(at < START * BEAT ? 'ready' : 'done');
 }
 
 function press() {
@@ -204,4 +225,77 @@ if (demo) {
         event.preventDefault();
         letGo();
     });
+    // Space anywhere outside a control, while the demo is on screen: the page's own shortcut, as the design asks.
+    let onScreen = false;
+    new IntersectionObserver(([entry]) => { onScreen = entry.isIntersecting; }, { threshold: 0.4 }).observe(demo);
+    const free = (event) => event.target === document.body || event.target === document.documentElement;
+    addEventListener('keydown', (event) => {
+        if (event.key !== ' ' || !onScreen || !free(event)) return;
+        event.preventDefault();
+        if (!event.repeat) press();
+    });
+    addEventListener('keyup', (event) => {
+        if (event.key !== ' ' || !hold || !free(event)) return;
+        event.preventDefault();
+        letGo();
+    });
+}
+
+// ---- The page's breath: the hero's held note, and the labels' bars ---------------------------------
+
+const held = document.querySelector('[data-br-held]');
+
+// Breathe in (1.4 s, the ring opening), hold the note's 9.4 steady seconds along the scale, then rest at the clean stop.
+function breathe() {
+    const fill = held.querySelector('[data-br-held-fill]');
+    const ring = held.querySelector('[data-br-held-ring]');
+    const count = held.querySelector('[data-br-held-count]');
+    const label = held.querySelector('[data-br-held-phase]');
+    const HOLD = Number(held.dataset.hold) || 9.4;
+    const IN = 1.4;
+    const CYCLE = IN + HOLD + 2.6;
+    const at = (HOLD / 15) * 100;
+    const names = { in: held.dataset.in, hold: held.dataset.holding, done: held.dataset.done };
+    let start = 0;
+    let frame = 0;
+    const tick = (now) => {
+        const t = ((now - start) / 1000) % CYCLE;
+        const p = t < IN ? 0 : Math.min(1, (t - IN) / HOLD);
+        const name = t < IN ? 'in' : t < IN + HOLD ? 'hold' : 'done';
+        fill.style.width = `${(p * at).toFixed(2)}%`;
+        ring.style.transform = `scale(${t < IN ? (0.4 + (0.8 * t) / IN).toFixed(3) : 0})`;
+        count.textContent = tenths(Math.floor(p * HOLD * 10) / 10);
+        if (held.dataset.phase !== name) {
+            held.dataset.phase = name;
+            label.textContent = names[name];
+        }
+        frame = requestAnimationFrame(tick);
+    };
+    new IntersectionObserver(([entry]) => {
+        cancelAnimationFrame(frame);
+        if (!entry.isIntersecting) return;
+        if (!start) start = performance.now();
+        frame = requestAnimationFrame(tick);
+    }).observe(held);
+}
+
+// Each label's bar starts empty below the fold and fills to its place as it comes into view.
+function fillBars() {
+    const seen = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            entry.target.removeAttribute('data-wait');
+            seen.unobserve(entry.target);
+        }
+    }, { rootMargin: '0px 0px -12% 0px' });
+    for (const bar of document.querySelectorAll('.cp-br-kbar')) {
+        if (bar.getBoundingClientRect().top < innerHeight) continue;
+        bar.setAttribute('data-wait', '');
+        seen.observe(bar);
+    }
+}
+
+if (!reducedMotion() && 'IntersectionObserver' in window) {
+    if (held) breathe();
+    fillBars();
 }

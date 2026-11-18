@@ -55,7 +55,7 @@ def journey(f):
         if lesson == "acb-1-root":
             picture(f, "bass-lesson-1")
             f.click_t("course.continue")
-            f.wait_text("with the guide bass singing along")
+            f.wait("document.querySelector('canvas')", what="lesson 1's try, its singing lane")  # its words are the app's own and change; the lane is the step
             f.no_sideways("lesson 1's try")
             picture(f, "bass-lesson-1-try")
         if lesson == "acb-1-hear":

@@ -1,9 +1,11 @@
 {{-- Every lesson page of a course (docs/seo-lesson-pages-plan.md), linked from its course page so a reader and Google
      reach each one: by unit, each page's name and its title (marketing's, lang/en/lessons.php). A <nav>, so it's a
-     landmark below a designed page's own <main>. Nothing when the course has no lesson pages (not open). --}}
+     landmark below a designed page's own <main>. Nothing when the course has no lesson pages (not open). Hooks for a
+     designed page's own look (the course redesigns, 2026-11-18): data-course on the nav (and on the body), and data-unit
+     with --unit on each unit's heading and list, so a page colours or numbers its units without counting siblings. --}}
 @php($lessonPages = \App\Support\Pages\Lessons::pages($course))
 @if ($lessonPages !== [])
-    <nav class="s-wrap s-sec2" aria-labelledby="lesson-pages-h" data-lesson-pages>
+    <nav class="s-wrap s-sec2" aria-labelledby="lesson-pages-h" data-lesson-pages data-course="{{ $course }}">
         <h2 id="lesson-pages-h" class="s-kick">{{ __('site.lessons.every') }}</h2>
         @if ($lessonPages[0]['kind'] === 'unit')
             <ul class="s-cards s-tool-cards mt-4">
@@ -13,8 +15,8 @@
             </ul>
         @else
             @foreach (collect($lessonPages)->groupBy('unitNumber') as $number => $unitPages)
-                <h3 class="mt-6 font-bold">{{ __('site.lessons.unitOf', ['number' => $number, 'unit' => $unitPages[0]['unit']]) }}</h3>
-                <ul class="s-cards s-tool-cards mt-3">
+                <h3 class="mt-6 font-bold" data-unit="{{ $number }}" style="--unit: {{ (int) $number }}">{{ __('site.lessons.unitOf', ['number' => $number, 'unit' => $unitPages[0]['unit']]) }}</h3>
+                <ul class="s-cards s-tool-cards mt-3" data-unit="{{ $number }}" style="--unit: {{ (int) $number }}">
                     @foreach ($unitPages as $lessonPage)
                         <li><a href="{{ $lessonPage['url'] }}" class="s-card"><b>{{ $lessonPage['name'] }}</b><span>{{ $lessonPage['title'] }}</span></a></li>
                     @endforeach

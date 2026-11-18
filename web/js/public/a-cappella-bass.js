@@ -5,7 +5,8 @@
 // chord is also a button that plays it alone. The bass is an organ tone with a quiet fundamental and
 // strong harmonics 2 to 9, so a phone's speaker, which can't sound a low fundamental, still gives the
 // ear its pitch. The note that isn't there: G2 from its first six harmonics as sines (98 to 588 Hz),
-// then without the 98 Hz, twice. No mic: nothing is heard or recorded. The words are the view's.
+// then without the 98 Hz, twice, the bar for 98 Hz dimmed and the state named beside the button while
+// it's gone. No mic: nothing is heard or recorded. The words are the view's.
 
 import { audio, hz } from './voices.js';
 import { play, when } from './demo-player.js';
@@ -115,7 +116,11 @@ function chord(i) {
 
 if (demo) {
     const big = demo.querySelector('[data-acb-play]');
-    big.addEventListener('click', () => play(big, change));
+    // Its breathing ring invites the first press only (docs/design-rules.md).
+    big.addEventListener('click', () => {
+        big.dataset.played = '';
+        play(big, change);
+    });
     chords.forEach((b, i) => b.addEventListener('click', () => play(b, chord(i))));
 }
 
@@ -124,10 +129,12 @@ const missing = document.querySelector('[data-acb-missing]');
 if (missing) {
     const button = missing.querySelector('[data-acb-missing-play]');
     const fund = missing.querySelector('[data-acb-fund]');
-    const parts = missing.querySelectorAll('[data-acb-part]');
+    const state = missing.querySelector('[data-acb-state]');
+    const idle = state.textContent;
     const said = missing.querySelector('[data-acb-missing-say]');
     const mark = (part) => {
-        parts.forEach((p) => p.toggleAttribute('data-on', p.dataset.acbPart === part));
+        state.textContent = part ? state.dataset[part] : idle;
+        state.toggleAttribute('data-on', part !== null);
         fund.toggleAttribute('data-off', part === 'without');
     };
     button.addEventListener('click', () => play(button, ({ live }) => {
@@ -151,13 +158,9 @@ if (missing) {
     }));
 }
 
-// A note's number opens the sources it points at; on a wide screen they, and every unit's lessons, are
-// open from the start.
+// A note's number opens the sources it points at; on a wide screen they're open from the start.
 const sources = document.querySelector('[data-acb-sources]');
 if (sources) {
-    if (matchMedia('(min-width: 900px)').matches) {
-        sources.open = true;
-        document.querySelectorAll('[data-acb-wide]').forEach((d) => { d.open = true; });
-    }
+    if (matchMedia('(min-width: 900px)').matches) sources.open = true;
     document.querySelectorAll('.cp-acb .s-cite a').forEach((a) => a.addEventListener('click', () => { sources.open = true; }));
 }

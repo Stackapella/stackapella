@@ -1,204 +1,277 @@
-{{-- Ear training (/courses/ear-training), its own page: a birder's field guide to intervals
-     (docs/course-pages-polish.md). Birders learn a call by ear and keep it with its bird; here a leap
-     is learned by ear and kept with its song. Serious skin: a field guide's serif headings and
-     small-caps labels, plates numbered like a guide's. The hero is a tree at dawn whose branches sit
-     at the scale's heights: a home bird on the low branch, three birds higher, the leaps arcing
-     between them, and song rippling out. Game skin: a neon night forest. Then: your life list (what
-     you'll be able to do), the field guide (three leaps, each with its song), day and dusk (major and
-     minor), field trips (the units), in the field (try this), what the app hears, field notes
-     (facts), your field kit (who, what you need, the songs), questions and go listening. The art is
-     wordless. Words: lang/en/site.php courses.pages.ear-training. --}}
-@php($branches = [0, 2, 4, 5, 7, 9, 11, 12])
-@php($perches = [[300, 4, 'c1'], [380, 5, 'c2'], [470, 7, 'c3']])
-@php($sizes = [4, 5, 7])
+{{-- Ear training (/courses/ear-training), its own page after Hillel's design (2026-11-18,
+     ~/Code/course-designs/ear-training): the page climbs a scale. Each section is a step, 1 do to 8 do, ending on
+     "Home again" (the course's last unit is Find home); the steps are decoration, and every section keeps its own h2.
+     The hero is the leap ladder: the scale's eight notes with each of lesson 1's three song leaps drawn where it really
+     sits (EarTrainingLeaps: Saints do to mi, Twinkle do to so, Amazing Grace so to do), its song beside the note it
+     lands on; tapping one plays it. Then Name that leap (the shared game, site/courses/_ear-leap and
+     js/public/ear-training.js, as on Music teachers and schools), what you leave with, the three openings as cards with
+     each word at the height of its note, bright or dark (the third dropping, both chords heard), the course as four
+     units rising like stairs with every lesson linked to its page and its first line, inside lesson 1, what the app
+     listens for beside a board marked as a sample, who it's for, the facts with their numbered sources, questions, and
+     the close. Every sound is made by js/public/ear-training-page.js on voices.js, only when pressed, on the audio
+     clock. Calm light and dark from the theme's tokens; game mode restyles the same pieces. Words:
+     lang/en/site.php courses.pages.ear-training (`et` for the page's own). --}}
+@php($et = (array) $page['et'])
+@php($sol = (array) $et['sol'])
+@php($songs = \App\Support\Site\EarTrainingLeaps::songs())
+@php($ladder = \App\Support\Site\EarTrainingLeaps::ladder())
+@php($units = $outline !== null ? \App\Support\Site\EarTrainingLeaps::lessons($outline) : [])
+{{-- The facts' sources, numbered in the order the facts give them. --}}
+@php($sources = \App\Support\Site\EarTrainingLeaps::sources((array) $page['facts']))
 <main class="cp cp-ear">
-    <svg width="0" height="0" class="cp-ear-defs" aria-hidden="true" focusable="false">
-        <defs>
-            <symbol id="ear-bird" viewBox="0 0 44 34">
-                <path d="M8 20 L0 12 L4 24 Z" fill="currentColor" />
-                <ellipse cx="19" cy="21" rx="13" ry="9" fill="currentColor" />
-                <circle cx="31" cy="12" r="7" fill="currentColor" />
-                <path d="M37 11 L44 13 L37 15 Z" class="cp-ear-beak" />
-                <circle cx="33" cy="10.5" r="1.4" class="cp-ear-eye" />
-                <path d="M15 30 V34 M22 30 V34" class="cp-ear-legs" />
-            </symbol>
-        </defs>
-    </svg>
-
-    <section class="cp-hero cp-ear-hero" aria-labelledby="page-h">
-        <div class="s-wrap cp-hero-grid">
-            <div class="cp-hero-copy">
-                <nav class="s-crumb" aria-label="{{ __('pages.site.crumb') }}"><a href="/courses">{{ __('pages.site.courses') }}</a><span aria-hidden="true">/</span><span aria-current="page">{{ $page['name'] }}</span></nav>
-                <p class="cp-ear-kick cp-eyebrow">{{ $page['eyebrow'] }}</p>
-                <h1 id="page-h">{{ $page['hero_title'] }}</h1>
-                <p class="s-lede">{{ $page['hero_lead'] }}</p>
-                <ul class="cp-hero-facts">
-                    @foreach ((array) $page['hero_facts'] as $fact)
+    <section class="s-wrap cp-et-hero" aria-labelledby="page-h">
+        <nav class="s-crumb" aria-label="{{ __('pages.site.crumb') }}"><a href="/courses">{{ __('pages.site.courses') }}</a><span aria-hidden="true">/</span><span aria-current="page">{{ $page['name'] }}</span></nav>
+        <div class="cp-et-top">
+            <div class="cp-et-copy">
+                <p class="cp-et-eyebrow">
+                    @if ($open)
+                        <span class="cp-et-open">{{ $et['open'] }}</span>
+                    @else
+                        <span class="s-soonpill"><x-site.soon /></span>
+                    @endif
+                    @if ($outline !== null)
+                        <span class="cp-et-size">{{ __('pages.site.course_size', ['units' => count($outline['units']), 'lessons' => $outline['lessons']]) }}</span>
+                    @endif
+                </p>
+                <h1 id="page-h">{{ \App\Support\Site\EarTrainingLeaps::marked((string) $et['headline']) }}</h1>
+                <p class="cp-et-lead">{{ $page['hero_lead'] }}</p>
+                <ul class="cp-et-facts">
+                    @foreach ((array) $et['facts'] as $fact)
                         <li>{{ $fact }}</li>
                     @endforeach
                 </ul>
-                <p class="cp-hero-btns">
+                <p class="cp-et-btns">
                     @if ($open)
                         <a href="{{ $courseStart }}" class="btn-primary btn-lg">{{ __('pages.site.course_try') }} <x-site.icon name="arrow" size="18" /></a>
+                    @else
+                        <a href="{{ $links['start'] }}" class="btn-primary btn-lg">{{ __('pages.site.course_start') }} <x-site.icon name="arrow" size="18" /></a>
                     @endif
                     <a href="#units-h" class="btn-secondary btn-lg">{{ $page['see_lessons'] }}</a>
                 </p>
             </div>
-            <div class="cp-ear-art" aria-hidden="true">
-                <svg viewBox="0 0 600 420" class="cp-ear-svg">
-                    <defs>
-                        <linearGradient id="ear-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="cp-ear-sky-1" /><stop offset="1" class="cp-ear-sky-2" /></linearGradient>
-                        <clipPath id="ear-frame"><rect width="600" height="420" rx="28" /></clipPath>
-                    </defs>
-                    <g clip-path="url(#ear-frame)">
-                        <rect width="600" height="420" fill="url(#ear-sky)" />
-                        <circle cx="500" cy="90" r="46" class="cp-ear-sun" />
-                        <path d="M0 360 C 120 330, 220 352, 330 336 S 520 322, 600 340 V420 H0 Z" class="cp-ear-hill" />
-                        <path d="M86 420 C 92 330, 80 250, 96 70" class="cp-ear-trunk" />
-                        @foreach ($branches as $step)
-                            <path d="M92 {{ 330 - $step * 20 }} C 220 {{ 326 - $step * 20 }}, 380 {{ 334 - $step * 20 }}, {{ 520 - $loop->index * 8 }} {{ 328 - $step * 20 }}" class="cp-ear-branch" />
-                            <g class="cp-ear-leaves"><ellipse cx="{{ 520 - $loop->index * 8 }}" cy="{{ 326 - $step * 20 }}" rx="16" ry="7" /><ellipse cx="{{ 500 - $loop->index * 8 }}" cy="{{ 320 - $step * 20 }}" rx="10" ry="5" /></g>
+
+            {{-- The leap ladder: rungs do to do, each song's leap an arc to the note it lands on, its song a button there. --}}
+            <figure class="cp-et-ladder" data-et-ladder>
+                <div class="cp-et-ladder-head">
+                    <p class="cp-et-kick">{{ $et['ladder']['kick'] }}</p>
+                    <p class="cp-et-hint" aria-hidden="true">{{ $et['ladder']['hint'] }}</p>
+                </div>
+                <div class="cp-et-ladder-in">
+                    <div class="cp-et-ladder-art">
+                    <svg viewBox="0 0 520 420" aria-hidden="true" focusable="false">
+                        @foreach ($ladder['rungs'] as $rung)
+                            <line x1="70" x2="505" y1="{{ $rung['y'] }}" y2="{{ $rung['y'] }}" class="cp-et-rung" />
                         @endforeach
-                        <g class="cp-ear-song"><path d="M190 300 a22 22 0 0 1 0 -30" /><path d="M200 306 a34 34 0 0 1 0 -42" /><path d="M210 312 a46 46 0 0 1 0 -54" /></g>
-                        @foreach ($perches as [$x, $step, $c])
-                            <path d="M178 312 Q {{ ($x + 178) / 2 }} {{ 200 - $step * 18 }} {{ $x + 10 }} {{ 316 - $step * 20 }}" class="cp-ear-arc" />
-                            <use href="#ear-bird" x="{{ $x - 10 }}" y="{{ 284 - $step * 20 }}" width="60" height="46" class="cp-ear-bird cp-ear-{{ $c }}" />
+                        @foreach ($ladder['leaps'] as $leap)
+                            <g class="cp-et-leap cp-et-{{ $leap['key'] }}" data-et-arc="{{ $leap['key'] }}">
+                                <path d="{{ $leap['path'] }}" class="cp-et-arc" />
+                                <path d="{{ $leap['path'] }}" class="cp-et-arc-hit" />
+                                @if ($leap['from'] !== 1)
+                                    <circle cx="{{ $leap['x0'] }}" cy="{{ $leap['y0'] }}" r="9" class="cp-et-dot-from" />
+                                @endif
+                                <circle cx="{{ $leap['x1'] }}" cy="{{ $leap['y1'] }}" r="11" class="cp-et-dot" />
+                            </g>
                         @endforeach
-                        <use href="#ear-bird" x="128" y="280" width="70" height="54" class="cp-ear-bird cp-ear-home" />
-                    </g>
-                </svg>
-            </div>
+                        <circle cx="110" cy="{{ $ladder['rungs'][0]['y'] }}" r="12" class="cp-et-home" />
+                    </svg>
+                    @foreach ($ladder['rungs'] as $rung)
+                        <span class="cp-et-rung-n" style="top: {{ $rung['top'] }}%" aria-hidden="true"><b>{{ $rung['n'] }}</b> <em>{{ $sol[$loop->index] ?? '' }}</em></span>
+                    @endforeach
+                    <span class="cp-et-home-n" style="top: {{ $ladder['rungs'][0]['top'] }}%" aria-hidden="true">{{ $et['ladder']['home'] }}</span>
+                    </div>
+                    @foreach ($ladder['leaps'] as $leap)
+                        <button type="button" class="cp-et-tag cp-et-{{ $leap['key'] }}" style="left: {{ $leap['left'] }}%; top: {{ $leap['top'] }}%" data-et-leap="{{ $leap['key'] }}" data-from="{{ $leap['fromMidi'] }}" data-to="{{ $leap['toMidi'] }}" aria-pressed="false">
+                            <b translate="no">{{ $leap['title'] }}</b><i>{{ $et['leap'][$leap['key']] }}</i>
+                        </button>
+                    @endforeach
+                </div>
+                <figcaption class="sr-only">{{ $et['ladder']['alt'] }}</figcaption>
+            </figure>
         </div>
     </section>
 
-    <section class="s-wrap cp-dk-demosec cp-ear-demosec" aria-labelledby="demo-h">
+    {{-- 1 do: Name that leap, the shared game. --}}
+    <section class="s-wrap cp-et-sec cp-et-game" aria-labelledby="demo-h">
+        @include('site.courses._ear-training-step', ['n' => 1])
         @include('site.courses._ear-leap')
     </section>
 
-    <section class="s-wrap s-sec cp-ear-life" aria-labelledby="outcomes-h">
-        <p class="cp-ear-kick">{{ $page['kicks']['life'] }}</p>
-        <h2 id="outcomes-h" class="cp-ear-title">{{ $page['titles']['outcomes'] }}</h2>
-        <ol class="cp-ear-ticks">
+    {{-- 2 re: what you leave with. --}}
+    <section class="s-wrap cp-et-sec" aria-labelledby="outcomes-h">
+        @include('site.courses._ear-training-step', ['n' => 2])
+        <h2 id="outcomes-h" class="cp-et-h2">{{ $page['titles']['outcomes'] }}</h2>
+        <ol class="cp-et-outcomes">
             @foreach ((array) $page['outcomes'] as $outcome)
-                <li><span class="cp-ear-box" aria-hidden="true"></span><p>{{ $outcome }}</p></li>
+                <li><span class="cp-et-glyph" aria-hidden="true">{{ $et['glyphs'][$loop->index] ?? '' }}</span><p>{{ $outcome }}</p></li>
             @endforeach
         </ol>
     </section>
 
-    <section class="s-wrap s-sec cp-ear-guide" aria-labelledby="leaps-h">
-        <p class="cp-ear-kick">{{ $page['kicks']['guide'] }}</p>
-        <h2 id="leaps-h" class="cp-ear-title">{{ $page['titles']['leaps'] }}</h2>
-        <p class="s-lede">{{ $page['leaps']['lead'] }}</p>
-        <div class="cp-ear-plates">
-            @foreach ((array) $page['leaps']['kinds'] as [$leap, $song, $how])
-                <figure class="cp-ear-plate">
-                    <p class="cp-ear-plate-n">{{ str_replace(':n', (string) $loop->iteration, $page['plate_n']) }}</p>
-                    <svg viewBox="0 0 200 130" aria-hidden="true">
-                        <path d="M10 110 H190 M10 {{ 110 - $sizes[$loop->index] * 12 }} H190" class="cp-ear-branch cp-ear-branch-thin" />
-                        <path d="M50 102 Q 100 {{ 40 - $sizes[$loop->index] * 6 }} 150 {{ 102 - $sizes[$loop->index] * 12 }}" class="cp-ear-arc" />
-                        <use href="#ear-bird" x="22" y="84" width="40" height="30" class="cp-ear-bird cp-ear-home" />
-                        <use href="#ear-bird" x="134" y="{{ 84 - $sizes[$loop->index] * 12 }}" width="40" height="30" class="cp-ear-bird cp-ear-c{{ $loop->iteration }}" />
-                    </svg>
-                    <figcaption><b>{{ $leap }}</b><i translate="no">{{ $song }}</i><span>{{ $how }}</span></figcaption>
-                </figure>
-            @endforeach
+    {{-- 3 mi: the openings, each word at the height of its note, the leap marked. --}}
+    <section class="s-wrap cp-et-sec" aria-labelledby="leaps-h">
+        @include('site.courses._ear-training-step', ['n' => 3])
+        <div class="cp-et-split">
+            <h2 id="leaps-h" class="cp-et-h2">{{ $page['titles']['leaps'] }}</h2>
+            <p class="cp-et-p">{{ $page['leaps']['lead'] }}</p>
         </div>
-        <p class="cp-fig-note">{{ $page['leaps']['body'] }}</p>
-    </section>
-
-    <section class="s-ink cp-ear-colour" aria-labelledby="colour-h">
-        <div class="s-wrap s-sec cp-pair">
-            <div>
-                <p class="cp-ear-kick">{{ $page['kicks']['colour'] }}</p>
-                <h2 id="colour-h" class="cp-ear-title">{{ $page['titles']['colour'] }}</h2>
-                <p class="s-lede">{{ $page['colour']['lead'] }}</p>
-            </div>
-            <div class="cp-pair-figs">
-                @foreach (['major' => 4, 'minor' => 3] as $kind => $third)
-                    <figure class="cp-ear-sky cp-ear-{{ $kind }}">
-                        <svg viewBox="0 0 120 140" aria-hidden="true">
-                            <circle cx="92" cy="26" r="13" class="cp-ear-orb" />
-                            @if ($kind === 'minor')
-                                <circle cx="54" cy="{{ 118 - 4 * 13 }}" r="12" class="cp-ear-ghost" />
-                            @endif
-                            <circle cx="54" cy="118" r="12" class="cp-ear-note" />
-                            <circle cx="54" cy="{{ 118 - $third * 13 }}" r="12" class="cp-ear-third" />
-                            <circle cx="54" cy="{{ 118 - 7 * 13 }}" r="12" class="cp-ear-note" />
-                        </svg>
-                        <figcaption><b>{{ $page['colour'][$kind][0] }}</b> {{ $page['colour'][$kind][1] }}</figcaption>
-                    </figure>
-                @endforeach
-            </div>
-        </div>
-    </section>
-
-    @if ($outline !== null)
-        <section class="s-wrap s-sec cp-ear-trips" aria-labelledby="units-h">
-            <p class="cp-ear-kick">{{ $page['kicks']['trips'] }}</p>
-            <div class="cp-head">
-                <h2 id="units-h" class="cp-ear-title">{{ $page['titles']['units'] }}</h2>
-                <p class="cp-head-note">{{ __('pages.site.course_size', ['units' => count($outline['units']), 'lessons' => $outline['lessons']]) }}</p>
-            </div>
-            <ol class="cp-ear-triplist">
-                @foreach ($outline['units'] as $unit)
-                    @php($stage = __('pages.site.course_stage', ['n' => $loop->iteration]))
-                    @php($trip = str_replace(':n', (string) $loop->iteration, $page['trip_n']))
-                    <li class="cp-ear-trip">
-                        <div class="cp-ear-trip-head">
-                            <p class="cp-ear-trip-n"><x-site.skin :game="$stage" :serious="$trip" /></p>
-                            <p class="cp-ear-sightings" aria-hidden="true">@foreach ($unit['lessons'] as $lesson)<svg viewBox="0 0 44 34"><use href="#ear-bird" class="cp-ear-bird cp-ear-c{{ $loop->index % 3 + 1 }}" /></svg>@endforeach</p>
-                        </div>
-                        <h3>{{ $unit['title'] }}</h3>
-                        @isset($page['units_say'][$loop->index])
-                            <p class="cp-unit-say">{{ $page['units_say'][$loop->index] }}</p>
-                        @endisset
-                        <ol class="cp-ear-lessons">
-                            @foreach ($unit['lessons'] as $lesson)
-                                <li>{{ $lesson }}@if ($loop->parent->first && $loop->first) <span class="s-free">{{ __('pages.site.course_free') }}</span>@endif</li>
+        <ul class="cp-et-cards">
+            @foreach ($songs as $song)
+                @php($card = (array) ($et['cards'][$song['key']] ?? ['', '', '']))
+                <li class="cp-et-card cp-et-{{ $song['key'] }}" data-et-card data-tempo="{{ $song['tempo'] }}">
+                    <div class="cp-et-card-head">
+                        <p class="cp-et-card-song" translate="no">{{ $song['title'] }}</p>
+                        <button type="button" class="cp-et-round" data-et-play aria-pressed="false" aria-label="{{ $et['card_play'] }}: {{ $song['title'] }}"><span class="cp-et-round-icon" aria-hidden="true"></span></button>
+                    </div>
+                    <figure class="cp-et-sheet">
+                        <div class="cp-et-sheet-in" aria-hidden="true">
+                            @foreach (\App\Support\Site\EarTrainingLeaps::lines() as $top)
+                                <span class="cp-et-line" style="top: {{ $top }}%"></span>
                             @endforeach
-                        </ol>
+                            <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="cp-et-sheet-arc"><path d="{{ $song['arc'] }}" vector-effect="non-scaling-stroke" /></svg>
+                            @foreach ($song['notes'] as $note)
+                                <span @class(['cp-et-word', 'cp-et-word-leap' => $note['leap'], 'cp-et-slur' => $note['word'] === '']) style="left: {{ $note['x'] }}%; top: {{ $note['y'] }}%" data-at="{{ $note['at'] }}" data-len="{{ $note['len'] }}" data-midi="{{ $note['midi'] }}" translate="no">{{ $note['word'] }}</span>
+                            @endforeach
+                        </div>
+                        <figcaption class="sr-only">{{ __($et['card_alt'], ['song' => $song['title'], 'leap' => $et['leap'][$song['key']]]) }}</figcaption>
+                    </figure>
+                    <h3>{{ $card[0] }}</h3>
+                    <p class="cp-et-card-note">{{ $card[1] }} <i>{{ $card[2] }}</i></p>
+                </li>
+            @endforeach
+        </ul>
+        <p class="cp-et-fine">{{ $page['leaps']['body'] }}</p>
+    </section>
+
+    {{-- 4 fa: bright or dark, split down the middle; the third drops and both chords play. --}}
+    <section class="cp-et-colour" aria-labelledby="colour-h">
+        <div class="cp-et-bright">
+            <div class="cp-et-half">
+                @include('site.courses._ear-training-step', ['n' => 4])
+                <h2 id="colour-h" class="cp-et-colour-h"><span>{{ $et['colour']['bright'] }}</span> <span class="sr-only">{{ $et['colour']['dark'] }}</span></h2>
+                <p class="cp-et-p">{{ $page['colour']['lead'] }}</p>
+                <figure class="cp-et-chord" data-et-chord="major">
+                    <div class="cp-et-stack" aria-hidden="true"><i class="cp-et-c-so"></i><i class="cp-et-c-third"></i><i class="cp-et-c-do"></i></div>
+                    <figcaption><b>{{ $page['colour']['major'][0] }}</b> <span>{{ $page['colour']['major'][1] }}</span><span class="sr-only">. {{ $et['colour']['alt_major'] }}</span></figcaption>
+                    <button type="button" class="cp-et-hear" data-et-hear="major" data-play="{{ $et['colour']['hear'] }}" data-stop="{{ $et['colour']['stop'] }}" aria-pressed="false" aria-label="{{ $et['colour']['hear_major'] }}"><span class="cp-et-hear-icon" aria-hidden="true"></span><span data-label>{{ $et['colour']['hear'] }}</span></button>
+                </figure>
+            </div>
+        </div>
+        <div class="cp-et-dark">
+            <div class="cp-et-half">
+                <p class="cp-et-dark-big" aria-hidden="true">{{ $et['colour']['dark'] }}</p>
+                <p class="cp-et-p">{{ $et['colour']['dark_lead'] }}</p>
+                <figure class="cp-et-chord" data-et-chord="minor">
+                    <div class="cp-et-stack" aria-hidden="true"><i class="cp-et-c-so"></i><i class="cp-et-c-ghost"></i><i class="cp-et-c-third"></i><i class="cp-et-c-do"></i></div>
+                    <figcaption><b>{{ $page['colour']['minor'][0] }}</b> <span>{{ $page['colour']['minor'][1] }}</span><span class="sr-only">. {{ $et['colour']['alt_minor'] }}</span></figcaption>
+                    <button type="button" class="cp-et-hear" data-et-hear="minor" data-play="{{ $et['colour']['hear'] }}" data-stop="{{ $et['colour']['stop'] }}" aria-pressed="false" aria-label="{{ $et['colour']['hear_minor'] }}"><span class="cp-et-hear-icon" aria-hidden="true"></span><span data-label>{{ $et['colour']['hear'] }}</span></button>
+                </figure>
+            </div>
+        </div>
+    </section>
+
+    {{-- 5 so: the course, four units rising like stairs, every lesson with its first line and its page. --}}
+    @if ($outline !== null)
+        <section class="s-wrap cp-et-sec" aria-labelledby="units-h">
+            @include('site.courses._ear-training-step', ['n' => 5])
+            <div class="cp-et-split cp-et-split-end">
+                <h2 id="units-h" class="cp-et-h2">{{ $page['titles']['units'] }}</h2>
+                <p class="cp-et-p">{{ __($et['units_note'], ['lessons' => $outline['lessons']]) }}</p>
+            </div>
+            <ol class="cp-et-stairs">
+                @foreach ($units as $unit)
+                    @php($deg = (array) ($et['unit_steps'][$loop->index] ?? [(string) $loop->iteration, '']))
+                    <li class="cp-et-unit">
+                        <p class="cp-et-unit-top"><span class="cp-et-unit-deg" aria-hidden="true">{{ $deg[0] }} <em>{{ $deg[1] }}</em></span><span class="cp-et-unit-n">{{ __('pages.site.course_unit', ['n' => $loop->iteration]) }}</span></p>
+                        <div class="cp-et-unit-card">
+                            <h3>{{ $unit['title'] }}</h3>
+                            @isset($page['units_say'][$loop->index])
+                                <p class="cp-et-unit-say">{{ $page['units_say'][$loop->index] }}</p>
+                            @endisset
+                            <ol class="cp-et-lessons">
+                                @foreach ($unit['lessons'] as $lesson)
+                                    <li>
+                                        <span class="cp-et-num" aria-hidden="true">{{ $lesson['n'] }}</span>
+                                        <span class="cp-et-lesson">
+                                            @if ($lesson['url'] !== null)
+                                                <a href="{{ $lesson['url'] }}">{{ $lesson['name'] }}</a>
+                                            @else
+                                                <b>{{ $lesson['name'] }}</b>
+                                            @endif
+                                            @if ($loop->parent->first && $loop->first)
+                                                <span class="s-free">{{ __('pages.site.course_free') }}</span>
+                                            @endif
+                                            @if ($lesson['line'] !== '')
+                                                <span class="cp-et-line-text">{{ $lesson['line'] }}</span>
+                                            @endif
+                                        </span>
+                                    </li>
+                                @endforeach
+                            </ol>
+                        </div>
                     </li>
                 @endforeach
             </ol>
         </section>
     @endif
 
-    <section class="s-wrap s-sec cp-ear-field" aria-labelledby="try-h">
-        <p class="cp-ear-kick">{{ $page['kicks']['field'] }}</p>
-        <h2 id="try-h" class="cp-ear-title">{{ $page['titles']['try'] }}</h2>
-        <p class="s-lede">{{ $page['try']['lead'] }}</p>
-        <ol class="cp-ear-steps">
-            @foreach ((array) $page['try']['steps'] as $step)
-                <li @class(['cp-ear-step-first' => $loop->first])><span class="cp-ear-step-n" aria-hidden="true">{{ $loop->iteration }}</span><p>@if ($loop->first)<b class="cp-ear-start">{{ $page['try_first'] }}</b> @endif{{ $step }}</p></li>
+    {{-- Inside lesson 1: what it asks, step by step. --}}
+    <section class="s-wrap cp-et-sec cp-et-inside" aria-labelledby="try-h">
+        <div>
+            <p class="cp-et-kick">{{ $et['inside_kick'] }}</p>
+            <h2 id="try-h" class="cp-et-h2 cp-et-h2-s">{{ $page['titles']['try'] }}</h2>
+            <p class="cp-et-p">{{ $page['try']['after'] }}</p>
+        </div>
+        <ol class="cp-et-try">
+            @foreach ((array) $page['try']['steps'] as $line)
+                <li><span class="cp-et-try-n" aria-hidden="true">{{ $loop->iteration }}</span><p>{{ $line }}</p></li>
             @endforeach
         </ol>
-        <p class="cp-fig-note">{{ $page['try']['after'] }}</p>
     </section>
 
-    @include('site.courses._inside')
-
-    <section class="s-wrap s-sec cp-ear-notes" aria-labelledby="facts-h">
-        <p class="cp-ear-kick">{{ $page['kicks']['notes'] }}</p>
-        <h2 id="facts-h" class="cp-ear-title">{{ $page['titles']['facts'] }}</h2>
-        <ul class="cp-ear-notebook">
-            @foreach ((array) $page['facts'] as [$text, $source, $url])
-                <li>
-                    <p class="cp-ear-note-text">{{ $text }}</p>
-                    <p class="cp-ear-note-src">@if ($url)<a href="{{ $url }}" rel="noopener">{{ $source }}</a>@else{{ $source }}@endif</p>
-                </li>
-            @endforeach
-        </ul>
+    {{-- 6 la: what the app listens for, beside a board marked as a sample (the course's own example, lang `scoring`). --}}
+    <section class="cp-et-mic" aria-labelledby="inside-h">
+        <div class="s-wrap cp-et-mic-in">
+            <div>
+                @include('site.courses._ear-training-step', ['n' => 6, 'ink' => true])
+                <h2 id="inside-h" class="cp-et-h2">{{ $page['titles']['inside'] }}</h2>
+                <p class="cp-et-p">{{ $page['measures'] }}</p>
+                <p class="cp-et-fine"><x-site.say :text="$page['scoring']" /></p>
+            </div>
+            <figure class="cp-et-board">
+                <p class="cp-et-sample"><b>{{ $et['board']['sample'] }}</b> <span>{{ $et['board']['sample_note'] }}</span></p>
+                <div class="cp-et-board-head" aria-hidden="true"><span>{{ $et['board']['asked'] }}</span><span>{{ $et['board']['darts'] }}</span></div>
+                <div class="cp-et-board-in" aria-hidden="true">
+                    @foreach ([[6, 10], [5, 50], [4, 90]] as [$n, $top])
+                        <span class="cp-et-board-rung" style="top: {{ $top }}%"><b>{{ $n }} <em>{{ $sol[$n - 1] }}</em></b></span>
+                    @endforeach
+                    <span class="cp-et-band"></span>
+                    @foreach ([[16, 50], [30, 58], [44, 43], [58, 61], [72, 52], [86, 17]] as [$left, $top])
+                        <i @class(['cp-et-dart', 'cp-et-dart-off' => $loop->last]) style="left: {{ $left }}%; top: {{ $top }}%"></i>
+                    @endforeach
+                </div>
+                <figcaption class="sr-only">{{ $et['board']['alt'] }}</figcaption>
+                <p class="cp-et-found">{{ __($et['board']['found'], ['n' => 5, 'total' => 6]) }}</p>
+            </figure>
+        </div>
     </section>
 
-    <section class="s-wrap s-sec cp-ear-kit" aria-labelledby="kit-h">
-        <p class="cp-ear-kick">{{ $page['kicks']['kit'] }}</p>
-        <h2 id="kit-h" class="cp-ear-title">{{ $page['titles']['kit'] }}</h2>
-        <div class="cp-ear-kit-grid">
-            <div><h3>{{ $page['titles']['who'] }}</h3><ul class="s-ticks">@foreach ((array) $page['who'] as $line)<li><x-site.icon name="check" size="18" />{{ $line }}</li>@endforeach</ul></div>
-            <div><h3>{{ $page['titles']['need'] }}</h3><ul class="s-ticks">@foreach ((array) $page['need'] as $line)<li><x-site.icon name="check" size="18" />{{ $line }}</li>@endforeach</ul>
-                <h3 class="cp-ear-kit-gap">{{ $page['titles']['safety'] }}</h3><ul class="s-ticks">@foreach ((array) $page['safety'] as $line)<li><x-site.icon name="info" size="18" />{{ $line }}</li>@endforeach</ul></div>
-            <div class="cp-ear-songs">
-                <h3>{{ __('pages.site.course_songs') }}</h3>
+    {{-- 7 ti: who it's for, what you need, singing safely, the songs. --}}
+    <section class="s-wrap cp-et-sec" aria-labelledby="kit-h">
+        @include('site.courses._ear-training-step', ['n' => 7])
+        <h2 id="kit-h" class="cp-et-h2">{{ $page['titles']['kit'] }}</h2>
+        <div class="cp-et-kit">
+            <div>
+                <h3 class="cp-et-kick">{{ $page['titles']['who'] }}</h3>
+                <ul class="cp-et-rules">@foreach ((array) $page['who'] as $line)<li>{{ $line }}</li>@endforeach</ul>
+            </div>
+            <div>
+                <h3 class="cp-et-kick">{{ $page['titles']['need'] }}</h3>
+                <ul class="cp-et-rules">@foreach ((array) $page['need'] as $line)<li>{{ $line }}</li>@endforeach</ul>
+                <h3 class="cp-et-kick cp-et-gap">{{ $page['titles']['safety'] }}</h3>
+                <ul class="cp-et-rules">@foreach ((array) $page['safety'] as $line)<li>{{ $line }}</li>@endforeach</ul>
+            </div>
+            <div class="cp-et-songs">
+                <h3 class="cp-et-kick">{{ __('pages.site.course_songs') }}</h3>
                 <ul>
                     @foreach ((array) $page['songs'] as [$song, $credit])
                         <li><b translate="no">{{ $song }}</b> <span>{{ $credit }}</span></li>
@@ -208,40 +281,49 @@
         </div>
     </section>
 
-    <section class="s-wrap s-sec cp-ear-fine" aria-labelledby="faq-h">
-        <div>
-            <p class="cp-ear-kick">{{ $page['kicks']['questions'] }}</p>
-            <h2 id="faq-h" class="cp-ear-title">{{ $page['titles']['faq'] }}</h2>
-        </div>
+    {{-- The facts, each with its numbered source. --}}
+    <section class="s-wrap cp-et-sec" aria-labelledby="facts-h">
+        <h2 id="facts-h" class="cp-et-kick cp-et-facts-h">{{ $page['titles']['facts'] }}</h2>
+        <ul class="cp-et-notes">
+            @foreach ((array) $page['facts'] as [$text])
+                <li><p>{{ $text }}@include('site.courses._cites', ['keys' => ['f'.$loop->index]])</p></li>
+            @endforeach
+        </ul>
+    </section>
+
+    <section class="s-wrap cp-et-sec cp-et-faq" aria-labelledby="faq-h">
+        <h2 id="faq-h" class="cp-et-h2">{{ $page['titles']['faq'] }}</h2>
         @include('site.courses._faq')
     </section>
 
-    <section class="cp-ear-close" aria-labelledby="join-h">
-        <div class="s-wrap s-sec cp-ear-close-in">
-            <svg viewBox="0 0 240 70" class="cp-ear-close-art" aria-hidden="true">
-                <path d="M6 60 C 70 54, 160 64, 234 56" class="cp-ear-branch" />
-                <use href="#ear-bird" x="30" y="30" width="40" height="30" class="cp-ear-bird cp-ear-home" />
-                <use href="#ear-bird" x="100" y="28" width="40" height="30" class="cp-ear-bird cp-ear-c1" />
-                <use href="#ear-bird" x="170" y="30" width="40" height="30" class="cp-ear-bird cp-ear-c3" />
-            </svg>
-            <p class="cp-ear-kick">{{ $page['kicks']['close'] }}</p>
-            <h2 id="join-h" class="cp-ear-title">{{ $page['titles']['join'] }}</h2>
-            <p class="s-lede">{{ $open ? $page['close'] : __('pages.site.course_soon') }}</p>
+    {{-- 8 do: home again. --}}
+    <section class="s-wrap cp-et-sec cp-et-close" aria-labelledby="join-h">
+        <div class="cp-et-climb" aria-hidden="true">@for ($i = 0; $i < 8; $i++)<i></i>@endfor</div>
+        @include('site.courses._ear-training-step', ['n' => 8])
+        <h2 id="join-h" class="cp-et-join">{{ \App\Support\Site\EarTrainingLeaps::marked((string) $et['join']) }}</h2>
+        <p class="cp-et-p">{{ $open ? $page['close'] : __('pages.site.course_soon') }}</p>
+        @if ($open)
+            <p class="cp-et-note">{{ __('pages.site.course_join_note') }}</p>
+        @endif
+        <p class="cp-et-btns">
             @if ($open)
-                <p class="cp-join-note">{{ __('pages.site.course_join_note') }}</p>
+                <a href="{{ $courseStart }}" class="btn-primary btn-lg">{{ __('pages.site.course_try') }} <x-site.icon name="arrow" size="18" /></a>
+            @else
+                <a href="{{ $links['start'] }}" class="btn-primary btn-lg">{{ __('pages.site.course_start') }} <x-site.icon name="arrow" size="18" /></a>
             @endif
-            <p class="cp-join-btns">
-                @if ($open)
-                    <a href="{{ $courseStart }}" class="btn-primary btn-lg">{{ __('pages.site.course_try') }} <x-site.icon name="arrow" size="18" /></a>
-                    <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>
-                @else
-                    <a href="{{ $links['start'] }}" class="btn-primary btn-lg">{{ __('pages.site.course_start') }} <x-site.icon name="arrow" size="18" /></a>
-                    <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>
-                @endif
-            </p>
-            <h3 class="cp-ear-kick cp-related-h">{{ $page['titles']['related'] }}</h3>
-            @include('site.courses._related')
-        </div>
+            <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>
+        </p>
+        <h3 class="cp-et-kick cp-et-related-h">{{ $page['titles']['related'] }}</h3>
+        @include('site.courses._related')
     </section>
-    <script type="module" src="/js/public/ear-training.js"></script>
+
+    <section class="s-wrap cp-et-sources" aria-labelledby="notes-h">
+        <h2 id="notes-h" class="cp-et-kick">{{ __('pages.site.sources') }}</h2>
+        <ol>
+            @foreach ($sources as [$label, $url])
+                <li id="src-{{ $loop->iteration }}"><a href="{{ $url }}" rel="noopener">{{ $label }}</a></li>
+            @endforeach
+        </ol>
+    </section>
+    <script type="module" src="/js/public/ear-training-page.js"></script>
 </main>

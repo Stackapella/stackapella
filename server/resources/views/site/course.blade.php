@@ -17,6 +17,8 @@
 @php($open = \App\Support\Site\SitePages::courseOpen($page['slug']))
 @php($outline = \App\Support\Site\SitePages::courseOutline($page['slug']))
 
+@section('course', $page['slug'])
+
 @section('content')
     <x-site.header :app-url="$links['app']" />
     {{-- A course with its own designed page (site/courses/<slug>: its look, hero and sections built
@@ -171,7 +173,10 @@
         </section>
     </main>
     @endif
-    {{-- Every lesson's own page (docs/seo-lesson-pages-plan.md), under either look. --}}
-    @include('site.courses._lesson-pages', ['course' => $page['slug']])
+    {{-- Every lesson's own page (docs/seo-lesson-pages-plan.md), under either look; a designed page that links every lesson
+         itself says so with @section('lesson-pages-inline', '1') and the list isn't repeated (the course redesigns, 2026-11-18). --}}
+    @unless ($__env->hasSection('lesson-pages-inline'))
+        @include('site.courses._lesson-pages', ['course' => $page['slug']])
+    @endunless
     <x-site.footer />
 @endsection

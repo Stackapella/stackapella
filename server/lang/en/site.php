@@ -8223,9 +8223,27 @@ return [
                 'love' => [
                     'kicker' => 'Punctus contra punctum, point against point',
                     'kicker_game' => 'Point vs point',
-                    // The eyebrow and the first answer, with the course's count of lessons.
-                    'eyebrow' => 'A free course · :n lessons',
+                    // The hero: its heading's italic word, and the eyebrow's three parts, with the course's own
+                    // counts of lessons and books.
+                    'hero_em' => 'own',
+                    'eyebrow_free' => 'A free course',
+                    'eyebrow_lessons' => ':n lessons',
+                    'eyebrow_books' => ':n books',
+                    // Each chart's number, as in an old teaching book.
+                    'fig' => 'Fig. :n',
+                    // Fig. 1: the course's own first-species exercise (lesson cp-4-first), its interval figures
+                    // counted from the notes; :list is those figures, for screen readers.
+                    'species' => [
+                        'title' => 'First species, note against note',
+                        'cp' => 'Cp.',
+                        'cf' => 'C.f.',
+                        'caption' => 'One note against each note of a slow tune, the cantus, as the course\'s First species lesson sings it. The red figures count the gap between them.',
+                        'play' => 'Hear it',
+                        'art' => 'Two lines, note against note: the counterpoint above the cantus, and between each pair the interval it makes, counted in steps of the scale: :list.',
+                    ],
+                    // The first answer, with the course's count of lessons.
                     'faq_long' => ':n lessons of 2 to 4 minutes, about 70 minutes in all. Each book ends in a challenge.',
+                    'round_kick' => 'Three voices, one tune',
                     'round' => 'Start the round',
                     'again' => 'Hear the round again',
                     'stop' => 'Stop',
@@ -8234,17 +8252,19 @@ return [
                     'follow_lead' => 'Follow one voice, before or while it plays: it comes forward and the others step back. Holding one line among three is the course\'s skill.',
                     'follow_label' => 'Follow a voice',
                     'card' => 'Row, Row, Row Your Boat, a round for three',
-                    'art_note' => 'Row, Row, Row Your Boat as a round for three, drawn as points joined by threads: the same tune in every voice, each two bars after the last.',
+                    'art_note' => 'Row, Row, Row Your Boat as a round for three, in square notes on red four-line staves: the same tune in every voice, each two bars after the last.',
                     // The voices' numbers, beside their threads.
                     'voices' => ['I', 'II', 'III', 'IV'],
                     'streams' => [
                         'kick' => 'The ear',
                         'title' => 'Two tunes, two streams.',
+                        'em' => 'two streams.',
                         'lead' => 'In 1969 a psychologist noticed that a fast run of notes jumping between high and low splits apart: you hear a high tune and a low tune, not one zigzag.',
                         'body' => 'In his lab, listeners easily recognised a pattern inside one stream, but one that crossed between the streams only at chance. Notes close in pitch hang together. That is how the ear holds two melodies at once.',
                         'demo' => 'Split the tune',
                         'demo_lead' => 'The notes take turns, high and low. Speed them up and listen for the moment one zigzag falls apart into two tunes.',
                         'speed' => 'Speed',
+                        'rate' => ':n notes a second',
                         'slow' => 'Slow',
                         'fast' => 'Fast',
                         'play' => 'Play the run',
@@ -8256,6 +8276,7 @@ return [
                     'fusion' => [
                         'kick' => 'Fusion',
                         'title' => 'One voice or two?',
+                        'em' => 'or two?',
                         'lead' => 'A sung note is a stack of overtones. Two notes an octave apart, a 2 to 1 ratio, line up so well that together they sound like one richer note: researchers call this fusion. The fifth, at 3 to 2, is the next simplest ratio.',
                         'motion' => 'The ear also groups sounds that change together, a principle hearing scientists call common fate. Two voices in parallel fifths fuse and move as one, so they become one hollow voice. In contrary motion one line rises while the other falls, and nothing tells the ear they are one sound.',
                         'bach' => 'An analysis of Bach\'s keyboard counterpoint found he used the most fusing intervals least, keeping his voices apart. A 2001 study derived the old voice-leading rules from such principles of hearing.',
@@ -8284,11 +8305,20 @@ return [
                     'books' => [
                         'kick' => 'The books',
                         'title' => 'From a round to your own line.',
+                        'em' => 'your own line.',
+                        'side' => ':u books, :n lessons. Each book comes in after the last, like the voices of a round.',
+                        // Each unit is a book, as in a teaching book of old: Liber I to V.
+                        'liber' => 'Liber',
                         'free' => 'Start here',
                     ],
                     'history' => [
                         'kick' => 'History',
                         'title' => 'A thousand years against the line.',
+                        'em' => 'against the line.',
+                        'lead' => 'Each entry is drawn with one line for every voice the music asks for.',
+                        'voices_n' => ':n voices',
+                        // Under Tallis's forty: the drawing shows the scoring, not the order of entry.
+                        'forty' => 'The forty lines are a picture of the scoring, a voice each in eight choirs of five, not the order they come in.',
                         // Game mode's high-score column: how many voices, also the threads drawn above each year.
                         'players' => 'Players: :n',
                         'more' => 'More years',
@@ -8311,6 +8341,8 @@ return [
                             'lead' => 'A round for four builds up one voice at a time. Press New voice each time you hear one come in.',
                             'play' => 'Play the round',
                             'tap' => 'New voice',
+                            'yours' => 'Your presses',
+                            'real' => 'Where each voice came in',
                             'result' => 'You caught :n of :total.',
                             'result_game' => 'Voices detected :n/:total',
                             'note' => 'Missed one? In a 1989 study, even expert musicians lost count at four voices. They mostly guessed too few, and inner voices coming in were the hardest to notice.',
@@ -8319,6 +8351,8 @@ return [
                     'seek' => [
                         'kick' => 'Quaerendo invenietis',
                         'title' => 'Seek and you shall find.',
+                        'em' => 'shall find.',
+                        'riddle' => 'Solve the riddle',
                         'lead' => 'After playing for Frederick the Great in 1747, Bach published riddle canons marked "Quaerendo invenietis", seek and you shall find: one written line, and the players must work out where the second voice comes in.',
                         'demo_lead' => 'Here is a short line of our own, sung twice. Move where the copy comes in, and listen for the places it fits.',
                         'delay' => 'Beats before the copy comes in',
@@ -8331,6 +8365,10 @@ return [
                         'smooth_game' => 'Sync!',
                         'rub_game' => 'Clash x:n',
                     ],
+                    // What the app listens for, and the close's italic words.
+                    'app_kick' => 'In the app',
+                    'app_em' => 'listens for',
+                    'join_em' => 'the round.',
                     'sources' => [
                         'catholic' => ['Catholic Encyclopedia (1913), Counterpoint', 'https://www.newadvent.org/cathen/04436a.htm'],
                         'ucsb' => ['UCSB, Counterpoint: Term and Technique', 'https://rothfarb.faculty.music.ucsb.edu/courses/103/term_counterpoint.html'],
@@ -8896,29 +8934,38 @@ return [
                 'safety' => ['Never hold your breath before you sing, and stop while it\'s still easy.', 'With asthma, a heart or lung condition, or in pregnancy, keep holds short and easy.', 'A cough, wheeze, tight chest or feeling lightheaded means stop.'],
                 'songs' => [['Swing Low, Sweet Chariot', 'Spiritual, public domain'], ['Ah! vous dirai-je, maman', 'French tune (1761), public domain'], ['Simple Gifts', 'Public domain (usually dated 1848)']],
                 'shots' => ['Breath and stamina\'s first lesson, The long note: a breathing flower, and why a long note is about letting the air out slowly.', 'A first hold of "oo": a bar showing 2.9 steady seconds, and Hear yourself saying it stayed steady and stopped while it was easy.'],
-                // The designed page (site/courses/breath-and-stamina): its own sections and words.
+                // The designed page (site/courses/breath-and-stamina, Hillel's design of 2026-11-18): breath itself, a held
+                // note on a seconds scale, the singer's comma as the breath mark, and a bar on each label that fills down the page.
                 'app' => 'breath',
-                'eyebrow' => 'A free course · 15 lessons',
+                'eyebrow' => 'A free course · :lessons lessons · about 3 minutes each',
                 'hero_title' => 'Steady to the end.',
                 'hero_lead' => 'A long note isn\'t about big lungs. It\'s letting the air out slowly and stopping while it\'s still easy. You learn to breathe low and wide, end a note on purpose, start one on the breath, and catch quick breaths without going flat.',
-                'hero_facts' => ['15 lessons, about 3 minutes each', 'Goals capped at 15 seconds', 'No reading music'],
                 'see_lessons' => 'See the lessons',
+                // The hero's held note: breathe in, hold 9.4 steady seconds on a 0 to 15 second scale, and stop clean.
+                'held' => [
+                    'phases' => ['in' => 'Breathe in', 'hold' => 'Holding', 'done' => 'Let go'],
+                    'unit' => 'steady seconds',
+                    'second' => ':n s',
+                    'cap' => 'Goals are capped at 15 seconds. Ending well beats holding longer.',
+                    'verdict' => 'Ended on purpose, with air to spare.',
+                ],
                 'titles' => [
                     'outcomes' => 'By the end, you can',
                     'ending' => 'A long note is about its ending',
                     'easy' => 'Easy, never gasping',
-                    'units' => 'Four legs, one breath at a time',
+                    'units' => 'Four phrases, one breath at a time',
                     'try' => 'The long note',
-                    'crew' => 'Before you sail',
                     'inside' => 'What the app listens for',
                     'facts' => 'About breathing',
                     'who' => 'Who it\'s for',
-                    'need' => 'What you need',
-                    'safety' => 'Singing it safely',
+                    'for' => 'For',
+                    'need' => 'You\'ll need',
                     'faq' => 'Questions',
                     'join' => 'Take a breath.',
                     'related' => 'Good with this course',
                 ],
+                // Each section's label, the page-long breath: its bar fills a little more each section down.
+                'kicks' => ['ending' => 'The ending', 'outcomes' => 'By the end', 'course' => 'The course', 'pacing' => 'Pacing', 'try' => 'Try one now', 'listening' => 'Listening', 'facts' => 'Why it works', 'who' => 'Before you start', 'questions' => 'Questions', 'close' => 'Release'],
                 'outcomes' => [
                     'Breathe low and wide, and keep your ribs from closing too fast.',
                     'Hold a long note steady to the end, and stop it on purpose.',
@@ -8929,20 +8976,37 @@ return [
                     'lead' => 'As the air runs low, a held note slides flat: pitch rises and falls with the air pressure under your vocal folds. So the skill isn\'t holding longer. It\'s ending on purpose.',
                     'out' => ['Running out', 'Held until the air is gone: the end sags and cracks.'],
                     'purpose' => ['Ending on purpose', 'Stopped while it\'s still steady: a clean finish, and air left for the next line.'],
+                    'out_tag' => 'sags · cracks',
+                    'purpose_tag' => 'steady · clean stop',
+                    'pitch' => 'on pitch',
+                    'air_left' => 'air left',
                     'body' => 'The course measures your steady seconds and how your note ended. Holding longer than your own goal earns nothing more.',
                 ],
                 'easy' => [
                     'lead' => 'Breathe low and wide, never gasp, and stop while it\'s still easy. Never squeeze out the last drop.',
                     'points' => ['Never hold your breath before you sing, and never lock your stomach.', 'At least three easy breaths between holds, and at most three long holds in a row.', 'With asthma, a lung or heart condition, or in pregnancy, keep holds short and easy.', 'A cough, wheeze, tight chest or feeling lightheaded means stop. Sit for long holds if you\'ve ever felt lightheaded.'],
+                    'set' => 'How a set is paced',
+                    'legend' => ['breath' => 'Easy breath, at least three between holds', 'hold' => 'Long hold, at most three in a row', 'rest' => 'Rest'],
                 ],
+                // The lesson map: every lesson a link to its page. :mark is the breath mark, drawn as the page's comma.
+                'units_lead' => 'Read it like a score: each unit is a phrase, and the :mark between them is a breath mark.',
+                'map_meta' => ':units units · :lessons lessons · about :minutes min',
                 'units_say' => [
                     'A long note that ends on purpose, wide ribs, a long line and an easy hold.',
                     'An even stream of air: a buzz, a trill up the hill, a planned ending, and a chord of your own.',
                     'Notes that start on the breath, short bouncy ones, and Ah, vous dirai-je.',
                     'Quick breaths, planned breaths, breathing in turns, and Simple Gifts\' first verse.',
                 ],
+                // Each unit's challenge, on its lesson page after the lesson before it: what it asks (course/plus/breath).
+                'challenges' => [
+                    'br-1-challenge' => 'Your first hold plus two seconds, still ending on purpose',
+                    'br-2-challenge' => 'Do, then mi, then so, held one by one into a chord of your own',
+                    'br-3-challenge' => 'Twinkle\'s French tune: each note on the breath, the last one held',
+                    'br-4-challenge' => 'Simple Gifts\' first verse, a quick breath before each line',
+                ],
                 'try' => [
                     'lead' => 'Sit or stand tall and easy. Stop if you feel lightheaded.',
+                    'verbs' => ['Warm up', 'Breathe in', 'Sing', 'Stop'],
                     'steps' => [
                         'Hum a few easy slides, low to high and back, to warm up.',
                         'Breathe in low and wide, without lifting your shoulders.',
@@ -8951,6 +9015,20 @@ return [
                     ],
                     'after' => 'Lesson 1 holds your note over a drone, draws your steady seconds as a bar, and tells you how your note ended.',
                 ],
+                // What the app listens for, as rows (the `measures` line's own parts), beside a sample result card.
+                'hears' => ['app' => ['Your steady seconds', 'Whether a note stays steady to its end', 'When you stop, and come back after a breath'], 'you' => ['Ribs wide, shoulders down']],
+                'hears_by' => ['app' => 'the app', 'you' => 'yours to check'],
+                'sample' => [
+                    'tag' => 'Sample',
+                    'label' => 'A sample result from lesson 1, not a real singer\'s',
+                    'lesson' => 'Lesson 1 · The long note',
+                    'title' => 'Steady to the end',
+                    'unit' => 'steady seconds',
+                    'from' => '0 s',
+                    'cap' => '15 s cap',
+                    'ended' => 'Ended on purpose.',
+                ],
+                'fact_heads' => ['Lean', 'Buzz', 'Sag'],
                 'facts' => [
                     ['Appoggio comes from the Italian appoggiare, to lean: your breathing muscles lean against each other, so the ribs stay wide while you sing.', 'Rider University, The Breathing Mechanism for Singing', 'https://explore.rider.edu/sites/default/files/files/vthc-a-review-of-the-breathing-mechanism-for-singing-part2.pdf'],
                     ['Voice clinics use lip trills and straw singing: partly closing the mouth sends some air pressure back toward the vocal folds, helping them vibrate easily.', 'Titze, J. Speech Lang. Hear. Res. (2006)', 'https://pubs.asha.org/doi/abs/10.1044/1092-4388(2006/035)'],
@@ -8968,33 +9046,31 @@ return [
                 ],
                 'faq' => [
                     ['How long does it take?', '15 lessons of about 3 minutes. Breath grows over days, so a lesson a day suits it.'],
-                    ['Is it safe for my voice?', 'Yes, the course\'s way: breathe low and easy, stop while it\'s still easy, and never hold your breath first. With asthma, a lung or heart condition, or in pregnancy, keep holds short, and stop for a cough, wheeze or lightheadedness.'],
-                    ['Do I need to read music?', 'No. You hear each exercise from a guide and see your note drawn as you sing.'],
-                    ['Will it make my lungs bigger?', 'No. It\'s about letting the air out slowly and evenly, and ending on purpose.'],
+                    ['Is it safe for my voice?', 'Yes, the course\'s way: holds are short and easy, goals are capped at 15 seconds, and you take easy breaths between holds. Never hold your breath first. With asthma, a lung or heart condition, or in pregnancy, keep holds short, and stop for a cough, wheeze or lightheadedness.'],
+                    ['Do I need to read music?', 'No. You hear each exercise from a guide, see your steady seconds as a bar, and see your notes drawn as you sing.'],
+                    ['Will it make my lungs bigger?', 'No. It\'s about letting the air you already have out slowly and evenly, and stopping while it\'s still easy.'],
                     ['What does it cost?', 'Nothing: every course is free. Try the first lesson without an account; a free account opens the rest.'],
                 ],
                 'related' => ['vibrato', 'perfect-your-pitch', 'folk-and-early-music'],
-                // The voyage's labels, one a section, and the close.
-                'kicks' => ['bearings' => 'Bearings', 'coming' => 'Coming in', 'weather' => 'Fair weather', 'voyage' => 'The voyage', 'castoff' => 'Cast off', 'log' => 'Ship\'s log', 'crew' => 'Crew list', 'questions' => 'Questions', 'close' => 'Set sail'],
-                'leg_n' => 'Leg :n',
-                'entry_n' => 'Entry :n',
-                'try_first' => 'Start here.',
                 'close' => 'Lesson 1 takes about three minutes: one long note over a drone, as long as it\'s easy, then again with your first hold to beat.',
+                // The closing breathing guide: a circle that grows as you breathe in, holds, and shrinks as you let it out.
+                'guide' => ['in' => 'Breathe in', 'hold' => 'Hold, easy', 'out' => 'Let it out slowly'],
                 // The featured demo, End on purpose (docs/courses/breath-love-letter.md, section 6; lesson br-2-end):
                 // A and B to tell apart, then a held note to let go on the beat. :s is seconds, in tenths.
                 'demo' => [
-                    'live' => 'Live demo',
+                    'live' => 'Try it here',
                     'lesson' => 'Unit 2 · Lesson 3',
                     'title' => 'End on purpose',
                     'lead' => 'A long note is heard by how it ends. Listen to two endings, then hold a note yourself over the drone and let go on the beat. Within about a tenth of a second is on time.',
                     'listen_h' => 'Listen first',
-                    'clips' => ['a' => 'Play A', 'b' => 'Play B'],
+                    'clips' => ['a' => 'Ending A', 'b' => 'Ending B'],
                     'stop' => 'Stop',
                     'ask' => 'Which one ran out of air?',
-                    'picks' => ['a' => 'A', 'b' => 'B'],
                     'right' => 'Yes, B. It sags at its end: the air ran out. A stops on purpose, still steady.',
                     'wrong' => 'It was B. It sags at its end: the air ran out. A stops on purpose, still steady.',
                     'vowel' => 'oo',
+                    'let_go' => 'Let go',
+                    'phases' => ['ready' => 'Ready', 'count' => 'Count-in', 'hold' => 'Hold steady', 'sag' => 'Running out', 'done' => 'Done'],
                     'hold' => 'Hold to sing',
                     'ready' => 'Press and hold the button, or Space. Two beats count in, then the note: hold it six beats, and let go on the line.',
                     'count' => 'One, two, and the note comes in.',
@@ -9361,27 +9437,23 @@ return [
                 'safety' => ['Short, easy notes at a medium volume, in the middle of your voice.', 'Stop if anything tightens or hurts. Don\'t practise when hoarse or ill.'],
                 'songs' => [['Oh When the Saints', 'Spiritual, public domain'], ['Amazing Grace', 'Public domain hymn (words 1779, tune 1829)'], ['Twinkle, Twinkle', 'French tune (1761), public domain'], ['Ode to Joy', 'Public domain melody (1824)'], ['Frère Jacques', 'Traditional, public domain'], ['Greensleeves', 'Anonymous, 16th century, public domain'], ['My Bonnie Lies over the Ocean', 'Traditional, public domain'], ['Swing Low, Sweet Chariot', 'Spiritual, public domain'], ['This Old Man', 'Traditional, public domain'], ['O Come, All Ye Faithful', '18th-century tune, public domain']],
                 'shots' => ['Ear training\'s first lesson, Song starts: three leaps from songs you know, Oh When the Saints, Amazing Grace and Twinkle, Twinkle.', 'Echoing the song-start leaps on the Bullseye board: a dart in the centre, each landing in cents, and Hear it right to hear the leap.'],
-                // The designed page (site/courses/ear-training): its own sections and words.
+                // The designed page (site/courses/ear-training, Hillel's design of 2026-11-18): the page climbs a scale,
+                // each section a step, do to high do. Its own words are in `et`; the rest are the page's facts.
                 'app' => 'ear',
-                'eyebrow' => 'A free course · 17 lessons',
-                'hero_title' => 'Hear it, then sing it.',
-                'hero_lead' => 'Hear how far apart two notes are, whether a chord is major or minor, and where home is, then sing it back. You start from leaps you already carry in songs you know, and every lesson ends in singing.',
-                'hero_facts' => ['17 lessons, 3 to 4 minutes each', 'Every lesson ends in singing', 'No reading music'],
+                'hero_lead' => 'Hear how far apart two notes are, whether a chord is major or minor, and where home is, then sing it back. You start from leaps you already carry in songs you know.',
                 'see_lessons' => 'See the lessons',
                 'titles' => [
                     'outcomes' => 'By the end, you can',
                     'leaps' => 'Leaps you already carry',
-                    'colour' => 'Bright or dark',
-                    'units' => 'Four trips, from song starts to the bass line',
+                    'units' => 'Four units, from song starts to the bass line',
                     'try' => 'Song starts',
-                    'kit' => 'Before you set out',
+                    'kit' => 'Who it\'s for, and what you need',
                     'inside' => 'What the app listens for',
                     'facts' => 'About listening',
                     'who' => 'Who it\'s for',
                     'need' => 'What you need',
                     'safety' => 'Singing it safely',
                     'faq' => 'Questions',
-                    'join' => 'Open your ears.',
                     'related' => 'Good with this course',
                 ],
                 'outcomes' => [
@@ -9392,12 +9464,7 @@ return [
                 ],
                 'leaps' => [
                     'lead' => 'You don\'t start from theory. You start from the openings of songs you know, each one a leap, and keep each leap with its song.',
-                    'kinds' => [
-                        ['A leap of three', 'Oh When the Saints', 'From "Oh" up to "when": do to mi.'],
-                        ['A leap of four', 'Amazing Grace', 'From "A-" up to "-ma-": so below to do.'],
-                        ['A leap of five', 'Twinkle, Twinkle', 'From the first "-kle" up to the next "twin-": do to so.'],
-                    ],
-                    'body' => 'Leaps are named in plain words first, with do re mi beside them and the textbook name, like "major third", small.',
+                    'body' => 'Each word sits at the height of its note. Leaps are named in plain words first, with do re mi beside them and the textbook name, like "major third", small.',
                 ],
                 'colour' => [
                     'lead' => 'A chord\'s middle note, its third, decides whether it sounds major or minor: bright or dark. Lower it a half step and the whole chord changes colour.',
@@ -9411,10 +9478,9 @@ return [
                     'Feel home after a phrase, sing a chord\'s root, and then a bass line.',
                 ],
                 'try' => [
-                    'lead' => 'Three songs you probably know, and the leap that opens each one.',
                     'steps' => [
                         'Sing "Oh when the saints" and stop on "when". From "Oh" up to "when" is a leap of three.',
-                        'Sing "Amazing grace" and stop on "-ma-". From "A-" up to "-ma-" is a leap of four.',
+                        'Sing "Amazing grace" and stop on "maz-". From "A-" up to "maz-" is a leap of four.',
                         'Sing "Twinkle, twinkle". From the first "-kle" up to the second "twin-" is a leap of five.',
                         'Now hum any easy note, and try each leap up from it, thinking of its song.',
                     ],
@@ -9435,17 +9501,21 @@ return [
                     'Headphones help you hear the guide clearly.',
                     'No reading music and no theory: leaps are named in plain words.',
                 ],
+                // The designer's answers, kept only as far as the course bears them out (2026-11-18): the course names
+                // leaps in plain words and do re mi (never "major third"), every lesson ends in a sung round the app
+                // hears, and the safety lines are the course's.
                 'faq' => [
                     ['How long does it take?', '17 lessons of 3 to 4 minutes. Ears grow with repetition, so a lesson a day suits it well.'],
-                    ['Do I need to know the interval names?', 'No. Leaps are named in plain words first, like "a leap of three", with do re mi beside them and the textbook name small.'],
-                    ['Is it only listening?', 'No. Listening rounds teach and never give stars. Every lesson ends in singing, and your stars come from the leaps you sing.'],
-                    ['Is it safe for my voice?', 'Yes. The notes are short and easy, at a medium volume in the middle of your voice. Stop if anything tightens or hurts.'],
+                    ['Do I need to know the interval names?', 'No. The course names each leap in plain words, like "a leap of three", with do re mi beside it.'],
+                    ['Is it only listening?', 'No. Every lesson ends in singing: you sing back what you heard, and the app hears where each note lands.'],
+                    ['Is it safe for my voice?', 'Yes, if you keep it easy: short notes at a medium volume, in the middle of your voice. Stop if anything tightens or hurts, and don\'t practise when hoarse or ill.'],
                     ['What does it cost?', 'Nothing: every course is free. Try the first lesson without an account; a free account opens the rest.'],
                 ],
                 'related' => ['perfect-your-pitch', 'improvising-harmony', 'barbershop'],
                 // The guides that go with this course (SEO pass): listed with the related courses.
                 'guides' => ['singing-in-tune'],
-                // The featured demo (js/public/ear-training.js): Name that leap, after lesson 1's Song starts. No mic.
+                // The featured demo (js/public/ear-training.js, site/courses/_ear-leap, shared with Music teachers and
+                // schools): Name that leap, after lesson 1's Song starts. No mic.
                 'demo' => [
                     'kick' => 'Now playing',
                     'lesson' => 'Unit 1, its challenge',
@@ -9467,12 +9537,62 @@ return [
                     'again' => 'Play again',
                     'note' => 'No mic here: you only listen. In lesson 1 you sing each leap back, and the app hears where you land.',
                 ],
-                // The field guide's labels, one a section, and the close.
-                'kicks' => ['life' => 'Your life list', 'guide' => 'The field guide', 'colour' => 'Day and dusk', 'trips' => 'Field trips', 'field' => 'In the field', 'notes' => 'Field notes', 'kit' => 'Your field kit', 'questions' => 'Questions', 'close' => 'Go listening'],
-                'plate_n' => 'Plate :n',
-                'trip_n' => 'Trip :n',
-                'try_first' => 'Start here.',
                 'close' => 'Lesson 1 takes a few minutes: three song openings, and each leap you sing back lands on the board.',
+                // The scale the page climbs (EarTrainingLeaps; js/public/ear-training-page.js plays it).
+                'et' => [
+                    'open' => 'Free course',
+                    // A line break at |, the words in colour between asterisks.
+                    'headline' => 'Hear it,|then *sing* it.',
+                    'facts' => ['3 to 4 minutes a lesson', 'Every lesson ends in singing', 'No reading music'],
+                    // The scale's names, do to high do, and each section's step label.
+                    'sol' => ['do', 're', 'mi', 'fa', 'so', 'la', 'ti', 'do'],
+                    'steps' => ['Try it now', 'What you leave with', 'Where you start', 'Major and minor', 'The course', 'The mic', 'Before you set out', 'Home again'],
+                    'ladder' => [
+                        'kick' => 'The leap ladder',
+                        'hint' => 'tap a leap to hear it',
+                        'home' => 'Home',
+                        'alt' => 'The scale as a ladder of eight notes, do at the bottom (home) to do at the top. Arcs show three leaps: do up to mi, the opening of Oh When the Saints; do up to so, Twinkle, Twinkle; and so up to high do, Amazing Grace.',
+                    ],
+                    'leap' => ['three' => 'a leap of three', 'four' => 'a leap of four', 'five' => 'a leap of five'],
+                    'glyphs' => ['3 · 4 · 5', '½ · 1', 'mi · me', 'do'],
+                    // Each card: its leap's words, the textbook name, and the sung words where the opening has no template
+                    // to give them (Amazing Grace's are its template's).
+                    'cards' => [
+                        'three' => ['A leap of three', 'From "Oh" up to "when": do to mi.', 'major third'],
+                        'four' => ['A leap of four', 'From "A-" up to "maz-": so below to do.', 'perfect fourth'],
+                        'five' => ['A leap of five', 'From the first "-kle" up to the next "twin-": do to so.', 'perfect fifth'],
+                    ],
+                    'words' => [
+                        'three' => ['Oh', 'when', 'the', 'saints'],
+                        'five' => ['Twin-', 'kle', 'twin-', 'kle'],
+                    ],
+                    'card_play' => 'Hear the opening',
+                    'card_alt' => ':song\'s opening words drawn at the height of their notes, with :leap marked.',
+                    'colour' => [
+                        'bright' => 'Bright',
+                        'dark' => 'or dark.',
+                        'dark_lead' => 'Same root, same top. Only the third drops, from mi to me ("may"), and the chord goes from day to dusk.',
+                        'hear' => 'Hear it',
+                        'hear_major' => 'Hear the major chord',
+                        'hear_minor' => 'Hear the minor chord, its third dropping',
+                        'stop' => 'Stop',
+                        'alt_major' => 'A major chord as three notes: do at the bottom, mi in the middle, so at the top.',
+                        'alt_minor' => 'A minor chord: the same do and so, the middle note dropped a half step from mi to me.',
+                    ],
+                    'units_note' => ':lessons lessons that climb like a scale, and end where they began: at home.',
+                    'unit_steps' => [['1', 'do'], ['3', 'mi'], ['5', 'so'], ['8', 'do']],
+                    'inside_kick' => 'Inside lesson 1',
+                    // The board beside what the app listens for: a sample, said plainly, never a singer's result.
+                    'board' => [
+                        'sample' => 'Sample',
+                        'sample_note' => 'How a round is shown, not anyone\'s singing.',
+                        'asked' => 'Asked for: a leap of five',
+                        'darts' => 'Your darts',
+                        'found' => 'You found :n of :total leaps.',
+                        'alt' => 'A sample board: a band marks the note of a leap of five, so. Five sung notes land inside the band and one lands above it, near la.',
+                    ],
+                    'join' => 'Open your *ears.*',
+                ],
             ],
             'perfect-your-pitch' => [
                 'group' => 'skills',
@@ -10850,9 +10970,10 @@ return [
                     'outcomes' => 'By the end, you can',
                     'units' => 'From one root to a whole song\'s bass',
                     'science' => 'Why the bass matters, in plain words',
-                    'margin' => 'Notes in the margin',
+                    'margin' => 'Liner notes',
                     'inside' => 'What the app listens for',
                     'who' => 'Who it\'s for',
+                    'who_short' => 'Who',
                     'need' => 'What you need',
                     'safety' => 'Singing it safely',
                     'faq' => 'Questions',
@@ -10889,20 +11010,28 @@ return [
                     ['What does it cost?', 'Nothing: every course is free. Try the first lesson without an account; a free account opens the rest.'],
                 ],
                 'related' => ['barbershop', 'ear-training', 'counterpoint'],
-                'kicks' => ['story' => 'The story', 'aims' => 'The floor', 'units' => 'The lessons', 'science' => 'The science', 'margin' => 'Margin notes', 'begin' => 'Before you begin', 'questions' => 'Questions', 'close' => 'Your first root'],
+                // Every section labelled like a track on a record (Hillel's design, 2026-11-18).
+                'kicks' => ['story' => 'Side A · Track 1 · The story', 'aims' => 'Side A · Track 2 · The floor', 'units' => 'Side A · Track 3 · The lessons', 'science' => 'Side B · Track 1 · The science', 'margin' => 'Side B · Track 2', 'begin' => 'Side B · Track 3 · Before you begin', 'questions' => 'Side B · Track 4', 'close' => 'Bass · you'],
                 'close' => 'Lesson 1 takes a few minutes: hear a chord with no floor, then with one, then sing the root under three voices yourself.',
+                // The close's three lines over the floor band, the parts the bass holds up.
+                'close_parts' => ['Tenor', 'Lead', 'Baritone'],
+                // The units step down like a walking bass; each one's tag, and the floor band unit 4 lands on.
+                'units_note' => 'Laid out like a walking line: four steps down, landing on the floor.',
+                'unit_tags' => ['Root', 'Attack', 'Time', 'Home'],
+                'units_floor' => ':units units · :lessons lessons · each 5 minutes or less',
+                'units_land' => 'You land here',
+                'story_count' => ':n entries · :from to :to',
                 'love' => [
-                    'eyebrow' => 'A free course · :lessons lessons',
+                    'meta' => 'A free course · :units units · :lessons lessons',
                     'chips' => [':units units, :lessons lessons', 'For any voice, from your own comfortable note', 'Ends with Swing Low\'s bass under three voices'],
-                    // The hero's card: a bass C's first six harmonics, spaced as the ear hears them.
+                    // The hero: a bass C2's harmonics 2 to 6 as lines over the floor band (harmonic 1), spaced as
+                    // the ear hears them; 3, 5 and 6 (G, E, G) in amber, the rest of C major.
                     'overtones' => [
-                        'title' => 'One bass note, six harmonics',
-                        'alt' => 'A bass C and its first six harmonics as rungs, the lowest widest: C, C an octave up, G, C, E and G. Harmonics 3 and 5, a G and an E, are the rest of a C major chord.',
-                        'names' => ['C', 'C', 'G', 'C', 'E', 'G'],
-                        'floor' => 'The bass note, C',
-                        'octave' => 'C again, octaves up',
-                        'chord' => 'G and E: the rest of C major',
-                        'note' => 'For a bass C, harmonics 3 and 5 are a G and an E: the rest of a C major chord. When the bass sings the root, the notes above it line up with its own overtones.',
+                        'alt' => 'A bass C2 at 65 Hz is the floor, with its harmonics 2 to 6 drawn as lines above it, spaced as the ear hears them: C3, G3, C4, E4 and G4, closer together going up. Harmonics 3 and 5, a G and an E, are the rest of a C major chord.',
+                        'notes' => ['C2', 'C3', 'G3', 'C4', 'E4', 'G4'],
+                        'line' => ':n · :note · :hz Hz',
+                        'floor' => '1 · :note · :hz Hz: the bass, the note everything above is built from',
+                        'spacing' => 'Overtones spaced as you hear them, closer going up. In amber, G and E: the rest of a C major chord.',
                     ],
                     // Same notes, new root (js/public/a-cappella-bass.js), from the pack's first demo.
                     'demo' => [
@@ -10937,16 +11066,23 @@ return [
                         'stop' => 'Stop',
                         'with' => 'With 98 Hz',
                         'without' => '98 Hz gone',
+                        // The chart's line before and after a play: the six harmonics' frequencies.
+                        'hz_list' => ':list Hz',
                         'after' => 'Most people still hear G2 with the 98 Hz gone.',
                     ],
                     // The story, from the research pack (docs/courses/a-cappella-bass-love-letter.md): [when, title, text, notes].
                     'story' => [
                         ['1722', 'The bass that rules the chord', 'Jean-Philippe Rameau\'s Treatise on Harmony came out in Paris and built harmony on what he called the fundamental bass. A London translation of its third part (1779) put it plainly: the "grand Art or Mystery in Composition" lies "in the Bass, which we call Fundamental".', ['rameau', 'rameau1779']],
                         ['1871', 'Two basses on the road', 'The first Fisk Jubilee Singers left Nashville on 6 October 1871: students singing to help their university "in the time of its necessity". Their 1872 songbook lists them by part: three sopranos, two contraltos, two tenors, and two basses, Isaac P. Dickerson and Greene Evans. Seven of the nine had been enslaved. The songs were written out for the first time by Theodore F. Seward and "sold by hundreds at their concerts".', ['fisk', 'marsh']],
-                        ['1909', 'Half the quartet sings bass', 'In December 1909, in Camden, New Jersey, four Fisk students recorded spirituals for Victor with no accompaniment. Two of the four were basses, Alfred Garfield King and Noah Ryder, under two tenors. Their "Swing Low, Sweet Chariot" is the first known recording of the song.', ['dahr1909', 'pdr']],
+                        ['1909', 'Half the quartet sings bass', 'In December 1909, in Camden, New Jersey, four Fisk students recorded spirituals for Victor with no accompaniment. Two of the four were basses, Alfred Garfield King and Noah Ryder, under two tenors. Their "Swing Low, Sweet Chariot" is the first known recording of the song.', ['dahr1909', 'dahr16453', 'pdr']],
                         ['1937', 'The jubilee quartet', 'On 4 August 1937, in Charlotte, North Carolina, the Golden Gate Jubilee Quartet recorded for Bluebird as a "male vocal quartet, unaccompanied", the traditional "Go Where I Send Thee" among the songs. The discography lists two tenors, a baritone and a bass. The baritone, Orlandus Wilson, became the group\'s bass and stayed until 1998.', ['dahrgg', 'dahrgo', 'dahrwilson']],
                         ['1946', 'The bass takes the lead', 'The Ravens, started by two Harlem waiters, one of them the bass Jimmy Ricks, were the first group to make "continuous use of a bass vocalist" on lead. At the Apollo, when Ricks took over the lead, "his booming bass brought the house down". A bass singing lead became their trademark, and one of their "most often emulated attributes over the next decade".', ['ravens']],
                     ],
+                    // Each entry's line under its year, like a 78's label: the place and publisher for the book and the
+                    // tour, the real label and catalogue number for the two records the history names (Swing Low on
+                    // Victor 16453, Go Where I Send Thee on Bluebird B-7340, both in the discography), and the place for
+                    // the Ravens.
+                    'story_labels' => ['Paris · Ballard', 'Nashville · on tour', 'Victor · 16453', 'Bluebird · B-7340', 'New York · the Apollo'],
                     // The science, in plain words: [title, text, notes]; the missing fundamental, with its demo, comes after the second.
                     'science' => [
                         ['Why the bass sounds like the root', 'A sung note is not one frequency. It is a stack of harmonics at very nearly 2, 3, 4 and 5 times the lowest one. For a bass C, harmonics 3 and 5 are a G and an E: the rest of a C major chord. So when the bass sings the root, the notes above it line up with the bass\'s own overtones. That is why the Barbershop Harmony Society tells arrangers: "Give the bass the root or fifth".', ['unsw', 'bhs8']],
@@ -10971,6 +11107,7 @@ return [
                         'fisk' => ['archive.org, Jubilee Songs as sung by the Jubilee Singers of Fisk University (New York, 1872)', 'https://archive.org/details/jubileesongsassu00jubi'],
                         'marsh' => ['archive.org, J. B. T. Marsh, The Story of the Jubilee Singers (1876)', 'https://archive.org/details/storyofjubileesi00mars_3'],
                         'dahr1909' => ['Discography of American Historical Recordings, Victor B-8450 (1909)', 'https://adp.library.ucsb.edu/index.php/matrix/detail/200008526/B-8450-Little_David_play_on_yo_harp'],
+                        'dahr16453' => ['Discography of American Historical Recordings, Victor 16453 (1910)', 'https://adp.library.ucsb.edu/index.php/object/detail/10443/Victor_16453'],
                         'pdr' => ['The Public Domain Review, "First recording of Swing Low, Sweet Chariot (1909)"', 'https://publicdomainreview.org/collections/first-recording-of-swing-low-sweet-chariot-1909/'],
                         'dahrgg' => ['Discography of American Historical Recordings, Victor BS-011931 (1937)', 'https://adp.library.ucsb.edu/index.php/matrix/detail/200028565/BS-011931-Golden_Gate_Gospel_Train'],
                         'dahrgo' => ['Discography of American Historical Recordings, Victor BS-011938 (1937)', 'https://adp.library.ucsb.edu/index.php/matrix/detail/200028572/BS-011938-Go_where_I_send_thee'],
@@ -11342,11 +11479,49 @@ return [
                     'Short sessions, in the middle of your voice.',
                     'Stop if anything tightens or hurts.',
                 ],
+                // In the course's order, as the page's programme lists them (each credit's last part its status).
                 'songs' => [
-                    ['Caro mio ben', 'Credited to Giuseppe Giordani (Giordanello), in Alessandro Parisotti\'s Anthology of Italian Song of the 17th and 18th Centuries (New York: G. Schirmer, 1894); public domain'],
+                    ['A vocalise', 'Giuseppe Concone, 50 Leçons de chant pour le médium de la voix, Op. 9 (Leipzig: C. F. Peters, Edition Peters No. 980); public domain'],
                     ['Wiegenlied (Brahms\'s lullaby)', 'Johannes Brahms, Op. 49 No. 4 (1868), in Arthur Westbrook\'s English words (1901); public domain'],
                     ['Semplicetta tortorella and the first lessons', 'Nicola Vaccai, Practical Method of Italian Singing (Boston: G. D. Russell, 1878); public domain'],
-                    ['A vocalise', 'Giuseppe Concone, 50 Leçons de chant pour le médium de la voix, Op. 9 (Leipzig: C. F. Peters, Edition Peters No. 980); public domain'],
+                    ['Caro mio ben', 'Credited to Giuseppe Giordani (Giordanello), in Alessandro Parisotti\'s Anthology of Italian Song of the 17th and 18th Centuries (New York: G. Schirmer, 1894); public domain'],
+                ],
+                // Its own page (site/courses/classical-singing-basics, Hillel's design, 2026-11-18): sheet music. Each
+                // marking says only what the app scores (js/lesson-scores.js, js/pitch-skills.js, the course's own
+                // `measures` lines): `unit` is the movement that first scores it, for its colour.
+                'love' => [
+                    'mood' => 'cantabile, in your own voice',
+                    'title_lead' => 'Sing one long,',
+                    'title_em' => 'joined line.',
+                    'score' => [
+                        'lesson' => 'Lesson 1 · :name',
+                        'piece' => 'Caro mio ben, its first phrase',
+                        'label' => 'Lesson 1\'s phrase as sheet music: the first eight notes of Caro mio ben, sung on "ah" under one slur, with a breath after the last, and a sample voice line tracing them.',
+                        'legato' => 'legato',
+                        'line' => 'A sample voice',
+                        'slur' => 'The slur: join these',
+                        'breath' => 'Breathe here',
+                        'take' => 'A sample take',
+                        'result' => '88% on pitch.',
+                    ],
+                    'units_kick' => 'The course, in four movements',
+                    'units_title' => 'One phrase at a time, from a single vowel to a whole song.',
+                    'movements' => ['legato', 'fiato', 'all\'italiana', 'arietta'],
+                    'hears_title' => 'It checks your line against the score.',
+                    'markings' => [
+                        ['term' => 'legato', 'unit' => 1, 'what' => 'Whether your notes stay joined: on the lines sung on a vowel, by the sound not dipping at each change.'],
+                        ['term' => 'intonazione', 'unit' => 1, 'what' => 'Where each note lands.'],
+                        ['term' => 'attacco', 'unit' => 1, 'what' => 'A clean start: each note on its pitch from its first sound, not slid up into.'],
+                        ['term' => 'respiro', 'unit' => 2, 'what' => 'Coming in after a breath, on time and on pitch.'],
+                        ['term' => 'sostenuto', 'unit' => 2, 'what' => 'A long note that stays on its pitch to the end, without sagging.'],
+                        ['term' => 'fine', 'unit' => 2, 'what' => 'The end of a phrase: its last note steady, and stopped on time.'],
+                        ['term' => 'appoggiatura', 'unit' => 3, 'what' => 'The leaning note on the beat, then its step down.'],
+                        ['term' => 'portamento', 'unit' => 3, 'what' => 'A slide where one is asked for, and clean starts everywhere else.'],
+                    ],
+                    'unscored_kick' => 'Not scored: you check these yourself',
+                    'unscored' => ['Your volume', 'The colour of your vowels', 'The words', 'The rise and fall of a phrase', 'Vibrato'],
+                    'programme' => 'Programme',
+                    'safety_motto' => 'mezza voce, always',
                 ],
             ],
             // Blues singing (the courses lead, docs/courses/blues-singing.md): the blues in its own form, its history in

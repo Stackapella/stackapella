@@ -1,17 +1,19 @@
-{{-- A cappella bass (/courses/a-cappella-bass), its own page: be the floor. Calm and light, after
-     Vibrato's and Sight-singing's design (white cards on a stone wash, thin headlines, quiet tracked
-     labels), in a deep teal with amber for a chord's notes. The hero is the words beside a bass C's
-     first six harmonics drawn as rungs, spaced as the ear hears them: the widest at the foot is the
-     floor, and harmonics 3 and 5 are the G and E that make the rest of its chord. Then the featured
-     demo, Same notes, new root (js/public/a-cappella-bass.js): C4 and E4 held, alone, then over a bass
-     C3, then A2, each chord lit as it sounds and each one a button. No mic. Then the story (the bass
-     from Rameau to the Ravens), the outcomes, the units (from the course file), the science in plain
-     words (with The note that isn't there: G2 from six harmonics, the 98 Hz taken away), notes in the
-     margin and what the app listens for, before you begin, questions, the close and the sources. Every
-     claim is from the research pack (docs/courses/a-cappella-bass-love-letter.md), cited. Low notes
-     are built from their harmonics so a phone speaker sounds them. Game skin: the arcade's night,
-     square frames with hard shadows, and PRESS START on the demo. No drawn people. Words:
-     lang/en/site.php courses.pages.a-cappella-bass (love). --}}
+{{-- A cappella bass (/courses/a-cappella-bass), its own page, after Hillel's design (2026-11-18,
+     course-designs/a-cappella-bass): the bass is the floor everything stands on, set as a record's
+     sleeve. The hero's headline stands on a dark floor band, a bass C2 (harmonic 1), with its harmonics
+     2 to 6 as lines above it, spaced as the ear hears them (closer going up; G and E, the rest of C major,
+     in amber). The band carries the lead and then the featured demo, Same notes, new root
+     (js/public/a-cappella-bass.js): C4 and E4 held, alone, then over a bass C3, then A2, each chord lit
+     as it sounds and each one a button. Then the story as a stack of 78s (each year's line the real label
+     and catalogue number where the history names a record), the outcomes, the units stepping down like a
+     walking bass with unit 4 resting on the floor band, the science with The note that isn't there (G2
+     from six harmonics, the 98 Hz taken away), liner notes and what the app listens for, before you
+     begin, questions, and the close: "Hold the group up." over three lines (tenor, lead, baritone) with
+     the floor band, you, under it. Every section is labelled like a track ("Side A · Track 1"). Type: a
+     heavy headline, a serif for the history and the science, a monospace for frequencies, amber on
+     near-black; calm light and dark, and game mode's arcade. Every claim is from the research pack
+     (docs/courses/a-cappella-bass-love-letter.md), cited. No mic, no drawn people. Words:
+     lang/en/site.php courses.pages.a-cappella-bass. --}}
 @php($love = $page['love'])
 @php($sources = $love['sources'])
 @php($demo = $love['demo'])
@@ -20,110 +22,110 @@
 @php($tryUrl = $open ? $courseStart : $links['start'])
 @php($tryLabel = $open ? __('pages.site.course_try') : __('pages.site.course_start'))
 @php($counts = [':lessons' => (string) ($outline['lessons'] ?? ''), ':units' => (string) count($outline['units'] ?? [])])
-{{-- The hero's rungs: harmonic n at a log height (an octave 100 high), its width falling as it
-     weakens; 1 is the floor, 2 and 4 are C again, 3, 5 and 6 are the rest of the chord. --}}
-@php($rungY = fn (int $n): float => round(286 - log($n, 2) * 100, 1))
-@php($kinds = [1 => 'floor', 2 => 'octave', 3 => 'chord', 4 => 'octave', 5 => 'chord', 6 => 'chord'])
+{{-- The hero's lines: harmonic n of C2 (65.4 Hz) at a log height, 1 the floor band and 6 the top. --}}
+@php($c2 = 65.406)
+@php($lineAt = fn (int $n): float => round(log($n, 2) / log(6, 2) * 100, 1))
+@php($chordTone = [3, 5, 6])
 {{-- The demo's notes as MIDI, placed from A2 (45) at the foot to E4 (64) at the top. --}}
 @php($place = fn (int $midi): float => round(($midi - 45) / 19, 3))
 @php($basses = [null, 48, 45])
+{{-- The note that isn't there: each harmonic's bar is its level in the demo (js: HARMONICS). --}}
+@php($levels = [100, 85, 70, 55, 45, 35])
+@php($story = (array) $love['story'])
 <main class="cp cp-acb">
-    <section class="cp-hero cp-acb-hero" aria-labelledby="page-h">
-        <div class="s-wrap cp-hero-grid">
-            <div class="cp-hero-copy">
+    <section class="cp-acb-hero" aria-labelledby="page-h">
+        <div class="s-wrap">
+            <div class="cp-acb-top">
                 <nav class="s-crumb" aria-label="{{ __('pages.site.crumb') }}"><a href="/courses">{{ __('pages.site.courses') }}</a><span aria-hidden="true">/</span><span aria-current="page">{{ $page['name'] }}</span></nav>
-                <p class="cp-acb-kick cp-eyebrow">{{ $outline !== null ? strtr($love['eyebrow'], $counts) : $page['eyebrow'] }}</p>
-                <h1 id="page-h">{{ $page['hero_title'] }}</h1>
-                <p class="s-lede">{{ $page['hero_lead'] }}</p>
-                <p class="cp-hero-btns">
-                    <a href="{{ $tryUrl }}" class="btn-primary btn-lg">{{ $tryLabel }} <x-site.icon name="arrow" size="18" /></a>
-                    <a href="#units-h" class="btn-secondary btn-lg">{{ $page['see_lessons'] }}</a>
-                </p>
-                @unless ($open)
-                    <p class="cp-acb-quiet">{{ __('pages.site.course_soon') }}</p>
-                @endunless
-                <ul class="cp-hero-facts">
-                    @foreach ((array) $love['chips'] as $chip)
-                        @if ($outline !== null || ! str_contains($chip, ':lessons'))
-                            <li>{{ strtr($chip, $counts) }}</li>
-                        @endif
-                    @endforeach
-                </ul>
+                <p class="cp-acb-mono">{{ $outline !== null ? strtr($love['meta'], $counts) : $page['eyebrow'] }}</p>
             </div>
-            <figure class="cp-hero-card cp-acb-tones">
-                <p class="cp-acb-kick cp-acb-tones-h">{{ $tones['title'] }}</p>
-                <svg viewBox="0 0 320 310" role="img" aria-label="{{ $tones['alt'] }}">
-                    @foreach ($kinds as $n => $kind)
-                        @php($y = $rungY($n))
-                        @php($w = round(220 / sqrt($n)))
-                        <text x="30" y="{{ $y + 5 }}" class="cp-acb-tone-n">{{ $n }}</text>
-                        <path d="M58 {{ $y }} H{{ 58 + $w }}" class="cp-acb-rung cp-acb-rung-{{ $kind }}" />
-                        <text x="{{ 58 + $w + 14 }}" y="{{ $y + 6 }}" class="cp-acb-tone-name cp-acb-tone-{{ $kind }}">{{ $tones['names'][$n - 1] }}</text>
-                    @endforeach
-                    <path d="M44 {{ $rungY(1) + 18 }} H300" class="cp-acb-ground" />
-                </svg>
-                <figcaption>
-                    <ul class="cp-hero-legend">
-                        <li><i class="cp-acb-key-floor" aria-hidden="true"></i>{{ $tones['floor'] }}</li>
-                        <li><i class="cp-acb-key-octave" aria-hidden="true"></i>{{ $tones['octave'] }}</li>
-                        <li><i class="cp-acb-key-chord" aria-hidden="true"></i>{{ $tones['chord'] }}</li>
-                    </ul>
-                    <p class="cp-acb-tones-note">{{ $tones['note'] }}@include('site.courses._cites', ['keys' => ['unsw']])</p>
-                </figcaption>
-            </figure>
+            <div class="cp-acb-stage">
+                <p class="sr-only">{{ $tones['alt'] }}</p>
+                @foreach (range(2, 6) as $n)
+                    <p @class(['cp-acb-line', 'cp-acb-line-chord' => in_array($n, $chordTone, true)]) style="--at: {{ $lineAt($n) }}%" aria-hidden="true"><span>{{ __($tones['line'], ['n' => $n, 'note' => $tones['notes'][$n - 1], 'hz' => (string) round($c2 * $n)]) }}</span></p>
+                @endforeach
+                <h1 id="page-h">{{ $page['hero_title'] }}</h1>
+            </div>
+        </div>
+        <div class="cp-acb-floor">
+            <div class="s-wrap">
+                <p class="cp-acb-strip"><span class="cp-acb-strip-floor">{{ __($tones['floor'], ['note' => $tones['notes'][0], 'hz' => (string) round($c2)]) }}</span><span>{{ $tones['spacing'] }}@include('site.courses._cites', ['keys' => ['unsw']])</span></p>
+                <div class="cp-acb-floor-grid">
+                    <p class="cp-acb-lead">{{ $page['hero_lead'] }}</p>
+                    <div class="cp-acb-floor-act">
+                        <p class="cp-acb-btns">
+                            <a href="{{ $tryUrl }}" class="btn-primary btn-lg">{{ $tryLabel }} <x-site.icon name="arrow" size="18" /></a>
+                            <a href="#units-h" class="btn-secondary btn-lg">{{ $page['see_lessons'] }}</a>
+                        </p>
+                        @unless ($open)
+                            <p class="cp-acb-quiet">{{ __('pages.site.course_soon') }}</p>
+                        @endunless
+                        <ul class="cp-acb-facts">
+                            @foreach ((array) $love['chips'] as $chip)
+                                @if ($outline !== null || ! str_contains($chip, ':lessons'))
+                                    <li>{{ strtr($chip, $counts) }}</li>
+                                @endif
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
-    <section class="s-wrap cp-dk-demosec cp-acb-demosec" aria-labelledby="demo-h">
-        <div class="cp-dk-demo cp-dk-screen cp-acb-demo" data-acb-demo
-            data-ready="{{ $demo['ready'] }}" data-after="{{ $demo['after'] }}"
-            data-say-0="{{ $demo['says'][0] }}" data-say-1="{{ $demo['says'][1] }}" data-say-2="{{ $demo['says'][2] }}">
-            <p class="cp-dk-demo-bar"><span class="cp-dk-live"><span class="cp-dk-rec" aria-hidden="true"></span>{{ $demo['live'] }}</span><span>{{ $demo['lesson'] }}</span></p>
-            <div class="cp-acb-stage">
+    <section class="cp-acb-floor cp-acb-demosec" aria-labelledby="demo-h">
+        <div class="s-wrap">
+            <div class="cp-acb-demo" data-acb-demo
+                data-ready="{{ $demo['ready'] }}" data-after="{{ $demo['after'] }}"
+                data-say-0="{{ $demo['says'][0] }}" data-say-1="{{ $demo['says'][1] }}" data-say-2="{{ $demo['says'][2] }}">
+                <div class="cp-acb-demo-words">
+                    <p class="cp-acb-kick">{{ $demo['live'] }} · {{ $demo['lesson'] }}</p>
+                    <h2 id="demo-h" class="cp-acb-h2">{{ $demo['title'] }}</h2>
+                    <p class="cp-acb-demo-lead">{{ $demo['lead'] }}</p>
+                    <button type="button" class="cp-acb-play" data-acb-play aria-pressed="false"><span class="cp-acb-play-icon" aria-hidden="true"></span><span class="cp-acb-go"><x-site.skin :game="__('pages.site.demo_press_start')" :serious="$demo['play']" /></span><span class="cp-acb-stop">{{ $demo['stop'] }}</span></button>
+                    <p class="cp-acb-say" role="status" data-acb-say>{{ $demo['ready'] }}</p>
+                    <p class="cp-acb-mono cp-acb-demo-note">{{ $demo['hz'] }} {{ $demo['note'] }}</p>
+                </div>
                 <ol class="cp-acb-chords" role="group" aria-label="{{ $demo['stage'] }}">
                     @foreach ((array) $demo['chords'] as [$name, $mood])
                         @php($bass = $basses[$loop->index])
                         <li>
-                            <button type="button" class="cp-acb-chord" data-acb-chord="{{ $loop->index }}" aria-pressed="false">
+                            <button type="button" @class(['cp-acb-chord', 'cp-acb-chord-bass' => $bass !== null]) data-acb-chord="{{ $loop->index }}" aria-pressed="false">
                                 <span class="cp-acb-col" aria-hidden="true">
-                                    <span class="cp-acb-dot cp-acb-top" style="--p: {{ $place(64) }}">{{ $demo['top'][1] }}</span>
-                                    <span class="cp-acb-dot cp-acb-top" style="--p: {{ $place(60) }}">{{ $demo['top'][0] }}</span>
+                                    <span class="cp-acb-note" style="--p: {{ $place(64) }}">{{ $demo['top'][1] }}</span>
+                                    <span class="cp-acb-note" style="--p: {{ $place(60) }}">{{ $demo['top'][0] }}</span>
                                     @if ($bass === null)
-                                        <span class="cp-acb-dot cp-acb-none" style="--p: {{ $place(48) }}">{{ $demo['empty'] }}</span>
+                                        <span class="cp-acb-note cp-acb-note-none" style="--p: {{ $place(47) }}">{{ $demo['empty'] }}</span>
                                     @else
-                                        <span class="cp-acb-dot cp-acb-bass" style="--p: {{ $place($bass) }}">{{ $demo['bass'][$loop->index] }}</span>
+                                        <span class="cp-acb-note cp-acb-note-bass" style="--p: {{ $place($bass) }}">{{ $demo['bass'][$loop->index] }}</span>
                                     @endif
                                 </span>
-                                <span class="cp-acb-name">{{ $name }}</span>
-                                <span class="cp-acb-mood">{{ $mood }}</span>
+                                <span class="cp-acb-chord-name"><b>{{ $name }}</b><span>{{ $mood }}</span></span>
                             </button>
                         </li>
                     @endforeach
                 </ol>
-                <button type="button" class="cp-dk-big cp-acb-big" data-acb-play aria-pressed="false"><span class="cp-dk-big-icon" aria-hidden="true"></span><span class="cp-acb-go"><x-site.skin :game="__('pages.site.demo_press_start')" :serious="$demo['play']" /></span><span class="cp-acb-stop">{{ $demo['stop'] }}</span></button>
-            </div>
-            <div class="cp-dk-caption">
-                <div>
-                    <h2 id="demo-h" class="cp-dk-demo-h">{{ $demo['title'] }}</h2>
-                    <p class="cp-dk-demo-lead">{{ $demo['lead'] }}</p>
-                </div>
-                <div>
-                    <p class="cp-dk-say cp-acb-say" role="status" data-acb-say>{{ $demo['ready'] }}</p>
-                    <p class="cp-dk-note cp-acb-hz">{{ $demo['hz'] }}</p>
-                    <p class="cp-dk-note">{{ $demo['note'] }}</p>
-                </div>
             </div>
         </div>
     </section>
 
-    <section class="s-wrap s-sec cp-acb-story" aria-labelledby="story-h">
-        <p class="cp-acb-kick">{{ $page['kicks']['story'] }}</p>
-        <h2 id="story-h" class="cp-acb-title">{{ $page['titles']['story'] }}</h2>
-        <ol class="cp-acb-years">
-            @foreach ((array) $love['story'] as [$when, $title, $text, $cites])
+    <section class="s-wrap cp-acb-sec cp-acb-story" aria-labelledby="story-h">
+        <div class="cp-acb-head cp-acb-head-ruled">
+            <div>
+                <p class="cp-acb-kick">{{ $page['kicks']['story'] }}</p>
+                <h2 id="story-h" class="cp-acb-h2">{{ $page['titles']['story'] }}</h2>
+            </div>
+            <p class="cp-acb-mono">{{ __($page['story_count'], ['n' => count($story), 'from' => $story[0][0], 'to' => $story[count($story) - 1][0]]) }}</p>
+        </div>
+        <ol class="cp-acb-discs">
+            @foreach ($story as [$when, $title, $text, $cites])
                 <li>
-                    <p class="cp-acb-year">{{ $when }}</p>
-                    <div>
+                    <span class="cp-acb-disc cp-acb-ring cp-acb-disc-{{ [0, 1, 2, 0, 1][$loop->index] ?? 0 }}" aria-hidden="true"></span>
+                    <div class="cp-acb-when">
+                        <p class="cp-acb-year">{{ $when }}</p>
+                        <p class="cp-acb-mono cp-acb-label">{{ $love['story_labels'][$loop->index] ?? '' }}</p>
+                    </div>
+                    <div class="cp-acb-entry">
                         <h3>{{ $title }}</h3>
                         <p>{{ $text }}@include('site.courses._cites', ['keys' => $cites])</p>
                     </div>
@@ -132,9 +134,9 @@
         </ol>
     </section>
 
-    <section class="s-wrap s-sec cp-acb-aimsec" aria-labelledby="outcomes-h">
+    <section class="s-wrap cp-acb-sec cp-acb-aimsec" aria-labelledby="outcomes-h">
         <p class="cp-acb-kick">{{ $page['kicks']['aims'] }}</p>
-        <h2 id="outcomes-h" class="cp-acb-title">{{ $page['titles']['outcomes'] }}</h2>
+        <h2 id="outcomes-h" class="cp-acb-h2">{{ $page['titles']['outcomes'] }}</h2>
         <ol class="cp-acb-aims">
             @foreach ((array) $page['outcomes'] as $outcome)
                 <li><span class="cp-acb-aim-n" aria-hidden="true">{{ $loop->iteration }}</span><p>{{ $outcome }}</p></li>
@@ -144,140 +146,158 @@
 
     @if ($outline !== null)
         <section class="cp-acb-unitsec" aria-labelledby="units-h">
-            <div class="s-wrap s-sec">
-                <p class="cp-acb-kick">{{ $page['kicks']['units'] }}</p>
-                <div class="cp-acb-unithead">
-                    <h2 id="units-h" class="cp-acb-title">{{ $page['titles']['units'] }}</h2>
-                    <p class="cp-acb-count">{{ __('pages.site.course_size', ['units' => count($outline['units']), 'lessons' => $outline['lessons']]) }}</p>
+            <div class="s-wrap">
+                <div class="cp-acb-head">
+                    <div>
+                        <p class="cp-acb-kick">{{ $page['kicks']['units'] }}</p>
+                        <h2 id="units-h" class="cp-acb-h2">{{ $page['titles']['units'] }}</h2>
+                    </div>
+                    <p class="cp-acb-units-note">{{ $page['units_note'] }}</p>
                 </div>
-                <ol class="cp-acb-units">
+                <ol class="cp-acb-steps">
                     @foreach ($outline['units'] as $unit)
                         @php($stage = __('pages.site.course_stage', ['n' => $loop->iteration]))
                         @php($unitName = __('pages.site.course_unit', ['n' => $loop->iteration]))
-                        <li class="cp-acb-unit">
-                            <p class="cp-acb-unit-n"><span class="cp-acb-unit-dot" aria-hidden="true">{{ $loop->iteration }}</span><x-site.skin :game="$stage" :serious="$unitName" /></p>
+                        <li class="cp-acb-step" style="--step: {{ $loop->remaining }}">
+                            <p class="cp-acb-mono cp-acb-step-n"><x-site.skin :game="$stage" :serious="$unitName" />@isset($page['unit_tags'][$loop->index]) · {{ $page['unit_tags'][$loop->index] }}@endisset</p>
                             <h3>{{ $unit['title'] }}</h3>
                             @isset($page['units_say'][$loop->index])
-                                <p class="cp-acb-unit-say">{{ $page['units_say'][$loop->index] }}</p>
+                                <p class="cp-acb-step-say">{{ $page['units_say'][$loop->index] }}</p>
                             @endisset
-                            {{-- Unit 1's lessons always show; the others fold on a phone (open on a wide screen). --}}
-                            <details class="cp-acb-fold" @if ($loop->first) open data-acb-always @else data-acb-wide @endif>
-                                <summary>{{ __('pages.site.course_chip_lessons', ['n' => count($unit['lessons'])]) }}</summary>
-                                <ol class="cp-acb-lessons">
-                                    @foreach ($unit['lessons'] as $lesson)
-                                        <li><span>{{ $lesson }}</span>@if ($loop->parent->first && $loop->first)<span class="cp-acb-free">{{ __('pages.site.course_free') }}</span>@endif</li>
-                                    @endforeach
-                                </ol>
-                            </details>
+                            <ol class="cp-acb-lessons" aria-label="{{ __('pages.site.course_chip_lessons', ['n' => count($unit['lessons'])]) }}">
+                                @foreach ($unit['lessons'] as $lesson)
+                                    <li @class(['cp-acb-lesson-last' => $loop->parent->last && $loop->last])><span>{{ $lesson }}</span>@if ($loop->parent->first && $loop->first)<span class="cp-acb-free">{{ __('pages.site.course_free') }}</span>@endif</li>
+                                @endforeach
+                            </ol>
                         </li>
                     @endforeach
                 </ol>
             </div>
+            <div class="cp-acb-floor cp-acb-landing">
+                <p class="s-wrap cp-acb-strip"><span class="cp-acb-strip-floor">{{ strtr($page['units_floor'], $counts) }}</span><span>{{ $page['units_land'] }}</span></p>
+            </div>
         </section>
     @endif
 
-    <section class="s-wrap s-sec cp-acb-science" aria-labelledby="science-h">
+    <section class="s-wrap cp-acb-sec cp-acb-science" aria-labelledby="science-h">
         <p class="cp-acb-kick">{{ $page['kicks']['science'] }}</p>
-        <h2 id="science-h" class="cp-acb-title">{{ $page['titles']['science'] }}</h2>
-        <ul class="cp-acb-cards">
+        <h2 id="science-h" class="cp-acb-h2">{{ $page['titles']['science'] }}</h2>
+        <div class="cp-acb-mf" data-acb-missing data-after="{{ $missing['after'] }}">
+            <div class="cp-acb-mf-words">
+                <h3>{{ $missing['title'] }}</h3>
+                <p class="cp-acb-serif">{{ $missing['lead'] }}@include('site.courses._cites', ['keys' => ['jasa', 'libre']])</p>
+                <p class="cp-acb-mf-try">{{ $missing['try'] }}</p>
+            </div>
+            <div class="cp-acb-mf-card">
+                <div class="cp-acb-bars" aria-hidden="true">
+                    @foreach ($levels as $level)
+                        <span @class(['cp-acb-bar', 'cp-acb-bar-fund' => $loop->first]) style="--h: {{ $level }}%" @if ($loop->first) data-acb-fund @endif></span>
+                    @endforeach
+                </div>
+                <p class="cp-acb-mono cp-acb-hz" aria-hidden="true">@foreach (range(1, 6) as $n)<span>{{ $n * 98 }}</span>@endforeach</p>
+                <div class="cp-acb-mf-act">
+                    <button type="button" class="cp-acb-hear" data-acb-missing-play data-play="{{ $missing['play'] }}" data-stop="{{ $missing['stop'] }}" aria-pressed="false"><span class="cp-acb-play-icon" aria-hidden="true"></span><span data-label>{{ $missing['play'] }}</span></button>
+                    <p class="cp-acb-mono cp-acb-mf-state" aria-hidden="true" data-acb-state data-with="{{ $missing['with'] }}" data-without="{{ $missing['without'] }}">{{ __($missing['hz_list'], ['list' => implode(' · ', array_map(fn (int $n): int => $n * 98, range(1, 6)))]) }}</p>
+                </div>
+                <p class="cp-acb-mf-say" role="status" data-acb-missing-say></p>
+            </div>
+        </div>
+        <ul class="cp-acb-sci">
             @foreach ((array) $love['science'] as [$title, $text, $cites])
-                @if ($loop->index === 2)
-                    <li class="cp-acb-card cp-acb-missing" data-acb-missing data-after="{{ $missing['after'] }}">
-                        <div>
-                            <h3>{{ $missing['title'] }}</h3>
-                            <p>{{ $missing['lead'] }}@include('site.courses._cites', ['keys' => ['jasa', 'libre']])</p>
-                        </div>
-                        <div class="cp-acb-missing-play">
-                            <svg viewBox="0 0 300 130" class="cp-acb-spectrum" aria-hidden="true">
-                                <path d="M10 100 H290" class="cp-acb-axis" />
-                                @foreach (range(1, 6) as $n)
-                                    @php($h = round(84 / sqrt($n)))
-                                    <rect x="{{ $n * 44 - 14 }}" y="{{ 100 - $h }}" width="28" height="{{ $h }}" rx="4" @class(['cp-acb-bar', 'cp-acb-bar-fund' => $n === 1]) @if ($n === 1) data-acb-fund @endif />
-                                    <text x="{{ $n * 44 }}" y="122" class="cp-acb-bar-hz">{{ $n * 98 }}</text>
-                                @endforeach
-                            </svg>
-                            <p class="cp-acb-parts" aria-hidden="true"><span data-acb-part="with">{{ $missing['with'] }}</span><span data-acb-part="without">{{ $missing['without'] }}</span></p>
-                            <p class="cp-acb-body cp-acb-try">{{ $missing['try'] }}</p>
-                            <p class="cp-acb-btns"><button type="button" class="cp-acb-hear" data-acb-missing-play data-play="{{ $missing['play'] }}" data-stop="{{ $missing['stop'] }}" aria-pressed="false"><span class="cp-acb-hear-icon" aria-hidden="true"></span><span data-label>{{ $missing['play'] }}</span></button></p>
-                            <p class="cp-acb-missing-say" role="status" data-acb-missing-say></p>
-                        </div>
-                    </li>
-                @endif
-                <li class="cp-acb-card">
+                <li>
                     <h3>{{ $title }}</h3>
-                    <p>{{ $text }}@include('site.courses._cites', ['keys' => $cites])</p>
+                    <p class="cp-acb-serif">{{ $text }}@include('site.courses._cites', ['keys' => $cites])</p>
                 </li>
             @endforeach
         </ul>
     </section>
 
-    <section class="cp-acb-band" aria-labelledby="margin-h">
-        <div class="s-wrap s-sec cp-acb-band-grid">
+    <section class="cp-acb-floor cp-acb-liner" aria-labelledby="margin-h">
+        <div class="s-wrap cp-acb-liner-grid">
             <div>
                 <p class="cp-acb-kick">{{ $page['kicks']['margin'] }}</p>
-                <h2 id="margin-h" class="cp-acb-title">{{ $page['titles']['margin'] }}</h2>
-                <h3 class="cp-acb-kick cp-acb-inside-h">{{ $page['titles']['inside'] }}</h3>
-                <p class="cp-acb-body">{{ $page['measures'] }}</p>
+                <h2 id="margin-h" class="cp-acb-h2">{{ $page['titles']['margin'] }}</h2>
+                <div class="cp-acb-inside">
+                    <h3 class="cp-acb-kick">{{ $page['titles']['inside'] }}</h3>
+                    <p>{{ $page['measures'] }}</p>
+                </div>
             </div>
-            <ul class="cp-acb-margin">
+            <ul class="cp-acb-notes">
                 @foreach ((array) $love['margin'] as [$text, $cites])
-                    <li><p>{{ $text }}@include('site.courses._cites', ['keys' => $cites])</p></li>
+                    <li>{{ $text }}@include('site.courses._cites', ['keys' => $cites])</li>
                 @endforeach
             </ul>
         </div>
     </section>
 
-    <section class="s-wrap s-sec cp-acb-begin" aria-labelledby="begin-h">
+    <section class="s-wrap cp-acb-sec cp-acb-begin" aria-labelledby="begin-h">
         <p class="cp-acb-kick">{{ $page['kicks']['begin'] }}</p>
-        <h2 id="begin-h" class="cp-acb-title">{{ $page['titles']['who'] }}</h2>
+        <h2 id="begin-h" class="cp-acb-h2">{{ $page['titles']['who'] }}</h2>
         <div class="cp-acb-begin-grid">
-            <ul class="cp-acb-ticks">@foreach ((array) $page['who'] as $item)<li><x-site.icon name="check" size="16" /><span>{{ $item }}</span></li>@endforeach</ul>
-            <div><h3>{{ $page['titles']['need'] }}</h3><ul class="cp-acb-ticks">@foreach ((array) $page['need'] as $item)<li><x-site.icon name="check" size="16" /><span>{{ $item }}</span></li>@endforeach</ul></div>
             <div>
-                <h3>{{ $page['titles']['safety'] }}</h3>
-                <ul class="cp-acb-ticks">@foreach ((array) $page['safety'] as $item)<li><x-site.icon name="info" size="16" /><span>{{ $item }}</span></li>@endforeach</ul>
-                <h3 class="cp-acb-songs-h">{{ __('pages.site.course_songs') }}</h3>
-                <ul class="cp-acb-songs">
+                <h3 class="cp-acb-col-h">{{ $page['titles']['who_short'] }}</h3>
+                <ul class="cp-acb-rows">@foreach ((array) $page['who'] as $item)<li>{{ $item }}</li>@endforeach</ul>
+            </div>
+            <div>
+                <h3 class="cp-acb-col-h">{{ $page['titles']['need'] }}</h3>
+                <ul class="cp-acb-rows">@foreach ((array) $page['need'] as $item)<li>{{ $item }}</li>@endforeach</ul>
+                <h3 class="cp-acb-col-h cp-acb-songs-h">{{ __('pages.site.course_songs') }}</h3>
+                <ul class="cp-acb-rows cp-acb-songs">
                     @foreach ((array) $page['songs'] as [$song, $credit])
                         <li><b translate="no">{{ $song }}</b><span>{{ $credit }}</span></li>
                     @endforeach
                 </ul>
             </div>
+            <div>
+                <h3 class="cp-acb-col-h cp-acb-col-safe">{{ $page['titles']['safety'] }}</h3>
+                <ul class="cp-acb-rows">@foreach ((array) $page['safety'] as $item)<li>{{ $item }}</li>@endforeach</ul>
+            </div>
         </div>
     </section>
 
-    <section class="s-wrap s-sec cp-acb-fine" aria-labelledby="faq-h">
+    <section class="s-wrap cp-acb-sec cp-acb-fine" aria-labelledby="faq-h">
         <div>
             <p class="cp-acb-kick">{{ $page['kicks']['questions'] }}</p>
-            <h2 id="faq-h" class="cp-acb-title">{{ $page['titles']['faq'] }}</h2>
+            <h2 id="faq-h" class="cp-acb-h2">{{ $page['titles']['faq'] }}</h2>
         </div>
         @include('site.courses._faq')
     </section>
 
     <section class="cp-acb-close" aria-labelledby="join-h">
-        <div class="s-wrap s-sec cp-acb-close-in">
-            <p class="cp-acb-kick">{{ $page['kicks']['close'] }}</p>
-            <h2 id="join-h" class="cp-acb-title">{{ $page['titles']['join'] }}</h2>
-            <p class="cp-acb-body">{{ $open ? $page['close'] : __('pages.site.course_soon') }}</p>
-            <p class="cp-join-btns">
-                <a href="{{ $tryUrl }}" class="btn-primary btn-lg">{{ $tryLabel }} <x-site.icon name="arrow" size="18" /></a>
-                @if ($open)
-                    <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>
-                @else
-                    <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>
-                @endif
-            </p>
-            @if ($open)
-                <p class="cp-acb-note">{{ __('pages.site.course_join_note') }}</p>
-            @endif
-            <h3 class="cp-acb-kick cp-acb-related-h">{{ $page['titles']['related'] }}</h3>
-            @include('site.courses._related')
+        <div class="s-wrap">
+            <ul class="cp-acb-parts" aria-hidden="true">
+                @foreach ((array) $page['close_parts'] as $part)
+                    <li><span>{{ $part }}</span></li>
+                @endforeach
+            </ul>
+            <h2 id="join-h" class="cp-acb-close-h">{{ $page['titles']['join'] }}</h2>
+        </div>
+        <div class="cp-acb-floor">
+            <div class="s-wrap">
+                <p class="cp-acb-strip"><span class="cp-acb-strip-floor">{{ $page['kicks']['close'] }}</span></p>
+                <div class="cp-acb-floor-grid">
+                    <p class="cp-acb-lead">{{ $open ? $page['close'] : __('pages.site.course_soon') }}</p>
+                    <div class="cp-acb-floor-act">
+                        <p class="cp-acb-btns">
+                            <a href="{{ $tryUrl }}" class="btn-primary btn-lg">{{ $tryLabel }} <x-site.icon name="arrow" size="18" /></a>
+                            <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>
+                        </p>
+                        @if ($open)
+                            <p class="cp-acb-quiet">{{ __('pages.site.course_join_note') }}</p>
+                        @endif
+                    </div>
+                </div>
+                <div class="cp-acb-related">
+                    <h3 class="cp-acb-mono">{{ $page['titles']['related'] }}</h3>
+                    @include('site.courses._related')
+                </div>
+            </div>
         </div>
     </section>
 
     <section class="s-wrap cp-acb-sources" aria-labelledby="notes-h">
         <details data-acb-sources>
-            <summary><h2 id="notes-h" class="cp-acb-kick">{{ __('pages.site.sources') }} <span>({{ count($sources) }})</span></h2></summary>
+            <summary><h2 id="notes-h" class="cp-acb-mono">{{ __('pages.site.sources') }} <span>({{ count($sources) }})</span></h2></summary>
             <ol>
                 @foreach ($sources as [$label, $url])
                     <li id="src-{{ $loop->iteration }}"><a href="{{ $url }}" rel="noopener">{{ $label }}</a></li>

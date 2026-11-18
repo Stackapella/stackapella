@@ -1,6 +1,6 @@
 // The Counterpoint course page's demos (server/resources/views/site/courses/counterpoint.blade.php),
-// made here with voices.js and only when pressed: Row, Row, Row Your Boat as a round for three, with
-// one voice to follow; a run of notes taking turns high and low, split into two tunes by speed; the
+// made here with voices.js and only when pressed: the course's first-species exercise, its two lines
+// note against note; Row, Row, Row Your Boat as a round for three, with one voice to follow; a run of notes taking turns high and low, split into two tunes by speed; the
 // same top line over parallel fifths and over contrary motion; an octave melting into one note; a
 // round for four whose entries you count; and a short line with a copy you move until it fits.
 // Every sound is scheduled on the audio clock, never a timer, and the drawings follow that clock:
@@ -97,6 +97,24 @@ function clock(from, end) {
     return v;
 }
 
+// Fig. 1, first species: the counterpoint over the cantus (the figure's data-top and data-low, MIDI),
+// a pair every data-step seconds, sung together; each pair, its tie and its red figure light as it
+// sounds.
+const species = page.querySelector('[data-cp-species]');
+const speciesPlay = species.querySelector('[data-cp-species-play]');
+const SPECIES_TOP = JSON.parse(species.dataset.top);
+const SPECIES_LOW = JSON.parse(species.dataset.low);
+const SPECIES_STEP = Number(species.dataset.step);
+speciesPlay.addEventListener('click', () => start(speciesPlay, () => {
+    const from = audio().currentTime + 0.08;
+    const notes = (midi) => midi.map((m, i) => ({ at: i * SPECIES_STEP, length: SPECIES_STEP, f: hz(m) }));
+    const off = watch([species], from);
+    return {
+        voices: [...sing(notes(SPECIES_TOP), from, { level: 0.11 }), ...sing(notes(SPECIES_LOW), from, { level: 0.11, cents: 4 })],
+        done: off,
+    };
+}));
+
 // The round: the tune drawn by the canon (its data-tune, in eighths), each voice two bars (12
 // eighths) after the last, every voice a few cents apart, as real singers are.
 const art = page.querySelector('[data-tune]');
@@ -192,12 +210,14 @@ for (const button of page.querySelectorAll('[data-cp-round]')) {
 const run = page.querySelector('[data-cp-run]');
 const rate = run.querySelector('[data-cp-rate]');
 const streams = run.querySelector('[data-cp-streams]');
+const rateOut = run.querySelector('[data-cp-rate-out]');
 const runPlay = run.querySelector('[data-cp-run-play]');
 const HIGH = JSON.parse(run.dataset.high);
 const LOW = JSON.parse(run.dataset.low);
 function showRate() {
     const split = Math.min(1, Math.max(0, (Number(rate.value) - 5) / 3));
     run.style.setProperty('--split', split.toFixed(2));
+    rateOut.textContent = rateOut.dataset.say.replace(':n', rate.value);
     const two = split >= 0.5;
     say(streams, two ? streams.dataset.two : streams.dataset.one, two ? streams.dataset.twoGame : streams.dataset.oneGame);
 }
@@ -234,8 +254,8 @@ for (const tab of fuse.querySelectorAll('[data-cp-tab]')) {
         const kind = tab.dataset.cpTab;
         if (playing && fuse.contains(playing.button)) finish();
         fuse.querySelectorAll('[data-cp-tab]').forEach((t) => t.setAttribute('aria-pressed', String(t === tab)));
-        fuse.querySelector('[data-cp-panel="motion"]').hidden = kind === 'melt';
-        fuse.querySelector('[data-cp-panel="melt"]').hidden = kind !== 'melt';
+        fuse.querySelectorAll('[data-cp-panel="motion"], [data-cp-art="motion"]').forEach((el) => { el.hidden = kind === 'melt'; });
+        fuse.querySelectorAll('[data-cp-panel="melt"], [data-cp-art="melt"]').forEach((el) => { el.hidden = kind !== 'melt'; });
         if (kind !== 'melt') fuse.dataset.kind = kind;
         picks.forEach((p) => p.setAttribute('aria-pressed', 'false'));
         answer.textContent = '';
@@ -267,12 +287,13 @@ for (const pick of picks) {
 // the beat rate, 2·f·(2^(c/1200) − 1) with f the A3 (its second overtone against the A4). With
 // reduced motion it only lifts.
 const melt = page.querySelector('[data-cp-melt]');
+const meltArt = fuse.querySelector('[data-cp-art="melt"]');
 const detune = melt.querySelector('[data-cp-detune]');
 const centsOut = melt.querySelector('[data-cp-cents]');
 const melted = melt.querySelector('[data-cp-melted]');
 const meltPlay = melt.querySelector('[data-cp-melt-play]');
-const meltThread = melt.querySelector('[data-cp-melt-thread]');
-const meltDot = melt.querySelector('[data-cp-melt-dot]');
+const meltThread = meltArt.querySelector('[data-cp-melt-thread]');
+const meltDot = meltArt.querySelector('[data-cp-melt-dot]');
 const LOW_A = 220;
 let upper = null;
 function drawMelt(time) {
@@ -284,13 +305,14 @@ function drawMelt(time) {
     let d = `M10 ${y.toFixed(1)}`;
     for (let x = 16; x <= 262; x += 6) d += ` L${x} ${(y + swing * Math.sin(((x - 10) / 252) * 3 * Math.PI)).toFixed(1)}`;
     meltThread.setAttribute('d', d);
-    meltDot.setAttribute('cy', y.toFixed(1));
+    meltDot.setAttribute('y', (y - 5).toFixed(1));
 }
 function showMelt() {
     const cents = Number(detune.value);
     centsOut.textContent = cents > 0 ? `+${cents}` : String(cents);
     const one = Math.abs(cents) <= 3;
     melt.toggleAttribute('data-merged', one);
+    meltArt.toggleAttribute('data-merged', one);
     say(melted, one ? melted.dataset.one : melted.dataset.two, one ? melted.dataset.oneGame : melted.dataset.twoGame);
     upper?.tune(cents, 0.08);
     drawMelt(performance.now() / 1000);
@@ -317,10 +339,11 @@ meltPlay.addEventListener('click', () => start(meltPlay, () => {
 }));
 showMelt();
 
-// Count the voices: the round for four, building up; at rest only the time line shows, and each
-// lane is drawn as its voice comes in. New voice catches an entry when it's pressed from just
-// before that voice comes in until two seconds after (the entries are 2.16 seconds apart). Taps
-// are marked on the time line; the score and the 1989 study come once it's over.
+// Count the voices: the round for four, building up; at rest only the four empty staves show, and
+// each voice's notes are drawn as it comes in, lit as they sound. New voice catches an entry when
+// it's pressed from just before that voice comes in until two seconds after (the entries are 2.16
+// seconds apart). Each press is a red tick on the time line; once it's over, the real entries are
+// marked beside them, with the score and the 1989 study.
 const count = page.querySelector('[data-cp-count]');
 const countPlay = count.querySelector('[data-cp-count-play]');
 const tap = count.querySelector('[data-cp-tap]');
@@ -328,7 +351,12 @@ const taps = count.querySelector('[data-cp-taps]');
 const caught = count.querySelector('[data-cp-caught]');
 const countNote = count.querySelector('[data-cp-count-note]');
 const entries = [...count.querySelectorAll('[data-cp-entry]')];
-const LANE = 580 / 84;
+const lanes = count.querySelector('.cp-cp2-lanes');
+const real = count.querySelector('[data-cp-real]');
+const countLegend = count.querySelector('[data-cp-count-legend]');
+const countHead = count.querySelector('[data-cp-count-head]');
+const LANE_X0 = Number(lanes.dataset.x0);
+const LANE = Number(lanes.dataset.lane);
 let session = null; // { from, times, caught }
 countPlay.addEventListener('click', () => start(countPlay, () => {
     const from = audio().currentTime + 0.1;
@@ -338,8 +366,13 @@ countPlay.addEventListener('click', () => start(countPlay, () => {
     taps.replaceChildren();
     caught.hidden = true;
     countNote.hidden = true;
+    countLegend.hidden = true;
+    real.removeAttribute('data-shown');
     tap.disabled = false;
-    const off = watch([count], from, (t) => entries.forEach((entry, k) => entry.toggleAttribute('data-in', t >= k * 12 * EIGHTH)));
+    const off = watch([count], from, (t) => {
+        entries.forEach((entry, k) => entry.toggleAttribute('data-in', t >= k * 12 * EIGHTH));
+        if (!still()) countHead.style.transform = `translateX(${(Math.max(0, Math.min(84, t / EIGHTH)) * LANE).toFixed(1)}px)`;
+    });
     return {
         voices,
         done: () => {
@@ -348,6 +381,9 @@ countPlay.addEventListener('click', () => start(countPlay, () => {
             const total = String(session.times.length);
             say(caught, caught.dataset.say.replace(':n', n).replace(':total', total), caught.dataset.sayGame.replace(':n', n).replace(':total', total));
             entries.forEach((entry) => entry.setAttribute('data-in', ''));
+            countHead.style.transform = '';
+            real.setAttribute('data-shown', '');
+            countLegend.hidden = false;
             caught.hidden = false;
             countNote.hidden = false;
             tap.disabled = true;
@@ -360,18 +396,20 @@ tap.addEventListener('click', () => {
     const now = audio().currentTime;
     const hit = session.times.findIndex((t, i) => !session.caught.has(i) && now >= t - 0.15 && now <= t + 2);
     if (hit >= 0) session.caught.add(hit);
-    const mark = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    mark.setAttribute('cx', (10 + Math.min(84, (now - session.from) / EIGHTH) * LANE).toFixed(1));
-    mark.setAttribute('cy', '106');
-    mark.setAttribute('r', '5');
+    const mark = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    mark.setAttribute('x', (LANE_X0 - 1 + Math.max(0, Math.min(84, (now - session.from) / EIGHTH)) * LANE).toFixed(1));
+    mark.setAttribute('y', '181');
+    mark.setAttribute('width', '2.5');
+    mark.setAttribute('height', '18');
     mark.setAttribute('class', hit >= 0 ? 'cp-cp2-tapmark cp-cp2-hit' : 'cp-cp2-tapmark');
     taps.append(mark);
 });
 
 // Seek and you shall find: the line, and a copy coming in after the slider's beats. A delay fits
 // when every pair of notes sounding together is smooth in the course's style (unison or octave,
-// thirds, the fifth, sixths). Nothing is given away: a delay's mark, its links and its verdict
-// show only once it has been heard to the end.
+// thirds, the fifth, sixths). Nothing is given away: a delay's marks (a hollow square under each
+// beat that sounds smooth, a filled red one where it rubs), its tick and its verdict show only once
+// it has been heard to the end.
 const seek = page.querySelector('[data-cp-seek]');
 const LINE = JSON.parse(seek.dataset.line);
 const delay = seek.querySelector('[data-cp-delay]');
@@ -385,7 +423,6 @@ const SMOOTH = new Set([0, 3, 4, 7, 8, 9]);
 const smooth = (a, b) => SMOOTH.has(Math.abs(a - b) % 12);
 const clashes = (d) => LINE.slice(d).filter((m, i) => !smooth(m, LINE[i])).length;
 const x = (beat) => 24 + beat * 36;
-const y = (m) => 112 - (m - 60) * 10;
 const heard = new Set();
 seek.querySelectorAll('[data-cp-note]').forEach((dot) => { dot.dataset.len = String(BEAT); });
 function showSeek() {
@@ -395,10 +432,14 @@ function showSeek() {
     seek.querySelectorAll('[data-cp-note]').forEach((dot) => { dot.dataset.at = String((Number(dot.dataset.cpNote) + (copy.contains(dot) ? d : 0)) * BEAT); });
     const known = heard.has(d);
     links.replaceChildren(...(known ? LINE.slice(d).map((m, i) => {
-        const link = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        link.setAttribute('d', `M${x(d + i)} ${y(m)} V${y(LINE[i])}`);
-        link.setAttribute('class', smooth(m, LINE[i]) ? 'cp-cp2-link' : 'cp-cp2-link cp-cp2-rub');
-        return link;
+        const mark = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        mark.setAttribute('x', String(x(d + i) - 5));
+        mark.setAttribute('y', '134');
+        mark.setAttribute('width', '10');
+        mark.setAttribute('height', '10');
+        mark.setAttribute('rx', '1');
+        mark.setAttribute('class', smooth(m, LINE[i]) ? 'cp-cp2-beat' : 'cp-cp2-beat cp-cp2-rub');
+        return mark;
     }) : []));
     const n = clashes(d);
     fit.hidden = !known;
