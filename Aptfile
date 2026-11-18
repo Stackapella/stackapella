@@ -2,3 +2,5 @@
 # exactly these.
 ffmpeg
 default-mysql-client
+# The scheduler's PID 1 (.do/app.yaml): it reaps the orphans every runInBackground task leaves.
+tini

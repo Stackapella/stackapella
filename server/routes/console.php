@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Schedule;
 | is drained here every minute, as iaw does; ffmpeg work has its own resident worker on `long`
 | (docs/conventions.md, "Two queues"). Slow tasks run in the background, so the minute's quick ones
 | (the heartbeat, the queue, coaching deadlines, posts) never wait behind them.
+| The hourly background tasks start in different minutes (:35, :37, :38, :41), never several at once:
+| each is a PHP process of 40 to 60 MB on the scheduler's 512 MB instance (2026-11-18).
 |
 */
 
@@ -132,7 +134,7 @@ Schedule::command('app:choirs:mix')
 Schedule::command('app:coaches:refresh')
     ->onOneServer()
     ->name('coaches-refresh')
-    ->hourlyAt(35)
+    ->hourlyAt(37)
     ->withoutOverlapping(30)
     ->runInBackground();
 
@@ -173,7 +175,7 @@ Schedule::command('queue:prune-failed --hours=720')
 Schedule::command('app:bin:purge')
     ->onOneServer()
     ->name('bin-purge')
-    ->hourlyAt(35)
+    ->hourlyAt(38)
     ->withoutOverlapping(60)
     ->runInBackground();
 
@@ -267,7 +269,7 @@ Schedule::command('app:social:send')
 Schedule::command('app:books:sweep')
     ->onOneServer()
     ->name('books-sweep')
-    ->hourlyAt(35)
+    ->hourlyAt(41)
     ->withoutOverlapping(50)
     ->runInBackground();
 

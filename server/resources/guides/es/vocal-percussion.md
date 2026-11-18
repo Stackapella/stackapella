@@ -1,15 +1,15 @@
 ---
-title: Percusión vocal para un grupo a cappella
-description: La percusión vocal es la batería de tu grupo: los sonidos de bombo, caja y hi-hat, respirar mientras tocas, el micrófono, encajar con el bajo y cuándo parar.
+title: Cómo hacer percusión vocal en un grupo a cappella
+description: En un grupo a cappella, la VP es la batería: el bombo, la caja y el hi-hat, un primer ritmo, respirar al tocar, el micrófono y cómo encajar con el bajo.
 song: wade-in-the-water
 version: 1
 reviewed: false
-translatedFrom: a821f45ed602
+translatedFrom: aad161790954
 ---
 
 # Cómo hacer percusión vocal en un grupo a cappella
 
-La percusión vocal (VP, por sus siglas en inglés) es la batería de un grupo a cappella, hecha con la boca: un bombo, una caja y un hi-hat, y lo que la canción necesite. En un grupo, la tarea de quien hace VP no es lucirse. Es llevar el tiempo con tanta firmeza que todos los demás puedan relajarse en el groove.
+En un grupo a cappella, la percusión vocal (VP, por sus siglas en inglés) es la batería, hecha con la boca: normalmente una sola persona toca el bombo, la caja y el hi-hat, y mantiene a todo el grupo a tempo. Su tarea no es lucirse. Es llevar el pulso con tanta firmeza que todos los demás puedan relajarse en el groove.
 
 La VP de grupo y el beatbox en solitario comparten muchos sonidos, pero el trabajo es distinto. Quien hace beatbox es todo el espectáculo. La VP de un grupo es la mitad de la sección rítmica, junto con el bajo, y toca al servicio de la canción.
 

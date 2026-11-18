@@ -1,10 +1,10 @@
 ---
 title: Qué es SATB: soprano, contralto, tenor y bajo
-description: SATB es soprano, contralto, tenor y bajo, las cuatro voces de casi toda la música coral, de aguda a grave: qué canta cada una, su extensión y cuál es la tuya.
+description: SATB son soprano, contralto, tenor y bajo, las cuatro voces de la música coral, de aguda a grave. Escucha su extensión, qué canta cada una y halla la tuya.
 song: amazing-grace
 version: 4
 reviewed: false
-translatedFrom: e79008358e9f
+translatedFrom: 4a654f590cc9
 ---
 
 # ¿Qué es SATB? Soprano, contralto, tenor y bajo
@@ -27,6 +27,8 @@ Son extensiones típicas, no reglas. En un arreglo sencillo, una voz suele usar 
 ## Quién suele llevar la melodía
 
 En la mayoría de los [himnos](/songs/hymns) y villancicos, la soprano canta la melodía y las otras tres armonizan por debajo. Por eso a las sopranos su voz les suele resultar la más fácil de aprender: es la que todo el mundo ya conoce. Las voces de contralto, tenor y bajo cuestan más al principio, porque la melodía no deja de tirar de ti. Y también es ahí donde está buena parte de la diversión.
+
+Escúchalo en Abide with Me: su [voz de soprano](/songs/abide-with-me/soprano) es la melodía que todo el mundo conoce, mientras su [voz de contralto](/songs/abide-with-me/alto) y su [voz de bajo](/songs/abide-with-me/bass) se mueven por debajo.
 
 Algunos arreglos pasan la melodía a los tenores durante una estrofa, o a las contraltos. Un buen arreglista la mueve para que cada voz tenga algo que disfrutar.
 

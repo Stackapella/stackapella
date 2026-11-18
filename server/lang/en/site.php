@@ -2106,15 +2106,19 @@ return [
             'synth' => 'Synth',
             'voice' => 'The part\'s voice',
             'micNote' => 'Sing along: the mic listens only while it plays. Nothing is recorded.',
-            'micDenied' => 'The mic is blocked. Allow it in your browser\'s settings to sing along.',
-            'micMissing' => 'No mic found. Plug one in to sing along.',
-            'micUnsupported' => 'This browser can\'t listen. Try Chrome, Safari or Firefox.',
+            'micDenied' => 'The mic is blocked, so your notes won\'t light. Allow it in your browser\'s settings and they will.',
+            'micMissing' => 'No mic found, so your notes won\'t light. Plug one in and they will.',
+            'micUnsupported' => 'This browser can\'t listen, so your notes won\'t light. Try Chrome, Safari or Firefox.',
             'score' => ':hit of :total notes lit',
             'open' => 'Open this part in the app',
             'unavailable' => 'The player could not load. Open the part in the app instead.',
             'zoom' => 'Zoom',
             'zoomOut' => 'Zoom out',
             'zoomIn' => 'Zoom in',
+            // The lane or the part's sheet music (Hillel, 2026-11-18): a small toggle on the lane, remembered.
+            'view' => 'How to show the part',
+            'viewLane' => 'Moving notes',
+            'viewSheet' => 'Sheet music',
         ],
     ],
     'tools' => [
@@ -6279,10 +6283,10 @@ return [
                     'summary' => 'The lowest voice, deep and dark, the foundation of every chord.',
                     'range' => 'E2 to E4',
                     'eyebrow' => 'Usual range E2 to E4 · sings Bass',
-                    'title' => 'Bass Vocal Range: Notes, Part and Tips',
-                    'description' => 'The bass voice\'s usual range is E2 to E4. Hear its notes, see how to tell a bass from a baritone, and learn what the bass part does in a choir.',
+                    'title' => 'What Is a Bass Voice? Bass Range and Part',
+                    'description' => 'A bass is the lowest of the usual voices, about E2 to E4, and sings the bottom part in a choir. Hear its notes and tell a bass from a baritone.',
                     'headline' => 'The bass voice',
-                    'lead' => 'The bass is the lowest of the usual voices, with a usual range from E2 to E4. It sounds deep and dark, and it sings the Bass part that holds up a choir\'s chords.',
+                    'lead' => 'A bass is the lowest of the usual voices, with a usual range from E2 to E4. It sounds deep and dark, and in a choir it sings the Bass part, the bottom line that holds up the chords.',
                     'guide' => [
                         [
                             'heading' => 'The bass range',
@@ -6357,10 +6361,10 @@ return [
                     'summary' => 'The higher men\'s voice, bright and ringing at the top.',
                     'range' => 'C3 to A4',
                     'eyebrow' => 'Usual range C3 to A4 · sings Tenor',
-                    'title' => 'Tenor Vocal Range: Notes, Part and Tips',
-                    'description' => 'The tenor\'s usual range is C3 to A4. Hear its notes, see how to tell a tenor from a baritone, and learn what the tenor part does in a choir.',
+                    'title' => 'What Is a Tenor? Tenor Vocal Range and Part',
+                    'description' => 'A tenor is the highest of the usual men\'s voices, about C3 to A4, and sings the higher men\'s part in a choir. Hear its notes and tell it from a baritone.',
                     'headline' => 'The tenor voice',
-                    'lead' => 'The tenor is the highest of the usual men\'s voices, with a usual range from C3 to A4. It sounds bright and ringing near the top, and it sings the Tenor part in a choir.',
+                    'lead' => 'A tenor is the highest of the usual men\'s voices, with a usual range from C3 to A4. It sounds bright and ringing near the top, and in a choir it sings the Tenor part, the higher of the two men\'s parts.',
                     'guide' => [
                         [
                             'heading' => 'The tenor range',
@@ -6397,9 +6401,9 @@ return [
                     'range' => 'F3 to D5',
                     'eyebrow' => 'Usual range F3 to D5 · sings Alto',
                     'title' => 'What Is an Alto? Alto Vocal Range and Part',
-                    'description' => 'An alto is the lowest usual women\'s voice, F3 to D5, singing the harmony just below the tune. Hear its notes and tell an alto from a mezzo or a soprano.',
+                    'description' => 'An alto sings the lower of the two women\'s parts in a choir, the harmony just below the tune, about F3 to D5. Hear its notes and tell an alto from a mezzo.',
                     'headline' => 'The alto voice',
-                    'lead' => 'An alto is the lowest of the usual women\'s voices, singing the harmony just below the tune, with a usual range from F3 to D5. It sounds rich and warm low down, and in a choir it sings the Alto part.',
+                    'lead' => 'An alto sings the lower of the two women\'s parts in a choir, the harmony just below the tune, with a usual range from F3 to D5. It\'s the lowest of the usual women\'s voices, and it sounds rich and warm low down.',
                     'guide' => [
                         [
                             'heading' => 'The alto range',
@@ -6435,10 +6439,10 @@ return [
                     'summary' => 'The middle women\'s voice, warm and full, between alto and soprano.',
                     'range' => 'A3 to F5',
                     'eyebrow' => 'Usual range A3 to F5 · sings Soprano 2 or Alto 1',
-                    'title' => 'Mezzo-Soprano Vocal Range: Notes and Part',
-                    'description' => 'The mezzo-soprano\'s usual range is A3 to F5. Hear its notes, see how to tell a mezzo from a soprano or an alto, and find the choir part to sing.',
+                    'title' => 'What Is a Mezzo-Soprano? Vocal Range and Part',
+                    'description' => 'A mezzo-soprano is the middle women\'s voice, between alto and soprano, about A3 to F5. Hear its notes, tell it from a soprano or alto, and find your part.',
                     'headline' => 'The mezzo-soprano voice',
-                    'lead' => 'The mezzo-soprano is the middle women\'s voice, between alto and soprano, with a usual range from A3 to F5. It sounds warm and full through the middle, and in a choir it sings Soprano 2 or Alto 1.',
+                    'lead' => 'A mezzo-soprano, or mezzo, is the middle women\'s voice, between alto and soprano, with a usual range from A3 to F5. It sounds warm and full through the middle, and in a choir it sings Soprano 2 or Alto 1.',
                     'guide' => [
                         [
                             'heading' => 'The mezzo-soprano range',
@@ -6474,10 +6478,10 @@ return [
                     'summary' => 'The highest voice, bright and clear, usually singing the tune.',
                     'range' => 'C4 to A5',
                     'eyebrow' => 'Usual range C4 to A5 · sings Soprano',
-                    'title' => 'Soprano Vocal Range: Notes, Part and Tips',
-                    'description' => 'The soprano\'s usual range is C4 to A5. Hear its notes, see how to tell a soprano from a mezzo-soprano, and learn what the soprano part does in a choir.',
+                    'title' => 'What Is a Soprano? Soprano Range and Part',
+                    'description' => 'A soprano is the highest of the usual voices, about C4 to A5, and in a choir most often sings the tune. Hear its notes and tell a soprano from a mezzo.',
                     'headline' => 'The soprano voice',
-                    'lead' => 'The soprano is the highest of the usual voices, with a usual range from C4 to A5. It sounds bright and clear at the top, and in a choir it usually sings the tune.',
+                    'lead' => 'A soprano is the highest of the usual voices, with a usual range from C4 to A5, and sings the top part in a choir, usually the tune. It sounds bright and clear at the top.',
                     'guide' => [
                         [
                             'heading' => 'The soprano range',
@@ -7919,8 +7923,8 @@ return [
             ],
             'cyberbass-and-choralia' => [
                 'name' => 'CyberBass and Choralia',
-                'title' => 'CyberBass and Choralia: Free Choir Practice Tracks, Compared',
-                'description' => 'CyberBass and Choralia are free sites of choir practice tracks, your part brought forward. How they compare with Stackapella, which listens as you sing.',
+                'title' => 'CyberBass vs Choralia: Free Choir Practice Tracks Compared',
+                'description' => 'CyberBass has free online practice tracks for choral works, your part louder than the rest, and so does Choralia. See how both compare with Stackapella.',
                 'summary' => 'All three help choir singers learn their part by ear.',
                 'headline' => 'Stackapella and CyberBass and Choralia',
                 // Two sites, so its "who it's for" heading is plural (the shared one is ":name is for").

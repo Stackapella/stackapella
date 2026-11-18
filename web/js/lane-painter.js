@@ -39,6 +39,7 @@ export const LANE_DEFAULTS = {
     color: '#4ccfb0',
     state: 'listen', // listen, turn or recording: the now line's colour
     noteName: () => '', // MIDI to a name ('' for none)
+    gemNames: true, // the note's name on its gem beside the word (a song part page: words only, the keyboard names them)
     keyboard: true,
     chords: null, // [{ seconds, name }] while the chords play
     loop: null, // { startSeconds, endSeconds }
@@ -279,7 +280,7 @@ export class LanePainter {
             const fit = gemWords(g, {
                 x: from, y: top, w, h: barH,
                 word: this.wordAt.get(Math.round(n.beat * 1000)) ?? '',
-                name: this.noteName(pitch),
+                name: this.gemNames ? this.noteName(pitch) : '',
                 ink: settle >= 0.5 ? this.cream : ink,
                 above: settle > 0 ? this.muted : this.cream,
                 nextX: following ? x(seconds(following.beat)) : width,

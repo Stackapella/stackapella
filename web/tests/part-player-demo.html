@@ -23,17 +23,20 @@
             hear: 'Your part', withOthers: 'With the others', sing: 'Sing it', hearShort: 'Part', withOthersShort: 'All', singShort: 'Sing', modes: 'How to play the part',
             play: 'Play', pause: 'Pause', loading: 'Getting the voices ready', real: 'Real voice', synth: 'Synth', voice: "The part's voice",
             micNote: 'Sing along: the mic listens only while it plays. Nothing is recorded.',
-            micDenied: "The mic is blocked. Allow it in your browser's settings to sing along.", micMissing: 'No mic found. Plug one in to sing along.',
-            micUnsupported: "This browser can't listen. Try Chrome, Safari or Firefox.", score: ':hit of :total notes lit',
+            micDenied: "The mic is blocked, so your notes won't light. Allow it in your browser's settings and they will.", micMissing: "No mic found, so your notes won't light. Plug one in and they will.",
+            micUnsupported: "This browser can't listen, so your notes won't light. Try Chrome, Safari or Firefox.", score: ':hit of :total notes lit',
             open: 'Open this part in the app', unavailable: 'The player could not load. Open the part in the app instead.',
-            zoom: 'Zoom', zoomOut: 'Zoom out', zoomIn: 'Zoom in',
+            zoom: 'Zoom', zoomOut: 'Zoom out', zoomIn: 'Zoom in', view: 'How to show the part', viewLane: 'Moving notes', viewSheet: 'Sheet music',
         };
         const sing = new URLSearchParams(location.search).get('sing');
+        const part = new URLSearchParams(location.search).get('part') ?? 'soprano'; // ?part=bass: a part that isn't the tune
         let template = null;
-        // A stand-in mic: each frame, the note the part has now (in), or a tritone away (off), on the page's clock.
+        // A stand-in mic: each frame, the note the part has now (in), or a tritone away (off), on the page's clock;
+        // ?sing=denied refuses it (a blocked mic) until window.__allowMic, then sings in tune.
         const listen = sing && (async ({ onFrame }) => {
+            if (sing === 'denied' && !window.__allowMic) throw Object.assign(new Error('blocked'), { reason: 'denied' });
             template ??= await (await fetch('/templates/amazing-grace.json')).json();
-            const notes = template.parts.find((p) => p.key === 'soprano').guide.notes;
+            const notes = template.parts.find((p) => p.key === part).guide.notes;
             const beat = 60 / template.tempo;
             let raf = requestAnimationFrame(function frame() {
                 const seconds = window.__player.time();
@@ -46,7 +49,7 @@
         });
         window.__notes = [];
         window.__player = mountPartPlayer(document.querySelector('#player'), {
-            slug: 'amazing-grace', part: 'soprano', url: '/templates/amazing-grace.json', startUrl: 'https://app.stackapella.com/?song=amazing-grace&part=soprano&ref=part-page',
+            slug: 'amazing-grace', part, url: '/templates/amazing-grace.json', startUrl: 'https://app.stackapella.com/?song=amazing-grace&part=soprano&ref=part-page',
             words, ...(listen ? { listen } : {}),
         });
         window.__player.on('note', (n) => window.__notes.push(n));

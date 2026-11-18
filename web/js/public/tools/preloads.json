@@ -474,6 +474,7 @@
     "/js/embed/lane.js",
     "/js/public/play-state.js",
     "/js/public/tool-layout.js",
+    "/js/public/part-sheet.js",
     "/js/lane-painter.js",
     "/js/synth.js",
     "/js/dsp.js",
@@ -484,6 +485,7 @@
     "/js/public/app-voices.js",
     "/js/soften-breaths.js",
     "/js/embed/take.js",
+    "/js/engrave.js",
     "/js/camera.js",
     "/js/gem-spec.js",
     "/js/glass.js",
@@ -491,7 +493,12 @@
     "/js/pitch-display.js",
     "/js/recorded-guides.js",
     "/js/breaths.js",
-    "/js/db.js"
+    "/js/engrave-glyphs.js",
+    "/js/print-score.js",
+    "/js/db.js",
+    "/js/musicxml.js",
+    "/js/staff-layout.js",
+    "/js/theory.js"
   ],
   "/js/public/songbook.js": [
     "/js/public/songbook.js"

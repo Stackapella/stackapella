@@ -72,7 +72,10 @@ workers:
     source_dir: /
     instance_size_slug: apps-s-1vcpu-0.5gb
     instance_count: 1
-    run_command: sh -c 'cd /app/server && php artisan optimize && exec php artisan schedule:work'
+    # tini as PID 1, not PHP: each runInBackground task's shell is orphaned to PID 1 when schedule:run
+    # exits, and PHP never reaps them. Without it the worker's memory climbed all the time and
+    # it restarted every two hours (docs/decisions.md, 2026-11-18).
+    run_command: sh -c 'cd /app/server && php artisan optimize && exec tini -- php artisan schedule:work'
     envs:
       - { key: APP_BUILD, value: '${_self.COMMIT_HASH}' }
 

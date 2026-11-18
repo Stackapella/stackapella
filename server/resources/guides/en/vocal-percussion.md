@@ -1,16 +1,16 @@
 ---
-title: How to Do Vocal Percussion for an A Cappella Group
-description: Vocal percussion is your group's drum kit: the kick, snare and hi-hat sounds, breathing while you play, using a mic, locking with the bass, and when to stop.
+title: How to Do Vocal Percussion in an A Cappella Group
+description: In an a cappella group, the VP is the drummer. Learn the kick, snare and hi-hat, a first beat, breathing while you play, the mic and locking with the bass.
 song: wade-in-the-water
 version: 1
 reviewed: false
 ---
 
-# How to do vocal percussion for an a cappella group
+# How to do vocal percussion in an a cappella group
 
-Vocal percussion (VP) is an a cappella group's drum kit, made with your mouth: a kick drum, a
-snare and a hi-hat, and anything else the song needs. In a group, the VP's job isn't to show off.
-It's to keep time so steadily that everyone else can relax into the groove.
+In an a cappella group, vocal percussion (VP) is the drum kit, made with the mouth: usually one
+singer plays the kick drum, snare and hi-hat, and keeps the whole group in time. The job isn't to
+show off. It's to keep the beat so steady that everyone else can relax into the groove.
 
 Group VP and solo beatboxing share many sounds, but the jobs differ. A beatboxer is the whole
 show. A group's VP is one half of the rhythm section, with the bass, and plays for the song.

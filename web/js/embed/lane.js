@@ -20,10 +20,13 @@
 // tap, brings the sound in from where the picture is. play() inside a click handler starts with sound.
 // A song's part instead of a take (`song: { slug, part, url }`, the song part pages): the template comes from the
 // public API (or `url`), the part is sung by its real voice where it has one (else the synth), and play(mode)
-// takes 'all' (the part with the others, the default), 'part' (the part alone) or 'sing' (the others under you
-// and the part quietly as a guide, while the mic, opened on that tap, is followed live with Sing's own light:
-// your pitch drawn and each note lit as you hit it). voice('real' | 'synth') chooses the part's voice; hasReal()
-// says whether it has a real one. The mic only on the sing tap; nothing is recorded or sent.
+// takes 'all' (the part with the others, the default), 'part' (the part alone) or 'sing' (the others under you,
+// your part silent, while the mic, opened on that tap, is followed live with Sing's own light: your pitch drawn and
+// each note lit as you hit it). The mic never holds the music (Hillel, 2026-11-18: Sing it with a blocked mic stopped
+// playing): the others play at once, and the notes light once the mic answers ('mic' says { listening } or { error });
+// listen() asks again mid-song (the mic just allowed). A new mode carries on from the same place, only the mix
+// changes. A song's blocks carry its words only (the keyboard names the notes). voice('real' | 'synth') chooses the
+// part's voice; hasReal() says whether it has a real one. The mic only on the sing tap; nothing is recorded or sent.
 // Every lane shares one AudioContext; `unlock()` (exported) makes it inside a click, for a page that
 // mounts its lane a moment after the click (Safari). The bar's spoken names come from the page, in its
 // language (`words`: { play, pause, zoom, zoomOut, zoomIn }), since the app's words need Vue.
@@ -47,8 +50,7 @@ const laneNoteName = (midi) => {
 
 const ZOOMS = [10, 6, 3.5]; // seconds across: zoomed out, the app's own, zoomed in
 const UNDER = 0.22; // the other parts, quietly under the take
-const GUIDE_UNDER_YOU = 0.3; // singing along: your part's own voice, quietly, as a guide
-const OTHERS_UNDER_YOU = 0.3; // singing along: the other parts, a little fuller than under a take
+const OTHERS_UNDER_YOU = 0.4; // singing along: the other parts (your own part is silent: you sing it)
 const WITH_OTHERS = 0.55; // a song's part with the others: the part on top, the others clearly there
 
 // The synth sings the parts with no real voice in a worker (js/synth-worker.js, as the app's guides do): rendered here,
@@ -146,7 +148,7 @@ export function mount(el, { take: takeUrl = null, song: songSource = null, zoom 
                 underKeys: others.map((p) => p.key),
                 parts: Object.fromEntries(template.parts.map((p) => [p.key, p.guide.notes.filter(within)])),
             };
-            painter.set({ notes, words: notes.filter((n) => n.lyric).map((n) => ({ beat: n.beat, text: n.lyric })), beatSeconds: 60 / template.tempo, noteName: laneNoteName, keyboard: true, state: 'turn', secondsShown: ZOOMS[state.zoom] });
+            painter.set({ notes, words: notes.filter((n) => n.lyric).map((n) => ({ beat: n.beat, text: n.lyric })), beatSeconds: 60 / template.tempo, noteName: laneNoteName, gemNames: !songSource, keyboard: true, state: 'turn', secondsShown: ZOOMS[state.zoom] });
             colour();
             state.ready = true;
             emit('state', { playing: false, ready: true });
@@ -214,32 +216,41 @@ export function mount(el, { take: takeUrl = null, song: songSource = null, zoom 
         if (state.starting) return state.starting;
         if (state.playing && mode === state.mode) return Promise.resolve();
         if (state.playing) pause();
-        if (mode !== state.mode) {
-            // Another way to play it starts the song again.
-            state.offset = 0;
-            state.said.clear();
-        }
+        // Another way to play it carries on from the same place: only the mix changes. Singing along follows you
+        // afresh from there.
+        if (mode !== state.mode) state.live = null;
         state.mode = mode;
         if (!state.muted) state.ctx ??= unlock(); // before any await: still inside the click
         // Singing along: the mic, asked for on this tap (live-mic.js, the site's opt-in mic; nothing kept).
-        if (mode === 'sing' && !state.mic) {
-            // The mic reads on the site's shared clock (voices.js), not the lane's: its lag is measured against that one.
-            const opener = open ?? ((options) => Promise.all([import('../public/live-mic.js'), import('../public/voices.js')]).then(([m, v]) => {
-                state.micClock = () => v.audio().currentTime;
-                return m.listen(options);
-            }));
-            state.mic = opener({ onFrame: liveFrame }).catch((error) => {
-                state.mic = null;
-                emit('mic', { error: error?.reason ?? 'unsupported' });
-                return null;
-            });
-        }
+        if (mode === 'sing') openMic();
         emit('state', { playing: false, ready: state.ready, muted: state.muted, starting: true });
         state.starting = start_().finally(() => {
             state.starting = null;
+            if (!state.playing && state.mode === 'sing') closeMic(); // a play that failed never leaves the mic open
             if (!state.playing) emit('state', { playing: false, ready: state.ready, muted: state.muted, starting: false });
         });
         return state.starting;
+    }
+
+    /** The mic for singing along, asked for once per play; the music never waits for it. */
+    function openMic() {
+        if (state.mic) return;
+        // The mic reads on the site's shared clock (voices.js), not the lane's: its lag is measured against that one.
+        const opener = open ?? ((options) => Promise.all([import('../public/live-mic.js'), import('../public/voices.js')]).then(([m, v]) => {
+            state.micClock = () => v.audio().currentTime;
+            return m.listen(options);
+        }));
+        // Paused while it was asked for: closeMic() lets it go, and nothing is said.
+        const asked = opener({ onFrame: liveFrame }).then((mic) => {
+            if (state.mic === asked) emit('mic', { listening: true });
+            return mic;
+        }, (error) => {
+            if (state.mic !== asked) return null;
+            state.mic = null;
+            emit('mic', { error: error?.reason ?? 'unsupported' });
+            return null;
+        });
+        state.mic = asked;
     }
 
     async function start_() {
@@ -257,7 +268,7 @@ export function mount(el, { take: takeUrl = null, song: songSource = null, zoom 
         await state.ctx.resume();
         song.buffers ??= await prepare();
         if (state.mode === 'sing') {
-            if (!(await state.mic)) return; // no mic: nothing to follow (the 'mic' event said why)
+            // The others play whether or not the mic answers; your notes light once it does.
             if (state.offset === 0 || !state.live) {
                 state.live = voiceFollower();
                 song.track = [];
@@ -267,8 +278,8 @@ export function mount(el, { take: takeUrl = null, song: songSource = null, zoom 
             song.track = song.heard.track;
             song.results = song.heard.results;
         }
-        // The part (first) and the others: together, the part alone, or the others under you with the part as a guide.
-        const gainOf = (i, gain) => (state.mode === 'part' ? (i === 0 ? 1 : 0) : state.mode === 'sing' ? (i === 0 ? GUIDE_UNDER_YOU : OTHERS_UNDER_YOU) : songSource && i > 0 ? WITH_OTHERS : gain);
+        // The part (first) and the others: together, the part alone, or the others alone under you as you sing it.
+        const gainOf = (i, gain) => (state.mode === 'part' ? (i === 0 ? 1 : 0) : state.mode === 'sing' ? (i === 0 ? 0 : OTHERS_UNDER_YOU) : songSource && i > 0 ? WITH_OTHERS : gain);
         const at = state.ctx.currentTime + 0.05;
         state.sources = song.buffers.map(({ buffer, gain }, i) => ({ buffer, gain: gainOf(i, gain) })).filter(({ gain }) => gain > 0).map(({ buffer, gain }) => {
             const source = state.ctx.createBufferSource();
@@ -490,6 +501,8 @@ export function mount(el, { take: takeUrl = null, song: songSource = null, zoom 
         prepare: () => {
             if (!state.muted) prepare().catch((error) => console.warn('The voices could not be made ahead: the press makes them', error));
         },
+        /** The song's template, once read (it reads it now if it hasn't): a song part page's sheet music engraves it. */
+        template: () => load().then(() => song.template),
         /** The take's time now, in seconds (read off the audio clock while playing). */
         time: () => position(),
         duration: () => song?.duration ?? 0,
@@ -506,6 +519,10 @@ export function mount(el, { take: takeUrl = null, song: songSource = null, zoom 
                 draw();
             }
             return state.zoom;
+        },
+        /** Singing along without a mic (it was blocked or missing): ask for it again, the music carrying on. */
+        listen() {
+            if (state.playing && state.mode === 'sing' && !state.muted) openMic();
         },
         /** The current play mode: 'all', 'part' or 'sing' (set by play(mode)). */
         mode: () => state.mode,

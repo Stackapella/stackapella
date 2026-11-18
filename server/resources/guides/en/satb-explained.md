@@ -1,6 +1,6 @@
 ---
 title: What Is SATB? Soprano, Alto, Tenor and Bass Explained
-description: SATB means soprano, alto, tenor and bass, the four voice parts of most choir music, high to low: what each sings, its range, and how to find yours.
+description: SATB stands for soprano, alto, tenor and bass, the four parts of most choir music, high to low. Hear each part's range, see what it sings and find yours.
 song: amazing-grace
 version: 4
 reviewed: false
@@ -38,6 +38,10 @@ In most [hymns](/songs/hymns) and carols, the soprano sings the melody and the o
 That's why sopranos often find their part the easiest to learn: it's the one everyone already
 knows. The alto, tenor and bass parts are harder at first, because the tune keeps pulling at you.
 They're also where a lot of the fun is.
+
+Hear it in Abide with Me: its [soprano part](/songs/abide-with-me/soprano) is the tune everyone
+knows, while its [alto part](/songs/abide-with-me/alto) and [bass part](/songs/abide-with-me/bass)
+move beneath it.
 
 Some arrangements hand the tune to the tenors for a verse, or to the altos. A good arranger moves
 it around so every part gets something to enjoy.
