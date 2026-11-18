@@ -537,7 +537,7 @@ body { margin: 0; background: var(--ground); }
 @media (prefers-reduced-motion: reduce) { .lnf-ln, .lnf-lb, .lnf-floor i { transition: none; } }
 /* What is being heard as the song builds: under the lanes. */
 .lnf-now { margin: 10px 0 0; padding: 0 var(--pad); min-height: 21px; font-size: 14px; font-weight: 700; line-height: 1.5; color: var(--ink); white-space: nowrap; }
-.lnf-beam { display: none; position: absolute; z-index: 5; top: -16px; bottom: -16px; left: var(--ph); width: 3px; margin-left: -1.5px; border-radius: 3px; background: linear-gradient(#fff, #ffd9b0); box-shadow: 0 0 16px 3px #ff9139, 0 0 80px 24px rgb(255 145 57 / .35); pointer-events: none; transition: opacity .5s; }
+.lnf-beam { display: none; position: absolute; z-index: 5; top: 0; bottom: 0; /* the lanes' height only: it never crosses the heading or the hint (Hillel, 2026-11-18) */ left: var(--ph); width: 3px; margin-left: -1.5px; border-radius: 3px; background: linear-gradient(#fff, #ffd9b0); box-shadow: 0 0 16px 3px #ff9139, 0 0 80px 24px rgb(255 145 57 / .35); pointer-events: none; transition: opacity .5s; }
 :root[data-theme$="-light"] .lnf-beam { background: #a14301; box-shadow: 0 0 22px 2px rgb(161 67 1 / .4); }
 .lnf-trace { position: absolute; left: 0; top: calc(12% + 13cqh); height: 56%; width: calc(var(--lnf-t) * var(--ppb)); overflow: hidden; opacity: 0; transition: opacity .5s; }
 .lnf-trace svg { display: block; height: 100%; width: calc(var(--beats) * var(--ppb)); overflow: visible; }
@@ -773,7 +773,7 @@ body { margin: 0; background: var(--ground); }
 
 /* ---------- phone ---------- */
 @media (max-width: 899px) {
-    .lnf { --pad: 18px; --top: 96px; --bar: calc(110px + env(safe-area-inset-bottom)); --split: 46svh; --ppb: 66px; --ph: 96px; --tilt: 7deg; }
+    .lnf { --pad: 18px; --top: 96px; --bar: calc(110px + env(safe-area-inset-bottom)); --split: max(46svh, calc(var(--top) + 235px)); /* a short phone (an iPhone SE) gives the heading its room under the top bar (2026-11-18) */ --ppb: 66px; --ph: 96px; --tilt: 7deg; }
     .lnf-top { flex-wrap: wrap; align-content: center; gap: 0 8px; }
     .lnf-nav { order: 9; flex: 1; min-width: 0; justify-content: space-between; margin-top: -4px; } .lnf-nav a { min-height: 40px; padding: 0 6px; font-size: 14px; }
     .lnf-logo { flex: 1; }
@@ -786,7 +786,7 @@ body { margin: 0; background: var(--ground); }
     /* One still wash of light behind the stage, in place of the five big soft ones. */
     .lnf-bg i { display: none; }
     .lnf-bg { background: radial-gradient(120vw 46svh at 0% 44%, color-mix(in srgb, var(--c1) 24%, transparent), transparent 70%), radial-gradient(120vw 46svh at 100% 70%, color-mix(in srgb, var(--c3) 20%, transparent), transparent 70%), radial-gradient(140vw 40svh at 40% 100%, color-mix(in srgb, var(--c4) 26%, transparent), transparent 70%); }
-    .lnf-cap, .lnf-stage [data-s="0"] .lnf-cap { grid-template-columns: 1fr; gap: 12px; align-content: end; }
+    .lnf-cap, .lnf-stage [data-s="0"] .lnf-cap { grid-template-columns: 1fr; gap: 12px; align-content: safe end; } /* never above the top bar if it overflows */
     .lnf-h1 { font-size: clamp(44px, 14.6vw, 58px); } .lnf-say { margin-bottom: 14px; } .lnf-kick { margin-bottom: 10px; font-size: 12px; } .lnf-true { display: none; }
     .lnf-wide { display: none !important; }
     .lnf-play { height: 66px; width: 100%; justify-content: center; padding: 0 20px 0 64px; font-size: 19px; } .lnf-play .lnf-orb { width: 48px; height: 48px; position: absolute; left: 9px; } .lnf-play-w { gap: 5px; } .lnf-play-w small { font-size: 13px; }
@@ -809,7 +809,7 @@ body { margin: 0; background: var(--ground); }
     .lnf-line { font-size: 16.5px; letter-spacing: -.01em; min-width: 0; overflow: hidden; text-overflow: ellipsis; } .lnf-next { display: none; }
     .lnf-tp { grid-area: tp; height: 56px; padding-inline-start: 6px; gap: 10px; } .lnf-disc { width: 44px; height: 44px; }
     .lnf-time { font-size: 13px; line-height: 1.2; }
-    .lnf-start { grid-area: start; align-self: center; height: 44px; margin-inline-end: 6px; padding: 0 14px; max-width: 7.2em; font-size: 13.5px; white-space: normal; text-align: center; }
+    .lnf-start { grid-area: start; align-self: center; height: 44px; margin-inline-end: 6px; padding: 0 16px; font-size: 13.5px; white-space: nowrap; } /* a button's label never wraps (design rules) */
     .lnf-rail { top: auto; bottom: 0; }
     /* With nothing playing, the line gives way where a scene needs the room: Share's card, and the page that scrolls. */
     .lnf:is([data-scene="4"], [data-tail]):not([data-playing]) .lnf-words { visibility: hidden; }
@@ -853,4 +853,8 @@ body { margin: 0; background: var(--ground); }
     .lnf-start { padding: 0 10px; font-size: 12.5px; }
     .lnf-nav a { padding: 0 3px; font-size: 13px; }
     .lnf-line { font-size: 15px; } .lnf-now { font-size: 12px; }
+}
+@media (max-width: 899px) and (max-height: 760px) {
+    .lnf-h1 { font-size: clamp(40px, 12.5vw, 52px); } /* a short phone: the heading a step smaller and the lede left out (the heading and Play say it), so the lanes keep their room */
+    .lnf-stage [data-s="0"] .lnf-say { display: none; }
 }
