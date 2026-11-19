@@ -189,3 +189,12 @@ test('real recordings: the key is the first section\'s, and the other words are 
     assert(recordingKey({ key: 'Em' }, [{ kind: 'section', section: 0, shift: 0 }]) === 'Em', 'its own key');
     assert(otherWordsAt([[48, 96]], 50) && !otherWordsAt([[48, 96]], 96) && !otherWordsAt([[48, 96]], null) && !otherWordsAt(undefined, 10), 'inside the range only');
 });
+
+test('youtube sync tool: no template helper shares a name with what the tool keeps on itself (the video clock once hid m:ss)', async () => {
+    const { SongVideosSection } = await import('/js/admin/song-videos.js');
+    const helpers = Object.keys(SongVideosSection.setup());
+    const kept = ['clock', 'player', 'painter', 'raf', 'ticket', 'listening', 'tapping', 'onKey'];
+    const clash = helpers.filter((h) => kept.includes(h) || h in SongVideosSection.data());
+    assert(clash.length === 0, `shadowed: ${clash.join(', ')}`);
+    assert(typeof SongVideosSection.setup().minutes === 'function', 'the length formatter is there');
+});

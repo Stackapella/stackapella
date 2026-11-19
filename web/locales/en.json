@@ -2736,6 +2736,7 @@
             "mic": "Mic (the one nearest the speakers)",
             "micAsk": "Start listening to choose",
             "micChanged": "New mic. Play the video again from the start.",
+            "heardSoFar": "Heard so far: {time}",
             "stopListening": "Stop and suggest",
             "working": "Working it out...",
             "listeningNow": "Listening. Play the video from the start now.",

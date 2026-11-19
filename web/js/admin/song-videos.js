@@ -18,6 +18,8 @@ import { transposeKey } from '../staff-layout.js';
 import { barLines, beatAt, mapProblems, unroll } from '../sync-map.js';
 import { hearChroma, suggest, toVideo } from '../listen-align.js';
 import { videoClock } from '../video-clock.js';
+import { micDb } from '../mic-check.js';
+import { LevelMeter } from '../components/level-meter.js';
 import { openPlayer, videoIdFrom } from '../youtube-player.js';
 import { errorsFrom, LoadFailed, refused, when } from './common.js';
 
@@ -40,19 +42,19 @@ export function candidateForms(template, most = MOST_VERSES) {
     return Array.from({ length: most }, (_, k) => Array.from({ length: k + 1 }, (_, verse) => once.map((s) => ({ ...s, ...(verse ? { words: false, name: t('admin.songVideos.verseName', { n: verse + 1 }) } : {}) }))).flat());
 }
 
-/** `m:ss` for a number of seconds. */
-const clock = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+/** `m:ss` for a number of seconds (not `clock`: this.clock is the video's clock, and a setup name it shadows). */
+const minutes = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 
 export const SongVideosSection = {
-    components: { EmptyState, LoadFailed, Modal, StatusChip },
+    components: { EmptyState, LevelMeter, LoadFailed, Modal, StatusChip },
     props: { me: { type: Object, required: true } },
-    setup: () => ({ HARMONIES, HARMONY_NAMES, HIDDEN_NAMES, clock, when, audio, micChoices, currentMicId }),
+    setup: () => ({ HARMONIES, HARMONY_NAMES, HIDDEN_NAMES, minutes, when, audio, micChoices, currentMicId }),
     data: () => ({
         songs: null, failed: false, slug: '', template: null, version: null, rows: null,
         query: '', link: '', results: null, searching: false, searchError: null,
         video: null, playerError: null, ready: false, partKey: null,
         form: [], anchors: [], harmony: 'same', saving: false, saveErrors: null,
-        listening: null, working: false, said: null, tapping: null,
+        listening: null, heardDb: null, heardSeconds: 0, working: false, said: null, tapping: null,
         removing: null, busy: false,
     }),
     computed: {
@@ -116,7 +118,7 @@ export const SongVideosSection = {
                     <li v-for="row in rows" :key="row.id" class="card flex flex-wrap items-center justify-between gap-3 p-4" :data-song-video="row.id" :data-status="row.status">
                         <div class="min-w-0">
                             <p class="font-semibold text-cream" translate="no">{{ row.title }}</p>
-                            <p class="text-sm text-muted"><span translate="no">{{ row.channel }}</span> · {{ clock(row.durationSeconds) }} · {{ t('admin.songVideos.syncedOn', { name: row.syncedBy?.name ?? '', when: when(row.checkedAt) }) }}</p>
+                            <p class="text-sm text-muted"><span translate="no">{{ row.channel }}</span> · {{ minutes(row.durationSeconds) }} · {{ t('admin.songVideos.syncedOn', { name: row.syncedBy?.name ?? '', when: when(row.checkedAt) }) }}</p>
                         </div>
                         <span class="flex flex-wrap items-center gap-2">
                             <StatusChip v-if="row.hiddenReason" tone="bad" :label="t(HIDDEN_NAMES[row.hiddenReason] ?? HIDDEN_NAMES.removed)" />
@@ -140,7 +142,7 @@ export const SongVideosSection = {
                 <ul v-if="results" class="space-y-2" data-song-videos-results>
                     <li v-if="!results.length" class="text-sm text-muted">{{ t('admin.songVideos.noResults') }}</li>
                     <li v-for="r in results" :key="r.id" class="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-raised p-3">
-                        <span class="min-w-0 text-sm"><span class="font-semibold text-cream" translate="no">{{ r.title }}</span> <span class="text-muted">· <span translate="no">{{ r.channel }}</span> · {{ clock(r.durationSeconds) }}</span></span>
+                        <span class="min-w-0 text-sm"><span class="font-semibold text-cream" translate="no">{{ r.title }}</span> <span class="text-muted">· <span translate="no">{{ r.channel }}</span> · {{ minutes(r.durationSeconds) }}</span></span>
                         <button v-if="r.usable" type="button" class="btn-secondary btn-sm" data-song-videos-use @click="useVideo(r.id)">{{ t('admin.songVideos.use') }}</button>
                         <StatusChip v-else tone="muted" :label="t(HIDDEN_NAMES[r.hiddenReason] ?? HIDDEN_NAMES.not_embeddable)" />
                     </li>
@@ -180,6 +182,11 @@ export const SongVideosSection = {
                     <div class="flex flex-wrap gap-3">
                         <button v-if="!listening" type="button" class="btn-primary" :disabled="!ready || working" data-song-videos-listen @click="listen">{{ working ? t('admin.songVideos.working') : t('admin.songVideos.listen') }}</button>
                         <button v-else type="button" class="btn-primary" data-song-videos-stop @click="stopListening">{{ t('admin.songVideos.stopListening') }}</button>
+                    </div>
+                    <!-- While it listens: the mic's level, live, and how much it has heard, so you can see it hears the video. -->
+                    <div v-if="listening" class="max-w-md space-y-1" data-song-videos-hearing>
+                        <LevelMeter :db="heardDb" segments />
+                        <p class="text-sm text-muted tabular-nums">{{ t('admin.songVideos.heardSoFar', { time: minutes(heardSeconds) }) }}</p>
                     </div>
                     <p v-if="said" class="text-sm text-cream" role="status" data-song-videos-said>{{ said }}</p>
                 </div>
@@ -366,7 +373,11 @@ export const SongVideosSection = {
                 this.raf = requestAnimationFrame(frame);
                 if (!this.clock) return;
                 const seconds = this.clock.read();
-                if (this.listening) this.listening.log.push([engine.ctx.currentTime - this.listening.startedAt, seconds]);
+                if (this.listening) {
+                    this.listening.log.push([engine.ctx.currentTime - this.listening.startedAt, seconds]);
+                    this.heardDb = micDb();
+                    this.heardSeconds = engine.ctx.currentTime - this.listening.startedAt;
+                }
                 // Before the first anchor the song waits to come in; after the last it rests on its end.
                 const last = this.anchors[this.anchors.length - 1];
                 const beat = beatAt(this.anchors, seconds) ?? (last && seconds > last[0] ? last[1] : null);
