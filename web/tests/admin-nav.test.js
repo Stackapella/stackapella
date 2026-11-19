@@ -33,3 +33,11 @@ test('admin nav: Safety keeps the emergency controls only; the features are swit
     }
     assert(EMERGENCY.every((name) => name === 'shield_mode' || name === 'read_only' || name.startsWith('pause_')), 'only pauses and lockdowns');
 });
+
+test('admin nav: every page opens from its own link (the shell finds a section by the name in its path)', () => {
+    // YouTube sync shipped named songVideos at /admin/youtube, so its link opened Home (2026-11-19).
+    for (const s of SECTIONS) {
+        if (s.path === '/admin') continue;
+        assert(s.path === `/admin/${s.name}`, `${s.name}'s link is ${s.path}`);
+    }
+});

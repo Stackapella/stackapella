@@ -45,8 +45,8 @@ function truth() {
     return anchors;
 }
 
-function perform(template, anchors, { shift = -2, cents = 25, seconds = 72 } = {}) {
-    const whole = unroll(template, [{ kind: 'section', section: 0, shift }, { kind: 'section', section: 0, shift }]);
+function perform(template, anchors, { shift = -2, cents = 25, seconds = 72, verses = 2, echo = false, noise = 0.004, drone = 0 } = {}) {
+    const whole = unroll(template, Array.from({ length: verses }, () => ({ kind: 'section', section: 0, shift })));
     const out = new Float32Array(Math.round(seconds * RATE));
     // The performance's beat to seconds, inverse of beatAt over the truth's anchors.
     const at = (beat) => {
@@ -72,10 +72,25 @@ function perform(template, anchors, { shift = -2, cents = 25, seconds = 72 } = {
             }
         }
     }
+    // A chapel: two feedback echoes smear each chord into the next (a long tail, soft onsets), as a webcam mic hears it.
+    if (echo) {
+        const a = Math.round(0.071 * RATE);
+        const b = Math.round(0.133 * RATE);
+        for (let i = b; i < out.length; i++) out[i] += 0.55 * out[i - a] + 0.3 * out[i - b];
+    }
+    // An organ holding the key's tonic and fifth under everything, intro and breaths too: chroma that matches every
+    // frame a little, so the right path stands out less (a real room's mic hears much more than the choir).
+    if (drone) {
+        const tonic = 440 * 2 ** ((48 + shift - 69 + cents / 100) / 12);
+        for (let i = 0; i < out.length; i++) {
+            const w = (2 * Math.PI * i) / RATE;
+            out[i] += drone * (Math.sin(w * tonic) + 0.7 * Math.sin(w * tonic * 1.5) + 0.4 * Math.sin(w * tonic * 2));
+        }
+    }
     let seed = 7;
     for (let i = 0; i < out.length; i++) {
         seed = (seed * 16807) % 2147483647;
-        out[i] += 0.004 * (seed / 2147483647 - 0.5); // the room
+        out[i] += noise * (seed / 2147483647 - 0.5); // the room
     }
     return out;
 }
@@ -132,3 +147,53 @@ test('listen align: heard seconds become the video\'s from the log kept while li
     close(toVideo(log, 15), 45.25, 1e-9, 'a seek-free stretch at its own pace');
     close(toVideo(log, 25), 55.75, 1e-9, 'past the end, carried on');
 });
+
+// Hillel's first real sync (2026-11-19): a chapel choir singing three verses, slower than our tempo, heard through a
+// webcam mic, came back as four verses rushed at the fastest step allowed. The truth here is that shape: an 8 s intro,
+// three verses of bars about 3.9 s (ours are 3), each ending on a held bar, a breath between, a long echo.
+function slowThree() {
+    const anchors = [];
+    let t = 8;
+    const lengths = [3.8, 4.1, 3.7, 4.0, 3.9, 3.8, 4.2, 6.5];
+    for (let verse = 0; verse < 3; verse++) {
+        for (let bar = 0; bar < 8; bar++) {
+            anchors.push([t, verse * 24 + bar * 3]);
+            t += lengths[bar];
+        }
+        if (verse < 2) {
+            anchors.push([t, verse * 24 + 24 - 1e-3]);
+            t += 1.2;
+        }
+    }
+    anchors.push([t, 72]);
+    return anchors;
+}
+
+test('listen align: three slow verses in an echoing chapel are three verses, at a steady pace, not four rushed', () => {
+    const truthNow = slowThree();
+    const heard = hearChroma(perform(hymn(), truthNow, { verses: 3, seconds: 112, echo: true, noise: 0.12, drone: 0.05 }), RATE);
+    const five = [1, 2, 3, 4, 5].map((verses) => Array.from({ length: verses }, () => ({ kind: 'section', section: 0, shift: 0 })));
+    const s = suggest(hymn(), heard, five);
+    const sections = s.form.filter((x) => x.kind === 'section');
+    assert(sections.length === 3, `three verses, got ${sections.length}`);
+    assert(sections.every((x) => x.shift === -2), `two down, got ${sections.map((x) => x.shift).join(',')}`);
+    // Each true bar line against the suggestion's, wherever the gaps put verse 2 and 3 (match by bar within its verse).
+    const gaps = segments(hymn(), s.form).filter((x) => x.kind === 'section').map((x) => x.start);
+    const errors = truthNow.filter(([, b]) => Number.isInteger(b) && b < 72).map(([t, b]) => {
+        const verse = Math.floor(b / 24);
+        const beat = gaps[verse] + (b % 24);
+        const found = s.anchors.find(([, x]) => Math.abs(x - beat) < 1e-6);
+        return found ? Math.abs(found[0] - t) : Infinity;
+    });
+    const sorted = [...errors].sort((a, b) => a - b);
+    const median = sorted[sorted.length >> 1];
+    assert(errors.filter((e) => e === Infinity).length <= 1, `bar lines found (missed ${errors.filter((e) => e === Infinity).length})`);
+    assert(median < 0.3, `bar lines within a few hops (median ${median.toFixed(3)} s)`);
+    // The organ holds each verse's opening chord through the intro and the breaths, so a verse's first bar line may land
+    // early (the sync tool's tapping fixes it); every other is close.
+    assert(errors.filter((e) => e > 0.6).length <= 3, `at most each verse's start off (${errors.filter((e) => e > 0.6).length} over 0.6 s)`);
+    // A steady pace: no bar in a verse comes back faster than half the true pace's.
+    const quick = s.anchors.slice(1).filter(([t, b], i) => b - s.anchors[i][1] === 3 && t - s.anchors[i][0] < 1.9).length;
+    assert(quick <= 2, `no rushed bars (${quick} under 1.9 s)`);
+});
+

@@ -77,7 +77,7 @@ export const SECTIONS = [
     { name: 'guides', group: 'library', path: '/admin/guides', label: tk('admin.nav.guides'), hint: tk('admin.nav.guidesHint'), icon: 'note', role: 'editor' },
     { name: 'singers', group: 'library', path: '/admin/singers', label: tk('admin.nav.singers'), hint: tk('admin.nav.singersHint'), icon: 'headphones', role: 'admin' },
     { name: 'links', group: 'library', path: '/admin/links', label: tk('admin.nav.links'), hint: tk('admin.nav.linksHint'), icon: 'arrow', role: 'admin' },
-    { name: 'songVideos', group: 'library', path: '/admin/youtube', label: tk('admin.nav.songVideos'), hint: tk('admin.nav.songVideosHint'), icon: 'note', role: 'admin' },
+    { name: 'youtube', group: 'library', path: '/admin/youtube', label: tk('admin.nav.songVideos'), hint: tk('admin.nav.songVideosHint'), icon: 'note', role: 'admin' },
     { name: 'requests', group: 'library', path: '/admin/requests', label: tk('admin.nav.requests'), hint: tk('admin.nav.requestsHint'), icon: 'list', role: 'admin' },
     { name: 'ideas', group: 'library', path: '/admin/ideas', label: tk('admin.nav.ideas'), hint: tk('admin.nav.ideasHint'), icon: 'mic', role: 'admin' },
     { name: 'outreach', group: 'marketing', path: '/admin/outreach', label: tk('admin.nav.outreach'), hint: tk('admin.nav.outreachHint'), icon: 'arrow', role: 'admin' },
@@ -279,7 +279,7 @@ export const AdminView = {
                 <RevenueSection v-else-if="current === 'revenue'" :me="me" />
                 <LiveSection v-else-if="current === 'live'" :me="me" />
                 <CorrectionsSection v-else-if="current === 'corrections'" :me="me" @changed="loadOverview" />
-                <SongVideosSection v-else-if="current === 'songVideos'" :me="me" />
+                <SongVideosSection v-else-if="current === 'youtube'" :me="me" />
                 <AppealsSection v-else-if="current === 'appeals'" :me="me" />
                 <SearchSection v-else-if="current === 'search'" :me="me" />
                 <CohortsSection v-else-if="current === 'cohorts'" :me="me" />

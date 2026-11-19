@@ -7,7 +7,7 @@
 
 import { api } from '../api.js';
 import { t, tk } from '../i18n.js';
-import { audio, engine, openMic, closeMic } from '../audio.js';
+import { audio, chooseMic, currentMicId, engine, micChoices, openMic, closeMic, refreshMics } from '../audio.js';
 import { EmptyState, StatusChip } from '../components/form.js';
 import { Modal, toast } from '../components/ui.js';
 import { LanePainter } from '../lane-painter.js';
@@ -46,7 +46,7 @@ const clock = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStar
 export const SongVideosSection = {
     components: { EmptyState, LoadFailed, Modal, StatusChip },
     props: { me: { type: Object, required: true } },
-    setup: () => ({ HARMONIES, HARMONY_NAMES, HIDDEN_NAMES, clock, when }),
+    setup: () => ({ HARMONIES, HARMONY_NAMES, HIDDEN_NAMES, clock, when, audio, micChoices, currentMicId }),
     data: () => ({
         songs: null, failed: false, slug: '', template: null, version: null, rows: null,
         query: '', link: '', results: null, searching: false, searchError: null,
@@ -85,6 +85,7 @@ export const SongVideosSection = {
     },
     created() {
         this.loadSongs();
+        refreshMics().catch((error) => console.warn('Mics not listed', error)); // named once the mic has been allowed
     },
     beforeUnmount() {
         this.stopLoop();
@@ -169,6 +170,13 @@ export const SongVideosSection = {
                 <div class="card space-y-3 p-4">
                     <h3 class="font-bold text-cream">{{ t('admin.songVideos.listenTitle') }}</h3>
                     <p class="max-w-prose text-sm text-muted">{{ t('admin.songVideos.listenHow') }}</p>
+                    <!-- The mic that hears the speakers best (the app's own choice, shared with Sing): never a phone's by surprise. -->
+                    <label v-if="micChoices().length" class="grid max-w-md gap-1 text-sm font-semibold text-cream">{{ t('admin.songVideos.mic') }}
+                        <select class="input" :value="currentMicId() ?? ''" data-song-videos-mic @change="pickMic($event.target.value)">
+                            <option v-if="!currentMicId()" value="" disabled>{{ t('admin.songVideos.micAsk') }}</option>
+                            <option v-for="m in micChoices()" :key="m.deviceId" :value="m.deviceId" translate="no">{{ m.label }}</option>
+                        </select>
+                    </label>
                     <div class="flex flex-wrap gap-3">
                         <button v-if="!listening" type="button" class="btn-primary" :disabled="!ready || working" data-song-videos-listen @click="listen">{{ working ? t('admin.songVideos.working') : t('admin.songVideos.listen') }}</button>
                         <button v-else type="button" class="btn-primary" data-song-videos-stop @click="stopListening">{{ t('admin.songVideos.stopListening') }}</button>
@@ -382,6 +390,16 @@ export const SongVideosSection = {
             const startedAt = Math.ceil(engine.ctx.currentTime * rate) / rate;
             this.listening = { startedAt, log: [], capture: engine.startCapture(Math.round(startedAt * rate), null, null) };
             this.said = t('admin.songVideos.listeningNow');
+        },
+        /** Another mic: the app's choice too. Mid-listen, what was heard so far goes, and it starts again from the top. */
+        async pickMic(deviceId) {
+            const was = !!this.listening;
+            if (was) this.dropListening();
+            await chooseMic(deviceId);
+            if (was) {
+                await this.listen();
+                this.said = t('admin.songVideos.micChanged');
+            }
         },
         dropListening() {
             engine.keepCapture({ interrupted: true });

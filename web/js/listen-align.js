@@ -26,6 +26,12 @@ const INTERLUDE = 1.5; // seconds of waiting between verses that make a gap in t
 // Steps through the cost grid as [template frames, heard frames]: a performance from a third of our tempo to three times
 // it, locally (a held fermata, a rushed pickup).
 const STEPS = [[1, 1], [2, 1], [1, 2], [1, 3], [3, 1]];
+// What leaving a steady pace costs, per frame of difference in a step (Hillel's first real sync, 2026-11-19: through a
+// webcam mic in a chapel, matches scored little better than leaving audio out, and a fourth verse rushed at the
+// fastest step "explained" more of it). A held fermata or a rubato phrase still bends the path; a whole verse can't
+// be squeezed in for free.
+const SLOPE = 0.1;
+const BEND = STEPS.map(([di, dj]) => SLOPE * Math.abs(di - dj));
 
 /**
  * Chroma of heard audio: `{ frames: Float32Array[12][], times: seconds[], energy: number[], cents }`, each frame the
@@ -145,7 +151,7 @@ export function warp(score, heard, shift, { boundaries = [], cost: match = null 
                 for (let s = 0; s < STEPS.length; s++) {
                     const [di, dj] = STEPS[s];
                     if (i - di < 0 || j - dj < 0) continue;
-                    let c = cost[(i - di) * n + (j - dj)];
+                    let c = cost[(i - di) * n + (j - dj)] + BEND[s];
                     if (c === Infinity) continue;
                     for (let k = 0; k < dj; k++) c += d(i, j - k); // each heard frame the step covers, at its own cost
                     if (c < best) {
@@ -241,8 +247,8 @@ export function suggest(template, heard, forms) {
     if (!best) return null;
     const anchors = [];
     for (const beat of barLines(template, best.form)) {
-        const frame = Math.round((beat * secondsPerBeat) / HOP);
-        const cell = best.path.find(([i]) => i >= Math.min(frame, best.score.frames.length - 1));
+        const frame = Math.min(Math.round((beat * secondsPerBeat) / HOP), best.score.frames.length - 1);
+        const cell = best.path.find(([i]) => i >= frame);
         if (!cell) continue;
         const seconds = heard.times[cell[1]];
         if (anchors.length && (seconds <= anchors[anchors.length - 1][0] || beat <= anchors[anchors.length - 1][1])) continue;
