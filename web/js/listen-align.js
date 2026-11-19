@@ -125,14 +125,15 @@ export function likelyShifts(heard, score, count = 3) {
  * no path gains by leaving audio out, and forms of different lengths compare fairly by their totals.
  * `{ path: [[scoreFrame, heardFrame]], cost }`.
  */
-export function warp(score, heard, shift, { boundaries = [], cost: match = null } = {}) {
+export function warp(score, heard, shift, { boundaries = [], cost: match = null, free = false } = {}) {
     const m = score.frames.length;
     const n = heard.frames.length;
     const rotated = match ? null : score.frames.map((f) => rotate(f, shift));
     // How far our frame i is from heard frame j: given (a table worked out once per key, see suggest), or worked out here.
     const d = match ?? ((i, j) => 1 - dot(rotated[i], heard.frames[j]));
     const level = activeLevel(heard.energy);
-    const wait = heard.energy.map((e) => (e > level ? OUTSIDE : QUIET));
+    // `free`: what's left out costs nothing (matchScore's excerpt may fall anywhere in the song).
+    const wait = heard.energy.map((e) => (free ? 0 : e > level ? OUTSIDE : QUIET));
     const waits = new Uint8Array(m);
     for (const b of boundaries) if (b > 0 && b <= m) waits[b - 1] = 1;
     const cost = new Float32Array(m * n).fill(Infinity);
@@ -277,6 +278,31 @@ export function suggest(template, heard, forms) {
     }
     for (let i = anchors.length - 1; i > 0; i--) if (anchors[i][0] <= anchors[i - 1][0] || anchors[i][1] <= anchors[i - 1][1]) anchors.splice(i, 1);
     return { form, shift: best.shift, cents: Math.round(heard.cents), anchors };
+}
+
+/**
+ * How close a heard excerpt of a recording (a stretch of 30 to 60 seconds from somewhere in it) is to our arrangement,
+ * in any key: `{ match, shift }`, `match` from 0 (nothing alike) to 1 (our chords, voice for voice, in its time), or
+ * null when too little was heard. The excerpt's loud frames are each matched once, in order, against the song sung
+ * twice through (so an excerpt over a verse's end still fits), starting and ending wherever fits best; the score is
+ * one less the mean distance. For ranking recordings against each other (the sync tool's Find the closest), not as a
+ * measure of anything on its own.
+ */
+export function matchScore(template, heard) {
+    const level = activeLevel(heard.energy);
+    const loud = heard.frames.filter((_, i) => heard.energy[i] > level);
+    if (loud.length < 50) return null; // under 5 seconds of sound
+    const once = template.sections.map((_, section) => ({ kind: 'section', section }));
+    const twice = scoreChroma(template, [...once, ...once]);
+    let best = null;
+    for (const shift of likelyShifts(heard, twice)) {
+        const ours = { frames: twice.frames.map((f) => rotate(f, shift)), energy: twice.frames.map(() => 1), times: twice.frames.map((_, i) => i * HOP) };
+        const { path, cost } = warp({ frames: loud }, ours, 0, { free: true });
+        if (!path.length) continue;
+        const match = Math.max(0, 1 - cost / loud.length);
+        if (!best || match > best.match) best = { match, shift };
+    }
+    return best;
 }
 
 /** Heard seconds to the video's: `log` is [[heardSeconds, videoSeconds], ...] read while listening, in order. */

@@ -1,7 +1,7 @@
 // The sync tool's mic step (js/listen-align.js) on a synthesized performance whose truth we know: two verses of a small
 // hymn, two semitones down and 25 cents sharp, slower than our tempo with a fermata on each verse's last bar, after a
 // quiet intro and with an organ-less pause between the verses, plus room noise.
-import { hearChroma, likelyShifts, scoreChroma, suggest, toVideo } from '/js/listen-align.js';
+import { hearChroma, likelyShifts, matchScore, scoreChroma, suggest, toVideo } from '/js/listen-align.js';
 import { beatAt, segments, unroll } from '/js/sync-map.js';
 import { assert, close, test } from './harness.js';
 
@@ -197,3 +197,19 @@ test('listen align: three slow verses in an echoing chapel are three verses, at 
     assert(quick <= 2, `no rushed bars (${quick} under 1.9 s)`);
 });
 
+
+test('listen align: an excerpt of our arrangement matches it better than the same tune harmonised another way', () => {
+    // Ours (the hymn), and a "different arrangement": the same tune over a drone with no moving parts.
+    const ours = hymn();
+    const other = { ...hymn(), parts: [hymn().parts[0], { key: 'bass', range: { low: 36, high: 50 }, guide: { type: 'notes', notes: [{ beat: 0, length: 48, pitch: 43, lyric: 'oo' }] } }] };
+    const excerpt = (template) => {
+        const audio = perform(template, truth(), { seconds: 40 });
+        return hearChroma(audio.subarray(Math.round(12 * RATE), Math.round(40 * RATE)), RATE);
+    };
+    const same = matchScore(ours, excerpt(ours));
+    const differs = matchScore(ours, excerpt(other));
+    assert(same && differs, 'both scored');
+    assert(same.shift === -2, `the key heard, got ${same.shift}`);
+    assert(same.match > differs.match + 0.05, `ours ${same.match.toFixed(2)} over another ${differs.match.toFixed(2)}`);
+    assert(matchScore(ours, hearChroma(new Float32Array(RATE * 10), RATE)) === null, 'silence scores nothing');
+});

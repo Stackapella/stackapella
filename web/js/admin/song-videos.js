@@ -16,7 +16,7 @@ import { token } from '../colors.js';
 import { barAt } from '../theory.js';
 import { transposeKey } from '../staff-layout.js';
 import { barLines, beatAt, mapProblems, unroll } from '../sync-map.js';
-import { hearChroma, suggest, toVideo } from '../listen-align.js';
+import { hearChroma, matchScore, suggest, toVideo } from '../listen-align.js';
 import { videoClock } from '../video-clock.js';
 import { micDb } from '../mic-check.js';
 import { LevelMeter } from '../components/level-meter.js';
@@ -35,6 +35,9 @@ const HIDDEN_NAMES = {
 const MOST_VERSES = 5; // the forms the mic step tries: one verse up to this many
 const NUDGE = 0.05; // seconds per nudge of the whole map
 const SHOWN = 6; // seconds across the lane
+const HUNT_MOST = 8; // Find the closest hears at most this many results
+const EXCERPT = 40; // seconds of each it hears
+const AD_PATIENCE = 75; // seconds to wait for a video to move past its start (an ad plays first)
 
 /** The forms the suggestion tries: the song's sections in order, repeated 1 to MOST_VERSES times. */
 export function candidateForms(template, most = MOST_VERSES) {
@@ -48,13 +51,13 @@ const minutes = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padSt
 export const SongVideosSection = {
     components: { EmptyState, LevelMeter, LoadFailed, Modal, StatusChip },
     props: { me: { type: Object, required: true } },
-    setup: () => ({ HARMONIES, HARMONY_NAMES, HIDDEN_NAMES, minutes, when, audio, micChoices, currentMicId }),
+    setup: () => ({ HARMONIES, HARMONY_NAMES, HIDDEN_NAMES, HUNT_MOST, EXCERPT, minutes, when, audio, micChoices, currentMicId }),
     data: () => ({
         songs: null, failed: false, slug: '', template: null, version: null, rows: null,
         query: '', link: '', results: null, searching: false, searchError: null,
         video: null, playerError: null, ready: false, partKey: null,
         form: [], anchors: [], harmony: 'same', saving: false, saveErrors: null,
-        listening: null, heardDb: null, heardSeconds: 0, working: false, said: null, tapping: null,
+        previewing: null, hunt: null, listening: null, heardDb: null, heardSeconds: 0, working: false, said: null, tapping: null,
         removing: null, busy: false,
     }),
     computed: {
@@ -68,6 +71,19 @@ export const SongVideosSection = {
         },
         barLines() {
             return this.whole ? barLines(this.template, this.form) : [];
+        },
+        usableResults() {
+            return (this.results ?? []).filter((r) => r.usable);
+        },
+        /** The results, best match first once Find the closest has heard them. */
+        rankedResults() {
+            const scores = this.hunt?.scores ?? {};
+            const score = (r) => scores[r.id]?.match ?? -1;
+            return this.hunt?.done ? [...(this.results ?? [])].sort((a, b) => score(b) - score(a)) : this.results ?? [];
+        },
+        bestId() {
+            const scores = this.hunt?.done ? this.hunt.scores : {};
+            return Object.entries(scores).filter(([, s]) => s?.match != null).sort((a, b) => b[1].match - a[1].match)[0]?.[0] ?? null;
         },
         barBeats() {
             return this.template ? barAt(this.template, this.template.pickupBeats ?? 0).beats : 3;
@@ -90,6 +106,8 @@ export const SongVideosSection = {
         refreshMics().catch((error) => console.warn('Mics not listed', error)); // named once the mic has been allowed
     },
     beforeUnmount() {
+        this.stopHunt();
+        this.closePreview();
         this.stopLoop();
         this.closeVideo();
         if (this.listening) this.dropListening();
@@ -139,12 +157,36 @@ export const SongVideosSection = {
                 </form>
                 <p class="text-xs text-muted">{{ t('admin.songVideos.searchQuota') }}</p>
                 <p v-if="searchError" class="text-sm text-bad" role="alert">{{ searchError }}</p>
+                <!-- Find the closest: each result heard for EXCERPT seconds through the speakers, then ranked by how close it is
+                     to our arrangement (js/listen-align.js matchScore). -->
+                <div v-if="usableResults.length > 1 && !video" class="card max-w-xl space-y-3 p-4" data-song-videos-hunt>
+                    <p class="text-sm text-muted">{{ t('admin.songVideos.huntHow', { count: Math.min(usableResults.length, HUNT_MOST), seconds: EXCERPT }) }}</p>
+                    <template v-if="hunt && !hunt.done">
+                        <p class="text-sm text-cream" role="status" data-song-videos-hunt-now>{{ t('admin.songVideos.huntNow', { n: hunt.at + 1, count: hunt.list.length, title: hunt.title }) }}</p>
+                        <LevelMeter :db="heardDb" segments />
+                        <button type="button" class="btn-secondary btn-sm" data-song-videos-hunt-cancel @click="stopHunt">{{ t('common.cancel') }}</button>
+                    </template>
+                    <button v-else type="button" class="btn-secondary" data-song-videos-hunt-start @click="findClosest">{{ hunt?.done ? t('admin.songVideos.huntAgain') : t('admin.songVideos.hunt') }}</button>
+                    <p v-if="hunt?.said" class="text-sm text-bad" role="alert">{{ hunt.said }}</p>
+                </div>
                 <ul v-if="results" class="space-y-2" data-song-videos-results>
                     <li v-if="!results.length" class="text-sm text-muted">{{ t('admin.songVideos.noResults') }}</li>
-                    <li v-for="r in results" :key="r.id" class="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-raised p-3">
-                        <span class="min-w-0 text-sm"><span class="font-semibold text-cream" translate="no">{{ r.title }}</span> <span class="text-muted">· <span translate="no">{{ r.channel }}</span> · {{ minutes(r.durationSeconds) }}</span></span>
-                        <button v-if="r.usable" type="button" class="btn-secondary btn-sm" data-song-videos-use @click="useVideo(r.id)">{{ t('admin.songVideos.use') }}</button>
-                        <StatusChip v-else tone="muted" :label="t(HIDDEN_NAMES[r.hiddenReason] ?? HIDDEN_NAMES.not_embeddable)" />
+                    <li v-for="r in rankedResults" :key="r.id" class="rounded-xl bg-raised p-3" :data-song-videos-result="r.id">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <span class="min-w-0 text-sm"><span class="font-semibold text-cream" translate="no">{{ r.title }}</span> <span class="text-muted">· <span translate="no">{{ r.channel }}</span> · {{ minutes(r.durationSeconds) }}</span>
+                                <span v-if="hunt?.scores[r.id]" class="ms-2 inline-flex gap-1 align-middle" data-song-videos-match>
+                                    <StatusChip v-if="hunt.scores[r.id].match != null" :tone="r.id === bestId ? 'good' : 'muted'" :label="(r.id === bestId ? t('admin.songVideos.closest') + ' · ' : '') + t('admin.songVideos.match', { percent: Math.round(hunt.scores[r.id].match * 100) })" />
+                                    <StatusChip v-else tone="muted" :label="t('admin.songVideos.notHeard')" />
+                                </span>
+                            </span>
+                            <span v-if="r.usable" class="flex flex-wrap gap-2">
+                                <button type="button" class="btn-secondary btn-sm" :aria-expanded="previewing === r.id ? 'true' : 'false'" data-song-videos-preview @click="preview(r.id)">{{ previewing === r.id ? t('admin.songVideos.closePreview') : t('admin.songVideos.preview') }}</button>
+                                <button type="button" class="btn-secondary btn-sm" data-song-videos-use @click="useVideo(r.id)">{{ t('admin.songVideos.use') }}</button>
+                            </span>
+                            <StatusChip v-else tone="muted" :label="t(HIDDEN_NAMES[r.hiddenReason] ?? HIDDEN_NAMES.not_embeddable)" />
+                        </div>
+                        <!-- A look before choosing: the video in a small player of its own, one at a time, loaded only on Preview. -->
+                        <div v-if="previewing === r.id" class="mt-3 aspect-video w-full max-w-xl overflow-hidden rounded-lg bg-ink" style="min-height: 200px"><div :ref="setPreviewEl" class="h-full w-full"></div></div>
                     </li>
                 </ul>
                 <form class="flex max-w-xl flex-wrap gap-2" @submit.prevent="useVideo(videoIdFrom(link))">
@@ -286,6 +328,10 @@ export const SongVideosSection = {
             }
         },
         async search() {
+            this.stopHunt();
+            this.hunt = null;
+            this.closePreview();
+            this.previewWas = null;
             Object.assign(this, { searching: true, searchError: null });
             try {
                 this.results = (await api.admin.songVideos.search(this.query.trim())).data;
@@ -295,9 +341,130 @@ export const SongVideosSection = {
                 this.searching = false;
             }
         },
+        /**
+         * Find the closest: each usable result (at most HUNT_MOST) played in the preview player from about a third of the
+         * way in, heard by the mic for EXCERPT seconds once the video itself is moving (an ad first stands still), scored
+         * against our arrangement and dropped; then the results are ranked. Only the scores are kept, in this page.
+         */
+        async findClosest() {
+            this.closePreview();
+            this.previewWas = null;
+            const list = this.usableResults.slice(0, HUNT_MOST);
+            this.hunt = { list: list.map((r) => r.id), at: 0, title: '', scores: {}, done: false, said: null };
+            const hunt = this.hunt;
+            const mic = await openMic().catch((error) => {
+                console.error('Mic failed', error);
+                return null;
+            });
+            if (!mic) {
+                hunt.said = t('admin.songVideos.noMic');
+                hunt.done = true;
+                return;
+            }
+            for (const [index, r] of list.entries()) {
+                if (this.hunt !== hunt) break;
+                Object.assign(hunt, { at: index, title: r.title });
+                this.previewing = r.id;
+                await this.$nextTick();
+                let shown = null;
+                try {
+                    shown = await openPlayer(this.previewEl, r.id);
+                } catch (error) {
+                    console.warn('Not heard', r.id, error);
+                }
+                if (this.hunt !== hunt) {
+                    shown?.destroy();
+                    break;
+                }
+                if (!shown) {
+                    hunt.scores[r.id] = { match: null };
+                    continue;
+                }
+                this.previewPlayer = shown;
+                const start = Math.max(0, Math.min(Math.max(15, r.durationSeconds * 0.3), r.durationSeconds - EXCERPT - 5));
+                shown.player.seekTo(start, true);
+                shown.player.playVideo();
+                const moving = await this.waitFor(() => (shown.player.getCurrentTime?.() ?? 0) > start + 0.5, AD_PATIENCE, hunt);
+                let score = null;
+                if (moving && this.hunt === hunt) {
+                    const rate = engine.ctx.sampleRate;
+                    const from = Math.ceil(engine.ctx.currentTime * rate);
+                    engine.startCapture(from, null, null);
+                    await this.waitFor(() => engine.ctx.currentTime * rate - from >= EXCERPT * rate, EXCERPT + 10, hunt);
+                    const take = engine.keepCapture({ interrupted: this.hunt !== hunt });
+                    if (this.hunt === hunt && take?.samples?.length) {
+                        let heard = hearChroma(take.samples, take.sampleRate);
+                        take.samples = null; // the heard audio goes as soon as it's chroma
+                        score = matchScore(this.template, heard);
+                        heard = null;
+                    }
+                }
+                this.closePreview();
+                if (this.hunt !== hunt) break;
+                hunt.scores[r.id] = score ?? { match: null };
+            }
+            closeMic();
+            if (this.hunt === hunt) hunt.done = true;
+        },
+        stopHunt() {
+            if (!this.hunt) return;
+            const done = this.hunt.done;
+            this.hunt = done ? this.hunt : null;
+            if (!done) {
+                engine.keepCapture({ interrupted: true });
+                closeMic();
+                this.closePreview();
+            }
+        },
+        /** Resolves true once `test()` holds (checked each animation frame), false after `seconds` or if the hunt ended. */
+        waitFor(test, seconds, hunt) {
+            const until = performance.now() + seconds * 1000;
+            return new Promise((resolve) => {
+                const frame = () => {
+                    if (this.hunt !== hunt) return resolve(false);
+                    this.heardDb = micDb();
+                    if (test()) return resolve(true);
+                    if (performance.now() > until) return resolve(false);
+                    requestAnimationFrame(frame);
+                };
+                requestAnimationFrame(frame);
+            });
+        },
+        /** A search result played in its own small player before choosing it (a second tap closes it). */
+        async preview(id) {
+            this.closePreview();
+            if (this.previewWas === id) {
+                this.previewWas = null;
+                return;
+            }
+            this.previewing = id;
+            this.previewWas = id;
+            const ticket = (this.previewTicket = (this.previewTicket ?? 0) + 1);
+            await this.$nextTick();
+            try {
+                const shown = await openPlayer(this.previewEl, id);
+                if (ticket !== this.previewTicket) return shown.destroy();
+                this.previewPlayer = shown;
+            } catch (error) {
+                if (ticket === this.previewTicket) this.previewing = null;
+                console.error('Preview failed', error);
+            }
+        },
+        setPreviewEl(el) {
+            this.previewEl = el;
+        },
+        closePreview() {
+            this.previewTicket = (this.previewTicket ?? 0) + 1;
+            this.previewPlayer?.destroy();
+            this.previewPlayer = null;
+            this.previewing = null;
+        },
         /** A video to sync: its player opens here (an admin's tap, so loading YouTube now is theirs). */
         async useVideo(id, map = null) {
             if (!id) return;
+            if (this.hunt && !this.hunt.done) this.stopHunt();
+            this.closePreview();
+            this.previewWas = null;
             this.closeVideo();
             const ticket = (this.ticket = (this.ticket ?? 0) + 1);
             Object.assign(this, {
