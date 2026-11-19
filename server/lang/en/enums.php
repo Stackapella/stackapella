@@ -24,22 +24,6 @@ return [
         'notes' => 'The notes',
         'other' => 'Something else',
     ],
-    'song_video_status' => [
-        'draft' => 'Draft',
-        'approved' => 'Approved',
-    ],
-    'song_video_harmony' => [
-        'same' => 'Our harmony',
-        'similar' => 'Close to ours',
-        'different' => 'A different harmony',
-    ],
-    'song_video_hidden' => [
-        'removed' => 'Removed from YouTube',
-        'private' => 'Made private',
-        'not_embeddable' => 'Embedding turned off',
-        'made_for_kids' => 'Made for kids',
-        'age_restricted' => 'Age-restricted',
-    ],
     'correction_state' => [
         'new' => 'To read',
         'accepted' => 'Accepted',

@@ -234,13 +234,6 @@ return [
         'account' => ['max' => 10, 'per' => 'hour', 'by' => 'account'],
     ],
 
-    // The YouTube sync tool's search (docs/youtube-sync-plan.md): YouTube allows 100 searches a day for the whole
-    // app, so the tool keeps well under it.
-    'youtube-search' => [
-        'minute' => ['max' => 10, 'per' => 'minute', 'by' => 'account'],
-        'day' => ['max' => 80, 'per' => 'day', 'by' => 'account'],
-    ],
-
     // Readers' corrections (docs/corrections-plan.md), anonymous: a few a minute and 20 a day an address, the address
     // used for the limit only, never kept.
     'corrections' => [

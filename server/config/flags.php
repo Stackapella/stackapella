@@ -90,10 +90,6 @@ return [
     // copyright still runs in the visitor's country is withheld there. Off until every open song has its makers and
     // the lawyer has read the rules; Hillel switches it on.
     'geo_rights' => ['kind' => 'feature', 'values' => ['off', 'on']],
-    // YouTube sync (docs/youtube-sync-plan.md; Hillel, 2026-11-19): a song's real recordings on YouTube, our lane in
-    // step with the video. Off until Hillel has checked the pilot (Silent Night); a person it's turned on for sees it
-    // first. The sync tool is the admin's either way.
-    'youtube_sync' => ['kind' => 'feature', 'values' => ['off', 'on']],
     // Teaming up is Plus (docs/pricing-plan.md, Hillel 2026-11-12): whoever starts a shared song or a choir group needs
     // Plus, everyone invited joins free, and a song or group pauses when that Plus ends. Off until the app's screens and
     // the site's /pricing say so; Hillel switches it on, all at once. Off, singing together is free as before.

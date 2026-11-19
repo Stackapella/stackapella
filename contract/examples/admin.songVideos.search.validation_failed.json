@@ -1,9 +1,0 @@
-{
-    "message": "The q field is required.",
-    "code": "validation_failed",
-    "errors": {
-        "q": [
-            "The q field is required."
-        ]
-    }
-}

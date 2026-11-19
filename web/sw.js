@@ -258,11 +258,6 @@ const SHELL = [
     '/js/staff-layout.js',
     '/js/drone.js',
     '/js/tuning.js',
-    '/js/sync-map.js',
-    '/js/video-clock.js',
-    '/js/listen-align.js',
-    '/js/youtube-player.js',
-    '/js/views/recordings.js',
     '/js/reading-lines.js',
     '/js/lyrics.js',
     '/js/arrange.js',
@@ -418,7 +413,7 @@ const SHELL = [
 
 // The app's own addresses (every route in router.js; tests/sw-routes.test.js keeps them in step);
 // every other page is the server's.
-const APP_ROUTE = /^\/(?:$|index\.html$|p\/[\w-]+(?:\/(?:sing|print))?\/?$|styleguide(?:\/game)?\/?$|beta(?:\/[\w-]*)?\/?$|signin(?:\/link)?\/?$|settings(?:\/(?:reminders|classes))?\/?$|class(?:\/[\w-]+)?\/?$|storage\/?$|voice\/?$|workout\/?$|plus\/?$|learn(?:\/[cs])?(?:\/[\w-]+)?(?:\/lines)?\/?$|verify\/?$|reset\/?$|email\/(?:confirm|revert)\/?$|create(?:\/[\w-]+)?\/?$|t\/[\w-]+(?:\/(?:sheet|recordings))?\/?$|(?:join|early|invite|choir|challenge)\/[\w-]+\/?$|groups(?:\/[\w-]+)?\/?$|ideas(?:\/[\w-]+)?\/?$|requests\/?$|voices\/?$|start-fresh\/?$|cooldown\/?$|warmup\/?$|moved\/?$|contact\/?$|notices?\/?$|admin(?:\/(?!sign-in|sign-out|second-factor)[\w-]+(?:\/[\w-]+)?)?\/?$)/;
+const APP_ROUTE = /^\/(?:$|index\.html$|p\/[\w-]+(?:\/(?:sing|print))?\/?$|styleguide(?:\/game)?\/?$|beta(?:\/[\w-]*)?\/?$|signin(?:\/link)?\/?$|settings(?:\/(?:reminders|classes))?\/?$|class(?:\/[\w-]+)?\/?$|storage\/?$|voice\/?$|workout\/?$|plus\/?$|learn(?:\/[cs])?(?:\/[\w-]+)?(?:\/lines)?\/?$|verify\/?$|reset\/?$|email\/(?:confirm|revert)\/?$|create(?:\/[\w-]+)?\/?$|t\/[\w-]+(?:\/sheet)?\/?$|(?:join|early|invite|choir|challenge)\/[\w-]+\/?$|groups(?:\/[\w-]+)?\/?$|ideas(?:\/[\w-]+)?\/?$|requests\/?$|voices\/?$|start-fresh\/?$|cooldown\/?$|warmup\/?$|moved\/?$|contact\/?$|notices?\/?$|admin(?:\/(?!sign-in|sign-out|second-factor)[\w-]+(?:\/[\w-]+)?)?\/?$)/;
 
 /**
  * Caches every file of the app, or none: a file that fails (a folder the server doesn't serve, say)

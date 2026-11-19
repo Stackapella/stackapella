@@ -116,9 +116,6 @@ final class AuthController extends Controller
             'sheetImport' => app(SheetImport::class)->open($request->user()),
             // Lend your voice (the lend_voice switch): volunteers claim the missing real voices.
             'lendVoice' => $flags->on('lend_voice'),
-            // YouTube sync (the youtube_sync switch, docs/youtube-sync-plan.md): the app asks for a song's real recordings
-            // only while it's on for this person (a person it's turned on for sees it first).
-            'youtubeSync' => $flags->onFor('youtube_sync', $request->user()),
             // Song requests (the song_requests switch); staff see them before (account.songRequests).
             'songRequests' => $flags->on('song_requests'),
             'schools' => $flags->on('schools'),

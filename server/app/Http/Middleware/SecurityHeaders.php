@@ -116,11 +116,8 @@ final class SecurityHeaders
             // file on jsDelivr would be someone else's script.
             // Turnstile's script and frame too, for shield mode (an attack switch): without them,
             // switching it on would lock everyone out of signing in.
-            // YouTube's IFrame Player API (docs/youtube-sync-plan.md; Hillel's yes of 2026-11-19 to its unpinnable loader):
-            // fetched only after someone taps a recording, from www.youtube.com, with the player itself framed from
-            // youtube-nocookie.com.
-            'script-src' => ["'self'", ...$this->shell->cdnSources(), "'unsafe-eval'", ...$this->shell->scriptHashes(), 'https://challenges.cloudflare.com', 'https://www.youtube.com'],
-            'frame-src' => ['https://challenges.cloudflare.com', 'https://www.youtube-nocookie.com'],
+            'script-src' => ["'self'", ...$this->shell->cdnSources(), "'unsafe-eval'", ...$this->shell->scriptHashes(), 'https://challenges.cloudflare.com'],
+            'frame-src' => ['https://challenges.cloudflare.com'],
             'style-src' => ["'self'"],
             'style-src-attr' => ["'unsafe-inline'"],
             'font-src' => ["'self'"],

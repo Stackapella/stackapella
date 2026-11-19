@@ -20,8 +20,7 @@ data. Questions: contact@stackapella.com.
   steps it has already counted and, during a test, which of two versions it got; neither leaves the
   device except inside the anonymous daily totals. The app's
   own code libraries load from jsDelivr (its fonts are our own files); Cloudflare's bot check
-  loads only while we're protecting the app from an attack. YouTube's player loads only when you
-  tap Play on a song's real recording (below).
+  loads only while we're protecting the app from an attack.
 - **Your recordings stay on your device** until you sign in (then your projects are saved to your
   account, and kept in step across your devices), share them, add them to a choir or an idea, sing
   on a friend's project, send them to a coach or teacher, or submit one as a beta guide. The pitch
@@ -187,7 +186,6 @@ you choose to share.
 - **Sentry (when set up):** Errors, with your account's id and browser type, never your name, address, IP or recordings. For fixing bugs.
 - **X, Bluesky:** What we post: a song, or a harmony its singer said yes to, with the singer's name and their handle there. For our own accounts.
 - **jsDelivr:** Your IP address, as the app's code libraries load. For delivering the app.
-- **YouTube (Google), only when you tap Play on a song's real recording:** YouTube's player loads from YouTube and plays the video there, so YouTube receives your IP address and browser details, may set its own cookies and storage, and may show ads, under Google's Privacy Policy (https://policies.google.com/privacy). Nothing about you goes from us to YouTube, and nothing loads from YouTube before that tap. We use the YouTube API Services to find recordings and to check, at least every 30 days, that each one may still be shown; we keep only the video's id and the timing we made for it, and YouTube's details about it (its title, channel and length) no longer than 30 days. For playing real recordings.
 
 No third-party analytics, no advertising, no tracking scripts.
 
@@ -221,10 +219,7 @@ Our storage is in DigitalOcean's New York region, so your data is held in the Un
 The app also keeps your songs, recordings, settings and its own files in your browser's storage,
 so it works offline; once you sign in, your projects and progress are also saved to your account.
 It remembers the link you came from until you sign up. Turnstile, Cloudflare's bot check, runs only
-while we're protecting the app from an attack. When you tap Play on a song's real recording, YouTube's
-player may set YouTube's own cookies and storage (they're YouTube's, under Google's Privacy Policy,
-not ours); before that tap, nothing from YouTube loads. The delay you set for real recordings is kept
-on your device only.
+while we're protecting the app from an attack.
 
 ## Emails we send
 

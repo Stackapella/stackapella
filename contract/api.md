@@ -304,12 +304,6 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `corrections.create` | `POST /api/corrections` | Anyone (signed out too) | L |
 | `admin.corrections.list` | `GET /api/admin/corrections` | An admin or editor | L |
 | `admin.corrections.update` | `PATCH /api/admin/corrections/{id}` | An admin or editor | L |
-| `songs.videos.list` | `GET /api/songs/{id}/videos` | Anyone (signed out too) | L |
-| `admin.songVideos.list` | `GET /api/admin/song-videos` | An admin | L |
-| `admin.songVideos.search` | `GET /api/admin/song-videos/search` | An admin | L |
-| `admin.songVideos.save` | `POST /api/admin/song-videos` | An admin | L |
-| `admin.songVideos.approve` | `POST /api/admin/song-videos/{id}/approve` | An admin | L |
-| `admin.songVideos.delete` | `DELETE /api/admin/song-videos/{id}` | An admin | L |
 | `admin.harmonies.hide` | `POST /api/admin/harmonies/{id}/hide` | An admin | M6 |
 | `admin.harmonies.restore` | `POST /api/admin/harmonies/{id}/restore` | An admin | M6 |
 | `admin.harmonies.remove` | `POST /api/admin/harmonies/{id}/remove` | An admin, in sudo | M6 |
@@ -1648,8 +1642,7 @@ visitor can try a live course's free first lesson; `account.plusCourses` is the 
 staff before it opens. `sheetImport` says whether sheet music import is open to this visitor (the `sheet_import`
 switch: `on` for everyone, `directors` for anyone who directs a choir group; off until its server rules
 are live; staff see it before). `lendVoice` says whether Lend
-your voice is on (the `lend_voice` switch). `youtubeSync` (optional) says whether YouTube sync is on for this
-visitor (the `youtube_sync` switch, or turned on for them first), so the app asks `songs.videos.list` only then. `languages` lists the languages open to everyone, English
+your voice is on (the `lend_voice` switch). `languages` lists the languages open to everyone, English
 first, then each whose switch is on (`lang_es`, `lang_de`): the app offers only these in Settings and
 follows the browser only into these (`?lang=` still shows a draft).
 `experiment` is the funnel's running A/B test, `{ "id": "onb1", "arms": ["a", "b"], "enrol": true }`,
@@ -6349,82 +6342,6 @@ Up to 20 addresses containing `?q=` (2 to 255 characters), with their status. **
 |---|---|---|---|
 | 200 |  | `admin.mudeo.contacts.json` | `admin.mudeo.contacts.200.json` |
 | 422 | `validation_failed` | `error.json` | `admin.mudeo.contacts.validation_failed.json` |
-
-### YouTube sync
-
-A song's real recordings on YouTube, our lane in step with the video (docs/youtube-sync-plan.md; Hillel, 2026-11-19).
-A recording is a **sync map** a person made (the `form`: the performance's sections in order, each `shift` semitones
-from the template's key and `cents` off equal temperament, with `gap`s of beats between; the `anchors`:
-`[videoSeconds, performanceBeat]` pairs, both strictly increasing) plus the video's id and YouTube's last check of it.
-YouTube's policies let the server keep that check for 30 days at most: it re-checks daily (`app:videos:recheck`) and
-deletes what it couldn't. The YouTube Data API key is the server's alone.
-
-#### `songs.videos.list`
-
-The song's approved recordings that YouTube's last check lets us show, oldest first. Empty while the `youtube_sync`
-switch is off for this person (a person it's turned on for sees them first). `{id}` is the song's slug.
-
-| Status | Code | Schema | Example |
-|---|---|---|---|
-| 200 | | `songs.videos.list.json` | `songs.videos.list.200.json` |
-| 404 | `not_found` | `error.json` | `songs.videos.list.not_found.json` |
-
-#### `admin.songVideos.list`
-
-The sync tool's recordings in every state, newest first, at most 200. **Request:** `?song=` (a slug; none: all).
-
-| Status | Code | Schema | Example |
-|---|---|---|---|
-| 200 | | `admin.songVideos.list.json` | `admin.songVideos.list.200.json` |
-
-#### `admin.songVideos.search`
-
-A YouTube search for embeddable videos (`?q=`, up to 120 characters), each checked: `usable` false (with
-`hiddenReason`) for one we may not show. Nothing is stored. YouTube allows the whole app 100 searches a day, so this is
-rate-limited per admin. `409 youtube_unavailable`: no API key, or YouTube didn't answer.
-
-| Status | Code | Schema | Example |
-|---|---|---|---|
-| 200 | | `admin.songVideos.search.json` | `admin.songVideos.search.200.json` |
-| 409 | `youtube_unavailable` | `error.json` | `admin.songVideos.search.youtube_unavailable.json` |
-| 422 | `validation_failed` | `error.json` | `admin.songVideos.search.validation_failed.json` |
-| 429 | `rate_limited` | `error.json` | `admin.songVideos.search.rate_limited.json` |
-
-#### `admin.songVideos.save`
-
-Saves a recording's sync map, one per song and video (saving again replaces it). **Request:** `{ "song": "<slug>",
-"templateVersion": 8, "videoId": "<11 characters>", "form": [...], "anchors": [[s, beat], ...], "harmony":
-"same|similar|different", "otherWords": [[fromBeat, toBeat], ...] | null }`. The map is checked against that version of
-the song (`422` on `form` or `anchors`, the problems named as js/sync-map.js names them), then the video with YouTube
-(`422` on `videoId`: no such video, or one we may not show). A saved map is a `draft`, a new one `201`, a replaced one
-`200`, and either needs approving again.
-
-| Status | Code | Schema | Example |
-|---|---|---|---|
-| 201 | | `admin.songVideos.save.json` | `admin.songVideos.save.201.json` |
-| 200 | | `admin.songVideos.save.json` | `admin.songVideos.save.200.json` |
-| 404 | `not_found` | `error.json` | `admin.songVideos.save.not_found.json` |
-| 409 | `youtube_unavailable` | `error.json` | `admin.songVideos.save.youtube_unavailable.json` |
-| 422 | `validation_failed` | `error.json` | `admin.songVideos.save.validation_failed.json` |
-
-#### `admin.songVideos.approve`
-
-Someone played the recording through with its map and approves it: singers see it from now on. Approving an approved
-one changes nothing.
-
-| Status | Code | Schema | Example |
-|---|---|---|---|
-| 200 | | `admin.songVideos.save.json` | `admin.songVideos.approve.200.json` |
-| 404 | `not_found` | `error.json` | `admin.songVideos.approve.not_found.json` |
-
-#### `admin.songVideos.delete`
-
-Takes a recording and its map away.
-
-| Status | Code | Schema | Example |
-|---|---|---|---|
-| 204 | | | |
-| 404 | `not_found` | `error.json` | `admin.songVideos.delete.not_found.json` |
 
 ### Counts, the network panel and What's next (L)
 

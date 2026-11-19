@@ -301,7 +301,4 @@ return [
     'board_month_version' => 'This month\'s board is the current arrangement\'s only.',
 
     'correction_reject_note' => 'Say why it is rejected.',
-    'song_video_map' => 'The sync map does not fit the song (:problems).',
-    'song_video_missing' => 'YouTube has no such video.',
-    'song_video_unusable' => 'This video can\'t be shown here: :reason.',
 ];

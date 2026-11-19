@@ -80,14 +80,6 @@ Schedule::command('app:search-console:sync')
     ->withoutOverlapping(30)
     ->runInBackground();
 
-// YouTube sync (docs/youtube-sync-plan.md): synced recordings re-checked with YouTube within 30 days, the rest deleted.
-Schedule::command('app:videos:recheck')
-    ->onOneServer()
-    ->name('videos-recheck')
-    ->dailyAt('05:50')
-    ->withoutOverlapping(30)
-    ->runInBackground();
-
 Schedule::command('app:counts:active-singers')
     ->onOneServer()
     ->name('active-singers')

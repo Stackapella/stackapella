@@ -7,7 +7,7 @@
 #   APP_KEY, APP_URL, DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD, DB_CA_CERT,
 #   SPACES_KEY, SPACES_SECRET, CDN_URL, SQIDS_ALPHABET,
 #   ADMIN_GOOGLE_IDS, ADMIN_EMAILS, EDITOR_GOOGLE_IDS, EDITOR_EMAILS,
-#   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, YOUTUBE_API_KEY (app level: the web and the scheduler both use it)
+#   GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
 #
 # Every component runs the one image (.do/Dockerfile), built from the repository's root so the
 # PWA's files (/web) ship beside the server.

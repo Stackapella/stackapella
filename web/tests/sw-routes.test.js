@@ -4,7 +4,7 @@
 import { assert, test } from './harness.js';
 
 const SAMPLES = {
-    sing: '/p/abc/sing', print: '/p/abc/print', scoreSheet: '/t/amazing-grace/sheet', recordings: '/t/silent-night/recordings', readLines: '/learn/c/sight-singing/lines', studio: '/p/abc', admin: '/admin/singers', styleguide: '/styleguide', styleguideGame: '/styleguide/game', auth: '/signin/link',
+    sing: '/p/abc/sing', print: '/p/abc/print', scoreSheet: '/t/amazing-grace/sheet', readLines: '/learn/c/sight-singing/lines', studio: '/p/abc', admin: '/admin/singers', styleguide: '/styleguide', styleguideGame: '/styleguide/game', auth: '/signin/link',
     settings: '/settings', storage: '/storage', voice: '/voice', workout: '/workout', plus: '/plus', reminders: '/settings/reminders', classes: '/settings/classes', classJoin: '/class/KQ7M-3XPA',
     course: '/learn', learn: '/learn/match-a-note', plusCourse: '/learn/c/vibrato', songCourse: '/learn/s/amazing-grace', beta: '/beta/abc', create: '/create/abc', template: '/t/abc', join: '/join/abc',
     early: '/early/abc', invite: '/invite/abc', groups: '/groups', group: '/groups/abc', choir: '/choir/abc', challenge: '/challenge/abc', moved: '/moved',
