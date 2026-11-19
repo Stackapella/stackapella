@@ -235,6 +235,26 @@ final class CounterpointPage
     }
 
     /**
+     * The history's years in three runs (the length pass of 2026-11-18): the years before Tallis's forty, the
+     * forty itself (drawn as a full-width spread, with Count the voices under it), and the years after, set beside
+     * the forty on a big screen and folded as More years on a phone. Without a forty, every year is "before".
+     *
+     * @param  array<int, array{0: string, 1: string, 2: list<string>, 3: int}>  $beats
+     * @return array{before: list<array{0: string, 1: string, 2: list<string>, 3: int}>, forty: array{0: string, 1: string, 2: list<string>, 3: int}|null, after: list<array{0: string, 1: string, 2: list<string>, 3: int}>}
+     */
+    public static function years(array $beats): array
+    {
+        $beats = array_values($beats);
+        foreach ($beats as $i => $beat) {
+            if ($beat[3] === 40) {
+                return ['before' => array_slice($beats, 0, $i), 'forty' => $beat, 'after' => array_slice($beats, $i + 1)];
+            }
+        }
+
+        return ['before' => $beats, 'forty' => null, 'after' => []];
+    }
+
+    /**
      * @param  list<array{x: int, y: int}>  $notes
      */
     private static function points(array $notes): string

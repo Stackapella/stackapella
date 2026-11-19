@@ -7,12 +7,23 @@
      a result card marked as a sample; the setlist with singing safely; the beginner course beside Amazing Grace's four
      parts from its template; the group's other courses. Every lesson's own page follows (course.blade.php's
      _lesson-pages, laid out by unit here in CSS). Part colours are the site's s-v1 to s-v4, so calm light and dark and
-     game all draw them. Words: lang/en/site.php courses.pages.backing-vocals (`bv`). --}}
+     game all draw them. The length pass (Hillel, 2026-11-18: every course page about the same length) adds, in the
+     same lanes: lesson 1's pad to try without the app; why it works, lesson 1's pad under Amazing Grace against its chords
+     (each chord named by its notes, the pad's note marked) and three points each with its strip; the archive as a
+     session of four tracks, a clip a dated fact; who it's for and what you need beside the setlist; the questions; a
+     close where the lanes are yours; and the numbered Sources, open on a wide screen. Words: lang/en/site.php
+     courses.pages.backing-vocals (`bv`, and `faq`). --}}
 @php($bv = (array) $page['bv'])
 {{-- Shenandoah's first two lines as four lanes, and Amazing Grace's first line as four parts, from real notes
      (App\Support\Site\BackingVocalsLanes). --}}
 @php($hero = \App\Support\Site\BackingVocalsLanes::hero())
 @php($grace = \App\Support\Site\BackingVocalsLanes::grace())
+{{-- Lesson 1's pad under Amazing Grace, with its chords (the science's panel and strips). --}}
+@php($first = \App\Support\Site\BackingVocalsLanes::firstPad())
+@php($sources = (array) $bv['sources'])
+@php($counts = [':lessons' => (string) ($outline['lessons'] ?? ''), ':units' => (string) count($outline['units'] ?? [])])
+@php($tryUrl = $open ? $courseStart : $links['start'])
+@php($tryLabel = $open ? __('pages.site.course_try') : __('pages.site.course_start'))
 @php($kinds = ['lead' => null, 'pad' => 1, 'doo' => 2, 'answer' => 3])
 {{-- Each unit's strip: which lanes it shows, and the ghost of the tune where the lead isn't the point. --}}
 @php($strips = [[['lead', true], ['pad', false]], [['lead', true], ['doo', false]], [['lead', false], ['answer', false]], [['pad', false], ['answer', false], ['doo', false]]])
@@ -131,6 +142,112 @@
         </section>
     @endif
 
+    {{-- Lesson 1 without the app: its own words, then four takes, each in a part's colour. --}}
+    <section class="s-wrap cp-bv-sec" aria-labelledby="try-h">
+        <div class="cp-bv-try">
+            <div>
+                <p class="s-kick">{{ $bv['try']['kick'] }}</p>
+                <h2 id="try-h" class="cp-bv-h2 cp-bv-h2-s">{{ $bv['try']['title'] }}</h2>
+                <p class="cp-bv-p">{{ $bv['try']['lead'] }}</p>
+            </div>
+            <div>
+                <ol class="cp-bv-takes">
+                    @foreach ((array) $bv['try']['steps'] as $step)
+                        <li class="s-v{{ $loop->index % 4 + 1 }}"><span class="cp-bv-take" aria-hidden="true">{{ $loop->iteration }}</span><span>{{ $step }}</span></li>
+                    @endforeach
+                </ol>
+                <p class="cp-bv-after">{{ $bv['try']['after'] }}</p>
+            </div>
+        </div>
+    </section>
+
+    {{-- Why it works: lesson 1's pad under Amazing Grace as three lanes (the tune, the chords named by their notes with
+         the pad's note marked, the pad), then three points, each with a strip of its idea. --}}
+    <section class="s-wrap cp-bv-sec" aria-labelledby="why-h">
+        <p class="s-kick">{{ $bv['science']['kick'] }}</p>
+        <h2 id="why-h" class="cp-bv-h2 cp-bv-why-h">{{ $bv['science']['title'] }}</h2>
+        <p class="cp-bv-p">{{ $bv['science']['lead'] }}</p>
+        <div class="cp-bv-panel cp-bv-panel-why">
+            <p class="s-kick cp-bv-quiet">{{ $bv['science']['panel']['kick'] }}</p>
+            <figure class="cp-bv-fig">
+                <div class="cp-bv-tracks cp-bv-tracks-why" aria-hidden="true">
+                    <span class="cp-bv-grid cp-bv-grid-8" style="grid-row: 1 / 4"></span>
+                    <span class="cp-bv-name cp-bv-is-lead" style="grid-row: 1">{{ $bv['science']['panel']['lanes']['lead'] }}</span>
+                    <span class="cp-bv-lane cp-bv-is-lead cp-bv-lane-ghost" style="grid-row: 1">
+                        @foreach ($first['lead'] as $note)
+                            <span class="cp-bv-seg" style="left: {{ $note['left'] }}%; width: {{ $note['width'] }}%"><span>{{ $note['word'] }}</span></span>
+                        @endforeach
+                    </span>
+                    <span class="cp-bv-name cp-bv-name-chords" style="grid-row: 2">{{ $bv['science']['panel']['lanes']['chords'] }}</span>
+                    <span class="cp-bv-lane cp-bv-lane-chords s-v1" style="grid-row: 2">
+                        @foreach ($first['chords'] as $chord)
+                            <span class="cp-bv-chord" style="left: {{ $chord['left'] }}%; width: {{ $chord['width'] }}%">
+                                @foreach ($chord['tones'] as $tone)
+                                    <span @class(['cp-bv-shared' => $tone['shared']])>{{ $tone['name'] }}</span>
+                                @endforeach
+                            </span>
+                        @endforeach
+                    </span>
+                    <span class="cp-bv-name s-v1" style="grid-row: 3">{{ $bv['science']['panel']['lanes']['pad'] }}</span>
+                    <span class="cp-bv-lane s-v1" style="grid-row: 3">
+                        @foreach ($first['pad'] as $note)
+                            <span class="cp-bv-seg" style="left: {{ $note['left'] }}%; width: {{ $note['width'] }}%"><span>{{ $note['word'] }}</span></span>
+                        @endforeach
+                    </span>
+                </div>
+                <figcaption class="sr-only">{{ $bv['science']['panel']['alt'] }}</figcaption>
+            </figure>
+            <p class="cp-bv-source">{{ $bv['science']['panel']['note'] }}</p>
+        </div>
+        <ol class="cp-bv-points">
+            @foreach ((array) $bv['science']['points'] as [$title, $text, $cites])
+                <li class="s-v{{ $loop->iteration }}">
+                    {{-- Each idea's strip: a note held still under the moving tune; the pad stepping as its chords change;
+                         three parts that end on the same beat. --}}
+                    <div class="cp-bv-strip cp-bv-strip-8" aria-hidden="true">
+                        @if ($loop->index === 0)
+                            <span class="cp-bv-strip-lane cp-bv-is-lead">@foreach ($first['lead'] as $note)<i style="left: {{ $note['left'] }}%; width: {{ $note['width'] }}%"></i>@endforeach</span>
+                            <span class="cp-bv-strip-lane"><i style="left: 0%; width: 100%"></i></span>
+                        @elseif ($loop->index === 1)
+                            <span class="cp-bv-strip-lane cp-bv-ghost">@foreach ($first['chords'] as $chord)<i style="left: {{ $chord['left'] }}%; width: {{ $chord['width'] }}%"></i>@endforeach</span>
+                            <span class="cp-bv-strip-lane">@foreach ($first['pad'] as $note)<i style="left: {{ $note['left'] }}%; width: {{ $note['width'] }}%"></i>@endforeach</span>
+                        @else
+                            @foreach ([[0, 75], [25, 50], [50, 25]] as [$left, $width])
+                                <span class="cp-bv-strip-lane"><i style="left: {{ $left }}%; width: {{ $width }}%"></i></span>
+                            @endforeach
+                            <span class="cp-bv-strip-cut"></span>
+                        @endif
+                    </div>
+                    <h3><span class="cp-bv-num" aria-hidden="true">{{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }}</span>{{ $title }}</h3>
+                    <p>{{ $text }}@include('site.courses._cites', ['keys' => $cites])</p>
+                </li>
+            @endforeach
+        </ol>
+    </section>
+
+    {{-- The archive as a session: a track for each kind of backing part, in the hero's colours, each fact a clip whose
+         header is its year where the source gives one. --}}
+    <section class="s-wrap cp-bv-sec" aria-labelledby="story-h">
+        <p class="s-kick">{{ $bv['story']['kick'] }}</p>
+        <h2 id="story-h" class="cp-bv-h2">{{ $bv['story']['title'] }}</h2>
+        <p class="cp-bv-p">{{ $bv['story']['lead'] }}</p>
+        <div class="cp-bv-session">
+            @foreach (['pad' => 1, 'doo' => 2, 'answer' => 3, 'stack' => 4] as $kind => $v)
+                <div class="cp-bv-track s-v{{ $v }}">
+                    <h3 class="cp-bv-track-name"><span class="cp-bv-key" aria-hidden="true"></span>{{ $bv['story']['lanes'][$kind] }}</h3>
+                    <ul class="cp-bv-clips">
+                        @foreach ((array) $bv['story']['clips'][$kind] as [$tag, $text, $cites])
+                            <li class="cp-bv-clip">
+                                <p class="cp-bv-clip-tag">{{ $tag }}</p>
+                                <p class="cp-bv-clip-text">{{ $text }}@include('site.courses._cites', ['keys' => $cites])</p>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endforeach
+        </div>
+    </section>
+
     {{-- What the app listens for, beside a result card plainly marked as a sample (the course's own example numbers,
          lang `scoring`), never a singer's score. --}}
     <section class="s-wrap cp-bv-sec" aria-labelledby="hears-h">
@@ -162,30 +279,46 @@
         </div>
     </section>
 
-    @if (($page['songs'] ?? []) !== [] || ($page['safety'] ?? []) !== [])
-        <section class="s-wrap cp-bv-sec cp-bv-songs">
-            @if (($page['songs'] ?? []) !== [])
-                <div aria-labelledby="songs-h">
-                    <h2 id="songs-h" class="s-kick">{{ $bv['setlist'] }}</h2>
-                    <ol class="cp-bv-setlist">
-                        @foreach ((array) $page['songs'] as [$song, $credit])
-                            <li><span class="cp-bv-num" aria-hidden="true">{{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }}</span><b translate="no">{{ $song }}</b><span class="cp-bv-credit">{{ $credit }}</span></li>
-                        @endforeach
-                    </ol>
-                </div>
-            @endif
-            @if (($page['safety'] ?? []) !== [])
-                <div aria-labelledby="safety-h">
-                    <h2 id="safety-h" class="s-kick">{{ __('pages.site.course_safety') }}</h2>
-                    <ul class="cp-bv-safe">
-                        @foreach ((array) $page['safety'] as $note)
-                            <li><x-site.icon name="info" size="18" />{{ $note }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-        </section>
-    @endif
+    {{-- Who it's for and what you need, then the setlist beside singing safely. --}}
+    <section class="s-wrap cp-bv-sec cp-bv-songs">
+        <div aria-labelledby="who-h">
+            <h2 id="who-h" class="s-kick">{{ __('pages.site.who') }}</h2>
+            <ul class="cp-bv-rules">
+                @foreach ((array) $bv['who'] as $line)
+                    <li>{{ $line }}</li>
+                @endforeach
+            </ul>
+        </div>
+        <div aria-labelledby="need-h">
+            <h2 id="need-h" class="s-kick">{{ $bv['need_h'] }}</h2>
+            <ul class="cp-bv-rules">
+                @foreach ((array) $bv['need'] as $line)
+                    @continue($outline === null && str_contains($line, ':lessons'))
+                    <li>{{ strtr($line, $counts) }}</li>
+                @endforeach
+            </ul>
+        </div>
+        @if (($page['songs'] ?? []) !== [])
+            <div aria-labelledby="songs-h">
+                <h2 id="songs-h" class="s-kick">{{ $bv['setlist'] }}</h2>
+                <ol class="cp-bv-setlist">
+                    @foreach ((array) $page['songs'] as [$song, $credit])
+                        <li><span class="cp-bv-num" aria-hidden="true">{{ str_pad((string) $loop->iteration, 2, '0', STR_PAD_LEFT) }}</span><b translate="no">{{ $song }}</b><span class="cp-bv-credit">{{ $credit }}</span></li>
+                    @endforeach
+                </ol>
+            </div>
+        @endif
+        @if (($page['safety'] ?? []) !== [])
+            <div aria-labelledby="safety-h">
+                <h2 id="safety-h" class="s-kick">{{ __('pages.site.course_safety') }}</h2>
+                <ul class="cp-bv-safe">
+                    @foreach ((array) $page['safety'] as $note)
+                        <li><x-site.icon name="info" size="18" />{{ $note }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+    </section>
 
     {{-- New to harmony: the beginner course, beside Amazing Grace's four parts as the course sings them. --}}
     <section class="s-ink cp-bv-today" aria-labelledby="today-h">
@@ -214,14 +347,60 @@
         </div>
     </section>
 
-    <section class="s-wrap cp-bv-sec" aria-labelledby="more-h">
-        <h2 id="more-h" class="s-kick">{{ __('pages.site.course_more', ['group' => $group['name'] ?? '']) }}</h2>
-        <ul class="s-chips">
-            @foreach ((array) ($group['courses'] ?? []) as $slug)
-                @continue($slug === $page['slug'])
-                <li><a href="/courses/{{ $slug }}">{{ __('site.courses.pages.'.$slug.'.name') }}</a></li>
-            @endforeach
-        </ul>
+    <section class="s-wrap cp-bv-sec cp-bv-faq" aria-labelledby="faq-h">
+        <h2 id="faq-h" class="cp-bv-h2">{{ $bv['faq_h'] }}</h2>
+        @include('site.courses._faq')
+    </section>
+
+    {{-- The close: the hero's lanes again, the guide on the lead and every backing lane yours, then the way in and the
+         group's other courses. --}}
+    <section class="s-wrap cp-bv-sec" aria-labelledby="close-h">
+        <div class="cp-bv-panel cp-bv-close">
+            <div>
+                <p class="s-kick">{{ $bv['close']['kick'] }}</p>
+                <h2 id="close-h" class="cp-bv-h2 cp-bv-h2-l">{{ $bv['close']['title'] }}</h2>
+                <p class="cp-bv-p">{{ $open ? $bv['close']['body'] : __('pages.site.course_soon') }}</p>
+                <p class="cp-bv-btns">
+                    <a href="{{ $tryUrl }}" class="btn-primary btn-lg">{{ $tryLabel }} <x-site.icon name="arrow" size="18" /></a>
+                    <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>
+                </p>
+                @if ($open)
+                    <p class="cp-bv-join">{{ __('pages.site.course_join_note') }}</p>
+                @endif
+            </div>
+            <div class="cp-bv-tracks cp-bv-tracks-close" aria-hidden="true">
+                <span class="cp-bv-grid" style="grid-row: 1 / {{ count($hero['lanes']) + 1 }}"></span>
+                @foreach ($hero['lanes'] as $kind => $notes)
+                    <span class="cp-bv-name {{ $kinds[$kind] ? 's-v'.$kinds[$kind] : 'cp-bv-is-lead' }}" style="grid-row: {{ $loop->iteration }}">{{ $bv['close']['lanes'][$loop->index] ?? '' }}</span>
+                    <span class="cp-bv-lane {{ $kinds[$kind] ? 's-v'.$kinds[$kind] : 'cp-bv-is-lead' }}" style="grid-row: {{ $loop->iteration }}">
+                        @foreach ($notes as $note)
+                            <span class="cp-bv-seg" style="left: {{ $note['left'] }}%; width: {{ $note['width'] }}%"></span>
+                        @endforeach
+                    </span>
+                @endforeach
+            </div>
+        </div>
+        <div class="cp-bv-more">
+            <h2 id="more-h" class="s-kick">{{ __('pages.site.course_more', ['group' => $group['name'] ?? '']) }}</h2>
+            <ul class="s-chips">
+                @foreach ((array) ($group['courses'] ?? []) as $slug)
+                    @continue($slug === $page['slug'])
+                    <li><a href="/courses/{{ $slug }}">{{ __('site.courses.pages.'.$slug.'.name') }}</a></li>
+                @endforeach
+            </ul>
+        </div>
+    </section>
+
+    {{-- The numbered notes the claims point to, folded on a phone and open on a wide screen (js/public/backing-vocals.js). --}}
+    <section class="s-wrap cp-bv-sources" aria-labelledby="notes-h">
+        <details data-bv-sources>
+            <summary><h2 id="notes-h" class="s-kick">{{ __('pages.site.sources') }} <span>({{ count($sources) }})</span></h2><span class="cp-faq-sign" aria-hidden="true"><x-site.icon name="plus" size="16" /></span></summary>
+            <ol>
+                @foreach ($sources as [$label, $url])
+                    <li id="src-{{ $loop->iteration }}"><a href="{{ $url }}" rel="noopener">{{ $label }}</a></li>
+                @endforeach
+            </ol>
+        </details>
     </section>
     <script type="module" src="/js/public/backing-vocals.js"></script>
 </main>

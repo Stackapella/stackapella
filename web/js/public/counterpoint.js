@@ -468,7 +468,8 @@ seekPlay.addEventListener('click', () => start(seekPlay, () => {
 }));
 showSeek();
 
-// The books, the years, the pack and the sources: open on a big screen, a tap away on a phone.
+// The later years, the pack and the sources: open on a big screen, a tap away on a phone (the books' lessons stay
+// folded but the first's, on every screen).
 const wide = matchMedia('(min-width: 900px)');
 const panels = page.querySelectorAll('[data-cp-open]');
 function openPanels() {

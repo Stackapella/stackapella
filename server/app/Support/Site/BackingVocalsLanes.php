@@ -13,6 +13,8 @@ namespace App\Support\Site;
  *   lesson's tune shares; the doo-wop and the answer are drawn on the template's chords, to show where each kind sits.
  * - grace(): Amazing Grace's first line (beats 0 to 12, in 3/4), its four parts from the template the beginner course
  *   sings.
+ * - firstPad(): lesson 1's pad under Amazing Grace's first two lines (beats 0 to 24), with the tune over it and its chords
+ *   named by their notes, from the course's own lesson.
  *
  * Each note is [at, len, midi, word, left, width]: its beat, its length in beats, its pitch, the word sung on it (trimmed
  * of hyphens and stops), and its place in its lane in percent. A file that's missing gives empty lanes, never an error.
@@ -22,6 +24,15 @@ final class BackingVocalsLanes
     public const HERO_BEATS = 16;
 
     public const GRACE_BEATS = 12;
+
+    /** Lesson 1's first two lines of Amazing Grace, in 3/4. */
+    public const PAD_BEATS = 24;
+
+    /** The major scale's steps from do, by their do re mi names (the course's own, "ti" for the seventh). */
+    private const SOLFA = [0 => 'do', 2 => 're', 4 => 'mi', 5 => 'fa', 7 => 'so', 9 => 'la', 11 => 'ti'];
+
+    /** A chord's notes in steps from its root, by the course's chord qualities. */
+    private const TONES = ['maj' => [0, 4, 7], 'min' => [0, 3, 7], 'dom7' => [0, 4, 7, 10], 'maj7' => [0, 4, 7, 11], 'min7' => [0, 3, 7, 10], 'maj6' => [0, 4, 7, 9]];
 
     /** Where the doo-wop's "doo" and the answer sit: at or above these MIDI notes. */
     private const DOO_LOW = 57;
@@ -101,6 +112,84 @@ final class BackingVocalsLanes
             'span' => self::GRACE_BEATS,
             'parts' => array_map(static fn (string $key): array => self::partNotes($song, $key, self::GRACE_BEATS), ['soprano', 'alto', 'tenor', 'bass']),
         ];
+    }
+
+    /**
+     * Lesson 1's pad against its chords: Amazing Grace's first two lines (beats 0 to 24, in 3/4), from the lesson's play
+     * step that has the tune over the pad. The tune (its words), the chords (a run of one chord merged), each named by its
+     * notes in do re mi with the pad's note marked where the chord holds it, and the pad, each note named.
+     *
+     * @return array{span: int, lead: list<array{at: float, len: float, midi: int, word: string, left: float, width: float}>, pad: list<array{at: float, len: float, midi: int, word: string, left: float, width: float}>, chords: list<array{left: float, width: float, tones: list<array{name: string, shared: bool}>}>}
+     */
+    public static function firstPad(): array
+    {
+        $span = self::PAD_BEATS;
+        $exercise = [];
+        foreach ((array) (self::lesson('backing-vocals', 'bv-1-pad')['steps'] ?? []) as $step) {
+            if (is_array($step) && ($step['kind'] ?? '') === 'play' && is_array($step['exercise']['with'][0]['notes'] ?? null)) {
+                $exercise = $step['exercise'];
+                break;
+            }
+        }
+
+        $lead = [];
+        foreach ((array) ($exercise['with'][0]['notes'] ?? []) as $note) {
+            if (is_array($note) && (float) ($note['beat'] ?? 0) < $span) {
+                $lead[] = self::note((float) $note['beat'], (float) ($note['length'] ?? 0), 60 + (int) ($note['step'] ?? 0), (string) ($note['lyric'] ?? ''), $span);
+            }
+        }
+
+        $pad = [];
+        foreach ((array) ($exercise['notes'] ?? []) as $note) {
+            if (is_array($note) && (float) ($note['beat'] ?? 0) < $span) {
+                $at = (float) $note['beat'];
+                $pad[] = self::note($at, min((float) ($note['length'] ?? 0), $span - $at), 60 + (int) ($note['step'] ?? 0), self::solfa((int) ($note['step'] ?? 0)), $span);
+            }
+        }
+
+        // The chords, a run of the same one merged, each lasting to the next one's start (or the span's end).
+        $runs = [];
+        foreach ((array) ($exercise['chords'] ?? []) as $chord) {
+            if (! is_array($chord) || (float) ($chord['beat'] ?? 0) >= $span) {
+                continue;
+            }
+            $root = (int) ($chord['root'] ?? 0);
+            $quality = (string) ($chord['quality'] ?? 'maj');
+            $last = array_key_last($runs);
+            if ($last !== null && $runs[$last]['root'] === $root && $runs[$last]['quality'] === $quality) {
+                continue;
+            }
+            $runs[] = ['at' => (float) ($chord['beat'] ?? 0), 'root' => $root, 'quality' => $quality];
+        }
+
+        $chords = [];
+        foreach ($runs as $i => $run) {
+            $end = isset($runs[$i + 1]) ? $runs[$i + 1]['at'] : (float) $span;
+            // The pad's notes sounding in this chord, by name.
+            $held = [];
+            foreach ($pad as $note) {
+                if ($note['at'] < $end && $run['at'] < $note['at'] + $note['len']) {
+                    $held[] = $note['word'];
+                }
+            }
+            $chords[] = [
+                'left' => round($run['at'] / $span * 100, 3),
+                'width' => round(($end - $run['at']) / $span * 100, 3),
+                'tones' => array_map(static function (int $tone) use ($run, $held): array {
+                    $name = self::solfa($run['root'] + $tone);
+
+                    return ['name' => $name, 'shared' => in_array($name, $held, true)];
+                }, self::TONES[$run['quality']] ?? self::TONES['maj']),
+            ];
+        }
+
+        return ['span' => $span, 'lead' => $lead, 'pad' => $pad, 'chords' => $chords];
+    }
+
+    /** A scale step from do (any integer) by its do re mi name. */
+    private static function solfa(int $step): string
+    {
+        return self::SOLFA[(($step % 12) + 12) % 12] ?? '';
     }
 
     /**

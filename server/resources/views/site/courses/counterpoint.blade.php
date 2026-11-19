@@ -211,12 +211,18 @@
                 <p class="cp-cp2-sec"><span class="cp-cp2-num">{{ $roman[3] }}</span><span class="cp-cp2-label">{{ $love['books']['kick'] }}</span><span class="cp-cp2-rule" aria-hidden="true"></span></p>
                 <div class="cp-cp2-books-head">
                     <h2 id="units-h" class="cp-cp2-h2">{{ $cp::heading($love['books']['title'], $love['books']['em']) }}</h2>
-                    <p class="cp-cp2-small">{{ str_replace([':u', ':n'], [(string) $books, (string) $lessons], $love['books']['side']) }}</p>
+                    {{-- The books' start, set under their note beside the heading rather than in a row of its own. --}}
+                    <div class="cp-cp2-books-side">
+                        <p class="cp-cp2-small">{{ str_replace([':u', ':n'], [(string) $books, (string) $lessons], $love['books']['side']) }}</p>
+                        <p class="cp-cp2-ctas"><a href="{{ $tryUrl }}" class="btn-primary btn-lg">{{ $tryLabel }} <x-site.icon name="arrow" size="18" /></a></p>
+                    </div>
                 </div>
                 <ol class="cp-cp2-books">
                     @foreach ($outline['units'] as $unit)
                         <li class="cp-cp2-book cp-cp2-v{{ $loop->index % 3 + 1 }}" style="--i: {{ $loop->index }}">
-                            <details data-cp-open @if ($loop->first) open @endif>
+                            {{-- Folded but for the first, on every screen: the lesson list below the page has each
+                                 lesson's link, so a book's titles are a tap away here. --}}
+                            <details @if ($loop->first) open @endif>
                                 <summary>
                                     <span class="cp-cp2-liber"><span class="cp-cp2-label">{{ $love['books']['liber'] }}</span> <span class="cp-cp2-bookn">{{ $roman[$loop->index] ?? $loop->iteration }}</span></span>
                                     <span class="cp-cp2-booktop">
@@ -224,6 +230,7 @@
                                         @isset($page['units_say'][$loop->index])
                                             <span class="cp-cp2-say">{{ $page['units_say'][$loop->index] }}</span>
                                         @endisset
+                                        <span class="cp-cp2-booklen">{{ str_replace(':n', (string) count($unit['lessons']), $love['eyebrow_lessons']) }}</span>
                                     </span>
                                 </summary>
                                 <ol class="cp-cp2-lessons">
@@ -235,7 +242,6 @@
                         </li>
                     @endforeach
                 </ol>
-                <p class="cp-cp2-ctas"><a href="{{ $tryUrl }}" class="btn-primary btn-lg">{{ $tryLabel }} <x-site.icon name="arrow" size="18" /></a></p>
             </div>
         </section>
     @endif
@@ -245,87 +251,79 @@
             <p class="cp-cp2-sec"><span class="cp-cp2-num">{{ $roman[4] }}</span><span class="cp-cp2-label">{{ $love['history']['kick'] }}</span><span class="cp-cp2-rule" aria-hidden="true"></span></p>
             <h2 id="history-h" class="cp-cp2-h2">{{ $cp::heading($love['history']['title'], $love['history']['em']) }}</h2>
             <p class="cp-cp2-small">{{ $love['history']['lead'] }}</p>
-            @foreach ([array_slice($beats, 0, 5), array_slice($beats, 5)] as $part)
-                @if (! $loop->first)
-                    <details class="cp-cp2-more" data-cp-open><summary>{{ $love['history']['more'] }}</summary>
+            {{-- The years before Tallis's forty, then the forty as a full-width spread; under it, the forty's
+                 year with Count the voices, and beside them on a big screen the years after (More years, folded
+                 on a phone): App\Support\Pages\CounterpointPage::years. --}}
+            @php($years = $cp::years($beats))
+            <ol @class(['cp-cp2-years', 'cp-cp2-years-lead' => $years['forty'] !== null])>
+                @foreach ($years['before'] as $beat)
+                    @include('site.courses._cp-year')
+                @endforeach
+                @if ($years['forty'] !== null)
+                    {{-- Forty lines, a voice each, in eight choirs of five, each coming in a step after the
+                         last: a picture of the scoring, and said so under it, not the score's order. --}}
+                    <li class="cp-cp2-forty" aria-hidden="true">
+                        <svg viewBox="0 0 1000 206" preserveAspectRatio="none">
+                            @foreach ($cp::forty() as $hair)
+                                <g class="{{ $hair['voice'] }}"><path d="M0 {{ $hair['y'] }} H{{ $hair['x'] }}" class="cp-cp2-hair cp-cp2-hair-before" /><path d="M{{ $hair['x'] }} {{ $hair['y'] }} H1000" class="cp-cp2-hair" /></g>
+                            @endforeach
+                        </svg>
+                    </li>
                 @endif
-                <ol class="cp-cp2-years">
-                    @foreach ($part as [$when, $text, $cites, $players])
-                        @if ($players === 40)
-                            {{-- Forty lines, a voice each, in eight choirs of five, each coming in a step after the
-                                 last: a picture of the scoring, and said so under it, not the score's order. --}}
-                            <li class="cp-cp2-forty" aria-hidden="true">
-                                <svg viewBox="0 0 1000 206" preserveAspectRatio="none">
-                                    @foreach ($cp::forty() as $hair)
-                                        <g class="{{ $hair['voice'] }}"><path d="M0 {{ $hair['y'] }} H{{ $hair['x'] }}" class="cp-cp2-hair cp-cp2-hair-before" /><path d="M{{ $hair['x'] }} {{ $hair['y'] }} H1000" class="cp-cp2-hair" /></g>
-                                    @endforeach
-                                </svg>
-                            </li>
-                        @endif
-                        <li @class(['cp-cp2-year', 'cp-cp2-year-forty' => $players === 40])>
-                            <p class="cp-cp2-when">{{ $when }}</p>
-                            <div class="cp-cp2-year-in">
-                                <p class="cp-cp2-band-row">
-                                    @if ($players !== 40)
-                                        <svg viewBox="0 0 240 {{ $players * 6 + 4 }}" class="cp-cp2-band" aria-hidden="true">
-                                            @foreach ($cp::band($players) as $voice)
-                                                <g class="{{ $voice['voice'] }}"><path d="M{{ $voice['x'] }} {{ $voice['y'] }} H240" class="cp-cp2-thread" /><rect x="{{ $voice['x'] - 2.5 }}" y="{{ $voice['y'] - 2.5 }}" width="5" height="5" class="cp-cp2-dot" /></g>
+            </ol>
+            <div class="cp-cp2-beside">
+                @if ($years['forty'] !== null)
+                    <ol class="cp-cp2-years">
+                        @include('site.courses._cp-year', ['beat' => $years['forty']])
+                        @php($words = $love['history']['count'])
+                        <li class="cp-cp2-demo cp-cp2-count" data-cp-count>
+                            <div class="cp-cp2-fighead"><h3 class="cp-cp2-figtitle">{{ $words['title'] }}</h3><span class="cp-cp2-fign">{{ str_replace(':n', '3', $love['fig']) }}</span></div>
+                            <p class="cp-cp2-small">{{ $words['lead'] }}</p>
+                            <svg viewBox="0 0 700 216" class="cp-cp2-lanes" aria-hidden="true" data-x0="44" data-lane="{{ $count['lane'] }}">
+                                @foreach ($count['voices'] as $voice)
+                                    <g class="cp-cp2-v{{ $voice['n'] }}">
+                                        @foreach ($voice['lines'] as $y)
+                                            <path d="M44 {{ $y }} H690" class="cp-cp2-staff" />
+                                        @endforeach
+                                        <text x="6" y="{{ $voice['label'] }}" class="cp-cp2-vn">{{ $love['voices'][$voice['n'] - 1] }}</text>
+                                        <g class="cp-cp2-entry" data-cp-entry="{{ $voice['n'] - 1 }}">
+                                            @foreach ($voice['notes'] as $note)
+                                                <rect x="{{ $note['x'] }}" y="{{ $note['y'] }}" width="6" height="6" class="cp-cp2-dot" data-at="{{ $note['at'] }}" data-len="{{ $note['len'] }}" />
                                             @endforeach
-                                        </svg>
-                                    @endif
-                                    <span class="cp-cp2-players"><x-site.skin :game="str_replace(':n', (string) $players, $love['history']['players'])" :serious="str_replace(':n', (string) $players, $love['history']['voices_n'])" /></span>
-                                </p>
-                                <p class="cp-cp2-what">{{ $text }}@include('site.courses._cites', ['keys' => $cites])</p>
-                                @if ($players === 40)
-                                    <p class="cp-cp2-small">{{ $love['history']['forty'] }}</p>
-                                @endif
+                                        </g>
+                                    </g>
+                                @endforeach
+                                <path d="M44 190 H690" class="cp-cp2-base" />
+                                <g class="cp-cp2-real" data-cp-real>
+                                    @foreach ($count['voices'] as $voice)
+                                        <g class="cp-cp2-v{{ $voice['n'] }}"><path d="M{{ $voice['entry'] }} 193 v8" class="cp-cp2-realmark" /><text x="{{ $voice['entry'] }}" y="214" class="cp-cp2-vn cp-cp2-realn">{{ $love['voices'][$voice['n'] - 1] }}</text></g>
+                                    @endforeach
+                                </g>
+                                <g data-cp-taps></g>
+                                <path d="M44 6 V192" class="cp-cp2-head" data-cp-count-head />
+                            </svg>
+                            <p class="cp-cp2-legend" data-cp-count-legend hidden><span><span class="cp-cp2-key cp-cp2-key-tap" aria-hidden="true"></span> {{ $words['yours'] }}</span><span><span class="cp-cp2-key cp-cp2-key-real" aria-hidden="true"></span> {{ $words['real'] }}</span></p>
+                            <p class="cp-cp2-btns">
+                                <button type="button" class="cp-cp2-play" data-cp-count-play data-play="{{ $words['play'] }}" data-stop="{{ $love['stop'] }}" aria-pressed="false"><span class="cp-cp2-play-icon" aria-hidden="true"></span><span data-cp-label>{{ $words['play'] }}</span></button>
+                                <button type="button" class="cp-cp2-pick cp-cp2-tap" data-cp-tap disabled>{{ $words['tap'] }}</button>
+                            </p>
+                            <div aria-live="polite">
+                                <p class="cp-cp2-answer cp-cp2-caught" data-cp-caught data-say="{{ $words['result'] }}" data-say-game="{{ $words['result_game'] }}" hidden><span class="s-skin-g"></span><span class="s-skin-s"></span></p>
+                                <p class="cp-cp2-small" data-cp-count-note hidden>{{ $words['note'] }}@include('site.courses._cites', ['keys' => ['mp89']])</p>
                             </div>
                         </li>
-                        @if ($players === 40)
-                            @php($words = $love['history']['count'])
-                            <li class="cp-cp2-demo cp-cp2-count" data-cp-count>
-                                <div class="cp-cp2-fighead"><h3 class="cp-cp2-figtitle">{{ $words['title'] }}</h3><span class="cp-cp2-fign">{{ str_replace(':n', '3', $love['fig']) }}</span></div>
-                                <p class="cp-cp2-small">{{ $words['lead'] }}</p>
-                                <svg viewBox="0 0 700 216" class="cp-cp2-lanes" aria-hidden="true" data-x0="44" data-lane="{{ $count['lane'] }}">
-                                    @foreach ($count['voices'] as $voice)
-                                        <g class="cp-cp2-v{{ $voice['n'] }}">
-                                            @foreach ($voice['lines'] as $y)
-                                                <path d="M44 {{ $y }} H690" class="cp-cp2-staff" />
-                                            @endforeach
-                                            <text x="6" y="{{ $voice['label'] }}" class="cp-cp2-vn">{{ $love['voices'][$voice['n'] - 1] }}</text>
-                                            <g class="cp-cp2-entry" data-cp-entry="{{ $voice['n'] - 1 }}">
-                                                @foreach ($voice['notes'] as $note)
-                                                    <rect x="{{ $note['x'] }}" y="{{ $note['y'] }}" width="6" height="6" class="cp-cp2-dot" data-at="{{ $note['at'] }}" data-len="{{ $note['len'] }}" />
-                                                @endforeach
-                                            </g>
-                                        </g>
-                                    @endforeach
-                                    <path d="M44 190 H690" class="cp-cp2-base" />
-                                    <g class="cp-cp2-real" data-cp-real>
-                                        @foreach ($count['voices'] as $voice)
-                                            <g class="cp-cp2-v{{ $voice['n'] }}"><path d="M{{ $voice['entry'] }} 193 v8" class="cp-cp2-realmark" /><text x="{{ $voice['entry'] }}" y="214" class="cp-cp2-vn cp-cp2-realn">{{ $love['voices'][$voice['n'] - 1] }}</text></g>
-                                        @endforeach
-                                    </g>
-                                    <g data-cp-taps></g>
-                                    <path d="M44 6 V192" class="cp-cp2-head" data-cp-count-head />
-                                </svg>
-                                <p class="cp-cp2-legend" data-cp-count-legend hidden><span><span class="cp-cp2-key cp-cp2-key-tap" aria-hidden="true"></span> {{ $words['yours'] }}</span><span><span class="cp-cp2-key cp-cp2-key-real" aria-hidden="true"></span> {{ $words['real'] }}</span></p>
-                                <p class="cp-cp2-btns">
-                                    <button type="button" class="cp-cp2-play" data-cp-count-play data-play="{{ $words['play'] }}" data-stop="{{ $love['stop'] }}" aria-pressed="false"><span class="cp-cp2-play-icon" aria-hidden="true"></span><span data-cp-label>{{ $words['play'] }}</span></button>
-                                    <button type="button" class="cp-cp2-pick cp-cp2-tap" data-cp-tap disabled>{{ $words['tap'] }}</button>
-                                </p>
-                                <div aria-live="polite">
-                                    <p class="cp-cp2-answer cp-cp2-caught" data-cp-caught data-say="{{ $words['result'] }}" data-say-game="{{ $words['result_game'] }}" hidden><span class="s-skin-g"></span><span class="s-skin-s"></span></p>
-                                    <p class="cp-cp2-small" data-cp-count-note hidden>{{ $words['note'] }}@include('site.courses._cites', ['keys' => ['mp89']])</p>
-                                </div>
-                            </li>
-                        @endif
-                    @endforeach
-                </ol>
-                @if (! $loop->first)
+                    </ol>
+                @endif
+                @if ($years['after'] !== [])
+                    <details class="cp-cp2-more" data-cp-open><summary>{{ $love['history']['more'] }}</summary>
+                        <ol class="cp-cp2-years">
+                            @foreach ($years['after'] as $beat)
+                                @include('site.courses._cp-year')
+                            @endforeach
+                        </ol>
                     </details>
                 @endif
-            @endforeach
+            </div>
         </div>
     </section>
 
@@ -406,12 +404,11 @@
 
     <section class="cp-cp2-finis" aria-labelledby="join-h">
         <div class="s-wrap s-sec cp-cp2-finis-in">
-            <figure class="cp-cp2-card" data-cp-canon>
-                @include('site.courses._cp-canon')
-            </figure>
             <div>
                 <p class="cp-cp2-finis-kick">{{ $page['kicks']['finis'] }}</p>
                 <h2 id="join-h" class="cp-cp2-h2">{{ $cp::heading($page['titles']['join'], $love['join_em']) }}</h2>
+            </div>
+            <div>
                 <p class="cp-cp2-lede">{{ $open ? $page['finis'] : __('pages.site.course_soon') }}</p>
                 <p class="cp-cp2-ctas">
                     <a href="{{ $tryUrl }}" class="btn-primary btn-lg">{{ $tryLabel }} <x-site.icon name="arrow" size="18" /></a>

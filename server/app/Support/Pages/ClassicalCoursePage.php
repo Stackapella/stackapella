@@ -35,8 +35,7 @@ final class ClassicalCoursePage
      */
     public static function firstPhrase(?string $path = null): array
     {
-        $path ??= dirname(base_path()).'/web/course/plus/classical-singing/course.json';
-        $course = is_file($path) ? json_decode((string) file_get_contents($path), true) : null;
+        $course = self::course($path);
         $steps = is_array($course) ? (array) ($course['units'][0]['lessons'][0]['steps'] ?? []) : [];
 
         $sung = null;
@@ -59,6 +58,53 @@ final class ClassicalCoursePage
         $measures = (array) ($sung['measures'] ?? []);
 
         return ['notes' => $notes, 'measures' => (string) ($measures[app()->getLocale()] ?? $measures['en'] ?? '')];
+    }
+
+    /**
+     * Lesson 1's first listen-and-choose step, for the page's try (js/public/classical-singing-basics.js plays it, no
+     * mic): its tempo and each round's prompt, two clips (notes as [beat, beats, step]), answer and why, in the page's
+     * language (else English). No rounds when the course file or the step isn't there, and the page shows no try.
+     *
+     * @return array{tempo: int, rounds: list<array{prompt: string, clips: list<list<array{0: float|int, 1: float|int, 2: int}>>, answer: int, why: string}>}
+     */
+    public static function firstRounds(?string $path = null): array
+    {
+        $course = self::course($path);
+        $steps = is_array($course) ? (array) ($course['units'][0]['lessons'][0]['steps'] ?? []) : [];
+        $choose = null;
+        foreach ($steps as $step) {
+            if (is_array($step) && ($step['kind'] ?? null) === 'choose' && is_array($step['exercise']['rounds'] ?? null)) {
+                $choose = $step['exercise'];
+                break;
+            }
+        }
+        if ($choose === null) {
+            return ['tempo' => 0, 'rounds' => []];
+        }
+
+        $rounds = [];
+        foreach ((array) $choose['rounds'] as $round) {
+            if (! is_array($round) || ! is_array($round['clips'] ?? null) || ! is_int($round['answer'] ?? null)) {
+                continue;
+            }
+            $clips = [];
+            foreach ($round['clips'] as $clip) {
+                $notes = [];
+                foreach ((array) (is_array($clip) ? ($clip['notes'] ?? []) : []) as $note) {
+                    if (is_array($note) && is_numeric($note['beat'] ?? null) && is_numeric($note['length'] ?? null) && is_numeric($note['step'] ?? null)) {
+                        $notes[] = [$note['beat'] + 0, $note['length'] + 0, (int) $note['step']];
+                    }
+                }
+                $clips[] = $notes;
+            }
+            // Two takes of notes, the answer one of them: anything else this page can't play honestly.
+            if (count($clips) !== 2 || in_array([], $clips, true) || ! isset($clips[$round['answer']])) {
+                continue;
+            }
+            $rounds[] = ['prompt' => self::words($round['prompt'] ?? ''), 'clips' => $clips, 'answer' => $round['answer'], 'why' => self::words($round['why'] ?? '')];
+        }
+
+        return ['tempo' => is_numeric($choose['tempo'] ?? null) ? (int) $choose['tempo'] : 72, 'rounds' => $rounds];
     }
 
     /**
@@ -102,5 +148,21 @@ final class ClassicalCoursePage
     public static function numeral(int $n): string
     {
         return self::NUMERALS[$n - 1] ?? (string) $n;
+    }
+
+    /** The course file, decoded, or null when it isn't there. */
+    private static function course(?string $path): mixed
+    {
+        $path ??= dirname(base_path()).'/web/course/plus/classical-singing/course.json';
+
+        return is_file($path) ? json_decode((string) file_get_contents($path), true) : null;
+    }
+
+    /** A course string in the page's language, else English. */
+    private static function words(mixed $text): string
+    {
+        $text = (array) $text;
+
+        return (string) ($text[app()->getLocale()] ?? $text['en'] ?? '');
     }
 }

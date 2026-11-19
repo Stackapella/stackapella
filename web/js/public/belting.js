@@ -8,8 +8,11 @@
 // meter and no volume control. "Hear both colours" plays veiled, a beat's rest, then bright; the two smaller buttons
 // play one. The spectrum draws the note's harmonics (in decibels, as the filters and the level set them), over the
 // band from 1,000 to 4,000 Hz where hearing is keenest. No mic. The words are the view's.
+// The hero's card plays the calling contour itself (Hillel's design, 2026-11-18): "Hel-" a beat on A3, "-lo!" a beat and
+// a half three semitones lower on F sharp 3, at 80 a minute, as one sung line (voices.js `line`); "held flat" sings the
+// second note on the first's pitch. Each note bar lights as its note sounds, on the audio clock.
 
-import { audio } from './voices.js';
+import { audio, hz, line } from './voices.js';
 import { finish, label, play, when } from './demo-player.js';
 
 const page = document.querySelector('[data-fb]');
@@ -169,7 +172,38 @@ function colours(list, { live }) {
     };
 }
 
-const DEMOS = { both: (o) => colours(['veiled', 'bright'], o), veiled: (o) => colours(['veiled'], o), bright: (o) => colours(['bright'], o) };
+// ---- The calling contour: two level notes, the second three semitones lower (or held flat) ----------------------
+
+const card = page?.querySelector('[data-fb-call]');
+const BEAT = 0.75; // a beat at 80 a minute
+const CALL = 57; // A3; "-lo!" is three semitones under it
+
+function mark(names) {
+    card?.querySelectorAll('[data-fb-note]').forEach((el) => el.toggleAttribute('data-on', names.includes(el.dataset.fbNote)));
+}
+
+function call(flat, { live }) {
+    const c = audio();
+    const at = c.currentTime + 0.06;
+    const second = flat ? 'flat' : 'lo';
+    const sung = line([{ at: 0, f: hz(CALL) }, { at: BEAT, f: hz(flat ? CALL : CALL - 3) }], BEAT * 2.5, { at, level: 0.15 });
+    when(at).then(() => live() && mark(['hi']));
+    when(at + BEAT).then(() => live() && mark([second]));
+    return { voices: [sung], length: at - c.currentTime + BEAT * 2.5, done: () => mark([]) };
+}
+
+const DEMOS = {
+    both: (o) => colours(['veiled', 'bright'], o),
+    veiled: (o) => colours(['veiled'], o),
+    bright: (o) => colours(['bright'], o),
+    call: (o) => call(false, o),
+    flat: (o) => call(true, o),
+};
+
+card?.querySelectorAll('[data-fb-play]').forEach((button) => {
+    label(button, false);
+    button.addEventListener('click', () => play(button, DEMOS[button.dataset.fbPlay]));
+});
 
 if (deck) {
     deck.querySelectorAll('[data-fb-play]').forEach((button) => {
@@ -191,8 +225,8 @@ document.addEventListener('visibilitychange', () => {
     if (document.hidden) finish();
 });
 
-// The archive's and the notes' later rows, and the sources, are folded on a phone and open on a wide screen; the
-// sources open too whenever a note's number is followed to them.
+// The archive's and the notes' later rows, why loud is the risk's numbers, and the sources, are folded on a phone and
+// open on a wide screen; the sources open too whenever a note's number is followed to them.
 const sources = page?.querySelector('[data-fb-sources]');
 if (page) {
     const wide = matchMedia('(min-width: 900px)');

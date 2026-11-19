@@ -3,7 +3,8 @@
 // with voices.js, each one started and stopped on the audio clock (never a timer), one demo at a time through
 // demo-player.js; the playhead and the note sounding in each lane follow the audio clock's time, read each frame. The
 // notes are the view's (each segment's data-at, data-len and data-midi, in beats at the panel's data-tempo), so the
-// picture and the sound are one. Idle, the playhead sweeps by CSS alone (still under reduced motion).
+// picture and the sound are one. Idle, the playhead sweeps by CSS alone (still under reduced motion). The page's other
+// lanes (lesson 1's pad, the close, Amazing Grace) only have their words fitted, and the Sources open on a wide screen.
 
 import { audio, hz, voice } from './voices.js';
 import { play, sounding } from './demo-player.js';
@@ -83,4 +84,11 @@ if (tracks.length) {
     const watch = new ResizeObserver((entries) => entries.forEach((e) => fit(e.target)));
     tracks.forEach((t) => watch.observe(t));
     document.fonts?.ready.then(() => tracks.forEach(fit));
+}
+
+// The Sources: open from the start on a wide screen, folded on a phone; a note's number opens them.
+const sources = document.querySelector('[data-bv-sources]');
+if (sources) {
+    if (matchMedia('(min-width: 900px)').matches) sources.open = true;
+    document.querySelectorAll('.cp-bv .s-cite a').forEach((a) => a.addEventListener('click', () => { sources.open = true; }));
 }

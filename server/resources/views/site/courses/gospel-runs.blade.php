@@ -1,136 +1,116 @@
-{{-- Gospel and soul runs (/courses/gospel-runs), its own page: a love letter in Vibrato's calm, light
-     design (white cards, thin headlines, the hero's picture in its own card with a legend), from the
-     research pack (docs/courses/gospel-runs-love-letter.md), every claim with its numbered notes. The
-     hero is the major pentatonic as five stairs, F and B left out, the demo's run drawn down them. Then
-     the featured demo, one run at three speeds (2, 4 and 8 notes a second), each note lit as it sounds
-     (js/public/gospel-runs.js). By the end (the outcomes), in plain words (a melisma, why fast runs
-     smear: 124, 120 and 125 ms, with the run sung clean and then smeared, its pitch drawn; slow and
-     correct), the blue note (a bend over a C drone, stopped anywhere from 300 to 400 cents), from the
-     archive (1644 to 1948), the course (the units, from the course file), lesson 1 beside what the app
-     hears, margin notes (the facts), before you begin, questions, the close and the sources. The
-     spirituals and gospel as Black American sacred music: standard words, no imitation of anyone. No
-     drawn people; every sound only when pressed, on the audio clock. Game skin: square arcade frames on
-     the night. Words: lang/en/site.php courses.pages.gospel-runs (love). --}}
+{{-- Gospel and soul runs (/courses/gospel-runs), its own page, to Hillel's design of 2026-11-18: set like an 1870s
+     songbook (Libre Caslon headings with italic second halves, a drop cap, numbers and labels in the system monospace).
+     The hero is the major pentatonic as stairs from C4 to C5, F and B left out as dashed gaps: tap a stair to hear it,
+     or hear lesson 1's run (la, so, mi, re, do, two a second, over its Amen chords) go down them. Then the featured demo
+     (one run, three speeds), the outcomes stepping down, a melisma shown, why fast runs smear with the run sung clean
+     and then smeared, the blue note's bend over a drone (a working slider), the archive on music staves (a note-head
+     climbing to "A little higher"), the units as a staircase up from I to IV, lesson 1 set out as lining out, margin
+     notes, before you begin, questions, a dark close with the stairs coming down beside it, and the sources. Every
+     claim keeps its numbered notes (docs/courses/gospel-runs-love-letter.md). The drawings' notes and places come from
+     App\Support\Site\GospelRunsArt; every sound only when pressed, on the audio clock (js/public/gospel-runs.js). The
+     spirituals and gospel as Black American sacred music: standard words, no imitation of anyone, no drawn people.
+     Game skin: the arcade's night, frames and type. Words: lang/en/site.php courses.pages.gospel-runs (love). --}}
 @php($love = $page['love'])
 @php($sources = $love['sources'])
+@php($heads = $love['heads'])
 @php($demo = $love['demo'])
 @php($plain = $love['plain'])
 @php($smear = $love['smear'])
 @php($blue = $love['blue'])
+@php($stairs = \App\Support\Site\GospelRunsArt::stairs())
+@php($run = \App\Support\Site\GospelRunsArt::run())
+@php($deck = \App\Support\Site\GospelRunsArt::speeds())
+@php($smeared = \App\Support\Site\GospelRunsArt::smear())
+@php($bend = \App\Support\Site\GospelRunsArt::bend($blue['marks']))
 @php($tryUrl = $open ? $courseStart : $links['start'])
 @php($tryLabel = $open ? __('pages.site.course_try') : __('pages.site.course_start'))
-{{-- The hero's stairs, C4 to C5: each step's semitones above C; F and B (the fourth and seventh) are gaps. --}}
-@php($steps = [0, 2, 4, 5, 7, 9, 11, 12])
-@php($gaps = [3, 6])
-@php($stairX = fn (int $i): float => 24 + $i * 69)
-@php($stairY = fn (int $s): float => 178 - $s * 11)
-@php($runIdx = [7, 5, 4, 2, 1, 0])
-{{-- The run, as the JS plays it: C5, A4, G4, E4, D4, C4 (MIDI). --}}
-@php($run = [72, 69, 67, 64, 62, 60])
-@php($pent = [60, 62, 64, 67, 69, 72])
-{{-- The featured deck: three groups, one a speed, the six notes in each; height by pitch. --}}
-@php($gw = 172)
-@php($runY = fn (int $m): float => 196 - ($m - 60) * 11.5)
-@php($groupX = fn (int $g): float => 20 + $g * ($gw + 22))
-@php($noteW = $gw / 6)
-{{-- The smear deck: two groups (clean, smeared), eight slots of 125 ms each, the last note held three. --}}
-@php($sw = 270)
-@php($slot = $sw / 8)
-@php($smY = fn (int $m): float => 170 - ($m - 60) * 10.5)
-@php($smX = fn (int $g, float $s): float => round(20 + $g * ($sw + 20) + $s * $slot, 1))
-{{-- The bend's lane: 300 to 400 cents above C4, and where the bend stops (the slider's start). --}}
-@php($bendY = fn (float $c): float => round(170 - ($c - 300) * 1.4, 1))
-@php($bendStart = 400)
-@php($bendSteps = $bendStart / 100 - 9)
-@php($bendHz = number_format(440 * 2 ** ($bendSteps / 12), 2))
 <main class="cp cp-gospel" data-gr>
-    <section class="cp-hero cp-gr-hero" aria-labelledby="page-h">
-        <div class="s-wrap cp-hero-grid">
-            <div class="cp-hero-copy">
+    <section class="cp-gr-hero" aria-labelledby="page-h">
+        <div class="s-wrap cp-gr-hero-in">
+            <div class="cp-gr-hero-top">
                 <nav class="s-crumb" aria-label="{{ __('pages.site.crumb') }}"><a href="/courses">{{ __('pages.site.courses') }}</a><span aria-hidden="true">/</span><span aria-current="page">{{ $page['name'] }}</span></nav>
-                <p class="cp-hero-chip"><b>{{ __('pages.site.course_chip_free') }}</b>@if ($outline !== null)<span>{{ __('pages.site.course_chip_lessons', ['n' => $outline['lessons']]) }}</span>@endif</p>
-                <h1 id="page-h">{{ $page['hero_title'] }}</h1>
-                <p class="s-lede">{{ $page['hero_lead'] }}</p>
-                <ul class="cp-hero-facts">
-                    @foreach ((array) $page['hero_facts'] as $fact)
-                        <li>{{ $fact }}</li>
-                    @endforeach
-                </ul>
-                <p class="cp-hero-btns">
-                    <a href="{{ $tryUrl }}" class="btn-primary btn-lg">{{ $tryLabel }} <x-site.icon name="arrow" size="18" /></a>
-                    <a href="{{ $outline !== null ? '#units-h' : '#outcomes-h' }}" class="btn-secondary btn-lg">{{ $outline !== null ? $page['see_lessons'] : $page['see_aims'] }}</a>
-                </p>
-                @unless ($open)
-                    <p class="cp-gr-quiet">{{ __('pages.site.course_soon') }}</p>
-                @endunless
+                <p class="cp-gr-chip"><b>{{ __('pages.site.course_chip_free') }}</b>@if ($outline !== null)<span>{{ __('site.courses.pages.gospel-runs.love.hero.size', ['lessons' => $outline['lessons'], 'units' => count($outline['units'])]) }}</span>@endif</p>
             </div>
-            <figure class="cp-hero-card cp-gr-stairs">
-                <svg viewBox="0 0 600 236" class="cp-gr-stairs-art" aria-hidden="true">
-                    @foreach ($steps as $i => $s)
-                        @if (in_array($i, $gaps, true))
-                            <rect x="{{ $stairX($i) + 3 }}" y="{{ $stairY($s) }}" width="63" height="{{ 196 - $stairY($s) }}" rx="4" class="cp-gr-gap" />
+            <div class="cp-gr-stage">
+                <div class="cp-gr-hero-copy">
+                    <p class="cp-gr-eyebrow">{{ $love['hero']['kick'] }}</p>
+                    <h1 id="page-h" class="cp-gr-h1">{{ $love['hero']['title'][0] }} <em>{{ $love['hero']['title'][1] }}</em></h1>
+                </div>
+                <div class="cp-gr-stairs" data-gr-stairs>
+                    @foreach ($stairs as $stair)
+                        @if ($stair['gap'])
+                            <div class="cp-gr-gap" style="--rise: {{ $stair['rise'] }}" role="img" aria-label="{{ __('site.courses.pages.gospel-runs.love.stairs.gap', ['sol' => $love['stairs']['sol'][$loop->index], 'note' => $love['stairs']['notes'][$loop->index]]) }}">
+                                <i aria-hidden="true">{{ $love['stairs']['sol'][$loop->index] }}</i><span aria-hidden="true">{{ $love['stairs']['notes'][$loop->index] }}<span class="cp-gr-off">{{ $love['stairs']['left_out'] }}</span></span>
+                            </div>
                         @else
-                            <rect x="{{ $stairX($i) + 3 }}" y="{{ $stairY($s) }}" width="63" height="{{ 196 - $stairY($s) }}" rx="4" class="cp-gr-stair" />
+                            <button type="button" class="cp-gr-stair" style="--rise: {{ $stair['rise'] }}" data-gr-stair="{{ $stair['midi'] }}" aria-label="{{ __('site.courses.pages.gospel-runs.love.stairs.label', ['sol' => $love['stairs']['sol'][$loop->index], 'note' => $love['stairs']['notes'][$loop->index]]) }}">
+                                <i aria-hidden="true">{{ $love['stairs']['sol'][$loop->index] }}</i><span aria-hidden="true">{{ $love['stairs']['notes'][$loop->index] }}</span>
+                            </button>
                         @endif
-                        <text x="{{ $stairX($i) + 34.5 }}" y="222" text-anchor="middle" @class(['cp-gr-stair-name', 'cp-gr-stair-off' => in_array($i, $gaps, true)])>{{ $love['stairs']['names'][$i] }}</text>
                     @endforeach
-                    <path d="@foreach ($runIdx as $k => $i){{ $k === 0 ? 'M' : 'L' }}{{ $stairX($i) + 34.5 }} {{ $stairY($steps[$i]) - 14 }} @endforeach" class="cp-gr-run" />
-                    @foreach ($runIdx as $i)
-                        <circle cx="{{ $stairX($i) + 34.5 }}" cy="{{ $stairY($steps[$i]) - 14 }}" r="6" class="cp-gr-run-dot" />
-                    @endforeach
-                </svg>
-                <figcaption>
-                    <ul class="cp-hero-legend">
-                        @foreach ((array) $love['stairs']['legend'] as $key)
-                            <li><i class="cp-gr-key cp-gr-key-{{ ['stair', 'gap', 'run'][$loop->index] }}" aria-hidden="true"></i>{{ $key }}</li>
-                        @endforeach
-                    </ul>
-                    <p class="cp-gr-stairs-note">{{ $love['stairs']['note'] }}@include('site.courses._cites', ['keys' => ['jubilee']])</p>
-                </figcaption>
-            </figure>
+                </div>
+            </div>
+        </div>
+        <div class="cp-gr-band">
+            <div class="s-wrap cp-gr-band-in">
+                <button type="button" class="cp-gr-btn cp-gr-btn-gold" data-gr-play="stairs" data-gr-run="{{ $run['data'] }}" data-play="{{ $love['hero']['play'] }}" data-stop="{{ $love['hero']['stop'] }}" aria-pressed="false"><span class="cp-gr-btn-icon" aria-hidden="true"></span><span data-label>{{ $love['hero']['play'] }}</span></button>
+                <p class="cp-gr-band-note">{{ $love['hero']['tap'] }} {{ $love['stairs']['note'] }}@include('site.courses._cites', ['keys' => ['jubilee']]) <span class="cp-gr-band-key">{{ $love['hero']['key'] }}</span></p>
+            </div>
         </div>
     </section>
 
-    <section class="s-wrap cp-dk-demosec cp-gr-demosec" aria-labelledby="demo-h">
-        <div class="cp-dk-demo cp-dk-screen" data-gr-demo data-say="{{ $demo['say'] }}" data-after="{{ $demo['after'] }}">
-            <p class="cp-dk-demo-bar"><span class="cp-dk-live"><span class="cp-dk-rec" aria-hidden="true"></span>{{ $demo['live'] }}</span><span>{{ $demo['tag'] }}</span></p>
-            <div class="cp-dk-stage">
-                <div class="cp-dk-roll">
-                    <svg viewBox="0 0 600 220" preserveAspectRatio="none" aria-hidden="true">
-                        @foreach ($pent as $m)
-                            <path d="M8 {{ $runY($m) }} H592" class="cp-dk-staff" />
-                        @endforeach
-                        @foreach (range(0, 2) as $g)
-                            @foreach ($run as $k => $m)
-                                @if ($k > 0)
-                                    <path d="M{{ round($groupX($g) + $k * $noteW - 3, 1) }} {{ $runY($run[$k - 1]) }} L{{ round($groupX($g) + $k * $noteW + 3, 1) }} {{ $runY($m) }}" class="cp-gr-glide" />
-                                @endif
-                                <rect x="{{ round($groupX($g) + $k * $noteW + 3, 1) }}" y="{{ $runY($m) - 6 }}" width="{{ round($noteW - 6, 1) }}" height="12" rx="3" class="cp-gr-bar" data-gr-step="{{ $g }}-{{ $k }}" />
+    <section class="s-wrap cp-gr-intro" aria-label="{{ $page['name'] }}">
+        <p class="cp-gr-lead">{{ $page['hero_lead'] }}</p>
+        <div class="cp-gr-intro-side">
+            <ul class="cp-gr-diamonds">
+                @foreach ((array) $page['hero_facts'] as $fact)
+                    <li>{{ $fact }}</li>
+                @endforeach
+            </ul>
+            <p class="cp-gr-btns">
+                <a href="{{ $tryUrl }}" class="btn-primary btn-lg">{{ $tryLabel }} <x-site.icon name="arrow" size="18" /></a>
+                <a href="{{ $outline !== null ? '#units-h' : '#outcomes-h' }}" class="btn-secondary btn-lg">{{ $outline !== null ? $page['see_lessons'] : $page['see_aims'] }}</a>
+            </p>
+            @unless ($open)
+                <p class="cp-gr-note">{{ __('pages.site.course_soon') }}</p>
+            @endunless
+        </div>
+    </section>
+
+    <section class="s-wrap cp-gr-demosec" aria-labelledby="demo-h">
+        <div class="cp-gr-deck" data-gr-demo data-say="{{ $demo['say'] }}" data-after="{{ $demo['after'] }}">
+            <p class="cp-gr-deck-bar"><span class="cp-gr-live"><i aria-hidden="true"></i>{{ $demo['live'] }}</span><span>{{ $demo['tag'] }}</span></p>
+            <div class="cp-gr-panels">
+                @foreach ((array) $demo['speeds'] as $g => $speed)
+                    <div class="cp-gr-panel" data-gr-speed="{{ $g }}">
+                        <svg viewBox="0 0 300 220" aria-hidden="true">
+                            @foreach ($deck['rows'] as $y)
+                                <path d="M0 {{ $y }} H300" class="cp-gr-row" />
                             @endforeach
-                        @endforeach
-                    </svg>
-                    <p class="cp-gr-speeds" aria-hidden="true">
-                        @foreach ((array) $demo['speeds'] as $speed)
-                            <span data-gr-speed="{{ $loop->index }}">{{ $speed }}</span>
-                        @endforeach
-                    </p>
-                </div>
-                <button type="button" class="cp-dk-big" data-gr-play="run" data-play="{{ $demo['play'] }}" data-stop="{{ $demo['stop'] }}" aria-pressed="false"><span class="cp-dk-big-icon" aria-hidden="true"></span><span data-label>{{ $demo['play'] }}</span></button>
+                            <polyline points="{{ $deck['line'] }}" class="cp-gr-through" />
+                            @foreach ($deck['notes'] as $k => $note)
+                                <rect x="{{ $note['x'] }}" y="{{ $note['y'] }}" width="36" height="16" rx="4" class="cp-gr-note" data-gr-step="{{ $g }}-{{ $k }}" />
+                            @endforeach
+                        </svg>
+                        <p class="cp-gr-panel-foot"><span>{{ $speed }}</span><span>{{ $demo['ms'][$g] }}</span></p>
+                    </div>
+                @endforeach
             </div>
-            <div class="cp-dk-caption">
+            <div class="cp-gr-deck-cap">
                 <div>
-                    <h2 id="demo-h" class="cp-dk-demo-h">{{ $demo['title'] }}</h2>
-                    <p class="cp-dk-demo-lead">{{ $demo['lead'] }}</p>
+                    <h2 id="demo-h" class="cp-gr-h cp-gr-h-deck">{{ $heads['demo'][0] }} <em>{{ $heads['demo'][1] }}</em></h2>
+                    <p class="cp-gr-deck-lead">{{ $demo['lead'] }}</p>
+                    <button type="button" class="cp-gr-btn cp-gr-btn-gold" data-gr-play="run" data-play="{{ $demo['play'] }}" data-stop="{{ $demo['stop'] }}" aria-pressed="false"><span class="cp-gr-btn-icon" aria-hidden="true"></span><span data-label>{{ $demo['play'] }}</span></button>
+                    <p class="cp-gr-say" role="status" data-gr-say>{{ $demo['ready'] }}</p>
                 </div>
                 <div>
-                    <p class="cp-dk-demo-lead cp-gr-how">{{ $demo['how'] }}@include('site.courses._cites', ['keys' => ['xu']])</p>
-                    <p class="cp-dk-say" role="status" data-gr-say>{{ $demo['ready'] }}</p>
-                    <p class="cp-dk-key">
+                    <p class="cp-gr-deck-text">{{ $demo['how'] }}@include('site.courses._cites', ['keys' => ['xu']])</p>
+                    <p class="cp-gr-key">
                         @foreach ((array) $demo['key'] as $key)
-                            <span><i class="cp-gr-dkey cp-gr-dkey-{{ ['note', 'on'][$loop->index] }}" aria-hidden="true"></i>{{ $key }}</span>
+                            <span><i class="cp-gr-swatch cp-gr-swatch-{{ $loop->index }}" aria-hidden="true"></i>{{ $key }}</span>
                         @endforeach
                     </p>
-                    <p class="cp-dk-note">{{ $demo['note'] }}</p>
+                    <p class="cp-gr-deck-note">{{ $demo['note'] }}</p>
                 </div>
             </div>
         </div>
@@ -140,111 +120,101 @@
         <h2 id="outcomes-h" class="cp-gr-kick">{{ $page['titles']['outcomes'] }}</h2>
         <ol class="cp-gr-goals">
             @foreach ((array) $page['outcomes'] as $outcome)
-                <li><span class="cp-gr-n" aria-hidden="true">0{{ $loop->iteration }}</span><p>{{ $outcome }}</p></li>
+                <li><p>{{ $outcome }}</p></li>
             @endforeach
         </ol>
     </section>
 
     <section class="s-wrap s-sec cp-gr-plain" aria-labelledby="plain-h">
-        <div class="cp-gr-plain-head">
-            <div>
-                <p class="cp-gr-kick">{{ $love['kicks']['plain'] }}</p>
-                <h2 id="plain-h" class="cp-gr-title">{{ $plain['title'] }}</h2>
-            </div>
-            <div>
-                <p class="cp-gr-body">{{ $plain['lead'] }}@include('site.courses._cites', ['keys' => ['jukebox', 'jubilee']])</p>
-                <p class="cp-gr-body">{{ $plain['pent'] }}@include('site.courses._cites', ['keys' => ['gill']])</p>
-            </div>
+        <p class="cp-gr-kick">{{ $love['kicks']['plain'] }}</p>
+        <h2 id="plain-h" class="cp-gr-h">{{ $heads['plain'][0] }} <em>{{ $heads['plain'][1] }}</em></h2>
+        <figure class="cp-gr-melisma">
+            <p class="cp-gr-mel" aria-hidden="true"><span class="cp-gr-mel-words">{{ $love['melisma']['words'] }}</span> <span>{{ $love['melisma']['syllables'] }}</span>@foreach ($run['steps'] as $step)<b style="--step: {{ $step }}">{{ $love['melisma']['vowel'] }}</b>@endforeach<span class="cp-gr-mel-end">{{ $love['melisma']['end'] }}</span></p>
+            <figcaption>{{ $love['melisma']['note'] }}</figcaption>
+        </figure>
+        <div class="cp-gr-two">
+            <p class="cp-gr-body">{{ $plain['lead'] }}@include('site.courses._cites', ['keys' => ['jukebox', 'jubilee']])</p>
+            <p class="cp-gr-body">{{ $plain['pent'] }}@include('site.courses._cites', ['keys' => ['gill']])</p>
         </div>
+
         <h3 class="cp-gr-h3 cp-gr-blur-h">{{ $plain['blur_title'] }}</h3>
         <p class="cp-gr-small">{{ $plain['blur'] }}@include('site.courses._cites', ['keys' => ['xu']])</p>
         <ol class="cp-gr-nums">
-            @foreach ((array) $plain['numbers'] as [$big, $what, $text])
-                <li class="cp-gr-card cp-gr-num">
-                    <p class="cp-gr-big">{{ $big }}</p>
+            @foreach ((array) $plain['numbers'] as [$big, $unit, $what, $text, $cites])
+                <li class="cp-gr-num">
+                    <p class="cp-gr-big">{{ $big }}<small>{{ $unit }}</small></p>
                     <h4>{{ $what }}</h4>
-                    <p>{{ $text }}@if ($loop->index < 2)@include('site.courses._cites', ['keys' => [['xu', 'dai'][$loop->index]]])@endif</p>
+                    <p>{{ $text }}@include('site.courses._cites', ['keys' => $cites])</p>
                 </li>
             @endforeach
         </ol>
+
         <div class="cp-gr-pair">
-            <div class="cp-dk-demo cp-gr-smear" data-gr-smear data-say-clean="{{ $smear['say_clean'] }}" data-say-smear="{{ $smear['say_smear'] }}" data-after="{{ $smear['after'] }}">
-                <p class="cp-dk-demo-bar"><span class="cp-dk-live"><span class="cp-dk-rec" aria-hidden="true"></span>{{ $smear['kick'] }}</span><span>{{ $smear['tag'] }}</span></p>
-                <div class="cp-gr-deck-in">
-                    <div class="cp-dk-roll cp-gr-smear-roll">
-                        <svg viewBox="0 0 600 200" preserveAspectRatio="none" aria-hidden="true">
-                            @foreach ($pent as $m)
-                                <path d="M8 {{ $smY($m) }} H592" class="cp-dk-staff" />
-                            @endforeach
-                            @foreach (['clean', 'smear'] as $g => $kind)
-                                @foreach ($run as $k => $m)
-                                    @php($end = $k === 5 ? 8 : $k + 1)
-                                    @if ($k === 0)
-                                        @php($d = 'M'.$smX($g, 0).' '.$smY($m).' H'.$smX($g, 1))
-                                    @elseif ($kind === 'clean')
-                                        @php($d = 'M'.$smX($g, $k).' '.$smY($run[$k - 1]).' L'.$smX($g, $k + 0.16).' '.$smY($m).' H'.$smX($g, $end))
-                                    @else
-                                        @php($d = 'M'.$smX($g, $k).' '.$smY($run[$k - 1]).' L'.$smX($g, $k + 1).' '.$smY($m).($k === 5 ? ' H'.$smX($g, 8) : ''))
-                                    @endif
+            <div class="cp-gr-deck cp-gr-smear" data-gr-smear data-say-clean="{{ $smear['say_clean'] }}" data-say-smear="{{ $smear['say_smear'] }}" data-after="{{ $smear['after'] }}">
+                <p class="cp-gr-deck-bar"><span class="cp-gr-live"><i aria-hidden="true"></i>{{ $smear['kick'] }}</span><span>{{ $smear['tag'] }}</span></p>
+                <div class="cp-gr-panels cp-gr-panels-two">
+                    @foreach ($smeared['passes'] as $kind => $segments)
+                        <div class="cp-gr-panel" data-gr-pass="{{ $kind }}">
+                            <svg viewBox="0 0 240 200" aria-hidden="true">
+                                @foreach ($smeared['rows'] as $y)
+                                    <path d="M0 {{ $y }} H240" class="cp-gr-row" />
+                                @endforeach
+                                @foreach ($segments as $k => $d)
                                     <path d="{{ $d }}" class="cp-gr-seg" data-gr-seg="{{ $kind }}-{{ $k }}" />
                                 @endforeach
-                            @endforeach
-                        </svg>
-                        <p class="cp-gr-speeds cp-gr-speeds-two" aria-hidden="true">
-                            @foreach ((array) $smear['labels'] as $name)
-                                <span data-gr-pass="{{ ['clean', 'smear'][$loop->index] }}">{{ $name }}</span>
-                            @endforeach
-                        </p>
-                    </div>
-                    <p class="cp-dk-btns"><button type="button" class="cp-dk-play" data-gr-play="smear" data-play="{{ $smear['play'] }}" data-stop="{{ $smear['stop'] }}" aria-pressed="false"><span class="cp-dk-play-icon" aria-hidden="true"></span><span data-label>{{ $smear['play'] }}</span></button></p>
-                    <p class="cp-dk-say" role="status" data-gr-smear-say>{{ $smear['ready'] }}</p>
-                    <p class="cp-dk-key">
+                            </svg>
+                            <p class="cp-gr-panel-name">{{ $smear['labels'][$loop->index] }}</p>
+                        </div>
+                    @endforeach
+                </div>
+                <div class="cp-gr-deck-foot">
+                    <button type="button" class="cp-gr-btn cp-gr-btn-line" data-gr-play="smear" data-play="{{ $smear['play'] }}" data-stop="{{ $smear['stop'] }}" aria-pressed="false"><span class="cp-gr-btn-icon" aria-hidden="true"></span><span data-label>{{ $smear['play'] }}</span></button>
+                    <p class="cp-gr-say" role="status" data-gr-smear-say>{{ $smear['ready'] }}</p>
+                    <p class="cp-gr-key">
                         @foreach ((array) $smear['key'] as $key)
-                            <span><i class="cp-gr-dkey cp-gr-dkey-{{ ['line', 'on'][$loop->index] }}" aria-hidden="true"></i>{{ $key }}</span>
+                            <span><i class="cp-gr-swatch cp-gr-swatch-line{{ $loop->index }}" aria-hidden="true"></i>{{ $key }}</span>
                         @endforeach
                     </p>
-                    <p class="cp-dk-note">{{ $smear['note'] }}</p>
+                    <p class="cp-gr-deck-note">{{ $smear['note'] }}</p>
                 </div>
             </div>
             <div class="cp-gr-pair-text">
-                <h3 class="cp-gr-h3">{{ $plain['slow_title'] }}</h3>
+                <h3 class="cp-gr-h3">{{ $heads['slow'][0] }} <em>{{ $heads['slow'][1] }}</em></h3>
                 <p class="cp-gr-body">{{ $plain['slow'] }}@include('site.courses._cites', ['keys' => ['furuya']])</p>
                 <p class="cp-gr-body">{{ $plain['correct'] }}@include('site.courses._cites', ['keys' => ['duke']])</p>
             </div>
         </div>
     </section>
 
-    <section class="s-wrap s-sec cp-gr-blue" aria-labelledby="blue-h">
-        <div>
-            <p class="cp-gr-kick">{{ $love['kicks']['blue'] }}</p>
-            <h2 id="blue-h" class="cp-gr-title">{{ $blue['title'] }}</h2>
-            <p class="cp-gr-body">{{ $blue['lead'] }}@include('site.courses._cites', ['keys' => ['rochester', 'temperley']])</p>
-            <p class="cp-gr-body">{{ $blue['measured'] }}@include('site.courses._cites', ['keys' => ['cutting']])</p>
-        </div>
-        <div class="cp-dk-demo cp-gr-bend" data-gr-bend data-cents="{{ $blue['cents'] }}" data-hz="{{ $blue['hz'] }}"
-            data-say-bend="{{ $blue['say_bend'] }}" data-say-hold="{{ $blue['say_hold'] }}" data-after="{{ $blue['after'] }}">
-            <p class="cp-dk-demo-bar"><span class="cp-dk-live"><span class="cp-dk-rec" aria-hidden="true"></span>{{ $blue['kick'] }}</span><span>{{ $blue['tag'] }}</span></p>
-            <div class="cp-gr-deck-in">
-                <div class="cp-dk-roll cp-gr-bend-roll">
-                    <svg viewBox="0 0 600 200" preserveAspectRatio="none" aria-hidden="true">
-                        @foreach ((array) $blue['marks'] as [$c, $label])
-                            <path d="M8 {{ $bendY($c) }} H592" class="cp-gr-mark cp-gr-mark-{{ $loop->index }}" />
+    <section class="cp-gr-blue" aria-labelledby="blue-h">
+        <div class="s-wrap cp-gr-blue-in">
+            <div>
+                <p class="cp-gr-kick">{{ $love['kicks']['blue'] }}</p>
+                <h2 id="blue-h" class="cp-gr-h">{{ $heads['blue'][0] }} <em>{{ $heads['blue'][1] }}</em></h2>
+                <p class="cp-gr-body">{{ $blue['lead'] }}@include('site.courses._cites', ['keys' => ['rochester', 'temperley']])</p>
+                <p class="cp-gr-body">{{ $blue['measured'] }}@include('site.courses._cites', ['keys' => ['cutting']])</p>
+            </div>
+            <div class="cp-gr-deck cp-gr-bend" data-gr-bend data-cents="{{ $blue['cents'] }}" data-hz="{{ $blue['hz'] }}"
+                data-say-bend="{{ $blue['say_bend'] }}" data-say-hold="{{ $blue['say_hold'] }}" data-after="{{ $blue['after'] }}">
+                <p class="cp-gr-deck-bar"><span class="cp-gr-live"><i aria-hidden="true"></i>{{ $blue['kick'] }}</span><span>{{ $blue['tag'] }}</span></p>
+                <div class="cp-gr-bend-in">
+                    <svg viewBox="0 0 500 220" class="cp-gr-lane" aria-hidden="true">
+                        @foreach ($bend['marks'] as $y)
+                            <path d="M16 {{ $y }} H484" class="cp-gr-mark cp-gr-mark-{{ $loop->index }}" />
                         @endforeach
-                        <path d="M20 {{ $bendY(300) }} H90 L250 {{ $bendY($bendStart) }} H580" class="cp-gr-bendline" data-gr-bendline />
+                        <path d="{{ $bend['path'] }}" class="cp-gr-bendline" data-gr-bendline />
                     </svg>
+                    <p class="cp-gr-meter" aria-hidden="true"><b data-gr-cents>{{ __('site.courses.pages.gospel-runs.love.blue.cents', ['n' => $bend['cents']]) }}</b><span data-gr-hz>{{ __('site.courses.pages.gospel-runs.love.blue.hz', ['n' => $bend['hz']]) }}</span></p>
+                    <label class="cp-gr-slider"><span>{{ $blue['slider'] }} <output data-gr-bend-out>{{ __('site.courses.pages.gospel-runs.love.blue.cents', ['n' => $bend['cents']]) }}</output></span><input type="range" min="300" max="400" step="1" value="{{ $bend['cents'] }}" data-gr-bend-to></label>
+                    <button type="button" class="cp-gr-btn cp-gr-btn-line" data-gr-play="bend" data-play="{{ $blue['play'] }}" data-stop="{{ $blue['stop'] }}" aria-pressed="false"><span class="cp-gr-btn-icon" aria-hidden="true"></span><span data-label>{{ $blue['play'] }}</span></button>
+                    <p class="cp-gr-say" role="status" data-gr-bend-say>{{ $blue['ready'] }}</p>
+                    <ul class="cp-gr-marks">
+                        @foreach ((array) $blue['marks'] as [$cents, $label])
+                            <li><i class="cp-gr-mkey cp-gr-mkey-{{ $loop->index }}" aria-hidden="true"></i><b>{{ $cents }}</b><span>{{ $label }}</span></li>
+                        @endforeach
+                    </ul>
+                    <p class="cp-gr-deck-note">{{ $blue['note'] }}</p>
                 </div>
-                <p class="cp-gr-meter" aria-hidden="true"><b data-gr-cents>{{ strtr($blue['cents'], [':n' => $bendStart]) }}</b><span data-gr-hz>{{ strtr($blue['hz'], [':n' => $bendHz]) }}</span></p>
-                <div class="cp-dk-sliders cp-gr-sliders">
-                    <label class="cp-dk-slider"><span>{{ $blue['slider'] }} <output data-gr-bend-out>{{ strtr($blue['cents'], [':n' => $bendStart]) }}</output></span><input type="range" min="300" max="400" step="1" value="{{ $bendStart }}" data-gr-bend-to></label>
-                </div>
-                <p class="cp-dk-btns"><button type="button" class="cp-dk-play" data-gr-play="bend" data-play="{{ $blue['play'] }}" data-stop="{{ $blue['stop'] }}" aria-pressed="false"><span class="cp-dk-play-icon" aria-hidden="true"></span><span data-label>{{ $blue['play'] }}</span></button></p>
-                <p class="cp-dk-say" role="status" data-gr-bend-say>{{ $blue['ready'] }}</p>
-                <ul class="cp-gr-marks">
-                    @foreach ((array) $blue['marks'] as [$c, $label])
-                        <li><i class="cp-gr-mkey cp-gr-mkey-{{ $loop->index }}" aria-hidden="true"></i><b>{{ $c }}</b><span>{{ $label }}</span></li>
-                    @endforeach
-                </ul>
-                <p class="cp-dk-note">{{ $blue['note'] }}</p>
             </div>
         </div>
     </section>
@@ -252,16 +222,19 @@
     <section class="cp-gr-archive" aria-labelledby="archive-h">
         <div class="s-wrap s-sec">
             <p class="cp-gr-kick">{{ $love['kicks']['archive'] }}</p>
-            <h2 id="archive-h" class="cp-gr-title">{{ $love['archive']['title'] }}</h2>
-            {{-- The first two years, then the rest folded on a phone (open on a wide screen). --}}
+            <h2 id="archive-h" class="cp-gr-h">{{ $heads['archive'][0] }} <em>{{ $heads['archive'][1] }}</em></h2>
+            <p class="cp-gr-sub">{{ $love['archive']['lead'] }}</p>
+            {{-- The first two years, then the rest folded on a phone (open on a wide screen); each on a staff, its
+                 note-head a little higher than the last. --}}
             @php($rows = (array) $love['archive']['rows'])
-            @foreach ([array_slice($rows, 0, 2), array_slice($rows, 2)] as $part)
-                @if ($loop->last && ! $loop->first)
+            @foreach ([array_slice($rows, 0, 2, true), array_slice($rows, 2, null, true)] as $part)
+                @if ($loop->last)
                     <details class="cp-gr-more" data-gr-wide><summary><span>{{ $love['archive']['more'] }}</span><span class="cp-faq-sign" aria-hidden="true"><x-site.icon name="plus" size="16" /></span></summary>
                 @endif
-                <ol class="cp-gr-years" start="{{ $loop->first ? 1 : 3 }}">
-                    @foreach ($part as [$year, $place, $title, $text, $cites])
-                        <li>
+                <ol class="cp-gr-years">
+                    @foreach ($part as $k => [$year, $place, $title, $text, $cites])
+                        <li style="--k: {{ $k }}">
+                            <span class="cp-gr-staff" aria-hidden="true"><i></i></span>
                             <p class="cp-gr-year"><span>{{ $year }}</span><span class="cp-gr-place">{{ $place }}</span></p>
                             <div>
                                 <h3>{{ $title }}</h3>
@@ -270,7 +243,7 @@
                         </li>
                     @endforeach
                 </ol>
-                @if ($loop->last && ! $loop->first)
+                @if ($loop->last)
                     </details>
                 @endif
             @endforeach
@@ -278,60 +251,62 @@
     </section>
 
     @if ($outline !== null)
-        <section class="cp-gr-climbsec" aria-labelledby="units-h">
-            <div class="s-wrap s-sec">
-                <p class="cp-gr-kick">{{ $love['kicks']['climb'] }}</p>
-                <div class="cp-gr-head">
-                    <h2 id="units-h" class="cp-gr-title">{{ $page['titles']['units'] }}</h2>
-                    <p class="cp-gr-count">{{ __('pages.site.course_size', ['units' => count($outline['units']), 'lessons' => $outline['lessons']]) }}</p>
+        <section class="s-wrap s-sec cp-gr-climb" aria-labelledby="units-h">
+            <div class="cp-gr-head">
+                <div>
+                    <p class="cp-gr-kick">{{ $love['kicks']['climb'] }}</p>
+                    <h2 id="units-h" class="cp-gr-h">{{ $heads['units'][0] }} <em>{{ $heads['units'][1] }}</em></h2>
                 </div>
-                <ol class="cp-gr-units">
-                    @foreach ($outline['units'] as $unit)
-                        @php($stage = __('pages.site.course_stage', ['n' => $loop->iteration]))
-                        @php($unitName = __('pages.site.course_unit', ['n' => $loop->iteration]))
-                        <li class="cp-gr-card cp-gr-unit" style="--step: {{ $loop->index }}">
-                            <p class="cp-gr-unit-n"><span class="cp-gr-unit-dot" aria-hidden="true">{{ $loop->iteration }}</span><x-site.skin :game="$stage" :serious="$unitName" /></p>
-                            <h3>{{ $unit['title'] }}</h3>
-                            @isset($page['units_say'][$loop->index])
-                                <p class="cp-gr-small">{{ $page['units_say'][$loop->index] }}</p>
-                            @endisset
-                            <ol class="cp-gr-lessons">
-                                @foreach ($unit['lessons'] as $lesson)
-                                    <li><span>{{ $lesson }}</span>@if ($open && $loop->parent->first && $loop->first)<a href="{{ $tryUrl }}" class="cp-gr-free">{{ __('pages.site.course_free') }}</a>@endif</li>
-                                @endforeach
-                            </ol>
-                        </li>
-                    @endforeach
-                </ol>
+                <p class="cp-gr-count">{{ __('site.courses.pages.gospel-runs.love.units_size', ['units' => count($outline['units']), 'lessons' => $outline['lessons']]) }}</p>
             </div>
+            <ol class="cp-gr-units">
+                @foreach ($outline['units'] as $unit)
+                    {{-- Unit III, the blue note, in the blue note section's night. --}}
+                    <li @class(['cp-gr-unit', 'cp-gr-unit-night' => $loop->iteration === 3])>
+                        <p class="cp-gr-unit-n"><span class="cp-gr-unit-label"><x-site.skin :game="__('pages.site.course_stage', ['n' => $loop->iteration])" :serious="__('pages.site.course_unit', ['n' => $loop->iteration])" /></span>@if ($open && $loop->first)<a href="{{ $tryUrl }}" class="cp-gr-free">{{ __('pages.site.course_free') }}</a>@endif</p>
+                        <h3>{{ $unit['title'] }}</h3>
+                        @isset($page['units_say'][$loop->index])
+                            <p class="cp-gr-unit-say">{{ $page['units_say'][$loop->index] }}</p>
+                        @endisset
+                        <ul class="cp-gr-lessons">
+                            @foreach ($unit['lessons'] as $lesson)
+                                <li>{{ $lesson }}</li>
+                            @endforeach
+                        </ul>
+                    </li>
+                @endforeach
+            </ol>
+            <p class="cp-gr-tail">{{ $love['climb_tail'] }}</p>
         </section>
     @endif
 
-    <section class="s-wrap s-sec cp-gr-first" aria-labelledby="try-h">
-        <div>
-            <p class="cp-gr-kick">{{ $love['kicks']['first'] }}</p>
-            <h2 id="try-h" class="cp-gr-title">{{ $page['titles']['try'] }}</h2>
-            <p class="cp-gr-body">{{ $page['try']['lead'] }}</p>
-            <ol class="cp-gr-steps">
-                @foreach ((array) $page['try']['steps'] as $step)
-                    <li><span class="cp-gr-step-n" aria-hidden="true">{{ $loop->iteration }}</span><p>{{ $step }}</p></li>
-                @endforeach
-            </ol>
-            <p class="cp-gr-note">{{ $page['try']['after'] }}</p>
-        </div>
-        <div class="cp-gr-card cp-gr-inside">
-            <h2 id="inside-h" class="cp-gr-h3">{{ $page['titles']['inside'] }}</h2>
-            <p class="cp-gr-small">{{ $page['measures'] }}</p>
-            <p class="cp-gr-small"><x-site.say :text="$page['scoring']" /></p>
+    <section class="cp-gr-firstsec" aria-labelledby="try-h">
+        <div class="s-wrap s-sec cp-gr-first">
+            <div>
+                <p class="cp-gr-kick">{{ $love['kicks']['first'] }}</p>
+                <h2 id="try-h" class="cp-gr-h">{{ $heads['try'][0] }} <em>{{ $heads['try'][1] }}</em></h2>
+                <p class="cp-gr-sub">{{ $page['try']['lead'] }}</p>
+                <ol class="cp-gr-lining">
+                    @foreach ((array) $love['lining']['rows'] as [$who, $line])
+                        <li><span class="cp-gr-who">{{ $love['lining']['who'][$who] }}</span><p>{{ $line }}</p></li>
+                    @endforeach
+                </ol>
+                <p class="cp-gr-note">{{ $page['try']['after'] }}</p>
+            </div>
+            <div class="cp-gr-inside">
+                <h3 class="cp-gr-h3">{{ $heads['inside'][0] }} <em>{{ $heads['inside'][1] }}</em></h3>
+                <p>{{ $page['measures'] }}</p>
+                <p><x-site.say :text="$page['scoring']" /></p>
+            </div>
         </div>
     </section>
 
     <section class="s-wrap s-sec cp-gr-margin" aria-labelledby="facts-h">
         <p class="cp-gr-kick">{{ $love['kicks']['notes'] }}</p>
-        <h2 id="facts-h" class="cp-gr-title">{{ $love['facts_title'] }}</h2>
+        <h2 id="facts-h" class="cp-gr-h">{{ $heads['facts'][0] }} <em>{{ $heads['facts'][1] }}</em></h2>
         @php($facts = (array) $love['facts'])
         @foreach ([array_slice($facts, 0, 2), array_slice($facts, 2)] as $part)
-            @if ($loop->last && ! $loop->first)
+            @if ($loop->last)
                 <details class="cp-gr-more" data-gr-wide><summary><span>{{ $love['facts_more'] }}</span><span class="cp-faq-sign" aria-hidden="true"><x-site.icon name="plus" size="16" /></span></summary>
             @endif
             <ul class="cp-gr-facts">
@@ -342,44 +317,54 @@
                     </li>
                 @endforeach
             </ul>
-            @if ($loop->last && ! $loop->first)
+            @if ($loop->last)
                 </details>
             @endif
         @endforeach
     </section>
 
-    <section class="s-wrap s-sec cp-gr-kit" aria-labelledby="kit-h">
+    <section class="s-wrap cp-gr-kit" aria-labelledby="kit-h">
         <h2 id="kit-h" class="cp-gr-kick">{{ $love['kicks']['kit'] }}</h2>
         <div class="cp-gr-kit-grid">
-            <div><h3>{{ $page['titles']['who'] }}</h3><ul class="cp-gr-ticks">@foreach ((array) $page['who'] as $item)<li><x-site.icon name="check" size="16" /><span>{{ $item }}</span></li>@endforeach</ul></div>
-            <div><h3>{{ $page['titles']['need'] }}</h3><ul class="cp-gr-ticks">@foreach ((array) $page['need'] as $item)<li><x-site.icon name="check" size="16" /><span>{{ $item }}</span></li>@endforeach</ul></div>
-            <div class="cp-gr-safe"><h3>{{ $page['titles']['safety'] }}</h3><ul class="cp-gr-ticks">@foreach ((array) $page['safety'] as $item)<li><x-site.icon name="check" size="16" /><span>{{ $item }}</span></li>@endforeach</ul></div>
+            @foreach (['who', 'need', 'safety'] as $list)
+                <div @class(['cp-gr-safe' => $loop->last])>
+                    <h3>{{ $page['titles'][$list] }}</h3>
+                    <ul class="cp-gr-ticks">
+                        @foreach ((array) $page[$list] as $item)
+                            <li>{{ $item }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endforeach
         </div>
     </section>
 
     <section class="s-wrap s-sec cp-gr-fine" aria-labelledby="faq-h">
-        <h2 id="faq-h" class="cp-gr-title">{{ $page['titles']['faq'] }}</h2>
+        <h2 id="faq-h" class="cp-gr-h cp-gr-faq-h">{{ $heads['faq'][0] }} <em>{{ $heads['faq'][1] }}</em></h2>
         @include('site.courses._faq')
     </section>
 
     <section class="cp-gr-close" aria-labelledby="join-h">
-        <div class="s-wrap s-sec cp-gr-close-in">
-            <p class="cp-gr-kick">{{ $love['kicks']['close'] }}</p>
-            <h2 id="join-h" class="cp-gr-title">{{ $page['titles']['join'] }}</h2>
-            <p class="cp-gr-body">{{ $open ? $page['close'] : __('pages.site.course_soon') }}</p>
-            <p class="cp-join-btns">
-                <a href="{{ $tryUrl }}" class="btn-primary btn-lg">{{ $tryLabel }} <x-site.icon name="arrow" size="18" /></a>
+        <div class="s-wrap cp-gr-close-in">
+            <div class="cp-gr-close-copy">
+                <p class="cp-gr-kick">{{ $love['kicks']['close'] }}</p>
+                <h2 id="join-h" class="cp-gr-h cp-gr-h-close">{{ $heads['join'][0] }} <em>{{ $heads['join'][1] }}</em></h2>
+                <p class="cp-gr-body">{{ $open ? $page['close'] : __('pages.site.course_soon') }}</p>
+                <p class="cp-gr-btns">
+                    <a href="{{ $tryUrl }}" class="btn-primary btn-lg">{{ $tryLabel }} <x-site.icon name="arrow" size="18" /></a>
+                    <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>
+                </p>
                 @if ($open)
-                    <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>
-                @else
-                    <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>
+                    <p class="cp-gr-note">{{ __('pages.site.course_join_note') }}</p>
                 @endif
-            </p>
-            @if ($open)
-                <p class="cp-gr-note">{{ __('pages.site.course_join_note') }}</p>
-            @endif
-            <h3 class="cp-gr-kick cp-gr-related-h">{{ $page['titles']['related'] }}</h3>
-            @include('site.courses._related')
+                <h3 class="cp-gr-kick cp-gr-related-h">{{ $page['titles']['related'] }}</h3>
+                @include('site.courses._related')
+            </div>
+            <div class="cp-gr-close-stairs" aria-hidden="true">
+                @foreach ($run['steps'] as $k => $step)
+                    <span style="--step: {{ $step }}">{{ $love['stairs']['sol'][$run['stairs'][$k]] }}</span>
+                @endforeach
+            </div>
         </div>
     </section>
 

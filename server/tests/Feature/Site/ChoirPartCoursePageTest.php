@@ -27,7 +27,8 @@ final class ChoirPartCoursePageTest extends TestCase
         $this->assertSame(4, count($outline['units']));
 
         $page = $this->get('/courses/learn-your-choir-part')->assertOk()
-            ->assertSee(__('site.courses.pages.learn-your-choir-part.headline'))
+            // Its own page sets the headline in pieces, so "your" can take the picked part's colour.
+            ->assertSeeInOrder((array) __('site.courses.pages.learn-your-choir-part.lcp.headline'))
             ->assertSee(__('pages.site.course_open'))
             ->assertSee('?ref=course-page', false);
         foreach ($outline['units'] as $unit) {

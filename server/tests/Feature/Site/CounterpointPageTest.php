@@ -70,4 +70,16 @@ final class CounterpointPageTest extends TestCase
         $this->assertSame(count($units), substr_count($html, 'class="cp-cp2-bookn"'));
         $this->assertStringContainsString(count($units).' books', $html);
     }
+
+    public function test_every_year_is_on_the_page_in_order_with_tallis_forty_once(): void
+    {
+        $html = (string) $this->get('/courses/counterpoint')->assertOk()->getContent();
+        $beats = (array) __('site.courses.pages.counterpoint.love.history.beats');
+
+        preg_match_all('#<p class="cp-cp2-when">([^<]+)</p>#', $html, $whens);
+        $this->assertNotSame([], $beats);
+        $this->assertSame(array_column($beats, 0), array_map(static fn (string $w): string => html_entity_decode($w), $whens[1]));
+        $this->assertSame(1, substr_count($html, 'class="cp-cp2-forty"'));
+        $this->assertSame(1, substr_count($html, 'data-cp-count>'));
+    }
 }

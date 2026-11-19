@@ -8827,7 +8827,31 @@ return [
                         'pitch' => 'Pitch',
                         'time' => 'Time',
                         'legend' => ['A call: two level notes, the second lower', 'The same call held flat at the end'],
+                        'kick' => 'The calling contour',
+                        'play' => 'Play the call',
+                        'flat' => 'Play it held flat',
                         'note' => 'Call a friend\'s name across a room and you\'ll hear it. Linguists call this tune the calling contour, "a stepping-down sequence of two level tones". The step is often said to be about a minor third, three semitones.',
+                    ],
+                    // Hillel's design (2026-11-18): the label beside the chip, the headline's "step down" bracket, the
+                    // care's speaking-distance line, and each heading's phrase set in italics (as it reads in the
+                    // heading, in each language).
+                    'tag' => 'A course in calling',
+                    'step' => ['step down', 'about 3 semitones'],
+                    'across' => ['you', 'a friend', 'speaking volume, not a shout'],
+                    'em' => [
+                        'demo' => 'two colours',
+                        'care' => 'across a room',
+                        'plain' => 'the carrying',
+                        'archive' => ['the street', 'the deck'],
+                        'units' => '"hey"',
+                        'try' => 'then sing it',
+                        'facts' => 'worth knowing',
+                        'join' => 'like talking.',
+                    ],
+                    // What the app listens for, as two boxes over the measure (the page's own words, shorter).
+                    'listens' => [
+                        'hears' => ['Hears', 'Pitch, timing, a steady hold'],
+                        'ear' => ['Your ear', 'Brightness, loudness, strain, twang, "mix"'],
                     ],
                     'kicks' => [
                         'care' => 'First, the care',
@@ -8868,8 +8892,19 @@ return [
                         'title' => 'The colour does the carrying',
                         'lead' => 'Your voice makes a buzz full of harmonics, and your throat and mouth shape it. More energy in the high harmonics makes a sound bright; less makes it mellow, darker or muffled. Trained singers often have a peak between about 2 and 4 kHz, "a range where the ear is quite sensitive", and actors have a speaking cousin of it, the speaker\'s formant, stronger in trained voices than in untrained ones. A caller does the same on a small scale: the colour does the carrying, not the push.',
                         'speech' => 'Belting starts from speech for a reason. In the language of laryngeal mechanisms, "The modal, chest, male head, belting, and voce finta registers are produced in laryngeal mechanism M1": the same vibration you talk in. Say "hey!", then sing it the same way, and you\'re already there. What changes is the colour, not the gear. Calls sit on the border of speech and song: the first lab study of the English called interjection found it best understood "as sung speech".',
+                        // Garcia's lit-match line (the 1894 entry's, the garcia source), pulled out beside the heading.
+                        'quote' => 'The brighter sound does not stir the flame, the veiled one will.',
+                        'quote_by' => 'Manuel Garcia\'s lit-match test, 1894',
                         'risk_title' => 'Why loud is the risk',
                         'risk' => 'Loudness costs air pressure under the vocal folds, and the folds pay for it where they meet. This course keeps the bright colour and leaves the pressure out: speaking volume, short sounds, middle notes.',
+                        // The loudness bar: speaking volume lit as this course; louder, and full belt, as not this course.
+                        'loud' => [
+                            'levels' => ['Quiet', 'Speaking', 'Louder', 'Full belt'],
+                            'this' => 'This course',
+                            'not' => 'Not this course',
+                            'say' => 'Loudness, from quiet to full belt: this course stays at speaking volume, never louder. Louder calls and full belt are not this course.',
+                        ],
+                        'numbers_more' => 'The numbers behind it',
                         'numbers' => [
                             ['8 to 9 dB', 'For twice the push', 'In one study, sound level rose "8-9 dB per doubling of excess pressure over threshold": to sound clearly louder, you roughly double the push.', ['level']],
                             ['A pulse', 'Where the folds meet', 'Each time the folds close they "come into contact and produce a sharp pressure pulse", and those peaks rise with the pressure under them. "Excessive collision and acceleration may be responsible for the greatest tissue damage".', ['impact', 'stress']],
@@ -8879,6 +8914,16 @@ return [
                     'archive' => [
                         'title' => 'Calls that carried, from the street to the deck',
                         'more' => 'Three more, 1856 to 1914',
+                        // The stops along the way, one for each row, and each row's own words pulled out with its source.
+                        'route' => ['Street', 'Pasture', 'Field', 'Lesson room', 'Deck'],
+                        'stops' => ['The street', 'The pasture', 'The field', 'The lesson room', 'The deck'],
+                        'pulls' => [
+                            ['People know the Wares they deal in rather by their Tunes than by their Words', ['spectator']],
+                            ['There is neither warmth nor grace without ease', ['rousseau']],
+                            ['As he finished, the melody was caught up by another, and then, another, and then, by several in chorus.', ['olmsted']],
+                            ['bright and ringing or veiled', ['garcia']],
+                            ['It was only just a few words we had, but it made the thing come lighter.', ['sharp']],
+                        ],
                         'rows' => [
                             ['1711', 'London', 'Known by the tune', 'The Spectator printed a joke letter from a man applying to be "Comptroller-General of the London Cries", who would see to it "that those may not make the most Noise who have the least to sell". The joke rested on what every Londoner knew: "People know the Wares they deal in rather by their Tunes than by their Words." Later in the century Francis Grose said the same: "It is by their tune and the time of day that the modern cries of London are to be discriminated."', ['spectator', 'tuer']],
                             ['1768', 'Paris, and London in English', 'The herders\' call and the actor\'s voice', 'Alpine herders sang the ranz des vaches "in order to call the cattle from the pasture when it was time for them to be milked in the stables". Jean-Jacques Rousseau printed one in his Dictionary of Music and passed on the story that made it famous, that Swiss troops were forbidden to play it on pain of death because it made them weep and desert. That was his claim, and it is a legend. In the same book he wanted the opera stage closed "to those rough roaring voices which but stun the ear". His rule: "There is neither warmth nor grace without ease".', ['swissinfo', 'rousseau']],
@@ -9155,9 +9200,10 @@ return [
                 ],
                 'faq' => [
                     ['Does the app hear my words?', 'No. It hears pitch and timing: when each note starts and ends, and whether it\'s in tune. Your vowels and consonants are for your own ear, and each lesson asks you a plain question about your own playback.'],
-                    ['Which songs does it use?', 'Our own word exercises, then lines of public-domain songs: Amazing Grace, Danny Boy and Shenandoah.'],
-                    ['Is it for choirs or soloists?', 'Both. Some lessons sing with partner voices: a choir\'s ends together, one choir on one vowel, and lining out with a leader.'],
-                    ['Does it cover Latin or Italian?', 'No. Its words are English.'],
+                    ['Which songs does it use?', 'Our own word exercises first, then lines of three public-domain songs: Amazing Grace, Danny Boy and Shenandoah.'],
+                    ['Is it for choirs or soloists?', 'Both. You always sing on your own, and some lessons add the app\'s partner voices for the choir side: ending words together in unit 2, then one choir on one vowel and lining out with a leader in unit 4.'],
+                    // The page links the courses this answer names (love.faq_links).
+                    ['Does it cover Latin or Italian?', 'Not this course: its words are English, on English songs. Italian is in Classical singing basics, which sings Vaccai\'s lessons and Caro mio ben in Italian, and church Latin is coming in Singing in another language.'],
                     ['Do I need to read music?', 'No. You hear each line from a guide and see your voice drawn as a line.'],
                     ['What does it cost?', 'Nothing: every course is free. Try the first lesson without an account; a free account opens the rest.'],
                 ],
@@ -9166,8 +9212,25 @@ return [
                 // The love letter (docs/courses/diction-love-letter.md): only its facts, each with its notes. The course's
                 // own four facts stay off this page.
                 'love' => [
+                    // Hillel's design (2026-11-18): the hero's headline with the vowels it sings in colour ({...}; | breaks
+                    // the line), their sounds in IPA (the course's English: r dropped before a consonant), and the strip
+                    // of the three words as sung, each vowel ({...}) on its beat and the consonants squeezed between.
+                    'hero' => [
+                        'marked' => '{E}ver{y} w{or}d,|h{ear}d.',
+                        'ipa' => '/ˈɛv.ɹi ˈwɜːd ˈhɜːd/',
+                        'units' => ':n units',
+                        'strip_kick' => 'The same three words, sung',
+                        'strip' => '{ɛ} v ɹ {i} w {ɜː} d h {ɜː} d',
+                        'strip_key' => ['Vowel, carries the note', 'Consonant', 'Beat'],
+                        'strip_note' => 'Each vowel lands on its beat and holds the note. The consonants squeeze into the gaps before and after.',
+                    ],
                     // The hero's picture: three vowels (and "head") as points on the F2 and F1 map.
                     'map' => [
+                        'kick' => 'The vowel map',
+                        'unit' => 'F1 × F2, Hz',
+                        'front' => 'tongue forward',
+                        'back' => 'back',
+                        'head_word' => '"head"',
                         'axis_x' => 'F2: where the tongue narrows the mouth',
                         'axis_y' => 'F1: how wide the mouth opens',
                         'hz' => ':n Hz',
@@ -9208,7 +9271,14 @@ return [
                     ],
                     'plain' => [
                         'title' => 'The note lives on the vowel',
-                        'lead' => 'In speech, vowels are "in one sense less important than consonants": you can often read a phrase with its vowels taken out, "–f –ll v–w–l –nf–rm–t–n –s –bs–nt". Singing turns that round. "Vowels are more important in singing, because the vowel is often extended in time to produce a note." A held note is nearly all vowel, and the consonants have to fit into the short moments between, quick and exact.',
+                        'title_marked' => 'The note lives on the {vowel}',
+                        'ipa' => '/ɪn pleɪn wɜːdz/',
+                        // UNSW's example, set large: its vowels as gaps, then whole with the vowels ({...}) in colour.
+                        'gone_kick' => 'Read it with the vowels taken out:',
+                        'gone' => '_f _ll v_w_l _nf_rm_t_n _s _bs_nt',
+                        'whole' => '{i}f {a}ll v{o}w{e}l {i}nf{o}rm{a}t{io}n {i}s {a}bs{e}nt',
+                        'gone_after' => 'You can still read it. Speech leans on its consonants. Singing turns that round.',
+                        'lead' => 'In speech, vowels are "in one sense less important than consonants": you can often read a phrase with its vowels taken out. "Vowels are more important in singing, because the vowel is often extended in time to produce a note." A held note is nearly all vowel, and the consonants have to fit into the short moments between, quick and exact.',
                         'formants' => 'What makes "ee" sound like "ee" is a filter. Your voice makes a buzz full of harmonics, and your throat and mouth boost some bands of it more than others. Those peaks are the formants, and we tell vowels apart mostly by the first two. Write the word "head", and you are "suggesting that you produce formants F1 and F2 with values of roughly 500 Hz and 1800 Hz".',
                         'blur_title' => 'Why sung words blur',
                         'blur' => 'Vowels are stretched and consonants squeezed, and a few more things stack up.',
@@ -9216,6 +9286,8 @@ return [
                             ['zzz, sss', 'Buzz or hiss', 'Put your fingers on your neck and say "zzz", then "sss". On the z your vocal folds vibrate; on the s they\'re still, and the sound is only air. A note needs the buzz: try singing a tune in a whisper.', ['unsw']],
                             ['523 Hz', 'Harmonics far apart', 'High voices have "wide harmonic spacing, which makes it hard to define a formant in the spectrum of any single note". At C5 the harmonics sit 523 Hz apart (our arithmetic), so a vowel\'s peaks can fall in the gaps.', ['unsw']],
                         ],
+                        'hz_apart' => 'Hz apart',
+                        'tiles_note' => 'Solid: voiced, can hold a note. Dashed: air only.',
                         'consonants_more' => 'More on consonants',
                         'time_title' => 'Consonants keep the time',
                         'time' => 'Manuel Garcia gave consonants three jobs in song. The second is "to beat time and mark the rhythm by their percussions". So a t, k or p goes just before the beat, and the vowel, which carries the note, lands on it.',
@@ -9239,17 +9311,32 @@ return [
                         'key' => ['The t, a hiss of air', 'The vowel, the note', 'The beat'],
                         'note' => 'A synth, not a singer. In the course the app hears when your vowel\'s pitch begins. A t has no pitch, so getting it in early is up to you.',
                     ],
+                    // Each row: year, place, title, its pull quote (the row's own sourced words, cited with it), the story.
                     'archive' => [
                         'title' => 'From Trent to the far gallery',
+                        'title_marked' => 'From Trent to the {far gallery}',
+                        'range' => '1562 to 1914',
                         'more' => 'Three more, 1894 to 1914',
                         'rows' => [
-                            ['1562', 'Trent', 'So the words are understood', 'The Council of Trent asked that church singing be made "not to give empty pleasure to the ear, but in such a way that the words be clearly understood by all".', ['richmond']],
-                            ['1886', 'Paris', 'A letter for every sound', 'Paul Passy, a young French language teacher, was already printing reading books in phonetic script for French schoolchildren. In 1886 he founded the Phonetic Teachers\' Association, which became the International Phonetic Association, to improve language teaching "through the use of phonetics". Its first alphabet chart came out in 1888.', ['warwick', 'ipa']],
-                            ['1894', 'Cricklewood, London', 'The skeletons of words', 'Manuel Garcia signed the preface of Hints on Singing in October 1894. The book came out "when Manuel Garcia was in his ninetieth year", and his editor Hermann Klein later called it "his last word on the subject". "Consonants are the skeletons of words," Garcia wrote. On a note that starts with one, "the noise of the consonant must begin on the exact intonation of the sound". And of l, m, n, r and d at the end of a syllable: "if indistinctly given, the meaning of the word is obscured or lost."', ['garcia']],
-                            ['1905', 'Boston', 'The final consonant leans', 'Louis Arthur Russell\'s English Diction for Singers and Speakers noticed that "the tendency in English is diphthongal". On endings, it put the heart of this course in one sentence: "It is fine art to thus carry the final consonant of a word so close to the following word, giving all possible length to the vowel to be sung, then quickly and positively to articulate the final consonant". Done right, that is "to sing legato and to enunciate intelligibly".', ['russell']],
-                            ['1911', 'Sheffield, and round the world', 'The deaf gentleman in the gallery', 'Henry Coward took the Sheffield World Tour Choir round the world in 1911, and the conductors he met kept asking about "the secret of clear diction". Judging a choir, he wrote in 1914, he might give it 100 percent for the music and 95 for voice, but "the percentage for words would be 80 or much less". His cure was to picture "an old gentleman rather hard of hearing seated in the far gallery". And singers stop a final consonant too soon, he warned, so that "\'sheep\' sounds like \'shee,\' \'Help, Lord\' like \'Hel, Lor.\'"', ['coward']],
+                            ['1562', 'Trent', 'So the words are understood', 'in such a way that the words be clearly understood by all', 'The Council of Trent asked that church singing be made "not to give empty pleasure to the ear, but in such a way that the words be clearly understood by all".', ['richmond']],
+                            ['1886', 'Paris', 'A letter for every sound', 'through the use of phonetics', 'Paul Passy, a young French language teacher, was already printing reading books in phonetic script for French schoolchildren. In 1886 he founded the Phonetic Teachers\' Association, which became the International Phonetic Association, to improve language teaching "through the use of phonetics". Its first alphabet chart came out in 1888.', ['warwick', 'ipa']],
+                            ['1894', 'Cricklewood, London', 'The skeletons of words', 'Consonants are the skeletons of words', 'Manuel Garcia signed the preface of Hints on Singing in October 1894. The book came out "when Manuel Garcia was in his ninetieth year", and his editor Hermann Klein later called it "his last word on the subject". On a note that starts with a consonant, "the noise of the consonant must begin on the exact intonation of the sound". And of l, m, n, r and d at the end of a syllable: "if indistinctly given, the meaning of the word is obscured or lost."', ['garcia']],
+                            ['1905', 'Boston', 'The final consonant leans', 'to sing legato and to enunciate intelligibly', 'Louis Arthur Russell\'s English Diction for Singers and Speakers noticed that "the tendency in English is diphthongal". On endings, it put the heart of this course in one sentence: "It is fine art to thus carry the final consonant of a word so close to the following word, giving all possible length to the vowel to be sung, then quickly and positively to articulate the final consonant". Done right, the singer does both at once: the line held, and every word understood.', ['russell']],
+                            ['1911', 'Sheffield, and round the world', 'The deaf gentleman in the gallery', 'an old gentleman rather hard of hearing seated in the far gallery', 'Henry Coward took the Sheffield World Tour Choir round the world in 1911, and the conductors he met kept asking about "the secret of clear diction". Judging a choir, he wrote in 1914, he might give it 100 percent for the music and 95 for voice, but "the percentage for words would be 80 or much less". His cure was to sing to that gentleman in the far gallery. And singers stop a final consonant too soon, he warned, so that "\'sheep\' sounds like \'shee,\' \'Help, Lord\' like \'Hel, Lor.\'"', ['coward']],
                         ],
                     ],
+                    // Lesson 1 beside what the app hears; the line of Amazing Grace is the template's (App\Support\Site\DictionLine).
+                    'lesson' => [
+                        'title_marked' => 'One line of Amazing Grace, {twice}',
+                        'line_alt' => 'The first line of Amazing Grace, a syllable at a time with its sound: the syllables on each bar\'s first beat stressed, and "the" light.',
+                        'line_key' => ['Stressed, on the beat', 'A small word, light'],
+                        'line_note' => 'Stressed vowels full and pure. Small words light: "the" as "thuh".',
+                        'hears' => ['Hears', 'Pitch and timing'],
+                        'ear' => ['Your ear', 'Words and vowels'],
+                    ],
+                    'close_marked' => 'One line, sung {twice.}',
+                    // The FAQ answer (by its place) that names other courses, and their pages.
+                    'faq_links' => [3 => ['classical-singing-basics', 'other-languages']],
                     'facts_title' => 'Small things worth knowing',
                     'facts_more' => 'Two more',
                     'facts' => [
@@ -10149,11 +10236,6 @@ return [
                 ],
                 'try' => [
                     'lead' => 'The first lesson is a taste: five notes down the stairs, on one held word.',
-                    'steps' => [
-                        'Hear an "Amen" with the run inside it, the chord moving home.',
-                        'Hum the run slowly: la, so, mi, re, do.',
-                        'Sing it on "A-", two notes a second, and land on do as the chord comes home.',
-                    ],
                     'after' => 'Lesson 1 scores each note on landing clean: a note that slid in earns half.',
                 ],
                 'measures' => 'The app hears each note of your run: whether it landed on its pitch or slid in, and in later lessons whether it started on the beat. A bend is scored on where it arrives, not on its loose start. Faster than 4 notes a second it doesn\'t score yet: that\'s a check you make yourself.',
@@ -10185,12 +10267,59 @@ return [
                 'close' => 'Lesson 1 takes about five minutes: five notes down the stairs on "Amen", slow and clean.',
                 // The love letter (docs/courses/gospel-runs-love-letter.md): only its facts, each with its notes.
                 'love' => [
-                    // The hero's picture: the major pentatonic as five stairs, F and B left out.
+                    // The hero (Hillel's design, 2026-11-18): the major pentatonic as stairs from C4 to C5, F and B left
+                    // out, each stair sounding when tapped, and lesson 1's run played down them (App\Support\Site\GospelRunsArt).
+                    'hero' => [
+                        'kick' => 'A course in gospel & soul runs',
+                        'title' => ['Clean runs,', 'note by note.'],
+                        'size' => ':lessons lessons · :units units',
+                        'play' => 'Hear the run down the stairs',
+                        'stop' => 'Stop',
+                        'tap' => 'Tap a stair to hear it, or hear lesson 1\'s run: la, so, mi, re, do, two notes a second, as the chords come home.',
+                        'key' => 'Shown in C: the course puts do on your own comfortable note.',
+                    ],
                     'stairs' => [
-                        'names' => ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C'],
-                        'legend' => ['The five stairs: C, D, E, G and A, then C again', 'The gaps: F and B, the fourth and seventh', 'The run in the demo, down from C5 to C4'],
+                        'sol' => ['do', 're', 'mi', 'fa', 'so', 'la', 'ti', 'do'],
+                        'notes' => ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5'],
+                        'left_out' => 'Left out',
+                        'label' => ':sol, :note',
+                        'gap' => ':sol, :note, left out',
                         'note' => 'In 1872 Theodore Seward, writing down the Fisk Jubilee songs, found that "more than half the melodies" used a scale "with the fourth and seventh tones omitted": these five stairs.',
                     ],
+                    // Every heading in two halves, the second set in italic.
+                    'heads' => [
+                        'demo' => ['One run,', 'three speeds'],
+                        'plain' => ['A run is a melisma,', 'sung fast'],
+                        'slow' => ['Slow,', 'and correct'],
+                        'blue' => ['Between the keys,', 'nearer the minor'],
+                        'archive' => ['Where the runs', 'come from'],
+                        'units' => ['From five stairs', 'to a run of your own'],
+                        'try' => ['Five stairs,', 'on one word'],
+                        'inside' => ['What the app', 'listens for'],
+                        'facts' => ['Small things', 'worth knowing'],
+                        'faq' => ['Questions', '& responses'],
+                        'join' => ['Five stairs,', 'slow and clean.'],
+                    ],
+                    // A melisma, shown: an illustration, since the library's Swing Low sings "-ot" on two notes, E and D in G.
+                    'melisma' => [
+                        'words' => 'Swing low, sweet',
+                        'syllables' => 'cha·ri·',
+                        'vowel' => 'o',
+                        'end' => 't',
+                        'note' => 'An illustration: one syllable, five notes, the "o" run down the five stairs. Our Swing Low sings it on two.',
+                    ],
+                    // Lesson 1 (gr-1-stairs) set out as lining out: what the app leads (0), what you answer (1).
+                    'lining' => [
+                        'who' => ['Leader', 'You'],
+                        'rows' => [
+                            [0, 'A run is a few notes on one syllable, each one clean, like stairs.'],
+                            [1, 'Hum the run slowly, five notes stepping down to do: la, so, mi, re, do. Each waits until you find it.'],
+                            [0, 'The Amen chords under the run, IV moving home to I.'],
+                            [1, 'Sing "A-men": the run on "A-", landing "men" on do as the chord comes home.'],
+                        ],
+                    ],
+                    'units_size' => ':units units · :lessons lessons',
+                    'climb_tail' => '…a little higher, unit by unit.',
                     'kicks' => [
                         'plain' => 'In plain words',
                         'blue' => 'The blue note',
@@ -10203,14 +10332,14 @@ return [
                     ],
                     // The featured demo (js/public/gospel-runs.js): the pack's "Slow, then fast".
                     'demo' => [
-                        'live' => 'Live demo',
+                        'live' => 'Live demo · No. 1',
                         'tag' => 'No mic, just listen',
-                        'title' => 'One run, three speeds',
                         'lead' => 'A synth voice sings one run down the five stairs, C5, A4, G4, E4, D4 and C4, at 2 notes a second, then 4, then 8. Each note glides into the next over 40 ms, the way a voice slides.',
                         'how' => 'Listen for how much of each note is left once the glide is done. At 8 a second each note lasts 125 ms, about as long as a 4-semitone slide at top speed, as measured in speech research. Slow and clean comes first.',
                         'play' => 'Slow, then faster',
                         'stop' => 'Stop',
                         'speeds' => ['2 a second', '4 a second', '8 a second'],
+                        'ms' => ['500 ms a note', '250 ms a note', '125 ms a note'],
                         'key' => ['A note of the run', 'The note sounding'],
                         'ready' => 'Press play: the same six notes down the stairs, three times, quicker each time.',
                         'say' => ':rate notes a second: :note',
@@ -10218,23 +10347,21 @@ return [
                         'note' => 'A synth, not a singer. In the course, the app hears your own run, note by note.',
                     ],
                     'plain' => [
-                        'title' => 'A run is a melisma, sung fast',
                         'lead' => 'A melisma is one syllable sung across several notes: in a cross-cultural song database\'s words, the "degree to which the same syllable of text is sung to two or more notes of melody". Writing down the Fisk songs in 1872, Theodore Seward noticed "one particular effect" that kept coming back: the one "on the last syllable of the word \'chariot\'" in Swing Low.',
                         'pent' => 'Why the five stairs sit so easily: one theory says we favour scales whose notes line up with the harmonics of a single voice. Testing 455,126 possible five-note scales against that rule, two neuroscientists found the minor pentatonic came out on top.',
                         'blur_title' => 'Why fast runs smear',
                         'blur' => 'The voice can\'t jump from one pitch to the next. It has to slide, and the slide takes time.',
                         'numbers' => [
-                            ['124 ms', 'A fast slide, in speech', 'In a 2002 lab study, people rising 4 semitones as fast as they could took about 124 ms on average; falling took about the same. They were speakers, not trained singers.'],
-                            ['120 ms', 'Each end of a sung note', 'A 2019 study of SATB quartets found "transient parts of approximately 120 ms duration at both the beginning and end of a note, where the pitch varies rapidly".'],
-                            ['125 ms', 'A note, at 8 a second', 'Our arithmetic: at 8 notes a second each note lasts 125 ms, about as long as one of those slides. A careless fast run can spend the whole note sliding and never settle on a pitch. That is the smear.'],
+                            ['124', 'ms', 'A fast slide, in speech', 'In a 2002 lab study, people rising 4 semitones as fast as they could took about 124 ms on average; falling took about the same. They were speakers, not trained singers.', ['xu']],
+                            ['120', 'ms', 'Each end of a sung note', 'A 2019 study of SATB quartets found "transient parts of approximately 120 ms duration at both the beginning and end of a note, where the pitch varies rapidly".', ['dai']],
+                            ['125', 'ms', 'A note, at 8 a second', 'Our arithmetic: at 8 notes a second each note lasts 125 ms, about as long as one of those slides. A careless fast run can spend the whole note sliding and never settle on a pitch. That is the smear.', []],
                         ],
-                        'slow_title' => 'Slow, and correct',
                         'slow' => 'In a 2013 study, people practised a piano finger pattern over several days, below their top speed. Their top speed "progressively increased", and the gain was still there two months later.',
                         'correct' => 'A study of 17 pianists found that practice time did not predict how well they played the next day. How many of their practice runs were correct did.',
                     ],
                     // The second demo: the same run at 8 a second, clean and then smeared, its pitch drawn.
                     'smear' => [
-                        'kick' => 'Hear the smear',
+                        'kick' => 'Hear the smear · No. 2',
                         'tag' => '8 notes a second',
                         'play' => 'Clean, then smeared',
                         'stop' => 'Stop',
@@ -10248,10 +10375,9 @@ return [
                     ],
                     // The third demo: a bend from the minor third's key to the major third's over a C drone.
                     'blue' => [
-                        'title' => 'Between the keys, nearer the minor',
                         'lead' => 'Blue notes are the notes "between the cracks" of the usual pitches. A University of Rochester team tracked the pitch of isolated rock vocals and found a few notes sung "midway between the major and minor third", most of all where the music pulls both ways.',
                         'measured' => 'A 2019 study measured the notes in fifteen classic blues recordings. Its blue third clustered at 319.1 cents above the tonic: a little above the piano\'s minor third (300 cents) and far below its major third (400). It also confirmed a "neutral" third in between.',
-                        'kick' => 'Bend the blue note',
+                        'kick' => 'Bend the blue note · No. 3',
                         'tag' => 'Over a C drone',
                         'play' => 'Bend up',
                         'stop' => 'Stop',
@@ -10271,7 +10397,7 @@ return [
                         'note' => 'A synth, not a singer. Neither 319 nor 350 cents is a piano key.',
                     ],
                     'archive' => [
-                        'title' => 'Where the runs come from',
+                        'lead' => 'Lined out, line by line: three centuries in six verses.',
                         'more' => 'Four more, 1873 to 1948',
                         'rows' => [
                             ['1644', 'Westminster to the rural South', 'One line at a time', 'The Westminster Assembly, appointed by the English Parliament, recommended lining out, and Massachusetts took it up a few years later. In the Kentucky churches that still sing the old way, the leader "briefly chants a line alone, and then the group repeats the words but to a tune that is much longer and more elaborate", very slow, with no beat you can tap. African American congregations made it their own, particularly Baptists in the rural South, and it went on to influence music "from gospel to soul to jazz". It is also called "Dr. Watts" hymn singing, after the English hymn writer Isaac Watts (1674 to 1748).', ['titon', 'dargan', 'hymnary']],
@@ -10282,7 +10408,6 @@ return [
                             ['1948', 'New Orleans to Chicago', 'A little higher', 'Mahalia Jackson was born in New Orleans on 26 October 1911 and grew up in a strict, religious household. At sixteen she moved to Chicago and began singing professionally, and in the early 1940s she worked with Thomas A. Dorsey. Her breakout came in 1948 with "Move on up a Little Higher". She sang at the 1963 March on Washington and died on 27 January 1972.', ['parishes']],
                         ],
                     ],
-                    'facts_title' => 'Small things worth knowing',
                     'facts_more' => 'Five more',
                     'facts' => [
                         ['For a while, any new gospel-blues song, whoever wrote it, was called "a Dorsey", until Thomas A. Dorsey coined the name "gospel" himself, so his Georgia marker says.', 'Georgia Historical Society marker (1994)', ['ghs']],
@@ -10642,6 +10767,59 @@ return [
                 'verse_n' => 'Verse :n',
                 'try_first' => 'Start here.',
                 'close' => 'Lesson 1 takes a few minutes: a shanty over a drone, one line at a time, then your verse with the guide singing along.',
+                // Hillel's design of 2026-11-18 (site/courses/folk-and-early-music): an old printed ballad sheet, its verses
+                // marked by the four shape notes. The facts above stay the page's; these are its new labels.
+                'fo' => [
+                    'strap' => ['A free course', ':lessons lessons', 'every tune public domain'],
+                    'h1' => ['Tell it', 'plainly.'],
+                    'caption' => 'Across its head, the first line in shape notes: “What shall we do with a drunken sailor?” Sung in lesson 1.',
+                    'key' => ['Four shapes, four verses.', 'Shape-note books, made for American singing schools, print each note as one of four shapes: fa, sol, la and mi. Here they mark the four verses.'],
+                    'key_source' => ['Wikipedia, Shape note', 'https://en.wikipedia.org/wiki/Shape_note'],
+                    'syllables' => ['fa' => 'Fa', 'sol' => 'Sol', 'la' => 'La', 'mi' => 'Mi'],
+                    'drone' => ['The drone', 'One low note, held under the tune'],
+                    'demo' => [
+                        'lesson' => 'From Verse II',
+                        'dark_note' => 'The dark note',
+                        'legend' => ['mi' => 'Mi, the bright sixth', 'fa' => 'Fa, the dark sixth', 'drone' => 'The drone, on the home note'],
+                        'shapes' => 'Each version\'s shapes are read in its own key, so a changed note can change its neighbours\' shapes too.',
+                        'alt' => 'The line\'s ten notes as shape notes over their words, seven on one note, then the sixth, then two higher; under them, the drone.',
+                    ],
+                    'modes' => [
+                        'bright' => ['Dorian', 'raised sixth', 'A minor tune with one note higher, its sixth. Drunken Sailor is in it.'],
+                        'soft' => ['Mixolydian', 'lowered seventh', 'A major tune with one note lower, its seventh. Old Joe Clark is in it.'],
+                        'note' => 'The faint shape shows where the familiar scale would sing. The red one is where the old tune goes.',
+                    ],
+                    'grace_more' => 'Drawn here on a four-line staff, as chant books print it.',
+                    'ornaments' => [
+                        'flick' => ['from the note above', 'A quick touch of the next note up before the main one. Real flicks are much quicker, so you practise them slower.'],
+                        'turn' => ['on “youth” in Barbara Allen', 'Above, the note, below, the note: circling the note before landing on it.'],
+                    ],
+                    'call' => 'The guide calls',
+                    'answer' => 'You answer',
+                    'line' => '“What shall we do with a drunken sailor?”',
+                    'ear' => [
+                        'kick' => 'The ear',
+                        'rows' => [['Pitch', 'Each note you sing.'], ['Hold', 'A steady hold with the drone.'], ['Drift', 'How far you drift from your key singing alone.']],
+                        'judge' => 'Words and tone are yours to judge.',
+                        'said' => 'The same take, said plainly',
+                        'quote' => '“You held your key to the end, and 88% of your intervals were in tune.”',
+                        'note' => 'An example of the words. No stars.',
+                        'game' => 'In game mode',
+                    ],
+                    'clips' => ['1666', 'Ison', 'Chanter'],
+                    'tunes_h' => 'A table of the tunes',
+                    'tunes_sub' => ['oldest first', 'all public domain'],
+                    // Oldest first, each dated as the course's records date it (docs/courses/folk.md; Pepys for Barbara Allen).
+                    'tunes' => [
+                        ['8th c.', 'Ut queant laxis', 'Latin hymn, its words from the 8th century; the course sings its six syllables'],
+                        ['1666', 'Barbara Allen', 'Traditional ballad, sung in 1666; its tune from an 1891 printing'],
+                        ['1830s', 'Drunken Sailor', 'Sea shanty, traditional, documented from the 1830s'],
+                        ['c. 1840', 'Wondrous Love', 'American shape-note hymn, printed about 1840'],
+                        ['Trad.', 'Old Joe Clark', 'Appalachian, traditional; the course sings its chorus'],
+                    ],
+                    'faq_h' => 'Asked at the bar',
+                    'join' => ['Join the', 'crew.'],
+                ],
             ],
             'musical-theatre' => [
                 'group' => 'styles',
@@ -11361,6 +11539,44 @@ return [
                     'Stop if anything tightens or hurts.',
                 ],
                 'songs' => [['O Come, All Ye Faithful', 'Latin hymn, 18th century; English words 1841; public domain. The four-part setting is our own.']],
+                // Its own page (site/courses/learn-your-choir-part, Hillel's design, 2026-11-18): built round the score of
+                // the course's song, the part you pick lit and the other three faded. The headline in three pieces, so
+                // "your" can take the picked part's colour.
+                'lcp' => [
+                    'headline' => ['Walk into rehearsal knowing', 'your', 'part.'],
+                    'count' => ':units units · :lessons lessons · free',
+                    'score' => [
+                        'kick' => 'Which part do you sing?',
+                        'bars' => 'bars :from to :to',
+                        'parts' => ['soprano' => 'Soprano', 'alto' => 'Alto', 'tenor' => 'Tenor', 'bass' => 'Bass'],
+                        'play' => 'Hear it',
+                        'stop' => 'Stop',
+                        'caption' => 'Your line, inside the whole sound. The other three stay in the room, quieter.',
+                        'alt' => 'The first two lines of :song in four parts, soprano, alto, tenor and bass, each note a bar at its pitch and length, with the bar numbers and the words. The part you pick is in its colour; the other three are faded.',
+                    ],
+                    'learn_h' => 'Seven things a good section singer brings to rehearsal.',
+                    'units_h' => 'Four rehearsal marks, then the real thing.',
+                    'hears_h' => 'Your notes on pitch, line by line.',
+                    'hears' => 'First with the guide, then on your own with the other parts. You pick your part, soprano, alto, tenor or bass, on one real four-part piece set in your own range, and the last lesson shows you how to learn any song\'s part the same way.',
+                    'sample' => [
+                        'kick' => 'A sample take',
+                        'note' => 'Sample notes, to show how a take is said. Not a singer\'s score.',
+                        'head' => ':part · guide off',
+                        'count' => ':hit of :all',
+                        'hit' => 'notes on pitch',
+                        'key' => ['on' => 'On pitch', 'off' => 'Sung, off pitch', 'where' => 'Where it sits'],
+                        'alt' => 'A sample take of the first two lines: :hit of :all notes on pitch, two sung off the note.',
+                    ],
+                    // Singing safely's three lines, each marked with a music sign: medium-soft, soft, and a stop.
+                    'signs' => ['mp', 'p', '//'],
+                    'song' => 'The song',
+                    'today' => [
+                        'title' => ['New to singing harmony?', 'Start here.'],
+                        'panel' => 'Unit 7 · all four parts of Amazing Grace, one at a time',
+                        'play' => 'Play it',
+                        'alt' => 'Amazing Grace\'s first line as four lanes, soprano, alto, tenor and bass, each note lighting up as it sounds.',
+                    ],
+                ],
             ],
             // Backing vocals (the courses lead, content d47e700): the sound behind the song. No living singer or group named.
             'backing-vocals' => [
@@ -11420,6 +11636,105 @@ return [
                         'alt' => 'Amazing Grace\'s first line as four lanes, soprano, alto, tenor and bass, each note a block in its part\'s colour.',
                         'parts' => ['Soprano', 'Alto', 'Tenor', 'Bass'],
                     ],
+                    // The length pass (Hillel, 2026-11-18: every course page about the same length): lesson 1 to try
+                    // without the app, the science, the archive, who it's for, questions, a close and the Sources, each
+                    // fact the course's own (its lessons' checked facts, the courses lead's tools/fact_checks.json).
+                    'try' => [
+                        'kick' => 'Try it now',
+                        'title' => 'Hold your first pad.',
+                        'lead' => 'A pad is one held "oo" under the tune. Yours is do, the home note, then ti, the note just below it, when the chord changes.',
+                        'steps' => [
+                            'Pick an easy note in the middle of your voice and sing it on a soft "oo". That\'s do, your home note.',
+                            'Hold it still for four slow counts. In the lesson, the tune passes over it while your note stays put.',
+                            'Step down to the note just below, ti, then back up to do.',
+                            'Keep it softer than you\'d sing the tune. Stop if anything tightens or hurts.',
+                        ],
+                        'after' => 'In lesson 1, the chords play under your pad, then Amazing Grace comes in quietly over it, and the app hears each pad note. Your first pad is kept on this device for the course\'s last lesson.',
+                    ],
+                    'science' => [
+                        'kick' => 'Why it works, in plain words',
+                        'title' => 'Hold still. Move the shortest way. Stop together.',
+                        'lead' => 'A backing part isn\'t a second tune. It holds while the tune moves, moves only as far as each chord asks, and starts and stops with the others.',
+                        'panel' => [
+                            'kick' => 'Lesson 1 · the pad under Amazing Grace',
+                            'lanes' => ['lead' => 'The tune', 'chords' => 'Chords', 'pad' => 'Your pad'],
+                            'note' => 'Do is in the first three chords, so the pad keeps it. The last chord has no do, so the pad steps down to ti, the nearest note.',
+                            'alt' => 'Amazing Grace\'s first two lines as three lanes: the tune on top; the chords, each named by its three notes (do mi so, fa la do, do mi so, then so ti re); and the pad under them, do held through the first three chords, then ti under the last, each pad note marked in its chord.',
+                        ],
+                        'points' => [
+                            ['Hold still', 'A bagpipe\'s drones hold one unchanging note, usually the home note, while the tune is played over them. A pad works the same way: your note stays put, and the tune passes over it.', ['pipes']],
+                            ['Move the shortest way', 'When the chord changes, keep the note the two chords share; if they share none, step to the nearest. Arnold Schoenberg\'s harmony textbook calls this "the law of the shortest way", a name he once heard Anton Bruckner use.', ['schoenberg']],
+                            ['Breathe and stop together', 'In a 2013 study of fifteen 18-year-old choir singers, their heart rates rose and fell together when they sang a slow chant, breathing only between phrases. Humming one note, breathing at will, gave no shared pattern. Unit 1 practises stopping on the same beat, and the app hears your cut-offs.', ['vickhoff']],
+                        ],
+                    ],
+                    // The archive as a session's tracks, one lane a kind of backing part (the hero's colours; `stack` is
+                    // unit 4's). A clip's tag is its year where the source gives one.
+                    'story' => [
+                        'kick' => 'From the archive',
+                        'title' => 'Every lane has a history.',
+                        'lead' => 'The four kinds of backing part in this course each have a past. Here they are as tracks, like the lanes above.',
+                        'lanes' => ['pad' => 'Pad', 'doo' => 'Doo-wop', 'answer' => 'Answers', 'stack' => 'Stacked'],
+                        'clips' => [
+                            'pad' => [
+                                ['1972', 'A bagpipe Amazing Grace, by the pipes, drums and military band of the Royal Scots Dragoon Guards, spent five weeks at number one in Britain, its drones holding one note under the tune.', ['charts', 'pipes']],
+                            ],
+                            'doo' => [
+                                ['By 1707', 'The four chords under the doo-wop figures are known as the doo-wop progression, or the "Heart and Soul" chords. They\'re far older: Dieterich Buxtehude, who died in 1707, repeated them in the bass line of a psalm setting.', ['buxtehude', 'globe']],
+                                ['1950s', 'Vocal groups sang nonsense words like "doo-wop" as the rhythm parts of their harmony, and that one stuck as the style\'s name. A lead sang the tune\'s words; the others often sang their harmony behind it, on syllables.', ['stjames']],
+                            ],
+                            'answer' => [
+                                ['1867', 'Slave Songs of the United States, the book that printed Michael, Row, describes a leader starting each verse, often improvising, while the others, "who \'base\' him, as it is called", strike in with the refrain.', ['slave']],
+                                ['On the rails', 'Gandy dancers, railroad gangs who straightened track, tapped their bars on the rails to a caller\'s song. Once they tapped in perfect time, he called for a pull on the third beat of a four-beat refrain.', ['gandy']],
+                                ['On tour', 'One night, Ray Charles and his band ran out of songs with time still to fill. He improvised "What\'d I Say", and had his backing singers answer him.', ['mix']],
+                            ],
+                            'stack' => [
+                                ['Three sisters', 'The Andrews Sisters sang close harmony in three parts: LaVerne the low voice, Maxene the high one, and Patty, in between, the lead. They modeled themselves on an earlier sister trio, the Boswell Sisters.', ['nyt']],
+                                ['1966', 'Pop singers often double a vocal by singing it twice. At Abbey Road, an engineer found a way to fake it, artificial double tracking, after the Beatles grew tired of the chore, John Lennon above all.', ['lewisohn', 'abbey']],
+                            ],
+                        ],
+                    ],
+                    'who' => [
+                        'Singers who want to sit behind a lead, in a band, a group or with friends.',
+                        'Choir singers: a section under a solo uses the same skills.',
+                        'Anyone who can carry a tune. If harmony is new to you, the beginner course below starts from your first note.',
+                    ],
+                    'need_h' => 'What you need',
+                    'need' => [
+                        'Headphones for every lesson, and the mic on your phone or computer.',
+                        ':lessons short lessons in :units units, all free.',
+                    ],
+                    'faq_h' => 'Questions',
+                    'close' => [
+                        'kick' => 'Your turn',
+                        'title' => 'Step in behind the lead.',
+                        'body' => 'Lesson 1 is one soft "oo" under Amazing Grace: do, then ti when the chord changes. By the last lesson, three backing parts of yours sit under its lead, kept as a song.',
+                        'lanes' => ['The guide', 'You', 'You', 'You'],
+                    ],
+                    // The page's numbered notes (site/courses/_cites), in the order the page first cites them. Living
+                    // writers aren't named: a paper by its journal and year, a book or article by its title.
+                    'sources' => [
+                        'pipes' => ['The Pitch and Scale of the Great Highland Bagpipe, New Zealand Pipeband (1998)', 'https://publish.uwo.ca/~emacphe3/pipes/acoustics/pipescale.html'],
+                        'schoenberg' => ['Arnold Schönberg, Harmonielehre, 3rd ed. (1922), p. 44, Internet Archive', 'https://archive.org/details/arnoldschonbergh0000unse'],
+                        'vickhoff' => ['Frontiers in Psychology (2013), the heart rates of singers in a choir', 'https://www.frontiersin.org/articles/10.3389/fpsyg.2013.00334/full'],
+                        'charts' => ['Official Charts Company, Amazing Grace (Royal Scots Dragoon Guards)', 'https://www.officialcharts.com/songs/pipes-and-drums-and-the-military-band-of-the-royal-scots-dragoon-guard-amazing-grace/'],
+                        'buxtehude' => ['Buxtehude, Quemadmodum desiderat cervus, BuxWV 92, score, Internet Archive', 'https://archive.org/details/imslp-desiderat-versus-buxwv-92-buxtehude-dietrich'],
+                        'globe' => ['The Boston Globe, "Striking a chord" (31 December 2008)', 'https://web.archive.org/web/20100113080032/http://www.boston.com/ae/music/articles/2008/12/31/striking_a_chord/'],
+                        'stjames' => ['St. James Encyclopedia of Popular Culture, "Doo-wop Music"', 'https://www.encyclopedia.com/media/encyclopedias-almanacs-transcripts-and-maps/doo-wop-music'],
+                        'slave' => ['Allen, Ware and Garrison, Slave Songs of the United States (1867), introduction, Internet Archive', 'https://archive.org/details/slavesongsofunit00alle'],
+                        'gandy' => ['Encyclopedia of Alabama, Gandy Dancer Work Song Tradition', 'https://encyclopediaofalabama.org/article/gandy-dancer-work-song-tradition/'],
+                        'mix' => ['Mix (2004), Classic Tracks: Ray Charles\' What\'d I Say', 'https://web.archive.org/web/20070501150655/http://mixonline.com/mag/audio_ray_charles_whatd/index.html'],
+                        'nyt' => ['The New York Times (1995), the obituary of Maxene Andrews', 'https://www.nytimes.com/1995/10/23/obituaries/maxene-andrews-79-of-the-andrews-sisters.html'],
+                        'lewisohn' => ['The Complete Beatles Recording Sessions (1988)', 'https://openlibrary.org/works/OL3791988W'],
+                        'abbey' => ['Abbey Road Studios, About us', 'https://www.abbeyroad.com/about-us'],
+                    ],
+                ],
+                // Only answers the course supports; every course is free.
+                'faq' => [
+                    ['Is it free?', 'Yes. Every course on Stackapella is free, this one included, every lesson of it.'],
+                    ['Do I need headphones?', 'Yes, for every lesson. Through a speaker, the lead and your earlier takes rest while you sing.'],
+                    ['Do I need to read music?', 'No. You learn every part by ear.'],
+                    ['Why no 1950s doo-wop records?', 'They\'re still in copyright. The doo-wop figures are the style\'s common patterns, written for the course on its four-chord loop, and the songs are public domain.'],
+                    ['What do I end with?', 'Amazing Grace with three backing parts of your own under the guide\'s lead, kept as a song, and your first pad from lesson 1 to hear it against.'],
                 ],
             ],
             // Sea shanties and work songs (the courses lead, content c4a7c4a and 51fcca8; it replaces Overtone singing).
@@ -11522,6 +11837,101 @@ return [
                     'unscored' => ['Your volume', 'The colour of your vowels', 'The words', 'The rise and fall of a phrase', 'Vibrato'],
                     'programme' => 'Programme',
                     'safety_motto' => 'mezza voce, always',
+                    // The length pass (2026-11-18): lesson 1's first round to try, the old books' rules in plain words,
+                    // programme notes (dated), who it's for, questions, a close and the sources. Every fact is one of the
+                    // course's twelve checked lesson facts (the content repo's tools/fact_checks.json, each read in its
+                    // source and checked again), the course's own outline (docs/courses/classical-singing.md), or the
+                    // `legato` scorer's own study (js/lesson-scores.js); the vowel line is UNSW's Voice acoustics page.
+                    'try' => [
+                        'kick' => 'Lesson 1, its first round',
+                        'title' => 'Same five notes, two ways. Which one is joined?',
+                        'lead' => 'The course starts with your ears. You hear the same five notes on "ah" twice, once joined and once with small gaps, and choose the joined one. Try lesson 1\'s three rounds here, with no mic.',
+                        'steps_kick' => 'Then sing it yourself',
+                        'steps' => [
+                            'Stand or sit tall and easy: jaw loose, shoulders down.',
+                            'Sing do, re, mi, fa, so on "ah", at an easy medium volume.',
+                            'Keep the sound going as each note changes, with no gap between the notes.',
+                        ],
+                        'after' => 'In the app, lesson 1 then gives you the first phrase of Caro mio ben on "ah", and hears where each note lands.',
+                        'round' => 'Round :n of :total',
+                        'hear' => 'Hear take :n',
+                        'stop' => 'Stop',
+                        'choose' => 'Take :n is joined',
+                        'right' => 'Yes, take :n.',
+                        'wrong' => 'Not this time: it was take :n.',
+                        'next' => 'Next round',
+                        'again' => 'Try the rounds again',
+                        'done' => 'That\'s lesson 1\'s first step. In the app, the next one hears you.',
+                        'ready' => 'Hear both takes, then choose.',
+                        'playing' => 'Playing take :n.',
+                    ],
+                    'practice_kick' => 'Performance practice',
+                    'practice_title' => 'What the old books ask for, in plain words.',
+                    // [where it's from, title, text, the sources it cites, the movement whose colour it takes]
+                    'practice' => [
+                        ['Vaccai, Lesson I', 'A note lives on its vowel', 'In singing, the vowel is what\'s held to make a note. A p, a t or an s is made without the vocal folds vibrating, so the sound stops for a moment, rightly. In his first lesson Vaccai split the words oddly, joining each consonant to the next syllable so the vowel fills its notes; this, he wrote, would also help a singer learn the legato style. So the course sings each joined line on its vowels first, then with its words.', ['unsw', 'vaccai'], 1],
+                        ['The app\'s own test', 'How the app hears a join', 'A joined change barely touches the sound\'s level. In the app\'s own tests, it dipped 3 decibels at most, and a gap of a tenth of a second dipped it 14 to 26. So at each change the app listens to the level, not only the pitch: a dip of 12 decibels or more under the softer of the two notes, and that join broke. Each change is measured against its own two notes, so a soft phrase keeps its joins.', [], 1],
+                        ['Caccini, 1602', 'A clean start, no scoop', 'In his 1602 songbook Le nuove musiche, Giulio Caccini noted that some singers began their first note a third below. The habit had grown so common, he wrote, and some lingered there so long, that it tired the ear; beginners should seldom use it. The course asks for each note on its pitch from its first sound.', ['caccini'], 1],
+                        ['Concone, page 2', 'Breathe at the commas', 'On the first page of Concone\'s 50 lessons, the Peters edition prints a footnote in French: those who can\'t sing the whole phrase should breathe at the commas marked. The course takes Brahms\'s lullaby the same way: a breath at each rest, then each phrase on one breath.', ['concone'], 2],
+                        ['Concone, title page', 'The middle of the voice', 'Concone titled his 50 lessons "pour le médium de la voix": for the middle of the voice. The course keeps its long notes there too, in the middle of your voice, and its highest notes short and reached by step.', ['concone'], 2],
+                        ['Vaccai, Lessons VIII and XIII', 'Lean, then slide on purpose', 'Vaccai called the appoggiatura, the leaning note, "the most pleasing ornament of song": its value "may be increased but never diminished". Portamento, he warned, "by no means signifies that dragging of the voice"; most often it means touching the next note imperceptibly early, on the vowel before it. The course scores the leaning note on the beat, and a slide only where one is asked for.', ['vaccai'], 3],
+                    ],
+                    'notes_kick' => 'Programme notes',
+                    'notes_title' => 'Who wrote it down, and who sang it.',
+                    // [when, title, text, the sources it cites]
+                    'notes' => [
+                        ['1698', 'The poet of the lessons', 'Vaccai took his words from Metastasio, born Pietro Trapassi in Rome in 1698. As a boy he recited made-up verses to street crowds; the scholar Gravina adopted him and turned Trapassi into a Greek-style name, Metastasio.', ['britannica', 'uniarts']],
+                        ['1771', 'The singer and the trumpet', 'Charles Burney told how the teenage Farinelli, singing in Rome, held a nightly contest with a famous trumpeter, each swelling out one note. When the trumpeter gave up, spent, Farinelli smiled and carried on in the same breath.', ['burney']],
+                        ['about 1785', 'A celebrated song', 'An early London print of Caro mio ben calls it "a celebrated song", sung by the soprano Pacchierotti "with universal applause" at a concert for the Musical Fund. It names the composer only as "Sigr. Giordani".', ['preston']],
+                        ['1832', 'Vaccai\'s ending, in Bellini\'s opera', 'In Bologna, the great singer Maria Malibran, playing Romeo in Bellini\'s opera, swapped his tomb scene for Vaccai\'s. Librettos show nearly two thirds of productions from 1833 to 1857 used Vaccai\'s ending.', ['poriss', 'baker']],
+                        ['1868', 'A lullaby with a love song inside', 'Brahms hid an Austrian love song in the Wiegenlied\'s piano part, one he had heard Bertha Faber sing ten years before. Sending it for her baby in July 1868, he wrote that while she sang Hans to sleep, her husband murmured a love song.', ['kalbeck']],
+                        ['1878', 'The edition the course reads', 'Vaccai\'s Practical Method of Italian Singing, printed in Boston by G. D. Russell, sets Metastasio\'s verses. The course\'s scale, thirds and leaning notes are read from it bar by bar.', ['vaccai']],
+                        ['1889', 'Useful the world over', 'The first Grove\'s Dictionary said Concone\'s solfeggi and vocalizzi, his 50 lessons among them, had made him "a world-wide reputation for usefulness".', ['grove']],
+                        ['1894', 'Caro mio ben, in English', 'The English words printed under Caro mio ben in 1894, "Thou, all my bliss", are by Theodore Baker, Schirmer\'s editor and translator, who in 1900 published his Biographical Dictionary of Musicians.', ['parisotti', 'baker']],
+                    ],
+                    'who_title' => 'Who it\'s for',
+                    'who' => [
+                        'Anyone who wants the classical line in their own voice: no opera voice, at an easy medium volume.',
+                        'Beginners: every line is moved to your comfortable note and kept in an easy span.',
+                        'Singers with no Italian: each Italian line shows its meaning the first time.',
+                    ],
+                    'need_title' => 'What you need',
+                    'need' => [
+                        'A phone or a computer with a mic, and a quiet spot.',
+                        'No headphones: no lesson needs them.',
+                        'Ten to fifteen minutes a day. That\'s plenty at first.',
+                        'Your ears: you hear each line, then sing it back.',
+                    ],
+                    'faq_kick' => 'Before the concert',
+                    'faq_title' => 'Questions',
+                    'close_kick' => 'Da capo',
+                    'close_title' => 'Back to the start: one joined line.',
+                    'close' => 'Lesson 1 begins with five notes on "ah", then the first phrase of Caro mio ben. The last lesson brings that same phrase back with its words, so you hear how far you\'ve come.',
+                    // Each note's key, in the order the list numbers them: [label, address or null].
+                    'sources' => [
+                        'vaccai' => ['Vaccai, Practical Method of Italian Singing (Boston: G. D. Russell, 1878), the preface and Lessons I, VIII and XIII, Internet Archive', 'https://archive.org/details/imslp-pratico-de-canto-vaccai-nicola'],
+                        'unsw' => ['Wolfe, Garnier and Smith, Voice acoustics: an introduction, UNSW Music Acoustics', 'https://newt.phys.unsw.edu.au/jw/voice.html'],
+                        'caccini' => ['Caccini, Le nuove musiche (Florence, 1602), preface, Internet Archive; in English in Playford, An Introduction to the Skill of Musick (1683)', 'https://archive.org/details/lenvovemvsichedi00cacc'],
+                        'concone' => ['Concone, 50 Leçons de chant, Op. 9 (Leipzig: Peters, Edition Peters No. 980), title page and p. 2, Internet Archive', 'https://archive.org/details/50leconsdechantp00conc'],
+                        'britannica' => ['Encyclopaedia Britannica, 11th ed. (1911), "Metastasio", Wikisource', 'https://en.wikisource.org/wiki/1911_Encyclop%C3%A6dia_Britannica/Metastasio'],
+                        'uniarts' => ['Uniarts Helsinki, Vaccaj Practical Method, "About the life of Pietro Metastasio"', 'https://web.uniarts.fi/vaccaj/metastasio_en.html'],
+                        'burney' => ['Burney, The Present State of Music in France and Italy (London, 1771; 2nd ed. 1773), Internet Archive', 'https://archive.org/details/presentstatemus00burngoog'],
+                        'preston' => ['Caro mio ben, A Celebrated Song (London: John Preston, about 1785), title page, IMSLP', 'https://imslp.org/wiki/Caro_mio_ben_(Giordani,_Tommaso)'],
+                        'poriss' => ['Poriss, "Bellini alla Malibran", Musicology Now, American Musicological Society (2013)', 'https://musicologynow.org/bellini-alla-malibran/'],
+                        'baker' => ['Baker, A Biographical Dictionary of Musicians (New York: Schirmer, 1900), "Vaccai", Internet Archive', 'https://archive.org/details/cu31924022355618'],
+                        'kalbeck' => ['Kalbeck, Johannes Brahms, vol. II part 1 (Berlin, 1908), pp. 326-327, quoting Brahms\'s letter, Internet Archive', 'https://archive.org/details/bub_gb_qOwPAAAAYAAJ'],
+                        'grove' => ['Grove, A Dictionary of Music and Musicians, vol. 4 (1889), appendix, "Concone"', null],
+                        'parisotti' => ['Parisotti, Anthology of Italian Song (New York: Schirmer, 1894), p. 131, Internet Archive', 'https://archive.org/details/anthologyofitali00pari'],
+                    ],
+                ],
+                'faq' => [
+                    ['Do I need an opera voice?', 'No. Sing in your own voice, at an easy medium volume: classical is how you join the notes, not a voice you put on. If you sound like an impression of opera, you\'re working too hard.'],
+                    ['Do I need to speak Italian?', 'No. Italian is sung, never required to be understood. Each Italian line shows its meaning the first time, and the last lesson gives Caro mio ben\'s whole meaning before you sing it.'],
+                    ['Is it free?', 'Yes. Every course is free. Try the first lesson without an account; a free account opens the rest.'],
+                    ['What will I sing?', 'A vocalise from Concone\'s 50 lessons, Vaccai\'s first lessons and his Semplicetta tortorella, Brahms\'s lullaby, and Caro mio ben, all printed before 1927 and each line moved to your comfortable note.'],
+                    ['Does it teach vibrato?', 'No. If a gentle wave comes on a held note, let it; if not, that\'s fine, and a straight tone is just as right. The Vibrato course teaches it.'],
+                    ['Do I need headphones?', 'No. No lesson in the course needs them.'],
+                    ['How long should I sing each day?', 'Ten to fifteen minutes a day is plenty at first. If your throat works hard, sing softer and lower. Stop at a tickle, hoarseness, tightness or a sore throat: rest and come back tomorrow.'],
                 ],
             ],
             // Blues singing (the courses lead, docs/courses/blues-singing.md): the blues in its own form, its history in
@@ -11558,6 +11968,56 @@ return [
                     ['Shorty George Blues', 'Words by George W. Thomas and Hociel Thomas, music by George W. Thomas (Chicago: Geo. W. Thomas Music Co., 1924); public domain'],
                     ['The Fives', 'Words by George W. Thomas, music by Hersal Thomas and George W. Thomas (Chicago: Geo. W. Thomas and Co., 1922); public domain'],
                     ['Muscle Shoals Blues', 'Words and music by George W. Thomas (Chicago: Geo. W. Thomas and Co., 1921); public domain'],
+                ],
+                // Its own page (site/courses/blues-singing, Hillel's design of 2026-11-18): 1920s Chicago sheet music, the
+                // three-line verse and the blue note. The cover is ours, in the period's style (no period cover art is
+                // shown); its lines are Shorty George Blues' first verse as the template has them. The chart is that
+                // song's twelve bars and chords as printed in 1924.
+                'love' => [
+                    'h1' => ['Sing the blues,', 'in its own form.'],
+                    'cover' => [
+                        'alt' => 'Our own panel in the style of a 1920s sheet-music cover: Shorty George Blues, Chicago, 1924, with the three lines of its first verse.',
+                        'place' => 'Chicago',
+                        'title' => 'Shorty George Blues',
+                        'lines' => [
+                            'I wrote a letter and I mailed it right in the air',
+                            'Oh I wrote a letter and mailed it in the air',
+                            'You can tell by that I\'ve got a man in the world somewhere',
+                        ],
+                        'words' => 'Words by George W. Thomas and Hociel Thomas',
+                        'music' => 'Music by George W. Thomas · Geo. W. Thomas Music Co.',
+                        'note' => 'Drawn by us in the style of the period, not the 1924 cover.',
+                    ],
+                    'learn_title' => ['Say it. Say it again.', 'Answer it.'],
+                    'learn_note' => 'Three lines over twelve bars, as Shorty George Blues has them. Unit 2 shows you a blues that doesn\'t.',
+                    'chart' => [
+                        'alt' => 'Shorty George Blues\' twelve bars, three lines of four',
+                        'rows' => ['Say it', 'Say it again', 'Answer it'],
+                        'bar' => 'Bar :n: :chords, :part',
+                        'sung' => 'Your line',
+                        'turn' => 'The band\'s turn',
+                        'note' => 'Shorty George Blues as printed in 1924: its chords as numbers, I, IV and V, and two in a bar where the chord changes inside it.',
+                    ],
+                    'story' => [
+                        ['Before', 'Sung, not printed: work songs, field hollers, spirituals and ballads'],
+                        ['1908', 'Blues sheet music begins'],
+                        ['1912', 'The first blues songs are printed'],
+                        ['1920s', 'Black women singers bring it to records'],
+                        ['1924', 'Shorty George Blues is printed in Chicago: the tune you end on'],
+                    ],
+                    'said_em' => 'out of sadness.',
+                    'unit_songs' => ['Shorty George Blues', 'Muscle Shoals Blues', 'The Fives', 'Shorty George Blues'],
+                    'take' => [
+                        'label' => 'A sample take',
+                        'not' => 'Made up to show the count, not a real singer\'s',
+                        'alt' => 'A sample take, three lines of eight notes: 21 of 24 notes on pitch, 3 missed.',
+                        'count' => ':hit of :all',
+                        'unit' => 'notes on pitch',
+                        'hit' => 'On pitch',
+                        'miss' => 'Missed',
+                    ],
+                    'safety_head' => 'Tell it at a speaking volume, in your own clear voice.',
+                    'safety_points' => ['Never forced or pressed down to sound deeper.', 'Stop if anything tightens or hurts.'],
                 ],
             ],
             // Whistling (the courses lead, docs/courses/whistling.md): what's scored said honestly; no "drone" or "scale"
@@ -11631,6 +12091,36 @@ return [
                     'Keep every sound quiet to medium and easy, never forced, and stop if anything tightens, tickles or hurts.',
                     'Can\'t trill yet? A hum or an "oo" does the same job here.',
                 ],
+                // The designed page (site/courses/humming-and-lip-trills, Hillel's design of 2026-11-18): its own words.
+                // A word marked "[1 bubble]" takes part 1's colour (App\Support\Site\HummingRibbons::marked).
+                'hum' => [
+                    'headline' => 'Wake your voice up gently: [1 bubble], [3 hum], then [4 sing.]',
+                    'ribbon' => [
+                        'kick' => 'Follow the ribbon',
+                        'note' => 'Each shape from a lesson',
+                        'play' => 'Hear it',
+                        'stop' => 'Stop',
+                        'motion' => 'Pause the moving line',
+                        'sounds' => [['brrr', 'lip trill'], ['nggg', 'siren'], ['mmmm', 'hum'], ['ahh', 'into song']],
+                        'alt' => 'The course\'s four sounds on one ribbon: a lip trill riding a roller coaster up and down, an "ng" siren up and back, a held, buzzing hum, and the hum opening into "ah".',
+                    ],
+                    'units_h' => 'Four sounds, one ribbon: each unit opens the voice a little wider.',
+                    'words' => ['bocca chiusa', 'ngā', 'm → ah'],
+                    'take' => [
+                        'kick' => 'Sample',
+                        'title' => 'How a take is marked',
+                        'stop' => 'stop',
+                        'result' => ':hit of :all notes on pitch',
+                        'stops' => 'One stop',
+                        'legend' => ['On pitch', 'Off pitch', 'A stop'],
+                        'alt' => 'A sample take, not a real singer\'s: the ribbon from Siren loops with the sung line along it, 21 of 24 notes on pitch, three just under it, and one stop where the sound dropped away.',
+                    ],
+                    'scale' => ['ok' => 'Quiet to medium, and easy', 'no' => 'Never forced'],
+                    'grace' => [
+                        'parts' => ['Soprano', 'Alto', 'Tenor', 'Bass'],
+                        'caption' => 'Amazing Grace\'s first line, its four parts as the beginner course sings them.',
+                    ],
+                ],
             ],
             'live-looping' => [
                 'group' => 'styles',
@@ -11651,6 +12141,39 @@ return [
                 'scoring' => ['game' => 'Up to three stars for the notes on pitch and on the beat, and XP.', 'serious' => 'The same take says it plainly, like "21 of 24 notes on pitch" or "93% on pitch and time", with no stars or XP.'],
                 'safety' => ['Easy volume, in your middle notes, with the bass light.', 'Stop if anything tightens or hurts.'],
                 'songs' => [['Row, Row, Row Your Boat', 'Traditional, public domain'], ['Frère Jacques', 'Traditional, 18th century, public domain'], ['Drunken Sailor', 'Sea shanty, traditional, public domain'], ['Every loop and part', 'Written for the course']],
+                // Its own page (site/courses/live-looping, Hillel's design, 2026-11-18): a song built from tracks on
+                // repeat, one colour per track. The headline's last words each take a track's colour.
+                'll' => [
+                    'title' => ['A whole song from your own voice,', 'a', 'layer', 'at a', 'time.'],
+                    'eyebrow' => 'Course · :units layers · :lessons lessons',
+                    'rings' => [
+                        'play' => 'Play the loop',
+                        'stop' => 'Stop the loop',
+                        'tracks' => ['bass' => 'Bass', 'pad' => 'Pad', 'tune' => 'Tune', 'round' => 'Round'],
+                        'bars' => '8 bars · on repeat',
+                        'alt' => 'Four rings, one for each track of a loop, outside in: the bass, the pad, the tune, and the tune again two bars late. Each note is an arc round its ring, and a playhead sweeps round all four.',
+                        'source' => 'The course\'s own Are You Sleeping (Frère Jacques), from unit 3: the "ding, dang, dong" bass, a held "oo" pad, the tune, then the tune again two bars late, a round with yourself. Press play and each track joins in turn.',
+                    ],
+                    'learn_kick' => 'What you\'ll learn · one layer per unit',
+                    'learn_titles' => ['The loop', 'The stack', 'The tune', 'Your song'],
+                    'units_h' => 'Each unit adds a track.',
+                    'track' => 'Track :n',
+                    'number' => ':unit.:lesson',
+                    'tagged' => ':number · :tag',
+                    'all_tracks' => 'All tracks',
+                    'hears_h' => 'Pitch and time, said plainly.',
+                    'hears' => [
+                        'Your notes on pitch, layer by layer, as you sing over your own loops, and in most lessons whether each note lands on the beat, so the loop lines up.',
+                        'Headphones on for every lesson: through a speaker, the loops rest while you sing. For now the course is in the web app only.',
+                    ],
+                    'sample' => [
+                        'kick' => 'A sample take',
+                        'note' => 'Sample numbers, to show how a take is said. Not a singer\'s score.',
+                        'hit' => ':hit of :n notes on pitch',
+                        'time' => ':pct on pitch and time',
+                        'dots' => 'A sample take of 24 notes, six on each track: 21 lit on pitch, 3 missed.',
+                    ],
+                ],
             ],
             'improvising-harmony' => [
                 'group' => 'harmony',
@@ -11672,7 +12195,6 @@ return [
                 'hero_title' => 'Make up a part.',
                 'hero_lead' => 'Hear a tune and sing a second part to it on the spot, above or below, without copying it. Every harmony note starts lit, then the lights fade, until you\'re making it up by ear.',
                 'hero_facts' => ['2 to 4 minutes each', 'About 55 minutes in all', 'Best with headphones'],
-                'hero_legend' => ['The tune', 'Your part, lit', 'Fading', 'By ear'],
                 'see_lessons' => 'See the lessons',
                 'titles' => [
                     'outcomes' => 'By the end, you can',
@@ -11717,7 +12239,7 @@ return [
                     'lead' => 'You need the tune playing while you sing: a recording of yourself works.',
                     'steps' => [
                         'Record yourself singing the first line of Michael, Row the Boat Ashore.',
-                        'Play it back, and on the long notes, "row" and "shore", hum a little higher than the tune until it sounds sweet with it: about a third up.',
+                        'Play it back, and on the long notes, "row" and "lu-", hum a little higher than the tune until it sounds sweet with it: a third or a fourth up.',
                         'If you find yourself on the tune\'s own note, hold yours and listen: harmony sounds like two notes at once.',
                         'Lost? Hold your note until it rubs, then step.',
                     ],
@@ -11726,7 +12248,7 @@ return [
                 'facts' => [
                     ['Medieval English singers called two voices moving mostly in thirds "gymel", from the Latin for twin.', 'Britannica, Gymel', 'https://www.britannica.com/art/gymel'],
                     ['In shape-note singing from The Sacred Harp (1844), the tune is in the tenor, with parts sung above and below it.', 'New Georgia Encyclopedia, Sacred Harp', 'https://www.georgiaencyclopedia.org/articles/arts-culture/sacred-harp/'],
-                    ['Bluegrass is named after Bill Monroe\'s Blue Grass Boys, and Monroe often sang the high tenor above the lead.', 'Wikipedia, Bill Monroe', 'https://en.wikipedia.org/wiki/Bill_Monroe'],
+                    ['Bluegrass is named after Bill Monroe\'s Blue Grass Boys, and Monroe often sang the high tenor above the lead. In October 1939 he won a regular spot on the Grand Ole Opry.', 'Wikipedia, Bill Monroe', 'https://en.wikipedia.org/wiki/Bill_Monroe'],
                 ],
                 'who' => [
                     'Singers who can learn a written part but freeze when asked to make one up.',
@@ -11748,25 +12270,52 @@ return [
                 'related' => ['ear-training', 'counterpoint', 'barbershop'],
                 // The guides that go with this course (SEO pass): listed with the related courses.
                 'guides' => ['hold-your-part'],
-                // The featured demo (js/public/improvising-harmony.js): lesson 1's A part above, no mic.
+                // Hillel's "tunebook" design (2026-11-18, ~/Code/course-designs/improvising-harmony): its own words.
+                'ih' => [
+                    // A heading's *starred* words are set in the italic serif (ImprovisingHarmonyPage::em).
+                    'headline' => 'Make up a *part.*',
+                    'solfa' => ['do' => 'do', 're' => 're', 'mi' => 'mi', 'fa' => 'fa', 'so' => 'so', 'la' => 'la', 'ti' => 'ti'],
+                    'marks' => ['fa', 'sol', 'la', 'mi'],
+                    'player' => [
+                        'kick' => 'Lesson 1 · A part above',
+                        'song' => 'Michael, Row the Boat Ashore · Traditional',
+                        'both' => 'Hear them together',
+                        'note' => 'No mic here: nothing is heard or recorded. Headphones help. Over most notes the lit part is a third up; over so, a fourth, because ti would rub.',
+                        'alt' => 'Michael, Row the Boat Ashore\'s first line on eight rows from low do to high do, each row with its shape-note head: the tune below, and lesson 1\'s part above it lit, mostly a third up and a fourth over so.',
+                    ],
+                    'shapes_note' => 'The four shapes are the old shape-note heads: fa, sol, la, mi. You\'ll see them in the lane beside each row.',
+                    'rule_kick' => 'The one rule',
+                    'rule_h' => 'The next chord tone *up*',
+                    'third_tag' => 'a third',
+                    'fourth_tag' => 'a fourth',
+                    'index_h' => 'From a part above to a *trio of you*',
+                    'index_note' => 'Index of lessons · :units units, :lessons lessons',
+                    'try_h' => 'Try this now: *a part above*',
+                    'strip_alt' => 'Lesson 1\'s second step: the tune moves while the part above holds on its two long notes, "row" and "lu-".',
+                    'hears_h' => 'What the app *listens* for',
+                    'sample' => [
+                        'kick' => 'A sample take',
+                        'what' => 'Lights at the changes',
+                        'score' => '76%',
+                        'on_pitch' => 'on pitch',
+                        'pulled' => 'pulled onto the tune',
+                        'key' => ['On the part', 'On the tune', 'The tune'],
+                        'note' => 'An example of what a take shows, not a real singer\'s.',
+                    ],
+                    'facts_h' => 'People have been making up parts for *centuries.*',
+                    'eras' => ['Middle Ages', '1844', '1939'],
+                    'join_h' => 'Find your *part*',
+                ],
+                // The player's words (js/public/improvising-harmony.js): lesson 1's A part above, no mic.
                 'demo' => [
-                    'kick' => 'Now playing',
-                    'lesson' => 'Lesson 1, free',
-                    'title' => 'A part above',
-                    'lead' => 'Michael, Row the Boat Ashore over its chords. The lit notes are a part above it: two scale notes over the tune, a third, or one note higher where that clashes with the chord. Hear the tune, hear the two together, then sing the lit part yourself.',
                     'tune' => 'Hear the tune',
-                    'both' => 'Hear the part above',
                     'you' => 'Sing the part yourself',
                     'stop' => 'Stop',
-                    'key_tune' => 'The tune',
-                    'key_part' => 'The part above',
-                    'lyric' => ['Mi-', 'chael,', 'row', 'the', 'boat', 'a-', 'shore,', 'Hal-', 'le-', 'lu-', 'jah!'],
                     'ready' => 'Press play. Headphones help.',
                     'say_tune' => 'The tune alone, over its chords.',
                     'say_both' => 'The tune with the part above it.',
                     'say_you' => 'Your turn: sing the lit notes while the tune plays.',
                     'after' => 'In the course, the app checks each note of your part against the notes that fit.',
-                    'note' => 'No mic here: nothing is heard or recorded. In the course the lights fade, lesson by lesson, until the part is yours.',
                 ],
             ],
         ],

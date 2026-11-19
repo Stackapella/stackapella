@@ -6,9 +6,10 @@
 // "Hear three vowels" tours ee, ah and oo on C3 and then on C5, and "Hold this vowel" holds the one picked,
 // following the picks while it sounds. The consonant before the beat: a click on each of four beats and on
 // each a "tah", a short hiss of filtered noise for the t and a tone for the vowel, with the t on the click
-// (A) or 90 ms before it (B). No mic. The words are the view's.
+// (A) or 90 ms before it (B), and a line crossing the timeline with the sound, read from the audio clock each
+// frame (under reduced motion it steps from beat to beat instead of gliding). No mic. The words are the view's.
 
-import { audio, hz, voice } from './voices.js';
+import { audio, hz, reducedMotion, voice } from './voices.js';
 import { finish, label, play, rest, sounding, when } from './demo-player.js';
 
 const page = document.querySelector('[data-di]');
@@ -29,7 +30,8 @@ const deck = page?.querySelector('[data-di-demo]');
 const words = deck?.dataset ?? {};
 const noteNames = JSON.parse(words.notes ?? '{}');
 const say = deck?.querySelector('[data-di-say]');
-const vowelName = (v) => deck.querySelector(`[data-di-vowel-pick="${v}"]`)?.textContent.trim() ?? v;
+const vowelButton = (v) => deck.querySelector(`[data-di-vowel-pick="${v}"]`);
+const vowelName = (v) => vowelButton(v)?.querySelector('[data-name]')?.textContent.trim() ?? v;
 let picked = { vowel: 'ah', note: 'C3' };
 let held = null; // the sounding tone's nodes, while a vowel is held
 
@@ -51,7 +53,7 @@ function draw({ vowel, note }) {
     for (let f = f0; f <= 3000; f += f0) {
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         line.setAttribute('d', `M${X(f)} 190 V${Y(shape(f, vowel))}`);
-        line.setAttribute('class', 'cp-di-harm');
+        line.setAttribute('class', 'cp-dn-harm');
         lines.push(line);
     }
     deck.querySelector('[data-di-harmonics]').replaceChildren(...lines);
@@ -60,6 +62,7 @@ function draw({ vowel, note }) {
     deck.querySelector('[data-di-curve]').setAttribute('d', `${d}L600 190 L4 190 Z`);
     const [f1, f2] = VOWELS[vowel];
     deck.querySelector('[data-di-vowel]').textContent = vowelName(vowel);
+    deck.querySelector('[data-di-ipa]').textContent = vowelButton(vowel)?.dataset.ipa ?? '';
     deck.querySelector('[data-di-note]').textContent = noteNames[note] ?? note;
     deck.querySelector('[data-di-formants]').textContent = fill(words.read, { f1: String(f1), f2: String(f2) });
     deck.querySelectorAll('[data-di-vowel-pick]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.diVowelPick === vowel)));
@@ -215,9 +218,32 @@ function hiss(c, out, at) {
     source.stop(at + T + 0.02);
 }
 
+// The line across the timeline: the timeline is LEAD seconds before the first beat to SPAN seconds after that.
+const LEAD = 0.3;
+const SPAN = 2.4;
+function sweep(lane, at, live) {
+    const track = beatDeck.querySelector(`[data-di-track="${lane}"]`);
+    const head = track?.querySelector('[data-di-ph]');
+    if (!head) return;
+    const place = (t) => head.style.setProperty('--p', String(Math.min(Math.max((t - at + LEAD) / SPAN, 0), 1)));
+    track.toggleAttribute('data-playing', true);
+    if (reducedMotion()) {
+        // Still: the line jumps to each beat as it sounds, on the audio clock.
+        place(at - LEAD);
+        for (let i = 0; i < 4; i += 1) when(at + i * BEAT).then(() => live() && place(at + i * BEAT));
+        return;
+    }
+    const frame = () => {
+        if (!live()) return;
+        place(audio().currentTime);
+        requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+}
+
 function beats(lane, { live }) {
     const c = audio();
-    const at = c.currentTime + 0.15;
+    const at = c.currentTime + 0.15 + LEAD;
     const { out, handle } = bus();
     const voices = [handle];
     for (let i = 0; i < 4; i += 1) {
@@ -238,10 +264,12 @@ function beats(lane, { live }) {
             }
         });
     }
+    sweep(lane, at, live);
     return {
         voices,
-        length: at - c.currentTime + 4 * BEAT + 0.2,
+        length: at - c.currentTime + SPAN - LEAD,
         done: () => {
+            beatDeck.querySelectorAll('[data-di-track]').forEach((t) => t.removeAttribute('data-playing'));
             light(beatDeck, 'data-di-tah', '');
             light(beatDeck, 'data-di-click', '');
             light(beatDeck, 'data-di-lane', '');

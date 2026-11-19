@@ -31,6 +31,49 @@ final class ClassicalCoursePageTest extends TestCase
     public function test_a_missing_course_file_shows_no_score(): void
     {
         $this->assertSame(['notes' => [], 'measures' => ''], ClassicalCoursePage::firstPhrase('/nowhere/course.json'));
+        $this->assertSame(['tempo' => 0, 'rounds' => []], ClassicalCoursePage::firstRounds('/nowhere/course.json'));
+    }
+
+    public function test_the_try_is_lesson_1s_own_first_round_one_take_joined_and_one_with_gaps(): void
+    {
+        $try = ClassicalCoursePage::firstRounds();
+
+        $this->assertSame(72, $try['tempo']);
+        $this->assertCount(3, $try['rounds']);
+        // The answer's take has no gap between its notes; the other one has.
+        $gapless = static function (array $notes): bool {
+            foreach ($notes as $k => $note) {
+                if ($k > 0 && abs($notes[$k - 1][0] + $notes[$k - 1][1] - $note[0]) > 1e-6) {
+                    return false;
+                }
+            }
+
+            return true;
+        };
+        foreach ($try['rounds'] as $round) {
+            $this->assertSame('Which one is joined?', $round['prompt']);
+            $this->assertCount(2, $round['clips']);
+            $this->assertTrue($gapless($round['clips'][$round['answer']]));
+            $this->assertFalse($gapless($round['clips'][1 - $round['answer']]));
+            $this->assertNotSame('', $round['why']);
+        }
+
+        app()->setLocale('es');
+        $this->assertSame('¿Cuál va ligada?', ClassicalCoursePage::firstRounds()['rounds'][0]['prompt']);
+    }
+
+    public function test_every_note_on_the_page_points_at_a_source_it_lists_and_every_source_is_cited(): void
+    {
+        $love = (array) Lang::get('site.courses.pages.classical-singing-basics.love');
+        $sources = (array) $love['sources'];
+        $cited = [];
+        foreach ([...(array) $love['practice'], ...(array) $love['notes']] as $entry) {
+            foreach ((array) ($entry[3] ?? []) as $key) {
+                $this->assertArrayHasKey($key, $sources, "A note cites \"{$key}\", which the sources don't list.");
+                $cited[$key] = true;
+            }
+        }
+        $this->assertSame([], array_values(array_diff(array_keys($sources), array_keys($cited))));
     }
 
     public function test_the_programme_keeps_every_credit_and_says_a_shared_status_once(): void

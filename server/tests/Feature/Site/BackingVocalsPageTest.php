@@ -60,6 +60,43 @@ final class BackingVocalsPageTest extends TestCase
         }
     }
 
+    public function test_lesson_ones_pad_keeps_the_shared_note_and_steps_to_the_nearest(): void
+    {
+        $first = BackingVocalsLanes::firstPad();
+
+        $this->assertSame(24, $first['span']);
+        // The lesson's pad under Amazing Grace's first two lines: do, do again after a breath, then ti.
+        $this->assertSame([[1.0, 10.0, 'do'], [13.0, 6.0, 'do'], [19.0, 4.0, 'ti']], array_map(static fn (array $n): array => [$n['at'], $n['len'], $n['word']], $first['pad']));
+        $this->assertSame(['A', 'maz'], [$first['lead'][0]['word'], $first['lead'][1]['word']]);
+        // Its chords, a run of one merged, each named by its notes, the pad's note marked where the chord holds it.
+        $this->assertSame([
+            [['do', true], ['mi', false], ['so', false]],
+            [['fa', false], ['la', false], ['do', true]],
+            [['do', true], ['mi', false], ['so', false]],
+            [['so', false], ['ti', true], ['re', false]],
+        ], array_map(static fn (array $c): array => array_map(static fn (array $t): array => [$t['name'], $t['shared']], $c['tones']), $first['chords']));
+        $this->assertEqualsWithDelta(100.0, array_sum(array_column($first['chords'], 'width')), 0.01);
+    }
+
+    public function test_every_source_is_numbered_and_cited_and_the_new_sections_are_there(): void
+    {
+        $html = (string) $this->get('/courses/backing-vocals')->assertOk()->getContent();
+        $sources = (array) __('site.courses.pages.backing-vocals.bv.sources');
+
+        preg_match_all('/href="#src-(\d+)"/', $html, $cited);
+        $numbers = array_values(array_unique(array_map('intval', $cited[1])));
+        sort($numbers);
+        $this->assertSame(range(1, count($sources)), $numbers);
+        $this->assertStringContainsString('id="src-'.count($sources).'"', $html);
+        foreach ($sources as $source) {
+            $this->assertStringContainsString('href="'.e($source[1]).'"', $html);
+        }
+        // The archive's dated clips, the questions and the close.
+        foreach (['1867', 'By 1707', '1966', 'Why no 1950s doo-wop records?', 'Step in behind the lead.', 'Hold your first pad.'] as $words) {
+            $this->assertStringContainsString(e($words), $html);
+        }
+    }
+
     public function test_the_page_draws_the_lanes_and_marks_the_result_a_sample(): void
     {
         $html = (string) $this->get('/courses/backing-vocals')->assertOk()->getContent();
