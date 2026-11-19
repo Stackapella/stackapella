@@ -43,7 +43,7 @@
     @if ($line !== null)
         {{-- The score in words (its text alternative): what it is, and each part's range. --}}
         @php($scoreKind = __('pages.song.score.kind.'.($score['voicing'] ?? 'parts'), ['count' => count($line['parts'])]))
-        @php($scoreAlt = __('pages.song.score.alt', ['title' => $song['title'], 'kind' => $scoreKind, 'time' => $score['time'], 'bars' => __('pages.song.score.alt_bars', ['count' => $score['bars'] ?? 0]), 'ranges' => collect($cards)->map(fn (array $card): string => __('pages.song.score.alt_part', ['part' => $card['name'], 'low' => \App\Support\Pages\Carols::signs($card['low']), 'high' => \App\Support\Pages\Carols::signs($card['high'])]))->implode('; ')]))
+        @php($scoreAlt = \App\Support\Pages\SongScore::alt($song['title'], $score, $cards, count($line['parts'])))
         @php($byKey = collect($cards)->keyBy('key'))
         @php($line['parts'] = array_map(static fn (array $part): array => $byKey->has($part['key']) ? [...$part, 'line' => __('pages.song.tag.'.$tagOf($byKey->get($part['key']))), 'rangeLine' => $rangeOf($byKey->get($part['key']))] : $part, $line['parts']))
     @endif

@@ -215,6 +215,12 @@ export const OPERATIONS = {
     'admin.revenue.show': ['GET', '/api/admin/revenue'],
     'admin.corrections.list': ['GET', '/api/admin/corrections'],
     'admin.corrections.update': ['PATCH', '/api/admin/corrections/{id}'],
+    'songs.videos.list': ['GET', '/api/songs/{id}/videos'],
+    'admin.songVideos.list': ['GET', '/api/admin/song-videos'],
+    'admin.songVideos.search': ['GET', '/api/admin/song-videos/search'],
+    'admin.songVideos.save': ['POST', '/api/admin/song-videos'],
+    'admin.songVideos.approve': ['POST', '/api/admin/song-videos/{id}/approve'],
+    'admin.songVideos.delete': ['DELETE', '/api/admin/song-videos/{id}'],
     'admin.live.show': ['GET', '/api/admin/live'],
     'admin.pulse.show': ['GET', '/api/admin/pulse'],
     'admin.cohorts.show': ['GET', '/api/admin/cohorts'],
@@ -909,6 +915,15 @@ export const api = {
             list: ({ state, kind, cursor } = {}) => call('admin.corrections.list', { query: { state, kind, cursor } }),
             update: (id, { state, note = null }) => call('admin.corrections.update', { params: { id }, body: { state, note } }),
         },
+        // The YouTube sync tool (docs/youtube-sync-plan.md): a song's synced recordings, a YouTube search, saving a map,
+        // approving it, taking it away.
+        songVideos: {
+            list: ({ song } = {}) => call('admin.songVideos.list', { query: { song } }),
+            search: (q) => call('admin.songVideos.search', { query: { q } }),
+            save: (body) => call('admin.songVideos.save', { body }),
+            approve: (id) => call('admin.songVideos.approve', { params: { id } }),
+            remove: (id) => call('admin.songVideos.delete', { params: { id } }),
+        },
         // The live view (docs/realtime-dashboard-plan.md): anonymous per-minute counts held in cache, never stored.
         live: { show: ({ admins = false } = {}) => call('admin.live.show', { query: { admins: admins ? 1 : undefined } }) },
         pulse: { show: ({ admins = false } = {}) => call('admin.pulse.show', { query: { admins: admins ? 1 : undefined } }) },
@@ -1109,6 +1124,8 @@ export const api = {
         catalogue: () => call('templates.catalogue'),
         show: (id, { version } = {}) => call('templates.show', { params: { id }, query: { version } }),
         finishers: (id) => call('templates.finishers', { params: { id } }),
+        // A song's synced recordings on YouTube (docs/youtube-sync-plan.md): empty while youtube_sync is off for this person.
+        videos: (id) => call('songs.videos.list', { params: { id } }),
         mine: ({ cursor } = {}) => call('templates.mine', { query: { cursor } }),
         check: (template) => call('templates.check', { body: { template } }),
         save: (id, template) => call('templates.save', { params: { id }, body: template }),

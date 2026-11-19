@@ -1,12 +1,13 @@
 // The Musical theatre course page's demo (server/resources/views/site/courses/musical-theatre.blade.php),
 // made here with voices.js and only when pressed, one at a time through demo-player.js: Two notes,
 // fourteen syllables, after unit 2's Two notes, many words (course/plus/musical-theatre, mt-2-two).
-// The Major-General's first two lines, read from the Chappell vocal score (No. 13, p. 61): printed in
-// the treble clef, so sung, and played here, an octave lower. Each syllable lights as it sounds, on the
-// audio clock (when()). The tempo slider sets the syllables a second; smeared runs the notes into each
-// other on one line (voices.js line, gliding), crisp gives each its own short note with a small gap
-// (voice with a quick attack and release). Changing either while it plays starts it again. No mic:
-// nothing is heard or recorded. The words are the view's.
+// The Major-General's first fourteen syllables, the lesson's own notes and syllables, placed where the
+// Chappell vocal score has them (No. 13, p. 61) and sung, as a baritone sings that treble clef, an octave
+// lower: the view gives them as MIDI (App\Support\Site\MusicalTheatrePage::patter). Each syllable's lamp
+// lights as it sounds, on the audio clock (when()). The tempo slider sets the syllables a second;
+// smeared runs the notes into each other on one line (voices.js line, gliding), crisp gives each its own
+// short note with a small gap (voice with a quick attack and release). Changing either while it plays
+// starts it again. No mic: nothing is heard or recorded. The words are the view's.
 
 import { audio, hz, line, voice } from './voices.js';
 import { play, finish, sounding, when } from './demo-player.js';
@@ -15,8 +16,7 @@ const demo = document.querySelector('[data-mt-demo]');
 const words = demo?.dataset ?? {};
 const say = demo?.querySelector('[data-mt-say]');
 const marks = [...(demo?.querySelectorAll('[data-mt-note]') ?? [])];
-const WRITTEN = JSON.parse(words.notes ?? '[]'); // MIDI, as printed
-const OCTAVE = 12; // a baritone sings the treble clef an octave lower
+const NOTES = JSON.parse(words.notes ?? '[]'); // MIDI, as sung
 const LEVEL = 0.16;
 const CRISP = 0.55; // a crisp note's share of its syllable
 
@@ -33,7 +33,7 @@ function patter({ live }) {
     const off = (t) => t - c.currentTime;
     const step = 1 / rate();
     const crisp = demo.dataset.style === 'crisp';
-    const freqs = WRITTEN.map((m) => hz(m - OCTAVE));
+    const freqs = NOTES.map((m) => hz(m));
     const end = at + freqs.length * step;
     let voices;
     if (crisp) {
@@ -66,7 +66,10 @@ if (demo) {
         finish();
         play(big, patter);
     };
-    big.addEventListener('click', () => play(big, patter));
+    big.addEventListener('click', () => {
+        big.dataset.played = ''; // its breathing ring stops after the first press
+        play(big, patter);
+    });
 
     const out = demo.querySelector('[data-mt-rate-out]');
     slider.addEventListener('input', () => { out.textContent = words.rate.replace(':n', String(rate())); });
@@ -82,8 +85,8 @@ if (demo) {
     }
 }
 
-// A note's number opens the sources it points at; on a wide screen they, every unit's lessons and the
-// whole company are open from the start.
+// A note's number opens the sources it points at; on a wide screen they, the whole story, science,
+// backstage and company are open from the start.
 const sources = document.querySelector('[data-mt-sources]');
 if (sources) {
     if (matchMedia('(min-width: 900px)').matches) {

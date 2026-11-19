@@ -63,7 +63,7 @@
             </div>
         </section>
 
-        @include('site._songbook', ['songs' => $songs, 'heading' => __($words.'.songbook'), 'sub' => __($words.'.songbook_sub'), 'subPart' => __($words.'.songbook_part'), 'places' => null, 'chips' => $chips ?? null, 'note' => trans()->has($words.'.songbook_note') ? __($words.'.songbook_note') : null])
+        @include('site._songbook', ['songs' => $songs, 'heading' => __($words.'.songbook'), 'sub' => __($words.'.songbook_sub'), 'subPart' => __($words.'.songbook_part'), 'places' => null, 'chips' => $chips ?? null, 'note' => trans()->has($words.'.songbook_note') ? __($words.'.songbook_note') : null, 'tone' => $slug])
 
         {{-- Where the songs and their parts come from (Hillel's redesign: the hero's long intro moved here), its heading at
              left from 900 px. --}}

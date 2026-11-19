@@ -25,7 +25,7 @@ return [
         'es' => [
             'home',
             'courses.index', 'courses.page', 'courses.free', 'courses.lesson',
-            'songs.index', 'songs.carols', 'songs.collection', 'songs.page', 'songs.part',
+            'songs.index', 'songs.public-domain', 'songs.carols', 'songs.collection', 'songs.page', 'songs.part',
             // tools.embed before tools.page, as the English routes go: /tools/embed isn't a tool.
             'tools.index', 'tools.embed', 'tools.page', 'warmups.index', 'warmups.page',
             'guides.index', 'guides.page',

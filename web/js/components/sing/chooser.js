@@ -17,6 +17,7 @@ import { lazyComponent } from '../../game/modules.js';
 const PartSelect = lazyComponent('partSelect', 'PartSelect'); // game mode's only: loaded as it's first drawn (js/game/modules.js WITH_SING)
 import { effect } from '../../game/effects.js';
 import { renameScreen } from '../../screen-name.js';
+import { navigate } from '../../router.js';
 
 const WAYS = ['parts', 'whole', 'studio'];
 const LABELS = { parts: tk('sing.chooser.parts'), whole: tk('sing.chooser.whole'), studio: tk('sing.chooser.studio') };
@@ -36,6 +37,7 @@ export const Chooser = {
         length: { type: Number, default: 0 }, // seconds
         auto: Boolean, // opened by itself (not to choose again): Use this every time may go straight in
         noVoice: { type: Array, default: () => [] }, // slot ids whose part no one has sung yet (be-the-voice.js)
+        recordingsLink: { type: String, default: null }, // the song's real recordings on YouTube, when it has any (views/recordings.js)
     },
     emits: ['choose', 'range', 'back', 'studio'],
     data() {
@@ -107,6 +109,8 @@ export const Chooser = {
                         <Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" data-way-go />
                     </button>
                 </details>
+                <!-- Real recordings (docs/youtube-sync-plan.md): a quiet link, only for a song that has some -->
+                <a v-if="recordingsLink" :href="recordingsLink" class="link-quiet inline-flex min-h-11 items-center gap-1.5 self-start text-sm" data-recordings-link @click.prevent="navigate(recordingsLink)"><Icon name="play" :size="14" /> {{ t('recordings.chooserLink') }}</a>
                 <p v-if="installHint" class="rounded-2xl border border-line p-4 text-sm text-muted">{{ t('sing.chooser.install') }}</p>
                 <label class="check-row"><input v-model="always" type="checkbox" class="checkbox" /> {{ t('sing.chooser.always') }}</label>
             </template>
@@ -180,6 +184,7 @@ export const Chooser = {
         this.$refs.heading?.focus();
     },
     methods: {
+        navigate,
         /** A way's button: that way at once (the studio, or your part first when it isn't chosen yet). */
         choose(way) {
             prefs.singLast = way;

@@ -55,7 +55,7 @@ def journey(f):
         if lesson == "mt-1-speak":
             picture(f, "mt-lesson-1")
             f.click_t("course.continue")
-            f.wait_text("Speak the line in rhythm")
+            f.wait("document.querySelector('canvas')", what="lesson 1's try, its singing lane")  # its words are the course's own and change; the lane is the step
             f.no_sideways("lesson 1's try")
             picture(f, "mt-lesson-1-try")
         if lesson == "mt-1-stress":

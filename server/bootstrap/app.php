@@ -27,6 +27,7 @@ use App\Http\Controllers\Public\IntegrationPagesController;
 use App\Http\Controllers\Public\LessonPagesController;
 use App\Http\Controllers\Public\OEmbedController;
 use App\Http\Controllers\Public\OpenSourcePagesController;
+use App\Http\Controllers\Public\PublicDomainPageController;
 use App\Http\Controllers\Public\ReferencePagesController;
 use App\Http\Controllers\Public\SingTogetherPagesController;
 use App\Http\Controllers\Public\SiteCssController;
@@ -129,6 +130,8 @@ return Application::configure(basePath: dirname(__DIR__))
             // The day's part (TodayController): a fixed link to something new each day.
             Route::get('/today', TodayController::class)->middleware(['nexus', 'throttle:public-pages'])->name('today.page');
             Route::get('/songs', [SongPagesController::class, 'index'])->middleware(['nexus', 'throttle:public-pages'])->name('songs.index');
+            // The songs in the public domain, and the songs that will be (App\Support\Pages\PublicDomain), before a song's own address.
+            Route::get('/songs/public-domain', PublicDomainPageController::class)->middleware(['nexus', 'throttle:public-pages'])->name('songs.public-domain');
             // The Christmas carols page (App\Support\Pages\Carols), before a song's own address.
             Route::get('/songs/christmas-carols', CarolsPageController::class)->middleware(['nexus', 'throttle:public-pages'])->name('songs.carols');
             // The song collections (App\Support\Pages\SongCollections: hymns), before a song's own address too.

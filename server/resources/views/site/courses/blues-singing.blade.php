@@ -8,7 +8,11 @@
      what the app listens for beside a sample take labelled as one, singing safely and the songs with their years,
      the beginner course (site._course-today, with its real app screen) and the group's other courses. No drawn
      people. Game skin: the arcade's night, square frames with hard shadows. Words: lang/en/site.php
-     courses.pages.blues-singing (love). --}}
+     courses.pages.blues-singing (love).
+     The length pass (2026-11-19) added, in the same sheet-music look: the demo under the hero, Lean, then land
+     (js/public/blues-singing.js: lesson 1's line as printed or without its blue notes, on voices.js, only when pressed),
+     how a blues works in plain words, the archive (the course's lesson facts by year), lesson 1's steps from the course,
+     who it's for and what you need beside safety and the songs, the questions, a close, and the numbered Sources. --}}
 @php($love = $page['love'])
 @php($tryUrl = $open ? $courseStart : $links['start'])
 @php($tryLabel = $open ? __('pages.site.course_try') : __('pages.site.course_start'))
@@ -21,6 +25,10 @@
 @php($cover = $blues::title((string) $love['cover']['title']))
 @php($heard = $blues::measures((string) ($page['measures'] ?? '')))
 @php($said = $blues::ending((string) ($page['history']['body'][1] ?? ''), (string) $love['said_em']))
+@php($sources = $love['sources'])
+@php($demo = $love['demo'])
+@php($roll = $blues::demo())
+@php($firstSteps = $blues::firstLesson())
 <main class="cp cp-bl">
     <section class="cp-hero cp-bl-hero" aria-labelledby="page-h">
         <div class="s-wrap cp-hero-grid cp-bl-hero-grid">
@@ -59,6 +67,56 @@
                 </div>
                 <figcaption class="cp-bl-cover-note">{{ $love['cover']['note'] }}</figcaption>
             </figure>
+        </div>
+    </section>
+
+    <section class="s-wrap cp-dk-demosec cp-bl-demosec" aria-labelledby="demo-h">
+        <div class="cp-dk-demo cp-bl-demo" data-bl-demo data-version="printed"
+            data-line="{{ json_encode($roll['line']) }}" data-words="{{ json_encode(array_column($roll['notes'], 'word')) }}"
+            data-blue="{{ $blues::BLUE }}" data-bright="{{ $blues::BRIGHT }}" data-beats="{{ $blues::BEATS }}" data-turn="{{ $blues::TURN }}"
+            data-printed="{{ $demo['printed'] }}" data-plain="{{ $demo['plain'] }}" data-after="{{ $demo['after'] }}">
+            <p class="cp-dk-demo-bar"><span class="cp-dk-live"><span class="cp-dk-rec" aria-hidden="true"></span>{{ $demo['kick'] }}</span><span>{{ $demo['lesson'] }}</span></p>
+            <div class="cp-dk-demo-in">
+                <div>
+                    <h2 id="demo-h" class="cp-dk-demo-h">{{ $demo['title'] }}</h2>
+                    <p class="cp-dk-demo-lead">{{ $demo['lead'] }}</p>
+                    <p class="cp-dk-btns">
+                        <button type="button" class="cp-dk-play" data-bl-play="printed" data-play="{{ $demo['play_printed'] }}" data-stop="{{ $demo['stop'] }}" aria-pressed="false"><span class="cp-dk-play-icon" aria-hidden="true"></span><span data-label>{{ $demo['play_printed'] }}</span></button>
+                        <button type="button" class="cp-dk-play cp-dk-play-b" data-bl-play="plain" data-play="{{ $demo['play_plain'] }}" data-stop="{{ $demo['stop'] }}" aria-pressed="false"><span class="cp-dk-play-icon" aria-hidden="true"></span><span data-label>{{ $demo['play_plain'] }}</span></button>
+                    </p>
+                    <p class="cp-dk-say" role="status" data-bl-say>{{ $demo['ready'] }}</p>
+                </div>
+                <div>
+                    <div class="cp-dk-roll cp-bl-roll">
+                        <svg viewBox="0 0 600 170" role="img" aria-label="{{ $demo['roll'] }}">
+                            @foreach ($roll['guides'] as $guide)
+                                <path d="M16 {{ $guide }} H584" class="cp-dk-staff" />
+                            @endforeach
+                            <rect x="{{ $roll['turn']['x'] }}" y="20" width="{{ $roll['turn']['w'] }}" height="140" rx="6" class="cp-bl-roll-turn" data-bl-turn />
+                            @foreach ($roll['notes'] as $note)
+                                @if ($note['blue'])
+                                    <rect x="{{ $note['x'] }}" y="{{ $note['y'] }}" width="{{ $note['w'] }}" height="12" rx="6" class="cp-dk-bar cp-bl-roll-blue" data-bl-note="{{ $loop->index }}" data-bl-v="printed" />
+                                    <rect x="{{ $note['x'] }}" y="{{ $note['plain'] }}" width="{{ $note['w'] }}" height="12" rx="6" class="cp-dk-bar cp-bl-roll-plain" data-bl-note="{{ $loop->index }}" data-bl-v="plain" />
+                                @else
+                                    <rect x="{{ $note['x'] }}" y="{{ $note['y'] }}" width="{{ $note['w'] }}" height="12" rx="6" class="cp-dk-bar" data-bl-note="{{ $loop->index }}" />
+                                @endif
+                            @endforeach
+                        </svg>
+                        <p class="cp-dk-words cp-bl-roll-words" aria-hidden="true">
+                            @foreach ($roll['words'] as $word)
+                                <span data-bl-word="{{ $loop->index }}" translate="no">{{ $word }}</span>
+                            @endforeach
+                            <span class="cp-bl-roll-turnword" data-bl-turnword>{{ $demo['turn'] }}</span>
+                        </p>
+                    </div>
+                    <p class="cp-dk-key">
+                        <span><i class="cp-bl-dkey-blue" aria-hidden="true"></i>{{ $demo['key_blue'] }}</span>
+                        <span><i class="cp-bl-dkey-plain" aria-hidden="true"></i>{{ $demo['key_plain'] }}</span>
+                        <span><i class="cp-bl-dkey-turn" aria-hidden="true"></i>{{ $demo['turn'] }}</span>
+                    </p>
+                    <p class="cp-dk-note">{{ $demo['note'] }}</p>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -104,6 +162,20 @@
         </div>
     </section>
 
+    <section class="s-wrap cp-bl-works" aria-labelledby="works-h">
+        <p class="cp-bl-kick">{{ $love['works']['kick'] }}</p>
+        <h2 id="works-h" class="cp-bl-h2">{{ $love['works']['title'][0] }} <em>{{ $love['works']['title'][1] }}</em></h2>
+        <ol class="cp-bl-cards">
+            @foreach ((array) $love['works']['cards'] as [$title, $text, $cites])
+                <li @class(['cp-bl-card', 'cp-bl-card-blue' => $loop->index === 1])>
+                    <p class="cp-bl-card-n" aria-hidden="true">{{ $blues::LETTERS[$loop->index] ?? '' }}</p>
+                    <h3>{{ $title }}</h3>
+                    <p>{{ $text }}@include('site.courses._cites', ['keys' => $cites])</p>
+                </li>
+            @endforeach
+        </ol>
+    </section>
+
     @if (is_array($page['history'] ?? null))
         <section class="s-wrap cp-bl-story" aria-labelledby="history-h">
             <h2 id="history-h" class="cp-bl-kick">{{ $page['history']['title'] }}</h2>
@@ -121,6 +193,27 @@
             @endif
         </section>
     @endif
+
+    <section class="cp-bl-band cp-bl-archive" aria-labelledby="archive-h">
+        <div class="s-wrap">
+            <div class="cp-bl-form-head">
+                <div>
+                    <p class="cp-bl-kick">{{ $love['archive']['kick'] }}</p>
+                    <h2 id="archive-h" class="cp-bl-h2">{{ $love['archive']['title'][0] }} <em>{{ $love['archive']['title'][1] }}</em></h2>
+                </div>
+                <p class="cp-bl-aside">{{ $love['archive']['lead'] }}</p>
+            </div>
+            <ol class="cp-bl-slips">
+                @foreach ((array) $love['archive']['rows'] as [$year, $where, $title, $text, $cites])
+                    <li class="cp-bl-slip">
+                        <p class="cp-bl-slip-top"><span class="cp-bl-slip-year">{{ $year }}</span><span class="cp-bl-slip-where">{{ $where }}</span></p>
+                        <h3>{{ $title }}</h3>
+                        <p>{{ $text }}@include('site.courses._cites', ['keys' => $cites])</p>
+                    </li>
+                @endforeach
+            </ol>
+        </div>
+    </section>
 
     @if ($outline !== null)
         <section class="s-wrap cp-bl-unitsec" aria-labelledby="units-h">
@@ -141,6 +234,33 @@
                     </li>
                 @endforeach
             </ol>
+        </section>
+    @endif
+
+    @if ($firstSteps !== [])
+        <section class="s-wrap cp-bl-first" aria-labelledby="first-h">
+            <div class="cp-bl-form-head">
+                <div>
+                    <p class="cp-bl-kick">{{ $love['first']['kick'] }}</p>
+                    <h2 id="first-h" class="cp-bl-h2">{{ $love['first']['title'][0] }} <em>{{ $love['first']['title'][1] }}</em></h2>
+                </div>
+                <p class="cp-bl-aside">{{ $love['first']['lead'] }}</p>
+            </div>
+            <ol class="cp-bl-steps">
+                @foreach ($firstSteps as $step)
+                    <li @class(['cp-bl-step', 'cp-bl-step-last' => $loop->last])>
+                        <p class="cp-bl-step-top"><span class="cp-bl-step-n" aria-hidden="true">{{ $loop->iteration }}</span><span class="cp-bl-step-kind">{{ $love['first']['kinds'][$step['kind']] ?? '' }}</span></p>
+                        <p class="cp-bl-step-text">{{ $step['text'] }}</p>
+                        @if ($step['measures'] !== '')
+                            <p class="cp-bl-step-score">{{ $step['measures'] }}</p>
+                        @endif
+                    </li>
+                @endforeach
+            </ol>
+            <div class="cp-bl-first-foot">
+                <p class="cp-bl-kept">{{ $love['first']['kept'] }}</p>
+                <a href="{{ $tryUrl }}" class="btn-secondary btn-lg">{{ $tryLabel }} <x-site.icon name="arrow" size="18" /></a>
+            </div>
         </section>
     @endif
 
@@ -179,7 +299,24 @@
         </section>
     @endif
 
-    <section class="s-wrap cp-bl-two">
+    <section class="s-wrap cp-bl-two" aria-labelledby="begin-h">
+        <h2 id="begin-h" class="cp-bl-kick cp-bl-two-h">{{ $love['begin']['kick'] }}</h2>
+        <div>
+            <h3 class="cp-bl-safe-h">{{ $love['begin']['who'] }}</h3>
+            <ul class="cp-bl-safe cp-bl-ticks">
+                @foreach ((array) $page['who'] as $item)
+                    <li><x-site.icon name="check" size="18" /><span>{{ $item }}</span></li>
+                @endforeach
+            </ul>
+        </div>
+        <div>
+            <h3 class="cp-bl-safe-h">{{ $love['begin']['need'] }}</h3>
+            <ul class="cp-bl-safe cp-bl-ticks">
+                @foreach ((array) $page['need'] as $item)
+                    <li><x-site.icon name="check" size="18" /><span>{{ $item }}</span></li>
+                @endforeach
+            </ul>
+        </div>
         <div aria-labelledby="safety-h">
             <h2 id="safety-h" class="cp-bl-kick">{{ __('pages.site.course_safety') }}</h2>
             <p class="cp-bl-safe-h">{{ $love['safety_head'] }}</p>
@@ -204,10 +341,30 @@
         @endif
     </section>
 
+    {{-- The beginner course's band, as every course page has it; the questions sit between it and the close, so its
+         Start and the close's are apart. --}}
     @include('site._course-today')
 
-    <section class="s-wrap cp-bl-more" aria-labelledby="more-h">
-        <h2 id="more-h" class="cp-bl-kick">{{ __('pages.site.course_more', ['group' => $group['name'] ?? '']) }}</h2>
+    <section class="s-wrap cp-bl-faq" aria-labelledby="faq-h">
+        <div>
+            <p class="cp-bl-kick">{{ $love['questions']['kick'] }}</p>
+            <h2 id="faq-h" class="cp-bl-h2">{{ $love['questions']['title'][0] }} <em>{{ $love['questions']['title'][1] }}</em></h2>
+        </div>
+        @include('site.courses._faq')
+    </section>
+
+    <section class="s-wrap cp-bl-close" aria-labelledby="join-h">
+        <p class="cp-bl-kick">{{ $love['close']['kick'] }}</p>
+        <h2 id="join-h" class="cp-bl-h2">{{ $love['close']['title'][0] }} <em>{{ $love['close']['title'][1] }}</em></h2>
+        <p class="cp-bl-close-p">{{ $open ? $page['close'] : __('pages.site.course_soon') }}</p>
+        <p class="cp-join-btns">
+            <a href="{{ $tryUrl }}" class="btn-primary btn-lg">{{ $tryLabel }} <x-site.icon name="arrow" size="18" /></a>
+            <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>
+        </p>
+        @if ($open)
+            <p class="cp-bl-quiet">{{ __('pages.site.course_join_note') }}</p>
+        @endif
+        <h3 id="more-h" class="cp-bl-kick cp-bl-more-h">{{ __('pages.site.course_more', ['group' => $group['name'] ?? '']) }}</h3>
         <ul class="s-chips">
             @foreach ((array) ($group['courses'] ?? []) as $slug)
                 @continue($slug === $page['slug'])
@@ -215,4 +372,16 @@
             @endforeach
         </ul>
     </section>
+
+    <section class="s-wrap cp-bl-sources" aria-labelledby="notes-h">
+        <details data-bl-sources>
+            <summary><h2 id="notes-h" class="cp-bl-kick">{{ __('pages.site.sources') }} <span>({{ count($sources) }})</span></h2></summary>
+            <ol>
+                @foreach ($sources as [$label, $url])
+                    <li id="src-{{ $loop->iteration }}"><a href="{{ $url }}" rel="noopener">{{ $label }}</a></li>
+                @endforeach
+            </ol>
+        </details>
+    </section>
+    <script type="module" src="/js/public/blues-singing.js"></script>
 </main>

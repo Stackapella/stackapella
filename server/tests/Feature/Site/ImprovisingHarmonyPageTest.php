@@ -81,6 +81,26 @@ final class ImprovisingHarmonyPageTest extends TestCase
         }
     }
 
+    public function test_the_science_archive_and_lesson_one_are_the_courses_own_checked_words(): void
+    {
+        $facts = ImprovisingHarmonyPage::facts((array) __('site.courses.pages.improvising-harmony.facts'));
+
+        // The science four, then the archive six in date order, every one with its source and link.
+        $this->assertSame([...ImprovisingHarmonyPage::SCIENCE, ...ImprovisingHarmonyPage::ARCHIVE], array_keys($facts));
+        foreach ($facts as $key => [$text, $source, $url]) {
+            $this->assertNotSame('', $text, $key);
+            $this->assertNotSame('', $source, $key);
+            $this->assertStringStartsWith('https://', $url, $key);
+        }
+        $this->assertCount(10, ImprovisingHarmonyPage::sources($facts));
+
+        $one = ImprovisingHarmonyPage::lessonOne();
+        $this->assertStringStartsWith('The simplest harmony', $one['why']);
+        $this->assertCount(3, $one['cards']);
+        $this->assertCount(3, $one['steps']);
+        $this->assertStringStartsWith('Now hold the part above on its two long notes', $one['steps'][1]);
+    }
+
     public function test_the_page_draws_the_player_and_marks_the_take_a_sample(): void
     {
         app(Flags::class)->set('plus_courses', 'on', null, 'Courses open');
@@ -96,8 +116,12 @@ final class ImprovisingHarmonyPageTest extends TestCase
             $this->assertStringContainsString('<a href="'.$page['url'].'">', $html);
         }
         $this->assertSame(16, substr_count($html, 'class="cp-imp-lesson"'));
+        // Ten numbered notes, each pointing at the one Sources list.
+        $this->assertStringContainsString('id="src-10"', $html);
+        $this->assertStringNotContainsString('id="src-11"', $html);
+        $this->assertStringContainsString('Walter Odington', $html);
         // Every fact and citation the page had, the songs' credits and the safety lines.
-        foreach (['https://www.britannica.com/art/gymel', 'https://www.georgiaencyclopedia.org/articles/arts-culture/sacred-harp/', 'https://en.wikipedia.org/wiki/Bill_Monroe', 'Written for the course', 'Above a loud tune, go lighter rather than strain to match it.'] as $fact) {
+        foreach (['https://www.britannica.com/art/gymel', 'https://scholarworks.iu.edu/journals/index.php/textual/article/view/30071', 'https://www.georgiaencyclopedia.org/articles/arts-culture/sacred-harp/', 'https://en.wikipedia.org/wiki/Bill_Monroe', 'Written for the course', 'Above a loud tune, go lighter rather than strain to match it.'] as $fact) {
             $this->assertStringContainsString(e($fact), $html);
         }
     }

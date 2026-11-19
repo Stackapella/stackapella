@@ -10,10 +10,12 @@ use Illuminate\Support\Str;
  * A song story's pictures (Hillel, 2026-11-12: "please try to add images and links to the songs pages to make them more
  * immersive"; the courses lead sources them, marketing lays them out). Each song's are in its stories folder,
  * media/<slug>/: the originals (<n>.jpg or .png, at most MAX_BYTES each and MAX_SONG_BYTES a song, long edge at most
- * MAX_EDGE), the WebP sizes app:stories:images makes beside them (<n>-480.webp, -960, -1440, never upscaled; their
+ * MAX_EDGE), the WebP sizes app:stories:images makes beside them (<n>-480.webp, -960, -1440, never upscaled, and -px.webp,
+ * game mode's pixel art; their
  * sources' hashes in webp.json, so a changed original shows as stale), and media.json, a record each: alt and caption
  * in each language, date, source, library, call number, the item's page, and a licence from LICENCES only, with its
- * evidence (the coordinator, for Hillel: licences must be right). The site serves only the WebP files
+ * evidence (the coordinator, for Hillel: licences must be right). A record marked "placement": "card" is the song's
+ * card picture (SongPictures) and isn't placed in the story. The site serves only the WebP files
  * (SongMediaController); never hotlinked.
  */
 final class SongMedia
@@ -29,10 +31,22 @@ final class SongMedia
         'CC0' => ['name' => 'CC0', 'url' => 'https://creativecommons.org/publicdomain/zero/1.0/'],
         'LoC-no-known-restrictions' => ['name' => 'No known restrictions (Library of Congress)', 'url' => 'https://www.loc.gov/legal/understanding-copyright/'],
         'CC-BY-4.0' => ['name' => 'CC BY 4.0', 'url' => 'https://creativecommons.org/licenses/by/4.0/'],
+        // An author's own release into the public domain where it isn't CC0's deed (Wikimedia's {{PD-self}}; Hillel,
+        // 2026-11-18: "Allow PD-self").
+        'PD-self' => ['name' => 'Public domain (released by its author)', 'url' => 'https://creativecommons.org/publicdomain/mark/1.0/'],
     ];
 
     /** The WebP widths made of each picture; the middle one is the page's src. */
     public const WIDTHS = [480, 960, 1440];
+
+    /**
+     * Game mode's pixel art of each picture (Hillel, 2026-11-18: "for game mode can we apply a pixel art effect"): this
+     * many pixels wide and posterised to PIXEL_COLOURS, kept lossless as <name>-px.webp, and drawn large with
+     * image-rendering: pixelated, so a card's head shows blocks of about 6 to 7 px. A few KB each.
+     */
+    public const PIXEL = 56;
+
+    public const PIXEL_COLOURS = 20;
 
     public const MAX_BYTES = 600 * 1024;
 
@@ -85,6 +99,8 @@ final class SongMedia
                 'srcset' => implode(', ', array_map(static fn (int $w): string => self::url($slug, $name, $w).' '.$w.'w', array_values(array_filter(self::WIDTHS, static fn (int $w): bool => is_file(self::folder($slug).'/'.$name.'-'.$w.'.webp'))))),
                 'width' => (int) $width,
                 'height' => (int) $height,
+                // Game mode's pixel art, where it has been made.
+                'pixel' => is_file(self::folder($slug).'/'.$name.'-px.webp') ? self::url($slug, $name, 'px') : null,
                 'alt' => $words('alt'),
                 'caption' => $cite($words('caption')),
                 'date' => is_string($record['date'] ?? null) ? $record['date'] : null,
@@ -101,8 +117,11 @@ final class SongMedia
         return $images;
     }
 
-    /** A picture's WebP at a width, as the site serves it: its version (its bytes' hash) in the query, kept a year. */
-    public static function url(string $slug, string $name, int $width): string
+    /**
+     * A picture's WebP at a width (or 'px', its pixel art), as the site serves it: its version (its bytes' hash) in the
+     * query, kept a year.
+     */
+    public static function url(string $slug, string $name, int|string $width): string
     {
         $file = self::folder($slug).'/'.$name.'-'.$width.'.webp';
 
@@ -112,7 +131,7 @@ final class SongMedia
     /** The served file's path, or null when the address isn't one of a song's WebP sizes. */
     public static function served(string $slug, string $file): ?string
     {
-        if (preg_match('/^[a-z0-9-]+$/', $slug) !== 1 || preg_match('/^[a-z0-9-]+-('.implode('|', self::WIDTHS).')\.webp$/', $file) !== 1) {
+        if (preg_match('/^[a-z0-9-]+$/', $slug) !== 1 || preg_match('/^[a-z0-9-]+-('.implode('|', [...self::WIDTHS, 'px']).')\.webp$/', $file) !== 1) {
             return null;
         }
         $path = self::folder($slug).'/'.$file;
@@ -139,8 +158,11 @@ final class SongMedia
         foreach (array_diff($placed, array_keys($records)) as $name) {
             $problems[] = $at.'![['.$name.']] has no record in media.json';
         }
+        // A picture for the song's card only ("placement": "card", SongPictures) isn't placed in the story.
         foreach (array_diff(array_keys($records), $placed) as $name) {
-            $problems[] = $at.$name.' is in media.json but never placed';
+            if (($records[$name]['placement'] ?? null) !== 'card') {
+                $problems[] = $at.$name.' is in media.json but never placed';
+            }
         }
         foreach ($records as $name => $record) {
             $licence = $record['licence'] ?? null;
@@ -220,6 +242,13 @@ final class SongMedia
                 }
                 $out = self::folder($slug).'/'.$name.'-'.$width.'.webp';
                 imagewebp($resized, $out, $quality);
+                $written[] = $out;
+            }
+            // Its pixel art: small, averaged down, posterised to a few colours without dithering, lossless.
+            $pixel = imagescale($image, self::PIXEL, -1, IMG_BICUBIC);
+            if ($pixel !== false && imagetruecolortopalette($pixel, false, self::PIXEL_COLOURS) && imagepalettetotruecolor($pixel)) {
+                $out = self::folder($slug).'/'.$name.'-px.webp';
+                imagewebp($pixel, $out, IMG_WEBP_LOSSLESS);
                 $written[] = $out;
             }
             $made[$record['file']] = hash_file('sha256', $original);

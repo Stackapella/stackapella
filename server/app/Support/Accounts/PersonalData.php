@@ -81,6 +81,8 @@ final class PersonalData
         'choir_voices.user_id' => ['records/choir-voices.json', null],
         'coach_applications.decided_by' => [null, "Staff's own actions."],
         'corrections.decided_by' => [null, "Staff's own actions (set to null when the account goes)."],
+        'song_videos.synced_by' => [null, "Staff's own actions: who synced a YouTube recording (set to null when the account goes)."],
+        'song_videos.approved_by' => [null, "Staff's own actions: who approved a synced YouTube recording (set to null when the account goes)."],
         'coach_applications.user_id' => ['records/coach-application.json', null],
         'coach_messages.sender_id' => ['coaching.json', null],
         'coach_offerings.coach_id' => ['records/coach-offerings.json', null],

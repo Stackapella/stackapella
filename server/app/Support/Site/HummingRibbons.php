@@ -55,6 +55,23 @@ final class HummingRibbons
         ['hum-3-open', 4, null],
     ];
 
+    /** How each sound works: per sound, the lesson whose learn step says it plainly and the lesson whose fact explains it. */
+    private const SCIENCE = [
+        ['trill', 'hum-1-coaster', 'hum-1-bubble'],
+        ['siren', 'hum-2-ng', 'hum-2-ng'],
+        ['hum', 'hum-3-buzz', 'hum-3-buzz'],
+        ['ah', 'hum-4-challenge', 'hum-4-trill-line'],
+    ];
+
+    /** The dated story: each lesson's fact with its year (from its source) and its sound's part colour, in time order. */
+    private const STORY = [
+        ['hum-2-bigger', 1819, 2],
+        ['hum-3-tune', 2002, 3],
+        ['hum-1-coaster', 2014, 1],
+        ['hum-4-warmup', 2018, 4],
+        ['hum-1-tune', 2020, 1],
+    ];
+
     /** The sample take: Siren loops' ribbon, 24 notes, which are off pitch, and where the sound stopped. */
     private const TAKE = ['hum-2-challenge', 24, [5, 12, 20], 16];
 
@@ -91,6 +108,9 @@ final class HummingRibbons
             'take' => self::take(),
             'grace' => self::grace(),
             'reads' => self::reads(),
+            'science' => self::science(),
+            'story' => self::story(),
+            'try' => self::tryIt(),
             'more' => $more,
         ];
     }
@@ -228,8 +248,9 @@ final class HummingRibbons
     }
 
     /**
-     * The facts' sources, from the lessons that tell them (each lesson's own checked fact), keyed by lesson id: [label,
-     * url]. A lesson without a sourced fact is left out.
+     * Every cited fact's source, from the lessons that tell them (each lesson's own checked fact), keyed by lesson id:
+     * [label, url], in the page's order (Did you know, how each sound works, the story). A lesson without a sourced fact is
+     * left out.
      *
      * @return array<string, array{0: string, 1: string}>
      */
@@ -245,7 +266,7 @@ final class HummingRibbons
             }
         }
         $sources = [];
-        foreach (self::FACTS as [$id]) {
+        foreach ([...array_column(self::FACTS, 0), ...array_column(self::SCIENCE, 2), ...array_column(self::STORY, 0)] as $id) {
             if (isset($facts[$id])) {
                 $sources[$id] = $facts[$id];
             }
@@ -344,6 +365,72 @@ final class HummingRibbons
     }
 
     /**
+     * How each sound works, in plain words: the sound, its part colour, what its first learn step says it is (the course's
+     * own words, in the page's language) and the fact that explains it, keyed by its lesson for its note.
+     *
+     * @return list<array{kind: string, part: int, lead: string, fact: string, key: string}>
+     */
+    public static function science(): array
+    {
+        $course = self::course();
+        $facts = self::lessonFacts();
+        $cards = [];
+        foreach (self::SCIENCE as $i => [$kind, $learn, $fact]) {
+            $cards[] = ['kind' => $kind, 'part' => $i + 1, 'lead' => self::learn($course, $learn)['headline'], 'fact' => $facts[$fact] ?? '', 'key' => $fact];
+        }
+
+        return $cards;
+    }
+
+    /**
+     * The dated story: each year, its part colour, the lesson's fact and its key, oldest first. A fact the course has
+     * dropped is left out.
+     *
+     * @return list<array{year: int, part: int, text: string, key: string}>
+     */
+    public static function story(): array
+    {
+        $facts = self::lessonFacts();
+        $story = [];
+        foreach (self::STORY as [$id, $year, $part]) {
+            if (($facts[$id] ?? '') !== '') {
+                $story[] = ['year' => $year, 'part' => $part, 'text' => $facts[$id], 'key' => $id];
+            }
+        }
+
+        return $story;
+    }
+
+    /**
+     * The first lesson to try now, as the app gives it: its name, its steps (each learn card's title and detail, then what
+     * it asks you to sing, untitled), and its ribbon, the roller coaster, in a 560 by 140 box.
+     *
+     * @return array{name: string, steps: list<array{title: string, text: string}>, line: string, dots: string}
+     */
+    public static function tryIt(): array
+    {
+        $course = self::course();
+        $lesson = self::lessonOf($course, 'hum-1-coaster');
+        $sing = '';
+        foreach ((array) ($lesson['steps'] ?? []) as $step) {
+            if (is_array($step) && ($step['kind'] ?? null) === 'wave') {
+                $sing = self::words($step['text'] ?? '');
+                break;
+            }
+        }
+        $contour = self::contour(self::exercises($course, 'hum-1-coaster')[0] ?? [], null);
+        [$low, $high] = self::range($contour);
+        $shape = self::shape('trill', $contour, 16, 544, static fn (float $s): float => $high > $low ? 116 - ($s - $low) / ($high - $low) * 92 : 70.0, 22.0, 22.0);
+
+        $steps = array_map(static fn (array $card): array => ['title' => $card[0], 'text' => $card[1]], self::learn($course, 'hum-1-coaster')['cards']);
+        if ($steps !== [] && $sing !== '') {
+            $steps[] = ['title' => '', 'text' => $sing];
+        }
+
+        return ['name' => self::words($lesson['title'] ?? ''), 'steps' => $steps, 'line' => $shape['line'], 'dots' => $shape['dots']];
+    }
+
+    /**
      * Every lesson page, by unit: its number, part colour, the unit's name and its pages (name, title, address).
      *
      * @return list<array{n: int, part: int, unit: string, pages: list<array{name: string, title: string, url: string}>}>
@@ -365,13 +452,14 @@ final class HummingRibbons
 
     /**
      * A shape's paths for a contour between x0 and x1, its pitch placed by `$y`: the trill a faint line with its bubbles,
-     * the siren a line, the hum a buzzing line, the "ah" a ribbon widening to `$wide` either side.
+     * the siren a line, the hum a buzzing line, the "ah" a ribbon widening to `$wide` either side. The trill's bubbles
+     * sit about `$gap` apart.
      *
      * @param  array{seconds: float, points: list<array{0: float, 1: float}>}  $contour
      * @param  callable(float): float  $y
      * @return array{line: string, dots: string, fill: string}
      */
-    private static function shape(string $kind, array $contour, float $x0, float $x1, callable $y, float $wide): array
+    private static function shape(string $kind, array $contour, float $x0, float $x1, callable $y, float $wide, float $gap = 12.0): array
     {
         $at = static fn (array $p): array => [$x0 + ($x1 - $x0) * $p[0] / max($contour['seconds'], 0.001), $y($p[1])];
         $width = $x1 - $x0;
@@ -379,7 +467,7 @@ final class HummingRibbons
         return match ($kind) {
             'trill' => [
                 'line' => self::path(array_map($at, self::sample($contour, 120))),
-                'dots' => self::circles(array_map($at, self::sample($contour, (int) round($width / 12))), $wide > 30 ? 5.5 : 4.5),
+                'dots' => self::circles(array_map($at, self::sample($contour, (int) round($width / $gap))), $wide > 30 ? 5.5 : 4.5),
                 'fill' => '',
             ],
             'hum' => [
@@ -598,6 +686,82 @@ final class HummingRibbons
         }
 
         return $ids;
+    }
+
+    /**
+     * Each lesson's checked fact (its text in the page's language), by lesson id.
+     *
+     * @return array<string, string>
+     */
+    private static function lessonFacts(): array
+    {
+        $facts = [];
+        foreach (Lessons::pages(self::COURSE) as $page) {
+            foreach ((array) ($page['lessons'] ?? []) as $lesson) {
+                if (is_array($lesson) && is_string($lesson['fact']['text'] ?? null)) {
+                    $facts[(string) $lesson['id']] = $lesson['fact']['text'];
+                }
+            }
+        }
+
+        return $facts;
+    }
+
+    /**
+     * A lesson's first learn step: its headline and its cards ([title, detail]), in the page's language.
+     *
+     * @param  array<array-key, mixed>  $course
+     * @return array{headline: string, cards: list<array{0: string, 1: string}>}
+     */
+    private static function learn(array $course, string $id): array
+    {
+        foreach ((array) (self::lessonOf($course, $id)['steps'] ?? []) as $step) {
+            if (is_array($step) && ($step['kind'] ?? null) === 'learn') {
+                $cards = [];
+                foreach ((array) ($step['steps'] ?? []) as $card) {
+                    if (is_array($card)) {
+                        $cards[] = [self::words($card['title'] ?? ''), self::words($card['detail'] ?? '')];
+                    }
+                }
+
+                return ['headline' => self::words($step['headline'] ?? ''), 'cards' => $cards];
+            }
+        }
+
+        return ['headline' => '', 'cards' => []];
+    }
+
+    /**
+     * A lesson of the course file, or [] when there's none.
+     *
+     * @param  array<array-key, mixed>  $course
+     * @return array<array-key, mixed>
+     */
+    private static function lessonOf(array $course, string $id): array
+    {
+        foreach ((array) ($course['units'] ?? []) as $unit) {
+            foreach ((array) (is_array($unit) ? ($unit['lessons'] ?? []) : []) as $lesson) {
+                if (is_array($lesson) && ($lesson['id'] ?? null) === $id) {
+                    return $lesson;
+                }
+            }
+        }
+
+        return [];
+    }
+
+    /** The course file's words ({en, es, ...}) in the page's language, else English. */
+    private static function words(mixed $words): string
+    {
+        if (is_string($words)) {
+            return $words;
+        }
+        if (! is_array($words)) {
+            return '';
+        }
+        $here = $words[app()->getLocale()] ?? $words['en'] ?? '';
+
+        return is_string($here) ? $here : '';
     }
 
     /** @return array<array-key, mixed> */

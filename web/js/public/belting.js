@@ -225,13 +225,14 @@ document.addEventListener('visibilitychange', () => {
     if (document.hidden) finish();
 });
 
-// The archive's and the notes' later rows, why loud is the risk's numbers, and the sources, are folded on a phone and
-// open on a wide screen; the sources open too whenever a note's number is followed to them.
+// The archive's and the notes' later rows, and why loud is the risk's numbers, are folded on a phone and open on a wide
+// screen. The sources stay folded at any width (the length pass, 2026-11-19) and open whenever a note's number is
+// followed to them.
 const sources = page?.querySelector('[data-fb-sources]');
 if (page) {
     const wide = matchMedia('(min-width: 900px)');
     const unfold = () => {
-        if (wide.matches) page.querySelectorAll('[data-fb-wide], [data-fb-sources]').forEach((d) => { d.open = true; });
+        if (wide.matches) page.querySelectorAll('[data-fb-wide]').forEach((d) => { d.open = true; });
     };
     unfold();
     wide.addEventListener('change', unfold);

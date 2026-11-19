@@ -4,7 +4,8 @@
 // the card shows one system at a time and turns with the music; on a phone every system, one under another. The
 // player (js/public/mixer.js) lights each note and word as it sounds: they carry their beats, and this module only
 // tells it when new ones are on the page. Each staff's letter is the player's own hear-alone button, placed at its
-// staff here. "Full score" opens the whole score under the hero. No timers: nothing here keeps time.
+// staff here. "Full score" opens the whole score under the hero (or, on /songs's song to try, is a link to the song's
+// page, which opens it from the address's #song-full-score). No timers: nothing here keeps time.
 
 import { engrave, glyphDefs, roundOf } from '../engrave.js';
 
@@ -31,6 +32,9 @@ function setUp(card) {
     const fullView = document.querySelector('[data-score-full-view]');
     const fullHolder = fullView?.querySelector('[data-score-full-systems]');
     const wide = window.matchMedia('(min-width: 900px)');
+    // A card that turns at every width (data-score-paged: /songs's song to try, where a phone's column of every system
+    // would run to many screens); otherwise only a wide one does.
+    const paged = () => card.hasAttribute('data-score-paged') || wide.matches;
     const colour = new Map(song.parts.map((p) => [p.key, p.color]));
     const short = (key) => `${(song.parts.find((p) => p.key === key)?.name ?? key).slice(0, 1)}.`;
     const whole = (key) => song.parts.find((p) => p.key === key)?.name ?? key;
@@ -56,8 +60,8 @@ function setUp(card) {
 
     /** The letters at their staves: by the system shown (a wide card), or the first one (a phone's column). */
     function place() {
-        const sys = systems[wide.matches ? shown : 0];
-        const svg = holder.children[wide.matches ? shown : 0];
+        const sys = systems[paged() ? shown : 0];
+        const svg = holder.children[paged() ? shown : 0];
         if (!sys || !svg) return;
         const box = svg.getBoundingClientRect();
         const frame = view.getBoundingClientRect();
@@ -95,22 +99,22 @@ function setUp(card) {
     function show(index) {
         shown = Math.max(0, Math.min(systems.length - 1, index));
         shown -= shown % per();
-        [...holder.children].forEach((svg, i) => svg.toggleAttribute('hidden', wide.matches && (i < shown || i >= shown + per()))); // an SVG has no .hidden of its own
+        [...holder.children].forEach((svg, i) => svg.toggleAttribute('hidden', paged() && (i < shown || i >= shown + per()))); // an SVG has no .hidden of its own
         say();
         place();
     }
 
     function draw() {
         if (!template) return;
-        const paged = wide.matches;
-        const made = engrave(template, { page: paged ? CARD_PAGE : PHONE_PAGE, perSystem: 3, names: round ? ROUND_LETTERS : LETTERS, ...(round && !paged ? { namesAfter: 12 } : {}), nameOf: (key, first) => (round || paged || first ? '' : short(key)) });
+        const turns = paged();
+        const made = engrave(template, { page: wide.matches ? CARD_PAGE : PHONE_PAGE, perSystem: 3, names: round ? ROUND_LETTERS : LETTERS, ...(round && !turns ? { namesAfter: 12 } : {}), nameOf: (key, first) => (round || turns || first ? '' : short(key)) });
         systems = made.systems;
         holder.innerHTML = systems.map((sys) => sys.svg).join('');
         dress(holder);
-        view.toggleAttribute('data-paged', paged);
+        view.toggleAttribute('data-paged', turns);
         view.toggleAttribute('data-round', !!round);
         view.setAttribute('data-engraved', '');
-        show(paged ? Math.min(shown, systems.length - 1) : 0);
+        show(turns ? Math.min(shown, systems.length - 1) : 0);
         root.dispatchEvent(new CustomEvent('mixer-marks'));
     }
 
@@ -127,7 +131,7 @@ function setUp(card) {
     // The card follows the music: when a note lights in another system than the last, it turns there. Back and on still
     // work while it plays; the next system the music enters takes the card again. A stop returns to the start.
     new MutationObserver((changes) => {
-        if (!wide.matches) return;
+        if (!paged()) return;
         for (const change of changes) {
             if (!change.target.hasAttribute('data-lit')) continue;
             // A round's note lit by other voices than the one followed doesn't turn the card.
@@ -144,7 +148,7 @@ function setUp(card) {
     new MutationObserver(() => {
         if (play.getAttribute('aria-label') !== play.dataset.labelPlay) return;
         following = -1;
-        if (wide.matches && systems.length) show(0);
+        if (paged() && systems.length) show(0);
     }).observe(play, { attributes: true, attributeFilter: ['aria-label'] });
 
     // A part heard alone: the card says which, and the other staves go quiet.
@@ -188,11 +192,13 @@ function setUp(card) {
     wide.addEventListener('change', draw);
     new ResizeObserver(place).observe(view);
 
-    // After the page has painted: the signs once, then the score.
-    const idle = window.requestIdleCallback ?? ((run) => window.requestAnimationFrame(() => run()));
-    idle(() => {
-        if (!template) return;
+    // Straight away, the signs once and then the score: waiting for the browser to idle left the card's staves empty for
+    // a second or two on a busy page (the coordinator, 2026-11-18). The card's room is kept before it, so nothing moves.
+    if (template) {
         document.body.insertAdjacentHTML('beforeend', glyphDefs());
         draw();
-    });
+    }
+
+    // Arriving at the song page's full score (/songs's song to try links it): opened as its button opens it.
+    if (location.hash === '#song-full-score' && fullButton && fullView?.hidden) fullButton.click();
 }

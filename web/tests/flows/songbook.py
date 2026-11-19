@@ -1,6 +1,7 @@
 """The songbook at /songs (Hillel's "Songbook page rebuild", 2026-11-11; js/public/songbook.js) on the server's own site:
 the A to Z narrows in place by collection and by title, a letter with nothing left hides and the count follows, the hero's
-search hands its words to the list, the song to try has a switch for every part, and nothing scrolls sideways.
+search hands its words to the list, the song to try is on staves with a letter for every part, and nothing scrolls
+sideways.
 
     python3 -I tests/flows/songbook.py http://127.0.0.1:8494
 """
@@ -42,9 +43,14 @@ def journey(f):
     assert f.js("document.querySelector('[data-index-search]').value") == "grace", "the list's search took the hero's words"
     assert f.js(SHOWN) >= 1 and f.js(f"{SHOWN} < {total}"), "the list narrowed"
 
-    # The song to try: each part's row plays it alone (tap-to-solo); tapping one doesn't error.
+    # The song to try, on staves (Hillel, 2026-11-18): the song page's score card, engraved from the notes in the page,
+    # one system at a time at every width; each staff's letter plays its part alone (tap-to-solo).
+    f.wait("document.querySelector('#try-mixer [data-score-view]')?.hasAttribute('data-engraved')", what="the song to try's score")
+    shown = f.js("[...document.querySelectorAll('#try-mixer [data-score-systems] svg')].filter((s) => !s.hasAttribute('hidden')).length")
+    assert shown == 1, f"the song to try shows one system at a time ({shown})"
+    assert not f.js("!!document.querySelector('#try-mixer .s-channels')"), "no rows of bars"
     rows = f.js("document.querySelectorAll('#try-mixer [data-hear-alone]').length")
-    assert rows >= 2, f"the song to try has a row per part ({rows})"
+    assert rows >= 2, f"the song to try has a letter per part ({rows})"
     f.run("document.querySelector('#try-mixer [data-hear-alone]').click()")
     assert f.js("document.querySelector('#try-mixer [data-hear-alone]').getAttribute('aria-pressed')") == "true", "a part heard alone"
     f.shot("songbook")

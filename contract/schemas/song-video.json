@@ -1,0 +1,118 @@
+{
+    "$id": "song-video.json",
+    "title": "A song's synced recording on YouTube",
+    "description": "docs/youtube-sync-plan.md: the video, YouTube's last check of it (kept at most 30 days), and our sync map. web/js/sync-map.js reads `form` and `anchors`.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "videoId",
+        "title",
+        "channel",
+        "durationSeconds",
+        "templateVersion",
+        "form",
+        "anchors",
+        "harmony",
+        "otherWords"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "videoId": {
+            "type": "string",
+            "description": "YouTube's 11-character id."
+        },
+        "title": {
+            "type": "string"
+        },
+        "channel": {
+            "type": "string"
+        },
+        "durationSeconds": {
+            "type": "integer"
+        },
+        "templateVersion": {
+            "type": "integer",
+            "description": "The song's version the map was made against."
+        },
+        "form": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/segment"
+            }
+        },
+        "anchors": {
+            "type": "array",
+            "items": {
+                "type": "array",
+                "items": {
+                    "type": "number"
+                },
+                "description": "[videoSeconds, performanceBeat] (anchors) or [fromBeat, toBeat] (otherWords)."
+            }
+        },
+        "harmony": {
+            "type": "string",
+            "enum": [
+                "same",
+                "similar",
+                "different"
+            ]
+        },
+        "otherWords": {
+            "type": "array",
+            "items": {
+                "type": "array",
+                "items": {
+                    "type": "number"
+                },
+                "description": "[videoSeconds, performanceBeat] (anchors) or [fromBeat, toBeat] (otherWords)."
+            },
+            "description": "Performance-beat ranges where the recording sings words the template doesn't carry."
+        }
+    },
+    "$defs": {
+        "segment": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "kind"
+            ],
+            "properties": {
+                "kind": {
+                    "type": "string",
+                    "enum": [
+                        "section",
+                        "gap"
+                    ]
+                },
+                "section": {
+                    "type": "integer",
+                    "description": "A section: the template's section, by index."
+                },
+                "shift": {
+                    "type": "integer",
+                    "description": "A section: semitones from the template's key."
+                },
+                "cents": {
+                    "type": "number",
+                    "description": "A section: off equal temperament, -50 to 50."
+                },
+                "words": {
+                    "type": "boolean",
+                    "description": "A section: false hides its words."
+                },
+                "name": {
+                    "type": "string",
+                    "description": "A section: its name in this performance (Verse 2)."
+                },
+                "beats": {
+                    "type": "number",
+                    "description": "A gap: its length in beats."
+                }
+            }
+        }
+    }
+}

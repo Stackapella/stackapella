@@ -134,6 +134,63 @@ final class StructuredData
     }
 
     /**
+     * The public domain page (/songs/public-domain, App\Support\Pages\PublicDomain): the roll as a Dataset (who made the
+     * songs, when each one's work joins the public domain), our public domain songs as a list, its two questions and their
+     * answers as on the page, and its place under /songs.
+     *
+     * @param  array<string, mixed>  $page
+     * @return list<array<string, mixed>>
+     */
+    public static function publicDomain(array $page, string $url): array
+    {
+        $people = [];
+        foreach ([...$page['coming'], ...$page['joined'], ...$page['long']] as $group) {
+            foreach ($group['people'] as $person) {
+                $people[] = $person;
+            }
+        }
+        $songs = [];
+        foreach ([...$page['songs'], ...$page['unsigned']] as $song) {
+            $songs[$song['url']] ??= $song['title'];
+        }
+        $years = array_map(static fn (array $p): int => (int) $p['joins'], $people);
+        $items = [];
+        foreach ($songs as $songUrl => $title) {
+            $items[] = ['@type' => 'ListItem', 'position' => count($items) + 1, 'name' => $title, 'url' => Hosts::publicUrl().$songUrl];
+        }
+
+        return [
+            [
+                '@context' => 'https://schema.org',
+                '@type' => 'Dataset',
+                'name' => (string) __('site.public_domain.dataset'),
+                'description' => (string) __('site.public_domain.dataset_description'),
+                'url' => $url,
+                'inLanguage' => app()->getLocale(),
+                'isAccessibleForFree' => true,
+                'creator' => ['@type' => 'Organization', 'name' => (string) __('meta.brand'), 'url' => Hosts::publicUrl().'/'],
+                'keywords' => ['public domain', 'songs', 'hymns', 'carols', 'copyright term', 'life plus 70'],
+                ...($years === [] ? [] : ['temporalCoverage' => min($years).'/'.max($years)]),
+            ],
+            [
+                '@context' => 'https://schema.org',
+                '@type' => 'ItemList',
+                'name' => (string) __('site.public_domain.list'),
+                'itemListElement' => $items,
+            ],
+            [
+                '@context' => 'https://schema.org',
+                '@type' => 'FAQPage',
+                'mainEntity' => [
+                    ['@type' => 'Question', 'name' => (string) __('site.public_domain.faq_when_h'), 'acceptedAnswer' => ['@type' => 'Answer', 'text' => (string) __('site.public_domain.faq_when', ['before' => $page['usBefore']])]],
+                    ['@type' => 'Question', 'name' => (string) __('site.public_domain.faq_where_h'), 'acceptedAnswer' => ['@type' => 'Answer', 'text' => (string) __('site.public_domain.faq_where')]],
+                ],
+            ],
+            self::breadcrumbs([[(string) __('site.song_part.songs'), Hosts::publicUrl().'/songs'], [(string) __('site.public_domain.crumb'), $url]]),
+        ];
+    }
+
+    /**
      * The songbook, /songs: every open song as a list, and its place under the site's home.
      *
      * @param  list<array{title: string, url: string}>  $songs

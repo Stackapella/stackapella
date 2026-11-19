@@ -1,29 +1,45 @@
-// The Sight-singing course page's demo (server/resources/views/site/courses/sight-singing.blade.php),
-// made here with voices.js and only when pressed, one at a time through demo-player.js: Find do, after
-// lesson 1's Do on the stave (course/plus/sight-singing, ss-1-do). A drone holds do under a short
-// original line, so fa mi do re mi, drawn on a stave with its names under the notes. Play sings the
-// line over the drone, each note lit on the audio clock (when()); tapping a note sings it over the
-// drone and says whether it's do. New key moves the line from C to G and back: the stave and the key
-// signature change in CSS (data-key), and the tune sounds the same, a fifth higher. The names can be
-// hidden. No mic: nothing is heard or recorded. The words are the view's.
+// The Sight-singing course page's sounds (server/resources/views/site/courses/sight-singing.blade.php, Hillel's design of
+// 2026-11-18), made here with voices.js and only when pressed, one at a time through demo-player.js, each note started
+// and stopped on the audio clock (never a timer).
+// - The sol-fa ladder: a rung sings its note (do is middle C) and the dot moves to it.
+// - Find do: the course's own line (lesson 4, A line, read cold; the view reads it from the course file) on a stave, a
+//   drone holding do an octave below it. Play sings the line over the drone at the lesson's tempo, each note lit as it
+//   sounds (when(), on the clock). Tapping a note sings it over the drone and says whether it's do. New key moves the
+//   line C, D, F, G and back (the stave's notes and key signature change in CSS, data-key); the names can be hidden. No
+//   mic: nothing is heard or recorded.
+// - Hear do, in the close: the drone, then do over it.
+// The words are the view's.
 
 import { audio, hz, voice } from './voices.js';
-import { play, finish, sounding, when } from './demo-player.js';
+import { finish, play, sounding, when } from './demo-player.js';
 
+const KEYS = ['c', 'd', 'f', 'g'];
+const DO = { c: 60, d: 62, f: 65, g: 67 };
+const DRONE = 0.07;
+const SUNG = 0.15;
+
+// The ladder.
+const ladder = document.querySelector('[data-ss-ladder]');
+for (const rung of ladder?.querySelectorAll('[data-ss-rung]') ?? []) {
+    rung.addEventListener('click', () => play(rung, () => {
+        const c = audio();
+        const semis = Number(rung.dataset.ssRung);
+        const v = voice(hz(60 + semis), { level: SUNG, at: c.currentTime + 0.03 });
+        ladder.dataset.rung = String(semis);
+        ladder.style.setProperty('--dot', String((12 - semis) / 12));
+        return { voices: [v], length: 0.9 };
+    }));
+}
+
+// Find do.
 const demo = document.querySelector('[data-ss-demo]');
 const words = demo?.dataset ?? {};
 const say = demo?.querySelector('[data-ss-say]');
 const notes = [...(demo?.querySelectorAll('[data-ss-note]') ?? [])];
-
-const DO = { c: 60, g: 67 }; // C4 and G4: the same line, a fifth higher in G
-const MAJOR = [0, 2, 4, 5, 7, 9, 11];
-const BEAT = 0.62; // seconds a note
-const LAST = 2; // the last note's beats
-const DRONE = 0.07;
-const SUNG = 0.15;
+const cap = (text) => text.charAt(0).toUpperCase() + text.slice(1);
 
 const key = () => demo.dataset.key;
-const midi = (degree) => DO[key()] + MAJOR[degree];
+const midi = (n) => DO[key()] + Number(n.dataset.semis);
 
 function light(i) {
     notes.forEach((n, k) => n.toggleAttribute('data-on', k === i));
@@ -43,24 +59,26 @@ function drone(at, length, c) {
     return v;
 }
 
-// The line over the drone, each note lit as it sounds.
+// The line over the drone, a beat a note at the lesson's tempo, the last held for two, each lit as it sounds.
 function line({ live }) {
     const c = audio();
+    const beat = 60 / Number(demo.dataset.tempo || 66);
     const at = c.currentTime + 0.08;
-    const off = (t) => t - c.currentTime;
-    const end = (notes.length - 1 + LAST) * BEAT;
+    const from = at + 0.6;
+    const end = from + (notes.length + 1) * beat;
     unmark();
-    const voices = [drone(at, end + 0.5, c)];
+    const voices = [drone(at, end - at + 0.3, c)];
     notes.forEach((n, i) => {
-        const v = voice(hz(midi(Number(n.dataset.degree))), { level: SUNG, at: at + 0.4 + i * BEAT });
-        v.stop(off(at + 0.4 + (i + (i === notes.length - 1 ? LAST : 1)) * BEAT - 0.05));
+        const start = from + i * beat;
+        const v = voice(hz(midi(n)), { level: SUNG, at: start });
+        v.stop(start + (i === notes.length - 1 ? 2 : 1) * beat - 0.05 - c.currentTime);
         voices.push(v);
-        when(at + 0.4 + i * BEAT).then(() => live() && light(i));
+        when(start).then(() => live() && light(i));
     });
     say.textContent = words.playing;
     return {
         voices,
-        length: off(at + 0.4 + end + 0.3),
+        length: end - c.currentTime + 0.4,
         done: () => {
             light(-1);
             say.textContent = words.after;
@@ -72,10 +90,10 @@ function line({ live }) {
 function tapped(n) {
     return () => {
         const c = audio();
-        const at = c.currentTime + 0.05;
-        const v = voice(hz(midi(Number(n.dataset.degree))), { level: SUNG, at: at + 0.15 });
-        v.stop(at + 1.5 - c.currentTime);
-        return { voices: [drone(at, 1.7, c), v], length: 1.8, done: () => light(-1) };
+        const at = c.currentTime + 0.04;
+        const v = voice(hz(midi(n)), { level: SUNG, at: at + 0.12 });
+        v.stop(at + 1.4 - c.currentTime);
+        return { voices: [drone(at, 1.6, c), v], length: 1.7, done: () => light(-1) };
     };
 }
 
@@ -91,15 +109,15 @@ if (demo) {
             const right = n.dataset.degree === '0';
             n.setAttribute(right ? 'data-right' : 'data-wrong', '');
             const name = n.querySelector('.cp-ss-name').textContent.trim();
-            say.textContent = right ? words[key() === 'c' ? 'rightC' : 'rightG'] : words.wrong.replace(':name', name);
+            say.textContent = right ? words[`right${cap(key())}`] : words.wrong.replace(':name', name);
         });
     }
 
     demo.querySelector('[data-ss-key]').addEventListener('click', () => {
         finish();
         unmark();
-        demo.dataset.key = key() === 'c' ? 'g' : 'c';
-        say.textContent = words[key() === 'c' ? 'movedC' : 'movedG'];
+        demo.dataset.key = KEYS[(KEYS.indexOf(key()) + 1) % KEYS.length];
+        say.textContent = words[`moved${cap(key())}`];
     });
 
     const names = demo.querySelector('[data-ss-names]');
@@ -110,13 +128,21 @@ if (demo) {
     });
 }
 
-// A note's number opens the sources it points at; on a wide screen they, and every unit's lessons, are
-// open from the start.
+// Hear do: the drone on do, and do sung over it.
+const hearDo = document.querySelector('[data-ss-hear-do]');
+hearDo?.addEventListener('click', () => play(hearDo, () => {
+    const c = audio();
+    const at = c.currentTime + 0.04;
+    const low = voice(hz(48), { level: 0.1, at });
+    low.stop(2.3);
+    const high = voice(hz(60), { level: SUNG, at: at + 0.3 });
+    high.stop(2.2);
+    return { voices: [low, high], length: 2.4 };
+}));
+
+// A note's number opens the sources it points at; on a wide screen they're open from the start.
 const sources = document.querySelector('[data-ss-sources]');
 if (sources) {
-    if (matchMedia('(min-width: 900px)').matches) {
-        sources.open = true;
-        document.querySelectorAll('[data-ss-wide]').forEach((d) => { d.open = true; });
-    }
+    if (matchMedia('(min-width: 900px)').matches) sources.open = true;
     document.querySelectorAll('.cp-ss .s-cite a').forEach((a) => a.addEventListener('click', () => { sources.open = true; }));
 }

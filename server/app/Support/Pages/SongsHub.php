@@ -39,6 +39,27 @@ final class SongsHub
         'choral-classics' => ['ave-verum-corpus', 'now-is-the-month-of-maying', 'the-lord-bless-you', 'brahms-lullaby'],
     ];
 
+    /**
+     * The song whose featured picture (SongPictures) heads each collection's panel, in place of its drawn motif (Hillel,
+     * 2026-11-18: "pick one song/image from the category page for the main songs page"): the best known with a strong
+     * picture of a place or a thing (SongPictures::SCENES). A pick that isn't open falls to the first sample with one, and a
+     * panel with none shows its first song's opening words.
+     */
+    public const PICTURES = [
+        'hymns' => 'amazing-grace',
+        'spirituals' => 'swing-low',
+        'sea-shanties' => 'drunken-sailor',
+        'rounds' => 'are-you-sleeping',
+        'jewish-songs' => 'maoz-tzur',
+        'folk-songs' => 'sakura-sakura',
+        'barbershop-songs' => 'down-by-the-old-mill-stream',
+        'scottish-songs' => 'loch-lomond',
+        'villancicos' => 'pastores-a-belen',
+        'thanksgiving-hymns' => 'we-gather-together',
+        'shaker-songs' => 'simple-gifts',
+        'choral-classics' => 'ave-verum-corpus',
+    ];
+
     /** How many songs a band samples (a phone shows the first three). */
     public const PER_BAND = 4;
 
@@ -56,7 +77,7 @@ final class SongsHub
      * popularity: the next Wednesday review's Search Console pull can set it; until then, size). Each with its samples (the
      * collection page's own cards, so each plays its first line) and how many songs the page has.
      *
-     * @return list<array{key: string, path: string, count: int, season: bool, samples: list<array<string, mixed>>, order?: int}>
+     * @return list<array{key: string, path: string, count: int, season: bool, samples: list<array<string, mixed>>, picture?: array{title: string, url: string, slug: string, picture: array<string, mixed>|null, line: array{words: mixed}}|null, order?: int}>
      */
     public function bands(): array
     {
@@ -64,12 +85,12 @@ final class SongsHub
         // building each sample's card (its opening line to play) was most of /songs's time.
         $key = 'songs.bands.'.$this->catalogue->fingerprint().'.'.(string) config('app.build').'.'.app()->getLocale().'.'.now()->toDateString();
 
-        /** @var list<array{key: string, path: string, count: int, season: bool, samples: list<array<string, mixed>>}> */
+        /** @var list<array{key: string, path: string, count: int, season: bool, samples: list<array<string, mixed>>, picture?: array{title: string, url: string, slug: string, picture: array<string, mixed>|null, line: array{words: mixed}}|null}> */
         return Catalogue::kept($key, fn (): array => $this->build());
     }
 
     /**
-     * @return list<array{key: string, path: string, count: int, season: bool, samples: list<array<string, mixed>>}>
+     * @return list<array{key: string, path: string, count: int, season: bool, samples: list<array<string, mixed>>, picture?: array{title: string, url: string, slug: string, picture: array<string, mixed>|null, line: array{words: mixed}}|null}>
      */
     private function build(): array
     {
@@ -86,14 +107,29 @@ final class SongsHub
             $ordered = array_values(array_filter($this->collections->ordered($slug), static fn (string $song): bool => $slug === 'villancicos' || ! ($season && Carols::has($song))));
             $chosen[$slug] = self::choose($ordered, self::SAMPLES[$slug] ?? []);
         }
-        $cards = $this->built(array_merge([], ...array_values($chosen)));
+        // Each panel's picture's song (PICTURES), read with the samples.
+        $pictured = [];
+        foreach ($this->collections->open() as $open) {
+            $pick = self::PICTURES[$open['slug']] ?? null;
+            $pictured[$open['slug']] = $pick !== null && in_array($pick, $this->collections->members($open['slug']), true) ? $pick : null;
+        }
+        $cards = $this->built(array_values(array_unique([...array_merge([], ...array_values($chosen)), ...array_filter($pictured)])));
         $samples = static fn (string $key): array => array_values(array_filter(array_map(static fn (string $song): ?array => $cards[$song] ?? null, $chosen[$key])));
+        // The picture's song: the pick, else the first sample that has one.
+        // With none of a place or thing among its samples, its first sample's opening words set large (site._song-picture).
+        $picture = static function (string $key) use ($cards, $chosen, $pictured): ?array {
+            $samples = collect($chosen[$key])->map(static fn (string $song): ?array => $cards[$song] ?? null)->filter();
+            $card = ($pictured[$key] ?? null) !== null ? ($cards[$pictured[$key]] ?? null) : null;
+            $card = ($card['picture'] ?? null) !== null ? $card : ($samples->first(static fn (array $c): bool => ($c['picture'] ?? null) !== null) ?? $samples->first());
+
+            return $card !== null ? ['title' => $card['title'], 'url' => $card['url'], 'slug' => $card['slug'], 'picture' => $card['picture'], 'line' => ['words' => $card['line']['words'] ?? []]] : null;
+        };
 
         $bands = $season ? [['key' => 'christmas', 'path' => Carols::PATH, 'count' => count($carols), 'season' => true, 'samples' => self::kinds($samples('christmas'), 'christmas')]] : [];
         $panels = [];
         foreach ($this->collections->open() as $open) {
             $slug = $open['slug'];
-            $panels[] = ['key' => $slug, 'path' => $open['path'], 'count' => count($this->collections->members($slug)), 'season' => false, 'samples' => self::kinds($samples($slug), $slug)];
+            $panels[] = ['key' => $slug, 'path' => $open['path'], 'count' => count($this->collections->members($slug)), 'season' => false, 'samples' => self::kinds($samples($slug), $slug), 'picture' => $picture($slug)];
         }
         // The biggest first (each keeps that place as its `order`, for the page's script); then the collection whose
         // festival is coming up (Festivals: Hanukkah and Passover's Jewish songs, a Burns Night, a St Patrick's Day) first

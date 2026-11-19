@@ -271,6 +271,10 @@
                 "plusPrivate": {
                     "type": "boolean",
                     "description": "Shared private arrangements need everyone's own Plus (the plus_private switch, docs/pricing-plan.md, top): while true, opening one without Plus shows the Plus sheet (templates.show's plus_required, a project's readOnly plus_needed, templates.mine's plusNeeded, invites.show's plusNeeded). False: as before."
+                },
+                "youtubeSync": {
+                    "type": "boolean",
+                    "description": "YouTube sync is on for this person (the youtube_sync switch, or turned on for them first): the app looks for a song's real recordings."
                 }
             }
         }

@@ -305,6 +305,11 @@
     "/js/public/voices.js",
     "/js/public/demo-player.js"
   ],
+  "/js/public/blues-singing.js": [
+    "/js/public/blues-singing.js",
+    "/js/public/voices.js",
+    "/js/public/demo-player.js"
+  ],
   "/js/public/breath-and-stamina.js": [
     "/js/public/breath-and-stamina.js",
     "/js/public/voices.js",
@@ -468,6 +473,9 @@
     "/js/public/voices.js",
     "/js/public/demo-player.js"
   ],
+  "/js/public/public-domain.js": [
+    "/js/public/public-domain.js"
+  ],
   "/js/public/range-and-registers.js": [
     "/js/public/range-and-registers.js",
     "/js/public/voices.js",
@@ -475,6 +483,14 @@
   ],
   "/js/public/scat.js": [
     "/js/public/scat.js",
+    "/js/public/voices.js",
+    "/js/public/demo-player.js"
+  ],
+  "/js/public/score-soon.js": [
+    "/js/public/score-soon.js"
+  ],
+  "/js/public/sea-shanties-and-work-songs.js": [
+    "/js/public/sea-shanties-and-work-songs.js",
     "/js/public/voices.js",
     "/js/public/demo-player.js"
   ],
@@ -498,7 +514,8 @@
     "/js/automated.js"
   ],
   "/js/public/song-page.js": [
-    "/js/public/song-page.js"
+    "/js/public/song-page.js",
+    "/js/public/score-soon.js"
   ],
   "/js/public/song-part-page.js": [
     "/js/public/song-part-page.js",
@@ -551,7 +568,14 @@
   "/js/public/vibrato.js": [
     "/js/public/vibrato.js",
     "/js/public/voices.js",
-    "/js/public/demo-player.js"
+    "/js/public/demo-player.js",
+    "/js/vibrato.js",
+    "/js/synth.js"
+  ],
+  "/js/public/whistling.js": [
+    "/js/public/whistling.js",
+    "/js/public/voices.js",
+    "/js/public/play-state.js"
   ],
   "/js/public/yodeling.js": [
     "/js/public/yodeling.js",

@@ -92,6 +92,12 @@ return [
     // api.indexnow.org (which shares them with Bing, Yandex and the rest) while Admin's `indexnow`
     // switch is on. The key is public by design (it's served at /<key>.txt); unset, it's worked out
     // from APP_KEY, so nothing needs setting. At most daily_cap addresses a day.
+    // YouTube sync (docs/youtube-sync-plan.md): the Data API key, server side only; the repo is public and the
+    // Developer Policies forbid the key in open source (III.D.1.d). Empty: the sync tool says YouTube is unavailable.
+    'youtube' => [
+        'key' => env('YOUTUBE_API_KEY'),
+    ],
+
     'indexnow' => [
         'key' => env('INDEXNOW_KEY'),
         'endpoint' => env('INDEXNOW_ENDPOINT', 'https://api.indexnow.org/indexnow'),

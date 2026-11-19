@@ -3,12 +3,13 @@
      lines and red note bars. The headline steps down like a call ("Bright," high, "not loud." lower, with its "step
      down" bracket); the hero's card plays the call and the same call held flat; the featured demo, Same note, two
      colours, synthesizes the veiled and the bright note with its harmonics drawn as they sound (js/public/belting.js,
-     on voices.js and the audio clock, only when pressed). Then the care as a printed notice, the outcomes as notes
-     stepping down, in plain words with Garcia's lit-match line as a pull quote, why loud is the risk on a loudness bar
+     on voices.js and the audio clock, only when pressed). The hero also holds the care as a printed notice under the
+     way in and the outcomes as notes stepping down under the call's card (the length pass, 2026-11-19: the page within
+     8,500 to 11,000 px at 1440). Then in plain words with Garcia's lit-match line as a pull quote, why loud is the risk on a loudness bar
      (this course is speaking volume, never louder), the archive on a dark ground (each entry a year, a place, a stop
      and a pull quote of its own sourced words, cited), the units with their lessons as notes falling across the
      lines, lesson 1 beside what the app hears, margin notes, before you begin, questions, the close on red, and the
-     sources. Still Diction's calm love-letter layout underneath (its cp-di-* classes); the rest is .cp-fb. Bound by the
+     sources (folded at any width, opened by a note's number). Still Diction's calm love-letter layout underneath (its cp-di-* classes); the rest is .cp-fb. Bound by the
      voice-health review (docs/courses/belting-voice-health.md): no loudness ever asked for, no promise of power, range,
      high notes or safety for everyone, and the app hears pitch and timing only. Hey, Ho and Haul Away are named, never
      linked. No drawn people. Words: lang/en/site.php courses.pages.belting (love). --}}
@@ -51,43 +52,67 @@
                         <a href="{{ $tryUrl }}" class="btn-primary btn-lg">{{ $tryLabel }} <x-site.icon name="arrow" size="18" /></a>
                         <a href="{{ $outline !== null ? '#units-h' : '#outcomes-h' }}" class="btn-secondary btn-lg">{{ $outline !== null ? $page['see_lessons'] : $page['see_aims'] }}</a>
                     </p>
-                    <p class="cp-di-quiet">{{ $page['hero_care'] }}</p>
                     @unless ($open)
                         <p class="cp-di-quiet">{{ __('pages.site.course_soon') }}</p>
                     @endunless
-                </div>
-                <figure class="cp-hero-card cp-di-map cp-fb-call" data-fb-call>
-                    <p class="cp-fb-call-top"><span class="cp-fb-mono cp-fb-red">{{ $call['kick'] }}</span><span class="cp-fb-mono">{{ $call['pitch'] }} <span aria-hidden="true">&uarr;</span> &middot; {{ $call['time'] }} <span aria-hidden="true">&rarr;</span></span></p>
-                    <svg viewBox="40 0 400 220" class="cp-di-map-art" aria-hidden="true">
-                        @foreach (range(3, -2) as $s)
-                            <path d="M48 {{ $semi($s) }} H436" class="cp-di-grid" />
-                        @endforeach
-                        {{-- Held flat: the second note left on the first's pitch, an outline. --}}
-                        <rect x="{{ $bx(1) + 4 }}" y="{{ $semi(2) - 10 }}" width="{{ $bx(2.5) - $bx(1) - 8 }}" height="20" rx="10" class="cp-di-ring" data-fb-note="flat" />
-                        {{-- The call: two level notes, the second lower. --}}
-                        <rect x="{{ $bx(0) + 4 }}" y="{{ $semi(2) - 10 }}" width="{{ $bx(1) - $bx(0) - 8 }}" height="20" rx="10" class="cp-di-dot" data-fb-note="hi" />
-                        <rect x="{{ $bx(1) + 4 }}" y="{{ $semi(-1) - 10 }}" width="{{ $bx(2.5) - $bx(1) - 8 }}" height="20" rx="10" class="cp-di-dot" data-fb-note="lo" />
-                        <text x="{{ $bx(0) + 4 }}" y="{{ $semi(2) - 22 }}" class="cp-di-vname cp-fb-syl">{{ $call['syllables'][0] }}</text>
-                        <text x="{{ $bx(1) + 4 }}" y="{{ $semi(-1) + 42 }}" class="cp-di-vname cp-fb-syl">{{ $call['syllables'][1] }}</text>
-                        {{-- The step between them. --}}
-                        <path d="M{{ $bx(2.5) + 22 }} {{ $semi(2) }} V{{ $semi(-1) }}" class="cp-di-tri cp-fb-stepline" />
-                        @foreach ((array) $call['step'] as $line)
-                            <text x="{{ $bx(2.5) + 32 }}" y="{{ $semi(1) + 10 + $loop->index * 20 }}" class="cp-di-tick">{{ $line }}</text>
-                        @endforeach
-                    </svg>
-                    <p class="cp-fb-call-btns">
-                        <button type="button" class="cp-fb-callbtn" data-fb-play="call" data-play="{{ $call['play'] }}" data-stop="{{ $demo['stop'] }}" aria-pressed="false"><span class="cp-fb-callbtn-icon" aria-hidden="true"></span><span data-label>{{ $call['play'] }}</span></button>
-                        <button type="button" class="cp-fb-callbtn cp-fb-callbtn-flat" data-fb-play="flat" data-play="{{ $call['flat'] }}" data-stop="{{ $demo['stop'] }}" aria-pressed="false"><span class="cp-fb-callbtn-icon" aria-hidden="true"></span><span data-label>{{ $call['flat'] }}</span></button>
-                    </p>
-                    <figcaption>
-                        <ul class="cp-hero-legend">
-                            @foreach ((array) $call['legend'] as $key)
-                                <li><i class="cp-di-key cp-di-key-{{ ['dot', 'ring'][$loop->index] }}" aria-hidden="true"></i>{{ $key }}</li>
+                    {{-- The care, boxed like a printed notice, right under the way in (it holds every line of the hero's
+                         own care line, so that line went). --}}
+                    <section class="cp-fb-notice cp-fb-care" aria-labelledby="care-h">
+                        <p class="cp-di-kick">{{ $love['kicks']['care'] }}</p>
+                        <h2 id="care-h" class="cp-fb-care-h cp-fb-em">{{ \App\Support\Pages\BeltingPage::em($page['titles']['care'], $ems['care']) }}</h2>
+                        <p class="cp-fb-across" aria-hidden="true"><span>{{ $love['across'][0] }}</span><i></i><span>{{ $love['across'][1] }}</span><b>{{ $love['across'][2] }}</b></p>
+                        <p class="cp-fb-care-lead">{{ $page['care']['lead'] }}</p>
+                        <ol class="cp-fb-roman">
+                            @foreach ((array) $page['care']['points'] as $point)
+                                <li>{{ $point }}</li>
                             @endforeach
-                        </ul>
-                        <p class="cp-di-map-note">{{ $call['note'] }}@include('site.courses._cites', ['keys' => ['ladd', 'dayoc']])</p>
-                    </figcaption>
-                </figure>
+                        </ol>
+                        <p class="cp-di-note"><a href="/courses/range-and-registers" class="s-arrow">{{ $rangeName }} <x-site.icon name="arrow" size="16" /></a></p>
+                    </section>
+                </div>
+                <div class="cp-fb-hero-side">
+                    <figure class="cp-hero-card cp-di-map cp-fb-call" data-fb-call>
+                        <p class="cp-fb-call-top"><span class="cp-fb-mono cp-fb-red">{{ $call['kick'] }}</span><span class="cp-fb-mono">{{ $call['pitch'] }} <span aria-hidden="true">&uarr;</span> &middot; {{ $call['time'] }} <span aria-hidden="true">&rarr;</span></span></p>
+                        <svg viewBox="40 0 400 220" class="cp-di-map-art" aria-hidden="true">
+                            @foreach (range(3, -2) as $s)
+                                <path d="M48 {{ $semi($s) }} H436" class="cp-di-grid" />
+                            @endforeach
+                            {{-- Held flat: the second note left on the first's pitch, an outline. --}}
+                            <rect x="{{ $bx(1) + 4 }}" y="{{ $semi(2) - 10 }}" width="{{ $bx(2.5) - $bx(1) - 8 }}" height="20" rx="10" class="cp-di-ring" data-fb-note="flat" />
+                            {{-- The call: two level notes, the second lower. --}}
+                            <rect x="{{ $bx(0) + 4 }}" y="{{ $semi(2) - 10 }}" width="{{ $bx(1) - $bx(0) - 8 }}" height="20" rx="10" class="cp-di-dot" data-fb-note="hi" />
+                            <rect x="{{ $bx(1) + 4 }}" y="{{ $semi(-1) - 10 }}" width="{{ $bx(2.5) - $bx(1) - 8 }}" height="20" rx="10" class="cp-di-dot" data-fb-note="lo" />
+                            <text x="{{ $bx(0) + 4 }}" y="{{ $semi(2) - 22 }}" class="cp-di-vname cp-fb-syl">{{ $call['syllables'][0] }}</text>
+                            <text x="{{ $bx(1) + 4 }}" y="{{ $semi(-1) + 42 }}" class="cp-di-vname cp-fb-syl">{{ $call['syllables'][1] }}</text>
+                            {{-- The step between them. --}}
+                            <path d="M{{ $bx(2.5) + 22 }} {{ $semi(2) }} V{{ $semi(-1) }}" class="cp-di-tri cp-fb-stepline" />
+                            @foreach ((array) $call['step'] as $line)
+                                <text x="{{ $bx(2.5) + 32 }}" y="{{ $semi(1) + 10 + $loop->index * 20 }}" class="cp-di-tick">{{ $line }}</text>
+                            @endforeach
+                        </svg>
+                        <p class="cp-fb-call-btns">
+                            <button type="button" class="cp-fb-callbtn" data-fb-play="call" data-play="{{ $call['play'] }}" data-stop="{{ $demo['stop'] }}" aria-pressed="false"><span class="cp-fb-callbtn-icon" aria-hidden="true"></span><span data-label>{{ $call['play'] }}</span></button>
+                            <button type="button" class="cp-fb-callbtn cp-fb-callbtn-flat" data-fb-play="flat" data-play="{{ $call['flat'] }}" data-stop="{{ $demo['stop'] }}" aria-pressed="false"><span class="cp-fb-callbtn-icon" aria-hidden="true"></span><span data-label>{{ $call['flat'] }}</span></button>
+                        </p>
+                        <figcaption>
+                            <ul class="cp-hero-legend">
+                                @foreach ((array) $call['legend'] as $key)
+                                    <li><i class="cp-di-key cp-di-key-{{ ['dot', 'ring'][$loop->index] }}" aria-hidden="true"></i>{{ $key }}</li>
+                                @endforeach
+                            </ul>
+                            <p class="cp-di-map-note">{{ $call['note'] }}@include('site.courses._cites', ['keys' => ['ladd', 'dayoc']])</p>
+                        </figcaption>
+                    </figure>
+                    {{-- By the end: each outcome under a note bar, the four stepping down like a call. --}}
+                    <section class="cp-fb-aims" aria-labelledby="outcomes-h">
+                        <h2 id="outcomes-h" class="cp-di-kick">{{ $page['titles']['outcomes'] }}</h2>
+                        <ol class="cp-fb-goals">
+                            @foreach ((array) $page['outcomes'] as $outcome)
+                                <li style="--i: {{ $loop->index }}"><i class="cp-fb-note" aria-hidden="true"></i><span class="cp-di-n" aria-hidden="true">0{{ $loop->iteration }}</span><p>{{ $outcome }}</p></li>
+                            @endforeach
+                        </ol>
+                    </section>
+                </div>
             </div>
         </div>
     </section>
@@ -160,36 +185,6 @@
         </div>
     </section>
 
-    {{-- The care, boxed like a printed notice. --}}
-    <section class="s-wrap s-sec cp-fb-care" aria-labelledby="care-h">
-        <div class="cp-fb-notice">
-            <div>
-                <p class="cp-di-kick">{{ $love['kicks']['care'] }}</p>
-                <h2 id="care-h" class="cp-di-title cp-fb-em">{{ \App\Support\Pages\BeltingPage::em($page['titles']['care'], $ems['care']) }}</h2>
-                <p class="cp-fb-across" aria-hidden="true"><span>{{ $love['across'][0] }}</span><i></i><span>{{ $love['across'][1] }}</span><b>{{ $love['across'][2] }}</b></p>
-            </div>
-            <div>
-                <p class="cp-fb-care-lead">{{ $page['care']['lead'] }}</p>
-                <ol class="cp-fb-roman">
-                    @foreach ((array) $page['care']['points'] as $point)
-                        <li>{{ $point }}</li>
-                    @endforeach
-                </ol>
-                <p class="cp-di-note"><a href="/courses/range-and-registers" class="s-arrow">{{ $rangeName }} <x-site.icon name="arrow" size="16" /></a></p>
-            </div>
-        </div>
-    </section>
-
-    {{-- By the end: each outcome under a note bar, the four stepping down like a call. --}}
-    <section class="s-wrap s-sec cp-fb-aims" aria-labelledby="outcomes-h">
-        <h2 id="outcomes-h" class="cp-di-kick">{{ $page['titles']['outcomes'] }}</h2>
-        <ol class="cp-fb-goals">
-            @foreach ((array) $page['outcomes'] as $outcome)
-                <li style="--i: {{ $loop->index }}"><i class="cp-fb-note" aria-hidden="true"></i><span class="cp-di-n" aria-hidden="true">0{{ $loop->iteration }}</span><p>{{ $outcome }}</p></li>
-            @endforeach
-        </ol>
-    </section>
-
     <section class="s-wrap s-sec cp-fb-plain" aria-labelledby="plain-h">
         <div class="cp-di-plain-head">
             <div>
@@ -249,13 +244,14 @@
                 @endif
                 <ol class="cp-di-years" start="{{ $loop->first ? 1 : 3 }}">
                     @foreach ($part as $i => [$year, $place, $title, $text, $cites])
-                        <li>
+                        {{-- The year, its place and the pulled-out words down the left; the story beside them. --}}
+                        <li class="cp-fb-entry">
                             <p class="cp-di-year"><span>{{ $year }}</span><span class="cp-di-place">{{ $place }}@isset($stops[$i]) <span aria-hidden="true">&middot;</span> {{ $stops[$i] }}@endisset</span></p>
-                            <div>
+                            @isset($pulls[$i])
+                                <blockquote class="cp-fb-pullq"><p>"{{ $pulls[$i][0] }}"@include('site.courses._cites', ['keys' => $pulls[$i][1]])</p></blockquote>
+                            @endisset
+                            <div class="cp-fb-story">
                                 <h3>{{ $title }}</h3>
-                                @isset($pulls[$i])
-                                    <blockquote class="cp-fb-pullq"><p>"{{ $pulls[$i][0] }}"@include('site.courses._cites', ['keys' => $pulls[$i][1]])</p></blockquote>
-                                @endisset
                                 <p>{{ $text }}@include('site.courses._cites', ['keys' => $cites])</p>
                             </div>
                         </li>

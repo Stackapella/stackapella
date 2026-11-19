@@ -49,6 +49,7 @@ use App\Http\Controllers\Api\Admin\SecurityEventsController;
 use App\Http\Controllers\Api\Admin\SharingController as AdminSharing;
 use App\Http\Controllers\Api\Admin\SocialController as AdminSocial;
 use App\Http\Controllers\Api\Admin\SupportController as AdminSupport;
+use App\Http\Controllers\Api\Admin\VideosController as AdminVideos;
 use App\Http\Controllers\Api\Auth\AppAuthController;
 use App\Http\Controllers\Api\Auth\AppDevicesController;
 use App\Http\Controllers\Api\Auth\AuthController;
@@ -100,6 +101,7 @@ use App\Http\Controllers\Api\School\SchoolController as SchoolApi;
 use App\Http\Controllers\Api\Sharing\HarmoniesController;
 use App\Http\Controllers\Api\Sharing\ReportsController as SharingReports;
 use App\Http\Controllers\Api\Sharing\VideosController;
+use App\Http\Controllers\Api\SongVideosController;
 use App\Http\Controllers\Api\Support\SupportController;
 use App\Http\Controllers\Api\Templates\FinishersController;
 use App\Http\Controllers\Api\Templates\OwnTemplatesController;
@@ -445,6 +447,8 @@ Route::middleware('auth')->group(function (): void {
 });
 Route::get('/ideas/{idea}', [IdeasApi::class, 'show'])->where('idea', '[A-Za-z0-9]{12}')->middleware(['throttle:public-pages', 'revalidate'])->name('ideas.show');
 Route::get('/templates/{template}/finishers', FinishersController::class)->name('templates.finishers');
+// A song's synced recordings on YouTube (docs/youtube-sync-plan.md): anyone, while youtube_sync is on for them.
+Route::get('/songs/{template}/videos', SongVideosController::class)->name('songs.videos.list');
 Route::get('/templates/{template}', [TemplatesController::class, 'show'])->name('templates.show');
 
 // Lend your voice (docs/lend-your-voice-plan.md, the lend_voice switch): the Wanted voices, joining
@@ -561,6 +565,12 @@ Route::middleware(['auth', 'editor', 'second-factor'])->prefix('admin')->name('a
         Route::get('/reports', [AdminReports::class, 'index'])->name('reports.list');
         Route::get('/corrections', [AdminCorrections::class, 'index'])->name('corrections.list');
         Route::patch('/corrections/{correction}', [AdminCorrections::class, 'update'])->where('correction', '[A-Za-z0-9]{1,20}')->name('corrections.update');
+        // The YouTube sync tool (docs/youtube-sync-plan.md).
+        Route::get('/song-videos', [AdminVideos::class, 'index'])->name('songVideos.list');
+        Route::get('/song-videos/search', [AdminVideos::class, 'search'])->middleware('throttle:youtube-search')->name('songVideos.search');
+        Route::post('/song-videos', [AdminVideos::class, 'store'])->name('songVideos.save');
+        Route::post('/song-videos/{video}/approve', [AdminVideos::class, 'approve'])->where('video', '[A-Za-z0-9]{1,20}')->name('songVideos.approve');
+        Route::delete('/song-videos/{video}', [AdminVideos::class, 'destroy'])->where('video', '[A-Za-z0-9]{1,20}')->name('songVideos.delete');
         Route::get('/coaching/applications', [AdminCoaching::class, 'applications'])->name('coaching.applications.list');
         Route::post('/coaching/applications/{application}', [AdminCoaching::class, 'decide'])->middleware('sudo')->name('coaching.applications.decide');
         Route::put('/coaching/coaches/{coach}', [AdminCoaching::class, 'coach'])->middleware('sudo')->name('coaching.coaches.update');

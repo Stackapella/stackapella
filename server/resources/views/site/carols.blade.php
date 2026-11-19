@@ -103,7 +103,7 @@
             </ol>
         </section>
 
-        @include('site._songbook', ['songs' => $carols, 'heading' => __('site.carols.songbook'), 'sub' => __('site.carols.songbook_sub'), 'subPart' => __('site.carols.songbook_part'), 'places' => 'site.carols.places'])
+        @include('site._songbook', ['songs' => $carols, 'heading' => __('site.carols.songbook'), 'sub' => __('site.carols.songbook_sub'), 'subPart' => __('site.carols.songbook_part'), 'places' => 'site.carols.places', 'tone' => 'christmas'])
 
         {{-- More to sing: the carols' nearest collections that are pages now (SongCollections::SEE_ALSO), the villancicos. --}}
         @php($seeAlso = app(\App\Support\Pages\SongCollections::class)->seeAlso('christmas-carols'))

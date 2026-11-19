@@ -1,0 +1,2278 @@
+{
+ "about": "Works not in the library yet, for /songs/public-domain (App\\Support\\Pages\\PublicDomain). Each person's birth and death years were read on the page in its source; a person whose death year is null is a co-maker whose dates we could not confirm, so the work is never shown as free. Researched 2026-11-18.",
+ "people": [
+  {
+   "id": "aaron-zeitlin",
+   "name": "Aaron Zeitlin",
+   "born": 1898,
+   "died": 1973,
+   "source": "https://en.wikipedia.org/wiki/Aaron_Zeitlin"
+  },
+  {
+   "id": "agustin-lara",
+   "name": "Agustín Lara",
+   "born": 1897,
+   "died": 1970,
+   "source": "https://en.wikipedia.org/wiki/Agust%C3%ADn_Lara"
+  },
+  {
+   "id": "albert-e-brumley",
+   "name": "Albert E. Brumley",
+   "born": 1905,
+   "died": 1977,
+   "source": "https://en.wikipedia.org/wiki/Albert_E._Brumley"
+  },
+  {
+   "id": "albert-hay-malotte",
+   "name": "Albert Hay Malotte",
+   "born": 1895,
+   "died": 1964,
+   "source": "https://en.wikipedia.org/wiki/Albert_Hay_Malotte"
+  },
+  {
+   "id": "albert-von-tilzer",
+   "name": "Albert Von Tilzer",
+   "born": 1878,
+   "died": 1956,
+   "source": "https://en.wikipedia.org/wiki/Albert_Von_Tilzer"
+  },
+  {
+   "id": "alfred-burt",
+   "name": "Alfred Burt",
+   "born": 1920,
+   "died": 1954,
+   "source": "https://en.wikipedia.org/wiki/Alfred_Burt"
+  },
+  {
+   "id": "andrae-crouch",
+   "name": "Andraé Crouch",
+   "born": 1942,
+   "died": 2015,
+   "source": "https://en.wikipedia.org/wiki/Andra%C3%A9_Crouch"
+  },
+  {
+   "id": "ariel-ramirez",
+   "name": "Ariel Ramírez",
+   "born": 1921,
+   "died": 2010,
+   "source": "https://en.wikipedia.org/wiki/Ariel_Ram%C3%ADrez"
+  },
+  {
+   "id": "benjamin-britten",
+   "name": "Benjamin Britten",
+   "born": 1913,
+   "died": 1976,
+   "source": "https://en.wikipedia.org/wiki/Benjamin_Britten"
+  },
+  {
+   "id": "bertolt-brecht",
+   "name": "Bertolt Brecht",
+   "born": 1898,
+   "died": 1956,
+   "source": "https://en.wikipedia.org/wiki/Bertolt_Brecht"
+  },
+  {
+   "id": "boris-ord",
+   "name": "Boris Ord",
+   "born": 1897,
+   "died": 1961,
+   "source": "https://en.wikipedia.org/wiki/Boris_Ord"
+  },
+  {
+   "id": "bruce-blunt",
+   "name": "Bruce Blunt",
+   "born": 1899,
+   "died": 1957,
+   "source": "https://en.wikipedia.org/wiki/Bethlehem_Down"
+  },
+  {
+   "id": "cole-porter",
+   "name": "Cole Porter",
+   "born": 1891,
+   "died": 1964,
+   "source": "https://en.wikipedia.org/wiki/Cole_Porter"
+  },
+  {
+   "id": "consuelo-velazquez",
+   "name": "Consuelo Velázquez",
+   "born": 1916,
+   "died": 2005,
+   "source": "https://en.wikipedia.org/wiki/Consuelo_Vel%C3%A1zquez"
+  },
+  {
+   "id": "cyril-taylor",
+   "name": "Cyril V. Taylor",
+   "born": 1907,
+   "died": 1991,
+   "source": "https://hymnary.org/tune/abbots_leigh_taylor"
+  },
+  {
+   "id": "david-willcocks",
+   "name": "David Willcocks",
+   "born": 1919,
+   "died": 2015,
+   "source": "https://en.wikipedia.org/wiki/David_Willcocks"
+  },
+  {
+   "id": "debbie-friedman",
+   "name": "Debbie Friedman",
+   "born": 1951,
+   "died": 2011,
+   "source": "https://en.wikipedia.org/wiki/Debbie_Friedman"
+  },
+  {
+   "id": "drorah-setel",
+   "name": "Drorah Setel",
+   "born": null,
+   "died": null,
+   "source": null
+  },
+  {
+   "id": "ed-mccurdy",
+   "name": "Ed McCurdy",
+   "born": 1919,
+   "died": 2000,
+   "source": "https://en.wikipedia.org/wiki/Ed_McCurdy"
+  },
+  {
+   "id": "edgar-bainton",
+   "name": "Edgar Bainton",
+   "born": 1880,
+   "died": 1956,
+   "source": "https://en.wikipedia.org/wiki/Edgar_Bainton"
+  },
+  {
+   "id": "eleanor-farjeon",
+   "name": "Eleanor Farjeon",
+   "born": 1881,
+   "died": 1965,
+   "source": "https://en.wikipedia.org/wiki/Eleanor_Farjeon"
+  },
+  {
+   "id": "elizabeth-poston",
+   "name": "Elizabeth Poston",
+   "born": 1905,
+   "died": 1987,
+   "source": "https://en.wikipedia.org/wiki/Elizabeth_Poston"
+  },
+  {
+   "id": "ewan-maccoll",
+   "name": "Ewan MacColl",
+   "born": 1915,
+   "died": 1989,
+   "source": "https://en.wikipedia.org/wiki/Ewan_MacColl"
+  },
+  {
+   "id": "felix-luna",
+   "name": "Félix Luna",
+   "born": 1925,
+   "died": 2009,
+   "source": "https://en.wikipedia.org/wiki/F%C3%A9lix_Luna"
+  },
+  {
+   "id": "florence-reece",
+   "name": "Florence Reece",
+   "born": 1900,
+   "died": 1986,
+   "source": "https://en.wikipedia.org/wiki/Florence_Reece"
+  },
+  {
+   "id": "francis-poulenc",
+   "name": "Francis Poulenc",
+   "born": 1899,
+   "died": 1963,
+   "source": "https://en.wikipedia.org/wiki/Francis_Poulenc"
+  },
+  {
+   "id": "fred-pratt-green",
+   "name": "Fred Pratt Green",
+   "born": 1903,
+   "died": 2000,
+   "source": "https://en.wikipedia.org/wiki/Fred_Pratt_Green"
+  },
+  {
+   "id": "george-bennard",
+   "name": "George Bennard",
+   "born": 1873,
+   "died": 1958,
+   "source": "https://en.wikipedia.org/wiki/The_Old_Rugged_Cross"
+  },
+  {
+   "id": "gerald-finzi",
+   "name": "Gerald Finzi",
+   "born": 1901,
+   "died": 1956,
+   "source": "https://en.wikipedia.org/wiki/Gerald_Finzi"
+  },
+  {
+   "id": "harold-arlen",
+   "name": "Harold Arlen",
+   "born": 1905,
+   "died": 1986,
+   "source": "https://en.wikipedia.org/wiki/Harold_Arlen"
+  },
+  {
+   "id": "harold-darke",
+   "name": "Harold Darke",
+   "born": 1888,
+   "died": 1976,
+   "source": "https://en.wikipedia.org/wiki/Harold_Darke"
+  },
+  {
+   "id": "haven-gillespie",
+   "name": "Haven Gillespie",
+   "born": 1888,
+   "died": 1975,
+   "source": "https://en.wikipedia.org/wiki/Haven_Gillespie"
+  },
+  {
+   "id": "healey-willan",
+   "name": "Healey Willan",
+   "born": 1880,
+   "died": 1968,
+   "source": "https://en.wikipedia.org/wiki/Healey_Willan"
+  },
+  {
+   "id": "herbert-howells",
+   "name": "Herbert Howells",
+   "born": 1892,
+   "died": 1983,
+   "source": "https://en.wikipedia.org/wiki/Herbert_Howells"
+  },
+  {
+   "id": "hoagy-carmichael",
+   "name": "Hoagy Carmichael",
+   "born": 1899,
+   "died": 1981,
+   "source": "https://en.wikipedia.org/wiki/Hoagy_Carmichael"
+  },
+  {
+   "id": "hugh-martin",
+   "name": "Hugh Martin",
+   "born": 1914,
+   "died": 2011,
+   "source": "https://en.wikipedia.org/wiki/Hugh_Martin"
+  },
+  {
+   "id": "irving-berlin",
+   "name": "Irving Berlin",
+   "born": 1888,
+   "died": 1989,
+   "source": "https://en.wikipedia.org/wiki/Irving_Berlin"
+  },
+  {
+   "id": "j-fred-coots",
+   "name": "J. Fred Coots",
+   "born": 1897,
+   "died": 1985,
+   "source": "https://en.wikipedia.org/wiki/J._Fred_Coots"
+  },
+  {
+   "id": "jack-norworth",
+   "name": "Jack Norworth",
+   "born": 1879,
+   "died": 1959,
+   "source": "https://en.wikipedia.org/wiki/Jack_Norworth"
+  },
+  {
+   "id": "jacob-jacobs",
+   "name": "Jacob Jacobs",
+   "born": 1890,
+   "died": 1977,
+   "source": "https://en.wikipedia.org/wiki/Jacob_Jacobs_(theater)"
+  },
+  {
+   "id": "jacques-berthier",
+   "name": "Jacques Berthier",
+   "born": 1923,
+   "died": 1994,
+   "source": "https://en.wikipedia.org/wiki/Jacques_Berthier"
+  },
+  {
+   "id": "jean-sibelius",
+   "name": "Jean Sibelius",
+   "born": 1865,
+   "died": 1957,
+   "source": "https://en.wikipedia.org/wiki/Jean_Sibelius"
+  },
+  {
+   "id": "jerome-kern",
+   "name": "Jerome Kern",
+   "born": 1885,
+   "died": 1945,
+   "source": "https://en.wikipedia.org/wiki/Jerome_Kern"
+  },
+  {
+   "id": "jester-hairston",
+   "name": "Jester Hairston",
+   "born": 1901,
+   "died": 2000,
+   "source": "https://en.wikipedia.org/wiki/Jester_Hairston"
+  },
+  {
+   "id": "john-ireland",
+   "name": "John Ireland",
+   "born": 1879,
+   "died": 1962,
+   "source": "https://en.wikipedia.org/wiki/John_Ireland_(composer)"
+  },
+  {
+   "id": "john-tavener",
+   "name": "John Tavener",
+   "born": 1944,
+   "died": 2013,
+   "source": "https://en.wikipedia.org/wiki/John_Tavener"
+  },
+  {
+   "id": "johnny-marks",
+   "name": "Johnny Marks",
+   "born": 1909,
+   "died": 1985,
+   "source": "https://en.wikipedia.org/wiki/Johnny_Marks"
+  },
+  {
+   "id": "katherine-k-davis",
+   "name": "Katherine K. Davis",
+   "born": 1892,
+   "died": 1980,
+   "source": "https://en.wikipedia.org/wiki/Katherine_Kennicott_Davis"
+  },
+  {
+   "id": "kurt-weill",
+   "name": "Kurt Weill",
+   "born": 1900,
+   "died": 1950,
+   "source": "https://en.wikipedia.org/wiki/Kurt_Weill"
+  },
+  {
+   "id": "lee-hays",
+   "name": "Lee Hays",
+   "born": 1914,
+   "died": 1981,
+   "source": "https://en.wikipedia.org/wiki/Lee_Hays"
+  },
+  {
+   "id": "leonard-bernstein",
+   "name": "Leonard Bernstein",
+   "born": 1918,
+   "died": 1990,
+   "source": "https://en.wikipedia.org/wiki/Leonard_Bernstein"
+  },
+  {
+   "id": "leonard-cohen",
+   "name": "Leonard Cohen",
+   "born": 1934,
+   "died": 2016,
+   "source": "https://en.wikipedia.org/wiki/Leonard_Cohen"
+  },
+  {
+   "id": "malvina-reynolds",
+   "name": "Malvina Reynolds",
+   "born": 1900,
+   "died": 1978,
+   "source": "https://en.wikipedia.org/wiki/Malvina_Reynolds"
+  },
+  {
+   "id": "marion-sinclair",
+   "name": "Marion Sinclair",
+   "born": 1896,
+   "died": 1988,
+   "source": "https://en.wikipedia.org/wiki/Marion_Sinclair"
+  },
+  {
+   "id": "martin-shaw",
+   "name": "Martin Shaw",
+   "born": 1875,
+   "died": 1958,
+   "source": "https://en.wikipedia.org/wiki/Martin_Shaw_(composer)"
+  },
+  {
+   "id": "maurice-durufle",
+   "name": "Maurice Duruflé",
+   "born": 1902,
+   "died": 1986,
+   "source": "https://en.wikipedia.org/wiki/Maurice_Durufl%C3%A9"
+  },
+  {
+   "id": "max-janowski",
+   "name": "Max Janowski",
+   "born": 1912,
+   "died": 1991,
+   "source": "https://en.wikipedia.org/wiki/Max_Janowski"
+  },
+  {
+   "id": "mel-torme",
+   "name": "Mel Tormé",
+   "born": 1925,
+   "died": 1999,
+   "source": "https://en.wikipedia.org/wiki/Mel_Torm%C3%A9"
+  },
+  {
+   "id": "meredith-willson",
+   "name": "Meredith Willson",
+   "born": 1902,
+   "died": 1984,
+   "source": "https://en.wikipedia.org/wiki/Meredith_Willson"
+  },
+  {
+   "id": "moses-hogan",
+   "name": "Moses Hogan",
+   "born": 1957,
+   "died": 2003,
+   "source": "https://en.wikipedia.org/wiki/Moses_Hogan"
+  },
+  {
+   "id": "moshe-dor",
+   "name": "Moshe Dor",
+   "born": 1932,
+   "died": 2016,
+   "source": "https://he.wikipedia.org/wiki/%D7%9E%D7%A9%D7%94_%D7%93%D7%95%D7%A8"
+  },
+  {
+   "id": "mother-thekla",
+   "name": "Mother Thekla",
+   "born": 1918,
+   "died": 2011,
+   "source": "https://en.wikipedia.org/wiki/Mother_Thekla"
+  },
+  {
+   "id": "naomi-shemer",
+   "name": "Naomi Shemer",
+   "born": 1930,
+   "died": 2004,
+   "source": "https://en.wikipedia.org/wiki/Naomi_Shemer"
+  },
+  {
+   "id": "oscar-hammerstein-ii",
+   "name": "Oscar Hammerstein II",
+   "born": 1895,
+   "died": 1960,
+   "source": "https://en.wikipedia.org/wiki/Oscar_Hammerstein_II"
+  },
+  {
+   "id": "osvaldo-farres",
+   "name": "Osvaldo Farrés",
+   "born": 1903,
+   "died": 1985,
+   "source": "https://en.wikipedia.org/wiki/Osvaldo_Farr%C3%A9s"
+  },
+  {
+   "id": "pete-seeger",
+   "name": "Pete Seeger",
+   "born": 1919,
+   "died": 2014,
+   "source": "https://en.wikipedia.org/wiki/Pete_Seeger"
+  },
+  {
+   "id": "peter-warlock",
+   "name": "Peter Warlock",
+   "born": 1894,
+   "died": 1930,
+   "source": "https://en.wikipedia.org/wiki/Bethlehem_Down"
+  },
+  {
+   "id": "peter-wilhousky",
+   "name": "Peter J. Wilhousky",
+   "born": 1902,
+   "died": 1978,
+   "source": "https://en.wikipedia.org/wiki/Peter_J._Wilhousky"
+  },
+  {
+   "id": "quirino-mendoza-y-cortes",
+   "name": "Quirino Mendoza y Cortés",
+   "born": 1862,
+   "died": 1957,
+   "source": "https://en.wikipedia.org/wiki/Quirino_Mendoza_y_Cort%C3%A9s"
+  },
+  {
+   "id": "ralph-blane",
+   "name": "Ralph Blane",
+   "born": 1914,
+   "died": 1995,
+   "source": "https://en.wikipedia.org/wiki/Ralph_Blane"
+  },
+  {
+   "id": "ralph-chaplin",
+   "name": "Ralph Chaplin",
+   "born": 1887,
+   "died": 1961,
+   "source": "https://en.wikipedia.org/wiki/Ralph_Chaplin"
+  },
+  {
+   "id": "randall-thompson",
+   "name": "Randall Thompson",
+   "born": 1899,
+   "died": 1984,
+   "source": "https://en.wikipedia.org/wiki/Randall_Thompson"
+  },
+  {
+   "id": "richard-rodgers",
+   "name": "Richard Rodgers",
+   "born": 1902,
+   "died": 1979,
+   "source": "https://en.wikipedia.org/wiki/Richard_Rodgers"
+  },
+  {
+   "id": "robert-wells",
+   "name": "Robert Wells",
+   "born": 1922,
+   "died": 1998,
+   "source": "https://en.wikipedia.org/wiki/Robert_Wells_(songwriter)"
+  },
+  {
+   "id": "rosamond-herklots",
+   "name": "Rosamond Herklots",
+   "born": 1905,
+   "died": 1987,
+   "source": "https://hymnary.org/person/Herklots_RE"
+  },
+  {
+   "id": "shelton-brooks",
+   "name": "Shelton Brooks",
+   "born": 1886,
+   "died": 1975,
+   "source": "https://en.wikipedia.org/wiki/Shelton_Brooks"
+  },
+  {
+   "id": "shlomo-carlebach",
+   "name": "Shlomo Carlebach",
+   "born": 1925,
+   "died": 1994,
+   "source": "https://en.wikipedia.org/wiki/Shlomo_Carlebach"
+  },
+  {
+   "id": "sholom-secunda",
+   "name": "Sholom Secunda",
+   "born": 1894,
+   "died": 1974,
+   "source": "https://en.wikipedia.org/wiki/Sholom_Secunda"
+  },
+  {
+   "id": "stan-rogers",
+   "name": "Stan Rogers",
+   "born": 1949,
+   "died": 1983,
+   "source": "https://en.wikipedia.org/wiki/Stan_Rogers"
+  },
+  {
+   "id": "stuart-gorrell",
+   "name": "Stuart Gorrell",
+   "born": 1901,
+   "died": 1963,
+   "source": "https://en.wikipedia.org/wiki/Stuart_Gorrell"
+  },
+  {
+   "id": "stuart-hine",
+   "name": "Stuart K. Hine",
+   "born": 1899,
+   "died": 1989,
+   "source": "https://en.wikipedia.org/wiki/How_Great_Thou_Art"
+  },
+  {
+   "id": "sydney-carter",
+   "name": "Sydney Carter",
+   "born": 1915,
+   "died": 2004,
+   "source": "https://en.wikipedia.org/wiki/Sydney_Carter"
+  },
+  {
+   "id": "thomas-a-dorsey",
+   "name": "Thomas A. Dorsey",
+   "born": 1899,
+   "died": 1993,
+   "source": "https://en.wikipedia.org/wiki/Thomas_A._Dorsey"
+  },
+  {
+   "id": "thomas-chisholm",
+   "name": "Thomas Chisholm",
+   "born": 1866,
+   "died": 1960,
+   "source": "https://en.wikipedia.org/wiki/Great_Is_Thy_Faithfulness"
+  },
+  {
+   "id": "vaughan-williams",
+   "name": "Ralph Vaughan Williams",
+   "born": 1872,
+   "died": 1958,
+   "source": "https://en.wikipedia.org/wiki/Ralph_Vaughan_Williams"
+  },
+  {
+   "id": "victor-jara",
+   "name": "Víctor Jara",
+   "born": 1932,
+   "died": 1973,
+   "source": "https://en.wikipedia.org/wiki/V%C3%ADctor_Jara"
+  },
+  {
+   "id": "violeta-parra",
+   "name": "Violeta Parra",
+   "born": 1917,
+   "died": 1967,
+   "source": "https://en.wikipedia.org/wiki/Violeta_Parra"
+  },
+  {
+   "id": "w-c-handy",
+   "name": "W. C. Handy",
+   "born": 1873,
+   "died": 1958,
+   "source": "https://en.wikipedia.org/wiki/W._C._Handy"
+  },
+  {
+   "id": "wihla-hutson",
+   "name": "Wihla Hutson",
+   "born": 1901,
+   "died": 2002,
+   "source": "https://www.alfredburtcarols.com/burt/Web%20Pages/Wihla.htm"
+  },
+  {
+   "id": "william-dawson",
+   "name": "William L. Dawson",
+   "born": 1899,
+   "died": 1990,
+   "source": "https://en.wikipedia.org/wiki/William_L._Dawson_(composer)"
+  },
+  {
+   "id": "william-runyan",
+   "name": "William M. Runyan",
+   "born": 1870,
+   "died": 1957,
+   "source": "https://en.wikipedia.org/wiki/Great_Is_Thy_Faithfulness"
+  },
+  {
+   "id": "woody-guthrie",
+   "name": "Woody Guthrie",
+   "born": 1912,
+   "died": 1967,
+   "source": "https://en.wikipedia.org/wiki/Woody_Guthrie"
+  },
+  {
+   "id": "yip-harburg",
+   "name": "Yip Harburg",
+   "born": 1896,
+   "died": 1981,
+   "source": "https://en.wikipedia.org/wiki/Yip_Harburg"
+  },
+  {
+   "id": "yosef-hadar",
+   "name": "Yosef Hadar",
+   "born": 1926,
+   "died": 2006,
+   "source": "https://he.wikipedia.org/wiki/%D7%99%D7%95%D7%A1%D7%A3_%D7%94%D7%93%D7%A8"
+  },
+  {
+   "id": "zoltan-kodaly",
+   "name": "Zoltán Kodály",
+   "born": 1882,
+   "died": 1967,
+   "source": "https://en.wikipedia.org/wiki/Zolt%C3%A1n_Kod%C3%A1ly"
+  }
+ ],
+ "works": [
+  {
+   "title": "Forest Green (the tune of O Little Town of Bethlehem in Britain)",
+   "makers": [
+    {
+     "person": "vaughan-williams",
+     "role": "arrangement"
+    }
+   ],
+   "firstPublished": {
+    "year": 1906,
+    "country": "GB",
+    "source": "https://www.hymnologyarchive.com/o-little-town-of-bethlehem"
+   }
+  },
+  {
+   "title": "Sine Nomine (the tune of For All the Saints)",
+   "makers": [
+    {
+     "person": "vaughan-williams",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1906,
+    "country": "GB",
+    "source": "https://hymnary.org/tune/sine_nomine_vaughan_williams"
+   }
+  },
+  {
+   "title": "Down Ampney (the tune of Come Down, O Love Divine)",
+   "makers": [
+    {
+     "person": "vaughan-williams",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1906,
+    "country": "GB",
+    "source": "https://hymnary.org/tune/down_ampney_vaughan_williams"
+   }
+  },
+  {
+   "title": "Morning Has Broken",
+   "makers": [
+    {
+     "person": "eleanor-farjeon",
+     "role": "words"
+    },
+    {
+     "person": "martin-shaw",
+     "role": "arrangement"
+    }
+   ],
+   "firstPublished": {
+    "year": 1931,
+    "country": "GB",
+    "source": "https://en.wikipedia.org/wiki/Morning_Has_Broken"
+   }
+  },
+  {
+   "title": "People, Look East",
+   "makers": [
+    {
+     "person": "eleanor-farjeon",
+     "role": "words"
+    }
+   ],
+   "firstPublished": {
+    "year": 1928,
+    "country": "GB",
+    "source": "https://hymnary.org/text/people_look_east_the_time_is_near"
+   }
+  },
+  {
+   "title": "Little Cornard (the tune of Hills of the North, Rejoice)",
+   "makers": [
+    {
+     "person": "martin-shaw",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Marching (the tune of Through the Night of Doubt and Sorrow)",
+   "makers": [
+    {
+     "person": "martin-shaw",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "In the Bleak Midwinter (Darke's setting)",
+   "makers": [
+    {
+     "person": "harold-darke",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Lo, the Full, Final Sacrifice",
+   "makers": [
+    {
+     "person": "gerald-finzi",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "God Is Gone Up",
+   "makers": [
+    {
+     "person": "gerald-finzi",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "And I Saw a New Heaven",
+   "makers": [
+    {
+     "person": "edgar-bainton",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Finlandia (the tune of Be Still, My Soul)",
+   "makers": [
+    {
+     "person": "jean-sibelius",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1901,
+    "country": "",
+    "source": "https://en.wikipedia.org/wiki/Finlandia"
+   }
+  },
+  {
+   "title": "Bethlehem Down",
+   "makers": [
+    {
+     "person": "bruce-blunt",
+     "role": "words"
+    },
+    {
+     "person": "peter-warlock",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1927,
+    "country": "GB",
+    "source": "https://en.wikipedia.org/wiki/Bethlehem_Down"
+   }
+  },
+  {
+   "title": "Great Is Thy Faithfulness",
+   "makers": [
+    {
+     "person": "thomas-chisholm",
+     "role": "words"
+    },
+    {
+     "person": "william-runyan",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1923,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/Great_Is_Thy_Faithfulness"
+   }
+  },
+  {
+   "title": "The Old Rugged Cross",
+   "makers": [
+    {
+     "person": "george-bennard",
+     "role": "words"
+    },
+    {
+     "person": "george-bennard",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1915,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/The_Old_Rugged_Cross"
+   }
+  },
+  {
+   "title": "Adam Lay Ybounden (Ord's setting)",
+   "makers": [
+    {
+     "person": "boris-ord",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Love Unknown (the tune of My Song Is Love Unknown)",
+   "makers": [
+    {
+     "person": "john-ireland",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1919,
+    "country": "GB",
+    "source": "https://hymnary.org/tune/love_unknown_ireland"
+   }
+  },
+  {
+   "title": "Greater Love Hath No Man",
+   "makers": [
+    {
+     "person": "john-ireland",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Gloria (Poulenc)",
+   "makers": [
+    {
+     "person": "francis-poulenc",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Four Christmas Motets (O Magnum Mysterium, Hodie Christus Natus Est)",
+   "makers": [
+    {
+     "person": "francis-poulenc",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "The Lord's Prayer (Malotte)",
+   "makers": [
+    {
+     "person": "albert-hay-malotte",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Missa Brevis (Kodály)",
+   "makers": [
+    {
+     "person": "zoltan-kodaly",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Advent Song (Adventi ének, Veni, Veni, Emmanuel)",
+   "makers": [
+    {
+     "person": "zoltan-kodaly",
+     "role": "arrangement"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Rise Up, My Love, My Fair One",
+   "makers": [
+    {
+     "person": "healey-willan",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Hodie, Christus Natus Est (Willan)",
+   "makers": [
+    {
+     "person": "healey-willan",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "A Ceremony of Carols",
+   "makers": [
+    {
+     "person": "benjamin-britten",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1942,
+    "country": "",
+    "source": "https://en.wikipedia.org/wiki/A_Ceremony_of_Carols"
+   }
+  },
+  {
+   "title": "Carol of the Bells (English words)",
+   "makers": [
+    {
+     "person": "peter-wilhousky",
+     "role": "words"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Carol of the Drum (The Little Drummer Boy)",
+   "makers": [
+    {
+     "person": "katherine-k-davis",
+     "role": "music"
+    },
+    {
+     "person": "katherine-k-davis",
+     "role": "words"
+    }
+   ],
+   "firstPublished": {
+    "year": 1941,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/Katherine_Kennicott_Davis"
+   }
+  },
+  {
+   "title": "Michael (the tune of All My Hope on God Is Founded)",
+   "makers": [
+    {
+     "person": "herbert-howells",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1936,
+    "country": "GB",
+    "source": "https://en.wikipedia.org/wiki/Herbert_Howells"
+   }
+  },
+  {
+   "title": "Like as the Hart",
+   "makers": [
+    {
+     "person": "herbert-howells",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "A Spotless Rose (Howells)",
+   "makers": [
+    {
+     "person": "herbert-howells",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Alleluia (Randall Thompson)",
+   "makers": [
+    {
+     "person": "randall-thompson",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "The Last Words of David",
+   "makers": [
+    {
+     "person": "randall-thompson",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Requiem (Duruflé)",
+   "makers": [
+    {
+     "person": "maurice-durufle",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1948,
+    "country": "",
+    "source": "https://en.wikipedia.org/wiki/Maurice_Durufl%C3%A9"
+   }
+  },
+  {
+   "title": "Ubi Caritas (Duruflé)",
+   "makers": [
+    {
+     "person": "maurice-durufle",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Jesus Christ the Apple Tree",
+   "makers": [
+    {
+     "person": "elizabeth-poston",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Forgive Our Sins as We Forgive",
+   "makers": [
+    {
+     "person": "rosamond-herklots",
+     "role": "words"
+    }
+   ],
+   "firstPublished": {
+    "year": 1969,
+    "country": "GB",
+    "source": "https://hymnary.org/text/forgive_our_sins_as_we_forgive"
+   }
+  },
+  {
+   "title": "How Great Thou Art (English words)",
+   "makers": [
+    {
+     "person": "stuart-hine",
+     "role": "translation"
+    }
+   ],
+   "firstPublished": {
+    "year": 1949,
+    "country": "",
+    "source": "https://en.wikipedia.org/wiki/How_Great_Thou_Art"
+   }
+  },
+  {
+   "title": "Soon Ah Will Be Done (Dawson)",
+   "makers": [
+    {
+     "person": "william-dawson",
+     "role": "arrangement"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Ain'-a That Good News (Dawson)",
+   "makers": [
+    {
+     "person": "william-dawson",
+     "role": "arrangement"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Chichester Psalms",
+   "makers": [
+    {
+     "person": "leonard-bernstein",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1965,
+    "country": "",
+    "source": "https://en.wikipedia.org/wiki/Chichester_Psalms"
+   }
+  },
+  {
+   "title": "Abbots Leigh (the tune of Glorious Things of Thee Are Spoken)",
+   "makers": [
+    {
+     "person": "cyril-taylor",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Avinu Malkeinu (Janowski)",
+   "makers": [
+    {
+     "person": "max-janowski",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Precious Lord, Take My Hand",
+   "makers": [
+    {
+     "person": "thomas-a-dorsey",
+     "role": "words"
+    },
+    {
+     "person": "thomas-a-dorsey",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1938,
+    "country": "",
+    "source": "https://en.wikipedia.org/wiki/Take_My_Hand,_Precious_Lord"
+   }
+  },
+  {
+   "title": "Peace in the Valley",
+   "makers": [
+    {
+     "person": "thomas-a-dorsey",
+     "role": "words"
+    },
+    {
+     "person": "thomas-a-dorsey",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Ubi Caritas (Taizé)",
+   "makers": [
+    {
+     "person": "jacques-berthier",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Laudate Omnes Gentes (Taizé)",
+   "makers": [
+    {
+     "person": "jacques-berthier",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Am Yisrael Chai",
+   "makers": [
+    {
+     "person": "shlomo-carlebach",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Pitchu Li",
+   "makers": [
+    {
+     "person": "shlomo-carlebach",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Mary's Boy Child",
+   "makers": [
+    {
+     "person": "jester-hairston",
+     "role": "words"
+    },
+    {
+     "person": "jester-hairston",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "When in Our Music God Is Glorified",
+   "makers": [
+    {
+     "person": "fred-pratt-green",
+     "role": "words"
+    }
+   ],
+   "firstPublished": {
+    "year": 1971,
+    "country": "GB",
+    "source": "https://hymnary.org/text/when_in_our_music_god_is_glorified"
+   }
+  },
+  {
+   "title": "Some Children See Him",
+   "makers": [
+    {
+     "person": "wihla-hutson",
+     "role": "words"
+    },
+    {
+     "person": "alfred-burt",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "The Star Carol (Long Years Ago on a Deep Winter Night)",
+   "makers": [
+    {
+     "person": "wihla-hutson",
+     "role": "words"
+    },
+    {
+     "person": "alfred-burt",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Caroling, Caroling",
+   "makers": [
+    {
+     "person": "wihla-hutson",
+     "role": "words"
+    },
+    {
+     "person": "alfred-burt",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Elijah Rock (Hogan)",
+   "makers": [
+    {
+     "person": "moses-hogan",
+     "role": "arrangement"
+    }
+   ],
+   "firstPublished": {
+    "year": 1994,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/Moses_Hogan"
+   }
+  },
+  {
+   "title": "Lord of the Dance",
+   "makers": [
+    {
+     "person": "sydney-carter",
+     "role": "words"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "One More Step Along the World I Go",
+   "makers": [
+    {
+     "person": "sydney-carter",
+     "role": "words"
+    },
+    {
+     "person": "sydney-carter",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Jerusalem of Gold (Yerushalayim Shel Zahav)",
+   "makers": [
+    {
+     "person": "naomi-shemer",
+     "role": "words"
+    },
+    {
+     "person": "naomi-shemer",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Lu Yehi",
+   "makers": [
+    {
+     "person": "naomi-shemer",
+     "role": "words"
+    },
+    {
+     "person": "naomi-shemer",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Mi Shebeirach (Friedman)",
+   "makers": [
+    {
+     "person": "debbie-friedman",
+     "role": "music"
+    },
+    {
+     "person": "debbie-friedman",
+     "role": "words"
+    },
+    {
+     "person": "drorah-setel",
+     "role": "words"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Miriam's Song",
+   "makers": [
+    {
+     "person": "debbie-friedman",
+     "role": "words"
+    },
+    {
+     "person": "debbie-friedman",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Song for Athene",
+   "makers": [
+    {
+     "person": "john-tavener",
+     "role": "music"
+    },
+    {
+     "person": "mother-thekla",
+     "role": "words"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "The Lamb (Tavener)",
+   "makers": [
+    {
+     "person": "john-tavener",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Soon and Very Soon",
+   "makers": [
+    {
+     "person": "andrae-crouch",
+     "role": "words"
+    },
+    {
+     "person": "andrae-crouch",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "The Blood Will Never Lose Its Power",
+   "makers": [
+    {
+     "person": "andrae-crouch",
+     "role": "words"
+    },
+    {
+     "person": "andrae-crouch",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "O Come, All Ye Faithful (Willcocks's arrangement and descant)",
+   "makers": [
+    {
+     "person": "david-willcocks",
+     "role": "arrangement"
+    }
+   ],
+   "firstPublished": {
+    "year": 1961,
+    "country": "GB",
+    "source": "https://en.wikipedia.org/wiki/Carols_for_Choirs"
+   }
+  },
+  {
+   "title": "Hark! The Herald Angels Sing (Willcocks's arrangement and descant)",
+   "makers": [
+    {
+     "person": "david-willcocks",
+     "role": "arrangement"
+    }
+   ],
+   "firstPublished": {
+    "year": 1961,
+    "country": "GB",
+    "source": "https://en.wikipedia.org/wiki/Carols_for_Choirs"
+   }
+  },
+  {
+   "title": "Die Moritat von Mackie Messer",
+   "makers": [
+    {
+     "person": "bertolt-brecht",
+     "role": "words"
+    },
+    {
+     "person": "kurt-weill",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1928,
+    "country": "DE",
+    "source": "https://en.wikipedia.org/wiki/Mack_the_Knife"
+   }
+  },
+  {
+   "title": "Take Me Out to the Ball Game",
+   "makers": [
+    {
+     "person": "jack-norworth",
+     "role": "words"
+    },
+    {
+     "person": "albert-von-tilzer",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1908,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/Take_Me_Out_to_the_Ball_Game"
+   }
+  },
+  {
+   "title": "St. Louis Blues",
+   "makers": [
+    {
+     "person": "w-c-handy",
+     "role": "words"
+    },
+    {
+     "person": "w-c-handy",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1914,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/St._Louis_Blues_(song)"
+   }
+  },
+  {
+   "title": "Cielito Lindo",
+   "makers": [
+    {
+     "person": "quirino-mendoza-y-cortes",
+     "role": "music"
+    },
+    {
+     "person": "quirino-mendoza-y-cortes",
+     "role": "words"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Solidarity Forever",
+   "makers": [
+    {
+     "person": "ralph-chaplin",
+     "role": "words"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Ol' Man River",
+   "makers": [
+    {
+     "person": "jerome-kern",
+     "role": "music"
+    },
+    {
+     "person": "oscar-hammerstein-ii",
+     "role": "words"
+    }
+   ],
+   "firstPublished": {
+    "year": 1927,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/Ol%27_Man_River"
+   }
+  },
+  {
+   "title": "Edelweiss",
+   "makers": [
+    {
+     "person": "richard-rodgers",
+     "role": "music"
+    },
+    {
+     "person": "oscar-hammerstein-ii",
+     "role": "words"
+    }
+   ],
+   "firstPublished": {
+    "year": 1959,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/Edelweiss_(song)"
+   }
+  },
+  {
+   "title": "You'll Never Walk Alone",
+   "makers": [
+    {
+     "person": "richard-rodgers",
+     "role": "music"
+    },
+    {
+     "person": "oscar-hammerstein-ii",
+     "role": "words"
+    }
+   ],
+   "firstPublished": {
+    "year": 1945,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/You%27ll_Never_Walk_Alone"
+   }
+  },
+  {
+   "title": "Night and Day",
+   "makers": [
+    {
+     "person": "cole-porter",
+     "role": "words"
+    },
+    {
+     "person": "cole-porter",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1932,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/Night_and_Day_(song)"
+   }
+  },
+  {
+   "title": "This Land Is Your Land",
+   "makers": [
+    {
+     "person": "woody-guthrie",
+     "role": "words"
+    }
+   ],
+   "firstPublished": {
+    "year": 1945,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/This_Land_Is_Your_Land"
+   }
+  },
+  {
+   "title": "Gracias a la vida",
+   "makers": [
+    {
+     "person": "violeta-parra",
+     "role": "words"
+    },
+    {
+     "person": "violeta-parra",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1966,
+    "country": "",
+    "source": "https://en.wikipedia.org/wiki/Las_%C3%BAltimas_composiciones"
+   }
+  },
+  {
+   "title": "Granada",
+   "makers": [
+    {
+     "person": "agustin-lara",
+     "role": "words"
+    },
+    {
+     "person": "agustin-lara",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1932,
+    "country": "",
+    "source": "https://en.wikipedia.org/wiki/Granada_(song)"
+   }
+  },
+  {
+   "title": "Solamente una vez",
+   "makers": [
+    {
+     "person": "agustin-lara",
+     "role": "words"
+    },
+    {
+     "person": "agustin-lara",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1941,
+    "country": "",
+    "source": "https://en.wikipedia.org/wiki/Solamente_una_vez"
+   }
+  },
+  {
+   "title": "Bésame mucho",
+   "makers": [
+    {
+     "person": "consuelo-velazquez",
+     "role": "words"
+    },
+    {
+     "person": "consuelo-velazquez",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1940,
+    "country": "",
+    "source": "https://en.wikipedia.org/wiki/B%C3%A9same_mucho"
+   }
+  },
+  {
+   "title": "If I Had a Hammer",
+   "makers": [
+    {
+     "person": "pete-seeger",
+     "role": "words"
+    },
+    {
+     "person": "pete-seeger",
+     "role": "music"
+    },
+    {
+     "person": "lee-hays",
+     "role": "words"
+    }
+   ],
+   "firstPublished": {
+    "year": 1950,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/If_I_Had_a_Hammer"
+   }
+  },
+  {
+   "title": "Turn! Turn! Turn!",
+   "makers": [
+    {
+     "person": "pete-seeger",
+     "role": "music"
+    },
+    {
+     "person": "pete-seeger",
+     "role": "words"
+    }
+   ],
+   "firstPublished": {
+    "year": 1962,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/Turn!_Turn!_Turn!"
+   }
+  },
+  {
+   "title": "Little Boxes",
+   "makers": [
+    {
+     "person": "malvina-reynolds",
+     "role": "words"
+    },
+    {
+     "person": "malvina-reynolds",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1963,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/Little_Boxes"
+   }
+  },
+  {
+   "title": "Dirty Old Town",
+   "makers": [
+    {
+     "person": "ewan-maccoll",
+     "role": "words"
+    },
+    {
+     "person": "ewan-maccoll",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "The First Time Ever I Saw Your Face",
+   "makers": [
+    {
+     "person": "ewan-maccoll",
+     "role": "words"
+    },
+    {
+     "person": "ewan-maccoll",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Georgia on My Mind",
+   "makers": [
+    {
+     "person": "hoagy-carmichael",
+     "role": "music"
+    },
+    {
+     "person": "stuart-gorrell",
+     "role": "words"
+    }
+   ],
+   "firstPublished": {
+    "year": 1930,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/Georgia_on_My_Mind"
+   }
+  },
+  {
+   "title": "Over the Rainbow",
+   "makers": [
+    {
+     "person": "harold-arlen",
+     "role": "music"
+    },
+    {
+     "person": "yip-harburg",
+     "role": "words"
+    }
+   ],
+   "firstPublished": {
+    "year": 1939,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/Over_the_Rainbow"
+   }
+  },
+  {
+   "title": "It's Beginning to Look a Lot Like Christmas",
+   "makers": [
+    {
+     "person": "meredith-willson",
+     "role": "words"
+    },
+    {
+     "person": "meredith-willson",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1951,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/It%27s_Beginning_to_Look_a_Lot_Like_Christmas"
+   }
+  },
+  {
+   "title": "Lida Rose",
+   "makers": [
+    {
+     "person": "meredith-willson",
+     "role": "words"
+    },
+    {
+     "person": "meredith-willson",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Rudolph the Red-Nosed Reindeer",
+   "makers": [
+    {
+     "person": "johnny-marks",
+     "role": "words"
+    },
+    {
+     "person": "johnny-marks",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1949,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/Rudolph_the_Red-Nosed_Reindeer_(song)"
+   }
+  },
+  {
+   "title": "Rockin' Around the Christmas Tree",
+   "makers": [
+    {
+     "person": "johnny-marks",
+     "role": "words"
+    },
+    {
+     "person": "johnny-marks",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1958,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/Rockin%27_Around_the_Christmas_Tree"
+   }
+  },
+  {
+   "title": "White Christmas",
+   "makers": [
+    {
+     "person": "irving-berlin",
+     "role": "words"
+    },
+    {
+     "person": "irving-berlin",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1942,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/White_Christmas_(song)"
+   }
+  },
+  {
+   "title": "The Christmas Song",
+   "makers": [
+    {
+     "person": "mel-torme",
+     "role": "music"
+    },
+    {
+     "person": "mel-torme",
+     "role": "words"
+    },
+    {
+     "person": "robert-wells",
+     "role": "words"
+    }
+   ],
+   "firstPublished": {
+    "year": 1946,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/The_Christmas_Song"
+   }
+  },
+  {
+   "title": "Santa Claus Is Comin' to Town",
+   "makers": [
+    {
+     "person": "haven-gillespie",
+     "role": "words"
+    },
+    {
+     "person": "j-fred-coots",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1934,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/Santa_Claus_Is_Comin%27_to_Town"
+   }
+  },
+  {
+   "title": "Have Yourself a Merry Little Christmas",
+   "makers": [
+    {
+     "person": "hugh-martin",
+     "role": "words"
+    },
+    {
+     "person": "hugh-martin",
+     "role": "music"
+    },
+    {
+     "person": "ralph-blane",
+     "role": "words"
+    },
+    {
+     "person": "ralph-blane",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1944,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/Have_Yourself_a_Merry_Little_Christmas"
+   }
+  },
+  {
+   "title": "I'll Fly Away",
+   "makers": [
+    {
+     "person": "albert-e-brumley",
+     "role": "words"
+    },
+    {
+     "person": "albert-e-brumley",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1932,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/I%27ll_Fly_Away"
+   }
+  },
+  {
+   "title": "Kookaburra Sits in the Old Gum Tree",
+   "makers": [
+    {
+     "person": "marion-sinclair",
+     "role": "words"
+    },
+    {
+     "person": "marion-sinclair",
+     "role": "music"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Which Side Are You On?",
+   "makers": [
+    {
+     "person": "florence-reece",
+     "role": "words"
+    }
+   ],
+   "firstPublished": null
+  },
+  {
+   "title": "Dona Dona",
+   "makers": [
+    {
+     "person": "sholom-secunda",
+     "role": "music"
+    },
+    {
+     "person": "aaron-zeitlin",
+     "role": "words"
+    }
+   ],
+   "firstPublished": {
+    "year": 1941,
+    "country": "",
+    "source": "https://en.wikipedia.org/wiki/Donna_Donna"
+   }
+  },
+  {
+   "title": "Bei Mir Bistu Shein",
+   "makers": [
+    {
+     "person": "sholom-secunda",
+     "role": "music"
+    },
+    {
+     "person": "jacob-jacobs",
+     "role": "words"
+    }
+   ],
+   "firstPublished": {
+    "year": 1932,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/Bei_Mir_Bistu_Shein"
+   }
+  },
+  {
+   "title": "Erev Shel Shoshanim",
+   "makers": [
+    {
+     "person": "yosef-hadar",
+     "role": "music"
+    },
+    {
+     "person": "moshe-dor",
+     "role": "words"
+    }
+   ],
+   "firstPublished": {
+    "year": 1957,
+    "country": "IL",
+    "source": "https://he.wikipedia.org/wiki/%D7%A2%D7%A8%D7%91_%D7%A9%D7%9C_%D7%A9%D7%95%D7%A9%D7%A0%D7%99%D7%9D"
+   }
+  },
+  {
+   "title": "Northwest Passage",
+   "makers": [
+    {
+     "person": "stan-rogers",
+     "role": "words"
+    },
+    {
+     "person": "stan-rogers",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1981,
+    "country": "",
+    "source": "https://en.wikipedia.org/wiki/Northwest_Passage_(song)"
+   }
+  },
+  {
+   "title": "Barrett's Privateers",
+   "makers": [
+    {
+     "person": "stan-rogers",
+     "role": "words"
+    },
+    {
+     "person": "stan-rogers",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1976,
+    "country": "",
+    "source": "https://en.wikipedia.org/wiki/Barrett%27s_Privateers"
+   }
+  },
+  {
+   "title": "Hallelujah",
+   "makers": [
+    {
+     "person": "leonard-cohen",
+     "role": "words"
+    },
+    {
+     "person": "leonard-cohen",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1984,
+    "country": "",
+    "source": "https://en.wikipedia.org/wiki/Hallelujah_(Leonard_Cohen_song)"
+   }
+  },
+  {
+   "title": "Some of These Days",
+   "makers": [
+    {
+     "person": "shelton-brooks",
+     "role": "words"
+    },
+    {
+     "person": "shelton-brooks",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1910,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/Some_of_These_Days"
+   }
+  },
+  {
+   "title": "The Darktown Strutters' Ball",
+   "makers": [
+    {
+     "person": "shelton-brooks",
+     "role": "words"
+    },
+    {
+     "person": "shelton-brooks",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1917,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/The_Darktown_Strutters%27_Ball"
+   }
+  },
+  {
+   "title": "Last Night I Had the Strangest Dream",
+   "makers": [
+    {
+     "person": "ed-mccurdy",
+     "role": "words"
+    },
+    {
+     "person": "ed-mccurdy",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1951,
+    "country": "US",
+    "source": "https://en.wikipedia.org/wiki/Last_Night_I_Had_the_Strangest_Dream"
+   }
+  },
+  {
+   "title": "Quizás, quizás, quizás",
+   "makers": [
+    {
+     "person": "osvaldo-farres",
+     "role": "words"
+    },
+    {
+     "person": "osvaldo-farres",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1947,
+    "country": "",
+    "source": "https://en.wikipedia.org/wiki/Quiz%C3%A1s,_quiz%C3%A1s,_quiz%C3%A1s"
+   }
+  },
+  {
+   "title": "El derecho de vivir en paz",
+   "makers": [
+    {
+     "person": "victor-jara",
+     "role": "words"
+    },
+    {
+     "person": "victor-jara",
+     "role": "music"
+    }
+   ],
+   "firstPublished": {
+    "year": 1971,
+    "country": "CL",
+    "source": "https://en.wikipedia.org/wiki/El_derecho_de_vivir_en_paz"
+   }
+  },
+  {
+   "title": "Alfonsina y el mar",
+   "makers": [
+    {
+     "person": "ariel-ramirez",
+     "role": "music"
+    },
+    {
+     "person": "felix-luna",
+     "role": "words"
+    }
+   ],
+   "firstPublished": {
+    "year": 1969,
+    "country": "",
+    "source": "https://en.wikipedia.org/wiki/Alfonsina_y_el_mar"
+   }
+  }
+ ]
+}

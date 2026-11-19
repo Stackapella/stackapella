@@ -19,6 +19,7 @@ import { scoreTake } from '../scoring.js';
 import { trackFrame, trackInWorker, VOICED_CLARITY } from '../pitchtrack.js';
 import * as sessionStore from '../stores/session.js';
 import { account } from '../stores/account.js';
+import { api } from '../api.js';
 import { claimInvitation, countVoice, later, needsVoice, saidLater, usableTake, voiceAskOpen } from '../be-the-voice.js';
 import { sendVoiceTake } from '../voice-take.js';
 import { signUpFor } from '../components/account-wall.js';
@@ -101,7 +102,7 @@ export const SingView = {
     components: { SingShell: screenLoading(), ShareVoice: defineAsyncComponent(() => import('../components/share-voice.js').then((m) => m.ShareVoice)), DailyShare, RingMeter, VoiceCareLine, TimingLine, PopupSlot, TakeBest, IdeaVoice, PhraseStage, Chooser, Stage, RecordingStage, Lane, NowCard, Coach, StepDone, JustRecorded, LineBar, ModeBar, SingHeader, Transport, TurnBand, PartSheet, SettingsSheet, HeadphonesDialog, TimingDialog, RangeDialog, Icon, VoiceNote, ResingSheet, ResungCard, TrimSheet, WhatsNext, LockedBanner, ShareSheet },
     props: { id: { type: String, required: true } },
     setup: () => ({ ...toRefs(session), audio, formatTime, shownTitle, prefs, game, effect }),
-    data: () => ({ tasteAsked: false, crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null, ring: null, ringChord: '', lessonStep: null, lessonOpening: false, voiceAt: 0, voicePartId: null }),
+    data: () => ({ tasteAsked: false, crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null, ring: null, ringChord: '', lessonStep: null, lessonOpening: false, voiceAt: 0, voicePartId: null, recordingsLink: null }),
     template: `
         <div class="flex h-dvh flex-col bg-ink" :data-paused="paused ? '' : null">
             <p class="sr-only" aria-live="polite">{{ said }}</p>
@@ -119,7 +120,7 @@ export const SingView = {
             <SingShell v-else-if="lessonOpening" />
             <Chooser v-else-if="choosing || !way || !focusPart" :parts="partChoices" :transpose="project.transpose || 0" :way="choosing ? null : way" :suggested="suggested"
                 :title="shownTitle(project)" :focus="focusPart ? { slot: focusPart, name: partName, range: templatePart(focusPart)?.range ?? null } : null" :bpm="project.bpm" :phrases="phraseRows.length" :length="lengthSeconds" :auto="!choosing" :no-voice="noVoiceSlots"
-                @choose="choose" @range="dialog = 'range'" @back="leave" @studio="openStudio" />
+                @choose="choose" @range="dialog = 'range'" @back="leave" @studio="openStudio" :recordings-link="recordingsLink" />
             <!-- Recording strips everything else away (113.png): the lane, the words, Stop -->
             <RecordingStage v-else-if="recording" :title="shownTitle(project)" :named="!!project.title?.trim()" :part-name="partName" :color="paint(focusPart.color)" :take="takeNumbers[rerecordId] ?? 1" :hearing="hearLine"
                 :count-in="countIn" :position="position" :length="lengthSeconds" :busy="busy" :on-pitch="onPitch" :line="hasWords ? currentLine : null" :next="hasWords ? nextLine : null" @stop="recordOrStop" @again="startOver">
@@ -818,6 +819,9 @@ export const SingView = {
             countVoice('bv_resume');
         }
         if (this.isTemplate) sessionStore.refreshVoices();
+        this.findRecordings();
+        // On a cold start the app's config may come after Sing opens: look again once it says real recordings are on.
+        this.$watch(() => account.config?.youtubeSync, (on) => on && !this.recordingsLink && this.findRecordings());
         if (session.project?.course?.lessonId && this.isTemplate) await this.openForLesson();
         this.pickFitting().catch((error) => console.warn('The part that fits was not picked', error));
     },
@@ -851,6 +855,20 @@ export const SingView = {
         }
     },
     methods: {
+        /**
+         * A library song's real recordings on YouTube (docs/youtube-sync-plan.md): the chooser links to them when the
+         * song has any, only while the youtube_sync switch is on for this person (auth.config), so nobody else asks.
+         */
+        async findRecordings() {
+            const id = this.project?.template?.id;
+            if (!account.config?.youtubeSync || !this.isTemplate || this.project?.course || !id) return;
+            try {
+                const { data } = await api.templates.videos(id);
+                if (this.project?.template?.id === id && data.length) this.recordingsLink = `/t/${id}/recordings`;
+            } catch (error) {
+                console.warn('Real recordings not found', error);
+            }
+        },
         navigate,
         joinSyllables,
         templatePart: (slot) => sessionStore.templatePart(slot),

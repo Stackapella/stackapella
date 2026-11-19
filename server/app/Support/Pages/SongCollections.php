@@ -152,7 +152,7 @@ final class SongCollections
     /**
      * A collection's songs as cards, or [] when it isn't a page (no words, too few open songs, the song pages shut).
      *
-     * @return list<array{slug: string, title: string, url: string, from: string|null, line: array<string, mixed>|null, meta: list<string>, parts: list<array{key: string, name: string, melody: bool, lowName: string, highName: string, url: string}>}>
+     * @return list<array{slug: string, title: string, url: string, from: string|null, line: array<string, mixed>|null, meta: list<string>, picture: array<string, mixed>|null, parts: list<array{key: string, name: string, melody: bool, lowName: string, highName: string, url: string}>}>
      */
     public function songs(string $slug): array
     {
@@ -180,7 +180,7 @@ final class SongCollections
      * These open songs' cards, in the order given (a slug that isn't an open song with pages is left out).
      *
      * @param  list<string>  $slugs
-     * @return list<array{slug: string, title: string, url: string, from: string|null, line: array<string, mixed>|null, meta: list<string>, parts: list<array{key: string, name: string, melody: bool, lowName: string, highName: string, url: string}>}>
+     * @return list<array{slug: string, title: string, url: string, from: string|null, line: array<string, mixed>|null, meta: list<string>, picture: array<string, mixed>|null, parts: list<array{key: string, name: string, melody: bool, lowName: string, highName: string, url: string}>}>
      */
     public function cards(array $slugs): array
     {

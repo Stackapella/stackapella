@@ -1648,6 +1648,118 @@ return [
         'thanksgiving' => 'Thanksgiving',
     ],
 
+    // The songs in the public domain, and the songs that will be (/songs/public-domain, App\Support\Pages\PublicDomain;
+    // Hillel, 2026-11-19: "we should be more celebrating their legacy than mourning their passing"): our songs free to sing,
+    // then each 1 January as a release of songs, each song first and its writer after it. Dates are plain facts, never a
+    // countdown.
+    'public_domain' => [
+        'title' => 'Public Domain Songs: Free to Sing, and Who Wrote Them',
+        'description' => 'Public domain songs free to sing: hymns, carols, folk songs and rounds, who wrote them, and the songs entering the public domain in :year and after.',
+        'crumb' => 'Public domain',
+        'eyebrow' => 'Free to sing, free to share',
+        'game_eyebrow' => 'Hall of fame',
+        'headline' => 'Public domain songs,',
+        'headline_em' => 'and the people who wrote them',
+        'game_headline' => 'The songwriters\' hall of fame,',
+        'game_headline_em' => 'the songs everyone knows',
+        'lead' => 'Public domain songs belong to everyone: sing, arrange, record and share them, free. Here are the hymns, carols and folk songs we still sing, who wrote them, and when each writer\'s work becomes free.',
+        'facts_label' => 'On this page',
+        'facts' => [
+            'songs' => '{1} song free to sing now|[2,*] songs free to sing now',
+            'works' => '{1} song becoming free by :last|[2,*] songs becoming free by :last',
+            'people' => '{1} songwriter or poet|[2,*] songwriters and poets',
+        ],
+        'next' => [
+            'kick' => 'Public Domain Day :year',
+            'newly' => 'Newly free',
+            'game_kick' => 'On 1 January',
+            'line' => 'New to the public domain on :date in most of the world: songs by :names.',
+            'more' => 'See what\'s free in :year',
+        ],
+        'filter_label' => 'Show',
+        'chips' => [
+            'all' => 'All',
+            'coming' => 'Free later',
+            'joined' => 'Free now',
+            'site' => 'On our site',
+        ],
+        'search_label' => 'Search songs and writers',
+        'search' => 'Name, song or year',
+        'shown' => '{0} Nothing shown|{1} One writer shown|[2,*] :count writers shown',
+        'none' => 'Nothing matches ":q".',
+        'reset' => 'Show everyone',
+        'coming_h' => 'Songs entering the public domain in :year, and in the years ahead',
+        'coming_sub' => 'The songs that become free each 1 January in most of the world. Songs already on our site are listed with the places where they are still protected.',
+        'game_coming_h' => 'The years ahead',
+        'joined_h' => 'Free now',
+        'joined_sub' => 'The songs that became free each 1 January in most of the world, the most recent first.',
+        'game_joined_h' => 'Hall of fame',
+        'long_h' => 'Free for generations',
+        'long_sub' => 'Songs from earlier centuries, free long before today\'s terms were set.',
+        'game_long_h' => 'Legends',
+        'century' => 'Writers of the :century',
+        'year_line' => '70 years after :died',
+        'year_label' => 'Year',
+        'year_long' => 'Earlier',
+        'year_select' => 'Go to a year',
+        'legend_label' => 'What the dots mean',
+        'legend_now' => 'Free to sing now',
+        'legend_later' => 'Free from a later year',
+        'life' => ':born to :died',
+        'life_died' => 'Died :died',
+        'source' => 'Source',
+        'source_label' => 'Where :name\'s dates come from',
+        'roles' => [
+            'words' => 'Words',
+            'music' => 'Music',
+            'translation' => 'Translation',
+            'arrangement' => 'Harmony',
+            'edition' => 'Edition',
+        ],
+        'waits' => 'Free from :year, with :name\'s part',
+        'waits_unknown' => 'Written with :name, whose dates we haven\'t confirmed, so it isn\'t yet known when it will be free',
+        'free_now' => 'Free now: :places',
+        'free_from' => 'Free from :year: :places',
+        'more' => '{1} and one more|[2,*] and :count more',
+        'list_and' => ':rest and :last',
+        'songs_h' => 'Public domain songs you can sing now',
+        'songs_sub' => 'Every song on Stackapella, free to hear in four parts: who wrote it and when it was first printed. A few are still protected in countries with a longer term, as the list says.',
+        'game_songs_h' => 'Song select',
+        'traditional' => 'Traditional',
+        'songs_all' => '{1} Show the public domain song|[2,*] Show all :count public domain songs',
+        'to_bar' => 'Search and years',
+        'longer' => '{1} Protected longer in one place|[2,*] Protected longer in :count places',
+        'unsigned_h' => 'Passed down without a name',
+        'unsigned_sub' => 'Traditional songs on our site: no maker we can name, free because of their age.',
+        'game_unsigned_h' => 'Unknown heroes',
+        'printed' => 'first printed :year',
+        'faq_when_h' => 'When does a song enter the public domain?',
+        'faq_when' => 'When its copyright ends. In most countries, the European Union\'s, the United Kingdom, Israel and Australia among them, that is the first 1 January 70 years after the author\'s death: the last of its authors, whoever wrote the words, the music or the translation that is sung. A few countries protect songs longer. The United States counts from first publication instead: a song published before :before is free there, and a later one 95 years after it was published.',
+        'faq_where_h' => 'Are public domain songs free to use everywhere?',
+        'faq_where' => 'Not always at the same time. A song can be free in one country and still protected in another with a longer term, so the same song may be free in the United Kingdom and protected in Mexico. And a recording has rights of its own: a song can be in the public domain while a particular recording of it is not.',
+        'what' => 'A song in the public domain belongs to everyone. Anyone may sing it, record it, arrange it and share it, without asking or paying. A song gets there when its copyright ends, which in most places is a set number of years after its makers\' passing.',
+        'terms_label' => 'Copyright terms in the countries we check',
+        'terms_term' => 'Term',
+        'terms_places' => 'Places',
+        'term_life' => 'Life plus :years years',
+        'term_us' => 'From first publication: free if published before :before, else 95 years after',
+        'term_places' => '{1} :count place, :names|[2,*] :count places, among them :names',
+        'here_on' => 'Every song on Stackapella is in the public domain where it\'s sung. When a song opens, our server reads only the country the request comes from (never kept, and never tied to you) and holds the song back where it\'s still protected, saying when it will be free there.',
+        'here_off' => 'Every song on Stackapella is in the public domain in the United States and in the countries that use the seventy-year term. Where a country\'s term is longer, this page says when each song will be free there.',
+        'low' => 'Where we couldn\'t confirm a country\'s law for certain, we treat a song as protected until it\'s free everywhere.',
+        'sources_h' => 'Where the dates come from',
+        'sources' => 'Each song\'s makers and first printing come from the printed sources named on its own page. Every other date links to the reference it was read from. The terms come from each country\'s copyright law. A maker whose year of passing we can\'t confirm isn\'t listed.',
+        'legal' => 'This page is a guide, not legal advice.',
+        'close_h' => 'Pick a song and sing it',
+        'close' => 'Every song on our site is free to hear, in four parts, with a guide voice for each.',
+        'close_cta' => 'Find a song to sing',
+        'hub_line' => 'Every song here is in the public domain.',
+        'hub_link' => 'Meet the people who wrote them',
+        'list' => 'Songs in the public domain on Stackapella',
+        'dataset' => 'Songwriters and the public domain',
+        'dataset_description' => 'The makers of public domain songs (composers, poets, translators and editors) with their years of death, the 1 January each one\'s work joins the public domain under the seventy-year term, and where each song on Stackapella is still protected by a longer term.',
+    ],
+
     'collections' => [
         // Google's suggestions, 2026-11-10: "hymns satb", "easy hymns for choir", "hymns in 4 part harmony".
         'hymns' => [
@@ -8414,14 +8526,35 @@ return [
                 'safety' => ['Keep your jaw, tongue and belly still: a wave is never shaken in. Sing at a medium volume, in the middle of your voice.', 'Stop if anything tightens, tickles or hurts. Don\'t practise when hoarse or ill.', 'If your voice shakes when you speak too, that isn\'t vibrato. A doctor can check it.'],
                 'songs' => [['Amazing Grace', 'Public domain hymn (words 1779, tune 1829)'], ['Shenandoah', 'Traditional, public domain'], ['The Water Is Wide', 'Traditional, public domain']],
                 'shots' => ['Vibrato\'s first lesson, Swing your voice: a wavy line, and three steps: hum softly, swing up and down, then settle on one easy note.', 'A calm, straight line: a held "oo" drawn flat along its target, and Hear yourself saying "Straight for 4 of 4 seconds."'],
-                // The designed page (site/courses/vibrato): its own sections and words.
+                // The designed page (site/courses/vibrato, Hillel's design of 2026-11-18): a pitch trace that starts
+                // straight and grows into vibrato down the page. Its numbers come from App\Support\Pages\VibratoPage.
                 'app' => 'vibrato',
                 'eyebrow' => 'A free course · 17 lessons',
-                'hero_title' => 'Let the wave come.',
+                'hero_title' => 'Let the :wave come.',
+                'hero_wave' => 'wave',
                 'hero_lead' => 'Vibrato is a gentle, regular wave in your pitch. It isn\'t pushed: it grows from an easy note, steady breath and a free throat. You start straight, learn what a wave feels like, let yours happen, then choose when to use it.',
                 'hero_facts' => ['17 lessons, about 3 minutes each', 'Under an hour in all', 'No reading music'],
-                'art' => ['Straight', 'Wave'],
                 'see_lessons' => 'See the lessons',
+                // The hero's pitch trace: one held note, straight, then a wave blooming, drawn to its scale and played.
+                'trace' => [
+                    'label' => 'Pitch trace · one held note',
+                    'straight' => 'Straight',
+                    'bloom' => 'Bloom',
+                    'rate' => 'Rate',
+                    'width' => 'Width',
+                    'rate_unit' => 'a second',
+                    'width_unit' => 'cents',
+                    'up' => '+:n¢',
+                    'down' => '−:n¢',
+                    'secs' => ':n s',
+                    'hear' => 'Hear the bloom',
+                    'picture' => 'A held note drawn as a line: straight for its first second, then a wave of :rate a second blooms to :width cents either side.',
+                ],
+                // The lines between sections, each wave wider, drawn to one scale.
+                'divider' => '±:n¢ · :what',
+                'dividers' => ['straight', 'still straight to the app', 'steering, as Echo the guide does', 'lesson 1\'s first swing'],
+                'pitch' => ['label' => 'Pitch of the sounds', 'low' => 'Low', 'mid' => 'Mid', 'high' => 'High'],
+                'press' => 'Press one to hear it.',
                 'titles' => [
                     'outcomes' => 'By the end, you can',
                     'kinds' => 'Straight, a wave, a wobble',
@@ -8434,9 +8567,10 @@ return [
                     'who' => 'Who it\'s for',
                     'need' => 'What you need',
                     'safety' => 'Singing it safely',
-                    'faq' => 'Questions',
+                    'faq' => 'Asked on the bank',
                     'join' => 'Let it happen',
                     'related' => 'Good with this course',
+                    'years' => 'A wave through the years',
                 ],
                 'outcomes' => [
                     'Hold a calm, straight note, the way choirs tune their chords.',
@@ -8449,7 +8583,10 @@ return [
                     ['A wave', 'An even, gentle wave. Classical singers\' vibrato usually runs about 5.5 to 7 a second.'],
                     ['A wobble', 'Slow, wide and uneven. It sounds unsteady, and the course never calls it vibrato.'],
                 ],
+                'kinds_tag' => ['Choir', 'Vibrato', 'Not vibrato'],
+                'kinds_spec' => ['still' => 'Still · ±0¢', 'wave' => ':rate/s · ±:cents¢', 'wobble' => ':rate/s · ±:cents¢, uneven'],
                 'kinds_body' => 'The app draws your voice as you sing, so you can see a wave you can\'t yet hear in yourself.',
+                'kinds_scale' => 'All three are drawn to one scale: one and a half seconds across, the same cents up and down.',
                 'gentle' => [
                     'lead' => 'Vibrato grows by itself from an easy note, sung softly. Never force a wave, or shake it from your jaw or throat.',
                     'points' => ['An easy volume, in the middle of your voice.', 'Jaw, tongue and belly still.', 'Steered wave drills about five minutes at a time, then a rest.', 'If your voice shakes when you speak too, that isn\'t vibrato. A doctor can check it.'],
@@ -8460,6 +8597,14 @@ return [
                     'Let the wave settle on its own, on easy vowels, then in Shenandoah.',
                     'Choose it: start straight and let it bloom, on and off, and The Water Is Wide.',
                 ],
+                // Each unit's guide waves, from the course file: their speeds and widths, or a unit with none.
+                'units_guide' => ['guide' => 'Guide :rate/s · ±:cents¢', 'range' => ':a to :b', 'own' => 'Straight, then yours'],
+                'challenges' => [
+                    'vib-1-challenge' => 'A challenge: one line, sung straight',
+                    'vib-2-challenge' => 'A challenge: a steered wave through a tune',
+                    'vib-3-challenge' => 'A challenge: your own wave in Shenandoah',
+                    'vib-4-challenge' => 'A challenge: The Water Is Wide, straight then bloom',
+                ],
                 'try' => [
                     'lead' => 'Softly, in the middle of your voice. Stop if anything tightens or hurts.',
                     'steps' => [
@@ -8468,12 +8613,54 @@ return [
                         'Then settle on one easy note and hold it, calm and straight. Keep your jaw and belly still.',
                         'If a small wave comes by itself near the end, let it. If it doesn\'t, that\'s fine too.',
                     ],
+                    'hint' => 'Press a step to set its shape on the wave beside it.',
                     'after' => 'Lesson 1 draws your swing as a wave on the screen, then listens to your easy note and tells you if a natural vibrato showed up.',
                 ],
+                // The deck's readout: what the app would call the wave on the sliders (web/js/vibrato.js kindOf).
+                'deck' => [
+                    'try' => 'Try it',
+                    'up' => '+150¢',
+                    'down' => '−150¢',
+                    'secs' => ['0 s', '1 s', '2 s'],
+                    'verdict' => [
+                        'straight' => 'Straight',
+                        'natural' => 'In a natural range',
+                        'steered' => 'A steered wave',
+                        'wobble' => 'Heading toward a wobble',
+                        'tremble' => 'Heading toward a tremble',
+                    ],
+                    'verdict_note' => 'Named the way the app names a held note. A natural range is 5.5 to 7 waves a second.',
+                ],
                 'facts' => [
-                    ['Classical singers\' vibrato usually runs about 5.5 to 7 a second.', 'Prame, JASA (1994)', 'https://doi.org/10.1121/1.410141'],
-                    ['On a held note, listeners hear the pitch at the middle of the wave.', 'Shonle and Horan, JASA (1980)', 'https://doi.org/10.1121/1.383733'],
-                    ['Vibrato comes with regular pulses in the muscles that stretch your vocal folds.', 'Hsiao, Solomon, Luschei and Titze, J. Voice (1994)', 'https://iro.uiowa.edu/esploro/outputs/journalArticle/Modulation-of-fundamental-frequency-by-laryngeal/9984719752102771'],
+                    ['Classical singers\' vibrato usually runs about 5.5 to 7 a second.', 'Prame, JASA (1994)', ['prame', 'sundberg']],
+                    ['On a held note, listeners hear the pitch at the middle of the wave.', 'Shonle and Horan, JASA (1980)', ['shonle']],
+                    ['Vibrato comes with regular pulses in the muscles that stretch your vocal folds.', 'Hsiao, Solomon, Luschei and Titze, J. Voice (1994)', ['hsiao']],
+                ],
+                // What the app counts as straight, vibrato and wobble: its own measure (VibratoPage, web/js/vibrato.js).
+                'app_measure' => 'To the app, a wave narrower than ±:straight cents is straight, and a vibrato runs :r1 to :r2 waves a second at ±:w1 to ±:w2 cents. Slower than :r1 a second, or wider than ±:w2 cents, is a wobble; faster than :r2 is a tremble.',
+                'big' => [
+                    'to' => 'to',
+                    'line' => 'waves a second, in a classical singer\'s vibrato',
+                    'strip' => 'One second: :n waves, the average of ten singers',
+                    'start' => '0',
+                    'end' => '1 s',
+                ],
+                'years_lead' => 'Every lesson ends with one sourced fact. These are the ones that carry a year, each with the lesson that tells it.',
+                'years_told' => 'Told in :lesson',
+                'years' => [
+                    'vib-4-switch' => '1756',
+                    'vib-3-yours' => '1778',
+                    'vib-4-style' => 'About 1900',
+                    'vib-1-hear' => 'The 1930s',
+                    'vib-1-laser' => '1987',
+                    'vib-2-echo' => '2011',
+                    'vib-4-bloom' => '2015',
+                ],
+                'sources' => [
+                    'prame' => ['Prame, "Measurements of the vibrato rate of ten singers", JASA 96 (1994)', 'https://doi.org/10.1121/1.410141'],
+                    'sundberg' => ['Sundberg, "Acoustic and psychoacoustic aspects of vocal vibrato", in Dejonckere, Hirano and Sundberg (eds.), Vibrato, Singular (1995)', null],
+                    'shonle' => ['Shonle and Horan, "The pitch of vibrato tones", JASA 67 (1980)', 'https://doi.org/10.1121/1.383733'],
+                    'hsiao' => ['Hsiao, Solomon, Luschei and Titze, "Modulation of fundamental frequency by laryngeal muscles during vibrato", J. Voice 8 (1994)', 'https://iro.uiowa.edu/esploro/outputs/journalArticle/Modulation-of-fundamental-frequency-by-laryngeal/9984719752102771'],
                 ],
                 'who' => [
                     'Singers whose long notes sound flat and lifeless, or shaky.',
@@ -8493,7 +8680,7 @@ return [
                     ['What does it cost?', 'Nothing: every course is free. Try the first lesson without an account; a free account opens the rest.'],
                 ],
                 'related' => ['breath-and-stamina', 'perfect-your-pitch', 'pop-and-country'],
-                // The featured demo (js/public/vibrato.js): Straight, wave, wobble, from the love-letter pack.
+                // The demo (js/public/vibrato.js), on this page and in the Voice teachers page's demo slot.
                 'demo' => [
                     'kick' => 'Now playing',
                     'lesson' => 'Over a drone',
@@ -8514,14 +8701,14 @@ return [
                     'ready' => 'Press one to hear it. Move the sliders while it holds.',
                     'say_straight' => 'Straight: one pitch, held still.',
                     'say_wave' => 'A vibrato: 6 waves a second, 50 cents either side.',
-                    'say_wobble' => 'A wobble: 4 waves a second, 150 cents either side. Is the note still clear?',
+                    'say_wobble' => 'A wobble: about 4 waves a second, uneven, 120 to 150 cents either side. Is the note still clear?',
                     'say_own' => 'Your wave: :rate a second, :width cents either side.',
+                    'say_bloom' => 'Straight for a moment, then a wave of 6 a second blooms to 50 cents either side.',
                     'after' => 'Could you still hear, and sing back, the note each time?',
                     'note' => 'In the course, the app draws your own voice\'s wave and measures how fast and how wide it is.',
                 ],
-                // The lake's labels, one a section, and the close.
-                'kicks' => ['still' => 'Still water', 'surfaces' => 'Three surfaces', 'calm' => 'Calm water', 'stones' => 'Stepping stones', 'wade' => 'Wade in', 'ripples' => 'Ripples', 'bank' => 'On the bank', 'questions' => 'Questions', 'close' => 'Let it come', 'under' => 'Under the surface'],
-                'try_first' => 'Start here.',
+                // The page's running labels, one a section, and the close.
+                'kicks' => ['surfaces' => 'Three surfaces', 'stones' => 'Stepping stones', 'wade' => 'Wade in', 'bank' => 'On the bank', 'questions' => 'Questions', 'close' => 'Let it come', 'under' => 'Under the surface', 'years' => 'Upstream'],
                 'close' => 'Lesson 1 takes about three minutes: swing your voice, settle on one easy note, and watch your voice drawn as you sing.',
             ],
             'range-and-registers' => [
@@ -8604,10 +8791,18 @@ return [
                 // The love letter (docs/courses/range-love-letter.md): only its facts, each with its notes.
                 'love' => [
                     // The hero's picture: a keyboard from B flat 1 to C7, the famous notes marked.
+                    // Each section's label: its note and hertz, worked out at A4 = 440 (App\Support\Pages\RangeAndRegistersPage).
+                    'marker' => ':note · :hz Hz',
+                    // The twelve note names from C, spaced.
+                    'letters' => 'C C♯ D E♭ E F F♯ G A♭ A B♭ B',
+                    'hero' => '{low}Low{/low} to {high}high{/high}, in one voice.',
+                    'hero_lead' => 'As you sing higher, your voice changes how it vibrates: {chest}chest voice low{/chest}, {head}head voice high{/head}, and a stretch in the middle where either will do. Find your easy range and your break, then cross it without a jump.',
+                    'join' => 'Find your {chest}easy{/chest} {head}range.{/head}',
                     'span' => [
-                        'low' => 'B♭1 · 58 Hz',
-                        'high' => 'C7 · 2,093 Hz',
-                        'legend' => ['Low: the basses\' B♭1 in Rachmaninoff\'s Nunc dimittis, and Osmin\'s D2', 'Middle C (C4)', 'High: the Queen of the Night\'s F6, and Agujari\'s C7'],
+                        'low_say' => 'The basses\' B♭1 in Rachmaninoff\'s Nunc dimittis, and Osmin\'s D2',
+                        'high_say' => 'The Queen of the Night\'s F6, and Agujari\'s C7',
+                        'middle' => 'Middle C · C4',
+                        'break' => 'The break · varies by voice',
                         'note' => '62 semitones, just over five octaves, across different singers.',
                     ],
                     'kicks' => [
@@ -8618,13 +8813,16 @@ return [
                         'first' => 'Lesson 1',
                         'notes' => 'Margin notes',
                         'kit' => 'Before you begin',
-                        'close' => 'Begin low and easy',
+                        'close' => 'Back to the bottom · begin low and easy',
                     ],
                     // The featured demo (js/public/range-and-registers.js): the pack's "Two series, one note".
                     'demo' => [
                         'live' => 'Live demo',
                         'tag' => 'No mic, just listen',
                         'title' => 'Up in chest, down in head',
+                        'title_h' => 'Up in {chest}chest{/chest}, down in {head}head{/head}',
+                        'up' => 'Up in chest',
+                        'down' => 'Down in head',
                         'lead' => 'In 1837 Müller drew two distinct series of tones from one larynx, and Garcia wrote that a number of notes can be sung in either register. Here a synth voice climbs a scale in a full, buzzy chest tone and comes back down in a light, hooty head tone.',
                         'how' => 'The shaded band is where either will do. Going up, the voice stays in chest to the band\'s top; coming down, it stays light to the band\'s bottom. Where the band sits differs from voice to voice, so move it to fit yours.',
                         'play' => 'Up and back down',
@@ -8644,6 +8842,11 @@ return [
                         'title' => 'A register is a way of vibrating',
                         'lead' => 'As you sing up and down, your vocal folds don\'t just speed up. Every so often they change how they vibrate. Each way of vibrating gives a stretch of notes with one kind of sound: that stretch is a register.',
                         'four' => 'Researchers who recorded the moments voices switch, in men and women, trained and untrained, found four mechanisms, numbered M0 to M3. Going up into the next one, the pitch jumps and the folds seem to vibrate with less mass.',
+                        'fig1' => 'Fig. 1 · Four mechanisms, low to high',
+                        'approx' => 'Approximate, varies by voice',
+                        'fig1_note' => 'A sketch, not a measurement: the regions overlap, and where each begins and ends varies from voice to voice. Some notes can be sung in more than one.',
+                        'low' => 'Low notes',
+                        'high' => 'High notes',
                         'mechanisms' => [
                             ['M0', 'Vocal fry', 'The lowest. The folds are short and slack, and very little air flows.'],
                             ['M1', 'Chest voice', 'One muscle, the thyroarytenoid, works while another relaxes: the folds grow short and thick.'],
@@ -8652,14 +8855,16 @@ return [
                         ],
                         'cord_title' => 'Longer and tighter means higher',
                         'cord' => 'In 1741 Ferrein showed with larynxes taken from the dead that a vocal cord behaves like a string. Half its length sounded the octave, and two thirds of it the fifth. A change of just two to three "lines", an old, small unit of length, was enough for every pitch he got. That\'s why stretching the folds takes you up.',
+                        'fig2' => 'Fig. 2 · Ferrein\'s cord, 1741',
+                        'cord_parts' => ['1', '⅔', '½'],
                         'cords' => ['The whole cord: the note', 'Two thirds: a fifth up (five notes up the scale, counting the first)', 'Half: an octave up (the same note, higher)'],
                         'hear' => 'Hear the three',
                         'short_title' => 'Why some voices seem short',
                         'short' => 'Voice scientists give a typical case from teaching: an amateur whose range is limited because they are "stuck" in chest voice. Learning to reach head voice, and to switch into it, is what opens the notes above.',
                     ],
                     'archive' => [
-                        'title' => 'How the registers were found',
-                        'more' => 'Four more, 1781 to 1883',
+                        'title' => 'How the registers were {em}found{/em}',
+                        'plate' => ':place · Pl. :n',
                         'rows' => [
                             ['1741', 'Paris', 'Strings in the throat', 'The anatomist Antoine Ferrein drew notes from larynxes taken from the dead, and showed that the note changed with the length and tension of the vocal cords. He was the first to publish the term "vocal cords", comparing them to a violin\'s strings set going by the air. In 1745 Bertin answered that they were really folds, not cords.', ['bjorl']],
                             ['1770', 'Parma', '"C in altissimo"', 'The Mozarts, father and 14-year-old son, supped with the singer Lucrezia Agujari, "la Bastardella". Wolfgang wrote to his sister that she had "an incredibly high compass", and copied her passages into the letter: they climb to C7, three octaves above middle C. Leopold could not have believed she sang "to C in altissimo" had he not heard it "with my own ears".', ['mozart70', 'grove-agujari', 'jahn']],
@@ -8669,6 +8874,12 @@ return [
                             ['1883', 'London', 'A singer photographs his own larynx', 'The voice teacher Emil Behnke and the throat surgeon Lennox Browne printed photographs of Behnke\'s larynx "in the act of singing". Strange double outlines puzzled them, until Browne compared a photograph with Behnke\'s real larynx: the photograph "was right, and the conventional image wrong."', ['behnke']],
                         ],
                     ],
+                    // The band between the archive and the two ends: the break, chest below and head above.
+                    'break' => ['chest' => 'Chest', 'head' => 'Head', 'line' => 'The break: the place your voice changes from a heavier sound to a lighter one.'],
+                    // The climb's units: what each one works on.
+                    'unit_kinds' => ['Chest', 'The break', 'Head', 'One voice'],
+                    // Lesson 1's steps: down, up, and the safety line.
+                    'step_marks' => ['↓', '↑', '!'],
                     // The second demo: the two ends, low tones built from their harmonics for a phone's speaker.
                     'ends' => [
                         'title' => 'Five octaves, many voices',
@@ -8681,18 +8892,16 @@ return [
                         'ready' => 'Press one. A meter shows each note\'s hertz, its vibrations a second.',
                         'hz' => ':n Hz',
                         'span' => 'B♭1 to C7',
-                        'span_hz' => '58 to 2,093 Hz',
+                        'span_hz' => ':low to :high Hz',
                         'say_hold' => 'Osmin\'s "Ruh\'": D2, held.',
                         'say_walk' => 'A scale an octave down, very softly, to B♭1, the note the Nunc dimittis basses end on.',
                         'say_climb' => 'Agujari\'s last run: up a C major chord from C5, softer as it climbs.',
                         'say_top' => 'C7: a fifth above the Queen of the Night\'s F6.',
                         'after' => 'Your own range is the one the course maps: only as low and as high as is easy.',
-                        'key' => ['Middle C', 'The low end', 'The high end'],
                         'note' => 'Phone speakers can\'t play notes this low, so each low tone here is built from its harmonics, the higher tones that ring inside every note, and your ear still hears the low pitch. The old singers sang at other pitch standards.',
                         'quote' => 'Leopold Mozart heard Agujari\'s top notes "somewhat softer than the deeper notes, but as clearly as an octave pipe in an organ".',
                     ],
-                    'facts_title' => 'In their own words',
-                    'facts_more' => 'Three more',
+                    'facts_title' => 'In their own {em}words{/em}',
                     'facts' => [
                         ['Garcia admitted his own register names, chest, medium and head, were wrong: "These names are incorrect, but accepted."', 'Garcia, Hints on Singing (1894)', ['hints']],
                         ['Asked why his charts gave several notes for where a register ends, Garcia answered: "Because the limits are not invariable and depend on the state of the vocal cords."', 'Garcia, Hints on Singing (1894)', ['hints']],
@@ -9390,7 +9599,7 @@ return [
                     'who' => 'Who it\'s for',
                     'need' => 'What you need',
                     'safety' => 'Singing it safely',
-                    'faq' => 'Questions',
+                    'faq' => 'Asked before the first note',
                     'join' => 'Start from do.',
                     'related' => 'Good with this course',
                 ],
@@ -9403,10 +9612,10 @@ return [
                 ],
                 'units_say' => [
                     'Lines and spaces, do as home, and steps, with the names under the notes, then faint, then gone.',
-                    'Skips through do, mi and so, the so below do, and Ode to Joy from the stave alone.',
-                    'How long each note lasts: beats, dots, quick notes and rests, counted in with clicks.',
+                    'Skips through do, mi and so, the so below do, and lines that mix steps and skips.',
+                    'How long each note lasts: beats, dots, quick notes and rests, counted in with clicks, and Ode to Joy\'s second line.',
                     'Up to la, the half steps mi to fa and ti to do, and short lines in minor with la as home.',
-                    'Key signatures, then the alto part of Michael, Row the Boat Ashore, read while the other parts sing.',
+                    'Key signatures with Amazing Grace, then the alto part of Michael, Row the Boat Ashore, read while the other parts sing.',
                 ],
                 'who' => [
                     'Choir singers who learn their parts by ear and want to read them.',
@@ -9428,40 +9637,70 @@ return [
                 'related' => ['ear-training', 'perfect-your-pitch', 'barbershop'],
                 // The guides that go with this course (SEO pass): listed with the related courses.
                 'guides' => ['practise-a-choir-part'],
-                'kicks' => ['story' => 'The story', 'aims' => 'Do is home', 'units' => 'The lessons', 'science' => 'The science', 'margin' => 'Margin notes', 'inside' => 'Listening', 'begin' => 'Before you begin', 'questions' => 'Questions', 'close' => 'Your first line'],
+                // Each section's label, after its note of the scale (the page climbs do to ti, and the close is the high do).
+                'kicks' => ['demo' => 'Try it', 'story' => 'The story', 'aims' => 'Do is home', 'units' => 'The lessons', 'science' => 'The science', 'margin' => 'What the app listens for', 'begin' => 'Before you begin', 'questions' => 'Questions', 'close' => 'The top of the ladder · your first line'],
                 'close' => 'Lesson 1 takes five lines and do: watch a short line light up over a drone on do, then sing it back.',
                 'love' => [
                     'eyebrow' => 'A free course · :lessons lessons',
                     'chips' => [':units units, :lessons lessons', 'Names under the notes, then faint, then off', 'Ends with your part in a choir'],
                     // The hero's sol-fa ladder: the scale as rungs, do at the foot and the top.
                     'names' => ['do', 're', 'mi', 'fa', 'so', 'la', 'ti'],
-                    'ladder' => ['home' => 'Do, home', 'half' => 'A half step: closer rungs'],
+                    'ladder' => ['title' => 'The sol-fa ladder', 'tap' => 'Tap a rung', 'home' => 'Do, home', 'half' => 'A half step: closer rungs', 'rung' => 'Hear :name'],
                     'ladder_note' => 'Sarah Glover\'s pupils in Norwich sang sol-fa notes pointed out on a chart, her "Norwich sol-fa ladder".',
                     'ladder_alt' => 'The scale as a ladder of eight rungs, do at the foot and at the top; mi to fa and ti to do are half steps, so those rungs sit closer.',
-                    // Find do (js/public/sight-singing.js): a drone on do under a short original line, in C or G.
+                    // Find do (js/public/sight-singing.js): a drone on do under the course's own line (SightSingingPage::demo),
+                    // in C, D, F or G.
                     'demo' => [
                         'live' => 'Live demo',
-                        'lesson' => 'Lesson 1 · Do on the stave',
-                        'key_c' => 'Key of C',
-                        'key_g' => 'Key of G',
+                        'lesson' => 'Lesson :n · :name',
+                        'keys' => ['c' => 'Key of C', 'd' => 'Key of D', 'f' => 'Key of F', 'g' => 'Key of G'],
                         'title' => 'Find do',
-                        'lead' => 'A drone holds do, the first note of the scale, under a short line. It moves by steps, with one small leap from mi, the third note of the scale, down to do. Play it, then tap the note that is do. Then hide the names and try a new key: do moves on the stave, and the tune sounds the same, only higher.',
+                        'title_em' => 'do',
+                        'lead' => 'A drone holds do, the first note of the scale, under a line from the course. It starts on mi, climbs to so and steps back down to do. Play it, then tap the note that is do. Then hide the names and try a new key: do moves on the stave, and the tune sounds the same, only higher or lower.',
+                        'guido' => 'Guido\'s colours: the F line red, the C line yellow.',
                         'play' => 'Play the line',
                         'stop' => 'Stop',
                         'new_key' => 'New key',
                         'names' => 'Names under the notes',
-                        'stave' => 'The line on a stave: six notes, each one a button.',
+                        'stave' => 'The line on a stave: seven notes, each one a button.',
                         'note_n' => 'Note :n',
                         'ready' => 'Start the line to hear it over a drone on do, then tap the note that is do.',
                         'playing' => 'The drone is do. Watch each note light as it\'s sung.',
                         'after' => 'Which note matched the drone? Tap it.',
                         'right_c' => 'Yes, that\'s do, the first note of the scale and home. In C it sits on the short line below the stave.',
+                        'right_d' => 'Yes, that\'s do. In D it sits just under the stave, with two sharps at the start.',
+                        'right_f' => 'Yes, that\'s do. In F it sits in the bottom space, with one flat at the start.',
                         'right_g' => 'Yes, that\'s do. In G it sits on the second line up, with one sharp at the start.',
                         'wrong' => 'That\'s :name. Listen: do is the note that matches the drone.',
+                        'moved_d' => 'Now in D: two sharps at the start, and every note sits a step higher. Where\'s do now?',
+                        'moved_f' => 'Now in F: one flat at the start, and every note sits higher. Where\'s do now?',
                         'moved_g' => 'Now in G: one sharp at the start, and every note sits higher. Where\'s do now?',
                         'moved_c' => 'Back in C: no sharps or flats. Where\'s do?',
                         'note' => 'No mic here: the demo only plays. In the course, the app listens as you sing each line.',
                     ],
+                    // The story's heading line, and each bar's own notation: Guido's two lettered lines, the four syllables of the
+                    // singing schools, the shape-note heads with their syllables, Curwen's letter sol-fa (beats by colons, bars by
+                    // strokes), Kodály's rhythm names over sol-fa letters, and numbers beside syllables.
+                    'story_sub' => 'Six bars, six ways people have written down where a note goes.',
+                    'bar' => 'bar :n',
+                    'figures' => [
+                        'guido' => ['c', 'f'],
+                        'fasola' => ['fa', 'sol', 'la', 'mi'],
+                        'curwen' => 'd :r |m :f |s :- ||',
+                        'kodaly' => [['ta', 's'], ['ti-ti', 'm m'], ['ta', 's'], ['ta', 'l'], ['ta-a', 's']],
+                        'numbers' => ['1', '2', '3', '1'],
+                        'syllables' => ['do', 're', 'mi', 'do'],
+                    ],
+                    // The outcomes rise do to so; the step from mi to fa is the half step.
+                    'half_step' => 'half step',
+                    // Each unit's reach, beside its number.
+                    'ranges' => ['do to so', 'so below do', 'in time', 'up to la', 'in harmony'],
+                    'hero_em' => 'sing',
+                    'units_em' => 'do',
+                    'join_em' => 'do.',
+                    'for_you' => 'For you if',
+                    'board' => ['name' => 'Hymn board', 'note' => 'Numbers are the unit each song is sung in.'],
+                    'hear_do' => 'Hear do',
                     // The story, from the research pack (docs/courses/sight-singing-love-letter.md): [when, title, text, notes].
                     'story' => [
                         ['About 1025', 'Lines a third apart', 'Guido of Arezzo set chant on lines a third apart, marked with letters, so a singer could see how far each note moved. In 1028 he brought his book of chants to Pope John XIX, who was delighted to find he could learn its melodies without a teacher.', ['guido', 'advent']],
@@ -9731,7 +9970,6 @@ return [
                 'ring' => [
                     'lead' => 'Two notes a little apart beat: a slow wah-wah. The beats slow down as you get closer, and stop when you\'re there.',
                     'body' => 'The beat rate is exactly the gap between the two notes: two notes 3 hertz apart beat three times a second.',
-                    'apart' => 'A little apart: beats',
                     'there' => 'Right there: still',
                 ],
                 'units_say' => [
@@ -9763,20 +10001,20 @@ return [
                 'faq' => [
                     ['How long does it take?', '17 lessons of about 3 minutes, under an hour in all. Pitch settles with practice, so short, regular sessions help most.'],
                     ['Will this give me perfect pitch?', 'No. It trains relative pitch: landing on a note, holding it, and tuning to a drone. That\'s what singing in tune needs. Absolute pitch is rare, and the course doesn\'t promise it.'],
-                    ['Is it safe for my voice?', 'Yes. Pitch comes from breath and listening, never from squeezing. Keep headphones at a moderate volume, and stop if anything tightens or hurts.'],
-                    ['Do I need to read music?', 'No. You hear each note, sing it back, and see where it landed.'],
+                    ['Is it safe for my voice?', 'Yes, sung at a comfortable volume. Pitch comes from breath and listening, never from squeezing. Keep headphones at a moderate volume, stop if anything tightens, tickles or hurts, and don\'t practise when hoarse or ill.'],
+                    ['Do I need to read music?', 'No. Your notes land as darts on the board, and the drone is a sound to tune to.'],
                     ['What does it cost?', 'Nothing: every course is free. Try the first lesson without an account; a free account opens the rest.'],
                 ],
                 'related' => ['ear-training', 'vibrato', 'barbershop'],
                 // The guides that go with this course (SEO pass): listed with the related courses.
                 'guides' => ['singing-in-tune'],
                 // The range's labels, one a section, and the close.
-                'kicks' => ['aim' => 'Aim', 'anchor' => 'The anchor point', 'target' => 'On target', 'ends' => 'Four ends', 'first' => 'First arrows', 'range' => 'From the range', 'kit' => 'Your kit', 'questions' => 'Questions', 'close' => 'Take aim'],
+                'kicks' => ['aim' => 'Aim', 'anchor' => 'The anchor point', 'target' => 'On target', 'ends' => 'Four ends', 'first' => 'First arrows', 'readout' => 'The readout', 'range' => 'From the range', 'kit' => 'Your kit', 'questions' => 'Questions', 'close' => 'Take aim'],
                 'end_n' => 'End :n',
                 'try_first' => 'Start here.',
                 'close' => 'Lesson 1 takes about three minutes: the guide sings a note, you echo it, and each echo lands on the board.',
                 'love' => [
-                    'eyebrow' => 'A free course · :lessons lessons',
+                    'eyebrow' => 'A free course · :lessons lessons · :units ends',
                     'chips' => [':lessons lessons, about 3 minutes each', 'Under an hour in all', 'No reading music'],
                     // Bullseye, live: lesson 1's game on the page, the mic opt-in (Hillel, 2026-10-30: "Allow, opt-in").
                     'demo' => [
@@ -9804,6 +10042,8 @@ return [
                         'why_denied' => 'The mic wasn\'t allowed, so here it is by ear.',
                         'why_no_mic' => 'No mic was found, so here it is by ear.',
                         'why_unsupported' => 'This browser can\'t listen here, so here it is by ear.',
+                        // The board before anyone sings: a sample round, said so on the board.
+                        'sample' => 'Sample round, not your voice',
                     ],
                     'pull' => [
                         'title' => 'Pull it in',
@@ -9816,9 +10056,58 @@ return [
                         'won' => ':off, held in the gold.',
                         'again' => 'Play again',
                     ],
-                    'beats' => ['play' => 'Hear 3 Hz, then in tune', 'apart' => '3 Hz', 'there' => '0 Hz'],
-                    'anchor' => ['you' => 'Your anchor', 'steps' => 'Each step up the scale'],
-                    'ends' => ['kick' => 'Four ends · :units units, :lessons lessons', 'count' => ':n lessons'],
+                    // The cents ruler under the hero.
+                    'ruler' => ['flat' => '−50¢ flat', 'zero' => '0 · in tune', 'sharp' => 'sharp +50¢', 'label' => 'Cents, from 50 flat to 50 sharp; 0 is in tune.'],
+                    // Your scorecard: the outcomes, one an end, each with its unit.
+                    'scorecard' => 'Your scorecard · one aim per end',
+                    // The rings, end by end (the board's: gold, red, blue, black).
+                    'rings' => ['Gold', 'Red', 'Blue', 'Black'],
+                    // The beats: a slider sets the gap and redraws one second of the two notes; Play sounds it, then in tune.
+                    'beats' => [
+                        'play' => 'Hear :n Hz, then in tune',
+                        'play_still' => 'Hear them in tune',
+                        'pair' => '220 Hz + :f Hz',
+                        'hz' => ':n Hz',
+                        'rate' => ':n beats a second',
+                        'rate_one' => '1 beat a second',
+                        'gap' => 'Gap',
+                        'hint' => 'Drag toward 0 and listen for the wah-wah to slow.',
+                        'hint_still' => 'No beats: the two notes are one.',
+                        'drawn' => 'One second of the two notes sounding together.',
+                    ],
+                    // The anchor point's ladder: do to high do at their real heights; a step plays the anchor, then it.
+                    'anchor' => [
+                        'tap' => 'Tap a step to hear it from the anchor',
+                        'axis' => 'Semitones · your anchor is do',
+                        'half' => 'Half steps: mi to fa, ti to do',
+                        'sol' => ['do', 're', 'mi', 'fa', 'so', 'la', 'ti', 'do'],
+                        'step' => 'Hear do, then :name, :n semitones up',
+                        'home' => 'Hear do, your anchor',
+                    ],
+                    'ends' => ['kick' => 'Four ends · :units units, :lessons lessons', 'count' => ':n lessons', 'lead' => 'In archery an end is one round of arrows. Each one here works outward from the gold.'],
+                    // A clean landing: the two starts as pitch over time, each playable.
+                    'traces' => [
+                        'scoop' => 'Scoop',
+                        'scoop_tag' => 'slid up from −95¢',
+                        'clean' => 'Clean',
+                        'clean_tag' => 'right on it',
+                        'axis' => 'Pitch over time · the gold is the note',
+                        'hear_scoop' => 'Hear the scoop',
+                        'hear_clean' => 'Hear it clean',
+                    ],
+                    // The readout: what one round measures, as a sample (said so), with the serious skin's plain measure.
+                    'readout' => [
+                        'sample' => 'A sample round',
+                        'clean' => 'clean',
+                        'meters' => [
+                            ['Where it lands', 'Each note against the guide, in cents.'],
+                            ['Slid in?', 'Whether the note started low and scooped up.'],
+                            ['Drone lock', 'How close you hold to the drone.'],
+                            ['Long-note sag', 'Whether a held note drifts flat as it goes.'],
+                        ],
+                    ],
+                    // From the range: each fact's short label.
+                    'fact_tags' => ['The drone', 'The tone', 'The bells'],
                     // From the range: each fact with its source's short name and its notes (`sources`).
                     'facts' => [
                         ['In Indian classical music a tanpura plays only a drone, the home note and its fifth, under the whole performance, and the singer chooses that home note.', 'Britannica, Tambura', ['tanpura']],
@@ -9897,11 +10186,45 @@ return [
                     ['What does it cost?', 'Nothing: every course is free. Try the first lesson without an account; a free account opens the rest.'],
                 ],
                 'related' => ['improvising-harmony', 'ear-training', 'pop-and-country'],
-                'kicks' => ['story' => 'The story', 'aims' => 'Long, short', 'units' => 'The lessons', 'science' => 'The science', 'margin' => 'Liner notes', 'begin' => 'Before you begin', 'questions' => 'Questions', 'close' => 'Your first trade'],
+                // Each section's label, a record's: the side, the track or the sleeve it's on.
+                'kicks' => ['story' => 'The story · Side A', 'aims' => 'Four bars · Long, short', 'units' => 'The lessons · A four-record set', 'science' => 'The science', 'margin' => 'Liner notes · Side B', 'inside' => 'What the app listens for', 'begin' => 'Before you begin · Personnel', 'questions' => 'Questions', 'close' => 'Your first trade', 'sources' => 'Discography and studies'],
                 'close' => 'Lesson 1 is a trade: the band plays two bars, you sing them back on syllables, and end on any lit note.',
                 'story_lead' => 'Five records, from the blues\' twelve bars to three singers stacking their own voices into a band.',
                 'love' => [
                     'eyebrow' => 'A free course · :lessons lessons',
+                    // The record's catalogue number (SC-16 for the course's sixteen lessons, SC-01 for unit 1).
+                    'catalogue' => 'SC-:n',
+                    // The hero's three syllables, each drawn as a long, a short and a clean bar.
+                    'syllables' => [['doo', 'Long'], ['bah', 'Short'], ['dat', 'Clean']],
+                    // The hero's record: its sleeve's label and the disc's.
+                    'sleeve' => ['label' => 'Stackapella Records', 'side' => 'Side A', 'bars' => '12 bars'],
+                    // The four sleeves' and the liner notes' small print.
+                    'unit_count' => ':units units · :lessons lessons',
+                    'notes_by' => 'Notes by the course team',
+                    // What the app listens for, a line a check.
+                    'listens' => [
+                        'lead' => 'The app hears each note you sing:',
+                        'yes' => ['whether it falls on the swung beat', 'whether it\'s on pitch', 'whether the note you land on is one of the lit notes that fit the chord'],
+                        'no' => 'It doesn\'t check your syllables.',
+                    ],
+                    'who_h' => 'Vocals · You, if you\'re',
+                    // The story's records as Side A's tracks: A1 to A5.
+                    'track' => 'A:n',
+                    // The science's small drawings: their row labels.
+                    'drawn' => [
+                        'drums' => 'Drums', 'soloist' => 'Solo',
+                        'cleaned' => 'Cleaned', 'original' => 'Original', 'doubled' => 'Doubled',
+                        'bars' => '4 bars', 'you' => 'You', 'partner' => 'Partner',
+                        'blue' => 'The blue note, between the keys',
+                    ],
+                    // The close: lesson 1's trade, the band's call (its syllables a bar at a time, as the lesson sings
+                    // them) and your two bars.
+                    'trade' => [
+                        'band' => 'Band',
+                        'you' => 'You',
+                        'call' => ['doo bah doo bah doo bah', 'doo'],
+                        'alt' => 'A trade: the band plays two bars on syllables, then you sing two bars back.',
+                    ],
                     'chips' => [':units units, :lessons lessons', 'Every note that fits is lit', 'Ends with a chorus of your own'],
                     // The hero's chart: the twelve-bar blues in C, a chord a bar, coloured by its job.
                     'chart' => [
@@ -9918,7 +10241,7 @@ return [
                         'live' => 'Live demo',
                         'lesson' => 'Lesson 2 · Long, short',
                         'title' => 'Straight or swung?',
-                        'lead' => 'One scat line, eight notes up a C7 chord and back, at 120 beats a minute. Straight gives every note the same length. Swung makes each pair long, short, 2 to 1. Soloist is lighter, under 2 to 1, with each long note a touch late, the way soloists sit against the drummer. Same notes every time: only the timing changes.',
+                        'lead' => 'Lesson 2\'s own line, "doo-bah" on two notes, C and D, a bar of it twice round, landing on "doo", at 120 beats a minute over C7. Straight gives every note the same length. Swung makes each pair long, short, 2 to 1. Soloist is lighter, under 2 to 1, with each long note a touch late, the way soloists sit against the drummer. Same notes every time: only the timing changes.',
                         'play' => 'Play the line',
                         'stop' => 'Stop',
                         'feel' => 'Feel',
@@ -9927,13 +10250,13 @@ return [
                         'playing' => ['straight' => 'Straight: every note the same length.', 'swung' => 'Swung: long, short, doo-bah.', 'soloist' => 'Soloist: lighter, leaning back on the beat, together on the "and".'],
                         'ready' => 'Pick a feel and play the line. Watch the notes move when the feel changes.',
                         'after' => 'Same notes, same speed. Try another feel.',
-                        'syllables' => ['doo', 'bah', 'doo', 'bah', 'doo', 'bah', 'doo', 'dat'],
-                        'notes' => ['C', 'E', 'G', 'A', 'B♭', 'A', 'G', 'E'],
+                        'syllables' => ['doo', 'bah', 'doo', 'bah', 'doo', 'bah', 'doo', 'bah'],
+                        'notes' => ['C', 'D', 'C', 'D', 'C', 'D', 'C', 'D'],
                         'beats' => ['1', '2', '3', '4'],
                         'and' => '&',
                         'lane' => 'The line\'s eight notes, placed by when each starts and how long it lasts; higher notes sit higher.',
                         'note_n' => 'Note :n, :syllable on :note',
-                        'note' => 'The syllables are the kind a scat singer uses; the synth voice sings every note on "ah". The line plays twice over a soft C7 chord. The soloist\'s 33 ms is our own choice: the study measured the pattern, not this number. No mic here; in the course, the app listens as you sing.',
+                        'note' => 'The syllables are the lesson\'s; the synth voice sings every note on "ah". The line plays twice over a soft C7 chord, then lands. The soloist\'s 33 ms is our own choice: the study measured the pattern, not this number. No mic here; in the course, the app listens as you sing.',
                     ],
                     // The story, from the research pack (docs/courses/scat-love-letter.md): [when, title, text, notes].
                     'story' => [
@@ -10064,7 +10387,7 @@ return [
                     'No reading music: you learn every part by ear, from a guide voice.',
                 ],
                 'faq' => [
-                    ['How long does it take?', '17 short lessons. At one or two a day, you\'re singing tags in about two weeks.'],
+                    ['How long does it take?', ':n short lessons. At one or two a day, you\'re singing tags in about two weeks.'],
                     ['Do I need three other singers?', 'No. The app sings the other three, tuned to ring. In the last lesson, two of the voices are you.'],
                     ['Is it safe for my voice?', 'Yes, sung the course\'s way: straight, not squeezed, medium-soft, in short holds. Stop if anything tightens or hurts. It isn\'t a voice teacher.'],
                     ['Do I need to read music?', 'No. You learn each part by ear from a guide voice, and see its notes as shapes.'],
@@ -10078,13 +10401,19 @@ return [
                 'love' => [
                     'hero_title' => 'Four voices.',
                     'hero_title_2' => 'A fifth nobody sings.',
+                    // The ticket over the title: its stub, and the course with its lessons counted from the course.
+                    'ticket' => ['admit' => 'Admit one', 'line' => 'A free course · :n lessons'],
                     'hero_lead' => 'When four voices tune a chord so closely that it locks, the overtones line up and ring, and the air seems to buzz with a voice nobody is singing. Barbershoppers call it the fifth voice. This course teaches you to find it, one seat of the quartet at a time.',
                     'hear' => 'Hear it ring',
                     'stop' => 'Stop',
                     'ladder_note' => 'One deep note\'s overtones, evenly spaced as they are. A barbershop seventh stands on rungs 4, 5, 6 and 7.',
+                    // The ladder in the shop window: its sign, rung 1's name, and what lights on rung 8 when it rings.
+                    'ladder' => ['title' => 'The overtone ladder', 'sub' => 'one deep note, eight rungs', 'root' => 'the root', 'fifth' => 'the fifth voice'],
                     'wobble' => [
                         'kick' => 'Verse one',
                         'title' => 'Listen for the wobble.',
+                        'title_em' => 'wobble.',
+                        'third' => 'The third',
                         'lead' => 'Every sung note carries fainter, higher overtones. When two notes are tuned to simple ratios, their overtones land on the same pitches. A little off, and the near misses wobble: that wobble is called beating.',
                         'why' => 'A piano\'s major third is about 0.8 percent wide. Barbershoppers sing it about 14 cents lower, and the wobble stops.',
                         'try' => 'Play a chord with the piano\'s third, then slide the third down until the wobble stops.',
@@ -10099,6 +10428,10 @@ return [
                     'chord' => [
                         'kick' => 'The chorus',
                         'title' => 'The cornerstone chord.',
+                        'title_em' => 'chord.',
+                        // Under the cents, as the seventh is heard: tuned (at rest, and once it glides) or at the piano's pitch.
+                        'sung' => 'B flat as barbershop sings it: 31 cents under the piano',
+                        'played' => 'B flat as the piano plays it',
                         'lead' => 'The barbershop seventh stacks a root, a major third, a fifth and a minor seventh: C, E, G and B flat. Sung in tune, the B flat sits 31 cents lower than the piano\'s, and the four notes stand in the ratio 4 to 5 to 6 to 7, like the fourth to seventh overtones of one deep note.',
                         'tune' => 'Tune the seventh',
                         'how' => 'How the voices sound',
@@ -10111,6 +10444,7 @@ return [
                     'story' => [
                         'kick' => 'The bridge',
                         'title' => 'Whose sound this is.',
+                        'title_em' => 'this is.',
                         'lead' => 'Barbershop harmony was born in Black America. Here is how it came to be heard, and who was shut out of its revival.',
                         // [year, what happened, its sources (keys of 'sources')]
                         'beats' => [
@@ -10139,6 +10473,7 @@ return [
                     'inside' => [
                         'kick' => 'Verse two',
                         'title' => 'The melody from inside.',
+                        'title_em' => 'from inside.',
                         'lead' => 'In barbershop the lead sings the tune as the second voice from the top, with the tenor floating above. The other three tune around the lead, so the chords lock. In unit 3 you sing each seat of this chorus of Down by the Old Mill Stream, with the other three as guides. Tap a part to hear it brought forward, then all four, and hear the tune hide in the middle.',
                         'all' => 'All four',
                         'all_job' => 'All four evenly: the tune is still there, second from the top, with the chord locked around it.',
@@ -10154,7 +10489,11 @@ return [
                     ],
                     'bill' => [
                         'kick' => 'Tonight\'s bill',
-                        'title' => 'Sixteen short lessons, in four acts.',
+                        // :count and :acts are the course's own lessons and units, in words.
+                        'title' => ':count short lessons,',
+                        'title_em' => 'in :acts acts.',
+                        'presents' => 'Stackapella presents',
+                        'foot' => 'Admission free · Headphones recommended',
                         'act' => 'Act :n',
                         'free' => 'Start here',
                         'no' => 'No. :n',
@@ -10162,6 +10501,11 @@ return [
                     ],
                     'hears' => [
                         'readout' => '6 cents high: let it fall',
+                        // The meter beside it: a held note just above the band where it rings.
+                        'note' => 'Your note · baritone',
+                        'holding' => 'Holding',
+                        'rings' => 'Rings',
+                        'fall' => 'let it fall',
                     ],
                     'rules' => [
                         'kick' => 'House rules',
@@ -10408,7 +10752,7 @@ return [
                             ['1948', 'New Orleans to Chicago', 'A little higher', 'Mahalia Jackson was born in New Orleans on 26 October 1911 and grew up in a strict, religious household. At sixteen she moved to Chicago and began singing professionally, and in the early 1940s she worked with Thomas A. Dorsey. Her breakout came in 1948 with "Move on up a Little Higher". She sang at the 1963 March on Washington and died on 27 January 1972.', ['parishes']],
                         ],
                     ],
-                    'facts_more' => 'Five more',
+                    'facts_more' => 'Four more',
                     'facts' => [
                         ['For a while, any new gospel-blues song, whoever wrote it, was called "a Dorsey", until Thomas A. Dorsey coined the name "gospel" himself, so his Georgia marker says.', 'Georgia Historical Society marker (1994)', ['ghs']],
                         ['Queen Victoria gave the Fisk Jubilee Singers a large portrait of the group by her court painter, Edmund Havell. It hangs in Jubilee Hall, the building their singing paid for.', 'The National Archives (UK)', ['tna']],
@@ -10543,9 +10887,27 @@ return [
                     'stop' => 'Stop',
                     'quiet' => 'Sound is off until you press play. Every call comes back as an echo.',
                     'art_note' => 'A call in two voices: chest voice low and warm, head voice high and light, and the valley answering.',
-                    // Game mode's HUD: the flips count up as the call plays, then its echo.
-                    'hud' => ['up' => '1UP', 'flips' => 'Flips', 'world' => 'World 1-1', 'echo' => 'Echo x2'],
                     'lanes' => ['head' => 'Head', 'chest' => 'Chest'],
+                    // The hero's signpost: the course's board (its lessons and minutes, from its own file), a yellow sign
+                    // per unit, and the white-red-white tip of a mountain path on the harder two.
+                    'sign' => [
+                        'size' => ':lessons lessons · about :minutes min',
+                        'summit' => ':unit · Summit',
+                        'mountain' => 'White-red-white tip: a mountain path, the harder stretch',
+                        'key' => 'Yellow tip: a path. White-red-white: a mountain path, the harder stretch.',
+                    ],
+                    // The climb, section by section: real places on the marked route from Wasserauen by the Seealpsee,
+                    // Meglisalp and the Rotsteinpass to the Säntis, starting from Gonten (the Roothuus's village), each
+                    // [place and height, its sources]. A section not named here shows its trail marker alone.
+                    'alt' => [
+                        'hero' => ['Gonten, Appenzell · 902 m', ['gonten']],
+                        'story' => ['Seealpsee · 1,142 m', ['seealpsee', 'route']],
+                        'horn' => ['Meglisalp · 1,517 m', ['meglisalp', 'route']],
+                        'trail' => ['Rotsteinpass · 2,119 m', ['rotstein', 'route']],
+                        'summit' => ['Säntis · 2,502 m', ['saentis']],
+                    ],
+                    // The panorama under the hero: the two voices as altitudes, the call and its echo.
+                    'pano' => ['head' => 'Head voice', 'head_where' => 'above the treeline', 'chest' => 'Chest voice', 'chest_where' => 'the valley floor', 'call' => 'the call', 'echo' => 'its echo'],
                     'throat' => [
                         'kick' => 'Head voice',
                         'title' => 'Two voices in one throat.',
@@ -10553,6 +10915,7 @@ return [
                         'break' => 'Between them, many voices can\'t glide. They jump. Voice scientists model the vocal folds as having two settled ways of vibrating, and a tiny change in breath or tension tips them from one to the other, faster than a deliberate muscle move. Most singing lessons teach you to hide that break. A yodel shows it off.',
                         'same' => 'Same leap, two voices',
                         'the_break' => 'the break',
+                        'top' => ['chest' => 'Chest', 'head' => 'Head'],
                         'bonus' => 'Clean flip +100',
                         'one_voice' => 'In one voice',
                         'flipped' => 'Flipped',
@@ -10589,9 +10952,10 @@ return [
                     'world' => [
                         'kick' => 'Not only the Alps',
                         'lines' => [
-                            ['Yodel-like singing is heard in Albania and Georgia, in the highlands of Papua New Guinea and on the Solomon Islands.', ['swissinfo']],
-                            ['In western Georgia, a high falsetto sings the krimanchuli over the other parts. UNESCO singles it out in the song Chakrulo, which flies on the Voyager Golden Record.', ['polyphony', 'unesco', 'nasa']],
-                            ['Seoul\'s first yodeling club opened in 1969, and a Korean Yodel Association followed in 1979.', ['swissinfo']],
+                            // [where, what, its sources]
+                            ['Albania · Georgia · Papua New Guinea · Solomon Islands', 'Yodel-like singing is heard in Albania and Georgia, in the highlands of Papua New Guinea and on the Solomon Islands.', ['swissinfo']],
+                            ['Western Georgia · krimanchuli', 'In western Georgia, a high falsetto sings the krimanchuli over the other parts. UNESCO singles it out in the song Chakrulo, which flies on the Voyager Golden Record.', ['polyphony', 'unesco', 'nasa']],
+                            ['Seoul', 'Seoul\'s first yodeling club opened in 1969, and a Korean Yodel Association followed in 1979.', ['swissinfo']],
                         ],
                     ],
                     'horn' => [
@@ -10600,6 +10964,8 @@ return [
                         'lead' => 'An alphorn plays only its natural notes, the overtones of one long tube. The eleventh, the "alphorn fa", lands about 551 cents above the C below it: almost exactly between F and F sharp, where no piano key sits.',
                         'play' => 'Hear the alphorn\'s notes',
                         'between' => 'between F and F sharp',
+                        'scale' => 'Natural notes 8 to 12 of one tube, in cents above C',
+                        'nokey' => 'no key here',
                         'note' => 'Is the yodel a sung alphorn? Early 19th-century composers such as Ferdinand Fürchtegott Huber and Johann Heinrich Tobler wrote alphorn motifs into yodel songs on purpose, but a study funded by the Swiss National Science Foundation found some influence, varying by region and era, but no consistent one.',
                         'cites' => ['myswitzerland', 'hslu19'],
                     ],
@@ -10609,6 +10975,8 @@ return [
                         'big_line' => 'Naturjodel in the Roothuus Gonten archive, which its director calls Switzerland\'s largest.',
                         'lead' => 'Yodelers in the Alpstein region carry 15 to 30 wordless yodels in their heads, on average, and the first few notes are enough to set one going.',
                         'loba' => 'The herders\' Ranz des vaches repeats the call "loba" again and again, names the cows one by one, and adds made-up verses about the herder\'s life.',
+                        // The call as the source writes it, fading like an echo beside the archive's number.
+                        'echo' => ['loba,', 'loba,', 'loba,', 'loba'],
                     ],
                     'trail' => [
                         'kick' => 'The trail',
@@ -10646,6 +11014,13 @@ return [
                         'nasa' => ['NASA, the Golden Record\'s music', 'https://science.nasa.gov/mission/voyager/golden-record-contents/sounds/'],
                         'hslu19' => ['HSLU (2019), Alphorn und Jodel', 'https://hslu.ch/en/lucerne-university-of-applied-sciences-and-arts/about-us/media/medienmitteilungen/2019/12/11/alphorn-und-jodel-eine-greifbare-aber-unstete-wechselbeziehung'],
                         'ranz' => ['swissinfo, Ranz des vaches', 'https://www.swissinfo.ch/eng/culture/ranz-des-vaches/7685444'],
+                        'gonten' => ['Wikipedia, Gonten', 'https://en.wikipedia.org/wiki/Gonten'],
+                        'seealpsee' => ['Wikipedia (de), Seealpsee', 'https://de.wikipedia.org/wiki/Seealpsee_(Appenzeller_Alpen)'],
+                        'meglisalp' => ['Wikipedia (de), Meglisalp', 'https://de.wikipedia.org/wiki/Meglisalp'],
+                        'rotstein' => ['Wikipedia (de), Rotsteinpass', 'https://de.wikipedia.org/wiki/Rotsteinpass'],
+                        'route' => ['Appenzellerland Tourism, Berggasthaus Rotsteinpass: the paths from Wasserauen and the Säntis', 'https://www.appenzell.ch/en/catering/restaurants/mountain-inn-rotsteinpass.html'],
+                        'saentis' => ['Wikipedia, Säntis', 'https://en.wikipedia.org/wiki/S%C3%A4ntis'],
+                        'trails' => ['Switzerland Tourism, Information on hiking: the trail markings', 'https://www.myswitzerland.com/en-ch/experiences/summer-autumn/hiking/information-on-hiking/'],
                     ],
                 ],
             ],
@@ -10862,9 +11237,9 @@ return [
                     'Sell the song: a last note that stops on time, sung to someone, then your part in the company.',
                 ],
                 'units_say' => [
-                    'A line spoken in rhythm, then sung over a waltz: the word that matters, and a breath where the thought ends. Little Buttercup.',
-                    'Patter on two neighbouring notes: the consonant just before the beat, the vowel on it, clear as it speeds up. The Major-General.',
-                    'Two sounds for two moments: bright, built from speech, and legit, tall vowels held steady. Tit-willow.',
+                    'A line spoken in rhythm, then sung over a waltz: the word that matters, and a breath where the thought ends.',
+                    'Patter on two neighbouring notes: the consonant just before the beat, the vowel on it, clear as it speeds up.',
+                    'Two sounds for two moments: bright, built from speech, and legit, tall vowels held steady.',
                     'The button, a song sung to someone, and Hail, Poetry, phrase by phrase with the company.',
                 ],
                 'who' => [
@@ -10879,26 +11254,62 @@ return [
                 ],
                 'faq' => [
                     ['Do I need to act?', 'No. Lesson 1 starts by speaking one line in rhythm, then singing it. The acting is in the words: which one matters, where the thought ends, and who you\'re singing to.'],
-                    ['Will I learn to belt?', 'No. Bright is not belt: the bright lessons build a brighter line from speech, at a medium volume in the middle of your voice. Belt is for later, with a teacher, and the course never asks for it.'],
-                    ['Why Gilbert and Sullivan?', 'Gilbert wanted every word to reach the audience, and their songs are long out of copyright, so every note and word can be in the lessons. Gilbert died in 1911 and Sullivan in 1900.'],
-                    ['Does the app hear my words?', 'Not yet. It hears your pitch, the beat, your breaths and your last note. Words and tone are self-checks: after a take, two plain questions about your own playback.'],
+                    // Hillel's design (2026-11-18) gave its own answers; these keep only what the course and the page's
+                    // sources say.
+                    ['Will I learn to belt?', 'No. Bright is not belt. Belt is for later, with a teacher; the course never asks for it, scores it or pushes it. You build a bright line from speech, at a medium volume, and a tall, steady legit one.'],
+                    ['Why Gilbert and Sullivan?', 'Their songs are long out of copyright, so every note and word can be in the lessons: Gilbert died in 1911 and Sullivan in 1900. And they put the words first: Sullivan settled the rhythm before the melody, and Gilbert wanted every word delivered as he dictated it.'],
+                    ['Does the app hear my words?', 'No. It hears your pitch and the beat, whether you come in after a breath, and whether the last note stops on time. Your words, acting and tone are yours to judge, with two plain questions after each scored take.'],
                     ['What does it cost?', 'Nothing: every course is free. Try the first lesson without an account; a free account opens the rest.'],
                 ],
                 'related' => ['breath-and-stamina', 'pop-and-country', 'vibrato'],
-                'kicks' => ['story' => 'The story', 'aims' => 'Overture', 'units' => 'The lessons', 'science' => 'The science', 'margin' => 'Backstage', 'company' => 'Dramatis personae', 'begin' => 'Before you begin', 'questions' => 'Questions', 'close' => 'Curtain up'],
+                // Each section's label, as a theatre programme names them (Hillel's design, 2026-11-18).
+                'kicks' => ['demo' => 'On stage now · Act II', 'story' => 'Programme notes', 'aims' => 'Overture', 'units' => 'The running order', 'science' => 'The science', 'margin' => 'Backstage', 'company' => 'Dramatis personae', 'begin' => 'Before you begin', 'questions' => 'The interval', 'close' => 'Curtain up'],
                 'close' => 'Lesson 1 takes a few minutes: speak Little Buttercup\'s first line in rhythm, then sing it over a waltz.',
                 'love' => [
                     'eyebrow' => 'A free course · :lessons lessons',
                     'chips' => [':units units, :lessons lessons', 'Gilbert and Sullivan, public domain', 'Words first, then the tune'],
-                    // The hero's stage: footlights, and the Major-General's first fourteen syllables as lamps on two heights.
-                    'stage_alt' => 'A theatre stage between red curtains, footlights along its edge. Above it, fourteen lamps zigzag between two heights, one lamp a syllable, the high and low notes a step apart.',
-                    'stage' => ['lamp' => 'A lamp, a syllable', 'two' => 'Two notes, a step apart', 'high' => 'C', 'low' => 'B♭'],
-                    'stage_note' => 'The Major-General\'s first fourteen syllables, "I am the very model of a modern Major-Gi", use just two notes a step apart.',
-                    // Two notes, fourteen syllables (js/public/musical-theatre.js): the opening, read from the Chappell vocal score.
+                    // Each heading, its *words* set in italic (MusicalTheatrePage::marked).
+                    'heads' => [
+                        'hero' => 'Every word to the back of the *gallery.*',
+                        'demo' => 'Two notes, *fourteen syllables*',
+                        'story' => 'From borrowed tunes to *the Savoy*',
+                        'aims' => 'By the end, *you can*',
+                        'units' => 'From a spoken line *to the company*',
+                        'science' => 'How a voice reaches *the gallery*',
+                        'margin' => 'From *the wings*',
+                        'who' => 'Who it\'s *for*',
+                        'join' => 'Let them hear *every line.*',
+                    ],
+                    // The hero's playbill: the course's units as acts, each with its song.
+                    'playbill' => [
+                        'kick' => 'The Savoy operas',
+                        'presents' => 'Stackapella presents',
+                        'name' => 'Musical theatre',
+                        'acts' => 'a course in :units acts',
+                        'act' => 'Act :n',
+                        'songs' => ['Little Buttercup', 'The Major-General', 'Tit-willow', 'Hail, Poetry'],
+                        'credit' => 'Words by W. S. Gilbert · Music by Arthur Sullivan',
+                        'stamp' => 'Admission free',
+                    ],
+                    // The running order's acts, one a unit.
+                    'act_names' => ['Act one', 'Act two', 'Act three', 'Act four'],
+                    'number' => 'No. :n',
+                    // The science cards' seats, front to back; the course's own card is the reader's.
+                    'tiers' => ['Stalls', 'Stalls', 'Dress circle', 'Dress circle', 'Gallery'],
+                    'seat' => 'Your seat',
+                    'science_lead' => 'From the footlights to the last row, in plain words.',
+                    'callboard' => 'Pinned to the call-board',
+                    'audience' => 'The audience',
+                    'numbers' => 'Musical numbers',
+                    'numbers_list' => [['Little Buttercup', 'H.M.S. Pinafore (1878)'], ['I am the very model of a modern Major-General', 'The Pirates of Penzance (1879)'], ['Tit-willow', 'The Mikado (1885)'], ['Hail, Poetry', 'The Pirates of Penzance (1879)']],
+                    'numbers_note' => 'All by Gilbert and Sullivan, all public domain',
+                    // The demo's two rows of lamps, the score's two notes.
+                    'stage' => ['high' => 'C', 'low' => 'B♭'],
+                    // Two notes, fourteen syllables (js/public/musical-theatre.js): the opening, the course's own notes
+                    // (unit 2's Two notes, many words) where the Chappell vocal score has them.
                     'demo' => [
-                        'live' => 'Live demo',
-                        'lesson' => 'Unit 2 · Two notes, many words',
                         'key' => 'E♭ major, as written',
+                        'show' => 'The Pirates of Penzance · No. 13',
                         'title' => 'Two notes, fourteen syllables',
                         'lead' => 'Gilbert\'s Major-General patters his first fourteen syllables on just two notes, a step apart. Sullivan marked it "Allegro vivace", with no metronome number. Play it slow, then quicker; then switch from smeared to crisp, and hear each syllable land.',
                         'play' => 'Play the patter',
@@ -10910,14 +11321,12 @@ return [
                         'style' => 'How the notes join',
                         'legato' => 'Smeared',
                         'crisp' => 'Crisp',
-                        'stave' => 'The first two lines on a stave, each syllable under its note.',
-                        // The words under the notes: Gilbert's, one syllable a note.
-                        'lyric' => ['I', 'am', 'the', 've-', 'ry', 'mod-', 'el', 'of', 'a', 'mo-', 'dern', 'Ma-', 'jor-', 'Gi-', 'ne-', 'ral;', 'I\'ve', 'in-', 'for-', 'ma-', 'tion', 've-', 'ge-', 'ta-', 'ble,', 'an-', 'i-', 'mal,', 'and', 'mi-', 'ne-', 'ral;', 'I'],
+                        'lamps' => 'The first fourteen syllables as lamps, each on the higher or the lower note, lit as it sounds.',
                         'ready' => 'Play it, then try it quicker, and crisp.',
                         'playing_legato' => 'Smeared: each note runs into the next, and the syllables blur.',
                         'playing_crisp' => 'Crisp: short notes with small gaps, so each syllable lands.',
                         'after' => 'Now the other way, or a little quicker.',
-                        'note' => 'Read from the Chappell vocal score, No. 13, page 61. It\'s printed in the treble clef, so a baritone sings it an octave lower, and so does this demo: the small 8 under the clef says so. The fast end is our guess. A synth voice can\'t say words, so they light up under the notes. No mic: the demo only plays.',
+                        'note' => 'The notes and syllables are the course\'s own, from unit 2\'s Two notes, many words, set where the Chappell vocal score has them (No. 13, page 61). It\'s printed in the treble clef, so a baritone sings it an octave lower, and so does this demo. The fast end is our guess. A synth voice can\'t say words, so they light up under the notes. No mic: the demo only plays.',
                     ],
                     // The story, from the research pack (docs/courses/musical-theatre-love-letter.md): [when, title, text, notes].
                     'story' => [
@@ -10946,17 +11355,18 @@ return [
                         ['Asked what to do with his hands, Henry Lytton got this from Gilbert: "Cut them off at the wrists, Lytton," and "forget you\'ve got any hands!" Gilbert also kept speakers well downstage, or "you also lose the power of clear and effective speech".', ['lytton']],
                         ['Henry Irving told the young Lytton to imagine a friend "who could not afford the stalls" at the back of the gallery. "Let him hear every line you have to say."', ['lytton']],
                     ],
-                    // The company: [name, years, what they did, notes].
+                    // The company, as a cast list: [name, part, years, what they did, notes]. Each part is what the
+                    // page's sources say they were.
                     'company' => [
-                        ['John Gay', '1685 to 1732', 'Poet; The Beggar\'s Opera (1728), the ballad opera on tunes everyone knew.', ['melville', 'loc-gay']],
-                        ['Lavinia Fenton', '1708 to 1760', 'The first Polly Peachum; she played every night of the first run, then left the stage, and in 1751 married the Duke of Bolton.', ['melville', 'loc-fenton']],
-                        ['W. S. Gilbert', '1836 to 1911', 'Librettist and stage director, who wanted every word "delivered, even to an inflection of the voice, as he dictates".', ['grossmith', 'loc-gilbert']],
-                        ['Arthur Sullivan', '1842 to 1900', 'Composer: rhythm first, then melody. He conducted the New York premiere of The Pirates of Penzance.', ['lawrence', 'lytton', 'loc-sullivan']],
-                        ['Richard D\'Oyly Carte', '1844 to 1901', 'Producer, and proprietor of the Savoy, which he lit by electricity.', ['standard', 'times', 'loc-carte']],
-                        ['George Grossmith', '1847 to 1912', 'The first John Wellington Wells, Bunthorne and Ko-Ko; Gilbert didn\'t want "a fine man with a fine voice" for him.', ['grossmith', 'standard', 'mikado', 'loc-grossmith']],
-                        ['Henry Lytton', '1865 to 1936', 'Rose from the Savoy chorus to the leading comic parts, and wrote down Gilbert\'s rules for clear speech.', ['lytton', 'loc-lytton']],
-                        ['Sir Henry Irving', '1838 to 1905', 'Actor: "Let him hear every line."', ['lytton', 'loc-irving']],
-                        ['George M. Cohan', '1878 to 1942', 'From the family act "The Four Cohans" to Little Johnny Jones (1904), with "Give My Regards to Broadway".', ['cohan', 'loc-cohan']],
+                        ['John Gay', 'Poet', '1685 to 1732', 'The Beggar\'s Opera (1728), the ballad opera on tunes everyone knew.', ['melville', 'loc-gay']],
+                        ['Lavinia Fenton', 'The first Polly Peachum', '1708 to 1760', 'She played every night of the first run, then left the stage, and in 1751 married the Duke of Bolton.', ['melville', 'loc-fenton']],
+                        ['W. S. Gilbert', 'Librettist and stage director', '1836 to 1911', 'He wanted every word "delivered, even to an inflection of the voice, as he dictates".', ['grossmith', 'loc-gilbert']],
+                        ['Arthur Sullivan', 'Composer', '1842 to 1900', 'Rhythm first, then melody. He conducted the New York premiere of The Pirates of Penzance.', ['lawrence', 'lytton', 'loc-sullivan']],
+                        ['Richard D\'Oyly Carte', 'Producer', '1844 to 1901', 'Proprietor of the Savoy, which he lit by electricity.', ['standard', 'times', 'loc-carte']],
+                        ['George Grossmith', 'The first Ko-Ko', '1847 to 1912', 'Also the first John Wellington Wells and Bunthorne; Gilbert didn\'t want "a fine man with a fine voice" for him.', ['grossmith', 'standard', 'mikado', 'loc-grossmith']],
+                        ['Henry Lytton', 'From the chorus to comic leads', '1865 to 1936', 'Rose from the Savoy chorus to the leading comic parts, and wrote down Gilbert\'s rules for clear speech.', ['lytton', 'loc-lytton']],
+                        ['Sir Henry Irving', 'Actor', '1838 to 1905', '"Let him hear every line."', ['lytton', 'loc-irving']],
+                        ['George M. Cohan', 'Vaudeville performer', '1878 to 1942', 'From the family vaudeville act "The Four Cohans" to Little Johnny Jones (1904), with "Give My Regards to Broadway".', ['cohan', 'loc-cohan']],
                     ],
                     // On a phone, the rest of a long list folds under these (open on a wide screen).
                     'more' => ['story' => 'More of the story', 'science' => 'More of the science', 'margin' => 'More from backstage', 'company' => 'The whole company'],
@@ -11014,19 +11424,32 @@ return [
                 'safety' => ['Keep every move small and light, at medium volume in the middle of your voice.', 'Twang is narrow and bright, never pressed: stop if your throat feels squeezed.', 'Breathy means a little air, not a whisper; keep water nearby.'],
                 'songs' => [['Down in the Valley', 'Traditional American, public domain'], ['Bury Me Not on the Lone Prairie', 'Traditional cowboy song, words 1910, tune 1839, public domain'], ['Aura Lee', 'Song from 1861, its original words, public domain'], ['Beautiful Dreamer', 'Song from 1864, its first line, public domain']],
                 'shots' => ['Plain to styled, the first lesson: Down in the Valley with a scoop into "val-", sung small and light.', 'Three colours: hear the breathy model, record yourself, then compare, with a note that tone isn\'t scored yet.'],
-                // The designed page (site/courses/pop-and-country): its own sections and words.
+                // The designed page (site/courses/pop-and-country, Hillel's design of 2026-11-18: a vinyl double album):
+                // its own sections and words. Lesson 1's line, the tracklist and the sample take's drawing come from the
+                // course file (App\Support\Pages\PopAndCountryPage).
                 'app' => 'pop',
                 'eyebrow' => 'A free course · 16 lessons',
                 'hero_title' => 'Same notes, your sound.',
+                'hero_title_lead' => 'Same notes,',
+                'hero_title_em' => 'your sound.',
+                'hero_size' => ':lessons lessons · :sides sides',
                 'hero_lead' => 'A plain tune and a styled one are the same notes. The difference is a few small moves: a scoop up into a note, a fall-off at its end, a slide, a little cry, and a tone colour to suit the song. And the taste to use them sparingly.',
                 'hero_facts' => ['2 to 4 minutes each', 'About 40 minutes in all', 'Over real chords'],
-                'see_lessons' => 'See the lessons',
+                'see_lessons' => 'See the tracklist',
+                // The album sleeve in the hero, and the strip under it like a record's spine (the sleeve is a picture:
+                // its words are read from the page's heading and lead).
+                'sleeve' => ['label' => 'Stackapella Records', 'speed' => '33⅓ RPM', 'title' => ['Pop &', 'Country'], 'sub' => 'Styling for singers', 'a' => 'Side A · Plain', 'b' => 'Side B · Styled'],
+                'spine' => ['Stackapella Records', '2 to 4 minutes a track', 'About 40 minutes in all', 'Sung over real chords'],
                 'titles' => [
                     'outcomes' => 'By the end, you can',
                     'moves' => 'Four small moves',
                     'light' => 'Small and light',
                     'units' => 'From plain to your record',
-                    'try' => 'Try this now: plain to styled',
+                    'units_kick' => 'The tracklist · Double album',
+                    'units_size' => ':sides sides · :tracks tracks',
+                    'try_kick' => 'Bonus track · Try this now',
+                    'facts_kick' => 'Liner notes',
+                    'try' => 'Plain to styled',
                     'inside' => 'What the app listens for',
                     'facts' => 'From the record shelf',
                     'who' => 'Who it\'s for',
@@ -11044,6 +11467,7 @@ return [
                 ],
                 'moves' => [
                     'lead' => 'The app draws your voice as a line, so you can see each move as you make it. Use them sparingly: on the long notes and the line ends.',
+                    'tag' => 'Move 0:n',
                     'kinds' => [
                         ['The scoop', 'Start a little below a note and slide up into it, on purpose.'],
                         ['The fall-off', 'Let a note\'s end drop away, with the breath still steady.'],
@@ -11059,6 +11483,9 @@ return [
                         'Twang is narrow and bright, never pressed: start from a light "nyeh", and stop if your throat feels squeezed.',
                         'The cry is a light flick, never a hard catch, and a fall-off never collapses into a creak.',
                     ],
+                    // Each point's tag, in the same order, and the round "Handle with care" sticker beside the lead.
+                    'tags' => ['Breathy', 'Bright', 'Twang', 'Cry'],
+                    'sticker' => ['ring' => 'Handle with care · Medium volume · ', 'words' => 'Easy does it'],
                 ],
                 'units_say' => [
                     'Plain to styled, the scoop, the fall-off, and Down in the Valley styled.',
@@ -11080,6 +11507,20 @@ return [
                     ['Hank Williams was famous for a quick flick into the lighter voice: his Lovesick Blues of 1949 yodels on "cry" and on every syllable of "lonesome".', 'Wikipedia, Lovesick Blues', 'https://en.wikipedia.org/wiki/Lovesick_Blues'],
                     ['Aura Lee\'s 1861 tune came back in 1956 as the melody of Love Me Tender.', 'Wikipedia, Aura Lea', 'https://en.wikipedia.org/wiki/Aura_Lea'],
                     ['In the late 1950s Neal Matthews Jr. of the Jordanaires began writing vocal parts as numbers. Nashville\'s studios still chart songs that way.', 'Wikipedia, Nashville Number System', 'https://en.wikipedia.org/wiki/Nashville_Number_System'],
+                ],
+                // The liner notes lead with their year (each fact's own, as its text says).
+                'facts_years' => ['1949', '1956', '1950s'],
+                // What the app listens for, beside a result card plainly marked as a sample: the course's own way of
+                // saying a take (`scoring`'s serious line), drawn on lesson 1's notes. Not a singer's result.
+                'sample' => [
+                    'kick' => 'Sample',
+                    'take' => 'A take · Side B',
+                    'song' => 'Down in the Valley',
+                    'rows' => [['Scoop into "val-"', true], ['Fall-off on "ley,"', true], ['Slide from "val-" to "ley"', false]],
+                    'heard' => 'Heard it',
+                    'not_yet' => 'Not yet',
+                    'result' => 'We heard 2 of the 3 moves asked for.',
+                    'note' => 'A sample, to show how a take is said. Not a singer\'s result.',
                 ],
                 'who' => [
                     'Singers whose lines sound correct but plain.',
@@ -11106,8 +11547,8 @@ return [
                     'lesson' => 'Lesson 1, free',
                     'title' => 'Plain to styled',
                     'lead' => 'The first line of Down in the Valley, sung by the guide over its chords. Side A sings every note straight. Side B sings the same notes with a few small moves. Choose the moves, then play both sides.',
-                    'plain' => 'Play side A, plain',
-                    'styled' => 'Play side B, styled',
+                    'plain' => 'Side A, plain',
+                    'styled' => 'Side B, styled',
                     'stop' => 'Stop',
                     'moves_h' => 'Side B\'s moves',
                     'moves' => ['scoop' => 'A scoop into "val-"', 'fall' => 'A fall-off on "ley,"', 'slide' => 'A slide from "val-" to "ley"', 'cry' => 'A little cry on "low,"'],
@@ -11382,6 +11823,33 @@ return [
                 // course's own facts, and the song courses', stay off this page. The old books' quotes were checked
                 // against their scanned pages (Lord against the Project Gutenberg text); the rest is said without quotes.
                 'love' => [
+                    // Hillel's design (2026-11-18): the h1 with its second line in red italic (*...*), the four languages'
+                    // codes in their hues, their names (the units, the archive's and the notes' tags).
+                    'title' => 'Sounds first, *then words.*',
+                    'codes' => ['ja' => 'JA', 'es' => 'ES', 'la' => 'LA', 'uk' => 'UK'],
+                    'codes_label' => 'Japanese, Spanish, church Latin and Ukrainian',
+                    'names' => ['ja' => 'Japanese', 'es' => 'Spanish', 'la' => 'Church Latin', 'uk' => 'Ukrainian', 'latin' => 'Latin', 'it' => 'Italian', 'en' => 'English'],
+                    // The four first lines (App\Support\Pages\OtherLanguagesPage::firstLines): a box per sung syllable from
+                    // each song's template, its width the notes' length. `script` writes a line in its own script, a box
+                    // each (the template has Sakura in our letters); `hints` is what's under each box, "_" for none, only
+                    // as the course spells it (lesson 1's "sa-ku-ra"; "la-AH-ba-na"; "AH-veh, VEH-room", "KAWR-poos";
+                    // "In our letters: Shchedryk, shchedryk, shchedrivochka", split as the template's syllables are).
+                    'lines' => [
+                        'kick' => 'The four first lines',
+                        'title' => 'One box for every sung sound',
+                        'lead' => 'A box\'s width is how long its sound is held, and a gap is a rest. A tick at a box\'s top and bottom is a new note on the same vowel; a tie joins two words\' vowels on one note. Under each box, how it sounds, as the course spells it.',
+                        'rows' => [
+                            'ja' => ['song' => 'Sakura Sakura', 'script' => 'さ く ら さ く ら', 'hints' => 'sa ku ra sa ku ra'],
+                            'es' => ['song' => 'La Paloma', 'hints' => '_ _ _ _ _ la-AH ba na _ _ _ _'],
+                            'la' => ['song' => 'Ave verum corpus', 'hints' => 'AH veh AH veh VEH room KAWR poos'],
+                            'uk' => ['song' => 'Shchedryk', 'hints' => 'shched ryk shched ryk shched ri voch ka'],
+                        ],
+                    ],
+                    // Each unit's song in its own script, at the head of its card.
+                    'scripts' => ['さくら', 'La Paloma', 'Ave verum', 'Щедрик'],
+                    // The close: Sakura's three boxes, then the rest, *...* in italic and [...] struck through.
+                    'close_boxes' => 'Sa ku ra,',
+                    'close_rest' => '*not* sa-ku-[ruh].',
                     // The hero's picture: three city names, each four morae, in two, three and four syllables.
                     'map' => [
                         'words' => [
@@ -11389,6 +11857,7 @@ return [
                             ['Ōsaka', 'おおさか', ['o', 'o', 'sa', 'ka'], [2, 1, 1]],
                             ['Nagasaki', 'ながさき', ['na', 'ga', 'sa', 'ki'], [1, 1, 1, 1]],
                         ],
+                        'fig' => 'Fig. 1 · Four beats each',
                         'count' => ':n syllables',
                         'legend' => ['A mora: one beat of time', 'A syllable'],
                         'note' => 'Tōkyō, Ōsaka and Nagasaki all have four morae, though they have two, three and four syllables. Japanese times its words in morae, and a long vowel takes two.',
@@ -11428,6 +11897,8 @@ return [
                             'obaasan' => ['o', 'bā', 'sa', 'n'],
                         ],
                         'words' => ['obasan' => 'obasan, "aunt"', 'obaasan' => 'obāsan, "grandmother"'],
+                        // The words in kana, beside the deck's name for what plays.
+                        'kana' => ['three' => 'かぎり', 'merged' => 'かぎり', 'obasan' => 'おばさん, おばあさん'],
                         'notes' => ['G4' => 'G4', 'Eb4' => 'E♭4', 'D4' => 'D4', 'A4' => 'A4'],
                         'key' => ['A sung note', 'A fresh start', 'The n, hummed'],
                         'note' => 'Our synthesized voice: it sings the pitch and the timing, not the words, so the syllables are on screen. In the course the app hears your pitch and timing; your vowels are for your own ear.',
@@ -11436,7 +11907,12 @@ return [
                         'title' => 'Every vowel, kept whole',
                         'glides' => 'Say "lay" slowly, then "low". Your tongue moves during the vowel: "lay" goes from "eh" towards "ee", "low" from "o" towards "oo". That is a diphthong, "a vowel with two different targets", and English is full of them: "no highway cowboys" has five. Japanese and Spanish each have five vowels, a, e, i, o, u, and Ukrainian six, and each is meant to hold still. On a held note a glide is easy to hear, because the vowel changes while the pitch stays put.',
                         'schwa' => 'English also shrinks its quiet syllables. Say "photograph", then "photography": the first o is full in one and shrinks in the other. The shrunk vowel is usually schwa, the "uh" sound: "Schwa, [ə], is the most common reduced vowel in English." Spanish keeps each of its five vowels in stressed and unstressed syllables alike. An English singer brings the habit along without noticing, so "sa-ku-ra" turns into "sa-ku-ruh".',
+                        // The glide drawn small beside the title: "lay" from "eh" towards "ee" (the word, then its two
+                        // vowels), and the second one's label.
+                        'glide' => 'lay: eh, ee',
+                        'glide_label' => 'glide',
                         'asks_title' => 'Three things a new language asks for',
+                        'asks_tags' => ['Japanese', 'Spanish', 'Spanish, Japanese, Italian'],
                         'asks' => [
                             ['O-o-sa-ka', 'Morae', 'Japanese times its words in morae. A mora is "the smallest unit of timing, equal to or shorter than a syllable": a short vowel is one, a long vowel two, and a final n is a mora of its own. The word is Latin, for "linger, delay".', ['mora', 'jphon']],
                             ['Si‿a', 'Sinalefa', 'Spanish and Italian run a word ending in a vowel into the next word starting with one: "the merging of two syllables into one, especially when it causes two words to be pronounced as one". In La Paloma, "Si a" shares one note.', ['synal']],
@@ -11471,6 +11947,8 @@ return [
                     'archive' => [
                         'title' => 'Borrowed vowels, 1894 to 1961',
                         'more' => 'Four more, 1912 to 1961',
+                        // Murphy's 1912 respelling of Domine, a box a syllable: the word, then his spelling.
+                        'murphy' => ['Do mi ne', 'DOE MEE NAY'],
                         'rows' => [
                             ['1894', 'Boston', 'The ragged boys of Rome', 'Frances E. Lord, Professor of Latin at Wellesley College, published The Roman Pronunciation of Latin in 1894. She quoted the English Latin professor H. A. J. Munro on why Latin should take Italian\'s vowels: "The little ragged boys in the streets of Rome and Florence enunciate their vowels in a style of which princes might be proud." Her first instruction to her readers: "First of all pay particular attention to the vowel sounds, to make them full and distinct". And she gave the old Latin idea of time in speech: "a short vowel has the time of one beat (mora); a long vowel, of two beats".', ['lord']],
                             ['1894', 'London', 'Two vowels, one syllable', 'In Hints on Singing, Manuel Garcia gave his pupils a rule for an Italian line with more vowels than notes: "In Italian it happens frequently that syllables are in excess of the places assigned to them." The cure was "contracting two or more, as the case may be, into one syllable". His editor Hermann Klein added why English singers find it hard: "the Italian vowels are all single sounds", while the English ones mostly "consist of double sounds or diphthongs". His cure: "A good ear, refined utterance, and clever imitation".', ['garcia']],
@@ -11576,6 +12054,55 @@ return [
                         'play' => 'Play it',
                         'alt' => 'Amazing Grace\'s first line as four lanes, soprano, alto, tenor and bass, each note lighting up as it sounds.',
                     ],
+                    // Lesson 1 as the app runs it: its words come from the course file (App\Support\Site\ChoirPartCourse);
+                    // these are the page's own labels round them.
+                    'try' => [
+                        'kick' => 'Try lesson 1',
+                        'title' => 'Lesson 1, as the app runs it.',
+                        'steps' => ['Listen', 'Your part alone', 'Find the notes', 'Sing with the others'],
+                        'note' => 'Your part follows your pick at the top of the page.',
+                    ],
+                    // The course's four sourced facts (each lesson's "Did you know?"), each with what the course does
+                    // about it, by the fact's id in the course file.
+                    'science' => [
+                        'kick' => 'Why it works',
+                        'title' => 'Four findings behind the method.',
+                        'unit' => 'Unit :n',
+                        'facts' => [
+                            'james-recollect' => ['title' => 'Recall it before you look.', 'use' => 'The guide goes down early, and the lights fade halfway through your part.'],
+                            'self-to-other-ratio' => ['title' => 'How loud you hear yourself is your own.', 'use' => 'Lesson 1 asks you to listen back: could you hear your line inside the chords?'],
+                            'sleep-on-the-melody' => ['title' => 'Sleep on it.', 'use' => 'The night before, one run-through, then rest.'],
+                            'not-how-much-but-how' => ['title' => 'Clean tries beat long hours.', 'use' => 'A new line goes slower first, then up to speed a step at a time.'],
+                        ],
+                    ],
+                    'who' => [
+                        'title' => 'Who it\'s for',
+                        'items' => [
+                            'Choir singers who want to walk into rehearsal already sure of their part.',
+                            'Sopranos, altos, tenors and basses: every line is set in your own range.',
+                            'Singers who learn by ear: you hear your line first, then see it on a stave, with the note names, in lesson 3.',
+                        ],
+                    ],
+                    'need' => [
+                        'title' => 'What you need',
+                        'items' => [
+                            'Headphones, ideally: the guide and the other parts sing around you.',
+                            'A microphone, so the app can hear your notes.',
+                            'About :minutes minutes in all, in short lessons.',
+                        ],
+                    ],
+                    'faq_h' => 'Questions',
+                    'close' => ['kick' => 'Ready for rehearsal', 'title' => 'Learn it at home. Sing it at rehearsal.'],
+                ],
+                // The page's questions (site/courses/_faq), each answered only as the course has it.
+                'faq' => [
+                    ['Is the course free?', 'Yes. Every course is free. Try the first lesson without an account; a free account opens the rest.'],
+                    ['Which part can I learn?', 'Soprano, alto, tenor or bass. You pick it in the first lesson; it\'s set in your own range, and you can change it any time.'],
+                    ['Do I need to read music?', 'No. You hear your line first, then lesson 3 shows it on a stave with the note names, so you learn to follow it.'],
+                    ['How long does it take?', 'About 40 minutes in all: 15 short lessons in four units.'],
+                    ['Can I use it for my own choir\'s music?', 'The method, yes. The last lesson shows you how to learn any song\'s part the same way, through each library song\'s Learn it step by step.'],
+                    ['Do I need headphones?', 'They\'re best: the guide and the other parts sing around you while you sing.'],
+                    ['What if a note is too high or too low for me?', 'Every line is set in your own range. If a note still sits too high or low, sing it lightly, never louder, and stop if anything tightens or hurts.'],
                 ],
             ],
             // Backing vocals (the courses lead, content d47e700): the sound behind the song. No living singer or group named.
@@ -11768,6 +12295,64 @@ return [
                     ['Blow the Man Down', 'W. B. Whall, Ships, Sea Songs and Shanties (1913); public domain'],
                     ['Leave Her, Johnny', 'Cecil Sharp, English Folk-Chanteys (1914), No. 2; public domain'],
                     ['The course\'s own lines', 'Written for the course, set in your range'],
+                ],
+                // Its own page (site/courses/sea-shanties-and-work-songs, Hillel's design, 2026-11-18), built around call
+                // and response. The card's sung words are Haul Away, Joe's own, from its template, never translated.
+                'sh' => [
+                    'headline' => ['Answer the call,', 'then lead the crew.'],
+                    'meta' => ':units units · :lessons lessons · Free',
+                    'card' => [
+                        'where' => 'Unit 1 · Lesson 4',
+                        'shantyman' => 'Shantyman',
+                        'you' => 'Crew · you',
+                        'call' => 'The call',
+                        'answer' => 'Your answer · pull on "Joe"',
+                        'play' => 'Play',
+                        'stop' => 'Stop',
+                        'alt' => 'Haul Away, Joe\'s chorus as a lane of notes, each as tall as it is high: the shantyman\'s call, then the crew\'s answer, each note lighting as it sounds.',
+                        'source' => 'The tune as Cecil Sharp printed it in 1914; the crew answers in four parts.',
+                    ],
+                    'units_title' => ['From the crew', 'to the shantyman.'],
+                    'legend' => ['lead' => 'Shantyman', 'crew' => 'Crew', 'you' => 'You'],
+                    'roles' => ['You answer', 'You pull', 'You call', 'You are the whole crew'],
+                    'voices' => ['lead' => 'The shantyman', 'youlead' => 'You, as the shantyman', 'crew' => 'A crew voice', 'you' => 'You, in the crew'],
+                    'voices_label' => 'Who sings in unit :n',
+                    'listen_title' => ['Pitch, then the beat.', 'Not the bellow.'],
+                    'scored' => 'Scored',
+                    'scored_lines' => ['Your notes on pitch', 'From the second part, whether your answers land on the beat'],
+                    'unscored' => 'Not scored, and the course says so',
+                    'unscored_lines' => ['How big you sing', 'The strength of a pull', 'A crew\'s spirit'],
+                    'gear' => 'Headphones or a speaker both work for the first three parts: the shantyman\'s calls sound in your rests either way. The last part asks for headphones, since the crew and your own takes sing under you.',
+                    'sample' => [
+                        'label' => 'A sample take, not a real singer\'s: 21 of 24 notes on pitch, three missed.',
+                        'top' => 'A sample take',
+                        'tag' => 'Sample',
+                        'unit' => 'Unit 1',
+                        'on' => 'On pitch',
+                        'off' => 'Missed',
+                        'result' => '21 of 24 notes on pitch',
+                        'beat' => 'From unit 2, the beat counts too:',
+                        'beat_result' => '93% on pitch and time',
+                        'skin' => ['game' => 'Game mode gives up to three stars a take, and XP.', 'serious' => 'No stars, no XP.'],
+                    ],
+                    // The work and the old books: the lessons' own facts (each lesson's `fact`), cited to one Sources list.
+                    'first_kick' => 'Your first lesson',
+                    'first_title' => ['Three steps,', 'and you\'re in the crew.'],
+                    'work_kick' => 'The work and the rhythm',
+                    'work_title' => ['Every job', 'had its own song.'],
+                    'marks' => ['joe' => 'One strong pull, at the end', 'stamp' => 'Your feet are the beat', 'hoist' => 'Two short answers, a double pull in each', 'capstan' => 'No pull: you walk the bars round'],
+                    'books_kick' => 'From the old books',
+                    'books_title' => ['Call and answer,', 'as the books tell it.'],
+                    'faq_title' => 'Questions',
+                    'faq' => [
+                        ['Is the course free?', 'Yes. Like every course on Stackapella, it\'s free.'],
+                        ['Do I need to have sung harmony before?', 'No. You start by answering the shantyman on the tune, one answer at a time. Parts under the tune come in the last unit.'],
+                        ['Can I sing it on my own, without a crew?', 'Yes. The app sings the shantyman\'s calls in your rests, and in the last unit you stack a crew of your own voice.'],
+                        ['Where do the songs come from?', 'From books printed by people who heard them sung: Cecil Sharp, W. B. Whall and R. R. Terry. They\'re public domain, and the course adds lines of its own, set in your range.'],
+                        ['How long is it?', ':lessons short lessons in :units units, about :minutes minutes in all.'],
+                    ],
+                    'sources' => 'Sources',
+                    'story_link' => 'The song\'s story',
                 ],
             ],
             // Classical singing basics (the courses lead, docs/courses/classical-singing.md): a joined line in your own
@@ -11969,6 +12554,27 @@ return [
                     ['The Fives', 'Words by George W. Thomas, music by Hersal Thomas and George W. Thomas (Chicago: Geo. W. Thomas and Co., 1922); public domain'],
                     ['Muscle Shoals Blues', 'Words and music by George W. Thomas (Chicago: Geo. W. Thomas and Co., 1921); public domain'],
                 ],
+                // Before you begin and the questions (the length pass, 2026-11-19): only what the course and its outline say;
+                // no lesson asks for headphones (web/tests/flows/course_blues.py).
+                'who' => [
+                    'Singers who want to sing a blues with words, in its own form.',
+                    'Beginners: lesson 1 starts with one line, heard and then sung back.',
+                    'Scat and gospel singers who want the verse, the band\'s turn and a verse of their own.',
+                ],
+                'need' => [
+                    'No headphones: the band\'s turns sit clear of your notes, so a speaker is fine.',
+                    'No reading music: you hear each line before you sing it.',
+                    'A rested voice: if it\'s tired from talking, rest it first.',
+                ],
+                'faq' => [
+                    ['Do I need a rough or deep voice?', 'No. Sing it like you\'re telling someone, at a speaking volume, in your own clear voice: the blues is said as much as sung. Never press your voice down to sound deeper or older. The colour of your voice is never scored.'],
+                    ['What is the blue note?', 'A note sung between two piano keys, just under the bright one. Shorty George Blues writes its blue notes in, and you sing them as printed: lean on the lower note, then land on the bright one. Scat singing has more of it.'],
+                    ['Are my own words scored?', 'No. In unit 4 you sing your own line, your answer line and your verse to Shorty George\'s tune. The words are yours; the app hears the notes.'],
+                    ['How is it different from Scat singing?', 'Scat singing teaches the twelve bars on syllables, the blue note and the blues scale, and Gospel and soul runs teaches runs. This course sings songs with words: the three-line verse, the band\'s turn, and a verse of your own.'],
+                    ['Why these songs?', 'They are the Thomas family\'s own Chicago printings, from 1921 to 1924, now in the public domain. The songs list names each one\'s writers, publisher and year.'],
+                    ['What does it cost?', 'Nothing: every course is free. Try the first lesson without an account; a free account opens the rest.'],
+                ],
+                'close' => 'Lesson 1 is one line from 1924: hear it, find its notes, and sing it back.',
                 // Its own page (site/courses/blues-singing, Hillel's design of 2026-11-18): 1920s Chicago sheet music, the
                 // three-line verse and the blue note. The cover is ours, in the period's style (no period cover art is
                 // shown); its lines are Shorty George Blues' first verse as the template has them. The chart is that
@@ -12018,6 +12624,75 @@ return [
                     ],
                     'safety_head' => 'Tell it at a speaking volume, in your own clear voice.',
                     'safety_points' => ['Never forced or pressed down to sound deeper.', 'Stop if anything tightens or hurts.'],
+                    // The length pass (2026-11-19): the demo, the science, the archive, lesson 1, before you begin, the
+                    // questions, the close and the sources. Every claim is one of the course's twelve lesson facts
+                    // (course/plus/blues-singing, each with its source), numbered to the Sources list.
+                    // Lean, then land (js/public/blues-singing.js): lesson 1's line as printed, or with the bright note
+                    // in place of each blue one (our change, said so).
+                    'demo' => [
+                        'kick' => 'Live demo',
+                        'lesson' => 'Unit 2 · The blue note in the tune',
+                        'title' => 'Lean, then land.',
+                        'lead' => 'The first line of Shorty George Blues, as printed in 1924. Four times it leans on a blue note, sung between two piano keys just under the bright one, then steps up onto the bright note. Play it as printed, then with the bright note in place of each blue one, and hear the difference.',
+                        'play_printed' => 'As printed',
+                        'play_plain' => 'Without the blue note',
+                        'stop' => 'Stop',
+                        'ready' => 'Press play. The blue notes are marked in blue.',
+                        'printed' => 'As printed: each blue note leans, then lands on the bright one.',
+                        'plain' => 'Changed by us: the bright note in place of each blue one. Not how it was printed.',
+                        'after' => 'Same line, same chord. Try the other one.',
+                        'roll' => 'The line\'s notes, low to high: four blue notes, each just under the bright note that follows it, then the band\'s turn.',
+                        'key_blue' => 'Blue note',
+                        'key_plain' => 'The bright note in its place',
+                        'turn' => 'The band\'s turn',
+                        'note' => 'Our own synth voice at lesson 1\'s 80 beats a minute, over a soft chord, the band\'s turn on the next. No mic.',
+                    ],
+                    'works' => [
+                        'kick' => 'In plain words',
+                        'title' => ['How a blues', 'works.'],
+                        'cards' => [
+                            ['Said three times, then answered', 'In 1911 Howard Odum wrote of a song about Joe Turner: "Each line is sung three times to make a stanza." W. C. Handy found that folk habit too monotonous, so in St. Louis Blues he made a statement, repeated it, then used the last line to say why. That is the verse this course teaches: say it, say it again, answer it.', ['odum', 'handy']],
+                            ['Between two piano keys', 'Not every sung note sits on a piano key. In 1903 an archaeologist in Coahoma County, Mississippi, wrote that his crew often sang a refrain\'s final home note a little sharp: "So frequent was this that it seemed intentional or unavoidable, not merely a mistake in pitch." Shorty George Blues writes its blue notes in, and you sing each as printed: just under the bright note, then on it.', ['peabody']],
+                            ['The band\'s turn', 'In the folk blues, W. C. Handy wrote, the singer filled occasional gaps with words like "Oh, baby". In St. Louis Blues he filled those gaps in the piano and orchestra parts instead. Such a fill is called a break. In Shorty George Blues each line takes three bars, and the band has the fourth.', ['handy']],
+                        ],
+                    ],
+                    'archive' => [
+                        'kick' => 'From the archive',
+                        'title' => ['Heard, written down', 'and printed.'],
+                        'lead' => 'What people sang, heard and printed, from a dig in Mississippi to the Voyager record.',
+                        // [year, where, title, text, the sources it cites]
+                        'rows' => [
+                            ['1901-02', 'Coahoma County, Mississippi', 'Lines made up on the spot', 'An archaeologist heard his crew make up lines on the spot about whatever was going on. One Saturday half-holiday, a sing-song came out of the trench: "Mighty long half day, Captain."', ['peabody']],
+                            ['1911', 'Journal of American Folk-Lore', 'Woke up this morning', 'Waking up this morning was sung about long before blues records. A camp workers\' song Howard Odum printed sings three times of waking up this morning and not being able to keep from crying, then answers it.', ['odum']],
+                            ['1921', 'Muscle Shoals, Alabama', 'Go with me to Muscle Shoals', 'Muscle Shoals Blues begs "go with me to Muscle Shoals". That year Henry Ford offered to lease the unfinished dam and plants there, setting off a short-lived land boom. Unit 2 sings it.', ['shoals']],
+                            ['1922', 'New York', 'A piano solo for OKeh', 'In October, Fats Waller recorded Muscle Shoals Blues, by George W. Thomas, as a piano solo for OKeh.', ['dahr']],
+                            ['1922', 'Chicago', 'Number 5, westbound', 'The Fives, by George W. Thomas and his brother Hersal, was inspired by railroad travel: its sheet music sings of a fast westbound train, Number 5. Unit 3 sings its verse.', ['george']],
+                            ['1926', 'Detroit', 'Hersal Thomas', 'A piano prodigy whose playing of The Fives inspired Chicago pianists such as Albert Ammons and Meade Lux Lewis, Hersal Thomas died suddenly in Detroit, still in his teens.', ['hersal']],
+                            ['1927', 'Voyager Golden Record, 1977', 'A blues with no words', 'Blind Willie Johnson\'s recording of Dark Was the Night, Cold Was the Ground has no words, only hums and moans over his slide guitar. In 1977 NASA put it on the Voyager Golden Record.', ['voyager']],
+                            ['1941', 'Father of the Blues', 'A knife on the strings', 'Waiting for a late train at Tutwiler, Mississippi, W. C. Handy woke to a guitarist pressing a knife on his strings as he played. In his autobiography Handy called the effect unforgettable.', ['handy']],
+                        ],
+                    ],
+                    'first' => [
+                        'kick' => 'Your first lesson',
+                        'title' => ['Say it,', 'say it again.'],
+                        'lead' => 'Lesson 1, step by step, as the app sets it out.',
+                        'kinds' => ['learn' => 'Read', 'try' => 'Find the notes', 'choose' => 'Listen and choose', 'play' => 'Sing it back'],
+                        'kept' => 'The line you sing is kept. In the last lesson you hear it again, beside the printed verse.',
+                    ],
+                    'begin' => ['kick' => 'Before you begin', 'who' => 'Who it\'s for', 'need' => 'What you need'],
+                    'questions' => ['kick' => 'Questions', 'title' => ['Ask it,', 'answer it.']],
+                    'close' => ['kick' => 'Your turn', 'title' => ['Say it.', 'Say it again.']],
+                    // The Sources list, in its order: a claim's note names its key (site/courses/_cites).
+                    'sources' => [
+                        'odum' => ['Odum, Journal of American Folk-Lore 24 (1911), pp. 351 and 381, Internet Archive', 'https://archive.org/details/sim_journal-of-american-folklore_october-december-1911_24_94'],
+                        'peabody' => ['Peabody, Journal of American Folk-Lore 16 (1903), pp. 149-151, Internet Archive', 'https://archive.org/details/sim_journal-of-american-folklore_july-september-1903_16_62'],
+                        'handy' => ['W. C. Handy, Father of the Blues (New York: Macmillan, 1941), pp. 74, 120-121 and 142-143, Internet Archive', 'https://archive.org/details/fatherofbluesaut00wcha_0'],
+                        'shoals' => ['Encyclopedia of Alabama, "Muscle Shoals"; The Henry Ford museum; Mississippi State University Libraries', 'https://encyclopediaofalabama.org/?p=16787'],
+                        'dahr' => ['Discography of American Historical Recordings, OKeh matrix S-70948, UC Santa Barbara', 'https://adp.library.ucsb.edu/index.php/matrix/detail/2000203086/S-70948-Muscle_Shoals_blues'],
+                        'george' => ['Handbook of Texas Online, "Thomas, George Washington, Jr."', 'https://www.tshaonline.org/handbook/entries/thomas-george-washington-jr-clay-custer'],
+                        'hersal' => ['Handbook of Texas Online, "Thomas, Hersal"; Discography of American Historical Recordings', 'https://www.tshaonline.org/handbook/entries/thomas-hersal'],
+                        'voyager' => ['Library of Congress, National Recording Registry essay on Dark Was the Night, Cold Was the Ground; NASA, Golden Record contents', 'https://www.loc.gov/static/programs/national-recording-preservation-board/documents/DarkWasTheNight.pdf'],
+                    ],
                 ],
             ],
             // Whistling (the courses lead, docs/courses/whistling.md): what's scored said honestly; no "drone" or "scale"
@@ -12059,6 +12734,106 @@ return [
                 ],
                 // Why it waits (the courses lead's soon-pages audit, 2026-11-02): the tracker hears up to about 1,100 Hz today.
                 'needs' => 'hearing a whistle\'s high notes',
+                // The designed page (site/courses/whistling, Hillel's design of 2026-11-18): magenta note bars. Every fact
+                // is one the course itself carries, with its source (web/course/plus/whistling/course.json).
+                'love' => [
+                    'title_lead' => 'Whistle a tune,',
+                    'title_em' => 'in tune.',
+                    'hero' => [
+                        'at' => 'Unit :unit · lesson :lesson',
+                        'sample' => 'Sample take',
+                        'rows' => ['Two up', 'One up', 'Your note'],
+                        'legend' => ['on' => 'On pitch', 'flat' => 'A little flat', 'now' => 'You, now'],
+                        'so_far' => ':n of :total notes on pitch so far',
+                        'done' => ':n of :total notes on pitch',
+                        'play' => 'Hear the sample take',
+                        'stop' => 'Stop',
+                        'label' => 'Hot Cross Buns on three rows: your whistle note and the two notes just above it, down, down, then the quick ones. A sample take colours the notes whistled so far: four on pitch and one a little flat, set lower, with the sixth being whistled now.',
+                        'note' => 'A sample take, not yours: the lesson lays the tune from your own whistle note. Played here on a whistle-like tone.',
+                    ],
+                    'units_title' => 'One note, then a slide, then the leaps, then a song.',
+                    'drawings' => [
+                        'One note, held for four beats, from lesson 2.',
+                        'Five notes stepping up, then a slide up and back, from lessons 2 and 3.',
+                        'Jumps up from a low note, each top note landed, from lesson 2.',
+                        'The Water Is Wide\'s first phrase, a breath after it, over the low line held under it, from lesson 4.',
+                    ],
+                    'first' => [
+                        'kick' => 'Before your first note',
+                        'title' => 'First, a whistle at all.',
+                        'lesson' => 'Lesson 1\'s first card',
+                        'tips_title' => 'One tip from each unit',
+                    ],
+                    'hears' => [
+                        'title' => 'Whistles sit far above voices. The app moves yours down to compare.',
+                        'lead' => 'So whistling higher costs nothing. The last lesson asks for headphones, since your own kept tune plays under you there; no other lesson does.',
+                        'scored' => 'Scored',
+                        'scored_text' => 'Your notes on pitch, where each note lands, a slide followed, the beat in one lesson and the wave in one lesson, never a lesson\'s last step.',
+                        'self' => 'You check yourself',
+                        'self_text' => 'Tone, breathiness and volume aren\'t scored: you check those yourself.',
+                        'sample' => 'Sample result',
+                        'take' => 'The Water Is Wide, first verse',
+                        'label' => 'The Water Is Wide\'s first verse as note bars, from a sample take: three notes a little flat, set lower and hollow, the rest on pitch.',
+                        'scoring' => ['game' => 'Up to three stars for the notes on pitch, and XP.', 'serious' => 'The same take says it plainly, like this, with no stars or XP.'],
+                    ],
+                    'finale' => [
+                        'kick' => 'The last lesson',
+                        'title' => 'Whistle with yourself.',
+                        'rows' => ['Your tune', 'Under it'],
+                        'label' => 'The Water Is Wide\'s first verse as note bars on one track, and under it, on its own track, the low line of four long notes you whistle under your own kept tune.',
+                    ],
+                    'facts_big' => ['2009', '1888', 'X-ray'],
+                    'facts_cites' => [['silbo'], ['shaw'], ['azola']],
+                    'more_facts' => [
+                        ['1929', 'Fred Lowery lost his sight as a small child. At the Texas School for the Blind he learned bird calls, and by 1929 he was whistling on the radio. He called his autobiography Whistling in the Dark.', ['lowery']],
+                        ['Not only us', 'Whistling isn\'t only human. An orangutan picked up a human whistle with no training at all, a study reported, and could change how long and how many times it whistled to copy a person.', ['wich']],
+                    ],
+                    'science' => [
+                        'kick' => 'Inside a whistle',
+                        'title' => 'The tongue moves the note.',
+                        'lead' => 'The course\'s tip, a silent "ee" to go up and "oo" to come down, follows what films of whistlers show.',
+                        'items' => [
+                            ['Further forward, higher', 'Real-time MRI films of six people whistling showed the tongue\'s shape largely sets the note: the further forward it sat, the higher the whistle. The same tongue work shapes vowels in speech.', ['belyk19']],
+                            ['Side pockets', 'For their highest notes, two experienced whistlers filmed by X-ray puffed their cheeks out from the teeth, adding side pockets to the mouth\'s chamber. Not every whistler may do this.', ['azola']],
+                            ['22 of 28', 'Copying short tunes, 22 of 28 people were less precise singing than whistling, and they tended to sing flat but whistle sharp.', ['belyk18']],
+                            ['Two notes at once?', 'Some rare whistlers seem to whistle two notes at once. A 1975 sound analysis of two found they nearly always switch back and forth between the notes, which sounds like a tremolo; one could move the tongue in time with each switch.', ['wieser']],
+                        ],
+                    ],
+                    'speech' => [
+                        'kick' => 'Whistled speech',
+                        'title' => 'Whole languages, whistled.',
+                        'items' => [
+                            ['About 80', 'About 80 remote communities whistle their language, almost all in mountains or thick forest. Whistled speech typically carries from about 50 metres to 2 kilometres, most often 400 to 500 metres.', ['meyer']],
+                            ['Two for five', 'Silbo Gomero whistles Spanish with two whistles standing in for its five vowels.', ['silbo']],
+                            ['A slide', 'When a language without tones, like Spanish, is whistled, each vowel becomes a fairly steady pitch, and each consonant becomes a slide in pitch or a break between them.', ['tran']],
+                            ['2017', 'In the mountains of northeast Turkey, whole conversations are whistled, and UNESCO put the practice on its urgent safeguarding list in 2017. Native whistlers understand whistled words with both halves of the brain, a study found, not mainly the left.', ['turkey', 'brain']],
+                        ],
+                    ],
+                    'songs_title' => 'The songs, in order',
+                    'safety_title' => 'Whistling safely',
+                    'faq_title' => 'Questions',
+                    'faq' => [
+                        ['Is the course free?', 'Yes. Like every course on Stackapella, it\'s free.'],
+                        ['When does it open?', 'Soon. It needs listening the app doesn\'t do yet (hearing a whistle\'s high notes), so it comes after the courses the app can already score. The beginner course works today.'],
+                        ['I can\'t whistle yet. Is it for me?', 'Yes: lesson 1 starts before your first note. A hiss with a faint note is the start, and for many people it takes a few days, not a minute. Breathy is fine: the app hears the note, not how clear it is.'],
+                        ['How long is it?', ':units units, :lessons lessons, about :minutes minutes in all.'],
+                        ['Can I whistle breathing in?', 'Some people find their first note whistling in; then whistle out.'],
+                    ],
+                    'sources' => [
+                        'silbo' => ['UNESCO Intangible Cultural Heritage, "Whistled language of the island of La Gomera (Canary Islands), the Silbo Gomero", Representative List, inscribed 2009 (4.COM)', 'https://ich.unesco.org/en/RL/whistled-language-of-the-island-of-la-gomera-canary-islands-the-silbo-gomero-00172'],
+                        'shaw' => ['WFMU, "Thomas Edison\'s Attic" playlist (28 December 2004), cylinder E-2440-08 from the Edison National Historic Site', 'https://wfmu.org/playlists/shows/13720'],
+                        'azola' => ['Azola A. et al., "The physiology of oral whistling: a combined radiographic and MRI analysis", Journal of Applied Physiology 124 (2018) (PMC6048461)', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC6048461/'],
+                        'lowery' => ['Library of Congress, NLS Music Notes blog, "American Composers and Musicians from A to Z: L (Part 2: Lowery, Fred)", August 2019', 'https://blogs.loc.gov/nls-music-notes/2019/08/american-composers-and-musicians-from-a-to-z-l-part-2-lowery-fred/'],
+                        'wich' => ['Wich S.A. et al., "A case of spontaneous acquisition of a human sound by an orangutan", Primates 50 (2009) 56-64, abstract (PMID 19052691)', 'https://europepmc.org/article/MED/19052691'],
+                        'belyk19' => ['Belyk M. et al., "Whistling shares a common tongue with speech: bioacoustics from real-time MRI of the human vocal tract", Proceedings of the Royal Society B 286 (2019) 20191116 (PMC6784732)', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC6784732/'],
+                        'belyk18' => ['Belyk M., Johnson J.F., Kotz S.A., "Poor neuro-motor tuning of the human larynx: a comparison of sung and whistled pitch imitation", Royal Society Open Science 5 (2018) 171544 (PMC5936900)', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC5936900/'],
+                        'wieser' => ['Wieser M., Schlorhaufer W., "Whistler for two voices (sound of whistle produced by man)", Archives of Oto-Rhino-Laryngology 211 (1975) 51-58, English abstract (PMID 1243641)', 'https://europepmc.org/article/MED/1243641'],
+                        'meyer' => ['Meyer J., Magnasco M.O., Reiss D., "The Relevance of Human Whistled Languages for the Analysis and Decoding of Dolphin Communication", Frontiers in Psychology 12 (2021) 689501 (PMC8490682)', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC8490682/'],
+                        'tran' => ['Tran Ngoc A., Meyer J., Meunier F., "Musical Experience and Speech Processing: The Case of Whistled Words", Cognitive Science 48 (2024) e70032, abstract (PMID 39699042)', 'https://doi.org/10.1111/cogs.70032'],
+                        'turkey' => ['UNESCO Intangible Cultural Heritage, "Whistled language" (Turkey), Urgent Safeguarding List, inscribed 2017 (12.COM)', 'https://ich.unesco.org/en/USL/whistled-language-00658'],
+                        'brain' => ['"Whistled Turkish alters language asymmetries", Current Biology 25 (2015), abstract (PMID 26294179)', 'https://pubmed.ncbi.nlm.nih.gov/26294179/'],
+                    ],
+                ],
             ],
             // Humming and lip trills (the courses lead, docs/courses/humming.md): what's scored, said honestly; no
             // medical promises (a hum doesn't heal anything).
@@ -12120,6 +12895,35 @@ return [
                         'parts' => ['Soprano', 'Alto', 'Tenor', 'Bass'],
                         'caption' => 'Amazing Grace\'s first line, its four parts as the beginner course sings them.',
                     ],
+                    // The length pass (2026-11-19): the course's own learn steps and its twelve checked lesson facts, laid
+                    // out as the science, a dated story, the first lesson to try, who it's for, questions and a close.
+                    'science' => ['kick' => 'How each sound works', 'title' => 'Four easy sounds, in plain words.'],
+                    'story' => ['kick' => 'A short history', 'title' => 'From a siren named in 1819 to today\'s studies of humming and lip trills.'],
+                    'try' => [
+                        'kick' => 'Try it now',
+                        'title' => 'The first lesson, as the app gives it: :name',
+                        'alt' => 'The first lesson\'s ribbon: a roller coaster up and over twice, drawn with the trill\'s bubbles.',
+                    ],
+                    'who' => [
+                        'kick' => 'Who it\'s for',
+                        'items' => [
+                            'Singers who want a warm-up of a few minutes, on sounds that are easy on the voice.',
+                            'Anyone who can\'t trill yet: a hum or an "oo" counts just the same.',
+                            'Anyone who wants to carry that easy start into a sung line, then into words.',
+                        ],
+                    ],
+                    'questions' => 'Questions',
+                    'close' => [
+                        'title' => 'Start with a roller coaster.',
+                        'body' => 'The first lesson is one bubble, up and over twice. Can\'t trill yet? A hum does the same job.',
+                    ],
+                ],
+                'faq' => [
+                    ['Is the course free?', 'Yes, like every course. Try the first lesson without an account; a free account opens the rest.'],
+                    ['What if I can\'t trill?', 'Plenty of people can\'t at first. Hum or slide on "oo" instead: the app follows whatever easy sound you make, so it costs you nothing. A fingertip at each corner of your mouth helps.'],
+                    ['How long does it take?', 'Sixteen lessons in four units, two or three minutes each: about 40 minutes in all. The last unit puts the sounds together as a three-minute warm-up.'],
+                    ['Can the app tell a lip bubble from a hum?', 'No. It follows your notes and whether the sound keeps going, never how high or how long you go. Whether the bubble kept going is a question the lesson asks you.'],
+                    ['Is this a cool-down?', 'No, it\'s the warm-up: its ribbons go up and around, never a long fall to speaking. Winding down after a long session is a cool-down\'s job.'],
                 ],
             ],
             'live-looping' => [
@@ -12173,6 +12977,73 @@ return [
                         'time' => ':pct on pitch and time',
                         'dots' => 'A sample take of 24 notes, six on each track: 21 lit on pitch, 3 missed.',
                     ],
+                    // The science and the story are the course's own lesson facts (course.json, read and checked
+                    // twice; App\Support\Site\LiveLoopingPage::facts), each with its numbered note: only their headings here.
+                    'science' => [
+                        'kick' => 'The science, in plain words',
+                        'title' => 'Why you can come back in on time.',
+                        'react' => 'To react to a sound',
+                        'react_n' => 'about 160 ms',
+                        'together' => 'Apart, in a trained ensemble',
+                        'together_n' => '30 to 50 ms',
+                        'chords' => 'Your loop\'s four chords',
+                        'numerals' => ['I', 'vi', 'ii', 'V'],
+                        'roots' => ['do', 'la', 're', 'so'],
+                    ],
+                    'try' => [
+                        'kick' => 'Try it now',
+                        'title' => 'Lesson 1: :lesson.',
+                        'before' => 'Before you sing',
+                        'line' => 'Try the first lesson of any course without an account.',
+                    ],
+                    'story' => [
+                        'kick' => 'Loops before pedals',
+                        'title' => 'A part on repeat is older than any machine.',
+                        'lead' => 'Singers and players kept a short part going round under a tune for centuries before any machine could. Then records and tape learned to do it.',
+                        'groups' => ['Sung and written', 'On record and tape'],
+                        'items' => [
+                            'll-3-frere' => ['13th century', 'A "foot" under a round'],
+                            'll-4-layers' => ['Purcell', 'A ground under a lament'],
+                            'll-4-bass' => ['1700', 'La Folia, varied over and over'],
+                            'll-3-sailor' => ['1841', 'One man strikes up, the rest join in'],
+                            'll-3-row' => ['1881', 'A boat song in 6/8'],
+                            'll-2-rhythm' => ['1911', 'Voices for the dance band'],
+                            'll-1-loop' => ['1948', 'A closed groove'],
+                            'll-2-three' => ['1958', 'One voice, sped up'],
+                            'll-2-pad' => ['1963', 'A choir on tape, a strip a key'],
+                        ],
+                    ],
+                    'who' => [
+                        'kick' => 'Who it\'s for',
+                        'lines' => [
+                            'You want a whole song from your own voice, built a layer at a time.',
+                            'You\'d like to do what a live looper does with a pedal, with no pedal: the app loops your takes.',
+                            'You can sing a few easy notes in your middle range: every part stays there, the bass sung light.',
+                        ],
+                    ],
+                    'need' => [
+                        'kick' => 'What you need',
+                        'lines' => [
+                            'Headphones, for every lesson: through a speaker, your loops rest while you sing.',
+                            'A browser: for now the course is in the web app only.',
+                            ':lessons lessons of 2 to 4 minutes, about :minutes minutes in all.',
+                        ],
+                    ],
+                    'faq_h' => 'Questions',
+                    'close' => [
+                        'kick' => 'Your first loop',
+                        'title' => 'Lay down your first loop.',
+                        'line' => 'Sing a two-bar bass, let it loop, then fill its gaps with a second part. Free, in your browser.',
+                    ],
+                ],
+                // Questions (site/courses/_faq, also as structured data): only answers the course bears out.
+                'faq' => [
+                    ['Is it free?', 'Yes, like every course on Stackapella. You can try the first lesson without an account.'],
+                    ['Do I need a looper pedal?', 'No. The app sets each loop\'s length, plays your take back on repeat, and lines up the next layer with it.'],
+                    ['Why headphones?', 'Through a speaker, your loops rest while you sing, so the mic hears only you. With headphones, you hear every layer as you add the next.'],
+                    ['Is the bass too low for me?', 'Every part sits in your comfortable range, and the bass is sung lightly, never pressed. Stop if anything tightens or hurts.'],
+                    ['Can I keep the song I make?', 'Yes. The last lesson, Your song, keeps your bass, your pad and the tune over them as a song in Sing.'],
+                    ['Is it in the phone apps?', 'For now the course is in the web app only.'],
                 ],
             ],
             'improvising-harmony' => [
@@ -12264,6 +13135,9 @@ return [
                     ['How long does it take?', '16 lessons of 2 to 4 minutes each, about 55 minutes in all.'],
                     ['What if I keep singing the tune?', 'That\'s the most common pull, and the app says when the tune pulled you onto its note. Headphones help. Lost? Hold your note until it rubs, then step.'],
                     ['Do I need to know chords?', 'No. The notes that fit light up, and the course teaches the three notes of a chord as you go.'],
+                    ['Do I need to read music?', 'No. The notes that fit light up on the lane, and the lights fade only as you go.'],
+                    ['Do I need headphones?', 'They help. With them, you hear the tune as you sing; through a speaker, the tune rests while you sing.'],
+                    ['Which songs does it use?', 'Michael, Row the Boat Ashore, Home on the Range, Swing Low, Sweet Chariot, Shenandoah, Steal Away and Simple Gifts, all public domain, with harmony lines written for the course.'],
                     ['Is it safe for my voice?', 'Yes. Above a loud tune, go lighter rather than strain to match it. Stop if anything tightens or hurts, and don\'t sing when you\'re hoarse. It isn\'t a substitute for a teacher.'],
                     ['What does it cost?', 'Nothing: every course is free. Try the first lesson without an account; a free account opens the rest.'],
                 ],
@@ -12303,7 +13177,25 @@ return [
                         'note' => 'An example of what a take shows, not a real singer\'s.',
                     ],
                     'facts_h' => 'People have been making up parts for *centuries.*',
-                    'eras' => ['Middle Ages', '1844', '1939'],
+                    // The archive's dates, by fact (ImprovisingHarmonyPage::ARCHIVE).
+                    'eras' => ['gymel' => 'Middle Ages', 'singing-upon-the-book' => 'The 1400s', 'sacred-harp' => '1844', 'michael-row-1863' => '1867', 'monroe' => '1939', 'home-on-the-range-kansas' => '1947'],
+                    // Why it works: each of the course's science facts with its rule in plain words.
+                    'science' => [
+                        'kick' => 'The science, in plain words',
+                        'title' => 'Why the *next chord tone* works',
+                        'cards' => [
+                            'odington-thirds' => ['Thirds blend', 'Over most notes the part above is a third: two notes that sound sweet together.'],
+                            'fourth-in-lower-voice' => ['Over so, a fourth', 'Over so, the third above is ti, which rubs against the chord, so the part goes one note higher, to do. On its own a fourth can sound harsh; with the chord under it, it fits.'],
+                            'small-steps-go-down' => ['A rub steps, mostly down', 'Lost? Hold your note until it rubs, then step. A rub usually steps, most often down.'],
+                            'less-feedback-sticks' => ['Why the lights fade', 'Every harmony note starts lit, then the lights fade lesson by lesson, until only the chords are left and the part is yours.'],
+                        ],
+                    ],
+                    // Lesson 1 in its own words (the course file's, ImprovisingHarmonyPage::lessonOne).
+                    'one' => [
+                        'kick' => 'Lesson 1, Michael, Row the Boat Ashore',
+                        'title' => 'The first lesson, *step by step*',
+                        'lead' => 'What lesson 1 asks of you, in its own words. It ends with Hear it together: your part with the tune.',
+                    ],
                     'join_h' => 'Find your *part*',
                 ],
                 // The player's words (js/public/improvising-harmony.js): lesson 1's A part above, no mic.

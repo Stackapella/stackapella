@@ -40,6 +40,13 @@
             <div @class(['s-xcards', 's-xcards-tail' => count($songs) >= 4 && count($songs) % 3 === 1]) style="--mid: {{ $at(\App\Support\Pages\Carols::MIDDLE_C) }}%">
                 @foreach ($songs as $carol)
                     <article id="carol-{{ $carol['slug'] }}" class="s-xcard s-xrib{{ $loop->index % 3 + 1 }}" aria-labelledby="carol-{{ $carol['slug'] }}-h" @if ($carol['line'] !== null) data-player @endif>
+                        {{-- Its title is the feature, set large over its featured picture as quiet atmosphere (Hillel, 2026-11-18:
+                             "Lets make the phots more of a background element and the song titke the feature"; App\Support\Pages\SongPictures),
+                             in the page's palette (`tone`); a song with no picture of a place or thing has the palette alone. --}}
+                        <div class="s-xhead s-tone s-tone-{{ $tone ?? 'song' }}">
+                            @include('site._song-picture', ['picture' => $carol['picture'] ?? null, 'song' => $carol, 'tone' => $tone ?? 'song', 'background' => true, 'class' => 's-xpic', 'sizes' => '(min-width: 1200px) 370px, (min-width: 900px) 31vw, (min-width: 600px) 47vw, calc(100vw - 32px)'])
+                            <h3 id="carol-{{ $carol['slug'] }}-h" translate="no">{{ $carol['title'] }}</h3>
+                        </div>
                         <div class="s-xcard-top">
                             <span class="s-xno s-xserif"><x-site.skin :game="__('site.carols.game.stage', ['n' => sprintf('%02d', $loop->iteration)])" :serious="__('site.carols.number', ['n' => sprintf('%02d', $loop->iteration)])" /></span>
                             @if (($chips ?? null) !== null && isset($chips[$carol['slug']]))
@@ -55,7 +62,6 @@
                                 </button>
                             @endif
                         </div>
-                        <h3 id="carol-{{ $carol['slug'] }}-h" translate="no">{{ $carol['title'] }}</h3>
                         {{-- Its key, how much of it and its level, from the song file; its story is on its own page. --}}
                         @if ($carol['meta'] !== [])
                             <p class="s-xmeta">{{ implode(' · ', $carol['meta']) }}</p>

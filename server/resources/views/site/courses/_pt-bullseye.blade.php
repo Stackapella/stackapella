@@ -1,12 +1,15 @@
 {{-- Perfect your pitch's Bullseye (js/public/perfect-your-pitch.js, inside a [data-pt] root): the guide sings
      five notes and the visitor echoes each, the mic only on its own tap, or Pull it in by ear without one.
      Used by the course page and, in the shared demo slot, by the How to sing in tune guide; its words are
-     always the course's. --}}
+     always the course's. Each landed dart is a pin on the board and a chip in cents under it. `sample` (the
+     course page's, PerfectYourPitchPage::SAMPLE) puts a sample round on the board before anyone sings, said so
+     on the board, and gone at the first tap. --}}
 @php($love = (array) \Illuminate\Support\Facades\Lang::get('site.courses.pages.perfect-your-pitch.love'))
 @php($demo = (array) $love['demo'])
 @php($board = [[150, 'w'], [128, 'k'], [104, 'b'], [66, 'r'], [30, 'g']])
 @php($headId = $headId ?? 'demo-h')
-        <div class="cp-pt2-demo" data-pt-demo
+@php($sample = $sample ?? null)
+        <div class="cp-pt2-demo" data-pt-demo @if ($headId === 'demo-h') id="bullseye" @endif @if (is_array($sample)) data-sample="{{ json_encode(array_values($sample)) }}" @endif
             data-asking="{{ $demo['asking'] }}" data-listen="{{ $demo['listen'] }}" data-turn="{{ $demo['turn'] }}"
             data-sharp="{{ $demo['sharp'] }}" data-flat="{{ $demo['flat'] }}" data-dead-on="{{ $demo['dead_on'] }}"
             data-unheard="{{ $demo['unheard'] }}" data-summary="{{ $demo['summary'] }}" data-none="{{ $demo['none'] }}"
@@ -26,8 +29,10 @@
                         <text x="170" y="374" class="cp-pt2-side">{{ $demo['down'] }}</text>
                         <g data-pt-darts></g>
                     </svg>
+                    <p class="cp-pt2-sampletag" data-pt-sample-tag hidden>{{ $demo['sample'] }}</p>
+                    <p class="cp-pt2-chips-darts" data-pt-chips></p>
                 </div>
-                <div class="cp-pt2-demo-copy" @if ($headId === 'demo-h') id="bullseye" @endif>
+                <div class="cp-pt2-demo-copy">
                     <h2 id="{{ $headId }}" class="cp-pt2-demo-h">{{ $demo['title'] }}</h2>
                     <p class="cp-pt2-demo-lead">{{ $demo['lead'] }}</p>
                     <p class="cp-pt2-btns">

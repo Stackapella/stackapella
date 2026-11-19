@@ -83,7 +83,7 @@
             <div class="cp-gr-panels">
                 @foreach ((array) $demo['speeds'] as $g => $speed)
                     <div class="cp-gr-panel" data-gr-speed="{{ $g }}">
-                        <svg viewBox="0 0 300 220" aria-hidden="true">
+                        <svg viewBox="0 0 300 176" aria-hidden="true">
                             @foreach ($deck['rows'] as $y)
                                 <path d="M0 {{ $y }} H300" class="cp-gr-row" />
                             @endforeach
@@ -137,19 +137,21 @@
             <p class="cp-gr-body">{{ $plain['pent'] }}@include('site.courses._cites', ['keys' => ['gill']])</p>
         </div>
 
-        <h3 class="cp-gr-h3 cp-gr-blur-h">{{ $plain['blur_title'] }}</h3>
-        <p class="cp-gr-small">{{ $plain['blur'] }}@include('site.courses._cites', ['keys' => ['xu']])</p>
-        <ol class="cp-gr-nums">
-            @foreach ((array) $plain['numbers'] as [$big, $unit, $what, $text, $cites])
-                <li class="cp-gr-num">
-                    <p class="cp-gr-big">{{ $big }}<small>{{ $unit }}</small></p>
-                    <h4>{{ $what }}</h4>
-                    <p>{{ $text }}@include('site.courses._cites', ['keys' => $cites])</p>
-                </li>
-            @endforeach
-        </ol>
-
         <div class="cp-gr-pair">
+            {{-- Why fast runs smear beside the smear deck (the page's length pass, 2026-11-19); the words first on a phone. --}}
+            <div class="cp-gr-pair-text">
+                <h3 class="cp-gr-h3">{{ $plain['blur_title'] }}</h3>
+                <p class="cp-gr-small">{{ $plain['blur'] }}@include('site.courses._cites', ['keys' => ['xu']])</p>
+                <ol class="cp-gr-nums">
+                    @foreach ((array) $plain['numbers'] as [$big, $unit, $what, $text, $cites])
+                        <li class="cp-gr-num">
+                            <p class="cp-gr-big">{{ $big }}<small>{{ $unit }}</small></p>
+                            <h4>{{ $what }}</h4>
+                            <p>{{ $text }}@include('site.courses._cites', ['keys' => $cites])</p>
+                        </li>
+                    @endforeach
+                </ol>
+            </div>
             <div class="cp-gr-deck cp-gr-smear" data-gr-smear data-say-clean="{{ $smear['say_clean'] }}" data-say-smear="{{ $smear['say_smear'] }}" data-after="{{ $smear['after'] }}">
                 <p class="cp-gr-deck-bar"><span class="cp-gr-live"><i aria-hidden="true"></i>{{ $smear['kick'] }}</span><span>{{ $smear['tag'] }}</span></p>
                 <div class="cp-gr-panels cp-gr-panels-two">
@@ -178,11 +180,11 @@
                     <p class="cp-gr-deck-note">{{ $smear['note'] }}</p>
                 </div>
             </div>
-            <div class="cp-gr-pair-text">
-                <h3 class="cp-gr-h3">{{ $heads['slow'][0] }} <em>{{ $heads['slow'][1] }}</em></h3>
-                <p class="cp-gr-body">{{ $plain['slow'] }}@include('site.courses._cites', ['keys' => ['furuya']])</p>
-                <p class="cp-gr-body">{{ $plain['correct'] }}@include('site.courses._cites', ['keys' => ['duke']])</p>
-            </div>
+        </div>
+        <h3 class="cp-gr-h3 cp-gr-slow-h">{{ $heads['slow'][0] }} <em>{{ $heads['slow'][1] }}</em></h3>
+        <div class="cp-gr-two cp-gr-slow">
+            <p class="cp-gr-body">{{ $plain['slow'] }}@include('site.courses._cites', ['keys' => ['furuya']])</p>
+            <p class="cp-gr-body">{{ $plain['correct'] }}@include('site.courses._cites', ['keys' => ['duke']])</p>
         </div>
     </section>
 
@@ -305,9 +307,10 @@
         <p class="cp-gr-kick">{{ $love['kicks']['notes'] }}</p>
         <h2 id="facts-h" class="cp-gr-h">{{ $heads['facts'][0] }} <em>{{ $heads['facts'][1] }}</em></h2>
         @php($facts = (array) $love['facts'])
-        @foreach ([array_slice($facts, 0, 2), array_slice($facts, 2)] as $part)
+        {{-- Three notes, then the rest folded at every width (secondary detail; the page's length pass, 2026-11-19). --}}
+        @foreach ([array_slice($facts, 0, 3), array_slice($facts, 3)] as $part)
             @if ($loop->last)
-                <details class="cp-gr-more" data-gr-wide><summary><span>{{ $love['facts_more'] }}</span><span class="cp-faq-sign" aria-hidden="true"><x-site.icon name="plus" size="16" /></span></summary>
+                <details class="cp-gr-more cp-gr-more-all"><summary><span>{{ $love['facts_more'] }}</span><span class="cp-faq-sign" aria-hidden="true"><x-site.icon name="plus" size="16" /></span></summary>
             @endif
             <ul class="cp-gr-facts">
                 @foreach ($part as [$text, $source, $cites])

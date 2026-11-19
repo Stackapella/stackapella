@@ -183,6 +183,13 @@ them under the same licence.
 **What you may not do:** sell or hand out the guide recordings (our singers' voices), which stay
 ours: the singers agreed to them being used by Stackapella only.
 
+**Real recordings from YouTube.** Some songs offer real performances that play from YouTube, with our
+notes lined up to them. They're played by YouTube's own player and belong to the people who made them,
+not to us. By playing one you agree to YouTube's Terms of Service (https://www.youtube.com/t/terms),
+and YouTube handles what it learns as Google's Privacy Policy (https://policies.google.com/privacy)
+says. They're free to everyone; we never charge for them, and nothing you do with them earns stars or
+XP.
+
 ## 6. Stackapella Plus
 
 - **What it is:** the whole song library, the full course and workouts, your history, more

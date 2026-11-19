@@ -149,6 +149,8 @@ return [
         'all_short' => 'All :count',
         'try' => 'Try it',
         'try_note' => 'Tap a part again to bring all of them back. Sing yours alone, then with the others.',
+        // Under the score card (Hillel, 2026-11-18: staff notes by default): each staff's letter plays its part alone.
+        'try_score_note' => 'Tap a letter to hear that part on its own, and again for all of them.',
         'collections_kick' => 'Collections',
         'collections' => 'Learn your part,',
         'collections_em' => 'then sing it together',

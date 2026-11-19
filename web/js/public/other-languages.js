@@ -13,7 +13,9 @@
 // 60, four times at 80, four at 96. Drifting flat lowers each round 5 cents more than the last, so the tenth is
 // 45 cents low; its last G is held through the rest beat with a true G4 (392.00 Hz) beside it, beating about 10
 // times a second against 381.94 Hz (in tune, the two are one note). "At 132" plays the figure four times round at
-// the library's tempo, in tune. No mic. The words are the view's.
+// the library's tempo, in tune. The figure's notes are the template's (the view draws the ten rounds from it); the
+// drawing sags round by round in CSS while drifting flat is picked (the deck's data-drift). No mic. The words are the
+// view's.
 
 import { audio, hz, line, voice } from './voices.js';
 import { finish, label, play, when } from './demo-player.js';
@@ -81,7 +83,9 @@ const GAP = 0.9; // seconds between the tour's parts
 function show(view) {
     // An SVG group has no hidden property: the attribute itself, which the page's CSS hides.
     deck.querySelectorAll('[data-ol-view]').forEach((g) => g.toggleAttribute('hidden', g.dataset.olView !== view));
-    deck.querySelector('[data-ol-mode]').textContent = words[`name${view[0].toUpperCase()}${view.slice(1)}`];
+    const key = `${view[0].toUpperCase()}${view.slice(1)}`;
+    deck.querySelector('[data-ol-mode]').textContent = words[`name${key}`];
+    deck.querySelector('[data-ol-kana]').textContent = words[`kana${key}`] ?? '';
 }
 
 // Each part makes its voices from `at` and lights its marks as they sound; returns [voices, length in seconds].
@@ -146,17 +150,19 @@ function tour({ live }) {
 const ladderDeck = page?.querySelector('[data-ol-ladder]');
 const ladderWords = ladderDeck?.dataset ?? {};
 const ladderSay = ladderDeck?.querySelector('[data-ol-ladder-say]');
-const FIGURE = [[70, 0, 1], [69, 1, 0.5], [70, 1.5, 0.5], [67, 2, 1]]; // [MIDI, beat, beats]: B♭4, A4, B♭4, G4
-const LADDER = [60, 60, 80, 80, 80, 80, 96, 96, 96, 96];
+// The figure and the ladder as the view gives them (the template's notes, the course's tempos), else the same here.
+const read = (json, fallback) => {
+    try {
+        return JSON.parse(json ?? 'null') ?? fallback;
+    } catch (error) {
+        console.warn('the ladder deck\'s data did not parse', error);
+        return fallback;
+    }
+};
+const FIGURE = read(ladderDeck?.dataset.figure, [[70, 0, 1], [69, 1, 0.5], [70, 1.5, 0.5], [67, 2, 1]]); // [MIDI, beat, beats]: B♭4, A4, B♭4, G4
+const LADDER = read(ladderDeck?.dataset.ladder, [60, 60, 80, 80, 80, 80, 96, 96, 96, 96]);
 const DRIFT = 5; // cents lower each round, drifting flat
 let drifting = false;
-
-// The rounds' cells sag with the drift (one unit a cent), or sit on the true key's line.
-function sag() {
-    ladderDeck.querySelectorAll('[data-ol-round]').forEach((cell) => {
-        cell.setAttribute('y', String(138 + (drifting ? Number(cell.dataset.olRound) * DRIFT : 0)));
-    });
-}
 
 // One round of the figure from `at` at `bpm`, `cents` off; the last round holds its G through the rest beat.
 function round(at, bpm, cents, live, { last = false, k = null } = {}) {
@@ -167,6 +173,7 @@ function round(at, bpm, cents, live, { last = false, k = null } = {}) {
         when(start).then(() => {
             if (!live()) return;
             light(ladderDeck, 'data-ol-fig', String(i));
+            if (k !== null) light(ladderDeck, 'data-ol-note', `${k}-${i}`);
             if (i === 0 && k !== null) {
                 light(ladderDeck, 'data-ol-round', String(k));
                 ladderSay.textContent = `${fill(ladderWords.round, { n: String(k + 1), bpm: String(bpm) })}${cents ? ` ${fill(ladderWords.low, { c: String(-cents) })}` : ''}`;
@@ -205,6 +212,7 @@ function climb({ live }) {
         done: () => {
             light(ladderDeck, 'data-ol-fig', '');
             light(ladderDeck, 'data-ol-round', '');
+            light(ladderDeck, 'data-ol-note', '');
             ladderDeck.querySelector('.cp-ol-true')?.removeAttribute('data-on');
         },
     };
@@ -238,7 +246,7 @@ page?.querySelectorAll('[data-ol-play]').forEach((button) => {
 ladderDeck?.querySelectorAll('[data-ol-drift]').forEach((chip) => chip.addEventListener('click', () => {
     drifting = chip.dataset.olDrift === 'flat';
     ladderDeck.querySelectorAll('[data-ol-drift]').forEach((b) => b.setAttribute('aria-pressed', String(b === chip)));
-    sag();
+    ladderDeck.dataset.drift = drifting ? 'flat' : 'true';
 }));
 
 // Everything stops when the page is hidden (voices.js stops only its own voices).

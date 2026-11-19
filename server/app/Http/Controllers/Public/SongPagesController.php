@@ -97,13 +97,45 @@ final class SongPagesController extends Controller
             'next' => $hub->next(),
             'index' => $hub->index(),
             'q' => mb_substr($q, 0, 60),
-            // The hero's "Try it": a song's first line in four parts, each switchable (x-site.mixer, js/public/mixer.js).
-            'try' => Landing::lineOf('silent-night') ?? Landing::lineOf('amazing-grace'),
+            // The hero's "Try it": a song as its page's score card shows it, on staves (Hillel, 2026-11-18: "at the top of the
+            // songs page we show bars, let's show music staff notes by default instead"; public/_song-score).
+            'try' => self::tryIt(),
             'rounds' => in_array('rounds', array_column(app(SongCollections::class)->open(), 'slug'), true) ? SongCollections::path('rounds') : null,
             // The season band's chip: when it ends (Carols::seasonEnds).
             'until' => Dates::dayMonth(Carols::seasonEnds()),
             'meta' => ['title' => __('pages.songs.title'), 'description' => __('pages.songs.description'), 'url' => Hosts::publicUrl().'/songs'],
         ], 200, self::edgeHeaders());
+    }
+
+    /**
+     * /songs's song to try (Silent Night, else Amazing Grace), as a song page's score card shows it (public/_song-score):
+     * its player's song, which plays the whole of it, the score's facts and every note for the engraver, its text
+     * alternative, its page and its collection's tone. Null when neither song is there.
+     *
+     * @return array{line: array<string, mixed>, score: array<string, mixed>, alt: string, url: string, title: string, tone: string}|null
+     */
+    private static function tryIt(): ?array
+    {
+        foreach (['silent-night', 'amazing-grace'] as $slug) {
+            $template = Template::query()->official()->with('currentVersion')->where('slug', $slug)->first();
+            $line = $template !== null ? Landing::line($template) : null;
+            if ($template === null || $line === null) {
+                continue;
+            }
+            $song = SongPage::of($template);
+            $score = SongScore::of($template, $song, (float) $line['songBeats'] * 60 / max(1.0, (float) $line['tempo']));
+
+            return [
+                'line' => $line,
+                'score' => $score,
+                'alt' => SongScore::alt($song['title'], $score, SongPage::cards($template, $song), count($line['parts'])),
+                'url' => '/songs/'.$slug,
+                'title' => (string) $song['title'],
+                'tone' => app(SongCollections::class)->home($slug)['key'] ?? 'song',
+            ];
+        }
+
+        return null;
     }
 
     public function show(Request $request, string $slug, SongCards $cards, Catalogue $catalogue, SongCollections $collections, SongParts $songParts, RightsHere $rights): Response

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Site;
 
 use App\Support\Flags;
+use App\Support\Site\ChoirPartCourse;
 use App\Support\Site\ChoirPartScore;
 use App\Support\Site\SitePages;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -115,5 +116,44 @@ final class LearnYourChoirPartPageTest extends TestCase
         $this->assertStringContainsString('Una toma de ejemplo', $html);
         $this->assertStringContainsString('Contralto', $html);
         $this->assertSame(15, substr_count($html, '#lesson-'));
+    }
+
+    public function test_lesson_one_and_the_findings_come_from_the_course(): void
+    {
+        $first = ChoirPartCourse::firstLesson();
+        $this->assertNotNull($first);
+        $this->assertSame(['Hear everyone first', 'Your part', 'Sing easy'], array_column($first['cards'], 'title'));
+        // Each part's own card, soprano to bass (the course's default part, the alto, is the step's own).
+        $this->assertSame(ChoirPartScore::PARTS, array_keys($first['parts']));
+        $this->assertSame('Now the alto on its own. Follow the words.', $first['parts']['alto']['headline']);
+        $this->assertSame(2, $first['parts']['alto']['n']);
+        $this->assertStringStartsWith('Find the notes of line 1', $first['find']);
+        $this->assertStringStartsWith('Sing lines 1 and 2', $first['sing']);
+
+        $findings = ChoirPartCourse::findings();
+        $this->assertSame([1890, 1999, 2006, 2009], array_column($findings, 'year'));
+        $this->assertSame([3, 1, 4, 2], array_column($findings, 'unit'));
+        $this->assertSame(['james-recollect', 'self-to-other-ratio', 'sleep-on-the-melody', 'not-how-much-but-how'], array_keys(ChoirPartCourse::sources($findings)));
+        // The questions say "about 40 minutes" and "15 short lessons": the catalogue and the course must agree.
+        $this->assertSame(40, ChoirPartCourse::minutes());
+        $this->assertSame(15, SitePages::courseOutline('learn-your-choir-part')['lessons'] ?? null);
+    }
+
+    public function test_the_page_numbers_its_findings_into_its_sources(): void
+    {
+        $html = (string) $this->get('/courses/learn-your-choir-part')->assertOk()->getContent();
+
+        for ($n = 1; $n <= 4; $n++) {
+            $this->assertStringContainsString('id="src-'.$n.'"', $html);
+            $this->assertStringContainsString('href="#src-'.$n.'"', $html);
+        }
+        foreach (['https://doi.org/10.1177/0022429408328851', 'https://psychclassics.yorku.ca/James/Principles/prin16.htm', 'Lesson 1, as the app runs it.', 'Is the course free?', 'FAQPage'] as $text) {
+            $this->assertStringContainsString(e($text), $html);
+        }
+        $this->assertSame(4, substr_count($html, 'class="cp-lcp-try-part'));
+
+        $es = (string) $this->get('/es/courses/learn-your-choir-part')->assertOk()->getContent();
+        $this->assertStringContainsString('Primero, todo el coro', $es);
+        $this->assertStringContainsString('Cuatro hallazgos', $es);
     }
 }

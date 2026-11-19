@@ -44,6 +44,12 @@ final class LiveLoopingPage
     /** Each ring's radius in the 400-wide drawing. */
     private const RADII = ['bass' => 170, 'pad' => 135, 'tune' => 100, 'round' => 65];
 
+    /** The science's facts, by lesson: you predict your loop, and your loop's four chords. */
+    public const SCIENCE = ['ll-1-lock', 'll-1-longer'];
+
+    /** The story's facts, by lesson, in its two groups: sung and written, then on record and tape. */
+    public const STORY = [['ll-3-frere', 'll-4-layers', 'll-4-bass', 'll-3-sailor', 'll-3-row', 'll-2-rhythm'], ['ll-1-loop', 'll-2-three', 'll-2-pad']];
+
     /** The sample take's missed notes, by place (21 of 24 on pitch). */
     private const MISSED = [7, 15, 20];
 
@@ -161,6 +167,108 @@ final class LiveLoopingPage
     public static function sampleDots(): array
     {
         return array_map(static fn (int $i): array => ['v' => intdiv($i, 6) + 1, 'miss' => in_array($i, self::MISSED, true)], range(0, 23));
+    }
+
+    /**
+     * The course's sourced facts (each lesson's `fact` in its course.json, read and checked twice, in the page's
+     * language), by lesson id: its words, and its source's label and address.
+     *
+     * @return array<string, array{text: string, source: string, url: string}>
+     */
+    public static function facts(): array
+    {
+        $facts = [];
+        foreach ((array) (self::course()['units'] ?? []) as $unit) {
+            foreach ((array) (is_array($unit) ? ($unit['lessons'] ?? []) : []) as $lesson) {
+                $fact = is_array($lesson) ? ($lesson['fact'] ?? null) : null;
+                if (is_array($fact) && is_string($lesson['id'] ?? null) && is_string($fact['url'] ?? null)) {
+                    $facts[$lesson['id']] = ['text' => self::said($fact['text'] ?? ''), 'source' => self::said($fact['source'] ?? ''), 'url' => $fact['url']];
+                }
+            }
+        }
+
+        return $facts;
+    }
+
+    /**
+     * The page's Sources, numbered in the order the page cites them (the science, then the story), as the shared
+     * _cites partial reads them: lesson id => [label, address].
+     *
+     * @return array<string, array{0: string, 1: string}>
+     */
+    public static function sources(): array
+    {
+        $facts = self::facts();
+        $sources = [];
+        foreach ([...self::SCIENCE, ...array_merge(...self::STORY)] as $id) {
+            if (isset($facts[$id])) {
+                $sources[$id] = [$facts[$id]['source'], $facts[$id]['url']];
+            }
+        }
+
+        return $sources;
+    }
+
+    /**
+     * The first lesson, The loop, as the app teaches it: its headline's first sentence, its three cards (title and detail) and its two
+     * sung steps, in the page's language.
+     *
+     * @return array{headline: string, cards: list<array{0: string, 1: string}>, steps: list<string>}
+     */
+    public static function firstLesson(): array
+    {
+        $first = ['headline' => '', 'cards' => [], 'steps' => []];
+        $lesson = self::course()['units'][0]['lessons'][0] ?? null;
+        $lesson = is_array($lesson) ? $lesson : [];
+        foreach ((array) ($lesson['steps'] ?? []) as $step) {
+            if (! is_array($step)) {
+                continue;
+            }
+            if (($step['kind'] ?? '') === 'learn') {
+                // Its first sentence: the rest is the app's own "hear one".
+                $first['headline'] = explode('. ', self::said($step['headline'] ?? ''), 2)[0];
+                $first['headline'] .= str_ends_with($first['headline'], '.') ? '' : '.';
+                foreach ((array) ($step['steps'] ?? []) as $card) {
+                    if (is_array($card)) {
+                        $first['cards'][] = [self::said($card['title'] ?? ''), self::said($card['detail'] ?? '')];
+                    }
+                }
+            } elseif (($step['kind'] ?? '') === 'play') {
+                $first['steps'][] = self::said($step['text'] ?? '');
+            }
+        }
+
+        return $first;
+    }
+
+    /**
+     * What you need, its last line with the course's own size (its lessons and minutes, from its file) put in.
+     *
+     * @param  list<string>  $lines
+     * @param  array{units: list<array{title: string, lessons: list<string>}>, lessons: int, minutes?: int|null}|null  $outline
+     * @return list<string>
+     */
+    public static function needs(array $lines, ?array $outline): array
+    {
+        $lessons = (int) ($outline['lessons'] ?? 0);
+        $minutes = (int) ($outline['minutes'] ?? 0);
+
+        // The course's size only when its file says it.
+        return array_values(array_filter(array_map(
+            static fn (string $line): ?string => str_contains($line, ':lessons') ? ($lessons > 0 && $minutes > 0 ? strtr($line, [':lessons' => (string) $lessons, ':minutes' => (string) $minutes]) : null) : $line,
+            $lines,
+        ), static fn (?string $line): bool => $line !== null));
+    }
+
+    /** A course file's words ({"en": ..., "es": ...}) in the page's language, else English. */
+    private static function said(mixed $words): string
+    {
+        if (is_string($words)) {
+            return $words;
+        }
+        $words = (array) $words;
+
+        return (string) ($words[app()->getLocale()] ?? $words['en'] ?? '');
     }
 
     /** A list's place as two digits ("01"). */

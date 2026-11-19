@@ -15,6 +15,7 @@ use App\Support\Languages\Languages;
 use App\Support\Languages\SiteLanguages;
 use App\Support\Pages\Carols;
 use App\Support\Pages\Lessons;
+use App\Support\Pages\PublicDomain;
 use App\Support\Pages\Reference;
 use App\Support\Pages\SongCollections;
 use App\Support\Pages\SongParts;
@@ -63,6 +64,8 @@ final class SitemapPaths
         if (SongParts::open()) {
             $paths = [...$paths, ...app(SongParts::class)->paths()];
         }
+        // The songs in the public domain, and the songs that will be.
+        $paths[] = PublicDomain::PATH;
         // The Christmas carols page, while a carol is open.
         if (app(Carols::class)->slugs() !== []) {
             $paths[] = Carols::PATH;

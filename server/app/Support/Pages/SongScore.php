@@ -50,6 +50,23 @@ final class SongScore
     }
 
     /**
+     * The score in words, its text alternative: what it is, its time and bars, and each part's range.
+     *
+     * @param  array{voicing: string|null, bars: int|null, time: string}  $score  of()'s
+     * @param  list<array<string, mixed>>  $cards  SongPage::cards()
+     */
+    public static function alt(string $title, array $score, array $cards, int $count): string
+    {
+        return (string) __('pages.song.score.alt', [
+            'title' => $title,
+            'kind' => __('pages.song.score.kind.'.($score['voicing'] ?? 'parts'), ['count' => $count]),
+            'time' => $score['time'],
+            'bars' => __('pages.song.score.alt_bars', ['count' => $score['bars'] ?? 0]),
+            'ranges' => collect($cards)->map(static fn (array $card): string => (string) __('pages.song.score.alt_part', ['part' => $card['name'], 'low' => Carols::signs((string) $card['low']), 'high' => Carols::signs((string) $card['high'])]))->implode('; '),
+        ]);
+    }
+
+    /**
      * The song as the engraver reads it (js/engrave.js), and no more: its key, time, tempo, upbeat and genres (a round is
      * written on one staff), and each part's notes with their words and breaths. In the page itself, so showing the
      * score reads nothing from the API (a guest's reads are capped by network; the coordinator, 2026-11-16). Everyone

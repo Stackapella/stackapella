@@ -261,4 +261,15 @@ final class WebAppTest extends TestCase
         $this->assertStringContainsString('frame-src https://challenges.cloudflare.com', $csp);
         $this->assertMatchesRegularExpression('/script-src [^;]*https:\/\/challenges\.cloudflare\.com/', $csp);
     }
+
+    public function test_the_app_may_play_a_youtube_recording_from_the_privacy_enhanced_host(): void
+    {
+        // YouTube sync (docs/youtube-sync-plan.md): the IFrame API's loader from www.youtube.com, the player framed from
+        // youtube-nocookie.com, and never a youtube.com frame.
+        $csp = (string) $this->get('/?app')->headers->get('Content-Security-Policy');
+
+        $this->assertMatchesRegularExpression('/script-src [^;]*https:\/\/www\.youtube\.com/', $csp);
+        $this->assertMatchesRegularExpression('/frame-src [^;]*https:\/\/www\.youtube-nocookie\.com/', $csp);
+        $this->assertDoesNotMatchRegularExpression('/frame-src [^;]*https:\/\/www\.youtube\.com/', $csp);
+    }
 }

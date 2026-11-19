@@ -60,7 +60,7 @@ final class Carols
      * Each open carol: its title and page, where it comes from (the first sentence of its part pages' About, checked
      * by the courses lead), and its parts, each to its own page.
      *
-     * @return list<array{slug: string, title: string, url: string, from: string|null, line: array<string, mixed>|null, meta: list<string>, level: string|null, parts: list<array{key: string, name: string, melody: bool, low: int, high: int, lowName: string, highName: string, url: string}>}>
+     * @return list<array{slug: string, title: string, url: string, from: string|null, line: array<string, mixed>|null, meta: list<string>, level: string|null, picture: array<string, mixed>|null, parts: list<array{key: string, name: string, melody: bool, low: int, high: int, lowName: string, highName: string, url: string}>}>
      */
     public function songs(): array
     {
@@ -85,7 +85,7 @@ final class Carols
      * A song as a card in a songbook (this page, and the collections, SongCollections): its title and page, where it
      * comes from, its opening line to play, its line from the song file, and its parts, each to its own page.
      *
-     * @return array{slug: string, title: string, url: string, from: string|null, line: array<string, mixed>|null, meta: list<string>, level: string|null, parts: list<array{key: string, name: string, melody: bool, low: int, high: int, lowName: string, highName: string, url: string}>}
+     * @return array{slug: string, title: string, url: string, from: string|null, line: array<string, mixed>|null, meta: list<string>, level: string|null, picture: array<string, mixed>|null, parts: list<array{key: string, name: string, melody: bool, low: int, high: int, lowName: string, highName: string, url: string}>}
      */
     public static function card(Template $template): array
     {
@@ -107,6 +107,8 @@ final class Carols
             'meta' => self::meta((array) $template->currentVersion?->data),
             // Its level alone, for a list that names only that (the Jewish page's next-festival card).
             'level' => self::level((array) $template->currentVersion?->data),
+            // Its featured picture, from its story (SongPictures), or null: the card leads with it.
+            'picture' => SongPictures::featured((string) $template->slug),
             'parts' => array_map(static fn (array $part): array => [
                 'key' => $part['key'], 'name' => $part['name'], 'melody' => $part['melody'] && ! $round,
                 // Its lowest and highest notes (MIDI), for its range bar on the songbook's one scale (SCALE).

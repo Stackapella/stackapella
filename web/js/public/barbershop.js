@@ -59,6 +59,7 @@ const tuner = page.querySelector('[data-bb-tuner]');
 const third = page.querySelector('[data-bb-third]');
 const beatsOut = page.querySelector('[data-bb-beats]');
 const tag = page.querySelector('[data-bb-tag]');
+const slider = page.querySelector('[data-bb-slider]');
 const rings = page.querySelector('[data-bb-rings]');
 const stars = page.querySelector('[data-bb-stars]');
 const wave = page.querySelector('[data-bb-wave]');
@@ -85,11 +86,9 @@ function showThird() {
     const beats = beatsAt(c);
     const locked = beats <= 0.45;
     beatsOut.textContent = beats.toFixed(1);
-    // The tag riding above the thumb: its cents, and the ring when it locks.
-    if (tag) {
-        tag.textContent = `${c > 0 ? '+' : c < 0 ? '−' : ''}${Math.abs(c)}¢${locked ? ` ${tag.dataset.ring}` : ''}`;
-        tag.style.left = `calc(14px + (100% - 28px) * ${(c + 30) / 40})`;
-    }
+    // The third's cents over the slider's end, with the ring when it locks; the track fills up to the thumb.
+    if (tag) tag.textContent = `${c > 0 ? '+' : c < 0 ? '−' : ''}${Math.abs(c)}¢${locked ? ` ${tag.dataset.ring}` : ''}`;
+    slider?.style.setProperty('--bb-at', String((c + 30) / 40));
     rings.hidden = !locked;
     tuner?.toggleAttribute('data-locked', locked);
     // The game's lock meter: a star for close, closer, and locked.
@@ -107,14 +106,18 @@ wobble?.addEventListener('click', () => start(wobble, () => {
     return { voices: [...chord([PURE.root, PURE.fifth]), thirdVoice], length: 30, done: () => { thirdVoice = null; } };
 }));
 
-// The cornerstone chord: the seventh at the piano's pitch, then tuned 31 cents low while its dot on
-// the ladder glides down onto rung 7. Wavy puts a wave in every voice (5.5 a second, 25 cents), which
-// smears the overtones so the chord can't lock.
+// The cornerstone chord: the seventh at the piano's pitch, then tuned 31 cents low from 1.4 s while its
+// dot glides from the piano's line down onto rung 7 and the cents read 0 then −31 (the drawing's timing is
+// the same 1.4 s, in the CSS, from the press). Wavy puts a wave in every voice (5.5 a second, 25 cents),
+// which smears the overtones so the chord can't lock.
 const seventh = page.querySelector('[data-bb-seventh]');
 const glide = page.querySelector('[data-bb-glide]');
 const tones = page.querySelectorAll('[data-bb-tone]');
 for (const tone of tones) {
-    tone.addEventListener('click', () => tones.forEach((t) => t.setAttribute('aria-pressed', String(t === tone))));
+    tone.addEventListener('click', () => {
+        tones.forEach((t) => t.setAttribute('aria-pressed', String(t === tone)));
+        glide?.toggleAttribute('data-wavy', tone.dataset.bbTone === 'wavy');
+    });
 }
 seventh?.addEventListener('click', () => start(seventh, () => {
     const wavy = page.querySelector('[data-bb-tone="wavy"]')?.getAttribute('aria-pressed') === 'true';

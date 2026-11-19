@@ -106,7 +106,9 @@ final class HummingPageTest extends TestCase
         foreach (['bocca chiusa', 'ngā', 'm → ah'] as $word) {
             $this->assertStringContainsString(e($word), $html);
         }
-        $this->assertSame(3, substr_count($html, 'class="s-cite"'));
+        // Every one of the course's twelve checked lesson facts, each with its numbered note and its source listed once.
+        $this->assertSame(12, substr_count($html, 'class="s-cite"'));
+        $this->assertSame(12, preg_match_all('/<li id="src-\d+">/', $html));
         foreach (['https://www.rsmgb.org/news/from-the-archives-giacomo-puccini', 'https://maoridictionary.co.nz/word/4504', 'https://archive.org/details/selectedwritings01jako'] as $url) {
             $this->assertStringContainsString('href="'.$url.'"', $html);
         }
@@ -121,5 +123,36 @@ final class HummingPageTest extends TestCase
         foreach (['Keep every sound quiet to medium and easy, never forced, and stop if anything tightens, tickles or hurts.', 'Can\'t trill yet? A hum or an "oo" does the same job here.'] as $fact) {
             $this->assertStringContainsString(e($fact), $html);
         }
+    }
+
+    public function test_the_science_story_and_first_lesson_are_the_courses_own_words_and_facts(): void
+    {
+        $science = HummingRibbons::science();
+        $this->assertSame(['trill', 'siren', 'hum', 'ah'], array_column($science, 'kind'));
+        $this->assertStringStartsWith('A lip trill, or lip bubble, is a "brr"', $science[0]['lead']);
+        foreach ($science as $card) {
+            $this->assertNotSame('', $card['fact'], "{$card['kind']} has its fact");
+        }
+
+        // The dated story, oldest first, each year said in its own fact.
+        $story = HummingRibbons::story();
+        $years = array_column($story, 'year');
+        $this->assertSame([1819, 2002, 2014, 2018, 2020], $years);
+        foreach ($story as $stop) {
+            $this->assertStringContainsString((string) $stop['year'], $stop['text']);
+        }
+
+        // Lesson 1 as the app gives it: its three learn cards, then what it asks you to sing.
+        $try = HummingRibbons::tryIt();
+        $this->assertSame('A roller coaster', $try['name']);
+        $this->assertSame(['Loose lips', 'Easy breath', 'Stop if it strains', ''], array_column($try['steps'], 'title'));
+        $this->assertStringStartsWith('Ride the ribbon\'s roller coaster', $try['steps'][3]['text']);
+        $this->assertNotSame('', $try['dots']);
+
+        $html = (string) $this->get('/courses/humming-and-lip-trills')->assertOk()->getContent();
+        foreach ((array) __('site.courses.pages.humming-and-lip-trills.faq') as [$question]) {
+            $this->assertStringContainsString(e($question), $html);
+        }
+        $this->assertStringContainsString('"@type":"FAQPage"', $html);
     }
 }

@@ -18,6 +18,9 @@ use App\Support\Pages\Lessons;
  * - strip(): lesson 1's second step, the part above held on the line's two long notes over the moving tune.
  * - index(): the course's lessons numbered 1 to 16 by unit, each linked to the lesson page it's on (a unit's challenge
  *   is on the unit's last lesson page), with that page's title under the lesson that opens it.
+ * - lessonOne(): lesson 1's own words, its why, its three cards and its three sung steps, in the page's language.
+ * - science() and archive(): the course's checked lesson facts ("Did you know?", each with its source) beside the page's
+ *   own three, the science four in the course's order and the archive six in date order; sources() numbers them all.
  *
  * A file that's missing gives empty lanes and an empty index, never an error.
  */
@@ -182,6 +185,102 @@ final class ImprovisingHarmonyPage
         return $units;
     }
 
+    /** The lesson facts that explain why the course works, in its order: thirds, the fourth over so, the rub, the lights. */
+    public const SCIENCE = ['odington-thirds', 'fourth-in-lower-voice', 'small-steps-go-down', 'less-feedback-sticks'];
+
+    /** The archive in date order: the page's own facts by their key (gymel, sacred-harp, monroe) and the course's by id. */
+    public const ARCHIVE = ['gymel', 'singing-upon-the-book', 'sacred-harp', 'michael-row-1863', 'monroe', 'home-on-the-range-kansas'];
+
+    /** The page's own facts (lang `facts`, in their order), by key. */
+    private const PAGE_FACTS = ['gymel', 'sacred-harp', 'monroe'];
+
+    /**
+     * Lesson 1's own words: its why, its cards ([title, detail]) and its sung steps.
+     *
+     * @return array{why: string, cards: list<array{0: string, 1: string}>, steps: list<string>}
+     */
+    public static function lessonOne(): array
+    {
+        $words = self::words();
+        $out = ['why' => '', 'cards' => [], 'steps' => []];
+        foreach ((array) (self::lesson(self::LESSON)['steps'] ?? []) as $step) {
+            if (! is_array($step)) {
+                continue;
+            }
+            if (($step['kind'] ?? '') === 'learn' && $out['why'] === '') {
+                $out['why'] = $words($step['headline'] ?? '');
+                foreach ((array) ($step['steps'] ?? []) as $card) {
+                    if (is_array($card)) {
+                        $out['cards'][] = [$words($card['title'] ?? ''), $words($card['detail'] ?? '')];
+                    }
+                }
+            } elseif (($step['kind'] ?? '') === 'play') {
+                $out['steps'][] = $words($step['text'] ?? '');
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * The course's lesson facts, by id: [text, source, url], in the page's language.
+     *
+     * @return array<string, array{0: string, 1: string, 2: string}>
+     */
+    public static function courseFacts(): array
+    {
+        $words = self::words();
+        $file = self::json(self::web('course/plus/'.self::COURSE.'/course.json'));
+        $facts = [];
+        foreach ((array) ($file['units'] ?? []) as $unit) {
+            foreach ((array) (is_array($unit) ? ($unit['lessons'] ?? []) : []) as $lesson) {
+                $fact = is_array($lesson) ? ($lesson['fact'] ?? null) : null;
+                if (is_array($fact) && is_string($fact['id'] ?? null)) {
+                    $facts[$fact['id']] = [$words($fact['text'] ?? ''), $words($fact['source'] ?? ''), (string) ($fact['url'] ?? '')];
+                }
+            }
+        }
+
+        return $facts;
+    }
+
+    /**
+     * Every fact the page shows, by key, in the order of its Sources list (the science, then the archive): [text, source,
+     * url]. `$pageFacts` is the page's own (lang `facts`). A course fact that's missing is left out.
+     *
+     * @param  array<array-key, mixed>  $pageFacts
+     * @return array<string, array{0: string, 1: string, 2: string}>
+     */
+    public static function facts(array $pageFacts): array
+    {
+        $all = self::courseFacts();
+        foreach (self::PAGE_FACTS as $i => $key) {
+            $fact = array_values((array) ($pageFacts[$i] ?? []));
+            if (count($fact) === 3) {
+                $all[$key] = [(string) $fact[0], (string) $fact[1], (string) $fact[2]];
+            }
+        }
+        $out = [];
+        foreach ([...self::SCIENCE, ...self::ARCHIVE] as $key) {
+            if (isset($all[$key])) {
+                $out[$key] = $all[$key];
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * The Sources list: key => [label, url], numbered in this order by site/courses/_cites.
+     *
+     * @param  array<string, array{0: string, 1: string, 2: string}>  $facts
+     * @return array<string, array{0: string, 1: string}>
+     */
+    public static function sources(array $facts): array
+    {
+        return array_map(static fn (array $fact): array => [$fact[1], $fact[2]], $facts);
+    }
+
     /**
      * A heading from the lang file split round its *starred* words, the ones set in the italic serif: [before, starred,
      * after]. A heading with no stars is all `before`.
@@ -288,6 +387,14 @@ final class ImprovisingHarmonyPage
         }
 
         return [];
+    }
+
+    /** A course file's words in the page's language, else English. */
+    private static function words(): \Closure
+    {
+        $locale = app()->getLocale();
+
+        return static fn (mixed $t): string => is_array($t) ? (string) ($t[$locale] ?? $t['en'] ?? '') : (is_string($t) ? $t : '');
     }
 
     private static function web(string $path): string

@@ -7,7 +7,11 @@
      as rehearsal marks A to D between bar lines (a double bar at the end, before the rehearsal itself), every lesson a
      link to its place on its unit's page; what the app listens for beside a take marked as a sample; singing safely
      with its music signs beside the song; the beginner course beside Amazing Grace's four parts, lit as they sound;
-     the group's other courses; and every lesson page by its mark (so the shared list below is left out). Part colours
+     the group's other courses; and every lesson page by its mark (so the shared list below is left out). For length
+     (Hillel, 2026-11-18: course pages roughly the same height), from the course's own file (App\Support\Site\
+     ChoirPartCourse): lesson 1 as the app runs it, in four numbered bars with your picked part's own card; the course's
+     four sourced findings on a dated line with what the course does about each; who it's for and what you need; the
+     questions; a close; and the numbered Sources. Part colours
      are the site's s-v1 to s-v4, so calm light and dark and game all draw them. Words: lang/en/site.php
      courses.pages.learn-your-choir-part (`lcp`); notes: App\Support\Site\ChoirPartScore. --}}
 @php($lcp = (array) $page['lcp'])
@@ -18,6 +22,10 @@
 @php($unitPages = \App\Support\Site\ChoirPartScore::unitPages($page['slug']))
 @php($names = (array) $lcp['score']['parts'])
 @php($bars = __('site.courses.pages.learn-your-choir-part.lcp.score.bars', ['from' => $score['from'], 'to' => $score['to']]))
+@php($first = \App\Support\Site\ChoirPartCourse::firstLesson())
+@php($findings = \App\Support\Site\ChoirPartCourse::findings())
+@php($sources = \App\Support\Site\ChoirPartCourse::sources($findings))
+@php($minutes = \App\Support\Site\ChoirPartCourse::minutes())
 {{-- This page links every lesson page itself (its marks, at the end), so the shared list is left out. --}}
 @if ($unitPages !== [])
     @section('lesson-pages-inline', '1')
@@ -149,6 +157,52 @@
         </section>
     @endif
 
+    {{-- Lesson 1 as the app runs it, from the course file: four bars, the part on its own following the hero's pick. --}}
+    @if ($first !== null)
+        <section class="s-wrap cp-lcp-sec" aria-labelledby="try-h">
+            <p class="s-kick">{{ $lcp['try']['kick'] }}</p>
+            <h2 id="try-h" class="cp-lcp-h2">{{ $lcp['try']['title'] }}</h2>
+            <p class="cp-lcp-p">{{ $first['intro'] }}</p>
+            <ol class="cp-lcp-try">
+                <li>
+                    <p class="cp-lcp-try-n"><span class="cp-lcp-mark" aria-hidden="true">1</span>{{ $lcp['try']['steps'][0] }}</p>
+                    <ul class="cp-lcp-try-cards">
+                        @foreach ($first['cards'] as $card)
+                            <li><b>{{ $card['title'] }}</b> {{ $card['detail'] }}</li>
+                        @endforeach
+                    </ul>
+                </li>
+                <li>
+                    <p class="cp-lcp-try-n"><span class="cp-lcp-mark" aria-hidden="true">2</span>{{ $lcp['try']['steps'][1] }}</p>
+                    @foreach ($first['parts'] as $key => $own)
+                        <div class="cp-lcp-try-part s-v{{ $own['n'] }}" data-lcp-of="{{ $key }}" @if ($loop->first) data-picked @endif>
+                            <p class="cp-lcp-try-head">{{ $own['headline'] }}</p>
+                            <ul class="cp-lcp-try-cards">
+                                @foreach ($own['cards'] as $card)
+                                    <li><b>{{ $card['title'] }}</b> {{ $card['detail'] }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endforeach
+                    <p class="cp-lcp-try-note">{{ $lcp['try']['note'] }}</p>
+                </li>
+                <li>
+                    <p class="cp-lcp-try-n"><span class="cp-lcp-mark" aria-hidden="true">3</span>{{ $lcp['try']['steps'][2] }}</p>
+                    <p class="cp-lcp-try-text">{{ $first['find'] }}</p>
+                </li>
+                <li>
+                    <p class="cp-lcp-try-n"><span class="cp-lcp-mark" aria-hidden="true">4</span>{{ $lcp['try']['steps'][3] }}</p>
+                    <p class="cp-lcp-try-text">{{ $first['sing'] }}</p>
+                    <p class="cp-lcp-try-note">{{ $first['scored'] }}</p>
+                </li>
+            </ol>
+            @if ($open)
+                <p class="cp-lcp-btns"><a href="{{ $courseStart }}" class="btn-primary btn-lg">{{ __('pages.site.course_try') }} <x-site.icon name="arrow" size="18" /></a></p>
+                <p class="cp-lcp-join">{{ __('pages.site.course_join_note') }}</p>
+            @endif
+        </section>
+    @endif
+
     {{-- What the app listens for, beside a take plainly marked as a sample (made-up notes on the song's real line, never a
          singer's score), in the picked part. --}}
     <section class="s-wrap cp-lcp-sec cp-lcp-hears" aria-labelledby="hears-h">
@@ -193,6 +247,29 @@
         </div>
     </section>
 
+    {{-- The course's four findings (each lesson's "Did you know?"), oldest first on one dated line, each with what the
+         course does about it and its numbered note. --}}
+    @if ($findings !== [])
+        <section class="s-wrap cp-lcp-sec" aria-labelledby="science-h">
+            <p class="s-kick">{{ $lcp['science']['kick'] }}</p>
+            <h2 id="science-h" class="cp-lcp-h2">{{ $lcp['science']['title'] }}</h2>
+            <ol class="cp-lcp-found">
+                @foreach ($findings as $finding)
+                    <li>
+                        <p class="cp-lcp-year">{{ $finding['year'] }}</p>
+                        @isset($lcp['science']['facts'][$finding['id']])
+                            <h3>{{ $lcp['science']['facts'][$finding['id']]['title'] }}</h3>
+                        @endisset
+                        <p class="cp-lcp-found-text">{{ $finding['text'] }}@include('site.courses._cites', ['keys' => [$finding['id']]])</p>
+                        @isset($lcp['science']['facts'][$finding['id']])
+                            <p class="cp-lcp-found-use"><span class="cp-lcp-unit-n">{{ __('site.courses.pages.learn-your-choir-part.lcp.science.unit', ['n' => $finding['unit']]) }}</span> {{ $lcp['science']['facts'][$finding['id']]['use'] }}</p>
+                        @endisset
+                    </li>
+                @endforeach
+            </ol>
+        </section>
+    @endif
+
     @if (($page['safety'] ?? []) !== [] || ($page['songs'] ?? []) !== [])
         <section class="s-wrap cp-lcp-sec cp-lcp-notes">
             @if (($page['safety'] ?? []) !== [])
@@ -217,6 +294,32 @@
             @endif
         </section>
     @endif
+
+    <section class="s-wrap cp-lcp-sec cp-lcp-who">
+        <div aria-labelledby="who-h">
+            <h2 id="who-h" class="s-kick">{{ $lcp['who']['title'] }}</h2>
+            <ul class="cp-lcp-ruled">
+                @foreach ((array) $lcp['who']['items'] as $item)
+                    <li>{{ $item }}</li>
+                @endforeach
+            </ul>
+        </div>
+        <div aria-labelledby="need-h">
+            <h2 id="need-h" class="s-kick">{{ $lcp['need']['title'] }}</h2>
+            <ul class="cp-lcp-ruled">
+                <li>{{ $lcp['need']['items'][0] }}</li>
+                <li>{{ $lcp['need']['items'][1] }}</li>
+                @if ($minutes !== null)
+                    <li>{{ __('site.courses.pages.learn-your-choir-part.lcp.need.items.2', ['minutes' => $minutes]) }}</li>
+                @endif
+            </ul>
+        </div>
+    </section>
+
+    <section class="s-wrap cp-lcp-sec" aria-labelledby="faq-h">
+        <h2 id="faq-h" class="cp-lcp-h2">{{ $lcp['faq_h'] }}</h2>
+        @include('site.courses._faq')
+    </section>
 
     {{-- New to harmony: the beginner course, beside Amazing Grace's four parts (its unit 7), lit as they sound. --}}
     <section class="s-ink cp-lcp-today" aria-labelledby="today-h">
@@ -247,6 +350,23 @@
         </div>
     </section>
 
+    {{-- The close: the way in, between a bar line and the final double bar. --}}
+    <section class="s-wrap cp-lcp-sec" aria-labelledby="close-h">
+        <div class="cp-lcp-close">
+            <p class="s-kick">{{ $lcp['close']['kick'] }}</p>
+            <h2 id="close-h" class="cp-lcp-h2 cp-lcp-h2-l">{{ $lcp['close']['title'] }}</h2>
+            <p class="cp-lcp-p">{{ $open ? __('pages.site.course_join_open') : __('pages.site.course_soon') }}</p>
+            <p class="cp-lcp-btns">
+                @if ($open)
+                    <a href="{{ $courseStart }}" class="btn-primary btn-lg">{{ __('pages.site.course_try') }} <x-site.icon name="arrow" size="18" /></a>
+                @else
+                    <a href="{{ $links['start'] }}" class="btn-primary btn-lg">{{ __('pages.site.course_start') }} <x-site.icon name="arrow" size="18" /></a>
+                @endif
+                <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>
+            </p>
+        </div>
+    </section>
+
     <section class="s-wrap cp-lcp-sec" aria-labelledby="more-h">
         <h2 id="more-h" class="s-kick">{{ __('pages.site.course_more', ['group' => $group['name'] ?? '']) }}</h2>
         <ul class="s-chips">
@@ -268,6 +388,17 @@
                 @endforeach
             </ul>
         </nav>
+    @endif
+    {{-- The numbered notes the findings point to. --}}
+    @if ($sources !== [])
+        <section class="s-wrap cp-lcp-sec cp-lcp-sources" aria-labelledby="notes-h">
+            <h2 id="notes-h" class="s-kick">{{ __('pages.site.sources') }}</h2>
+            <ol>
+                @foreach ($sources as [$label, $url])
+                    <li id="src-{{ $loop->iteration }}"><a href="{{ $url }}" rel="noopener">{{ $label }}</a></li>
+                @endforeach
+            </ol>
+        </section>
     @endif
     <script type="module" src="/js/public/learn-your-choir-part.js"></script>
 </main>

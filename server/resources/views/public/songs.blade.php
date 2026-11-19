@@ -41,10 +41,15 @@
                     <p class="s-sh-start"><a href="{{ $rounds }}" class="s-lk"><x-site.arrow-end :text="__('pages.songs.start_round')" size="16" /></a></p>
                 @endif
             </div>
-            {{-- A song to try: its first line in four parts, each switched on or off as it plays (x-site.mixer). --}}
+            {{-- A song to try, on staves (Hillel, 2026-11-18: "at the top of the songs page we show bars, let's show music
+                 staff notes by default instead"): its song page's own score card (public/_song-score, js/public/score.js
+                 and mixer.js), the whole song to play, a letter at each staff to hear that part alone; its name leads to
+                 its page, and Full score opens there. --}}
             @if ($try !== null)
-                <div class="s-sh-try">
-                    <x-site.mixer :song="$try" id="try-mixer" :picked="false"><span class="s-sh-try-k">{{ __('pages.songs.try') }}</span><x-slot:foot>{{ __('pages.songs.try_note') }}</x-slot:foot></x-site.mixer>
+                <div class="s-sh-try s-sh-try-score s-tone-{{ $try['tone'] }}" id="try-mixer" data-player role="group" aria-labelledby="song-mixer-title">
+                    <p class="s-sh-try-head"><span class="s-sh-try-k">{{ __('pages.songs.try') }}</span> <a href="{{ $try['url'] }}" class="s-lk" translate="no">{{ $try['title'] }}</a></p>
+                    @include('public._song-score', ['line' => $try['line'], 'score' => $try['score'], 'scoreAlt' => $try['alt'], 'fullUrl' => $try['url'].'#song-full-score', 'downloads' => false, 'paged' => true])
+                    <p class="s-sh-try-note">{{ __('pages.songs.try_score_note') }}</p>
                 </div>
             @endif
         </section>
@@ -118,8 +123,17 @@
                     @foreach ($panels as $band)
                         @php($words = $w($band['key']))
                         <section id="band-{{ $band['key'] }}" class="s-sh-panel s-tone s-tone-{{ $band['key'] }}" aria-labelledby="band-{{ $band['key'] }}-h" data-band="{{ $band['key'] }}" data-order="{{ $band['order'] ?? $loop->index }}">
-                            @include('site._tone-motif', ['key' => $band['key']])
-                            <div class="s-sh-panel-in">
+                            {{-- Its title leads, over one of its songs' featured pictures as quiet atmosphere (Hillel, 2026-11-18: "pick one
+                                 song/image from the category page for the main songs page", then "Lets make the phots more of a background
+                                 element"; SongsHub::PICTURES), the song named and linked; in place of a drawn motif. --}}
+                            @php($pictured = ($band['picture']['picture'] ?? null) !== null)
+                            @if ($pictured)
+                                <div class="s-sh-pic-wrap">
+                                    @include('site._song-picture', ['picture' => $band['picture']['picture'], 'song' => $band['picture'], 'tone' => $band['key'], 'background' => true, 'class' => 's-sh-pic', 'sizes' => '(min-width: 1200px) 592px, (min-width: 900px) 48vw, calc(100vw - 32px)'])
+                                    <a href="{{ $band['picture']['url'] }}" class="s-sh-pic-song" translate="no">{{ $band['picture']['title'] }}</a>
+                                </div>
+                            @endif
+                            <div @class(['s-sh-panel-in', 's-sh-panel-pictured' => $pictured])>
                                 <div class="s-sh-panel-top">
                                     <h3 id="band-{{ $band['key'] }}-h">{{ __($words.'.band') }} <em class="s-xserif">{{ __($words.'.band_em') }}</em></h3>
                                     <a href="{{ $band['path'] }}" class="s-sh-panel-all" aria-label="{{ __($words.'.all', ['count' => $band['count']]) }}"><x-site.arrow-end :text="__('pages.songs.all_short', ['count' => $band['count']])" size="16" spaced /></a>
@@ -168,6 +182,8 @@
                 @endforeach
             </div>
             <p class="s-sh-none" data-none hidden>{{ __('pages.songs.none') }}</p>
+            {{-- Where every song here comes from: the public domain roll (App\Support\Pages\PublicDomain), its makers and their dates. --}}
+            <p class="s-sh-pd">{{ __('site.public_domain.hub_line') }} <a href="{{ \App\Support\Pages\PublicDomain::PATH }}" class="s-lk"><x-site.arrow-end :text="__('site.public_domain.hub_link')" size="16" /></a></p>
         </section>
 
         <x-site.close-band page="songs" :href="\App\Support\Http\Hosts::app('/learn/1-comfortable?ref=songs')" />
@@ -177,6 +193,8 @@
 
 @section('scripts')
     <script type="module" src="/js/public/mixer.js"></script>
+    {{-- The song to try's score (public/_song-score), engraved once the fonts are in. --}}
+    <script type="module" src="/js/public/score-soon.js"></script>
     <script type="module" src="/js/public/carols.js"></script>
     <script type="module" src="/js/public/hanukkiah.js"></script>
     <script type="module" src="/js/public/coming-up.js"></script>

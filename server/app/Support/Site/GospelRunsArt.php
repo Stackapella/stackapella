@@ -91,13 +91,13 @@ final class GospelRunsArt
     }
 
     /**
-     * The featured deck's panel (viewBox 0 0 300 220): the run's six notes, the line through them, the staff's rows.
+     * The featured deck's panel (viewBox 0 0 300 176): the run's six notes, the line through them, the staff's rows.
      *
      * @return array{notes: list<array{x: float, y: float}>, line: string, rows: list<float>}
      */
     public static function speeds(): array
     {
-        $y = static fn (int $midi): float => (float) ((72 - $midi) * 14 + 26);
+        $y = static fn (int $midi): float => (float) ((72 - $midi) * 11 + 22);
         $notes = [];
         foreach (self::SPEEDS_RUN as $k => $midi) {
             $notes[] = ['x' => (float) (14 + $k * 46), 'y' => $y($midi) - 8];

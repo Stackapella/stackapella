@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Site;
 
+use App\Support\Pages\SongMedia;
 use App\Support\Pages\SongStories;
 use App\Support\Site\StructuredData;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -87,7 +88,7 @@ final class SongMediaTest extends TestCase
     public function test_a_placed_picture_is_made_into_webp_sizes_and_shows_with_its_credit_and_licence(): void
     {
         $this->assertStringContainsString('its WebP is missing or stale', implode("\n", SongStories::check('test-song')));
-        $this->artisan('app:stories:images', ['song' => 'test-song'])->expectsOutputToContain('3 WebP files written')->assertSuccessful();
+        $this->artisan('app:stories:images', ['song' => 'test-song'])->expectsOutputToContain('4 WebP files written')->assertSuccessful();
         $this->assertSame([], SongStories::check('test-song'));
 
         $story = SongStories::story('test-song');
@@ -99,6 +100,10 @@ final class SongMediaTest extends TestCase
         $this->assertMatchesRegularExpression('#^/song-media/test-song/1-960\.webp\?v=[0-9a-f]{12}$#', $image['src']);
         $this->assertStringContainsString('1-480.webp', $image['srcset']);
         $this->assertStringContainsString('1-1440.webp', $image['srcset'], 'never upscaled: the 1440 is the 1200 original');
+        // Game mode's pixel art: SongMedia::PIXEL wide, served beside the sizes.
+        $this->assertMatchesRegularExpression('#^/song-media/test-song/1-px\.webp\?v=[0-9a-f]{12}$#', (string) $image['pixel']);
+        $this->assertSame(SongMedia::PIXEL, getimagesize($this->dir.'/media/test-song/1-px.webp')[0] ?? null);
+        $this->get('/song-media/test-song/1-px.webp')->assertOk();
         $this->assertSame(['The church at Oberndorf', 'Library of Congress', 'LOT 123', 'No known restrictions (Library of Congress)', 'https://example.com/item/1'], [$image['alt'], $image['credit'], $image['callNumber'], $image['licenceName'], $image['sourceUrl']]);
         $this->assertStringContainsString('<a href="#source-1" aria-label="Source 1">[1]</a>', $image['caption']);
         $this->assertSame([['label' => 'National Jukebox, 1916', 'url' => 'https://example.com/jukebox'], ['label' => 'Archive', 'url' => 'https://example.com/archive']], $story['listen']);
@@ -151,9 +156,13 @@ final class SongMediaTest extends TestCase
 
         $this->records([$this->record(['licence' => 'CC-BY-SA-4.0', 'licenceEvidence' => ' ', 'alt' => ['en' => 'The church']]), $this->record(['file' => '2.jpg'])]);
         $problems = implode("\n", SongStories::check('test-song'));
-        foreach (['its licence must be one of PD-old, PD-US-gov, CC0, LoC-no-known-restrictions, CC-BY-4.0', 'no licenceEvidence', 'no alt in es', '2 is in media.json but never placed', '2: 2.jpg is missing'] as $expected) {
+        foreach (['its licence must be one of PD-old, PD-US-gov, CC0, LoC-no-known-restrictions, CC-BY-4.0, PD-self', 'no licenceEvidence', 'no alt in es', '2 is in media.json but never placed', '2: 2.jpg is missing'] as $expected) {
             $this->assertStringContainsString($expected, $problems);
         }
+
+        // A picture for the song's card only isn't placed in the story, and that's right.
+        $this->records([$this->record(), $this->record(['file' => '2.jpg', 'placement' => 'card'])]);
+        $this->assertStringNotContainsString('2 is in media.json but never placed', implode("\n", SongStories::check('test-song')));
 
         // CC BY needs its credit text; a placed picture needs its record.
         $this->records([$this->record(['licence' => 'CC-BY-4.0'])]);

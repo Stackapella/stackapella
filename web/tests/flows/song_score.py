@@ -22,7 +22,7 @@ def journey(f):
     f.expected_errors.append("/media/song-audio/")  # the recording's host isn't run locally: the voices are synthesized
     wide = f.size == "desktop"
     # Every shift of the layout, the page's fonts arriving included (game mode's VT323 has a fallback matched to its
-    # width since 2026-11-17): nothing moves as the score arrives, its scripts at idle after the load.
+    # width since 2026-11-17): nothing moves as the score arrives, its script once the fonts are in (js/public/score-soon.js).
     f.chrome.send("Page.addScriptToEvaluateOnNewDocument", {"source": "window.shifts = 0; new PerformanceObserver((list) => { for (const e of list.getEntries()) if (!e.hadRecentInput) window.shifts += e.value; }).observe({ type: 'layout-shift', buffered: true });"})
     f.chrome.send("Page.addScriptToEvaluateOnNewDocument", {"source": "window.reads = []; const was = window.fetch; window.fetch = (...a) => { window.reads.push(String(a[0]?.url ?? a[0])); return was(...a); };"})
     f.go("/songs/amazing-grace", f"{ROOT}?.hasAttribute('data-ready')")

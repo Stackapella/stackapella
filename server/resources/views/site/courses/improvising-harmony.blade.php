@@ -25,6 +25,12 @@
 @php($hearsH = \App\Support\Site\ImprovisingHarmonyPage::em((string) $ih['hears_h']))
 @php($factsH = \App\Support\Site\ImprovisingHarmonyPage::em((string) $ih['facts_h']))
 @php($joinH = \App\Support\Site\ImprovisingHarmonyPage::em((string) $ih['join_h']))
+@php($scienceH = \App\Support\Site\ImprovisingHarmonyPage::em((string) $ih['science']['title']))
+@php($oneH = \App\Support\Site\ImprovisingHarmonyPage::em((string) $ih['one']['title']))
+@php($one = \App\Support\Site\ImprovisingHarmonyPage::lessonOne())
+{{-- Every fact on the page, the course's checked lesson facts beside the page's own, numbered into one Sources list. --}}
+@php($facts = \App\Support\Site\ImprovisingHarmonyPage::facts((array) $page['facts']))
+@php($sources = \App\Support\Site\ImprovisingHarmonyPage::sources($facts))
 {{-- The sample take: lesson 1's part, every note sung on it but one, pulled onto the tune's own note. --}}
 @php($pulled = 7)
 <main class="cp cp-imp">
@@ -159,6 +165,23 @@
         </div>
     </section>
 
+    {{-- Why it works: each rule in plain words, over the course's own checked fact that backs it. --}}
+    <section class="s-wrap cp-imp-sec cp-imp-why" aria-labelledby="why-h">
+        <p class="cp-imp-kick">{{ $ih['science']['kick'] }}</p>
+        <h2 id="why-h" class="cp-imp-h2 cp-imp-h2-s">{{ $scienceH[0] }}<em>{{ $scienceH[1] }}</em>{{ $scienceH[2] }}</h2>
+        <ol class="cp-imp-why-list">
+            @foreach ((array) $ih['science']['cards'] as $key => [$title, $plain])
+                @continue(! isset($facts[$key]))
+                <li>
+                    <p class="cp-imp-mark"><i class="cp-imp-shape cp-imp-{{ $marks[$loop->index % 4] }}" aria-hidden="true"></i><span>{{ $ih['marks'][$loop->index % 4] }}</span></p>
+                    <h3>{{ $title }}</h3>
+                    <p class="cp-imp-why-plain">{{ $plain }}</p>
+                    <p class="cp-imp-why-fact">{{ $facts[$key][0] }}@include('site.courses._cites', ['keys' => [$key]])</p>
+                </li>
+            @endforeach
+        </ol>
+    </section>
+
     {{-- Every lesson, numbered through the course and linked to the lesson page it's on (a unit's challenge is on its
          last lesson's page), each unit with a sketch of its parts. It stands in for the shared list below the page. --}}
     @if ($index !== [])
@@ -240,6 +263,28 @@
         </div>
     </section>
 
+    {{-- Lesson 1 in its own words, from the course file: its why and cards, then its three sung steps. --}}
+    <section class="s-wrap cp-imp-sec cp-imp-one" aria-labelledby="one-h">
+        <div>
+            <p class="cp-imp-kick">{{ $ih['one']['kick'] }}</p>
+            <h2 id="one-h" class="cp-imp-h2 cp-imp-h2-s">{{ $oneH[0] }}<em>{{ $oneH[1] }}</em>{{ $oneH[2] }}</h2>
+            <p class="cp-imp-p">{{ $ih['one']['lead'] }}</p>
+            @if ($one['why'] !== '')
+                <p class="cp-imp-one-why">{{ $one['why'] }}</p>
+            @endif
+            <ul class="cp-imp-one-cards">
+                @foreach ($one['cards'] as [$title, $detail])
+                    <li><b>{{ $title }}</b><span>{{ $detail }}</span></li>
+                @endforeach
+            </ul>
+        </div>
+        <ol class="cp-imp-one-steps">
+            @foreach ($one['steps'] as $step)
+                <li><i class="cp-imp-shape cp-imp-{{ $marks[$loop->index % 4] }}" aria-hidden="true"></i><span class="cp-imp-num" aria-hidden="true">{{ $loop->iteration }}</span><p>{{ $step }}</p></li>
+            @endforeach
+        </ol>
+    </section>
+
     {{-- What the app listens for, beside a take plainly marked as a sample: lesson 1's part, one note pulled onto the
          tune (the course's own example measure, "76% on pitch"), never a singer's score. --}}
     <section class="cp-imp-dark" aria-labelledby="hears-h">
@@ -276,12 +321,12 @@
         <p class="cp-imp-kick">{{ $page['titles']['facts'] }}</p>
         <h2 id="facts-h" class="cp-imp-h2 cp-imp-h2-s">{{ $factsH[0] }}<em>{{ $factsH[1] }}</em>{{ $factsH[2] }}</h2>
         <ol class="cp-imp-time">
-            @foreach ((array) $page['facts'] as [$text, $source, $url])
+            @foreach (\App\Support\Site\ImprovisingHarmonyPage::ARCHIVE as $key)
+                @continue(! isset($facts[$key]))
                 <li>
                     <i class="cp-imp-shape cp-imp-{{ $marks[$loop->index % 4] }}" aria-hidden="true"></i>
-                    <p class="cp-imp-era">{{ $ih['eras'][$loop->index] ?? '' }}</p>
-                    <p>{{ $text }}</p>
-                    <p class="cp-imp-src">@if ($url)<a href="{{ $url }}" rel="noopener">{{ $source }}</a>@else{{ $source }}@endif</p>
+                    <p class="cp-imp-era">{{ $ih['eras'][$key] ?? '' }}</p>
+                    <p>{{ $facts[$key][0] }}@include('site.courses._cites', ['keys' => [$key]])</p>
                 </li>
             @endforeach
         </ol>
@@ -315,6 +360,16 @@
     <section class="s-wrap cp-imp-sec cp-imp-faq" aria-labelledby="faq-h">
         <h2 id="faq-h" class="cp-imp-h2">{{ $page['titles']['faq'] }}</h2>
         @include('site.courses._faq')
+    </section>
+
+    {{-- The one Sources list every numbered note points at. --}}
+    <section class="s-wrap cp-imp-sources" aria-labelledby="sources-h">
+        <h2 id="sources-h" class="cp-imp-kick cp-imp-ruled">{{ __('pages.site.sources') }}</h2>
+        <ol>
+            @foreach ($sources as [$label, $url])
+                <li id="src-{{ $loop->iteration }}">@if ($url !== '')<a href="{{ $url }}" rel="noopener">{{ $label }}</a>@else{{ $label }}@endif</li>
+            @endforeach
+        </ol>
     </section>
 
     <section class="cp-imp-dark cp-imp-join" aria-labelledby="join-h">

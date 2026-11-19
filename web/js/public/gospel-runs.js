@@ -234,13 +234,13 @@ page?.querySelectorAll('[data-gr-play]').forEach((button) => {
     button.addEventListener('click', () => play(button, DEMOS[button.dataset.grPlay]));
 });
 
-// The sources, and the archive's and the notes' later rows, are folded on a phone and open on a wide
-// screen; the sources open too whenever a note's number is followed to them.
+// The archive's later years are folded on a phone and open on a wide screen. The sources stay folded at every width
+// (the page's length pass) and open whenever a note's number is followed to them.
 const sources = page?.querySelector('[data-gr-sources]');
 if (page) {
     const wide = matchMedia('(min-width: 900px)');
     const unfold = () => {
-        if (wide.matches) page.querySelectorAll('[data-gr-wide], [data-gr-sources]').forEach((d) => { d.open = true; });
+        if (wide.matches) page.querySelectorAll('[data-gr-wide]').forEach((d) => { d.open = true; });
     };
     unfold();
     wide.addEventListener('change', unfold);

@@ -77,6 +77,32 @@ final class LiveLoopingPageTest extends TestCase
         $this->assertSame('4.3 · All tracks', end($lessons)['tag']);
     }
 
+    public function test_the_science_and_the_story_are_the_courses_own_facts_with_their_sources(): void
+    {
+        $facts = LiveLoopingPage::facts();
+        $sources = LiveLoopingPage::sources();
+
+        // Every lesson fact of the course is on the page, once, and each has its source.
+        $cited = [...LiveLoopingPage::SCIENCE, ...array_merge(...LiveLoopingPage::STORY)];
+        $this->assertCount(11, $facts);
+        $this->assertEqualsCanonicalizing(array_keys($facts), $cited);
+        $this->assertSame($cited, array_keys($sources));
+
+        $html = (string) $this->get('/courses/live-looping')->assertOk()->getContent();
+        foreach ($facts as $fact) {
+            $this->assertStringContainsString(e($fact['text']), $html);
+            $this->assertStringContainsString('href="'.e($fact['url']).'"', $html);
+        }
+        $this->assertStringContainsString('id="src-11"', $html);
+        $this->assertStringContainsString('"@type":"FAQPage"', $html);
+
+        // The first lesson to try, as the app teaches it.
+        $first = LiveLoopingPage::firstLesson();
+        $this->assertCount(3, $first['cards']);
+        $this->assertCount(2, $first['steps']);
+        $this->assertStringContainsString(e($first['steps'][0]), $html);
+    }
+
     public function test_the_page_draws_the_loop_and_marks_the_take_a_sample(): void
     {
         $html = (string) $this->get('/courses/live-looping')->assertOk()->getContent();

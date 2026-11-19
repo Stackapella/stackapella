@@ -121,6 +121,26 @@
         </section>
     @endif
 
+    {{-- How each sound works, in plain words: each sound's own learn step (the course's words) and the checked fact that
+         explains it, in its colour, with its shape. --}}
+    @if ($v['science'] !== [])
+        <section class="s-wrap cp-hum-sec" aria-labelledby="science-h">
+            <p class="s-kick">{{ $hum['science']['kick'] }}</p>
+            <h2 id="science-h" class="cp-hum-h2">{{ $hum['science']['title'] }}</h2>
+            <ol class="cp-hum-science">
+                @foreach ($v['science'] as $card)
+                    <li class="s-v{{ $card['part'] }}">
+                        <p class="cp-hum-science-name"><b translate="no">{{ $hum['ribbon']['sounds'][$loop->index][0] ?? '' }}</b> <span>{{ $hum['ribbon']['sounds'][$loop->index][1] ?? '' }}</span></p>
+                        <p class="cp-hum-science-lead">{{ $card['lead'] }}</p>
+                        @if ($card['fact'] !== '')
+                            <p class="cp-hum-science-fact">{{ $card['fact'] }}@include('site.courses._cites', ['keys' => [$card['key']]])</p>
+                        @endif
+                    </li>
+                @endforeach
+            </ol>
+        </section>
+    @endif
+
     {{-- Did you know: each fact led by its big word, cited from the lesson that tells it (the Sources at the end). --}}
     @if ($facts !== [])
         <section class="s-wrap cp-hum-sec cp-hum-know" aria-labelledby="know-h">
@@ -133,6 +153,26 @@
                     </li>
                 @endforeach
             </ul>
+        </section>
+    @endif
+
+    {{-- A short history: the dated facts, oldest first, each a stop on one ribbon in its sound's colour. --}}
+    @if ($v['story'] !== [])
+        <section class="s-wrap cp-hum-sec" aria-labelledby="story-h">
+            <div class="cp-hum-story">
+                <div>
+                    <p class="s-kick">{{ $hum['story']['kick'] }}</p>
+                    <h2 id="story-h" class="cp-hum-h2">{{ $hum['story']['title'] }}</h2>
+                </div>
+                <ol class="cp-hum-years">
+                    @foreach ($v['story'] as $stop)
+                        <li class="s-v{{ $stop['part'] }}">
+                            <p class="cp-hum-year">{{ $stop['year'] }}</p>
+                            <p class="cp-hum-year-text">{{ $stop['text'] }}@include('site.courses._cites', ['keys' => [$stop['key']]])</p>
+                        </li>
+                    @endforeach
+                </ol>
+            </div>
         </section>
     @endif
 
@@ -172,6 +212,48 @@
         </div>
     </section>
 
+    {{-- Try it now: the first lesson as the app gives it (its learn cards and what it asks you to sing, in the course's own
+         words), over its roller coaster, and the way into it. --}}
+    @if ($v['try']['steps'] !== [])
+        <section class="s-wrap cp-hum-sec" aria-labelledby="try-h">
+            <div class="cp-hum-try s-v1">
+                <p class="s-kick">{{ $hum['try']['kick'] }}</p>
+                <h2 id="try-h" class="cp-hum-h2">{{ __('site.courses.pages.humming-and-lip-trills.hum.try.title', ['name' => $v['try']['name']]) }}</h2>
+                <figure class="cp-hum-try-art">
+                    <svg viewBox="0 0 560 140" aria-hidden="true" focusable="false">
+                        <g class="cp-hum-is-trill">
+                            <path d="{{ $v['try']['line'] }}" class="cp-hum-shape-line" />
+                            <path d="{{ $v['try']['dots'] }}" class="cp-hum-shape-dots" />
+                        </g>
+                    </svg>
+                    <figcaption class="sr-only">{{ $hum['try']['alt'] }}</figcaption>
+                </figure>
+                <ol class="cp-hum-try-steps">
+                    @foreach ($v['try']['steps'] as $step)
+                        <li><span class="cp-hum-n" aria-hidden="true">{{ $loop->iteration }}</span><p>@if ($step['title'] !== '')<b>{{ $step['title'] }}</b> @endif<span>{{ $step['text'] }}</span></p></li>
+                    @endforeach
+                </ol>
+                <p class="cp-hum-btns">
+                    @if ($open)
+                        <a href="{{ $courseStart }}" class="btn-primary btn-lg">{{ __('pages.site.course_try') }} <x-site.icon name="arrow" size="18" /></a>
+                    @else
+                        <a href="{{ $links['start'] }}" class="btn-primary btn-lg">{{ __('pages.site.course_start') }} <x-site.icon name="arrow" size="18" /></a>
+                    @endif
+                </p>
+            </div>
+        </section>
+    @endif
+
+    {{-- Who it's for. --}}
+    <section class="s-wrap cp-hum-sec2" aria-labelledby="who-h">
+        <h2 id="who-h" class="s-kick">{{ $hum['who']['kick'] }}</h2>
+        <ul class="cp-hum-who">
+            @foreach ((array) $hum['who']['items'] as $line)
+                <li class="s-v{{ $loop->iteration }}"><span class="cp-hum-who-mark" aria-hidden="true"></span><p>{{ $line }}</p></li>
+            @endforeach
+        </ul>
+    </section>
+
     {{-- Singing safely: the two tips beside a scale from quiet to forced, with where to keep it. --}}
     @if ($page['safety'] ?? false)
         <section class="s-wrap cp-hum-sec2" aria-labelledby="safety-h">
@@ -209,6 +291,37 @@
                 </ul>
                 <figcaption>{{ $hum['grace']['caption'] }}</figcaption>
             </figure>
+        </div>
+    </section>
+
+    {{-- Questions, with only the course's own answers, then the close: the first lesson again, beside the four sounds. --}}
+    <section class="s-wrap cp-hum-sec" aria-labelledby="faq-h">
+        <div class="cp-side">
+            <h2 id="faq-h" class="cp-hum-h2">{{ $hum['questions'] }}</h2>
+            @include('site.courses._faq')
+        </div>
+    </section>
+
+    <section class="s-wrap cp-hum-sec" aria-labelledby="close-h">
+        <div class="cp-hum-close">
+            <p class="cp-hum-close-sounds" aria-hidden="true">
+                @foreach ((array) $hum['ribbon']['sounds'] as [$sound])
+                    <b class="s-v{{ $loop->iteration }}" translate="no">{{ $sound }}</b>
+                @endforeach
+            </p>
+            <h2 id="close-h" class="cp-hum-h2 cp-hum-h2-l">{{ $hum['close']['title'] }}</h2>
+            <p class="cp-hum-p">{{ $hum['close']['body'] }}</p>
+            @if ($open)
+                <p class="cp-hum-close-note">{{ __('pages.site.course_join_note') }}</p>
+            @endif
+            <p class="cp-hum-btns">
+                @if ($open)
+                    <a href="{{ $courseStart }}" class="btn-primary btn-lg">{{ __('pages.site.course_try') }} <x-site.icon name="arrow" size="18" /></a>
+                @else
+                    <a href="{{ $links['start'] }}" class="btn-primary btn-lg">{{ __('pages.site.course_start') }} <x-site.icon name="arrow" size="18" /></a>
+                @endif
+                <a href="/courses" class="btn-secondary btn-lg">{{ __('pages.site.course_all') }}</a>
+            </p>
         </div>
     </section>
 

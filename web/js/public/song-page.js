@@ -4,6 +4,9 @@
 // and opens the app on it. Until a pick, Learn names the melody's part. Nothing is stored or sent. Without the script,
 // Learn opens the melody's part.
 // A long song's words can hide their meanings (Show / Hide the meaning); they show until then, and without the script.
+// Its score card's engraver loads as soon as the fonts are in (js/public/score-soon.js).
+
+import './score-soon.js';
 
 const page = document.querySelector('[data-sg-page]');
 const parts = JSON.parse(page?.querySelector('[data-learn-parts]')?.textContent ?? '{}');
@@ -36,15 +39,6 @@ page?.addEventListener('mixer-solo', (event) => {
     if (!picked) learnPart(event.detail?.key ?? melody);
 });
 
-// The score (js/public/score.js) is the page's largest script: fetched once the page has loaded, when the browser is
-// idle, so it never competes with the page's fonts (a font landing after the first paint reflowed the lead and moved the
-// part picker and Learn under it: a layout shift of 0.12 on a phone).
-if (page?.querySelector('[data-score]')) {
-    const idle = window.requestIdleCallback ?? ((run) => setTimeout(run, 1)); // a page timer, never audio
-    const later = () => idle(() => import('./score.js'), { timeout: 2000 });
-    if (document.readyState === 'complete') later();
-    else window.addEventListener('load', later, { once: true });
-}
 
 const words = document.querySelector('[data-words]');
 const toggle = words?.querySelector('[data-meaning-toggle]');

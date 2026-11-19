@@ -995,8 +995,9 @@ function setUp(root) {
 
     for (const [key, el] of voices) {
         // A row's switch turns its voice on or off and nothing else; the row brings it forward. The
-        // tune's voices are buttons that switch.
-        const toggle = toggles.get(key) ?? (picks.size ? null : el);
+        // tune's voices are buttons that switch; a voice holding its own hear-alone button (a score's letter, on a
+        // player with no picks: /songs's song to try) never is one, or a tap would switch it twice.
+        const toggle = toggles.get(key) ?? (picks.size || alone.has(key) ? null : el);
         toggle?.addEventListener('click', (event) => {
             event.stopPropagation();
             switchTo(key, !on.get(key));
