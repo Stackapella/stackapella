@@ -204,6 +204,30 @@
         "wantsVoice": {
             "type": "boolean",
             "description": "An open song with a part still on the synth: Be the voice may ask for it."
+        },
+        "songVersions": {
+            "type": "array",
+            "description": "Optional: only on a song with another version free where the caller is (a UK carol's, the template's versionOf). Every version free there, the song's own first: each one's template id (templates.show), its name (\"us\", \"uk\") and whether it's the one people there start on (exactly one is). The entry itself may be a version, when the song's own is withheld there.",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "id",
+                    "name",
+                    "here"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "here": {
+                        "type": "boolean"
+                    }
+                }
+            }
         }
     },
     "title": "A song in the catalogue: what anyone may see, never the notes"

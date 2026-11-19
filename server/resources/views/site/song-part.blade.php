@@ -49,6 +49,8 @@
                     <p class="s-lead">{{ __($melody ? 'site.song_part.lead_melody' : 'site.song_part.lead', $fill) }}</p>
                 </div>
                 <div class="s-spart-side">
+                    {{-- Its versions, where the UK sings it another way (site._song-versions), above the part's own facts. --}}
+                    @include('site._song-versions', ['versions' => $songPart['versions'] ?? [], 'song' => $s['pageSlug']])
                     @if (\Illuminate\Support\Facades\Lang::has('song_parts.'.$s['slug'].'.'.$p['key']))
                         <p class="s-spart-note">{{ __('song_parts.'.$s['slug'].'.'.$p['key']) }}</p>
                     @endif
@@ -126,5 +128,8 @@
     <x-site.footer />
     @if ($s['free'])
         <script type="module" src="/js/public/song-part-page.js"></script>
+    @endif
+    @if (($songPart['versions'] ?? []) !== [])
+        <script type="module" src="/js/public/song-version.js"></script>
     @endif
 @endsection

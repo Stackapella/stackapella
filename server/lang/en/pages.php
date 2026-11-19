@@ -16,6 +16,14 @@ return [
         'description_satb' => 'Learn :title in SATB harmony, part by part: soprano, alto, tenor and bass, each sung with you by a guide voice. Then stack your own voices. Free.',
         'words' => 'Words: :who',
         'tune' => 'Tune: :who',
+        // A song's versions (Hillel, 2026-11-18, "One song, US/UK switch"; site._song-versions): the switch's names, its
+        // heading, each link's label, and the line naming the tune the shown one sings.
+        'versions' => ['us' => 'US', 'uk' => 'UK'],
+        'version' => [
+            'heading' => 'Version',
+            'label' => ':label version',
+            'note' => ['uk' => 'As the UK sings it. Tune: :tune', 'us' => 'As the US sings it. Tune: :tune', 'other' => 'Tune: :tune'],
+        ],
         // The song page's frame (views/public/song.blade.php).
         'eyebrow' => 'Songs',
         'listen' => 'Hear it',

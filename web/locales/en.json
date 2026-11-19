@@ -725,7 +725,12 @@
         "start": "Sing it",
         "sungBy": "Real voices: {names}",
         "previewClip": "Hear a preview",
-        "needsAccount": "Make a free account to start this song. Its clip plays here."
+        "needsAccount": "Make a free account to start this song. Its clip plays here.",
+        "versions": {
+            "question": "Which version?",
+            "us": "US",
+            "uk": "UK"
+        }
     },
     "projects": {
         "title": "Your songs",

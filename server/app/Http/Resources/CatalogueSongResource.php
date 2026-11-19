@@ -150,7 +150,7 @@ final class CatalogueSongResource extends JsonResource
             // An open song with a part still on the synth: "Be the voice" may ask for it.
             'wantsVoice' => $fixed['_open'] && collect($parts)->contains(static fn (array $part): bool => ! $part['hasRealGuide']),
         ];
-        unset($song['_versionId'], $song['_open'], $song['_free']);
+        unset($song['_versionId'], $song['_open'], $song['_free'], $song['_versionOf']);
 
         return $song;
     }

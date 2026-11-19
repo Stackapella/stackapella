@@ -24,6 +24,8 @@ use App\Support\Sharing\SongCards;
 use App\Support\Site\Correction;
 use App\Support\SongAudio\SongAudioFiles;
 use App\Support\Templates\Catalogue;
+use App\Support\Templates\SongVersions;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
@@ -57,9 +59,10 @@ final class SongPagesController extends Controller
      *
      * @return array<string, string>
      */
-    public static function headersFor(?Template $template): array
+    public static function headersFor(?Template $template, bool $versions = false): array
     {
-        return $template !== null && app(RightsHere::class)->variesByCountry($template)
+        // A song with versions (SongVersions) opens on the one the visitor's country sings: it differs by country too.
+        return $template !== null && ($versions || app(RightsHere::class)->variesByCountry($template))
             ? [...self::headers(), 'Cache-Control' => 'private, no-store']
             : self::edgeHeaders();
     }
@@ -138,30 +141,42 @@ final class SongPagesController extends Controller
         return null;
     }
 
-    public function show(Request $request, string $slug, SongCards $cards, Catalogue $catalogue, SongCollections $collections, SongParts $songParts, RightsHere $rights): Response
+    public function show(Request $request, string $slug, SongCards $cards, Catalogue $catalogue, SongCollections $collections, SongParts $songParts, RightsHere $rights, SongVersions $songVersions): Response|RedirectResponse
     {
         $template = Template::query()->listed()->whereNotNull('current_version_id')->with('currentVersion')->where('slug', $slug)->first();
+
+        // Another version of a song (a UK carol's, SongVersions) has no page of its own: its song's page, showing it.
+        if ($template !== null && ($link = SongVersions::of($template)) !== null) {
+            return SongVersions::redirect($request, $slug, $link);
+        }
 
         if ($template === null || ! Catalogue::isOpen($template)) {
             return response()->view('public.page-gone', ['links' => ['app' => '/songs']], 404, self::headers());
         }
 
-        $song = SongPage::of($template);
+        // The version shown (Hillel, 2026-11-18, "One song, US/UK switch"): the one asked for (?version=), else the one the
+        // visitor's country sings (the UK's, in the UK), else the song's own. `$sung` is the song as the page sings it: its
+        // notes, makers and rights; the page, its story and its address stay the song's.
+        $country = RightsHere::country($request);
+        $versions = array_values(array_filter($songVersions->templates($template), static fn (array $version): bool => Catalogue::isOpen($version['template'])));
+        $chosen = count($versions) > 1 ? $songVersions->choose($versions, SongVersions::asked($request->query(SongVersions::PARAM)), $country) : $versions[0];
+        $sung = $chosen['template'];
+        $song = SongPage::of($sung, $template, count($versions) > 1 ? $chosen['name'] : null);
+        $song['versions'] = SongVersions::forPage($versions, $chosen['name'], (string) $song['pageUrl']);
         // Where its copyright still runs (docs/geo-rights-plan.md): the page stays, saying when it's free there; the
         // player goes, and the words too where they're the protected part.
-        $country = RightsHere::country($request);
-        $withheld = $rights->withheld($template, $country);
-        $wordsWithheld = $rights->wordsWithheld($template, $country);
+        $withheld = $rights->withheld($sung, $country);
+        $wordsWithheld = $rights->wordsWithheld($sung, $country);
         // The whole song, every part mixed (the showreel agent's render of this version): for the page's player and its
         // MusicRecording. Every open song's (Hillel, 2026-11-13: "it should be easy to hear the song on the song page"),
         // not only the bundled ones; never where the music is withheld here.
-        $song['audio'] = $withheld !== null ? null : SongAudioFiles::forPage($template);
+        $song['audio'] = $withheld !== null ? null : SongAudioFiles::forPage($sung);
         // Free, but a song the app doesn't bundle starts with a free account (2026-11-07): the hero's chip says so, never a
         // bare "Free" that a guest finds asks for an account (frontend2's newcomer walk, 2026-11-13).
-        $song['account'] = $template->access === TemplateAccess::Plus;
+        $song['account'] = $sung->access === TemplateAccess::Plus;
         // The hero's player: the opening line's notes (js/public/mixer.js fetches the rest, as a guest may: the
         // catalogue's open grant under its daily cap), and the render, when there is one, for all its parts at once.
-        $line = $withheld !== null ? null : Landing::line($template);
+        $line = $withheld !== null ? null : Landing::line($sung);
         if ($line !== null) {
             $line['audio'] = $song['audio'] === null ? null : ['m4a' => $song['audio']['m4a'], 'mp3' => $song['audio']['mp3']];
         }
@@ -198,7 +213,7 @@ final class SongPagesController extends Controller
             $story = SongMeanings::fillFullWords($story, $meanings);
         }
         $home = $collections->home((string) $template->slug);
-        $partCards = SongPage::cards($template, $song);
+        $partCards = SongPage::cards($sung, $song);
 
         Correction::share('song', SongWords::title((string) $template->title, (string) $template->slug));
 
@@ -211,17 +226,17 @@ final class SongPagesController extends Controller
             // The story's full words where it has them (its "### The full words" block, SongStories::fullWords: every stanza
             // with its label, each line's script and meaning), else the template's verses. Null when withheld here.
             // Where the words are the protected part here, none: not the template's verses either.
-            'lines' => $wordsWithheld ? [] : (is_array($story['fullWords'] ?? null) ? array_column($story['fullWords']['stanzas'], 'lines') : SongPage::lines($song['lines'] ?? null, SongPage::verses($template))),
+            'lines' => $wordsWithheld ? [] : (is_array($story['fullWords'] ?? null) ? array_column($story['fullWords']['stanzas'], 'lines') : SongPage::lines($song['lines'] ?? null, SongPage::verses($sung))),
             'labels' => is_array($story['fullWords'] ?? null) ? array_column($story['fullWords']['stanzas'], 'label') : [],
             'wordsIntro' => is_array($story['fullWords'] ?? null) ? (string) $story['fullWords']['intro'] : '',
             'sungLanguage' => is_string($story['sungLanguage'] ?? null) ? $story['sungLanguage'] : (is_string($song['sungLanguage'] ?? null) ? $song['sungLanguage'] : null),
             'cards' => $partCards,
             // Each part's guide voice: a real singer's (credited) or the app's own, one look-up for the song (SongParts::guides).
-            'guides' => $songParts->guides($template),
+            'guides' => $songParts->guides($sung),
             // The ask to sing a part with no real voice yet, once the lend_voice flag is on (docs/open-guide-voices-plan.md);
             // a flag this install doesn't have yet is off.
             'lendVoice' => SongParts::lendVoice(),
-            'learn' => array_combine(array_column($partCards, 'key'), array_map(static fn (array $card): string => Hosts::app('/?'.http_build_query(['song' => $template->slug, 'part' => $card['key'], 'ref' => 'song-page'])), $partCards)),
+            'learn' => array_combine(array_column($partCards, 'key'), array_map(static fn (array $card): string => Hosts::app('/?'.http_build_query(['song' => $sung->slug, 'part' => $card['key'], 'ref' => 'song-page'])), $partCards)),
             // The page that collects it gives the hero its palette (its link card's and band's); a song no page collects, the songs' own.
             'tone' => $home['key'] ?? 'song',
             // The source a story's quote is from, by its number.
@@ -229,7 +244,7 @@ final class SongPagesController extends Controller
             // Every open song plays, not only the bundled ones (Hillel, 2026-11-13); none where it's withheld here.
             'line' => $line,
             // Its score's facts and downloads (SongScore), with the player: never where it's withheld here.
-            'score' => $line !== null ? SongScore::of($template, $song, (float) $line['songBeats'] * 60 / max(1.0, (float) $line['tempo'])) : null,
+            'score' => $line !== null ? SongScore::of($sung, $song, (float) $line['songBeats'] * 60 / max(1.0, (float) $line['tempo'])) : null,
             // Null where it's free; else the year it's free here (null when that can't be known) and whether the words
             // are withheld too. The view's words are marketing's.
             'rights' => $withheld === null ? null : ['freeFrom' => $withheld['freeFrom'], 'words' => $wordsWithheld],
@@ -252,6 +267,6 @@ final class SongPagesController extends Controller
                 'image' => $cards->url($template, 'join'),
                 'imageAlt' => __('site.meta.app.join.image_alt', ['song' => SongWords::title((string) $template->title, (string) $template->slug)]),
             ],
-        ], 200, self::headersFor($template));
+        ], 200, self::headersFor($template, count($versions) > 1));
     }
 }

@@ -92,6 +92,7 @@ export function songSummary(entry) {
         season: entry.season ?? null, // a collection in season ({ key: 'carols', until }), or null
         group: entry.group ?? null, // the /songs group it's under (SongCollections::group), for the library's filters
         titles: entry.titles ?? {}, // its own title in a language that names it so ({ es: '…' }), shown and searched there
+        songVersions: entry.songVersions ?? [], // its versions free here (song-versions.js): the UK's beside the song's own
         summary: true,
     };
 }

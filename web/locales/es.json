@@ -702,7 +702,12 @@
         "start": "Cantarla",
         "sungBy": "Voces reales: {names}",
         "previewClip": "Escuchar un fragmento",
-        "needsAccount": "Crea una cuenta gratis para empezar esta canción. Su fragmento suena aquí."
+        "needsAccount": "Crea una cuenta gratis para empezar esta canción. Su fragmento suena aquí.",
+        "versions": {
+            "question": "¿Qué versión?",
+            "us": "EE. UU.",
+            "uk": "Reino Unido"
+        }
     },
     "projects": {
         "title": "Tus canciones",

@@ -2037,6 +2037,18 @@ select:disabled {
 .s-sg-seg button { min-height: 48px; padding: 0 10px; border: 0; border-radius: 12px; background: none; color: inherit; font: inherit; font-size: 15px; font-weight: 650; white-space: nowrap; cursor: pointer; }
 .s-sg-seg button[aria-checked="true"] { background: #faf5ee; color: #1f1a14; box-shadow: 0 1px 2px rgb(0 0 0 / .25); }
 .s-sg-seg button:focus-visible { outline: 2px solid var(--ta); outline-offset: 2px; }
+/* A song's versions (Hillel, 2026-11-18, "One song, US/UK switch"; SongVersions): one small row of links on the song page and
+   its part pages, "Version · US UK", the one shown chosen (the accent, with aria-current), the tune it sings under it.
+   Calm and small: the page's own choices (the parts) stay the main ones. */
+.s-ver { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: 18px; }
+.s-ver-h { font-size: 13px; font-weight: 650; letter-spacing: .06em; text-transform: uppercase; opacity: .82; }
+.s-ver-seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--tl, var(--color-panel)); }
+.s-ver-seg a { display: inline-grid; place-items: center; min-height: 40px; min-width: 52px; padding: 0 16px; border-radius: 999px; color: inherit; font-size: 14px; font-weight: 650; white-space: nowrap; text-decoration: none; }
+.s-ver-seg a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.s-ver-seg a[aria-current] { background: var(--color-accent); color: var(--color-accent-ink); box-shadow: 0 1px 2px rgb(0 0 0 / .25); text-decoration: none; }
+.s-ver-seg a:focus-visible { outline: 2px solid var(--ta, var(--color-accent)); outline-offset: 2px; }
+.s-ver-note { flex-basis: 100%; margin: 0; font-size: 13px; line-height: 1.45; opacity: .86; }
+.s-spart-side .s-ver { margin-top: 0; }
 .s-sg-scored .s-sg-actions { margin-top: 12px; max-width: 460px; }
 .s-sg-scored .s-sg-actions > .btn-primary { flex: 1 1 240px; justify-content: center; }
 .s-sg-scored .s-sg-note { margin-top: 12px; font-size: 14px; }
@@ -15605,6 +15617,10 @@ a.cp-ll-block:focus-visible { outline: 3px solid var(--color-cream); outline-off
    three steps as framed level cards with pixel captions, the About's rule dashed. On a phone the panel's foot stacks
    and its button takes the row, so "Learn this part in the app" keeps to one line in the arcade font. */
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-chip { border-radius: var(--arc-radius); border: var(--arc-edge-w) solid var(--arc-line); background: var(--arc-well); }
+/* A song's versions in the arcade: square, edged like the part chips, the shown one filled in cream. */
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-ver-seg { border-radius: var(--arc-radius); border: var(--arc-edge-w) solid var(--arc-line); background: var(--arc-well); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-ver-seg a { border-radius: var(--arc-radius); }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-ver-seg a[aria-current] { background: var(--color-cream); color: var(--arc-well); box-shadow: var(--arc-shadow); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) a.s-spart-chip:hover { background: var(--arc-panel); border-color: var(--color-cream); }
 :root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-spart-chip[aria-current] { background: var(--color-cream); border-color: var(--color-cream); box-shadow: var(--arc-shadow); }
 /* On a part's page each chip is framed in its part's colour, the current part's filled with it (a reference page's chips

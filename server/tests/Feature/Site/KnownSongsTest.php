@@ -32,8 +32,9 @@ final class KnownSongsTest extends TestCase
         $this->assertStringNotContainsString('pitch', (string) json_encode($songs));
         // In title order as the database collates it (case does not matter: "Angels from ..." before "Angels We ...").
         $this->assertSame(collect($songs)->sortBy('title', SORT_STRING | SORT_FLAG_CASE)->pluck('slug')->all(), collect($songs)->pluck('slug')->all());
-        // Only the reviewed ones: an unreviewed song's notes may still change.
-        $reviewed = Template::query()->listed()->whereHas('currentVersion', fn ($q) => $q->where('reviewed', true))->count();
+        // Only the reviewed ones: an unreviewed song's notes may still change. A song's other version (a UK carol's,
+        // SongVersions) isn't a song of its own here.
+        $reviewed = Template::query()->listed()->whereHas('currentVersion', fn ($q) => $q->where('reviewed', true)->whereNull('data->versionOf'))->count();
         $this->assertGreaterThan(0, $reviewed);
         $this->assertCount($reviewed, $songs);
     }

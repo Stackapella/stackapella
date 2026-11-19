@@ -83,7 +83,10 @@
                         @endif
                     </ul>
                     {{-- The facts first, then the lead (Hillel's design, 2026-11-16). --}}
-                    <p class="s-lead">{{ $story !== null && $story['lead'] !== '' ? $story['lead'] : $song['description'] }}</p>
+                    {{-- Another version shown (SongVersions: the UK's), its own description, since the story's lead tells the song's own tune. --}}
+                    <p class="s-lead">{{ $story !== null && $story['lead'] !== '' && $song['slug'] === $song['pageSlug'] ? $story['lead'] : $song['description'] }}</p>
+                    {{-- Its versions, where the UK sings it another way (site._song-versions): small, under the lead. --}}
+                    @include('site._song-versions', ['versions' => $song['versions'] ?? [], 'song' => $song['pageSlug']])
                     @if ($line !== null)
                         {{-- Your part: the tune's until you choose (it shows chosen, and is: the player sings it forward and
                              Learn names it). One radio a part, read by the player as its picks. --}}
@@ -267,5 +270,8 @@
         <script type="module" src="/js/public/mixer.js"></script>
     @endif
     <script type="module" src="/js/public/song-page.js"></script>
+    @if (($song['versions'] ?? []) !== [])
+        <script type="module" src="/js/public/song-version.js"></script>
+    @endif
 
 @endsection

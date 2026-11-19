@@ -550,6 +550,9 @@
     "/js/staff-layout.js",
     "/js/theory.js"
   ],
+  "/js/public/song-version.js": [
+    "/js/public/song-version.js"
+  ],
   "/js/public/songbook.js": [
     "/js/public/songbook.js"
   ],

@@ -288,7 +288,7 @@ final class StructuredData
      *
      * The whole song's audio, where the page plays it (SongAudioFiles::forPage), as the composition's MusicRecording.
      *
-     * @param  array{title: string, description: string, pageUrl: string, genre: list<string>, credits: list<string>, key?: string, audio?: array{mp3: string|null, m4a: string|null, seconds: float, credit: string|null}|null}  $song
+     * @param  array{title: string, description: string, pageUrl: string, genre: list<string>, credits: list<string>, key?: string, audio?: array{mp3: string|null, m4a: string|null, seconds: float, credit: string|null}|null, versions?: list<array{name: string, label: string, url: string, current: bool, tune: string|null, year: int|null}>}  $song
      * @param  array<string, mixed>|null  $story
      * @return list<array<string, mixed>>
      */
@@ -339,8 +339,19 @@ final class StructuredData
                 'creator' => ['@type' => 'Organization', 'name' => 'Stackapella', 'url' => 'https://stackapella.com'],
             ];
         }
+        // A song with versions (a UK carol's, SongVersions) names each one, as its page's switch offers it: one page, and
+        // the version a query, never a page of its own.
+        $versions = array_values(array_filter((array) ($song['versions'] ?? []), 'is_array'));
+        $arrangements = $versions === [] ? null : array_map(static fn (array $version): array => array_filter([
+            '@type' => 'MusicComposition',
+            'name' => $song['title'].' ('.$version['label'].')',
+            'url' => $version['url'],
+            'description' => $version['tune'],
+            'datePublished' => $version['year'] !== null ? (string) $version['year'] : null,
+            'arranger' => ['@type' => 'Organization', 'name' => 'Stackapella'],
+        ], static fn (mixed $v): bool => $v !== null), $versions);
         if ($story === null) {
-            return [$composition];
+            return [$arrangements === null ? $composition : [...$composition, 'musicArrangement' => $arrangements]];
         }
 
         $facts = (array) ($story['facts'] ?? []);
@@ -358,7 +369,7 @@ final class StructuredData
             'dateCreated' => is_string($first) && preg_match('/^\d{4}$/', $first) === 1 ? $first : null,
             'alternateName' => ($facts['alsoKnownAs'] ?? null) ?: null,
             'sameAs' => is_string($story['wikidata'] ?? null) ? 'https://www.wikidata.org/wiki/'.$story['wikidata'] : null,
-            'musicArrangement' => ['@type' => 'MusicComposition', 'name' => $song['title'], 'arranger' => ['@type' => 'Organization', 'name' => 'Stackapella']],
+            'musicArrangement' => $arrangements ?? ['@type' => 'MusicComposition', 'name' => $song['title'], 'arranger' => ['@type' => 'Organization', 'name' => 'Stackapella']],
             // The whole sung text, stanzas apart, where the story has the full words (and they aren't withheld here).
             'lyrics' => is_array($story['fullWords'] ?? null) ? array_filter([
                 '@type' => 'CreativeWork',
@@ -437,7 +448,8 @@ final class StructuredData
                 [(string) __('site.song_part.songs'), Hosts::publicUrl().'/songs'],
                 // The page that collects it, as the trail on the page shows (SongCollections::home).
                 ...(is_array($page['home'] ?? null) ? [[(string) $page['home']['name'], Hosts::publicUrl().$page['home']['path']]] : []),
-                [(string) $song['title'], (string) $song['pageUrl']],
+                // The song's own address, without the version its link keeps (SongVersions).
+                [(string) $song['title'], (string) strtok((string) $song['pageUrl'], '?')],
                 [(string) $part['name'], (string) $page['canonical']],
             ]),
         ];

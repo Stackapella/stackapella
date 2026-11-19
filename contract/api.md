@@ -887,6 +887,16 @@ code (`{ "es": "Frère Jacques" }`; empty when it has none), for the app's Brows
 A song withheld where the visitor is (docs/geo-rights-plan.md, behind `geo_rights`) isn't listed there, except to
 admins and editors. **Request:** none.
 
+**A song's versions** (since 2026-11-19; Hillel, 2026-11-18, "One song, US/UK switch"): where the UK sings a carol to
+another tune or harmony, that version is its own template whose file says `"versionOf": {"song":
+"it-came-upon-the-midnight-clear", "name": "uk"}` (template.json; the song's own file goes by `"us"`). It has its own
+notes, makers, first printing, voices and progress, and `templates.show` serves it by its own id, but the catalogue never
+lists it on its own. The song's entry carries `songVersions` instead, only when more than one version is free where the
+caller is: each one's `id`, `name` and `here`, true on the one people there start on (the UK's for a visitor in the UK,
+GB, IM, JE and GG; the song's own elsewhere; the country is Cloudflare's, never stored). A song withheld there whose
+version is free there is listed as that version. The app opens the version kept on the device, else `here`'s, and its
+sheet switches between them. Optional: a client that ignores it shows the song's own version, as before.
+
 **Voices** (Hillel's decision, "published versions"): every accepted recording of a part is a
 published version (`versions`, the default first, then the newest), and `guide` is the default
 Hillel chose (or null: the synth plays). A learner may choose another version as their guide.

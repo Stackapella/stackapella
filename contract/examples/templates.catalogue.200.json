@@ -393,6 +393,195 @@
             "group": null,
             "titles": {},
             "wantsVoice": true
+        },
+        {
+            "id": "it-came-upon-the-midnight-clear",
+            "version": 1,
+            "title": "It Came Upon the Midnight Clear",
+            "description": "Edmund Hamilton Sears's Christmas carol to Willis's tune, for 2 to 4 singers.",
+            "difficulty": "beginner",
+            "genre": [
+                "christmas"
+            ],
+            "language": "en",
+            "key": "Bb",
+            "tempo": 60,
+            "timeSignature": "6/8",
+            "reviewed": true,
+            "openedAt": "2026-11-13T09:00:00Z",
+            "season": {
+                "key": "carols",
+                "until": "2026-12-26"
+            },
+            "access": "account",
+            "freeUntil": null,
+            "previewUrl": null,
+            "parts": [
+                {
+                    "key": "soprano",
+                    "name": "Soprano",
+                    "range": {
+                        "low": 65,
+                        "high": 77
+                    },
+                    "guide": null,
+                    "versions": [],
+                    "shape": [
+                        [
+                            0,
+                            250,
+                            -2
+                        ],
+                        [
+                            250,
+                            500,
+                            2
+                        ],
+                        [
+                            500,
+                            750,
+                            0
+                        ],
+                        [
+                            750,
+                            1000,
+                            -1
+                        ]
+                    ],
+                    "hasRealGuide": false
+                },
+                {
+                    "key": "alto",
+                    "name": "Alto",
+                    "range": {
+                        "low": 58,
+                        "high": 70
+                    },
+                    "guide": null,
+                    "versions": [],
+                    "shape": [
+                        [
+                            0,
+                            250,
+                            -2
+                        ],
+                        [
+                            250,
+                            500,
+                            2
+                        ],
+                        [
+                            500,
+                            750,
+                            0
+                        ],
+                        [
+                            750,
+                            1000,
+                            -1
+                        ]
+                    ],
+                    "hasRealGuide": false
+                },
+                {
+                    "key": "tenor",
+                    "name": "Tenor",
+                    "range": {
+                        "low": 53,
+                        "high": 65
+                    },
+                    "guide": null,
+                    "versions": [],
+                    "shape": [
+                        [
+                            0,
+                            250,
+                            -2
+                        ],
+                        [
+                            250,
+                            500,
+                            2
+                        ],
+                        [
+                            500,
+                            750,
+                            0
+                        ],
+                        [
+                            750,
+                            1000,
+                            -1
+                        ]
+                    ],
+                    "hasRealGuide": false
+                },
+                {
+                    "key": "bass",
+                    "name": "Bass",
+                    "range": {
+                        "low": 41,
+                        "high": 55
+                    },
+                    "guide": null,
+                    "versions": [],
+                    "shape": [
+                        [
+                            0,
+                            250,
+                            -2
+                        ],
+                        [
+                            250,
+                            500,
+                            2
+                        ],
+                        [
+                            500,
+                            750,
+                            0
+                        ],
+                        [
+                            750,
+                            1000,
+                            -1
+                        ]
+                    ],
+                    "hasRealGuide": false
+                }
+            ],
+            "voicings": {
+                "2": [
+                    "soprano",
+                    "alto"
+                ],
+                "3": [
+                    "soprano",
+                    "alto",
+                    "bass"
+                ],
+                "4": [
+                    "soprano",
+                    "alto",
+                    "tenor",
+                    "bass"
+                ]
+            },
+            "group": "christmas",
+            "titles": {},
+            "wantsVoice": true,
+            "songVersions": [
+                {
+                    "id": "it-came-upon-the-midnight-clear",
+                    "name": "us",
+                    "here": false
+                },
+                {
+                    "id": "it-came-upon-the-midnight-clear-uk",
+                    "name": "uk",
+                    "here": true
+                }
+            ]
         }
     ]
 }

@@ -10,6 +10,7 @@ use App\Support\Languages\NoteNames;
 use App\Support\Languages\PartNames;
 use App\Support\Languages\SongWords;
 use App\Support\Site\SitePages;
+use App\Support\Templates\SongVersions;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -27,21 +28,28 @@ final class SongPage
     private const NAMES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 
     /**
+     * `$template` is the song as it's sung on the page: the song itself, or one of its versions (a UK carol's,
+     * SongVersions), whose page is its song's (`$page`), with `?version=$version` on the page's own links.
+     *
      * @return array<string, mixed>
      */
-    public static function of(Template $template): array
+    public static function of(Template $template, ?Template $page = null, ?string $version = null): array
     {
+        $page ??= $template;
         $data = (array) ($template->currentVersion->data ?? []);
         $parts = array_values(array_filter((array) ($data['parts'] ?? []), 'is_array'));
         $credits = (array) ($data['credits'] ?? []);
         $base = Hosts::publicUrl();
+        $query = $version !== null ? '?'.http_build_query([SongVersions::PARAM => $version]) : '';
 
         return [
             'slug' => $template->slug,
-            'title' => SongWords::title((string) $template->title, (string) $template->slug),
+            // The song whose page it is (its own slug, never a version's).
+            'pageSlug' => (string) $page->slug,
+            'title' => SongWords::title((string) $page->title, (string) $page->slug),
             'description' => SongWords::description((string) ($data['description'] ?? '')),
             // Its story where it has one (lang song_about), the part pages' About too.
-            'about' => trans()->has('song_about.'.$template->slug) ? (string) __('song_about.'.$template->slug) : null,
+            'about' => trans()->has('song_about.'.$page->slug) ? (string) __('song_about.'.$page->slug) : null,
             'difficulty' => (string) ($data['difficulty'] ?? ''),
             'genre' => array_values(array_filter((array) ($data['genre'] ?? []), 'is_string')),
             // Its opening key and tempo, as the song file has them (the SEO audit: "original key", "what key").
@@ -68,8 +76,8 @@ final class SongPage
                 isset($credits['words']) ? __('pages.song.words', ['who' => SongWords::credit((string) $credits['words'])]) : null,
                 isset($credits['tune']) ? __('pages.song.tune', ['who' => SongWords::credit((string) $credits['tune'])]) : null,
             ])),
-            'ranges' => self::linked(self::ranges($parts), $parts, SongParts::hasPages($template) ? $base.'/songs/'.$template->slug.'/' : null),
-            'pageUrl' => $base.'/songs/'.$template->slug,
+            'ranges' => self::linked(self::ranges($parts), $parts, SongParts::hasPages($page) ? $base.'/songs/'.$page->slug.'/' : null, $query),
+            'pageUrl' => $base.'/songs/'.$page->slug,
             'startUrl' => Hosts::app('/?'.http_build_query(['song' => $template->slug, 'ref' => 'song-page'])),
         ];
     }
@@ -118,12 +126,12 @@ final class SongPage
      * @param  list<array<string, mixed>>  $parts
      * @return array{marks: list<array{name: string, at: float}>, parts: list<array<string, mixed>>}
      */
-    private static function linked(array $ranges, array $parts, ?string $base): array
+    private static function linked(array $ranges, array $parts, ?string $base, string $query = ''): array
     {
-        $ranges['parts'] = array_map(static function (array $row, int $i) use ($parts, $base): array {
+        $ranges['parts'] = array_map(static function (array $row, int $i) use ($parts, $base, $query): array {
             $key = $parts[$i]['key'] ?? null;
 
-            return [...$row, 'url' => $base !== null && is_string($key) && preg_match(SongParts::KEY, $key) === 1 ? $base.$key : null];
+            return [...$row, 'url' => $base !== null && is_string($key) && preg_match(SongParts::KEY, $key) === 1 ? $base.$key.$query : null];
         }, $ranges['parts'], array_keys($ranges['parts']));
 
         return $ranges;

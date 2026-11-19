@@ -39,6 +39,7 @@ const SHELL = [
     '/js/levels.js',
     '/js/lazy.js',
     '/js/song-titles.js',
+    '/js/song-versions.js',
     '/js/beta-status.js',
     '/js/screen-name.js',
     '/js/sw-update.js',

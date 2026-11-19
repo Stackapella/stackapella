@@ -27,7 +27,36 @@ final class Catalogue
      */
     public function songs(): Collection
     {
-        return Template::query()->listed()->with('currentVersion')->whereNotNull('current_version_id')->orderBy('title')->get();
+        // A song's other version (a UK carol's, SongVersions) is never listed on its own: its song stands for it.
+        return Template::query()->listed()->with('currentVersion')->whereNotNull('current_version_id')
+            ->whereHas('currentVersion', static fn ($query) => $query->whereNull('data->versionOf'))->orderBy('title')->get();
+    }
+
+    /**
+     * The songs' other versions (SongVersions): live, each with a current version whose file names the song it belongs to.
+     *
+     * @return Collection<int, Template>
+     */
+    public function versions(): Collection
+    {
+        // Read once a request (it's scoped): the catalogue, the song page and its versions' switch all ask.
+        return $this->versions ??= Template::query()->listed()->with('currentVersion')->whereNotNull('current_version_id')
+            ->whereHas('currentVersion', static fn ($query) => $query->whereNotNull('data->versionOf'))->orderBy('slug')->get();
+    }
+
+    /** @var Collection<int, Template>|null */
+    private ?Collection $versions = null;
+
+    /**
+     * The songs' other versions as the app's catalogue sends them (CatalogueSongResource::fixed, with `_versionOf`, the
+     * song each belongs to and its name), by slug: the catalogue names them on their song, and one stands in for a song
+     * withheld where the visitor is while it's free there. Kept with self::listing(), from the same one read.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public function versionListing(): array
+    {
+        return $this->listed()['versions'];
     }
 
     /**
@@ -81,10 +110,34 @@ final class Catalogue
      */
     public function listing(): array
     {
+        return $this->listed()['songs'];
+    }
+
+    /**
+     * self::listing() and self::versionListing(), from one read of every live song (a song's versions, SongVersions, are
+     * told apart by their files), kept together a day under the catalogue's fingerprint and this build.
+     *
+     * @return array{songs: list<array<string, mixed>>, versions: array<string, array<string, mixed>>}
+     */
+    private function listed(): array
+    {
         $key = 'catalogue.listing.'.$this->fingerprint().'.'.(string) config('app.build');
 
-        return self::kept($key, fn (): array => array_values($this->songs()->map(static fn (Template $template): array => CatalogueSongResource::fixed($template))->all()));
+        return $this->listed ??= self::kept($key, function (): array {
+            $all = Template::query()->listed()->with('currentVersion')->whereNotNull('current_version_id')->orderBy('title')->get();
+            $isVersion = static fn (Template $template): bool => SongVersions::of($template) !== null;
+            $songs = $all->reject($isVersion);
+            $versions = $all->filter($isVersion);
+
+            return [
+                'songs' => array_values($songs->map(static fn (Template $template): array => CatalogueSongResource::fixed($template))->all()),
+                'versions' => $versions->mapWithKeys(static fn (Template $template): array => [(string) $template->slug => [...CatalogueSongResource::fixed($template), '_versionOf' => SongVersions::of($template)]])->all(),
+            ];
+        });
     }
+
+    /** @var array{songs: list<array<string, mixed>>, versions: array<string, array<string, mixed>>}|null */
+    private ?array $listed = null;
 
     /**
      * Kept a day in the cache under `$key`, which names the songs (and, for code-shaped answers, the build). A

@@ -12,6 +12,7 @@ use App\Models\TemplateVersion;
 use App\Services\Social\SocialPoster;
 use App\Support\Contract\SchemaChecker;
 use App\Support\Pages\SongParts;
+use App\Support\Templates\SongVersions;
 use App\Support\Templates\TemplateRules;
 use App\Support\Tools\KnownSongs;
 use Illuminate\Support\Facades\Cache;
@@ -56,6 +57,8 @@ final class SyncOfficialTemplates
         // versions' reviewed. A newer unreviewed version alone leaves the last reviewed one live, so this is the way to hide.
         $hidden = [];
         $schemas = new SchemaChecker((string) config('templates.schemas'));
+        // Each version's file name and the song it names (versionOf).
+        $versionsOf = [];
 
         foreach ($this->files() as $path) {
             $json = (string) file_get_contents($path);
@@ -64,6 +67,10 @@ final class SyncOfficialTemplates
 
             if (is_array($data) && is_string($data['id'] ?? null)) {
                 $present[] = $data['id'];
+                // Another version of a song (SongVersions): checked once every file is read.
+                if (($link = SongVersions::link($data)) !== null) {
+                    $versionsOf[$name] = $link['song'];
+                }
             }
 
             if (! is_array($data)) {
@@ -123,6 +130,14 @@ final class SyncOfficialTemplates
             $report[$result === 'problem' ? 'problems' : $result][] = $result === 'problem'
                 ? "{$name}: version {$data['version']} of {$data['id']} was published with different notes; give the change a new version number"
                 : "{$data['id']}@{$data['version']}";
+        }
+
+        // A version names a song that has a file and is a song in its own right, never another version.
+        $versionIds = array_map(static fn (string $file): string => preg_replace('/\.(next\.)?json$/', '', $file) ?? $file, array_keys($versionsOf));
+        foreach ($versionsOf as $file => $song) {
+            if (! in_array($song, $present, true) || in_array($song, $versionIds, true)) {
+                $report['problems'][] = "{$file}: versionOf names {$song}, which isn't a song in its own right";
+            }
         }
 
         $report = $this->withdraw($present, $hidden, $report);

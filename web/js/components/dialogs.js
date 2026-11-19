@@ -27,6 +27,7 @@ import { songTitle } from '../song-titles.js';
 import { catalogue } from '../stores/catalogue.js';
 import { SLOW_MS } from './screen-loading.js';
 import { pastFirstWeek, voiceAskOpen, voicelessParts } from '../be-the-voice.js';
+import { versionsOf } from '../song-versions.js';
 
 // A song's pace in words for a new singer (no BPM: the design rules' first-week words).
 const TEMPO = { slow: tk('templates.tempo.slow'), steady: tk('templates.tempo.steady'), lively: tk('templates.tempo.lively') };
@@ -829,8 +830,8 @@ export const TemplateDialog = {
     // taste: a guest on a library song whose first phrase they may sing (templates.firstPhrase): Start sings that, the ask after.
     // load: the song's notes still coming ('loading'), or why they didn't ('failed', 'offline'); starting: Start was tapped.
     props: { template: { type: Object, required: true }, previewing: Boolean, preparing: Boolean, credits: { type: Array, default: () => [] }, locked: Boolean, taste: Boolean, singers: { type: Number, default: 4 }, fresh: Boolean, load: { type: String, default: null }, notHere: { type: String, default: null }, starting: Boolean },
-    emits: ['start', 'preview', 'close', 'signup', 'copy', 'singers', 'retry', 'voice'],
-    setup: () => ({ midiName, formatTime, formatNumber, primary, secondary, singerOptions, templatePartName, keyLabel, DIFFICULTY, formatList, TEMPO, songTitle }),
+    emits: ['start', 'preview', 'close', 'signup', 'copy', 'singers', 'retry', 'voice', 'version'],
+    setup: () => ({ midiName, formatTime, formatNumber, primary, secondary, singerOptions, templatePartName, keyLabel, DIFFICULTY, formatList, TEMPO, songTitle, versionsOf }),
     template: `
         <Modal :title="songTitle(template)" title-is-content wide @close="$emit('close')">
             <div class="space-y-5">
@@ -839,6 +840,14 @@ export const TemplateDialog = {
                 <p class="text-sm text-muted">{{ t(DIFFICULTY[template.difficulty] ?? DIFFICULTY.beginner) }} · {{ t('studio.meta.key', { key: keyLabel(template.key) }) }} · {{ t(TEMPO[template.tempo <= 84 ? 'slow' : template.tempo <= 112 ? 'steady' : 'lively']) }}<template v-if="!template.summary"> · {{ formatTime(seconds) }}</template></p>
                 <p v-if="template.credits" class="text-xs text-muted">{{ [t('templates.credits', { words: template.credits.words, tune: template.credits.tune, arrangement: template.credits.arrangement }), template.reviewed ? '' : t('templates.draftNote')].filter(Boolean).join(' ') }}</p>
                 <p v-if="credits.length" class="text-sm text-cream">{{ t('templates.sungBy', { names: formatList(credits) }) }}</p>
+                <!-- Its versions (song-versions.js; Hillel's US and UK switch, 2026-11-18): where the UK sings it another way,
+                     a small switch, the one open chosen; it opened on the one kept on this device, else the one sung where you are. -->
+                <div v-if="versionsOf(template).length" class="flex flex-wrap items-center justify-between gap-3" data-song-versions>
+                    <span :id="'versions-' + $.uid" class="text-sm font-semibold text-cream">{{ t('templates.versions.question') }}</span>
+                    <div class="seg" role="radiogroup" :aria-labelledby="'versions-' + $.uid">
+                        <button v-for="v in versionsOf(template)" :key="v.id" type="button" role="radio" class="seg-option tap-44" :aria-checked="v.id === template.id ? 'true' : 'false'" :data-version="v.name" translate="no" @click="v.id !== template.id && $emit('version', v.id)">{{ v.name === 'uk' ? t('templates.versions.uk') : v.name === 'us' ? t('templates.versions.us') : v.name.toUpperCase() }}</button>
+                    </div>
+                </div>
                 <!-- Be the voice (be-the-voice.js): the parts no one has sung yet, past the first week, one quiet line. -->
                 <p v-if="voiceless.length" class="text-sm text-muted" data-song-no-voice>{{ t('voices.be.sheet', { parts: formatList(voiceless) }) }} <button type="button" class="link tap-44" data-be-the-voice-go @click="$emit('voice')">{{ t('voices.be.go') }}</button></p>
                 <div v-if="locked" class="flex flex-wrap items-center gap-3">

@@ -1589,5 +1589,12 @@
     "Sharing a private arrangement with other singers": "Compartir un arreglo privado con otros cantantes",
     "Yes, with Plus for each singer": "Sí, con Plus para cada cantante",
     "Can I share a private arrangement?": "¿Puedo compartir un arreglo privado?",
-    "Yes, with Plus. Once a private arrangement has a link or other singers on it, everyone in it needs their own Plus, you too. On your own, one private arrangement stays free. Choir groups are covered by their leader's Plus, and finished mixes and videos stay free to hear.": "Sí, con Plus. Cuando un arreglo privado tiene un enlace u otros cantantes, cada persona necesita su propio Plus, también tú. Solo para ti, un arreglo privado sigue siendo gratis. Los grupos de coro quedan cubiertos por el Plus de quien los dirige, y las mezclas y los videos terminados se escuchan gratis."
+    "Yes, with Plus. Once a private arrangement has a link or other singers on it, everyone in it needs their own Plus, you too. On your own, one private arrangement stays free. Choir groups are covered by their leader's Plus, and finished mixes and videos stay free to hear.": "Sí, con Plus. Cuando un arreglo privado tiene un enlace u otros cantantes, cada persona necesita su propio Plus, también tú. Solo para ti, un arreglo privado sigue siendo gratis. Los grupos de coro quedan cubiertos por el Plus de quien los dirige, y las mezclas y los videos terminados se escuchan gratis.",
+    "US": "EE. UU.",
+    "UK": "Reino Unido",
+    "Version": "Versión",
+    ":label version": "Versión :label",
+    "As the UK sings it. Tune: :tune": "Como se canta en el Reino Unido. Melodía: :tune",
+    "As the US sings it. Tune: :tune": "Como se canta en EE. UU. Melodía: :tune",
+    "Tune: :tune": "Melodía: :tune"
 }

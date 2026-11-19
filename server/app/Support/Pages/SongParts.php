@@ -12,6 +12,7 @@ use App\Support\Http\Hosts;
 use App\Support\Languages\PartNames;
 use App\Support\Languages\SongWords;
 use App\Support\Templates\Catalogue;
+use App\Support\Templates\SongVersions;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
@@ -209,35 +210,43 @@ final class SongParts
      *
      * @return array<string, mixed>|null
      */
-    public function page(string $slug, string $key): ?array
+    public function page(string $slug, string $key, ?Template $sung = null, ?string $version = null): ?array
     {
-        $template = $this->songs()->first(static fn (Template $t): bool => $t->slug === $slug);
+        $song = $this->songs()->first(static fn (Template $t): bool => $t->slug === $slug);
+        // One of the song's versions (a UK carol's, SongVersions), where it has this part: its notes, voices and words, on
+        // the song's address with ?version= on its links. `slug` is the one sung (the player's and the part lines'), and
+        // the page's links are the song's.
+        $template = $sung !== null && $song !== null && in_array($key, array_column(self::parts($sung), 'key'), true) ? $sung : $song;
         $parts = $template !== null ? self::parts($template) : [];
         $part = array_values(array_filter($parts, static fn (array $p): bool => $p['key'] === $key))[0] ?? null;
 
-        if ($template === null || $part === null) {
+        if ($song === null || $template === null || $part === null) {
             return null;
         }
 
         $data = (array) $template->currentVersion?->data;
         $voice = $this->voices(collect([$template]))->get($template->current_version_id.':'.$key)?->first();
         $credit = $voice !== null ? GuideRecording::of($voice) : null;
-        $base = Hosts::publicUrl().'/songs/'.$template->slug;
+        $base = Hosts::publicUrl().'/songs/'.$song->slug;
+        $query = $version !== null ? '?'.http_build_query([SongVersions::PARAM => $version]) : '';
         $credits = (array) ($data['credits'] ?? []);
-        $about = 'song_about.'.$template->slug;
+        $about = 'song_about.'.$song->slug;
 
         return [
             'canonical' => $base.'/'.$key,
             'song' => [
                 'slug' => (string) $template->slug,
-                'title' => SongWords::title((string) $template->title, (string) $template->slug),
+                // The song whose page it is (its own slug, never a version's).
+                'pageSlug' => (string) $song->slug,
+                'title' => SongWords::title((string) $song->title, (string) $song->slug),
                 'key' => (string) ($data['key'] ?? ''),
                 'difficulty' => (string) ($data['difficulty'] ?? ''),
                 'genre' => array_values(array_filter((array) ($data['genre'] ?? []), 'is_string')),
                 'description' => SongWords::description((string) ($data['description'] ?? '')),
                 'about' => trans()->has($about) ? (string) __($about) : null,
                 'melodyPart' => array_values(array_filter($parts, static fn (array $p): bool => $p['melody']))[0]['key'] ?? null,
-                'pageUrl' => $base,
+                // The song's page, showing the same version.
+                'pageUrl' => $base.$query,
                 // Whether a visitor may hear it here, signed out: every open song (Hillel, 2026-11-08, "Yes, play for
                 // guests"; the API serves its current version signed out by the same rule). Before, a non-bundled
                 // song's player met a guest's 403 and collapsed, a layout shift of 0.12.
@@ -253,7 +262,7 @@ final class SongParts
             'round' => self::round(array_values(array_filter((array) ($data['genre'] ?? []), 'is_string'))),
             'parts' => array_map(static fn (array $p): array => [
                 'key' => $p['key'], 'name' => $p['name'], 'melody' => $p['melody'], 'lowName' => $p['lowName'], 'highName' => $p['highName'],
-                'url' => $base.'/'.$p['key'], 'current' => $p['key'] === $key,
+                'url' => $base.'/'.$p['key'].$query, 'current' => $p['key'] === $key,
             ], $parts),
             'guide' => ['synth' => true, 'realVoice' => $voice !== null, 'credit' => $credit['credit'] ?? null, 'creditHandle' => $credit['creditHandle'] ?? null],
             // The same, by the API's name (docs/open-guide-voices-plan.md): the part pages' "Be the voice" shows where it's false.

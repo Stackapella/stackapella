@@ -9,6 +9,7 @@ use App\Models\Template;
 use App\Models\TemplateVersion;
 use App\Support\Pages\Carols;
 use App\Support\Templates\Catalogue;
+use App\Support\Templates\SongVersions;
 use Carbon\CarbonImmutable;
 
 /**
@@ -81,7 +82,8 @@ final class Daily
         foreach ($songs as $template) {
             $version = $template->currentVersion;
 
-            if ($version === null || ! Catalogue::isOpen($template) || ! Carols::isCarol($template)) {
+            // A song's other version (a UK carol's, SongVersions) isn't a song of its own in the pool: its song is.
+            if ($version === null || ! Catalogue::isOpen($template) || ! Carols::isCarol($template) || SongVersions::of($template) !== null) {
                 continue;
             }
 

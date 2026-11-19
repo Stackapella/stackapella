@@ -23,6 +23,7 @@ use App\Support\Rights\RightsHere;
 use App\Support\Templates\Catalogue;
 use App\Support\Templates\FirstPhrase;
 use App\Support\Templates\PersonsTemplate;
+use App\Support\Templates\SongVersions;
 use App\Support\Trust\IpHash;
 use App\Support\Trust\Limits;
 use App\Support\Trust\SecurityLog;
@@ -38,7 +39,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 final class TemplatesController extends Controller
 {
-    public function index(Request $request, Catalogue $catalogue, RightsHere $rights): JsonResponse
+    public function index(Request $request, Catalogue $catalogue, RightsHere $rights, SongVersions $versions): JsonResponse
     {
         $user = $request->user();
         $user = $user instanceof User ? $user : null;
@@ -46,10 +47,11 @@ final class TemplatesController extends Controller
         $songs = $catalogue->listing();
 
         // A song withheld where the visitor is isn't listed there (docs/geo-rights-plan.md); admins and editors see all.
-        if (! ($user?->is_admin || $user?->is_editor)) {
-            $withheld = $rights->withheldSlugs(RightsHere::country($request));
-            $songs = $withheld === [] ? $songs : array_values(array_filter($songs, static fn (array $song): bool => ! in_array($song['id'], $withheld, true)));
-        }
+        // A song with versions (a UK carol's, SongVersions) names each one free here and the one people here start on; a
+        // song withheld here whose version is free here is listed as that version.
+        $everything = (bool) ($user?->is_admin || $user?->is_editor);
+        $country = RightsHere::country($request);
+        $songs = $versions->catalogue($songs, $everything ? [] : $rights->withheldSlugs($country), $country, $everything);
 
         // Who may start it (Catalogue::grant): a free song anyone, any other an account.
         $startable = static fn (array $song): bool => $song['_free'] || $user !== null;

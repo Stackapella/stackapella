@@ -20,6 +20,7 @@ import { ideas, ideasOpen } from '../stores/ideas.js';
 import { learning } from '../stores/learning.js';
 import { account, loadAccount } from '../stores/account.js';
 import { canStart, lengthBeats, linkedTemplate, listTemplates, loadTemplate, onDraftsChange, partsFor, singerOptions, templatePartName } from '../templates.js';
+import { asVersion, entryFor, keepVersion, startingVersion, versionsOf } from '../song-versions.js';
 import { formatTime, keyLabel, PART_COLORS } from '../theme.js';
 import { HomeBand, HomeCourses, HomeLead, SongCover, WeekCard, WorkoutStrip } from '../components/home.js';
 import { PlayerChip } from '../game/title-screen.js';
@@ -275,7 +276,7 @@ export const ProjectsView = {
             </div>
 
             <TemplateDialog v-if="openTemplate && showInfo" :template="openTemplate" :credits="creditsFor(openTemplate.id)" :singers="singers" @singers="(n) => { singers = n; if (previewing && !locked) previewLevels(); }"
-                :previewing="previewing" :preparing="preparingPreview" :load="songLoad" :fresh="!sungYet()" :not-here="songNotHere" :starting="starting" @retry="pickTemplate(openTemplate)" @copy="navigate('/create?copy=' + openTemplate.id)" @close="closeTemplate" @preview="preview" @start="start()" @voice="beTheVoice" :locked="locked" :taste="taste" @signup="navigate(signUpForSong)" />
+                :previewing="previewing" :preparing="preparingPreview" :load="songLoad" :fresh="!sungYet()" :not-here="songNotHere" :starting="starting" @retry="pickTemplate(openTemplate)" @version="switchVersion" @copy="navigate('/create?copy=' + openTemplate.id)" @close="closeTemplate" @preview="preview" @start="start()" @voice="beTheVoice" :locked="locked" :taste="taste" @signup="navigate(signUpForSong)" />
             <Modal v-if="renaming" :title="t('home.yours.renameTitle')" @close="renaming = null">
                 <form class="space-y-4" @submit.prevent="saveName">
                     <label class="block space-y-1"><span class="text-sm font-semibold text-cream">{{ t('home.yours.nameLabel') }}</span>
@@ -543,10 +544,13 @@ export const ProjectsView = {
             .then((list) => {
                 this.templates = list;
                 // Opened on its own before the catalogue came: its own title in other languages comes with the catalogue.
-                const titles = this.openTemplate && list.find((s) => s.id === this.openTemplate.id)?.titles;
+                const listed = this.openTemplate && entryFor(list, this.openTemplate.id);
+                const titles = listed?.titles;
                 if (titles && Object.keys(titles).length && !this.openTemplate.titles) this.openTemplate = { ...this.openTemplate, titles };
+                // Its versions too (the sheet's switch), which the library's summary carries and the song's file doesn't.
+                if (listed?.songVersions?.length && !this.openTemplate.songVersions) this.openTemplate = { ...this.openTemplate, songVersions: listed.songVersions };
                 const wanted = new URLSearchParams(location.search).get('song'); // still asked for: not opened above
-                const song = wanted && list.find((s) => s.id === wanted);
+                const song = wanted && entryFor(list, wanted); // a song, or one of its versions (a song page's UK Learn)
                 if (song) this.openLinked(song);
             })
             .catch((error) => console.warn('Templates not loaded', error)));
@@ -634,7 +638,18 @@ export const ProjectsView = {
         /** A tap on a song card: its sheet; on the pick with news, counted. */
         songTap(item) {
             if (this.news?.item === item) count('home_new_tap');
-            this.infoSong(item.tpl);
+            // A song with versions opens the one kept on this device, else the one sung where you are (song-versions.js).
+            this.infoSong(asVersion(item.tpl, startingVersion(item.tpl)));
+        },
+        /** The song's sheet switched to another of its versions: that one, kept as this device's pick. */
+        switchVersion(id) {
+            const song = this.openTemplate;
+            const version = versionsOf(song).find((v) => v.id === id);
+            if (!version || id === song.id) return;
+            keepVersion(song, version.name);
+            const entry = this.templates.find((s) => s.id === versionsOf(song)[0].id || s.songVersions?.some((v) => v.id === id));
+            this.stopPreview();
+            this.pickTemplate(entry ? asVersion(entry, id) : { ...song, id, summary: true });
         },
         openSongs(open) {
             if (open) lookedNow(); // looked at the library: what opens after this is new
@@ -703,7 +718,8 @@ export const ProjectsView = {
                 const song = await loadTemplate(template.id);
                 if (this.openTemplate?.id !== template.id) return; // another song was opened meanwhile
                 this.singers = Math.max(...singerOptions(song));
-                this.openTemplate = song;
+                // Its versions (the switch on the sheet) come with the library's summary, not the song's file.
+                this.openTemplate = template.songVersions?.length ? { ...song, songVersions: template.songVersions } : song;
                 this.songLoad = null;
             } catch (error) {
                 if (this.openTemplate?.id !== template.id) return;

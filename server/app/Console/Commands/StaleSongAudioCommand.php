@@ -17,7 +17,8 @@ final class StaleSongAudioCommand extends Command
 
     public function handle(Catalogue $catalogue): int
     {
-        $stale = SongAudioFiles::stale($catalogue->open()->values());
+        // The songs' other versions too (a UK carol's, SongVersions): the song's page plays the one it shows.
+        $stale = SongAudioFiles::stale($catalogue->open()->concat($catalogue->versions()->filter(Catalogue::isOpen(...)))->values());
         // Its version against the song's current one; its voices against the guides published here (run on production for those).
         foreach ($stale as $slug => $why) {
             $this->line($this->option('slugs') ? $slug : "{$slug}  {$why}");

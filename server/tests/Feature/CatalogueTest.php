@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use App\Models\Template;
 use App\Models\TemplateGuide;
 use App\Models\User;
+use App\Support\Templates\Catalogue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Support\BetaFixtures;
 use Tests\TestCase;
@@ -23,8 +24,9 @@ final class CatalogueTest extends TestCase
         $response = $this->getJson('/api/templates');
 
         $this->assertMatchesContract($response, 'templates.catalogue', 200);
-        // Every song the sync keeps live: a song its file hides ("hidden": true) is withdrawn and not listed.
-        $this->assertSame(Template::query()->whereNull('withdrawn_at')->count(), count($response->json('data')));
+        // Every song the sync keeps live: a song its file hides ("hidden": true) is withdrawn and not listed, and a song's
+        // other version (a UK carol's, SongVersions) is named on its song, never listed on its own.
+        $this->assertSame(Template::query()->whereNull('withdrawn_at')->count() - app(Catalogue::class)->versions()->count(), count($response->json('data')));
         $this->assertStringNotContainsString('"notes"', (string) $response->getContent());
         $this->assertStringNotContainsString('"lyric"', (string) $response->getContent());
         $grace = collect($response->json('data'))->firstWhere('id', 'amazing-grace');
