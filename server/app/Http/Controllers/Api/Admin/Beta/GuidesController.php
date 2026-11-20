@@ -9,11 +9,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\BetaGuideResource;
 use App\Models\TemplateGuide;
 use App\Models\User;
+use App\Support\AiVoices\AiGuides;
 use App\Support\Beta\GuideOverview;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 /**
  * admin.beta.guides.*: every template's real voices, per part; admin.beta.needs.show: only what needs Hillel.
@@ -34,7 +36,10 @@ final class GuidesController extends Controller
 
     public function default(Request $request, TemplateGuide $guide, ManageGuides $manage, #[CurrentUser] User $admin): BetaGuideResource
     {
-        $manage->makeDefault($guide, $admin, $request->ip());
+        // An AI guide is its part's default already (no recorded one sits beside it): nothing to change.
+        if (! $guide->isAi()) {
+            $manage->makeDefault($guide, $admin, $request->ip());
+        }
 
         return new BetaGuideResource($guide->refresh()->load('submission.assignment.singer.user'));
     }
@@ -42,6 +47,14 @@ final class GuidesController extends Controller
     public function destroy(Request $request, TemplateGuide $guide, ManageGuides $manage, #[CurrentUser] User $admin): Response
     {
         $request->validate(['abuse' => ['sometimes', 'boolean']]);
+
+        // Retiring an AI guide (docs/ai-voices-build-plan.md): not a real voice lost, so no email to Hillel.
+        if ($guide->isAi()) {
+            DB::transaction(fn () => AiGuides::retire([$guide], $admin, 'removed'));
+
+            return response()->noContent();
+        }
+
         $manage->remove($guide, $admin, $request->ip(), abuse: $request->boolean('abuse'));
 
         return response()->noContent();

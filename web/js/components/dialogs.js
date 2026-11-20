@@ -24,9 +24,10 @@ import { inFirstWeek } from './voice-care.js';
 import { prefs } from '../stores/prefs.js';
 import { exportNeedsPlus, isPlus } from '../stores/plan.js';
 import { songTitle } from '../song-titles.js';
-import { catalogue } from '../stores/catalogue.js';
+import { aiPartsOf, catalogue } from '../stores/catalogue.js';
 import { SLOW_MS } from './screen-loading.js';
 import { pastFirstWeek, voiceAskOpen, voicelessParts } from '../be-the-voice.js';
+import { AiVoiceLabel, voiceCredit } from '../ai-voices.js';
 import { versionsOf } from '../song-versions.js';
 
 // A song's pace in words for a new singer (no BPM: the design rules' first-week words).
@@ -485,7 +486,8 @@ export const ExportDialog = {
     setup: () => ({ formatList, formatTime }),
     // parts: [{ id, name, muted }]; seconds: the song's length, for the size. scoreParts: the song's
     // written parts ([{ key, name }]), for sheet music; none, and it isn't offered.
-    props: { title: { type: String, default: '' }, defaultName: String, busy: Boolean, credits: { type: Array, default: () => [] }, hasChords: Boolean, parts: { type: Array, default: () => [] }, scoreParts: { type: Array, default: () => [] }, seconds: { type: Number, default: 0 }, sampleRate: { type: Number, default: 48000 } },
+    // creditsLine: the credits as one line, "Real voices: ..." or, with an AI voice among them, "Voices: ..." (the studio's).
+    props: { title: { type: String, default: '' }, defaultName: String, busy: Boolean, credits: { type: Array, default: () => [] }, creditsLine: { type: String, default: null }, hasChords: Boolean, parts: { type: Array, default: () => [] }, scoreParts: { type: Array, default: () => [] }, seconds: { type: Number, default: 0 }, sampleRate: { type: Number, default: 48000 } },
     emits: ['export', 'close', 'upgrade', 'unmute'],
     data() {
         return { name: this.defaultName, format: 'wav', chords: false, polish: prefs.polish, room: prefs.room, what: 'song', partId: this.parts[0]?.id ?? null, kind: 'without', clicks: true, sheetFormat: 'musicxml', sheetPart: '', field, label, primary, secondary, ROOM_CHOICES, SHEET_FORMATS };
@@ -555,7 +557,7 @@ export const ExportDialog = {
                     <p class="text-xs text-muted">{{ what === 'sheet' ? (printing ? t('export.printHint') : sheetFormat === 'midi' ? t('export.midiHint') : t('export.musicxmlHint')) : what === 'stems' ? t('export.stemsHint') : format === 'mp3' ? t('export.mp3Hint') : t('export.wavHint') }}</p>
                 </fieldset>
                 <p v-if="locked" class="text-sm text-cream" role="status">{{ what === 'stems' ? t('plus.moment.stems') : t('plus.moment.mp3') }}</p>
-                <p v-if="credits.length && what !== 'sheet'" class="text-sm text-cream">{{ t('export.credits', { names: formatList(credits) }) }}</p>
+                <p v-if="credits.length && what !== 'sheet'" class="text-sm text-cream">{{ creditsLine ?? t('export.credits', { names: formatList(credits) }) }}</p>
                 <div class="flex flex-wrap items-center gap-3 border-t border-line pt-4">
                     <span class="me-auto text-xs tabular-nums text-muted" translate="no">{{ summary }}</span>
                     <button type="button" :class="secondary" @click="$emit('close')">{{ t('common.cancel') }}</button>
@@ -623,12 +625,14 @@ export const ExportDialog = {
 
 /** A part's settings: name, level, pan, timing nudge, re-record and delete. */
 export const PartDialog = {
-    components: { Modal, Icon, ReportVoice, Switch },
+    components: { AiVoiceLabel, Modal, Icon, ReportVoice, Switch },
     // voice: the session's guideVoices entry for a template slot ({ kind, credit, why }), or null.
     // breaths: this part's take can have its breaths softened (it has a take, and the song's own notes to tell them by).
     // theirs: in a friend's project, the name of who sang this part (it's theirs to change), else null.
-    props: { part: { type: Object, required: true }, breaths: Boolean, shownName: { type: String, required: true }, color: { type: String, default: '' }, slot: Boolean, recorded: Boolean, harmonise: Boolean, voice: { type: Object, default: null }, recording: Boolean, theirs: { type: String, default: null } },
-    emits: ['update', 'rerecord', 'delete', 'close', 'clear', 'practise', 'voice', 'trim', 'harmonise'],
+    // aiCta: Be the voice may sit beside an AI voice here (js/ai-voices.js aiCtaOpen); it emits `be-voice`.
+    props: { aiCta: Boolean, part: { type: Object, required: true }, breaths: Boolean, shownName: { type: String, required: true }, color: { type: String, default: '' }, slot: Boolean, recorded: Boolean, harmonise: Boolean, voice: { type: Object, default: null }, recording: Boolean, theirs: { type: String, default: null } },
+    emits: ['update', 'rerecord', 'delete', 'close', 'clear', 'practise', 'voice', 'trim', 'harmonise', 'be-voice'],
+    setup: () => ({ voiceCredit }),
     data() {
         return { name: this.shownName, field, label, primary, secondary, reportingVoice: null };
     },
@@ -643,11 +647,14 @@ export const PartDialog = {
                     <label v-for="v in voice.versions" :key="v.id" class="radio-card">
                         <input type="radio" name="guideVoice" class="radio mt-px" :checked="chosen(v)" :disabled="blocked" @change="$emit('voice', [v.id])" />
                         <span class="min-w-0">
-                            <span class="block font-semibold text-cream">{{ v.credit ? t('part.sungBy', { name: v.credit }) : t('part.sungByAnonymous') }}</span>
-                            <span class="text-sm text-muted">{{ v.default ? t('part.defaultVoice') : t('part.otherVoice') }}<template v-if="voice.why === 'failed' && voice.chosen.includes(v.id)"> · {{ t('part.realVoiceFailed') }}</template></span>
+                            <!-- An AI voice says so in the singer's place (js/ai-voices.js), with Be the voice under it where it's open. -->
+                            <span v-if="v.source === 'ai'" class="block font-semibold text-cream"><AiVoiceLabel :based-on="v.aiBasedOn ?? null" /></span>
+                            <span v-else class="block font-semibold text-cream">{{ voiceCredit(v) }}</span>
+                            <span v-if="v.source === 'ai'" class="text-sm text-muted"><button v-if="aiCta" type="button" class="link tap-44" :aria-label="t('aiVoice.goPart', { part: shownName })" data-ai-voice-go @click.prevent.stop="$emit('be-voice')">{{ t('voices.be.go') }}</button><template v-if="voice.why === 'failed' && voice.chosen.includes(v.id)"><template v-if="aiCta"> · </template>{{ t('part.realVoiceFailed') }}</template></span>
+                            <span v-else class="text-sm text-muted">{{ v.default ? t('part.defaultVoice') : t('part.otherVoice') }}<template v-if="voice.why === 'failed' && voice.chosen.includes(v.id)"> · {{ t('part.realVoiceFailed') }}</template></span>
                         </span>
                         <!-- Report this voice (Lend your voice's moderation): a button in the card, so it never picks the voice. -->
-                        <button type="button" class="link-quiet ms-auto self-center text-sm" :aria-label="t('voices.report.button', { who: v.credit ? t('part.sungBy', { name: v.credit }) : t('part.sungByAnonymous') })" data-report-voice @click.prevent.stop="reportingVoice = v">{{ t('voices.report.short') }}</button>
+                        <button type="button" class="link-quiet ms-auto self-center text-sm" :aria-label="t('voices.report.button', { who: voiceCredit(v) })" data-report-voice @click.prevent.stop="reportingVoice = v">{{ t('voices.report.short') }}</button>
                     </label>
                     <label class="radio-card">
                         <input type="radio" name="guideVoice" class="radio mt-px" :checked="voice.chosen.includes('synth') || blocked" @change="$emit('voice', 'synth')" />
@@ -687,7 +694,7 @@ export const PartDialog = {
                 </div>
             </div>
         </Modal>
-        <ReportVoice v-if="reportingVoice" :guide-id="reportingVoice.id" :who="reportingVoice.credit ? t('part.sungBy', { name: reportingVoice.credit }) : t('part.sungByAnonymous')" @close="reportingVoice = null" />`,
+        <ReportVoice v-if="reportingVoice" :guide-id="reportingVoice.id" :who="voiceCredit(reportingVoice)" @close="reportingVoice = null" />`,
     computed: {
         /** The real voices can't play in this key, speed or version: the practice voice does. */
         blocked() {
@@ -825,7 +832,7 @@ export const RangeDialog = {
  * step under them, quiet, for anyone who may start it, never in a new singer's first week.
  */
 export const TemplateDialog = {
-    components: { Modal, Icon },
+    components: { AiVoiceLabel, Modal, Icon },
     // locked: a guest on a song that needs a free account (the catalogue's summary: no notes): its clip, and the way to an account.
     // taste: a guest on a library song whose first phrase they may sing (templates.firstPhrase): Start sings that, the ask after.
     // load: the song's notes still coming ('loading'), or why they didn't ('failed', 'offline'); starting: Start was tapped.
@@ -848,6 +855,9 @@ export const TemplateDialog = {
                         <button v-for="v in versionsOf(template)" :key="v.id" type="button" role="radio" class="seg-option tap-44" :aria-checked="v.id === template.id ? 'true' : 'false'" :data-version="v.name" translate="no" @click="v.id !== template.id && $emit('version', v.id)">{{ v.name === 'uk' ? t('templates.versions.uk') : v.name === 'us' ? t('templates.versions.us') : v.name.toUpperCase() }}</button>
                     </div>
                 </div>
+                <!-- AI voices (js/ai-voices.js): the parts an AI voice sings, always said, with Be the voice beside it once
+                     the call is open (past the first week); then the parts no one sings at all, as before. -->
+                <p v-if="aiParts.length" class="text-sm text-muted" data-song-ai-voices><AiVoiceLabel :parts="aiParts" :cta="voiceOpen" @voice="$emit('voice')" /></p>
                 <!-- Be the voice (be-the-voice.js): the parts no one has sung yet, past the first week, one quiet line. -->
                 <p v-if="voiceless.length" class="text-sm text-muted" data-song-no-voice>{{ t('voices.be.sheet', { parts: formatList(voiceless) }) }} <button type="button" class="link tap-44" data-be-the-voice-go @click="$emit('voice')">{{ t('voices.be.go') }}</button></p>
                 <div v-if="locked" class="flex flex-wrap items-center gap-3">
@@ -908,8 +918,16 @@ export const TemplateDialog = {
         },
         /** The song's parts with no real voice yet, by name (Be the voice), once the singer is past the first week. */
         voiceless() {
-            if (!pastFirstWeek() || !voiceAskOpen()) return [];
-            const keys = voicelessParts(this.template.id);
+            if (!this.voiceOpen) return [];
+            const ai = aiPartsOf(this.template.id);
+            const keys = voicelessParts(this.template.id).filter((key) => !ai.includes(key)); // an AI part has its own line
+            return this.template.parts.filter((p) => keys.includes(p.key)).map((p) => templatePartName(p));
+        },
+        /** Be the voice is offered here: past the first week, and the call open. */
+        voiceOpen: () => pastFirstWeek() && voiceAskOpen(),
+        /** The song's parts an AI voice sings, by name (none while the ai_voices switch is off). */
+        aiParts() {
+            const keys = aiPartsOf(this.template.id);
             return this.template.parts.filter((p) => keys.includes(p.key)).map((p) => templatePartName(p));
         },
         seconds() {

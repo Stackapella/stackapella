@@ -1,0 +1,59 @@
+{
+    "$id": "worker.ai.upload.json",
+    "title": "An AI guide's master on its way to becoming a guide (the worker API)",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "versionId",
+        "part",
+        "voice",
+        "status",
+        "failure",
+        "guideId",
+        "createdAt"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "versionId": {
+            "type": "string",
+            "description": "The template version's Sqid."
+        },
+        "part": {
+            "type": "string"
+        },
+        "voice": {
+            "type": "string",
+            "description": "The AI voice's id."
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "uploading",
+                "processing",
+                "published",
+                "failed"
+            ]
+        },
+        "failure": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "Why it failed, null unless failed: bad_audio, real_voice_exists, voice_withdrawn, template_changed, publish_failed (encoding or storage broke after its tries: send it again) or expired (never completed within the hour). A file of the wrong size or hash is refused at complete (409) and stays uploading."
+        },
+        "guideId": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "The guide it became, once published."
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time"
+        }
+    }
+}

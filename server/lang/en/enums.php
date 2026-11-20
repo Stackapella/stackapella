@@ -14,6 +14,16 @@ return [
         'ip_range' => 'IP range',
         'card_fingerprint' => 'Card',
     ],
+    'guide_source' => [
+        'recorded' => 'Recorded',
+        'ai' => 'AI voice',
+    ],
+    'ai_upload_status' => [
+        'uploading' => 'Uploading',
+        'processing' => 'Processing',
+        'published' => 'Published',
+        'failed' => 'Failed',
+    ],
     'credit_mode' => [
         'name' => 'By name',
         'anonymous' => 'Anonymous',

@@ -207,6 +207,12 @@ return [
         'account' => ['max' => 30, 'per' => 'day', 'by' => 'account'],
     ],
 
+    // The AI voices worker (contract/api.md, "The AI voices worker"): the batch renderer, a song's parts at a time,
+    // polling while each publishes.
+    'ai-worker' => [
+        'ip' => ['max' => 120, 'per' => 'minute', 'by' => 'ip'],
+    ],
+
     // The growth data pull (docs/growth-data.md): one person's dev machine, a few times a day.
     'growth-data' => [
         'ip' => ['max' => 10, 'per' => 'minute', 'by' => 'ip'],

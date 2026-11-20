@@ -1,0 +1,19 @@
+{
+    "data": {
+        "id": "Vc3Ad8",
+        "name": "Alto A",
+        "basedOn": "Ada E.",
+        "credited": true,
+        "consent": {
+            "date": "2026-11-19",
+            "version": "ai-voice-1",
+            "paymentNoted": true
+        },
+        "status": "withdrawn",
+        "withdrawnAt": "2026-11-22T10:15:00Z",
+        "guides": []
+    },
+    "meta": {
+        "retired": 1
+    }
+}

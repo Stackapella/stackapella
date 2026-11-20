@@ -1,0 +1,27 @@
+{
+    "$id": "admin.aiVoices.withdraw.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "meta"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "admin.aiVoice.json"
+        },
+        "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "retired"
+            ],
+            "properties": {
+                "retired": {
+                    "type": "integer",
+                    "description": "How many AI guides were retired and purged from the CDN."
+                }
+            }
+        }
+    }
+}

@@ -8,6 +8,7 @@
 import { formatNumber, t } from '../i18n.js';
 import { Switch } from './controls.js';
 import { Icon } from './icon.js';
+import { AiVoiceLabel } from '../ai-voices.js';
 import { MicLevel } from './sing/frame.js';
 import { dismissToast, toasts } from './ui.js';
 import { game } from '../skin.js';
@@ -59,13 +60,13 @@ let rows = 0;
  * controls shown when it's open in the `open` slot; the row draws its own playhead.
  */
 export const VoiceRow = {
-    components: { Icon },
+    components: { AiVoiceLabel, Icon },
     props: {
         name: { type: String, required: true },
         letter: { type: String, required: true },
         color: { type: String, required: true },
         // Hillel's 85.png: one line under the name, in plain words ("Your take · 1 hour ago", "Guide · up next").
-        status: { type: Object, default: null }, // { text, tone: 'take' | 'guide' | 'rec' }
+        status: { type: Object, default: null }, // { text, tone: 'take' | 'guide' | 'rec', ai: an AI voice sings it (its tag leads) }
         bars: { type: Array, default: () => [] }, // where each bar starts, as percents of the lane: faint lines through it
         guide: Boolean, // no take yet: the letter is an outline
         solo: Boolean,
@@ -102,7 +103,7 @@ export const VoiceRow = {
                     <button type="button" class="tap-44 grid h-8 min-w-8 shrink-0 place-items-center rounded-lg px-1.5 text-xs font-bold transition @[19rem]:px-2.5" :class="muted ? 'bg-cream text-ink' : !audible ? 'border border-cream/60 bg-cream/25 text-cream' : 'glass-bubble text-cream'" :aria-pressed="muted" :aria-label="t('studio.muteNamed', { name })" :aria-describedby="!muted && !audible ? nameId + '-solo' : null" :data-implied-mute="!muted && !audible ? '' : null" data-mute @click="$emit('mute')"><span class="@[19rem]:hidden" aria-hidden="true">{{ t('studio.row.muteShort') }}</span><span class="hidden @[19rem]:inline" aria-hidden="true">{{ t('studio.row.mute') }}</span></button>
                     <span v-if="!muted && !audible" :id="nameId + '-solo'" class="sr-only">{{ t('studio.silentBySolo') }}</span>
                 </div>
-                <p v-if="status" class="-mt-1.5 truncate text-xs" :class="[pickable ? 'ps-[2.625rem]' : 'ps-5', status.tone === 'take' ? 'text-good' : status.tone === 'rec' ? 'text-record' : 'text-muted']" translate="no" data-status>{{ status.text }}</p>
+                <p v-if="status" class="-mt-1.5 truncate text-xs" :class="[pickable ? 'ps-[2.625rem]' : 'ps-5', status.tone === 'take' ? 'text-good' : status.tone === 'rec' ? 'text-record' : 'text-muted']" translate="no" data-status><template v-if="status.ai"><AiVoiceLabel tag class="align-middle" /> · </template>{{ status.text }}</p>
             </div>
             <div class="flex min-w-0 flex-1 flex-col">
                 <!-- Time runs left to right in every language, as on a staff. -->

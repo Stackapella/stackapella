@@ -10,7 +10,9 @@
         "submissionId",
         "singer",
         "publishedAt",
-        "pitchPercent"
+        "pitchPercent",
+        "source",
+        "aiVoice"
     ],
     "properties": {
         "id": {
@@ -48,6 +50,34 @@
         "reports": {
             "type": "integer",
             "description": "Open reports on this voice."
+        },
+        "source": {
+            "type": "string",
+            "enum": [
+                "recorded",
+                "ai"
+            ]
+        },
+        "aiVoice": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "name"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "The AI voice's label name (admin.aiVoice)."
+                }
+            },
+            "description": "The AI voice that sang it; null for a recorded guide."
         }
     }
 }

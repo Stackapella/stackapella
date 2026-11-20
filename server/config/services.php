@@ -101,6 +101,12 @@ return [
     // The growth data pull (docs/growth-data.md): GET /api/internal/growth answers only a bearer
     // token this long or longer (it's off without one), and app:pull-growth on a dev machine sends
     // the same token, only to `url`'s host or a local one.
+    // The AI voices worker API (contract/api.md, "The AI voices worker"): the batch renderer's one bearer token, only
+    // ever here in env. Unset (or under 32 characters), every worker route answers 404.
+    'ai_worker' => [
+        'token' => env('AI_WORKER_TOKEN'),
+    ],
+
     'growth_data' => [
         'token' => env('GROWTH_DATA_TOKEN'),
         'url' => env('GROWTH_DATA_URL', 'https://app.stackapella.com'),

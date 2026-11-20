@@ -35,8 +35,10 @@ final class GuideOverview
             ->orderBy('title')
             ->get();
 
-        $guides = TemplateGuide::query()
-            ->with(['submission.assignment.singer.user', 'creditUser', 'templateVersion'])
+        // AI guides too, marked as such (docs/ai-voices-build-plan.md), whatever the ai_voices switch says; never counted
+        // as a part's voice in its needs.
+        $guides = TemplateGuide::withAi()
+            ->with(['submission.assignment.singer.user', 'creditUser', 'templateVersion', 'aiVoice'])
             ->whereHas('templateVersion', fn ($query) => $query->whereIn('template_id', $templates->pluck('id')))
             ->orderByDesc('is_default')
             ->orderByDesc('published_at')
@@ -72,7 +74,7 @@ final class GuideOverview
                     'needs' => $this->needs(
                         $template,
                         $part['key'],
-                        $guides->filter(static fn (TemplateGuide $g): bool => $g->templateVersion->template_id === $template->id && $g->part_key === $part['key']),
+                        $guides->filter(static fn (TemplateGuide $g): bool => ! $g->isAi() && $g->templateVersion->template_id === $template->id && $g->part_key === $part['key']),
                         $assignments->where('template_id', $template->id)->where('part_key', $part['key']),
                         $takes->filter(static fn (BetaSubmission $t): bool => $t->assignment->template_id === $template->id && $t->part_key === $part['key']),
                     ),
@@ -80,7 +82,7 @@ final class GuideOverview
                 // A staged next version (the content's <id>.next.json): its number, and the parts whose notes change in
                 // it, which need new voices (the others' voices move over at the switch, CarryVoicesOver).
                 'staged' => $template->stagedVersion === null ? null : ['version' => $template->stagedVersion->version, 'changed' => Staging::changed($template)],
-                'olderGuides' => $guides->filter(static fn (TemplateGuide $g): bool => $g->templateVersion->template_id === $template->id && $g->template_version_id !== $version?->id)->count(),
+                'olderGuides' => $guides->filter(static fn (TemplateGuide $g): bool => ! $g->isAi() && $g->templateVersion->template_id === $template->id && $g->template_version_id !== $version?->id)->count(),
             ];
         })->values()->all();
     }

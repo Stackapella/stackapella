@@ -75,7 +75,9 @@
             "frames": 2116800,
             "offsetFrames": 22050,
             "credit": null,
-            "creditHandle": null
+            "creditHandle": null,
+            "source": "recorded",
+            "aiBasedOn": null
         }
     ]
 }

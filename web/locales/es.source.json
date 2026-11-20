@@ -5630,6 +5630,21 @@
         "settingsTitle": "Voice-care notes",
         "settingsHint": "A quiet line after 20 and 40 minutes of singing in a day, with a 2-minute cool-down. Counted only on this device, never sent."
     },
+    "aiVoice": {
+        "about": "About AI voices",
+        "inFileName": "with AI voices",
+        "keyNote": "An AI voice sings this in {key}, waiting for a real singer. You're singing in {current}, which suits your voice better, so you'll hear our practice voice. It follows any key and speed.",
+        "singInOriginal": "Sing in {key} with the AI voice",
+        "speedNote": "The AI voice sings at full speed only. At {percent}% you'll hear our practice voice, which can slow down.",
+        "failedNote": "The AI voice couldn't load just now, so you'll hear our practice voice. It's tried again when you're back online.",
+        "tag": "AI voice",
+        "waiting": "AI voice, waiting for a real singer",
+        "basedOn": "AI voice based on {name}'s singing, with permission",
+        "goPart": "Be the voice: sing the {part}",
+        "credit": "{part}: AI voice",
+        "credits": "Voices: {names}",
+        "parts": "{count, plural, one {The {parts} is an AI voice, waiting for a real singer.} other {The {parts} are AI voices, waiting for real singers.}}"
+    },
     "voices": {
         "title": "Lend your voice",
         "settingsHint": "Record a song part or a lesson clip that still plays the synth.",

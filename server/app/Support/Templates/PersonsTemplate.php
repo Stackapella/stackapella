@@ -43,6 +43,9 @@ final class PersonsTemplate
                 'offsetFrames' => $r->offset_frames,
                 'credit' => GalleryViews::person($r->user)['name'],
                 'creditHandle' => GalleryViews::person($r->user)['handle'],
+                // A person's own song is sung by its people, never an AI voice (guide.recording.json).
+                'source' => 'recorded',
+                'aiBasedOn' => null,
                 'default' => true,
             ])->values()->all(),
             'grant' => $grant,

@@ -107,6 +107,9 @@ return [
         // their own note, and the app opened from the range test's result.
         'grp_plus_seen', 'grp_paused_seen', 'grp_link_shown', 'grp_link_sent', 'note_friend_seen', 'note_friend_found', 'tool_range_in',
         'part_sing', 'share_opened', 'invite_sung',
+        // AI voices (docs/ai-voices-build-plan.md): a playback in which an AI part sang (the app and the site, once a start),
+        // and the site's "Hear yourself as a choir" teaser tapped (behind own_choir_teaser).
+        'ai_heard', 'choir_teaser',
         // Weekly use of what section 2 found under-used, once a device a week (read against app_week).
         'use_library', 'use_song_course', 'use_course', 'use_workout', 'use_boss', 'use_studio', 'use_group', 'use_tools', 'remind_on',
         // The app's health where Sentry can't see it (the coordinator, 2026-11-14): the "didn't start" screen shown
@@ -187,6 +190,8 @@ return [
     'server_kinds' => [
         // Be the voice's ladder (docs/open-guide-voices-plan.md): a volunteer's take sent, a guide published, a take not chosen.
         'take_sent', 'guide_published', 'guide_not_chosen', 'mudeo_visit', 'mudeo_used', 'plus_started',
+        // A real take that retired an AI guide (App\Support\AiVoices\AiGuides).
+        'ai_replaced',
         // An app start (auth.config) with a country and without one (XX, T1): geo_rights' unknown-country share.
         'cfg_country', 'cfg_no_country'],
 

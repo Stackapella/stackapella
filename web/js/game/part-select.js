@@ -11,6 +11,7 @@
 // under its name (part-words.js).
 
 import { tk } from '../i18n.js';
+import { AiVoiceLabel } from '../ai-voices.js';
 import { midiName } from '../dsp.js';
 import { session, templatePart } from '../stores/session.js';
 import { still } from './effects.js';
@@ -52,11 +53,13 @@ export const leapWord = (share) => (share < 0.1 ? 'few' : share < 0.25 ? 'some' 
 export const cellsOf = (value, most) => (value > 0 && most > 0 ? Math.max(1, Math.round((value / most) * CELLS)) : 0);
 
 export const PartSelect = {
+    components: { AiVoiceLabel },
     props: {
         parts: { type: Array, required: true }, // the chooser's: [{ slot, name, range, recorded }]
         transpose: { type: Number, default: 0 },
         suggested: { type: String, default: null }, // the slot id the range check suggests
         noVoice: { type: Array, default: () => [] }, // slot ids whose part no one has sung yet (be-the-voice.js): a quiet label
+        aiVoice: { type: Array, default: () => [] }, // slot ids an AI voice sings (js/ai-voices.js): the same label, its words
     },
     emits: ['choose'],
     data() {
@@ -79,7 +82,9 @@ export const PartSelect = {
                     <span class="ge-portrait-name" translate="no">{{ part.name }}</span>
                     <span v-if="part.words" class="ge-portrait-words" data-part-words>{{ part.words }}</span>
                     <span v-if="part.slot.id === suggested" class="ge-fits">{{ t('range.bestForYou') }}</span>
-                    <span v-if="noVoice.includes(part.slot.id)" class="ge-novoice" data-no-voice>{{ t('voices.be.tag') }}</span>
+                    <!-- An AI voice wears the same arcade label as "no voice yet", in its own words (reskinned, not a new row). -->
+                    <AiVoiceLabel v-if="aiVoice.includes(part.slot.id)" tag plain class="ge-novoice" />
+                    <span v-else-if="noVoice.includes(part.slot.id)" class="ge-novoice" data-no-voice>{{ t('voices.be.tag') }}</span>
                     <span class="ge-portrait-stats">
                         <span class="ge-stat"><span>{{ t('game.select.range') }}</span><span>{{ stats[i].low !== null ? t('sing.chooser.rangeShort', { low: midiName(stats[i].low + transpose), high: midiName(stats[i].high + transpose) }) : '' }}</span></span>
                         <span v-if="first === false" class="ge-stat"><span>{{ t('game.select.busy') }}</span><span class="ge-statbar" aria-hidden="true"><i v-for="n in CELLS" :key="n" :class="n <= cellsOf(stats[i].notes, most.notes) ? 'is-lit' : ''"></i></span><span class="sr-only">{{ t('game.select.notes', { count: stats[i].notes }) }}</span></span>

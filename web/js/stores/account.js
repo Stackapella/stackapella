@@ -53,6 +53,11 @@ export function loadAccount({ fresh = false } = {}) {
 
 let configLoading = null; // the one auth.config on its way: callers at once share it (app start asked twice)
 
+/** auth.config once it's known: the one already on its way (the app asks at start), never a new request; null if none. */
+export function configKnown() {
+    return account.config ? Promise.resolve(account.config) : (configLoading ?? Promise.resolve(null)).catch(() => null);
+}
+
 /** The sign-in screens' settings: the methods on offer, sign-ups open or paused, shield mode's key. */
 export function loadAuthConfig() {
     if (account.config) return Promise.resolve(account.config);

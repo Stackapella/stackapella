@@ -5630,6 +5630,21 @@
         "settingsTitle": "Cuidado de la voz",
         "settingsHint": "Un aviso discreto tras 20 y 40 minutos de canto en un día, con un enfriamiento de 2 minutos. Se cuenta solo en este dispositivo y nunca se envía."
     },
+    "aiVoice": {
+        "about": "Sobre las voces de IA",
+        "inFileName": "con voces de IA",
+        "keyNote": "Una voz de IA canta esto en {key}, a la espera de una voz real. Tú cantas en {current}, que va mejor con tu voz, así que oirás nuestra voz de práctica. Se adapta a cualquier tonalidad y velocidad.",
+        "singInOriginal": "Cantar en {key} con la voz de IA",
+        "speedNote": "La voz de IA solo canta a velocidad normal. Al {percent}% oirás nuestra voz de práctica, que puede ir más despacio.",
+        "failedNote": "Ahora no se pudo cargar la voz de IA, así que oirás nuestra voz de práctica. Se volverá a intentar cuando tengas conexión.",
+        "tag": "Voz de IA",
+        "waiting": "Voz de IA, a la espera de una voz real",
+        "basedOn": "Voz de IA basada en el canto de {name}, con su permiso",
+        "goPart": "Sé la voz: canta la de {part}",
+        "credit": "{part}: voz de IA",
+        "credits": "Voces: {names}",
+        "parts": "{count, plural, one {La voz de {parts} es de IA, a la espera de una voz real.} other {Las voces de {parts} son de IA, a la espera de voces reales.}}"
+    },
     "voices": {
         "title": "Presta tu voz",
         "settingsHint": "Graba una voz de canción o un clip de lección que aún suene con el sintetizador.",

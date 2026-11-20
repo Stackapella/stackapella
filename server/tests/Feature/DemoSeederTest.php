@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\AiVoice;
 use App\Models\Engagement;
 use App\Models\EsConnection;
 use App\Models\Group;
@@ -12,6 +13,7 @@ use App\Models\InvoiceNinjaRecord;
 use App\Models\Project;
 use App\Models\Take;
 use App\Models\Template;
+use App\Models\TemplateGuide;
 use App\Models\User;
 use App\Services\Coaching\CoachingGateway;
 use App\Services\EventSchedule\EventSchedule;
@@ -44,6 +46,9 @@ final class DemoSeederTest extends TestCase
         $this->postJson('/api/auth/sign-out');
         $this->assertTrue(User::query()->where('google_id', 'dev-admin')->firstOrFail()->is_admin);
         $this->assertTrue(User::query()->where('google_id', 'dev-editor')->firstOrFail()->is_editor);
+        // Silent Night's four AI parts, once, in two consented voices (and one waiting for consent).
+        $this->assertSame(4, TemplateGuide::withAi()->where('source', 'ai')->count());
+        $this->assertSame(3, AiVoice::query()->count());
     }
 
     public function test_with_the_fake_event_schedule_ada_has_a_booked_lesson_and_pias_choir_its_rehearsals(): void

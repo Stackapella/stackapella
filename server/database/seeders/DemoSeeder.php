@@ -10,9 +10,11 @@ use App\Actions\Leagues\Leagues;
 use App\Actions\Templates\Library;
 use App\Actions\Templates\SyncOfficialTemplates;
 use App\Enums\CreditMode;
+use App\Enums\GuideSource;
 use App\Enums\SubmissionStatus;
 use App\Enums\TemplateAccess;
 use App\Jobs\ProcessHarmony;
+use App\Models\AiVoice;
 use App\Models\BetaAssignment;
 use App\Models\BetaFeedback;
 use App\Models\BetaSinger;
@@ -50,6 +52,7 @@ use App\Models\SongRequestVote;
 use App\Models\SupportMessage;
 use App\Models\Take;
 use App\Models\Template;
+use App\Models\TemplateGuide;
 use App\Models\TemplateRating;
 use App\Models\TemplateVersion;
 use App\Models\User;
@@ -69,6 +72,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Throwable;
 
 /**
  * The people the flow scripts sign in as through /dev/login (local only): an admin and an editor
@@ -106,6 +110,61 @@ final class DemoSeeder extends Seeder
         $this->books();
         $this->launch();
         $this->network();
+        $this->aiVoices();
+    }
+
+    /**
+     * AI voices (docs/ai-voices-build-plan.md, phase 1; turn on `ai_voices` to hear them): Silent Night's four parts as AI
+     * guides, a plain tone each, sung by "Alto A (demo)" (based on "Ada E.", consented and credited) for the soprano and alto and
+     * "Tenor B (demo)" (not based on a named person, consented) for the tenor and bass; and "Bass C (demo)" waiting for
+     * consent, with nothing to sing. Skipped without ffmpeg or the song.
+     */
+    private function aiVoices(): void
+    {
+        $song = Template::query()->official()->with('currentVersion')->where('slug', 'silent-night')->first();
+        $version = $song?->currentVersion;
+
+        if ($version === null) {
+            return;
+        }
+
+        DB::table('template_versions')->where('id', $version->id)->update(['reviewed' => true]);
+        $voice = static function (string $name, ?string $basedOn, bool $consented): AiVoice {
+            $voice = AiVoice::query()->firstOrCreate(['name' => $name], ['based_on' => $basedOn]);
+
+            if ($consented && $voice->consent_date === null) {
+                $voice->forceFill(['consent_date' => '2026-11-19', 'consent_version' => 'ai-voice-1', 'payment_noted' => true, 'credited' => $basedOn !== null])->save();
+            }
+
+            return $voice;
+        };
+        $alto = $voice('Alto A (demo)', 'Ada E.', true);
+        $tenor = $voice('Tenor B (demo)', null, true);
+        $voice('Bass C (demo)', 'Bo B.', false);
+
+        $rate = 48000;
+        $wav = sys_get_temp_dir().'/demo-ai-'.Str::lower(Str::random(8)).'.wav';
+        $m4a = $wav.'.m4a';
+
+        try {
+            foreach (['soprano' => $alto, 'alto' => $alto, 'tenor' => $tenor, 'bass' => $tenor] as $part => $singer) {
+                if (TemplateGuide::withAi()->where('template_version_id', $version->id)->where('part_key', $part)->exists()) {
+                    continue;
+                }
+
+                file_put_contents($wav, self::tone(4.0, $rate));
+                app(Ffmpeg::class)->encodeGuide($wav, $m4a, $rate, 0, 4 * $rate, -6.0);
+                $key = 'guides/demo-ai-silent-night-'.$part.'.m4a';
+                Storage::disk('media')->put($key, (string) file_get_contents($m4a), ['visibility' => 'public', 'ContentType' => 'audio/mp4']);
+                $guide = new TemplateGuide(['part_key' => $part]);
+                $guide->forceFill(['template_version_id' => $version->id, 'source' => GuideSource::Ai, 'ai_voice_id' => $singer->id, 'is_default' => true, 'media_key' => $key, 'sample_rate' => $rate, 'frames' => 4 * $rate, 'offset_frames' => 0, 'gain' => 1, 'published_at' => now()])->save();
+            }
+        } catch (Throwable $e) {
+            report($e);
+        } finally {
+            @unlink($wav);
+            @unlink($m4a);
+        }
     }
 
     /**

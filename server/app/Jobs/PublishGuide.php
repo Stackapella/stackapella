@@ -13,6 +13,7 @@ use App\Models\TemplateGuide;
 use App\Models\TemplateVersion;
 use App\Services\Audio\Ffmpeg;
 use App\Services\DigitalOcean\CdnPurge;
+use App\Support\AiVoices\AiGuides;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -79,6 +80,12 @@ final class PublishGuide implements ShouldQueue
 
                 if ($singer === null || $singer->forgotten_at !== null) {
                     return false;
+                }
+
+                // A real voice for the part: its AI stand-in goes at once (docs/ai-voices-build-plan.md), first, as a part has
+                // one default (template_guides.default_slot) and the AI one holds it.
+                if ($submission->template_version_id !== null && $submission->part_key !== null) {
+                    AiGuides::retireForPart($submission->template_version_id, $submission->part_key);
                 }
 
                 $wasDefault = $previous !== null && $previous->is_default;

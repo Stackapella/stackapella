@@ -26,6 +26,7 @@
                 "plusCourses",
                 "sheetImport",
                 "lendVoice",
+                "aiVoices",
                 "experiment",
                 "experiments",
                 "schools",
@@ -126,6 +127,10 @@
                 "lendVoice": {
                     "type": "boolean",
                     "description": "Lend your voice is on (the lend_voice switch): volunteers claim the songs' and lessons' missing real voices."
+                },
+                "aiVoices": {
+                    "type": "boolean",
+                    "description": "AI guide voices are on for this person (the ai_voices switch, read for their account): a part with no real voice may sing in an AI voice, labelled as AI (guide.recording's source). Off, no AI guide is sent anywhere."
                 },
                 "experiment": {
                     "type": [

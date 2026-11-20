@@ -14,6 +14,7 @@ use App\Models\TemplateGuide;
 use App\Models\TemplateVersion;
 use App\Notifications\Admin\OpsAlert;
 use App\Support\Admin\Admins;
+use App\Support\AiVoices\AiGuides;
 use App\Support\Http\Hosts;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -233,6 +234,10 @@ final class CarryVoicesOver
     {
         $from = $guide->template_version_id;
         $led = $guide->is_default;
+        // A real voice now sings it on the current version: an AI guide made for that version goes, first, as it holds the
+        // part's one default (template_guides.default_slot). AI guides themselves are never carried: this sees recorded
+        // guides only.
+        AiGuides::retireForPart($current->id, $guide->part_key);
         $taken = TemplateGuide::query()->where('template_version_id', $current->id)->where('part_key', $guide->part_key)->where('is_default', true)->exists();
 
         $guide->forceFill(['template_version_id' => $current->id, 'is_default' => $led && ! $taken])->save();

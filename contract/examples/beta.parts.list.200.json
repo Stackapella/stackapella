@@ -63,6 +63,8 @@
                     "offsetFrames": 0,
                     "credit": "Sarah K.",
                     "creditHandle": null,
+                    "source": "recorded",
+                    "aiBasedOn": null,
                     "mine": true
                 }
             ],
@@ -107,6 +109,8 @@
                     "offsetFrames": 22050,
                     "credit": null,
                     "creditHandle": null,
+                    "source": "recorded",
+                    "aiBasedOn": null,
                     "mine": false
                 }
             ],

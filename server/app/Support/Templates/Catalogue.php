@@ -10,6 +10,7 @@ use App\Models\GroupSong;
 use App\Models\Template;
 use App\Models\TemplateGuide;
 use App\Models\User;
+use App\Support\AiVoices\AiGuides;
 use App\Support\Pages\SongParts;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -233,15 +234,16 @@ final class Catalogue
 
     /**
      * Every published version of each part, for these template versions, keyed by
-     * "versionId:part": the default first, then the newest.
+     * "versionId:part": the default first, then the newest. Recorded voices only, unless `$ai` (the
+     * ai_voices switch for whoever asks: AiGuides::on) adds the AI guides of consented voices.
      *
      * @param  array<int, int>  $versionIds
      * @return Collection<string, Collection<int, TemplateGuide>>
      */
-    public function guides(array $versionIds): Collection
+    public function guides(array $versionIds, bool $ai = false): Collection
     {
-        return TemplateGuide::query()
-            ->with(['submission.assignment.singer.user', 'creditUser'])
+        return AiGuides::shownWith($ai)
+            ->with(['submission.assignment.singer.user', 'creditUser', 'aiVoice'])
             ->whereIn('template_version_id', $versionIds)
             ->orderByDesc('is_default')
             ->orderByDesc('published_at')

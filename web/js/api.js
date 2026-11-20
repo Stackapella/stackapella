@@ -168,6 +168,8 @@ export const OPERATIONS = {
     'admin.beta.needs.show': ['GET', '/api/admin/beta/needs'],
     'admin.beta.guides.default': ['POST', '/api/admin/beta/guides/{id}/default'],
     'admin.beta.guides.delete': ['DELETE', '/api/admin/beta/guides/{id}'],
+    'admin.aiVoices.list': ['GET', '/api/admin/ai-voices'],
+    'admin.aiVoices.withdraw': ['POST', '/api/admin/ai-voices/{id}/withdraw'],
     'admin.beta.clips.delete': ['DELETE', '/api/admin/beta/clips/{slot}'],
     'admin.beta.feedback.list': ['GET', '/api/admin/beta/feedback'],
     'admin.beta.feedback.read': ['POST', '/api/admin/beta/feedback/{id}/read'],
@@ -789,6 +791,12 @@ export const api = {
             list: ({ action, user, cursor } = {}) => call('admin.audit.list', { query: { action, user, cursor } }),
         },
         overview: () => call('admin.overview'),
+        // AI voices (docs/ai-voices-build-plan.md): who each is based on and their consent; withdrawing one retires every
+        // guide it sang and purges them from the CDN, in sudo.
+        aiVoices: {
+            list: () => call('admin.aiVoices.list'),
+            withdraw: (id) => call('admin.aiVoices.withdraw', { params: { id } }),
+        },
         beta: {
             removeClip: (slot, body) => call('admin.beta.clips.delete', { params: { slot }, body }),
             // The course clips beta singers record (web/course/plus/clips.json), for the admin.

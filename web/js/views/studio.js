@@ -3,6 +3,7 @@ import { styleOf } from '../band-style.js';
 import { audio, closeMic, engine, unlock } from '../audio.js';
 import { midiName } from '../dsp.js';
 import { formatList, formatNumber, t, timeAgo, tk } from '../i18n.js';
+import { aiCtaOpen } from '../ai-voices.js';
 import { guideId, hasTake, nextSlot } from '../practice.js';
 import { joinSyllables, LyricsLane } from '../components/practice.js';
 import { KaraokeLine } from '../components/sing/stage.js';
@@ -72,7 +73,7 @@ export const StudioView = {
     mixins: [RecordSetup],
     components: { CountIn, LyricsLane, KaraokeLine, LineBar, Icon, Waveform, ProjectDialog, HeadphonesDialog, TimingDialog, ExportDialog, PartDialog, MicDialog, RangeDialog, NotesView, BetaBanner, BetaReport, SoundCheck, TellHillel, VoiceNote, TrimSheet, LockedBanner, ShareSheet, TogetherSheet, AddVoice, GhostRow, StudioNotice, SetupChoices, VoiceRow, MicLevel, PartsProgress },
     props: { id: { type: String, required: true } },
-    setup: () => ({ ...toRefs(session), sessionStore, audio, defaultPartName, joinSyllables, formatTime, shownTitle, PART_COLORS, roundButton, hasTake, GUIDE_PEAKS_RATE, FRAMES_PER_PEAK, togglePlay, templatePart, prefs, betaBar, count }),
+    setup: () => ({ ...toRefs(session), sessionStore, audio, aiCtaOpen, defaultPartName, joinSyllables, formatTime, shownTitle, PART_COLORS, roundButton, hasTake, GUIDE_PEAKS_RATE, FRAMES_PER_PEAK, togglePlay, templatePart, prefs, betaBar, count }),
     data: () => ({
         pageScroll: PAGE_SCROLL.matches, // phones and short screens: the page scrolls as one (docs/studio-words-plan.md, the banner room section)
         dockHeight: 0, // the docked transport's height, the page's bottom padding
@@ -362,8 +363,8 @@ export const StudioView = {
                 @close="closeReport" @again="recordAgain" @loop="loopFromReport" @hear="hearAsLearners" @send="sendTake" />
             <TellHillel v-if="dialog === 'tell'" :context="tellContext" @close="dialog = null" />
             <MicDialog v-if="dialog === 'mic'" @close="dialog = null" @timing="openAudioDialog('timing')" />
-            <ExportDialog v-if="dialog === 'export'" :title="shownTitle(project)" :seconds="contentLength" :parts="exportParts" :default-name="exportName" :sample-rate="engine.sampleRate" @unmute="(id) => update(parts.find((p) => p.id === id), { muted: false })" :credits="voiceCredits" :has-chords="!!project.template?.chords?.length" :score-parts="scoreParts" :busy="exporting" @close="dialog = null" @export="exportMix" @upgrade="navigate('/plus?from=' + $event)" />
-            <PartDialog v-if="dialog === 'part' && dialogPart" :breaths="sessionStore.canSoftenBreaths(dialogPart)" :theirs="sessionStore.mine(dialogPart) ? null : (dialogPart.createdBy?.name ?? project.shared?.owner?.name ?? '')" :part="dialogPart" :shown-name="nameOf(dialogPart)" :color="paint(dialogPart.color)" :voice="guideVoices[dialogPart.id] ?? null" :recording="recording" @voice="chooseVoice(dialogPart, $event)" :slot="!!dialogPart.templatePartKey" :recorded="hasTake(dialogPart)" @close="dialog = null" @update="update(dialogPart, $event)" @rerecord="rerecord(dialogPart)" @delete="removePart(dialogPart)" @clear="clearTakeOf(dialogPart)" @practise="dialog = null; singPart(dialogPart)" @trim="openTrim(dialogPart)" :harmonise="!project.template && !project.beta && !project.shared" @harmonise="harmonise(dialogPart)" />
+            <ExportDialog v-if="dialog === 'export'" :title="shownTitle(project)" :seconds="contentLength" :parts="exportParts" :default-name="exportName" :sample-rate="engine.sampleRate" @unmute="(id) => update(parts.find((p) => p.id === id), { muted: false })" :credits="voiceCredits" :credits-line="creditsLine" :has-chords="!!project.template?.chords?.length" :score-parts="scoreParts" :busy="exporting" @close="dialog = null" @export="exportMix" @upgrade="navigate('/plus?from=' + $event)" />
+            <PartDialog v-if="dialog === 'part' && dialogPart" :breaths="sessionStore.canSoftenBreaths(dialogPart)" :theirs="sessionStore.mine(dialogPart) ? null : (dialogPart.createdBy?.name ?? project.shared?.owner?.name ?? '')" :part="dialogPart" :shown-name="nameOf(dialogPart)" :color="paint(dialogPart.color)" :voice="guideVoices[dialogPart.id] ?? null" :recording="recording" @voice="chooseVoice(dialogPart, $event)" :slot="!!dialogPart.templatePartKey" :recorded="hasTake(dialogPart)" @close="dialog = null" @update="update(dialogPart, $event)" @rerecord="rerecord(dialogPart)" @delete="removePart(dialogPart)" @clear="clearTakeOf(dialogPart)" @practise="dialog = null; singPart(dialogPart)" :ai-cta="aiCtaOpen(project)" @be-voice="dialog = null; singPart(dialogPart)" @trim="openTrim(dialogPart)" :harmonise="!project.template && !project.beta && !project.shared" @harmonise="harmonise(dialogPart)" />
             <TrimSheet v-if="dialog === 'trim' && dialogPart" :part="dialogPart" :name="nameOf(dialogPart)" :color="paint(dialogPart.color)" :beat-seconds="60 / (project.bpm || 90)" :playing="playing" :can-line-up="parts.filter(hasTake).length > 1"
                 @trim="trim(dialogPart, $event)" @play-start="hearEdge(dialogPart, 'start')" @play-end="hearEdge(dialogPart, 'end')" @play-trimmed="hearTrimmed(dialogPart)" @stop="stopPlayback" @line-up="lineUp" @close="closeTrim(dialogPart)" />
             <ShareSheet v-if="dialog === 'share'" :title="project.title || ''" :parts="sharedParts" @close="dialog = null" />
@@ -594,10 +595,21 @@ export const StudioView = {
             if (!audio.mic) return t('studio.menu.mic');
             return audio.mic.label.replace(/^Default - /, '').replace(/\s*\([0-9a-f]{4}:[0-9a-f]{4}\)$/i, '');
         },
-        /** "Alto: Sarah K." for each real voice playing, for the export's credits. */
+        /** "Alto: Sarah K." for each real voice playing, and "Tenor: AI voice" for an AI one, for the export's credits. */
         voiceCredits() {
             // Only voices in the mix: a muted (or not soloed) part isn't heard, so isn't credited.
-            return this.parts.filter((p) => !hasTake(p) && this.isAudible(p) && this.guideVoices[p.id]?.kind === 'real' && this.guideVoices[p.id].credit).map((p) => t('export.credit', { part: this.nameOf(p), name: this.guideVoices[p.id].credit }));
+            const heard = this.parts.filter((p) => !hasTake(p) && this.isAudible(p) && this.guideVoices[p.id]?.kind === 'real');
+            return heard.map((p) => (this.guideVoices[p.id].ai ? t('aiVoice.credit', { part: this.nameOf(p) }) : this.guideVoices[p.id].credit ? t('export.credit', { part: this.nameOf(p), name: this.guideVoices[p.id].credit }) : null)).filter(Boolean);
+        },
+        /** An AI voice sings in the mix as heard (js/ai-voices.js): its credits and its file's name say so. */
+        aiInMix() {
+            return this.parts.some((p) => !hasTake(p) && this.isAudible(p) && this.guideVoices[p.id]?.kind === 'real' && this.guideVoices[p.id].ai);
+        },
+        /** The credits' heading: "Real voices: ...", or "Voices: ..." once an AI voice is among them (never called real). */
+        creditsLine() {
+            if (!this.voiceCredits.length) return null;
+            const names = formatList(this.voiceCredits);
+            return this.aiInMix ? t('aiVoice.credits', { names }) : t('export.credits', { names });
         },
         /** A beta project's part: the one being recorded for Hillel. */
         betaPart() {
@@ -834,6 +846,8 @@ export const StudioView = {
             const friend = part.createdBy && part.createdBy.id !== account.me?.id ? part.createdBy.name : null;
             if (!hasTake(part)) {
                 const state = this.picked?.id === part.id ? t('studio.status.upNext') : t('studio.status.notRecorded');
+                // An AI voice: its tag leads the line (js/ai-voices.js AiVoiceLabel), never a singer's name.
+                if (!friend && this.guideVoices[part.id]?.kind === 'real' && this.guideVoices[part.id].ai) return { text: state, tone: 'guide', ai: true };
                 return { text: `${friend ?? this.badge(part)} · ${state}`, tone: 'guide' };
             }
             const who = part.fromLesson ? t('studio.badge.fromLesson') : friend ?? t('studio.badge.yourTake');
@@ -959,6 +973,7 @@ export const StudioView = {
             const voice = this.guideVoices[part.id];
             if (voice?.why === 'key') return t('studio.badge.practiceInKey');
             if (voice?.kind !== 'real') return t('studio.badge.guide');
+            if (voice.ai) return t('aiVoice.tag');
             return voice.credit ? t('studio.badge.realVoiceBy', { name: voice.credit }) : t('studio.badge.realVoice');
         },
         async chooseVoice(part, voice) {
@@ -975,7 +990,8 @@ export const StudioView = {
             // Voices arrive one by one after the first sound (stores/session.js realVoicesAfter): one note once they're all here.
             if (this.parts.some((part) => this.guideVoices[part.id]?.loading)) return;
             const seen = new Set(practice.voicesSeen ?? []);
-            const fresh = this.parts.filter((part) => this.guideVoices[part.id]?.kind === 'real' && !seen.has(this.guideVoices[part.id].url));
+            // An AI voice is never announced as a real one (js/ai-voices.js): its label says what it is.
+            const fresh = this.parts.filter((part) => this.guideVoices[part.id]?.kind === 'real' && !this.guideVoices[part.id].ai && !seen.has(this.guideVoices[part.id].url));
             if (!fresh.length) return;
             fresh.forEach((part) => seen.add(this.guideVoices[part.id].url));
             practice.voicesSeen = [...seen];
@@ -1414,7 +1430,7 @@ export const StudioView = {
         async exportMix({ name, format = 'wav', chords = false, room = null, track = null, sheet = null }) {
             this.exporting = true;
             try {
-                const comment = this.voiceCredits.length ? t('export.credits', { names: formatList(this.voiceCredits) }) : null;
+                const comment = this.creditsLine;
                 if (sheet && format === 'print') {
                     // Printable parts (docs/sheet-music-plan.md, slice 2): their own page, in the key and speed sung here.
                     const keys = sheet.partKey ? [sheet.partKey] : this.scoreParts.map((p) => p.key);
@@ -1442,7 +1458,9 @@ export const StudioView = {
                     file = format === 'mp3' ? await encodeMp3(rendered.channels, rendered.sampleRate, { comment }) : encodeWav(rendered.channels, rendered.sampleRate, { comment });
                 }
                 const url = URL.createObjectURL(file);
-                const link = Object.assign(document.createElement('a'), { href: url, download: `${name}.${{ stems: 'zip', midi: 'mid' }[format] ?? format}` });
+                // A mix an AI voice sings in says so in its name too (design rules, "AI: plain about it"); stems are takes only.
+                const named = !sheet && format !== 'stems' && this.aiInMix ? `${name} (${t('aiVoice.inFileName')})` : name;
+                const link = Object.assign(document.createElement('a'), { href: url, download: `${named}.${{ stems: 'zip', midi: 'mid' }[format] ?? format}` });
                 document.body.append(link);
                 link.click();
                 link.remove();

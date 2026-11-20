@@ -311,3 +311,10 @@ They're written straight to `web/icons/help/`, so the guide and the site pick th
 deploy. A page shows a shot only once all four files are there. On the site, a page's head names one
 with `shot` (and `shot_alt`) and a section with `'pic' => 'shot:<id>'` in `server/lang/en/site.php`;
 `components/site/appshot.blade.php` shows the light or dark one to match the visitor's theme.
+
+## AI guide voices (optional)
+
+`/voices` renders AI guide voices for parts nobody has recorded yet, offline, in a locked-down
+Docker container. Nothing else needs it: the server and the app work without it. Its setup (the
+pinned image, the weights by hash, the one-time conversion to safetensors) and everyday commands
+are in voices/README.md. Its tests need no model: `sh voices/tool/test.sh`.

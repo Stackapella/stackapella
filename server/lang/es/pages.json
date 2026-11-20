@@ -1431,7 +1431,7 @@
     "the other parts synthesized": "las demás voces, sintetizadas",
     "Generated voice": "Voz generada",
     "Be the voice: sing the :part": "Sé la voz: canta la de :part",
-    "Some parts still have the app's own voice. Sing one, make your harmony public and say yes to featuring it, and we may choose your part as the voice others learn from, credited to you by your profile name. Free, for singers 18 and over.": "Algunas partes todavía usan la voz propia de la app. Canta una, haz pública tu armonía y acepta que la destaquemos, y podríamos elegir tu parte como la voz con la que otros aprenden, con tu nombre de perfil en los créditos. Gratis, para cantantes de 18 años o más.",
+    "Some parts still have the app's own voice. Sing one, make your harmony public and say yes to featuring it, and we may choose your part as the voice others learn from, credited to you by your profile name. For singers 18 and over.": "Algunas partes todavía usan la voz propia de la app. Canta una, haz pública tu armonía y acepta que la destaquemos, y podríamos elegir tu parte como la voz con la que otros aprenden, con tu nombre de perfil en los créditos. Para cantantes de 18 años o más.",
     "The story of :song": "La historia de :song",
     "At a glance": "De un vistazo",
     "Timeline": "Cronología",
@@ -1596,5 +1596,11 @@
     ":label version": "Versión :label",
     "As the UK sings it. Tune: :tune": "Como se canta en el Reino Unido. Melodía: :tune",
     "As the US sings it. Tune: :tune": "Como se canta en EE. UU. Melodía: :tune",
-    "Tune: :tune": "Melodía: :tune"
+    "Tune: :tune": "Melodía: :tune",
+    "AI voice": "Voz de IA",
+    "AI voice, waiting for a real singer": "Voz de IA, a la espera de una voz real",
+    "AI voice based on :name's singing, with permission": "Voz de IA basada en el canto de :name, con su permiso",
+    "Real voice wanted: be the voice": "Se busca una voz real: sé la voz",
+    ":part: AI voice": ":part: voz de IA",
+    "About AI voices": "Sobre las voces de IA"
 }

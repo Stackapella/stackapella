@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
+use App\Support\Admin\StaffDevice;
+use App\Support\Flags;
 use App\Support\Http\Hosts;
 use App\Support\Legal\LegalText;
 use App\Support\Pages\Landing;
@@ -57,6 +59,55 @@ final class SitePagesController extends Controller
             'hero' => $hero,
             'pictures' => $hero !== null ? Landing::pictures($hero) : null,
         ], 200, [...SongPagesController::headers(), 'Cache-Control' => 'no-cache', 'Vary' => 'Cookie']);
+    }
+
+    /**
+     * About AI voices (docs/ai-voices-build-plan.md, marketing item 2): unlisted. While the ai_voices switch is off (or
+     * not yet defined) it is not found, except on an admin's device (StaffDevice::previews, the Spanish preview's key),
+     * which sees it kept out of search and kept by nobody (the coordinator, 2026-11-20). "Your voice stays yours" says
+     * what's true of own-voice songs while own_choir is on.
+     */
+    public function aiVoices(Request $request, Flags $flags): Response
+    {
+        $on = self::switchedOn($flags, 'ai_voices');
+
+        if (! $on && ! StaffDevice::previews($request)) {
+            return response()->view('public.page-gone', ['links' => ['app' => '/about']], 404, [...SongPagesController::headers(), 'Cache-Control' => 'no-store', 'X-Robots-Tag' => 'noindex']);
+        }
+
+        return response()->view('site.ai-voices', [
+            ...$this->frame('ai_voices', '/about/ai-voices', Landing::ref($request->query('ref'))),
+            'indexed' => $on,
+            'ownChoir' => self::switchedOn($flags, 'own_choir'),
+            'remove' => self::email((string) __('site.ai_voices.remove.body')),
+        ], 200, [...SongPagesController::headers(), ...($on ? [] : ['X-Robots-Tag' => 'noindex', 'Cache-Control' => 'no-store'])]);
+    }
+
+    /**
+     * Hear yourself as a choir (docs/ai-voices-build-plan.md, phase 3's launch page): ready but unpublished. While the
+     * own_choir switch is off (or not yet defined) it is not found, except on an admin's device, which sees it kept out
+     * of search and kept by nobody, as About AI voices is.
+     */
+    public function yourChoir(Request $request, Flags $flags): Response
+    {
+        $on = self::switchedOn($flags, 'own_choir');
+
+        if (! $on && ! StaffDevice::previews($request)) {
+            return response()->view('public.page-gone', ['links' => ['app' => '/']], 404, [...SongPagesController::headers(), 'Cache-Control' => 'no-store', 'X-Robots-Tag' => 'noindex']);
+        }
+
+        return response()->view('site.your-choir', [
+            ...$this->frame('your_choir', '/your-choir', $ref = Landing::ref($request->query('ref'))),
+            'indexed' => $on,
+            // Silent Night in the app, ready to hear yourself as a choir (the app's `choir` link, agreed with the frontend).
+            'try' => Hosts::app('/?'.http_build_query(['song' => 'silent-night', 'choir' => 1, 'ref' => $ref ?? 'your-choir'])),
+        ], 200, [...SongPagesController::headers(), ...($on ? [] : ['X-Robots-Tag' => 'noindex', 'Cache-Control' => 'no-store'])]);
+    }
+
+    /** A switch that may not be defined yet: off until it is. */
+    private static function switchedOn(Flags $flags, string $name): bool
+    {
+        return $flags->exists($name) && $flags->on($name);
     }
 
     public function press(Request $request): Response

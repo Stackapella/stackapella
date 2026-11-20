@@ -20,6 +20,8 @@ import { trackFrame, trackInWorker, VOICED_CLARITY } from '../pitchtrack.js';
 import * as sessionStore from '../stores/session.js';
 import { account } from '../stores/account.js';
 import { claimInvitation, countVoice, later, needsVoice, saidLater, usableTake, voiceAskOpen } from '../be-the-voice.js';
+import { aiCredit, aiCtaOpen } from '../ai-voices.js';
+import { aiPartsOf } from '../stores/catalogue.js';
 import { sendVoiceTake } from '../voice-take.js';
 import { signUpFor } from '../components/account-wall.js';
 import { askDue, askNotNow, askSeen } from '../asks.js';
@@ -100,7 +102,7 @@ export const SingView = {
     mixins: [RecordSetup],
     components: { SingShell: screenLoading(), ShareVoice: defineAsyncComponent(() => import('../components/share-voice.js').then((m) => m.ShareVoice)), DailyShare, RingMeter, VoiceCareLine, TimingLine, PopupSlot, TakeBest, IdeaVoice, PhraseStage, Chooser, Stage, RecordingStage, Lane, NowCard, Coach, StepDone, JustRecorded, LineBar, ModeBar, SingHeader, Transport, TurnBand, PartSheet, SettingsSheet, HeadphonesDialog, TimingDialog, RangeDialog, Icon, VoiceNote, ResingSheet, ResungCard, TrimSheet, WhatsNext, LockedBanner, ShareSheet },
     props: { id: { type: String, required: true } },
-    setup: () => ({ ...toRefs(session), audio, formatTime, shownTitle, prefs, game, effect }),
+    setup: () => ({ ...toRefs(session), audio, formatTime, shownTitle, prefs, game, effect, aiCtaOpen }),
     data: () => ({ tasteAsked: false, crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null, ring: null, ringChord: '', lessonStep: null, lessonOpening: false, voiceAt: 0, voicePartId: null }),
     template: `
         <div class="flex h-dvh flex-col bg-ink" :data-paused="paused ? '' : null">
@@ -118,7 +120,7 @@ export const SingView = {
             <!-- A lesson's song (Hillel agreed, 2026-11-11): no chooser and no part picker, the step's part and way set while its lesson is read. -->
             <SingShell v-else-if="lessonOpening" />
             <Chooser v-else-if="choosing || !way || !focusPart" :parts="partChoices" :transpose="project.transpose || 0" :way="choosing ? null : way" :suggested="suggested"
-                :title="shownTitle(project)" :focus="focusPart ? { slot: focusPart, name: partName, range: templatePart(focusPart)?.range ?? null } : null" :bpm="project.bpm" :phrases="phraseRows.length" :length="lengthSeconds" :auto="!choosing" :no-voice="noVoiceSlots"
+                :title="shownTitle(project)" :focus="focusPart ? { slot: focusPart, name: partName, range: templatePart(focusPart)?.range ?? null } : null" :bpm="project.bpm" :phrases="phraseRows.length" :length="lengthSeconds" :auto="!choosing" :no-voice="noVoiceSlots" :ai-voice="aiVoiceSlots"
                 @choose="choose" @range="dialog = 'range'" @back="leave" @studio="openStudio" />
             <!-- Recording strips everything else away (113.png): the lane, the words, Stop -->
             <RecordingStage v-else-if="recording" :title="shownTitle(project)" :named="!!project.title?.trim()" :part-name="partName" :color="paint(focusPart.color)" :take="takeNumbers[rerecordId] ?? 1" :hearing="hearLine"
@@ -216,7 +218,7 @@ export const SingView = {
             <SettingsSheet v-if="dialog === 'settings'" :hearing="{ rows: hearingRows, guideLevel: hearingLevel, speakers, voices: voicesLabel, split: !!practice.split }" :part-name="partName" :part-color="paint(focusPart.color)" @part="dialog = 'part'" :view="view" @view="setView" :recording="recording" @toggle="toggleHearing" @level="setGuideLevel" :speed="practice.speed ?? 1" :speed-note="speedNote" :has-chords="!!project.template.chords?.length" :chords="!!practice.chords" :drone="practice.drone ?? 'off'" :drone-level="practice.droneLevel ?? 0.4" @drone="setDrone" @drone-level="(v) => setPracticeValue('droneLevel', v)"
                 :chords-level="practice.chordsLevel ?? 0.5" :chords-sound="practice.chordsSound ?? 'gentle'" :color="paint(focusPart.color)" :bpm="project.bpm || project.template.tempo" :sample="noteSample"
                 @reset="resetSettings" @speed="setSpeed" @chords="setChords" @chords-level="(v) => setPracticeValue('chordsLevel', v)" @split="(v) => setPracticeValue('split', v)" :ladder="!!practice.ladder" @ladder="setLadder" @chords-sound="setChordsSound" @voices="dialog = 'part'" @close="dialog = null" />
-            <PartSheet v-if="dialog === 'part'" :parts="partSheet" :focus-id="focusPart?.id" :voice="focusPart ? guideVoices[focusPart.id] ?? null : null" :key-note="keyNote" :way="way" :disabled="recording" :lend="lendLine"
+            <PartSheet v-if="dialog === 'part'" :parts="partSheet" :focus-id="focusPart?.id" :voice="focusPart ? guideVoices[focusPart.id] ?? null : null" :key-note="keyNote" :way="way" :disabled="recording" :lend="lendLine" :ai-cta="aiCtaOpen(project)" @be-voice="dialog = null; recordPart()"
                 @select="selectPart" @voice="chooseVoice" @range="dialog = 'range'" @way="switchWay" @close="dialog = null" @lend="openVoices" />
             <ShareSheet v-if="dialog === 'share'" :title="project.title || ''" :parts="sharedParts" @close="dialog = null" />
             <ShareVoice v-if="dialog === 'voice' && voicePart" :part="nameOf(voicePart)" :song="shownTitle(project)" :part-key="voicePart.templatePartKey" :saved="voiceSaved" :send="sendVoice" @close="dialog = null" />
@@ -414,7 +416,8 @@ export const SingView = {
             const range = this.focusPart && sessionStore.templatePart(this.focusPart)?.range;
             const span = range ? t('sing.about.rangeInline', { low: this.noteName({ pitch: range.low }), high: this.noteName({ pitch: range.high }) }) : '';
             const voice = this.focusPart && this.guideVoices[this.focusPart.id];
-            const who = voice?.kind === 'real' && voice.credit ? t('part.sungBy', { name: voice.credit }) : '';
+            // An AI voice says so (js/ai-voices.js), never a singer's name.
+            const who = voice?.kind === 'real' && voice.ai ? aiCredit(voice.aiBasedOn) : voice?.kind === 'real' && voice.credit ? t('part.sungBy', { name: voice.credit }) : '';
             return [span, who].filter(Boolean).join(' · ');
         },
         settingsBadge() {
@@ -423,14 +426,15 @@ export const SingView = {
         },
         /** Under the speed control, plainly, when a part has a real voice (Hillel: "Full speed only, said plainly"). */
         speedNote() {
-            return Object.values(this.guideVoices).some((v) => v.kind === 'real' || v.why === 'speed') ? t('sing.settings.realFullSpeed') : '';
+            // Only a real voice is called one; an AI voice's own speed note is voice-note.js's.
+            return Object.values(this.guideVoices).some((v) => !v.ai && (v.kind === 'real' || v.why === 'speed')) ? t('sing.settings.realFullSpeed') : '';
         },
         /** Settings' Voices row: who sings your part's guide. */
         /** Settings' Guide voices, or '' (hidden) when no part has a real voice to choose (Hillel). */
         voicesLabel() {
             if (!Object.values(this.guideVoices).some((v) => v?.versions?.length)) return '';
             const voice = this.focusPart && this.guideVoices[this.focusPart.id];
-            const yours = voice?.kind === 'real' && voice.credit ? t('part.sungBy', { name: voice.credit }) : t('part.practiceVoice');
+            const yours = voice?.kind === 'real' && voice.ai ? aiCredit(voice.aiBasedOn) : voice?.kind === 'real' && voice.credit ? t('part.sungBy', { name: voice.credit }) : t('part.practiceVoice');
             return t('sing.settings.voicesOf', { part: this.partName, voice: yours });
         },
         /**
@@ -469,6 +473,12 @@ export const SingView = {
          * The parts no one has sung yet (Be the voice's tag in the part picker), of a library song: from day one, as it says
          * why that part sounds like a synth (the coordinator for Hillel, 2026-11-12: information, not clutter).
          */
+        /** The parts an AI voice sings (js/ai-voices.js): always marked, whether or not Be the voice is open. */
+        aiVoiceSlots() {
+            if (this.project?.beta || !this.project?.template?.id) return [];
+            const ai = aiPartsOf(this.project.template.id);
+            return this.partChoices.filter((c) => ai.includes(c.slot.templatePartKey)).map((c) => c.slot.id);
+        },
         noVoiceSlots() {
             if (!voiceAskOpen() || this.project?.beta || this.project?.course || !this.project?.template?.id) return [];
             return this.partChoices.filter((c) => needsVoice(this.project.template.id, c.slot.templatePartKey)).map((c) => c.slot.id);
@@ -481,7 +491,7 @@ export const SingView = {
                     slot: c.slot,
                     name: c.name,
                     range: c.range ? t('sing.about.range', { low: this.noteName({ pitch: c.range.low }), high: this.noteName({ pitch: c.range.high }) }) : '',
-                    voiceLabel: c.recorded ? t('sing.status.recorded') : voice?.kind === 'real' && voice.credit ? t('part.sungBy', { name: voice.credit }) : t('part.practiceVoice'),
+                    voiceLabel: c.recorded ? t('sing.status.recorded') : voice?.kind === 'real' && voice.ai ? t('aiVoice.tag') : voice?.kind === 'real' && voice.credit ? t('part.sungBy', { name: voice.credit }) : t('part.practiceVoice'),
                 };
             });
         },

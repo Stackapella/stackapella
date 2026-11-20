@@ -6,6 +6,7 @@
 import { reactive } from 'vue';
 import { api } from '../api.js';
 import { local } from '../storage.js';
+import { allowed } from '../ai-voices.js';
 
 export const catalogue = reactive({ list: [], loaded: false, source: 'none' });
 
@@ -47,7 +48,9 @@ function parse(text) {
  */
 export function recordingFor(templateId, partKey) {
     const entry = catalogue.list.find((song) => song.id === templateId);
-    const recording = entry?.parts.find((part) => part.key === partKey)?.guide ?? null;
+    const found = entry?.parts.find((part) => part.key === partKey)?.guide ?? null;
+    // An AI voice only while the ai_voices switch is on (js/ai-voices.js): off, the part plays the practice voice.
+    const recording = allowed(found) ? found : null;
     return recording ? { recording, version: entry.version, credit: recording.credit } : null;
 }
 
@@ -59,12 +62,18 @@ export function recordingFor(templateId, partKey) {
 export function versionsFor(templateId, partKey) {
     const entry = catalogue.list.find((song) => song.id === templateId);
     const part = entry?.parts.find((p) => p.key === partKey);
-    const versions = part?.versions?.length ? part.versions : part?.guide ? [{ ...part.guide, default: true }] : [];
+    const versions = (part?.versions?.length ? part.versions : part?.guide ? [{ ...part.guide, default: true }] : []).filter(allowed);
     return versions.length ? { versions, version: entry.version } : null;
 }
 
-/** "Sung by Sarah K. and Ben T." credits for a template's real voices (anonymous ones left out). */
+/** "Sung by Sarah K. and Ben T." credits for a template's real voices (anonymous ones and AI voices left out). */
 export function creditsFor(templateId) {
     const entry = catalogue.list.find((song) => song.id === templateId);
-    return [...new Set((entry?.parts ?? []).map((part) => part.guide?.credit).filter(Boolean))];
+    return [...new Set((entry?.parts ?? []).map((part) => (part.guide?.source === 'ai' ? null : part.guide?.credit)).filter(Boolean))];
+}
+
+/** The keys of a song's parts an AI voice sings (none while the ai_voices switch is off), in the song's order. */
+export function aiPartsOf(templateId) {
+    const entry = catalogue.list.find((song) => song.id === templateId);
+    return (entry?.parts ?? []).filter((part) => part.guide?.source === 'ai' && allowed(part.guide)).map((part) => part.key);
 }

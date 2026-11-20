@@ -44,6 +44,7 @@ use App\Http\Controllers\Public\ToolPagesController;
 use App\Http\Controllers\Public\WarmupPagesController;
 use App\Http\Controllers\UnsubscribeController;
 use App\Http\Controllers\WebAppController;
+use App\Http\Middleware\AuthenticateAiWorker;
 use App\Http\Middleware\AuthenticateAppDevice;
 use App\Http\Middleware\CheckAppVersion;
 use App\Http\Middleware\CountForeignOrigins;
@@ -113,6 +114,8 @@ return Application::configure(basePath: dirname(__DIR__))
             // The growth data for app:pull-growth (docs/growth-data.md): a bearer token, no session.
             Route::get('/api/internal/growth', GrowthDataController::class)->middleware('throttle:growth-data')->name('internal.growth');
             Route::get('/api/internal/corrections', CorrectionsExportController::class)->middleware('throttle:corrections-export')->name('internal.corrections');
+            // The AI voices worker (contract/api.md, "The AI voices worker"): its bearer token, no session; limited first.
+            Route::prefix('api/worker/ai')->name('worker.ai.')->middleware(['throttle:ai-worker', AuthenticateAiWorker::class, ReadOnlyMode::class, NoStore::class, SubstituteBindings::class])->group(base_path('routes/worker.php'));
             Route::get('/.well-known/security.txt', SecurityTxtController::class)->middleware('throttle:public-pages')->name('security.txt');
 
             Route::middleware('web')->group(base_path('routes/web.php'));
@@ -153,6 +156,10 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::get('/compare', [ComparePagesController::class, 'index'])->middleware(['nexus', 'throttle:public-pages'])->name('compare.index');
             Route::get('/compare/{slug}', [ComparePagesController::class, 'show'])->where('slug', '[a-z0-9-]{1,40}')->middleware(['nexus', 'throttle:public-pages'])->name('compare.page');
             Route::get('/about', [SitePagesController::class, 'about'])->middleware(['nexus', 'throttle:public-pages'])->name('about.page');
+            // About AI voices (docs/ai-voices-build-plan.md): unlisted, noindex until ai_voices is on.
+            Route::get('/about/ai-voices', [SitePagesController::class, 'aiVoices'])->middleware(['nexus', 'throttle:public-pages'])->name('ai-voices.page');
+            // Hear yourself as a choir (docs/ai-voices-build-plan.md, phase 3): not found until own_choir is on.
+            Route::get('/your-choir', [SitePagesController::class, 'yourChoir'])->middleware(['nexus', 'throttle:public-pages'])->name('your-choir.page');
             Route::get('/how-it-works', [SitePagesController::class, 'howItWorks'])->middleware(['nexus', 'throttle:public-pages'])->name('how.page');
             Route::get('/press', [SitePagesController::class, 'press'])->middleware(['nexus', 'throttle:public-pages'])->name('press.page');
             // Open source (docs/open-source-plan.md, 5.2 and 5.3): there only with the open_source flag on.

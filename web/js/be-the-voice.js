@@ -30,7 +30,12 @@ export function voiceAskOpen() {
 }
 
 /** Whether a catalogue part has a real voice: the catalogue's `hasRealGuide`, or its default guide where that isn't sent yet. */
-const voiced = (templateId, part) => (typeof part.hasRealGuide === 'boolean' ? part.hasRealGuide : !!recordingFor(templateId, part.key));
+// An AI voice is never a real one (js/ai-voices.js): the part stays wanted.
+function voiced(templateId, part) {
+    if (typeof part.hasRealGuide === 'boolean') return part.hasRealGuide;
+    const found = recordingFor(templateId, part.key);
+    return !!found && found.recording.source !== 'ai';
+}
 
 /** Whether `partKey` of library song `templateId` still has no real voice (unknown songs: never asked). */
 export function needsVoice(templateId, partKey) {

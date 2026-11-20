@@ -1,0 +1,17 @@
+{
+    "$id": "worker.ai.uploads.create.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "upload"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "worker.ai.upload.json"
+        },
+        "upload": {
+            "$ref": "upload.json"
+        }
+    }
+}

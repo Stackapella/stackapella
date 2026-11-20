@@ -58,6 +58,13 @@ Schedule::command('app:beta:prune-masters')
     ->hourlyAt(25)
     ->withoutOverlapping(30);
 
+// AI masters nobody needs: uploads never completed, failed ones, and retired AI guides' (PruneAiUploads).
+Schedule::command('app:ai-uploads:prune')
+    ->onOneServer()
+    ->name('ai-uploads-prune')
+    ->hourlyAt(35)
+    ->withoutOverlapping(30);
+
 Schedule::command('app:accounts:prune')
     ->onOneServer()
     ->name('accounts-prune')

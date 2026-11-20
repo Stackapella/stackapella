@@ -216,6 +216,7 @@ const SHELL = [
     '/js/mic-check.js',
     '/js/next-up.js',
     '/js/be-the-voice.js',
+    '/js/ai-voices.js',
     '/js/voice-take.js',
     '/js/components/share-voice.js',
     '/js/library-filter.js',

@@ -1,0 +1,21 @@
+{
+    "data": {
+        "id": "Up4Rn7",
+        "versionId": "Tv8Sn2",
+        "part": "tenor",
+        "voice": "Vc9Tn2",
+        "status": "uploading",
+        "failure": null,
+        "guideId": null,
+        "createdAt": "2026-11-21T09:00:00Z"
+    },
+    "upload": {
+        "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/ai/uploads/3c7e1a9f5b2d8e4c6a0f9b1d3e5a7c2f.wav?X-Amz-Expires=1800&X-Amz-Signature=abc",
+        "method": "PUT",
+        "headers": {
+            "Content-Type": "audio/wav",
+            "Content-Length": "6048044"
+        },
+        "expiresAt": "2026-11-21T09:30:00Z"
+    }
+}

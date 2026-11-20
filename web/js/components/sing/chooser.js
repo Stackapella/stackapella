@@ -12,6 +12,7 @@ import { prefs } from '../../stores/prefs.js';
 import { Gems } from '../gems.js';
 import { Icon } from '../icon.js';
 import { NoVoiceTag } from '../../be-the-voice.js';
+import { AiVoiceLabel } from '../../ai-voices.js';
 import { lazyComponent } from '../../game/modules.js';
 
 const PartSelect = lazyComponent('partSelect', 'PartSelect'); // game mode's only: loaded as it's first drawn (js/game/modules.js WITH_SING)
@@ -23,7 +24,7 @@ const LABELS = { parts: tk('sing.chooser.parts'), whole: tk('sing.chooser.whole'
 const HINTS = { parts: tk('sing.chooser.partsHint'), whole: tk('sing.chooser.wholeHint'), studio: tk('sing.chooser.studioHint') };
 
 export const Chooser = {
-    components: { Gems, Icon, PartSelect, NoVoiceTag },
+    components: { AiVoiceLabel, Gems, Icon, PartSelect, NoVoiceTag },
     props: {
         parts: { type: Array, required: true }, // [{ slot, name, words, range: { low, high }, recorded }] (words: part-words.js)
         transpose: { type: Number, default: 0 },
@@ -36,6 +37,7 @@ export const Chooser = {
         length: { type: Number, default: 0 }, // seconds
         auto: Boolean, // opened by itself (not to choose again): Use this every time may go straight in
         noVoice: { type: Array, default: () => [] }, // slot ids whose part no one has sung yet (be-the-voice.js)
+        aiVoice: { type: Array, default: () => [] }, // slot ids an AI voice sings (js/ai-voices.js): its tag, in the same place
     },
     emits: ['choose', 'range', 'back', 'studio'],
     data() {
@@ -116,13 +118,13 @@ export const Chooser = {
                     <p class="mt-1 text-muted">{{ t('sing.chooser.yourPartHint') }}</p>
                 </div>
                 <!-- Game mode's character select (docs/game-elements-plan.md): the same parts and the same choice -->
-                <PartSelect v-if="effect('select')" :parts="parts" :transpose="transpose" :suggested="focus?.slot.id ?? suggested" :no-voice="noVoice" @choose="(slotId) => $emit('choose', { way: picked, slotId })" />
+                <PartSelect v-if="effect('select')" :parts="parts" :transpose="transpose" :suggested="focus?.slot.id ?? suggested" :no-voice="noVoice" :ai-voice="aiVoice" @choose="(slotId) => $emit('choose', { way: picked, slotId })" />
                 <ul v-else class="grid gap-3 md:grid-cols-2">
                     <li v-for="part in parts" :key="part.slot.id">
                         <button type="button" class="card-interactive flex w-full items-center gap-4 p-4 text-start" @click="$emit('choose', { way: picked, slotId: part.slot.id })">
                             <span class="gem size-4 shrink-0 rounded-full" :style="{ '--gem': paint(part.slot.color) }" aria-hidden="true"></span>
                             <span class="min-w-0 flex-1">
-                                <span class="block font-bold text-cream" translate="no">{{ part.name }}<span v-if="part.slot.id === suggested" class="ms-2 text-xs font-semibold text-part-ink-4">{{ t('range.bestForYou') }}</span><NoVoiceTag v-if="noVoice.includes(part.slot.id)" class="ms-2 align-middle" /></span>
+                                <span class="block font-bold text-cream" translate="no">{{ part.name }}<span v-if="part.slot.id === suggested" class="ms-2 text-xs font-semibold text-part-ink-4">{{ t('range.bestForYou') }}</span><AiVoiceLabel v-if="aiVoice.includes(part.slot.id)" tag class="ms-2 align-middle" /><NoVoiceTag v-else-if="noVoice.includes(part.slot.id)" class="ms-2 align-middle" /></span>
                                 <span class="text-sm text-muted" data-part-words>{{ part.words }}<template v-if="part.words && part.range"> · </template></span><span class="tabular-nums text-sm text-muted">{{ part.range ? t('sing.chooser.range', { low: midiName(part.range.low + transpose), high: midiName(part.range.high + transpose) }) : '' }}<template v-if="part.recorded"> · {{ t('sing.chooser.recorded') }}</template></span>
                             </span>
                             <Icon name="arrow" :size="20" class="shrink-0 text-muted" />

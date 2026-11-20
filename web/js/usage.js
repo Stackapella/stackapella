@@ -24,6 +24,8 @@ for (const kind of [...FUNNEL, ...ASKED]) KINDS.add(kind);
 // Be the voice (js/be-the-voice.js; the engagement review's section 5): the pool, the invitation, its answers, the
 // guest's run back and where a send stopped. Mirrors server/config/counts.php; take_sent and guide_published are the server's.
 for (const kind of ['bv_sung', 'bv_shown', 'bv_later', 'bv_share_tap:guest', 'bv_share_tap:member', 'bv_resume', 'bv_stop:age', 'bv_stop:email', 'bv_stop:check', 'bv_stop:upload', 'bv_sheet_tap']) KINDS.add(kind);
+// AI voices (docs/ai-voices-build-plan.md, phase 1): a playback start in which at least one AI part sings (js/ai-voices.js).
+KINDS.add('ai_heard');
 // What's been built since (Hillel: "update the admin usage page with all of the new stuff, ie
 // courses, etc"): the skins, the Plus courses' extras, Hum a tune, the studio, the onboarding's
 // asks and Melody first. Still a number per kind per day; nothing about who.

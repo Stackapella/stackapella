@@ -72,7 +72,9 @@
                         "frames": 2304000,
                         "offsetFrames": 0,
                         "credit": "Sarah K.",
-                        "creditHandle": null
+                        "creditHandle": null,
+                        "source": "recorded",
+                        "aiBasedOn": null
                     },
                     "versions": [
                         {
@@ -84,6 +86,8 @@
                             "offsetFrames": 0,
                             "credit": "Sarah K.",
                             "creditHandle": null,
+                            "source": "recorded",
+                            "aiBasedOn": null,
                             "default": true
                         }
                     ],
@@ -159,7 +163,9 @@
                         "frames": 2116800,
                         "offsetFrames": 22050,
                         "credit": null,
-                        "creditHandle": null
+                        "creditHandle": null,
+                        "source": "recorded",
+                        "aiBasedOn": null
                     },
                     "versions": [
                         {
@@ -171,6 +177,8 @@
                             "offsetFrames": 22050,
                             "credit": null,
                             "creditHandle": null,
+                            "source": "recorded",
+                            "aiBasedOn": null,
                             "default": true
                         }
                     ],
@@ -247,8 +255,33 @@
                         "low": 65,
                         "high": 77
                     },
-                    "guide": null,
-                    "versions": [],
+                    "guide": {
+                        "id": "Ai7Sop",
+                        "partKey": "soprano",
+                        "url": "https://stackapella-media.nyc3.cdn.digitaloceanspaces.com/guides/5e1a5e1a5e1a5e1a5e1a5e1a5e1a5e1a.m4a",
+                        "sampleRate": 48000,
+                        "frames": 3024000,
+                        "offsetFrames": 0,
+                        "credit": null,
+                        "creditHandle": null,
+                        "source": "ai",
+                        "aiBasedOn": null
+                    },
+                    "versions": [
+                        {
+                            "id": "Ai7Sop",
+                            "partKey": "soprano",
+                            "url": "https://stackapella-media.nyc3.cdn.digitaloceanspaces.com/guides/5e1a5e1a5e1a5e1a5e1a5e1a5e1a5e1a.m4a",
+                            "sampleRate": 48000,
+                            "frames": 3024000,
+                            "offsetFrames": 0,
+                            "credit": null,
+                            "creditHandle": null,
+                            "source": "ai",
+                            "aiBasedOn": null,
+                            "default": true
+                        }
+                    ],
                     "shape": [
                         [
                             0,
@@ -280,8 +313,33 @@
                         "low": 58,
                         "high": 70
                     },
-                    "guide": null,
-                    "versions": [],
+                    "guide": {
+                        "id": "Ai7Alt",
+                        "partKey": "alto",
+                        "url": "https://stackapella-media.nyc3.cdn.digitaloceanspaces.com/guides/6f2b6f2b6f2b6f2b6f2b6f2b6f2b6f2b.m4a",
+                        "sampleRate": 48000,
+                        "frames": 3024000,
+                        "offsetFrames": 0,
+                        "credit": null,
+                        "creditHandle": null,
+                        "source": "ai",
+                        "aiBasedOn": "Ada E."
+                    },
+                    "versions": [
+                        {
+                            "id": "Ai7Alt",
+                            "partKey": "alto",
+                            "url": "https://stackapella-media.nyc3.cdn.digitaloceanspaces.com/guides/6f2b6f2b6f2b6f2b6f2b6f2b6f2b6f2b.m4a",
+                            "sampleRate": 48000,
+                            "frames": 3024000,
+                            "offsetFrames": 0,
+                            "credit": null,
+                            "creditHandle": null,
+                            "source": "ai",
+                            "aiBasedOn": "Ada E.",
+                            "default": true
+                        }
+                    ],
                     "shape": [
                         [
                             0,
@@ -313,8 +371,33 @@
                         "low": 53,
                         "high": 65
                     },
-                    "guide": null,
-                    "versions": [],
+                    "guide": {
+                        "id": "Ai7Ten",
+                        "partKey": "tenor",
+                        "url": "https://stackapella-media.nyc3.cdn.digitaloceanspaces.com/guides/7a3c7a3c7a3c7a3c7a3c7a3c7a3c7a3c.m4a",
+                        "sampleRate": 48000,
+                        "frames": 3024000,
+                        "offsetFrames": 0,
+                        "credit": null,
+                        "creditHandle": null,
+                        "source": "ai",
+                        "aiBasedOn": null
+                    },
+                    "versions": [
+                        {
+                            "id": "Ai7Ten",
+                            "partKey": "tenor",
+                            "url": "https://stackapella-media.nyc3.cdn.digitaloceanspaces.com/guides/7a3c7a3c7a3c7a3c7a3c7a3c7a3c7a3c.m4a",
+                            "sampleRate": 48000,
+                            "frames": 3024000,
+                            "offsetFrames": 0,
+                            "credit": null,
+                            "creditHandle": null,
+                            "source": "ai",
+                            "aiBasedOn": null,
+                            "default": true
+                        }
+                    ],
                     "shape": [
                         [
                             0,
@@ -346,8 +429,33 @@
                         "low": 41,
                         "high": 55
                     },
-                    "guide": null,
-                    "versions": [],
+                    "guide": {
+                        "id": "Ai7Bas",
+                        "partKey": "bass",
+                        "url": "https://stackapella-media.nyc3.cdn.digitaloceanspaces.com/guides/8b4d8b4d8b4d8b4d8b4d8b4d8b4d8b4d.m4a",
+                        "sampleRate": 48000,
+                        "frames": 3024000,
+                        "offsetFrames": 0,
+                        "credit": null,
+                        "creditHandle": null,
+                        "source": "ai",
+                        "aiBasedOn": null
+                    },
+                    "versions": [
+                        {
+                            "id": "Ai7Bas",
+                            "partKey": "bass",
+                            "url": "https://stackapella-media.nyc3.cdn.digitaloceanspaces.com/guides/8b4d8b4d8b4d8b4d8b4d8b4d8b4d8b4d.m4a",
+                            "sampleRate": 48000,
+                            "frames": 3024000,
+                            "offsetFrames": 0,
+                            "credit": null,
+                            "creditHandle": null,
+                            "source": "ai",
+                            "aiBasedOn": null,
+                            "default": true
+                        }
+                    ],
                     "shape": [
                         [
                             0,

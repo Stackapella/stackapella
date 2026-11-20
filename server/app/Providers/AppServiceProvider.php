@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Models\AdminSecondFactor;
+use App\Models\AiUpload;
+use App\Models\AiVoice;
 use App\Models\AuditLog;
 use App\Models\BetaAssignment;
 use App\Models\BetaFeedback;
@@ -177,6 +179,8 @@ final class AppServiceProvider extends ServiceProvider
             'beta_submission' => BetaSubmission::class,
             'beta_feedback' => BetaFeedback::class,
             'template_guide' => TemplateGuide::class,
+            'ai_voice' => AiVoice::class,
+            'ai_upload' => AiUpload::class,
             'course_clip' => CourseClip::class,
             'admin_second_factor' => AdminSecondFactor::class,
             'audit_log' => AuditLog::class,

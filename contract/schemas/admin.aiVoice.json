@@ -1,0 +1,110 @@
+{
+    "$id": "admin.aiVoice.json",
+    "title": "An AI voice, for Admin (docs/ai-voices-build-plan.md)",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "name",
+        "basedOn",
+        "credited",
+        "consent",
+        "status",
+        "withdrawnAt",
+        "guides"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "name": {
+            "type": "string",
+            "description": "The voice's label name, as Admin shows it."
+        },
+        "basedOn": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "Whose singing it was learned from, as the label names them (\"AI voice based on <name>'s singing\"); null for a voice not based on a named person."
+        },
+        "credited": {
+            "type": "boolean",
+            "description": "The singer chose to be named on the label. False, the app and the site show the plain AI label (aiBasedOn null)."
+        },
+        "consent": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "date",
+                "version",
+                "paymentNoted"
+            ],
+            "properties": {
+                "date": {
+                    "type": "string",
+                    "description": "The day they agreed, YYYY-MM-DD."
+                },
+                "version": {
+                    "type": "string",
+                    "description": "The consent text's version they agreed to."
+                },
+                "paymentNoted": {
+                    "type": "boolean",
+                    "description": "A payment to them is noted."
+                }
+            },
+            "description": "Null until their written consent is recorded; an AI guide of a voice without consent never leaves Admin."
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "active",
+                "withdrawn"
+            ]
+        },
+        "withdrawnAt": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "format": "date-time"
+        },
+        "guides": {
+            "type": "array",
+            "description": "Its live AI guides, for the withdraw modal's exact words; [] once withdrawn.",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "id",
+                    "templateId",
+                    "title",
+                    "version",
+                    "partKey"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "templateId": {
+                        "type": "string",
+                        "description": "The song's slug."
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "version": {
+                        "type": "integer"
+                    },
+                    "partKey": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}

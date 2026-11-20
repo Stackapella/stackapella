@@ -1,0 +1,161 @@
+{
+    "$id": "worker.ai.needs.json",
+    "title": "What a song's current version still needs (the worker API)",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "meta"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "template",
+                "version",
+                "versionId",
+                "title",
+                "data",
+                "parts"
+            ],
+            "properties": {
+                "template": {
+                    "type": "string",
+                    "description": "The song's slug."
+                },
+                "version": {
+                    "type": "integer"
+                },
+                "versionId": {
+                    "type": "string",
+                    "description": "The current version's Sqid: what an upload names."
+                },
+                "title": {
+                    "type": "string"
+                },
+                "data": {
+                    "type": "object",
+                    "description": "That version's template.json, exactly as stored, to render from."
+                },
+                "parts": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "key",
+                            "name",
+                            "hasRealGuide",
+                            "aiGuide",
+                            "pending",
+                            "wanted"
+                        ],
+                        "properties": {
+                            "key": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "hasRealGuide": {
+                                "type": "boolean",
+                                "description": "A recorded voice is published for this part of this version."
+                            },
+                            "aiGuide": {
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "additionalProperties": false,
+                                "required": [
+                                    "id",
+                                    "voice",
+                                    "publishedAt"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": "string"
+                                    },
+                                    "voice": {
+                                        "type": "string"
+                                    },
+                                    "publishedAt": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    }
+                                },
+                                "description": "The part's AI guide on this version, if any."
+                            },
+                            "pending": {
+                                "type": [
+                                    "object",
+                                    "null"
+                                ],
+                                "additionalProperties": false,
+                                "required": [
+                                    "upload",
+                                    "voice",
+                                    "status"
+                                ],
+                                "properties": {
+                                    "upload": {
+                                        "type": "string"
+                                    },
+                                    "voice": {
+                                        "type": "string"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "uploading",
+                                            "processing"
+                                        ]
+                                    }
+                                },
+                                "description": "The newest AI upload for this part still on its way, if any."
+                            },
+                            "wanted": {
+                                "type": "boolean",
+                                "description": "No recorded voice: an AI render may be uploaded (it replaces any AI guide already there)."
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "voices"
+            ],
+            "properties": {
+                "voices": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "name",
+                            "active"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "active": {
+                                "type": "boolean",
+                                "description": "False once withdrawn: never render with it."
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

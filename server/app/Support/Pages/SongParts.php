@@ -7,6 +7,7 @@ namespace App\Support\Pages;
 use App\Http\Resources\GuideRecording;
 use App\Models\Template;
 use App\Models\TemplateGuide;
+use App\Support\AiVoices\AiGuides;
 use App\Support\Flags;
 use App\Support\Http\Hosts;
 use App\Support\Languages\PartNames;
@@ -227,6 +228,7 @@ final class SongParts
         $data = (array) $template->currentVersion?->data;
         $voice = $this->voices(collect([$template]))->get($template->current_version_id.':'.$key)?->first();
         $credit = $voice !== null ? GuideRecording::of($voice) : null;
+        $real = $voice !== null && ! $voice->isAi();
         $base = Hosts::publicUrl().'/songs/'.$song->slug;
         $query = $version !== null ? '?'.http_build_query([SongVersions::PARAM => $version]) : '';
         $credits = (array) ($data['credits'] ?? []);
@@ -264,9 +266,11 @@ final class SongParts
                 'key' => $p['key'], 'name' => $p['name'], 'melody' => $p['melody'], 'lowName' => $p['lowName'], 'highName' => $p['highName'],
                 'url' => $base.'/'.$p['key'].$query, 'current' => $p['key'] === $key,
             ], $parts),
-            'guide' => ['synth' => true, 'realVoice' => $voice !== null, 'credit' => $credit['credit'] ?? null, 'creditHandle' => $credit['creditHandle'] ?? null],
-            // The same, by the API's name (docs/open-guide-voices-plan.md): the part pages' "Be the voice" shows where it's false.
-            'hasRealGuide' => $voice !== null,
+            // `source`: recorded, ai (an AI voice standing in, labelled as AI: docs/ai-voices-build-plan.md) or null (the synth).
+            'guide' => ['synth' => true, 'realVoice' => $real, 'credit' => $credit['credit'] ?? null, 'creditHandle' => $credit['creditHandle'] ?? null, 'source' => $credit['source'] ?? null, 'aiBasedOn' => $credit['aiBasedOn'] ?? null],
+            // The same, by the API's name (docs/open-guide-voices-plan.md): the part pages' "Be the voice" shows where it's false,
+            // an AI part's too (a real singer is still wanted).
+            'hasRealGuide' => $real,
             'startUrl' => Hosts::app('/?'.http_build_query(['song' => $template->slug, 'part' => $key, 'ref' => self::SOURCE])),
             'lastModified' => $this->changed($template, $voice),
         ];
@@ -312,9 +316,9 @@ final class SongParts
 
     /**
      * Each part's guide voice for a song's own page, in one look-up for all its parts: whether a real voice sings it,
-     * and its credit (GuideRecording), as each part page says it.
+     * and its credit (GuideRecording), as each part page says it; `source` and `aiBasedOn` label an AI voice.
      *
-     * @return array<string, array{realVoice: bool, credit: string|null, creditHandle: string|null}>
+     * @return array<string, array{realVoice: bool, credit: string|null, creditHandle: string|null, source: string|null, aiBasedOn: string|null}>
      */
     public function guides(Template $template): array
     {
@@ -323,21 +327,30 @@ final class SongParts
         foreach (self::parts($template) as $part) {
             $voice = $voices->get($template->current_version_id.':'.$part['key'])?->first();
             $credit = $voice !== null ? GuideRecording::of($voice) : null;
-            $guides[$part['key']] = ['realVoice' => $voice !== null, 'credit' => $credit['credit'] ?? null, 'creditHandle' => $credit['creditHandle'] ?? null];
+            $guides[$part['key']] = ['realVoice' => $voice !== null && ! $voice->isAi(), 'credit' => $credit['credit'] ?? null, 'creditHandle' => $credit['creditHandle'] ?? null, 'source' => $credit['source'] ?? null, 'aiBasedOn' => $credit['aiBasedOn'] ?? null];
         }
 
         return $guides;
     }
 
     /**
-     * Each part's real voices, the default first ("versionId:part").
+     * Whether AI guide voices are on for the site (the ai_voices switch for everyone): the About AI voices page is
+     * indexed only then.
+     */
+    public static function aiVoices(): bool
+    {
+        return AiGuides::on(null);
+    }
+
+    /**
+     * Each part's voices, the default first ("versionId:part"): recorded ones, and AI ones once ai_voices is on.
      *
      * @param  Collection<int, Template>  $songs
      * @return Collection<string, Collection<int, TemplateGuide>>
      */
     private function voices(Collection $songs): Collection
     {
-        return $this->catalogue->guides($songs->pluck('current_version_id')->filter()->map(static fn (mixed $id): int => (int) $id)->values()->all());
+        return $this->catalogue->guides($songs->pluck('current_version_id')->filter()->map(static fn (mixed $id): int => (int) $id)->values()->all(), AiGuides::on(null));
     }
 
     private function changed(Template $template, ?TemplateGuide $voice): string

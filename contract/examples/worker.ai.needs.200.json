@@ -1,0 +1,80 @@
+{
+    "data": {
+        "template": "silent-night",
+        "version": 8,
+        "versionId": "Tv8Sn2",
+        "title": "Silent Night",
+        "data": {
+            "format": "stackapella.template",
+            "formatVersion": 1,
+            "id": "silent-night",
+            "title": "Silent Night",
+            "...": "the version's template.json, exactly as stored"
+        },
+        "parts": [
+            {
+                "key": "soprano",
+                "name": "Soprano",
+                "hasRealGuide": false,
+                "aiGuide": {
+                    "id": "Ai7Sop",
+                    "voice": "Vc3Ad8",
+                    "publishedAt": "2026-11-21T08:40:00Z"
+                },
+                "pending": null,
+                "wanted": true
+            },
+            {
+                "key": "alto",
+                "name": "Alto",
+                "hasRealGuide": false,
+                "aiGuide": {
+                    "id": "Ai7Alt",
+                    "voice": "Vc3Ad8",
+                    "publishedAt": "2026-11-21T08:45:00Z"
+                },
+                "pending": null,
+                "wanted": true
+            },
+            {
+                "key": "tenor",
+                "name": "Tenor",
+                "hasRealGuide": false,
+                "aiGuide": null,
+                "pending": {
+                    "upload": "Up4Rn7",
+                    "voice": "Vc9Tn2",
+                    "status": "processing"
+                },
+                "wanted": true
+            },
+            {
+                "key": "bass",
+                "name": "Bass",
+                "hasRealGuide": true,
+                "aiGuide": null,
+                "pending": null,
+                "wanted": false
+            }
+        ]
+    },
+    "meta": {
+        "voices": [
+            {
+                "id": "Vc3Ad8",
+                "name": "Alto A",
+                "active": true
+            },
+            {
+                "id": "Vc9Tn2",
+                "name": "Tenor B",
+                "active": true
+            },
+            {
+                "id": "Vc1Wd5",
+                "name": "Soprano C",
+                "active": false
+            }
+        ]
+    }
+}

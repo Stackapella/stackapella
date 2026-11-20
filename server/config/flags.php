@@ -104,5 +104,12 @@ return [
     // growth export count only from the start of the day (Jerusalem time) it was turned on; nothing is deleted. Saving
     // it on again keeps that day; off shows all history again.
     'growth_fresh_start' => ['kind' => 'feature', 'values' => ['off', 'on']],
+    // AI voices (docs/ai-voices-build-plan.md). ai_voices: AI guides fill parts with no real voice in the app and on the
+    // site (only a voice whose consent is recorded; App\Support\AiVoices\AiGuides); off, they exist only in Admin.
+    // own_choir_teaser: the song pages' "Hear yourself as a choir, coming soon" button. own_choir: the record, wait and
+    // listen flow, for invited accounts first. All off until Hillel's gates (the singers' consent, the lawyer) are passed.
+    'ai_voices' => ['kind' => 'feature', 'values' => ['off', 'on']],
+    'own_choir_teaser' => ['kind' => 'feature', 'values' => ['off', 'on']],
+    'own_choir' => ['kind' => 'feature', 'values' => ['off', 'on']],
 
 ];

@@ -1,0 +1,44 @@
+{
+    "data": [
+        {
+            "id": "Vc3Ad8",
+            "name": "Alto A",
+            "basedOn": "Ada E.",
+            "credited": true,
+            "consent": {
+                "date": "2026-11-19",
+                "version": "ai-voice-1",
+                "paymentNoted": true
+            },
+            "status": "active",
+            "withdrawnAt": null,
+            "guides": [
+                {
+                    "id": "Ai7Alt",
+                    "templateId": "silent-night",
+                    "title": "Silent Night",
+                    "version": 8,
+                    "partKey": "alto"
+                }
+            ]
+        },
+        {
+            "id": "Vc9Tn2",
+            "name": "Tenor B",
+            "basedOn": null,
+            "credited": false,
+            "consent": null,
+            "status": "active",
+            "withdrawnAt": null,
+            "guides": [
+                {
+                    "id": "Ai2Ten",
+                    "templateId": "amazing-grace",
+                    "title": "Amazing Grace",
+                    "version": 2,
+                    "partKey": "tenor"
+                }
+            ]
+        }
+    ]
+}

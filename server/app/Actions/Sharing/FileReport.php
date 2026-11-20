@@ -22,10 +22,10 @@ use App\Models\Notice;
 use App\Models\Report;
 use App\Models\SongRequest;
 use App\Models\Template;
-use App\Models\TemplateGuide;
 use App\Models\User;
 use App\Notifications\Admin\OpsAlert;
 use App\Support\Admin\Admins;
+use App\Support\AiVoices\AiGuides;
 use App\Support\Gallery\Gallery;
 use App\Support\Http\Hosts;
 use App\Support\Ids;
@@ -284,7 +284,8 @@ final class FileReport
     private function recordedVoice(?User $user, array $data, string $ip): void
     {
         $voice = ($data['guideId'] ?? null) !== null
-            ? TemplateGuide::query()->with('templateVersion.template')->whereKey(Ids::decode((string) $data['guideId']) ?? 0)->first()
+            // An AI guide too, where this person can hear one (docs/ai-voices-build-plan.md).
+            ? AiGuides::shownWith(AiGuides::on($user))->with('templateVersion.template')->whereKey(Ids::decode((string) $data['guideId']) ?? 0)->first()
             : CourseClip::query()->where('slot', (string) ($data['clipSlot'] ?? ''))->whereNotNull('media_key')->first();
 
         if ($voice === null) {

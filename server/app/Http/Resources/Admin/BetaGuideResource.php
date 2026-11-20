@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * One real voice, for Hillel (contract/schemas/admin.beta.guide.json). Needs
+ * One voice, recorded or AI, for Hillel (contract/schemas/admin.beta.guide.json). Needs
  * submission.assignment.singer.user loaded.
  *
  * @property TemplateGuide $resource
@@ -45,6 +45,9 @@ final class BetaGuideResource extends JsonResource
             'reports' => (int) ($guide->getAttributes()['open_reports'] ?? 0),
             // That version's own take score, to compare a part's versions at a glance.
             'pitchPercent' => is_numeric($pitch = $guide->submission?->scores['pitchPercent'] ?? null) ? (int) round((float) $pitch) : null,
+            // Recorded or AI (docs/ai-voices-build-plan.md), and the AI voice that sang it.
+            'source' => $guide->source->value,
+            'aiVoice' => $guide->isAi() && ($voice = $guide->loadMissing('aiVoice')->aiVoice) !== null ? ['id' => $voice->sqid(), 'name' => $voice->name] : null,
         ];
     }
 }

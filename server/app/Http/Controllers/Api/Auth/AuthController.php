@@ -32,6 +32,7 @@ use App\Support\Accounts\Sessions;
 use App\Support\Accounts\SignInProviders;
 use App\Support\Accounts\SignInSession;
 use App\Support\Accounts\SignUpBrowser;
+use App\Support\AiVoices\AiGuides;
 use App\Support\Flags;
 use App\Support\Languages\Languages;
 use App\Support\Media\Instruments;
@@ -116,6 +117,8 @@ final class AuthController extends Controller
             'sheetImport' => app(SheetImport::class)->open($request->user()),
             // Lend your voice (the lend_voice switch): volunteers claim the missing real voices.
             'lendVoice' => $flags->on('lend_voice'),
+            // AI guide voices (the ai_voices switch, read for this account: docs/ai-voices-build-plan.md).
+            'aiVoices' => AiGuides::on($request->user() instanceof User ? $request->user() : null),
             // Song requests (the song_requests switch); staff see them before (account.songRequests).
             'songRequests' => $flags->on('song_requests'),
             'schools' => $flags->on('schools'),

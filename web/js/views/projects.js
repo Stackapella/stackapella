@@ -12,7 +12,8 @@ import { formatNumber, locale, t, timeAgo, tk } from '../i18n.js';
 import { publicSiteUrl } from '../hosts.js';
 import { navigate } from '../router.js';
 import { betaWaiting, homeBands, sangThisWeek } from '../home.js';
-import { creditsFor, loadCatalogue, recordingFor } from '../stores/catalogue.js';
+import { aiPartsOf, creditsFor, loadCatalogue, recordingFor } from '../stores/catalogue.js';
+import { AiVoiceLabel } from '../ai-voices.js';
 import { guideKey, keepAhead } from '../recorded-guides.js';
 import { defineAsyncComponent, markRaw, toRaw } from 'vue';
 import { createProject, deleteProject, loadProjects, projects, saveProject, shownTitle, startFromTemplate } from '../stores/projects.js';
@@ -90,8 +91,8 @@ const dialogLoader = lazyView(() => import('../components/dialogs.js').then((m) 
 const TemplateDialog = defineAsyncComponent(dialogLoader);
 
 export const ProjectsView = {
-    components: { LibraryFilters, StorageMeter, CreditLine, PlayerChip, DailyTag, CardMenu, HomeCourses, ThemeSwitch, Icon, Logo, TemplateDialog, HomeLead, HomeBand, SongCover, InstallCard, WeekCard, WorkoutStrip, StatusChip, Modal, Notice, RemindAsk, FirstWeek },
-    setup: () => ({ sungYet, GROUP_WORDS, templatePartName, ideas, mine, canStart, projects, account, learning, shownTitle, songTitle, formatTime, timeAgo, PART_COLORS, lengthBeats, partsFor, keyLabel, DIFFICULTY, creditsFor, navigate, BAND_COLORS, BETA_STATUS, publicSiteUrl, effect, dailyState }),
+    components: { AiVoiceLabel, LibraryFilters, StorageMeter, CreditLine, PlayerChip, DailyTag, CardMenu, HomeCourses, ThemeSwitch, Icon, Logo, TemplateDialog, HomeLead, HomeBand, SongCover, InstallCard, WeekCard, WorkoutStrip, StatusChip, Modal, Notice, RemindAsk, FirstWeek },
+    setup: () => ({ sungYet, GROUP_WORDS, templatePartName, ideas, mine, canStart, projects, account, learning, shownTitle, songTitle, formatTime, timeAgo, PART_COLORS, lengthBeats, partsFor, keyLabel, DIFFICULTY, creditsFor, aiPartsOf, navigate, BAND_COLORS, BETA_STATUS, publicSiteUrl, effect, dailyState }),
     data: () => ({ storageUsage: null, locked: false, taste: false, clip: null, templates: [], openTemplate: null, singers: 4, previewing: false, preparingPreview: false, starting: false, groups: null, choirParts: [], startingChoir: null, betaParts: null, avatarFailed: false, making: false, importProblems: null, sheetScore: null, sheetSaving: false, sheetView: null, sessionStore: null, songsOpen: tabStorage.get('stackapella.songsOpen') === '1', libraryFilters: keptFilters(), lookedAt: lastLooked(), newsCounted: null, yoursOpen: false, songColumns: songColumns(), newing: false, showInfo: false, songLoad: null, songNotHere: null, previewOf: null, playingSong: null, renaming: null, newName: '' }),
     template: `
         <div class="min-h-dvh">
@@ -210,6 +211,8 @@ export const ProjectsView = {
                                                 <!-- New, or Carol season (retention plan, idea 5): one pick at most, in the singer's range. -->
                                                 <span v-if="!songsOpen && news?.item === item" data-ui="tag" data-tone="yellow" class="rounded-full bg-raised px-2 py-0.5 text-[10px] font-bold text-cream" data-news-tag :data-news="news.kind">{{ newsWords }}</span>
                                                 <span v-if="creditsFor(item.tpl.id).length" data-ui="tag" data-tone="cyan" class="rounded-full bg-raised px-2 py-0.5 text-[10px] font-bold text-accent-strong">{{ t('home.songs.realVoices') }}</span>
+                                                <!-- The card's Play sings its AI parts too (js/ai-voices.js): the card says so, once, beside its other tags. -->
+                                                <AiVoiceLabel v-if="aiPartsOf(item.tpl.id).length" tag data-card-ai />
                                                 <span v-else-if="!item.tpl.reviewed" data-ui="tag" data-tone="pink" class="rounded-full bg-raised px-2 py-0.5 text-[10px] text-muted">{{ t('projects.draft') }}</span>
                                             </span>
                                         </span>
@@ -799,6 +802,9 @@ export const ProjectsView = {
             this.previewLevels();
             engine.play({});
             this.previewing = true;
+            // An AI part sings in this preview (js/ai-voices.js): one of the parts heard for the singers chosen.
+            const heard = new Set(partsFor(t, this.singers).map((part) => part.key));
+            if (t.parts.some((part, i) => guides[i]?.ai && heard.has(part.key))) count('ai_heard');
             const end = (lengthBeats(t) * 60) / t.tempo + 0.2;
             const watch = () => {
                 if (!this.previewing) return;

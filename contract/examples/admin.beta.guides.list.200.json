@@ -46,7 +46,9 @@
                                 "frames": 2304000,
                                 "offsetFrames": 0,
                                 "credit": "Sarah K.",
-                                "creditHandle": null
+                                "creditHandle": null,
+                                "source": "recorded",
+                                "aiBasedOn": null
                             },
                             "submissionId": "Tz4Kq8",
                             "singer": {
@@ -54,7 +56,9 @@
                                 "name": "Sarah Kim"
                             },
                             "publishedAt": "2026-10-26T15:51:00Z",
-                            "pitchPercent": 91
+                            "pitchPercent": 91,
+                            "source": "recorded",
+                            "aiVoice": null
                         }
                     ],
                     "needs": {
@@ -80,7 +84,35 @@
                 {
                     "key": "tenor",
                     "name": "Tenor",
-                    "guides": [],
+                    "guides": [
+                        {
+                            "id": "Ai2Ten",
+                            "partKey": "tenor",
+                            "isDefault": true,
+                            "recording": {
+                                "id": "Ai2Ten",
+                                "partKey": "tenor",
+                                "url": "https://stackapella-media.nyc3.cdn.digitaloceanspaces.com/guides/9c5e9c5e9c5e9c5e9c5e9c5e9c5e9c5e.m4a",
+                                "sampleRate": 48000,
+                                "frames": 2304000,
+                                "offsetFrames": 0,
+                                "credit": null,
+                                "creditHandle": null,
+                                "source": "ai",
+                                "aiBasedOn": null
+                            },
+                            "submissionId": null,
+                            "singer": null,
+                            "publishedAt": "2026-11-20T08:30:00Z",
+                            "pitchPercent": null,
+                            "reports": 0,
+                            "source": "ai",
+                            "aiVoice": {
+                                "id": "Vc9Tn2",
+                                "name": "Tenor B"
+                            }
+                        }
+                    ],
                     "needs": {
                         "voiced": false,
                         "review": [
@@ -127,12 +159,16 @@
                                 "frames": 2116800,
                                 "offsetFrames": 22050,
                                 "credit": null,
-                                "creditHandle": null
+                                "creditHandle": null,
+                                "source": "recorded",
+                                "aiBasedOn": null
                             },
                             "submissionId": null,
                             "singer": null,
                             "publishedAt": "2026-10-26T15:51:00Z",
-                            "pitchPercent": 91
+                            "pitchPercent": 91,
+                            "source": "recorded",
+                            "aiVoice": null
                         }
                     ],
                     "needs": {

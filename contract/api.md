@@ -216,6 +216,8 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `admin.beta.bar.update` | `PATCH /api/admin/beta/bar` | An admin | M2 |
 | `admin.beta.guides.default` | `POST /api/admin/beta/guides/{id}/default` | An admin | M2 |
 | `admin.beta.guides.delete` | `DELETE /api/admin/beta/guides/{id}` | An admin, in sudo | M2 |
+| `admin.aiVoices.list` | `GET /api/admin/ai-voices` | An admin or editor | AI voices |
+| `admin.aiVoices.withdraw` | `POST /api/admin/ai-voices/{id}/withdraw` | An admin, in sudo | AI voices |
 | `admin.beta.feedback.list` | `GET /api/admin/beta/feedback` | An admin or editor | M2 |
 | `admin.beta.feedback.read` | `POST /api/admin/beta/feedback/{id}/read` | An admin or editor | M2 |
 | `auth.config` | `GET /api/auth/config` | Anyone | M3 |
@@ -901,6 +903,10 @@ learner's own default. `"synth"` is the reserved id for the practice voice (vers
 of at least 6 characters, so they never collide with it). An empty list means `guide`, and ids no
 longer in `versions` drop out. When the default is removed, the version Hillel made default most
 recently takes over, else the newest, else the synth: never a broken part.
+
+**AI voices** (since 2026-11-20, behind `ai_voices`; "AI voices" below): a part with no recorded voice may have an AI
+guide, `source: "ai"` in its `guide` and `versions`. `hasRealGuide` counts recorded voices only, so it stays false and
+`wantsVoice` true for a part only an AI voice sings.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -1642,7 +1648,9 @@ visitor can try a live course's free first lesson; `account.plusCourses` is the 
 staff before it opens. `sheetImport` says whether sheet music import is open to this visitor (the `sheet_import`
 switch: `on` for everyone, `directors` for anyone who directs a choir group; off until its server rules
 are live; staff see it before). `lendVoice` says whether Lend
-your voice is on (the `lend_voice` switch). `languages` lists the languages open to everyone, English
+your voice is on (the `lend_voice` switch). `aiVoices` says whether AI guide voices are on for
+this person (the `ai_voices` switch, read for their account, so it can be on for one account first;
+"AI voices" below). `languages` lists the languages open to everyone, English
 first, then each whose switch is on (`lang_es`, `lang_de`): the app offers only these in Settings and
 follows the browser only into these (`?lang=` still shows a draft).
 `experiment` is the funnel's running A/B test, `{ "id": "onb1", "arms": ["a", "b"], "enrol": true }`,
@@ -6380,7 +6388,7 @@ account, address, browser or cookie, and the request starts no session, so the a
 `harmonise_used`, `export_done`, `result_shared` (a lesson's result card shared), `leaderboard_viewed`,
 `challenge_accepted`, `app_day`, `app_week` and `app_month` (each device once a UTC day, ISO week
 and month, at its first open in it, from the date it last sent one, kept on the device), `sign_up` (counted
-by the server itself for every new account: the app doesn't send it), and the usage page's own (config/counts.php `kinds`: the skins, Plus extras, Hum a tune, the studio, onboarding's asks and melody first, and the app's health where Sentry can't see it: `boot_failed` the "didn't start" screen shown, `boot_reset` its Reset tapped, `sw_cache_broken` a cached file the service worker found broken, `render_fallback` a song's render that fell back to the voices), and `<prefix>:<id>` for a course or lesson: `pl_s:` and `pl_d:` with a Plus course's `id` (web/course/plus/courses.json), `fl_s:` and `fl_d:` with a free lesson's `id` (web/course/course.json), `fs_r:<lessonId>.<step>` when a free lesson's step is reached (step from 0, in the lesson's own order or its experiment variant's; once per step each time the lesson is run), the same for every other course's lessons (a Plus or song course's) as `cl_s:<lessonId>` (started), `cl_d:<lessonId>` (finished) and `cs_r:<lessonId>.<step>` (lesson ids are unique across courses), `ft:<feature>` a feature's first use on the device (config/counts.php `features`), `br:<n>` how many of those features the device has tried (0 to 11, once a day beside `app_day`), `sh:<surface>.<method>` a share (a surface from config/counts.php `share_surfaces`, or a free tool's `tool-<slug>`; a method from `share_methods`), `tool_open:<slug>`, `tool_result:<slug>` and `tool_try:<slug>` a free tool first used on its page (the mic started, a note played), its result reached, and its way into the app tapped, and `try_shown:<feature>` and `try_tap:<feature>` the "try next" line, counted only for a real id (others are dropped); a kind is at most 64 characters; `n` is 1 to 20 (more counts as
+by the server itself for every new account: the app doesn't send it), and the usage page's own (config/counts.php `kinds`: the skins, Plus extras, Hum a tune, the studio, onboarding's asks and melody first, and the app's health where Sentry can't see it: `boot_failed` the "didn't start" screen shown, `boot_reset` its Reset tapped, `sw_cache_broken` a cached file the service worker found broken, `render_fallback` a song's render that fell back to the voices), `ai_heard` and `choir_teaser` ("AI voices"), and `<prefix>:<id>` for a course or lesson: `pl_s:` and `pl_d:` with a Plus course's `id` (web/course/plus/courses.json), `fl_s:` and `fl_d:` with a free lesson's `id` (web/course/course.json), `fs_r:<lessonId>.<step>` when a free lesson's step is reached (step from 0, in the lesson's own order or its experiment variant's; once per step each time the lesson is run), the same for every other course's lessons (a Plus or song course's) as `cl_s:<lessonId>` (started), `cl_d:<lessonId>` (finished) and `cs_r:<lessonId>.<step>` (lesson ids are unique across courses), `ft:<feature>` a feature's first use on the device (config/counts.php `features`), `br:<n>` how many of those features the device has tried (0 to 11, once a day beside `app_day`), `sh:<surface>.<method>` a share (a surface from config/counts.php `share_surfaces`, or a free tool's `tool-<slug>`; a method from `share_methods`), `tool_open:<slug>`, `tool_result:<slug>` and `tool_try:<slug>` a free tool first used on its page (the mic started, a note played), its result reached, and its way into the app tapped, and `try_shown:<feature>` and `try_tap:<feature>` the "try next" line, counted only for a real id (others are dropped); a kind is at most 64 characters; `n` is 1 to 20 (more counts as
 20); at most 20 events a request, 120 requests a minute from one connection (past it, the same `204`
 and nothing is counted: every sender is a beacon, and a browser logs a beacon's `429` as a console error).
 A request carrying the `sa_staff` cookie (an admin's device: set when an admin passes the second
@@ -7249,6 +7257,150 @@ text exists in `server/resources/legal/en/`. `$document = ['page', 'title', 'ver
 
 **Not there: `public.page-gone`** (`404`), with `$links = ['app' => '/songs' or '/']`.
 
+### AI voices
+
+AI guide voices fill parts nobody has recorded yet (docs/ai-voices-plan.md, track A; docs/ai-voices-build-plan.md),
+behind the `ai_voices` switch (`auth.config`'s `aiVoices`). Every guide (`guide.recording.json`) carries `source`:
+`recorded` (a real singer's take) or `ai`, and `aiBasedOn`: for an AI voice whose singer chose to be credited, the name
+for "AI voice based on <name>'s singing, with permission"; null for one not based on a named person or whose singer
+chose no credit (the plain AI label), and on a recorded guide. An AI guide's
+`credit` and `creditHandle` are null: it is labelled as AI wherever it is credited or chosen, never as a singer.
+
+- **Off** (for the person asking): no AI guide anywhere in the app's API (`templates.catalogue`, `templates.show`),
+  admins included; AI guides are seen only in Admin (`admin.beta.guides.list`, `admin.aiVoices.list`).
+- **On:** an AI guide is sent only for a part with no published recorded voice, and only once its voice's consent is
+  recorded. It's the part's default (`guide`; `default: true` in `versions`) and never the default over a recorded
+  one.
+- **A real voice replaces it:** publishing a recorded take for the part retires its AI guide at once (gone from the
+  answer and from the CDN).
+- **Never carried over:** a new template version starts with no AI guides (recorded ones carry over as before).
+- **Counts for nothing a real voice does:** `hasRealGuide`, `wantsVoice` and `voices.wanted` count recorded voices
+  only, so an AI part is still wanted; an AI part earns no XP, is never in a showreel, and never plays where only
+  recorded voices play (a page's `realOnly` player).
+- **Counts:** `counts.create` takes `ai_heard` (once per playback start in which at least one AI part sings: Sing, the
+  studio, a lesson, Home's preview, a song or part page) and `choir_teaser` (the site's "Hear yourself as a choir"
+  button, behind `own_choir_teaser`); the server counts `ai_replaced` itself when a real take retires an AI guide.
+- **Admin:** `admin.beta.guide.json` carries `source` and `aiVoice` (`{ id, name }` or null); an AI guide is retired
+  with `admin.beta.guides.delete`, as any guide is removed.
+
+#### `admin.aiVoices.list`
+
+Every AI voice, newest first: its label name, who it's based on, whether they chose to be named on the label
+(`credited`), their consent (null until recorded: until then its
+guides never leave Admin), active or withdrawn, and its live AI guides (for the withdraw modal to name exactly what
+goes). Voices are added, and consent recorded, by artisan commands (`app:ai-voice:add`, `app:ai-voice:consent`, the credit choice with the consent), not in Admin. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `admin.aiVoices.list.json` | `admin.aiVoices.list.200.json` |
+
+#### `admin.aiVoices.withdraw`
+
+The singer took back their consent, or Hillel took the voice down: every AI guide it sang is retired at once and purged
+from the CDN, its stored masters deleted, and the worker refuses it from then on (`voice_withdrawn`). Can't be undone:
+a voice coming back is a new voice with a new consent. `meta.retired` is how many guides went. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `admin.aiVoices.withdraw.json` | `admin.aiVoices.withdraw.200.json` |
+| 404 | `not_found` | `error.json` | `admin.aiVoices.withdraw.not_found.json` |
+| 409 | `already_withdrawn` | `error.json` | `admin.aiVoices.withdraw.already_withdrawn.json` |
+
+### The AI voices worker
+
+How the voices lane's batch renderer reaches the server (docs/ai-voices-build-plan.md, phase 1). Not the apps':
+`web/js/api.js` has no functions for these, and the app's contract test reads only the first operations table, above.
+
+| Operation | Method and path | Who | Since |
+|---|---|---|---|
+| `worker.ai.needs` | `GET /api/worker/ai/needs` | The AI voices worker | AI voices |
+| `worker.ai.uploads.create` | `POST /api/worker/ai/uploads` | The AI voices worker | AI voices |
+| `worker.ai.uploads.complete` | `POST /api/worker/ai/uploads/{id}/complete` | The AI voices worker | AI voices |
+| `worker.ai.uploads.show` | `GET /api/worker/ai/uploads/{id}` | The AI voices worker | AI voices |
+
+- **Auth:** `Authorization: Bearer <token>`, one token (Admin's power over AI guides only), kept only in the server's
+  env (`AI_WORKER_TOKEN`), never in the database or the repo. No session, cookie or CSRF. With no token set (or one
+  shorter than 32 characters) every worker route answers `404 not_found`: the API is off. A missing or wrong token is
+  `401 unauthenticated`. Limited (`ai-worker`).
+- **Not behind `ai_voices`:** the worker makes guides while the switch is off; they stay in Admin until it's on.
+- **Answers** are as the app's (the envelope, Sqids, camelCase, the error shape); `404 not_found` for a song, version,
+  part, voice or upload that isn't there.
+
+#### `worker.ai.needs`
+
+What a song's current version still needs. **Request:** `?template=<slug>` (required: one song at a time). The song
+must be an official, reviewed song. `data.data` is the version's `template.json` exactly as stored, to render from.
+Each part says whether a recorded voice is published (`hasRealGuide`), its AI guide on this version if any
+(`aiGuide`), the newest AI upload still on its way (`pending`), and `wanted`: true whenever no recorded voice sings
+it, even with an AI guide (a new upload replaces it). `meta.voices` is every AI voice, `active: false` once withdrawn
+(never render with it).
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `worker.ai.needs.json` | `worker.ai.needs.200.json` |
+| 404 | `not_found` | `error.json` | `worker.ai.needs.not_found.json` |
+| 422 | `validation_failed` | `error.json` | `worker.ai.needs.validation_failed.json` |
+
+#### `worker.ai.uploads.create`
+
+Start sending a checked master: a presigned PUT for the WAV ("Uploads", above). **Request:**
+
+```json
+{ "versionId": "Tv8Sn2", "part": "tenor", "voice": "Vc9Tn2", "sampleRate": 48000, "frames": 3024000,
+  "bytes": 6048044, "sha256": "<64 hex>",
+  "checks": { "pitchMaxCents": 24.5, "pitchMedianCents": 8.1, "notesMeasured": 41, "notesTotal": 41,
+    "notesOver15": 3, "notesOver30": 0, "dropouts": 2, "heldSeconds": 31.2, "durationSeconds": 63.0 },
+  "renderer": { "model": "soulx-singer", "codeRevision": "<40 hex>", "weightsRevision": "<40 hex>", "steps": 32,
+    "control": "melody", "pitchShift": 0, "reference": "daniella-alto" } }
+```
+
+The master is a 16-bit mono WAV at 48000 Hz (`bytes` is `44 + frames * 2`), at most 10 minutes, its frame 0 at the
+template's beat 0. `checks` are the voices lane's gates, stored for Admin: `notesOver30` must be 0 (a part with any
+note over 30 cents is never uploaded). `renderer.reference` is a short label, never a path or a URL. A part that
+already has an AI guide may be uploaded again: the new one replaces it when it's published.
+
+- `409 real_voice_exists`: a recorded voice is published for this part of this version;
+- `409 template_changed`: `versionId` isn't the song's current version;
+- `403 voice_withdrawn`: the voice was withdrawn;
+- `422`: the numbers don't add up, or a check or renderer field is missing.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 201 |  | `worker.ai.uploads.create.json` | `worker.ai.uploads.create.201.json` |
+| 403 | `voice_withdrawn` | `error.json` | `worker.ai.uploads.create.voice_withdrawn.json` |
+| 404 | `not_found` | `error.json` | `worker.ai.uploads.create.not_found.json` |
+| 409 | `real_voice_exists` | `error.json` | `worker.ai.uploads.create.real_voice_exists.json` |
+| 409 | `template_changed` | `error.json` | `worker.ai.uploads.create.template_changed.json` |
+| 422 | `validation_failed` | `error.json` | `worker.ai.uploads.create.validation_failed.json` |
+
+#### `worker.ai.uploads.complete`
+
+The PUT is done: the server copies the file to a key no link points at, checks its size and SHA-256 (`409
+upload_incomplete`, `409 upload_mismatch`: send it again, then call this again) and answers `processing`. A job then
+checks the audio itself (a 16-bit mono WAV at 48000 Hz of `frames`; else `failed` with `bad_audio`) and publishes it
+as a guide the way a beta take is (levelled to the guides' loudness, encoded as AAC, on the CDN at an immutable key):
+`published` with its `guideId`, retiring the part's earlier AI guide. If a recorded voice was published, the version
+replaced or the voice withdrawn meanwhile, it ends `failed` (`real_voice_exists`, `template_changed`,
+`voice_withdrawn`) and nothing goes up; `publish_failed` if encoding or storage broke after its tries (send it again).
+An upload never completed within the hour ends `expired`. Called again past `uploading`, it answers the upload as it
+is. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `worker.ai.uploads.complete.json` | `worker.ai.uploads.complete.200.json` |
+| 404 | `not_found` | `error.json` | `worker.ai.uploads.complete.not_found.json` |
+| 409 | `upload_incomplete` | `error.json` | `worker.ai.uploads.complete.upload_incomplete.json` |
+| 409 | `upload_mismatch` | `error.json` | `worker.ai.uploads.complete.upload_mismatch.json` |
+
+#### `worker.ai.uploads.show`
+
+An upload as it is now, to wait for `published` or `failed`. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `worker.ai.uploads.show.json` | `worker.ai.uploads.show.200.json` |
+| 404 | `not_found` | `error.json` | `worker.ai.uploads.show.not_found.json` |
+
 ## Shared formats
 
 | Schema | What |
@@ -7257,6 +7409,6 @@ text exists in `server/resources/legal/en/`. `$document = ['page', 'title', 'ver
 | `error.json` | Every error response |
 | `meta.json` | A list's `meta` (the next page's cursor) |
 | `admin.person.json` | Who did something in the admin (a Sqid and a name), or `null` |
-| `guide.recording.json` | A real voice for one part of one template version (with a nullable form at `#/$defs/nullable`) |
+| `guide.recording.json` | A voice for one part of one template version, recorded or AI (`source`), with a nullable form at `#/$defs/nullable` |
 | `account.json` | The signed-in person's own account |
 | `upload.json` | A presigned PUT: the URL, the headers to send, and when it expires |

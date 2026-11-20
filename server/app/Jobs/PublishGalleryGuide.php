@@ -10,6 +10,7 @@ use App\Models\Part;
 use App\Models\Take;
 use App\Models\TemplateGuide;
 use App\Services\Audio\Ffmpeg;
+use App\Support\AiVoices\AiGuides;
 use App\Support\Gallery\Gallery;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -75,6 +76,9 @@ final class PublishGalleryGuide implements ShouldQueue
                 }
 
                 $partKey = (string) $part->template_part_key;
+                // A real voice for the part: its AI stand-in goes at once (docs/ai-voices-build-plan.md), first, as a part has
+                // one default (template_guides.default_slot) and the AI one holds it.
+                AiGuides::retireForPart($harmony->template_version_id, $partKey);
                 $hasDefault = TemplateGuide::query()->where('template_version_id', $harmony->template_version_id)->where('part_key', $partKey)->where('is_default', true)->lockForUpdate()->exists();
                 $isDefault = $this->makeDefault || ! $hasDefault;
 

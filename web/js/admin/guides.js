@@ -1,19 +1,21 @@
 // Real voices per song (docs/beta-singers-plan.md, "Guides per part" and "Progress"): each part's
 // default voice and its alternates, "3 of 4 parts are real voices", which parts still need a
 // singer, the default switched in one click (learners hear it at once), and a guide removed on a
-// singer's request (in sudo).
+// singer's request (in sudo). An AI guide (docs/ai-voices-build-plan.md: `source: "ai"`) is marked as AI, its voice named,
+// never counted as a real voice, and retired the same way (admin.beta.guides.delete), in a sheet that says it's the AI one.
 
 import { api } from '../api.js';
 import { formatList, t } from '../i18n.js';
 import { templatePartName } from '../templates.js';
 import { EmptyState, StatusChip } from '../components/form.js';
+import { AiVoiceLabel } from '../ai-voices.js';
 import { Icon } from '../components/icon.js';
 import { toast } from '../components/ui.js';
 import { ChangeSheet, LoadFailed, loadInto, refused, when } from './common.js';
 import { PartNeeds } from './needs.js';
 
 export const GuidesSection = {
-    components: { ChangeSheet, EmptyState, LoadFailed, PartNeeds, StatusChip, Icon },
+    components: { AiVoiceLabel, ChangeSheet, EmptyState, LoadFailed, PartNeeds, StatusChip, Icon },
     props: { me: { type: Object, required: true } },
     data: () => ({ songs: null, failed: false, playing: null, removing: null, busy: false, errors: null, abuse: false, clips: null }),
     setup: () => ({ templatePartName, when }),
@@ -49,6 +51,7 @@ export const GuidesSection = {
                             <ul v-else class="mt-1 space-y-1.5">
                                 <li v-for="guide in part.guides" :key="guide.id" class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
                                     <button type="button" class="btn-ghost btn-sm" :aria-pressed="playing?.id === guide.id" :aria-label="playing?.id === guide.id ? t('studio.stop') : t('admin.guides.play', { name: who(guide) })" @click="play(guide)"><Icon :name="playing?.id === guide.id ? 'stop' : 'play'" :size="14" /></button>
+                                    <AiVoiceLabel v-if="isAiGuide(guide)" tag data-guide-ai />
                                     <span class="min-w-0 flex-1 text-cream"><span translate="no">{{ who(guide) }}</span> <span class="text-muted">· {{ when(guide.publishedAt) }}<template v-if="guide.pitchPercent !== null && guide.pitchPercent !== undefined"> · {{ t('admin.review.onPitch', { percent: guide.pitchPercent }) }}</template></span></span>
                                     <StatusChip v-if="guide.reports" tone="warn" :label="t('admin.guides.reports', { count: guide.reports })" data-guide-reports />
                                     <StatusChip v-if="isBest(part, guide)" tone="info" :label="t('admin.guides.best')" />
@@ -57,7 +60,7 @@ export const GuidesSection = {
                                         <button type="button" class="btn-ghost btn-sm" :disabled="busy" @click="makeDefault(song, guide)">{{ t('admin.guides.makeDefault') }}</button>
                                     </template>
                                     <StatusChip v-if="!guide.isDefault" tone="muted" :label="t('admin.guides.alternate')" />
-                                    <button v-if="isAdmin" type="button" class="btn-ghost btn-sm text-bad" data-guide-withdraw @click="ask(song, guide, part)">{{ t('admin.withdraw.button') }}</button>
+                                    <button v-if="isAdmin" type="button" class="btn-ghost btn-sm text-bad" data-guide-withdraw :data-guide-retire="isAiGuide(guide) ? '' : null" @click="ask(song, guide, part)">{{ isAiGuide(guide) ? t('admin.aiVoices.retire') : t('admin.withdraw.button') }}</button>
                                 </li>
                             </ul>
                             <!-- What this part needs (takes to review, changed, no singer) and its singers, with Ask again. -->
@@ -77,7 +80,10 @@ export const GuidesSection = {
                     </li>
                 </ul>
             </section>
-            <ChangeSheet v-if="removing" :title="removing.clip ? t('admin.guides.removeTitle', { name: removing.clip.assignee?.name ?? removing.clip.id }) : t('admin.guides.withdrawTitle', { name: who(removing.guide), part: removing.part, song: removing.song.title })" :me="me" :busy="busy" :errors="errors" :reasoned="false" @close="removing = null" @confirm="remove">
+            <ChangeSheet v-if="removing && removing.ai" :title="t('admin.aiVoices.retireTitle', { part: removing.part, song: removing.song.title })" :confirm-label="t('admin.aiVoices.retireConfirm', { part: removing.part })" :me="me" :busy="busy" :errors="errors" :reasoned="false" @close="removing = null" @confirm="remove">
+                <p class="text-cream" data-guide-retire-sheet>{{ t('admin.aiVoices.retireBody', { name: who(removing.guide), part: removing.part, song: removing.song.title }) }}</p>
+            </ChangeSheet>
+            <ChangeSheet v-else-if="removing" :title="removing.clip ? t('admin.guides.removeTitle', { name: removing.clip.assignee?.name ?? removing.clip.id }) : t('admin.guides.withdrawTitle', { name: who(removing.guide), part: removing.part, song: removing.song.title })" :me="me" :busy="busy" :errors="errors" :reasoned="false" @close="removing = null" @confirm="remove">
                 <p class="text-cream">{{ removing.clip ? t('admin.guides.removeClipBody') : t('admin.guides.removeBody') }}</p>
                 <!-- For abuse: the volunteer who sang it can't lend their voice again. -->
                 <label class="check-row"><input v-model="abuse" type="checkbox" class="checkbox" data-remove-abuse /> <span>{{ t('admin.guides.forAbuse') }}<span class="block text-sm text-muted">{{ t('admin.guides.forAbuseHelp') }}</span></span></label>
@@ -104,11 +110,15 @@ export const GuidesSection = {
             api.admin.beta.clips.list().then(({ data }) => (this.clips = (data ?? []).filter((c) => c.status === 'published')), (error) => console.warn('Clips did not load', error));
             return loadInto(this, 'songs', () => api.admin.beta.guides.list());
         },
+        /** Parts a real voice sings (an AI guide is a stand-in, never counted as one). */
         withVoice(song) {
-            return song.parts.filter((p) => p.guides.length).length;
+            return song.parts.filter((p) => p.guides.some((g) => !this.isAiGuide(g))).length;
         },
         needed(song) {
-            return song.parts.filter((p) => !p.guides.length).map((p) => templatePartName(p)).join(', ');
+            return song.parts.filter((p) => !p.guides.some((g) => !this.isAiGuide(g))).map((p) => templatePartName(p)).join(', ');
+        },
+        isAiGuide(guide) {
+            return guide.source === 'ai';
         },
         /** The credit learners see, else the singer's name, else (a guide of Hillel's own) none. */
         /** The version of a part with the best pitch score, when there are versions to compare. */
@@ -117,6 +127,7 @@ export const GuidesSection = {
             return scored.length > 1 && guide.pitchPercent === Math.max(...scored.map((g) => g.pitchPercent));
         },
         who(guide) {
+            if (this.isAiGuide(guide)) return guide.aiVoice?.name ?? t('aiVoice.tag');
             return guide.recording.credit || guide.singer?.name || t('admin.guides.anonymous');
         },
         /** Plays (or stops) a guide: one at a time. */
@@ -151,7 +162,7 @@ export const GuidesSection = {
         ask(song, guide, part) {
             this.errors = null;
             this.abuse = false;
-            this.removing = { song, guide, part: templatePartName(part) };
+            this.removing = { song, guide, part: templatePartName(part), ai: this.isAiGuide(guide) };
         },
         askClip(clip) {
             this.errors = null;
@@ -161,7 +172,7 @@ export const GuidesSection = {
         async remove() {
             this.busy = true;
             try {
-                const body = this.abuse ? { abuse: true } : {};
+                const body = this.abuse && !this.removing.ai ? { abuse: true } : {};
                 if (this.removing.clip) await api.admin.beta.removeClip(this.removing.clip.id, body);
                 else await api.admin.beta.guides.delete(this.removing.guide.id, body);
                 this.removing = null;

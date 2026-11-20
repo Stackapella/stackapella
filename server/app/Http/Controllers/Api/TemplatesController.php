@@ -19,6 +19,7 @@ use App\Models\TemplateGuide;
 use App\Models\TemplateRecording;
 use App\Models\TemplateVersion;
 use App\Models\User;
+use App\Support\AiVoices\AiGuides;
 use App\Support\Rights\RightsHere;
 use App\Support\Templates\Catalogue;
 use App\Support\Templates\FirstPhrase;
@@ -56,8 +57,9 @@ final class TemplatesController extends Controller
         // Who may start it (Catalogue::grant): a free song anyone, any other an account.
         $startable = static fn (array $song): bool => $song['_free'] || $user !== null;
         $versionIds = static fn (array $songs): array => array_values(array_filter(array_map(static fn (array $song): ?int => $song['_versionId'], $songs)));
-        $guides = $catalogue->guides($versionIds(array_filter($songs, $startable)));
-        // Which parts have a real voice, for every song (one read): hasRealGuide and wantsVoice.
+        $guides = $catalogue->guides($versionIds(array_filter($songs, $startable)), AiGuides::on($user));
+        // Which parts have a real voice, for every song (one read): hasRealGuide and wantsVoice. Recorded voices only
+        // (TemplateGuide's RecordedGuides scope): a part only an AI voice sings is still wanted.
         $voiced = TemplateGuide::query()->where('is_default', true)->whereIn('template_version_id', $versionIds($songs))
             ->get(['template_version_id', 'part_key'])->mapWithKeys(static fn (TemplateGuide $g): array => [$g->template_version_id.':'.$g->part_key => true])->all();
 
@@ -127,9 +129,9 @@ final class TemplatesController extends Controller
             // On the request the middleware holds (a FormRequest is a copy of it).
             app('request')->attributes->set(Revalidate::ATTRIBUTE, true);
         }
-        $voices = $grant === 'phrase' ? collect() : $catalogue->guides([$version->id])->flatten(1)->values();
+        $voices = $grant === 'phrase' ? collect() : $catalogue->guides([$version->id], AiGuides::on($user))->flatten(1)->values();
         // The phrase is its own answer, never a 304 against the whole song's.
-        $etag = '"'.hash('sha256', $version->sha256.($grant === 'phrase' ? '|phrase' : '').'|'.$voices->map(fn (TemplateGuide $g): string => $g->id.':'.$g->is_default.':'.$g->submission?->assignment->singer->credit())->implode(',')).'"';
+        $etag = '"'.hash('sha256', $version->sha256.($grant === 'phrase' ? '|phrase' : '').'|'.$voices->map(fn (TemplateGuide $g): string => $g->id.':'.$g->is_default.':'.$g->source->value.':'.$g->aiBasedOn().':'.$g->submission?->assignment->singer->credit())->implode(',')).'"';
 
         if ($request->headers->get('If-None-Match') === $etag) {
             return response()->noContent(304)->setEtag(trim($etag, '"'));

@@ -26,5 +26,6 @@ export async function realKeyFit(template, partKey, range) {
     const found = versionsFor(template.id, partKey);
     const recording = found ? (found.versions.find((v) => v.default) ?? found.versions[0]) : null;
     if (!recording || !recordingApplies({ recording, version: found.version, template })) return null;
-    return { transpose: 0, octave: 0, fits: true, real: true };
+    // An AI voice keeps the song's key too, but it's never said to be a real one (js/ai-voices.js).
+    return { transpose: 0, octave: 0, fits: true, real: recording.source !== 'ai' };
 }

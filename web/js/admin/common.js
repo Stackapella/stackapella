@@ -102,6 +102,7 @@ export const ChangeSheet = {
         reasoned: { type: Boolean, default: true },
         needsSudo: { type: Boolean, default: true }, // the server asks for a recent second factor
         told: Boolean, // the reason goes to the person as their notice's note (views/notices.js), not only the audit log
+        confirmLabel: { type: String, default: null }, // the button names the exact action (withdraw this voice), else the generic confirm
     },
     emits: ['close', 'confirm'],
     data: () => ({ reason: '' }),
@@ -124,7 +125,7 @@ export const ChangeSheet = {
                 <Notice v-if="needsSudo && !sudo" tone="info">{{ t('admin.sudoFirst') }}</Notice>
                 <div class="flex justify-end gap-3">
                     <button type="button" class="btn-secondary" :disabled="busy" @click="$emit('close')">{{ t('common.cancel') }}</button>
-                    <button type="submit" class="btn-primary" :disabled="busy || (reasoned && !reason.trim())">{{ busy ? t('common.saving') : t('admin.confirmChange') }}</button>
+                    <button type="submit" class="btn-primary" :disabled="busy || (reasoned && !reason.trim())">{{ busy ? t('common.saving') : confirmLabel ?? t('admin.confirmChange') }}</button>
                 </div>
             </form>
         </Modal>`,

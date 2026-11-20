@@ -246,6 +246,7 @@ return [
     'group_song' => 'That song isn\'t one of the group\'s.',
     'take_too_long' => 'A take can be at most 10 minutes long.',
     'take_bytes' => 'The file\'s size doesn\'t match a 16-bit mono WAV of that many frames.',
+    'ai_master_bytes' => 'The file must be a 16-bit mono WAV of the frames sent.',
     'take_scores' => 'The quality check\'s results are too large.',
     'take_key' => 'A guide is sung in the song\'s original key, :key.',
     'clip_assigned' => 'This singer already has that clip.',

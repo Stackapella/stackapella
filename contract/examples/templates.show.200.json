@@ -1101,6 +1101,8 @@
                 "offsetFrames": 0,
                 "credit": "Sarah K.",
                 "creditHandle": null,
+                "source": "recorded",
+                "aiBasedOn": null,
                 "default": true
             }
         ],

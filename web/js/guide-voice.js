@@ -9,7 +9,7 @@ import { guideKey, loadRecordedGuide, recordingApplies } from './recorded-guides
 import { catalogueStore } from './lazy-stores.js';
 
 /**
- * `part` of `template` at `sampleRate`: `{ samples, offsetSeconds, real }`, its real voice when one applies and loads,
+ * `part` of `template` at `sampleRate`: `{ samples, offsetSeconds, real, ai }`, its real voice when one applies and loads,
  * else what `synth()` renders (offset 0).
  */
 export async function partVoice(template, part, sampleRate, synth) {
@@ -28,7 +28,8 @@ export async function partVoice(template, part, sampleRate, synth) {
                 notes: part.guide?.notes ?? null,
                 secondsPerBeat: 60 / template.tempo,
             });
-            return { samples: voice.samples, offsetSeconds: voice.offsetSeconds, real: true };
+            // `ai`: an AI voice sings it (js/ai-voices.js; the catalogue offers one only while the switch is on).
+            return { samples: voice.samples, offsetSeconds: voice.offsetSeconds, real: true, ai: recording.source === 'ai' };
         } catch (error) {
             console.warn('The real voice could not load: the synth sings it', error);
         }

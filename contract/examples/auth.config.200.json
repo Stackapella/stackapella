@@ -21,6 +21,7 @@
         "songRequests": false,
         "sheetImport": false,
         "lendVoice": false,
+        "aiVoices": false,
         "experiment": null,
         "experiments": [
             {

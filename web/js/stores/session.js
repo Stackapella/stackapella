@@ -31,7 +31,7 @@ import { barAt } from '../theory.js';
 import { toast } from '../components/ui.js';
 import { earn, learning, practised } from './learning.js';
 import { onCloudChange, refreshShared } from './cloud.js';
-import { account } from './account.js';
+import { account, configKnown } from './account.js';
 import { mayChangePart } from '../sync.js';
 import { FADE_SECONDS, joinPoints, matchGain, soundsDifferent, splice } from '../patch.js';
 import { heardSpan, lineUp, trimmedSamples, trimsOf } from '../trim.js';
@@ -41,6 +41,7 @@ import { compress, DEFAULT_ROOM, impulseResponse, levelGains, limit, polishRende
 import { prefs } from './prefs.js';
 import { local, session as tabStorage } from '../storage.js';
 import { count, tried } from '../usage.js';
+import { countAiHeard, isAi } from '../ai-voices.js';
 import { keptIn } from '../unit-song.js';
 import { chipCountIn } from '../game/modules.js';
 
@@ -185,8 +186,9 @@ export async function openSession(id, { refresh = true } = {}) {
     if (session.project.template) {
         // withOthers and compare were once saved by the review's listening: they follow the way you sing now.
         session.project.practice = { ...PRACTICE_DEFAULTS, ...session.project.practice, withOthers: false, compare: false };
-        // Real voices come from the catalogue: wait a moment for it, then go with what's known.
-        await Promise.race([loadCatalogue(), new Promise((resolve) => setTimeout(resolve, 1500))]);
+        // Real voices come from the catalogue, and whether AI voices are on from auth.config (js/ai-voices.js): wait a moment
+        // for both, then go with what's known.
+        await Promise.race([Promise.all([loadCatalogue(), configKnown()]), new Promise((resolve) => setTimeout(resolve, 1500))]);
         if (session.openedId !== id) return;
         prepareGuides(engine.unlocked ? engine.sampleRate : GUIDE_PEAKS_RATE);
     }
@@ -438,7 +440,7 @@ export function chosenVoices(practice, partKey) {
 function voiceChoice(slot, speed = session.practice?.speed ?? 1) {
     const template = session.project.template;
     const found = session.project.beta ? betaVoice(slot) : versionsFor(template.id, slot.templatePartKey);
-    if (!found) return { recordings: [], why: null, credit: null, versions: [], chosen: [] };
+    if (!found) return { recordings: [], why: null, credit: null, ai: false, aiBasedOn: null, versions: [], chosen: [] };
     const transpose = session.project.transpose || 0;
     const chosen = chosenVoices(session.practice, slot.templatePartKey);
     const synth = chosen.includes('synth');
@@ -447,7 +449,8 @@ function voiceChoice(slot, speed = session.practice?.speed ?? 1) {
     if (!picked.length) picked = [found.versions.find((v) => v.default) ?? found.versions[0]];
     const applies = picked.every((recording) => recordingApplies({ recording, version: found.version, template, transpose, speed, voice: synth ? 'synth' : 'real' }));
     const why = applies ? null : synth ? 'chosen' : found.version !== template.version ? 'version' : transpose !== 0 ? 'key' : 'speed';
-    return { recordings: applies ? picked : [], why, credit: picked[0].credit, credits: picked.map((r) => r.credit), versions: found.versions, chosen: synth ? ['synth'] : picked.map((r) => r.id) };
+    // `ai`: the voice picked is an AI one (js/ai-voices.js), so wherever it's credited it says so, never a singer's name.
+    return { recordings: applies ? picked : [], why, credit: picked[0].credit, credits: picked.map((r) => r.credit), ai: isAi(picked[0]), aiBasedOn: picked[0].aiBasedOn ?? null, versions: found.versions, chosen: synth ? ['synth'] : picked.map((r) => r.id) };
 }
 
 /** A beta project's real voice for a part: the ones My parts sent, for the version being recorded. */
@@ -517,7 +520,7 @@ function realComing(part) {
 /** The synth for a slot whose real voice is still on its way (said so in its voice: `loading`). */
 async function renderSynth(part, { template, transpose, sampleRate, voices, speed = session.practice?.speed ?? 1 }) {
     const choice = voiceChoice(part, speed);
-    voices[part.id] = { kind: 'synth', credit: choice.credit, credits: choice.credits ?? [], versions: choice.versions, chosen: choice.chosen, why: null, url: null, offsetSeconds: 0, loading: true };
+    voices[part.id] = { kind: 'synth', credit: choice.credit, credits: choice.credits ?? [], ai: choice.ai, aiBasedOn: choice.aiBasedOn, versions: choice.versions, chosen: choice.chosen, why: null, url: null, offsetSeconds: 0, loading: true };
     const samples = await renderGuide({ templateId: template.id, templateVersion: template.version, part: templatePart(part), tempo: template.tempo, transpose, speed, sampleRate });
     return { samples, sampleRate, offsetSeconds: 0 };
 }
@@ -550,7 +553,7 @@ async function realVoicesAfter(parts, { key, template, transpose, sampleRate, vo
 /** One slot's guide: its real voice when it applies and loads, otherwise the synth. */
 async function renderOne(part, { template, transpose, sampleRate, voices, speed = session.practice?.speed ?? 1 }) {
     const choice = voiceChoice(part, speed);
-    const about = { credit: choice.credit, credits: choice.credits ?? [], versions: choice.versions, chosen: choice.chosen };
+    const about = { credit: choice.credit, credits: choice.credits ?? [], ai: choice.ai, aiBasedOn: choice.aiBasedOn, versions: choice.versions, chosen: choice.chosen };
     if (choice.recordings.length && choice.recordings.every((r) => !kept.failedVoices.has(r.url))) {
         try {
             const decoder = new OfflineAudioContext(1, 1, sampleRate);
@@ -1215,6 +1218,7 @@ export async function togglePlay() {
 
 /** Plays from the position, or loops the selected phrase when looping is on. */
 export function startPlayback({ to = null } = {}) {
+    const starting = !session.playing; // a seek while playing carries on the same playback
     const phrase = session.practice?.loop ? session.phraseList[session.practice.phrase] : null;
     if (!Number.isFinite(session.position) || session.position < 0) session.position = 0;
     engine.play({
@@ -1228,6 +1232,11 @@ export function startPlayback({ to = null } = {}) {
         loop: phrase ? { startSeconds: phrase.startSeconds, endSeconds: phrase.endSeconds } : null,
     });
     session.playing = true;
+    if (starting) {
+        // Only guides that sound: a part whose guide the mix leaves out (muted, a solo elsewhere, its take instead) doesn't count.
+        const all = levels();
+        countAiHeard(session.parts.filter((p) => all.get(guideId(p.id))?.audible).map((p) => session.guideVoices?.[p.id]));
+    }
     singing();
     tick();
 }

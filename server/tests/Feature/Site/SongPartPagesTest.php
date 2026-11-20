@@ -79,7 +79,7 @@ final class SongPartPagesTest extends TestCase
         $this->assertNotSame('', $page['song']['description']);
         $this->assertSame(['soprano', 'alto', 'tenor', 'bass'], array_column($page['parts'], 'key'));
         $this->assertSame([false, true, false, false], array_column($page['parts'], 'current'));
-        $this->assertSame(['synth' => true, 'realVoice' => false, 'credit' => null, 'creditHandle' => null], $page['guide']);
+        $this->assertSame(['synth' => true, 'realVoice' => false, 'credit' => null, 'creditHandle' => null, 'source' => null, 'aiBasedOn' => null], $page['guide']);
         $this->assertStringContainsString('song=amazing-grace&part=alto&ref=part-page', $page['startUrl']);
         $this->assertStringNotContainsString('pitch', (string) json_encode($page));
         $this->assertStringNotContainsString('media', (string) json_encode($page));

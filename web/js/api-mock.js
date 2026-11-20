@@ -187,6 +187,13 @@ async function stateful(operation, params, body, cases, query = {}) {
             const as = tabStorage.get('stackapella.mockAs') || 'member';
             return respond(200, { data: { ...data, grant: as === 'signedOut' ? 'open' : 'account', template: { ...data.template, id: params.id, reviewed: true } } });
         }
+        // With AI voices on for the tab (stackapella.mockAiVoices): the example song (Silent Night) at the catalogue's
+        // version, as the server answers it, so its AI guides apply (a guide plays only on its own version).
+        if (tabStorage.get('stackapella.mockAiVoices') === '1' && !query?.version && (tabStorage.get('stackapella.mockAs') || 'member') !== 'signedOut' && !scenarios().some((s) => s.startsWith('templates.show:'))) {
+            const { data } = await example('templates.show.200.json');
+            const listed = (await example('templates.catalogue.200.json')).data.find((song) => song.id === data.template.id);
+            if (params.id === data.template.id && listed) return respond(200, { data: { ...data, template: { ...data.template, version: listed.version } } });
+        }
         // Any other library song to a guest: its first phrase (`grant: "phrase"`, as the server cuts it: templates.firstPhrase),
         // no recorded voices; a scenario (templates.show:account_required) still answers as it says.
         if ((tabStorage.get('stackapella.mockAs') || 'member') === 'signedOut' && !scenarios().some((s) => s.startsWith('templates.show:'))) {
@@ -220,7 +227,9 @@ async function stateful(operation, params, body, cases, query = {}) {
         const selfHosted = tabStorage.get('stackapella.mockSelfHosted') === '1' || !!data.selfHosted;
         // Songs withheld where the visitor is, for a flow (stackapella.mockWithheld, this tab): js/withheld.js swaps them.
         const withheldSongs = JSON.parse(tabStorage.get('stackapella.mockWithheld') || 'null') ?? data.withheldSongs ?? [];
-        return respond(200, { data: { ...data, ideas: !scenarios().includes('ideas.list:not_found'), experiments, lendVoice, selfHosted, withheldSongs } });
+        // AI guide voices switched on for a flow (stackapella.mockAiVoices, this tab): the catalogue's AI guides then play.
+        const aiVoices = tabStorage.get('stackapella.mockAiVoices') === '1' || !!data.aiVoices;
+        return respond(200, { data: { ...data, ideas: !scenarios().includes('ideas.list:not_found'), experiments, lendVoice, selfHosted, withheldSongs, aiVoices } });
     }
     // Who's signed in, and what that allows.
     const as = tabStorage.get('stackapella.mockAs') || 'member';
@@ -314,6 +323,21 @@ async function stateful(operation, params, body, cases, query = {}) {
         if (operation === 'beta.consent.create') tabStorage.set('stackapella.mockFresh', '');
     }
     if (operation === 'voices.join' && !scenarios().some((s) => s.startsWith('voices.join:'))) tabStorage.set('stackapella.mockVolunteer', '1');
+    // Admin's AI voices: a withdrawn voice stays withdrawn for the tab's kept state, its guides gone, as on the server.
+    if (operation === 'admin.aiVoices.list' && !scenarios().some((s) => s.startsWith(operation + ':'))) {
+        const { data } = await example('admin.aiVoices.list.200.json');
+        state.aiWithdrawn ??= {};
+        return respond(200, { data: data.map((v) => (state.aiWithdrawn[v.id] ? { ...v, status: 'withdrawn', withdrawnAt: state.aiWithdrawn[v.id], guides: [] } : v)) });
+    }
+    if (operation === 'admin.aiVoices.withdraw' && !scenarios().some((s) => s.startsWith(operation + ':'))) {
+        const { data } = await example('admin.aiVoices.list.200.json');
+        const voice = data.find((v) => v.id === params.id);
+        state.aiWithdrawn ??= {};
+        if (!voice) return caseFor('not_found');
+        if (state.aiWithdrawn[voice.id] || voice.status === 'withdrawn') return caseFor('already_withdrawn');
+        state.aiWithdrawn[voice.id] = now;
+        return respond(200, { data: { ...voice, status: 'withdrawn', withdrawnAt: now, guides: [] }, meta: { retired: voice.guides.length } });
+    }
     if (operation === 'beta.parts.list') {
         // As the catalogue: the parts' real voices play the local fixture.
         const parts = await example('beta.parts.list.200.json');

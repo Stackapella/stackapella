@@ -1341,6 +1341,79 @@ return [
         ],
     ],
 
+    // Hear yourself as a choir (/your-choir; docs/ai-voices-build-plan.md, phase 3's launch page): ready but unpublished,
+    // not found until the own_choir switch is on. Built on the angle: a real arrangement, any song from 30 seconds of
+    // singing, learning your part, the ethics up front. AI said plainly, never first. No prices until Hillel sets them.
+    'your_choir' => [
+        'title' => 'Hear yourself as a choir',
+        'description' => 'Sing for 30 seconds, then hear any song in our library with every part of a real choir arrangement in a voice like yours. Then learn your part, and make it really you.',
+        'eyebrow' => 'Hear yourself as a choir',
+        'headline' => 'You, as a whole choir',
+        'lead' => 'Sing for 30 seconds, then hear any song in our library with every part, soprano, alto, tenor and bass, sung in a voice like yours. Then learn your part, and make the choir really you.',
+        'start' => 'Try it with Silent Night',
+        'start_note' => 'In your browser. You choose before anything is recorded.',
+        'steps_title' => 'How it works',
+        'steps' => [
+            ['title' => 'Sing for 30 seconds', 'body' => 'Sing along with the song, any part, in your own voice. It needn\'t be perfect: we only need to hear your voice.'],
+            ['title' => 'Hear your choir', 'body' => 'A few minutes later, every part of the song is sung in a voice like yours, by AI, from the arrangement a real choir sings.'],
+            ['title' => 'Learn your part', 'body' => 'Pick the part that suits you and sing it for real. Each part you record takes the place of its AI version.'],
+        ],
+        'points_title' => 'What makes it different',
+        'points' => [
+            'real' => ['heading' => 'Real arrangements', 'body' => 'Not harmonies made up around a tune: the soprano, alto, tenor and bass a choir actually sings, words and all, from our library.'],
+            'any' => ['heading' => 'Any song, from 30 seconds', 'body' => 'You don\'t record the song first. Thirty seconds of your singing, then pick any song in the library.'],
+            'learn' => ['heading' => 'Made for learning', 'body' => 'Hear what you\'ll sound like once you\'ve learned it, then learn it. Part by part, the choir becomes really you.'],
+        ],
+        'honest' => ['heading' => 'Honest about AI', 'body' => 'What the AI sings is always marked as AI, here and on anything you share. Your recording is deleted once your choir is made, no model of your voice is kept, and it only ever sings our songs.'],
+        'faq_title' => 'Questions',
+        'faq' => [
+            'mine' => ['Is it really my voice?', 'It\'s an AI voice made from your singing: close to yours, but not a recording of you. Every part you then record yourself is really you.'],
+            'sing_well' => ['Do I need to sing well?', 'No. The AI sings the notes; your 30 seconds only tell it what your voice sounds like.'],
+            'who' => ['Who hears it?', 'Only you, unless you share it. Anything you share says it was made with AI.'],
+            'kept' => ['What happens to my recording?', 'It\'s used once, to make your choir, then deleted. We never keep a model of your voice, so each new song starts from a new recording.'],
+            'own_songs' => ['Can it sing my own songs, or other words?', 'No. It only sings the songs in our library, with their own words.'],
+            'delete' => ['Can I delete it?', 'Yes, any choir at any time, or every one at once, in the app.'],
+        ],
+        'more' => 'About AI voices',
+        'end' => ['title' => 'Hear yourself as a choir', 'body' => 'Thirty seconds of singing, then every part in a voice like yours.'],
+    ],
+
+    // About AI voices (/about/ai-voices; docs/ai-voices-build-plan.md, marketing item 2): unlisted and noindex until the
+    // ai_voices switch is on. The label's own words are pages.song.ai, shared with the song and part pages and agreed
+    // with the app (docs/decisions.md).
+    'ai_voices' => [
+        'title' => 'About AI voices',
+        'description' => 'Some parts have no singer yet. An AI voice sings them for now, always marked as AI, until a real singer records the part: how they are made, labelled, replaced and removed.',
+        'crumb' => 'AI voices',
+        'headline' => 'Every part sung, until a real singer takes it',
+        'lead' => 'Some parts of our songs have no real singer yet. Rather than leave them to the practice voice, an AI voice sings them in the meantime, always marked as AI. When a real singer records the part, they take its place.',
+        'sample' => [
+            'kick' => 'How an AI part looks',
+            'part' => 'Alto',
+            'role' => 'Harmony',
+            'caption' => 'On song pages, part pages and in the app, an AI part says so in words, with the way to replace it beside it.',
+        ],
+        'sections' => [
+            'what' => ['heading' => 'What an AI voice is', 'body' => 'A singing voice made by a computer model. It sings the part\'s own notes and words, from our arrangement, at the written pitch. Nobody recorded it singing that song.'],
+            'checked' => ['heading' => 'Checked note by note', 'body' => 'Learners copy their guide, so every AI part is measured against its written notes before it goes up. A part that drifts off pitch is never published.'],
+            'label' => ['heading' => 'Always labelled', 'body' => 'Wherever a voice is credited or chosen, an AI part says "AI voice, waiting for a real singer". One learned from a real singer names them: "AI voice based on Ana\'s singing, with permission". It never wears a plain singer credit.'],
+            'replace' => ['heading' => 'A real singer replaces it', 'body' => 'When a real take of the part is published, it becomes the part\'s voice and the AI voice leaves that song at once. Until then the part stays on the list of parts wanted, and an AI part is never counted among the real voices.'],
+            'whose' => ['heading' => 'Whose voice it is', 'body' => 'An AI voice may be learned from a short recording of a real singer, only with their written permission for exactly this. If they wish, it is named after them on every part it sings; otherwise it is simply marked "AI voice". The recording it learns from is never published.'],
+            // `body` while own_choir is off, `choir` while it's on (Hillel, 2026-11-20, through the coordinator).
+            'yours' => ['heading' => 'Your voice stays yours', 'body' => 'Nothing you sing in the app becomes an AI voice.', 'choir' => 'Nothing you sing becomes an AI voice unless you choose to hear yourself as a choir. Even then, your recording is deleted once your song is made, and no model of your voice is kept.'],
+        ],
+        'remove' => [
+            'kick' => 'Removal on request',
+            'heading' => 'Want one taken down?',
+            'body' => 'If you are the singer an AI voice is based on and want it gone, or you think one sounds like you without your say, write to :email. We take it off every song it sings and delete its files.',
+        ],
+        'end' => [
+            'title' => 'Every AI part is a part waiting for you',
+            'body' => 'Sing it, share it, and yours could be the voice others learn from.',
+            'cta' => 'Find a part to sing',
+        ],
+    ],
+
     'about' => [
         'title' => 'About Stackapella',
         'description' => 'Why Stackapella exists, what it cares about and who makes it: a free, open-source way to learn harmony part by part, with a guide voice and no tracking.',

@@ -11,7 +11,9 @@
             "frames": 2304000,
             "offsetFrames": 0,
             "credit": "Sarah K.",
-            "creditHandle": null
+            "creditHandle": null,
+            "source": "recorded",
+            "aiBasedOn": null
         },
         "submissionId": "Tz4Kq8",
         "singer": {
@@ -19,6 +21,8 @@
             "name": "Sarah Kim"
         },
         "publishedAt": "2026-10-26T15:51:00Z",
-        "pitchPercent": 91
+        "pitchPercent": 91,
+        "source": "recorded",
+        "aiVoice": null
     }
 }

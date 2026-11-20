@@ -208,6 +208,7 @@
         '/js/components/note-keyboard.js',
         '/js/keep-song.js',
         '/js/practice.js',
+        '/js/ai-voices.js',
         '/js/components/report-voice.js',
         '/js/band-style.js',
         '/js/be-the-voice.js',
@@ -216,6 +217,7 @@
         '/js/vibrato.js',
         '/js/pitch-skills.js',
         '/js/just.js',
+        '/js/hosts.js',
     ];
     // preload_list.py: lesson end
     // Home's own view on a first visit that opens the app at "/" (written by tool/preload_list.py: views/projects.js and what
@@ -227,6 +229,7 @@
         '/js/hosts.js',
         '/js/home.js',
         '/js/stores/catalogue.js',
+        '/js/ai-voices.js',
         '/js/recorded-guides.js',
         '/js/stores/ideas.js',
         '/js/song-versions.js',

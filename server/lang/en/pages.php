@@ -99,8 +99,18 @@ return [
         'mix_rest_synth' => 'the other parts synthesized',
         'voice_real' => 'Real voice',
         'voice_generated' => 'Generated voice',
+        // An AI part (docs/ai-voices-build-plan.md, behind ai_voices): the same words as the app's label (agreed with
+        // the frontend, docs/decisions.md). `wanted` is the site's call to record it; `mix` is a part in the mix's credit.
+        'ai' => [
+            'tag' => 'AI voice',
+            'credit' => 'AI voice, waiting for a real singer',
+            'based_on' => 'AI voice based on :name\'s singing, with permission',
+            'wanted' => 'Real voice wanted: be the voice',
+            'mix' => ':part: AI voice',
+            'about' => 'About AI voices',
+        ],
         'be_voice' => 'Be the voice: sing the :part',
-        'be_voice_note' => 'Some parts still have the app\'s own voice. Sing one, make your harmony public and say yes to featuring it, and we may choose your part as the voice others learn from, credited to you by your profile name. Free, for singers 18 and over.',
+        'be_voice_note' => 'Some parts still have the app\'s own voice. Sing one, make your harmony public and say yes to featuring it, and we may choose your part as the voice others learn from, credited to you by your profile name. For singers 18 and over.',
         'story' => [
             'heading' => 'The story of :song',
             'contents' => 'On this page',

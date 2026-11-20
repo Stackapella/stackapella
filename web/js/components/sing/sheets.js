@@ -10,6 +10,7 @@ import { midiName } from '../../dsp.js';
 import { prefs } from '../../stores/prefs.js';
 import { Modal } from '../ui.js';
 import { Icon } from '../icon.js';
+import { AiVoiceLabel, voiceCredit } from '../../ai-voices.js';
 import { HearingSection } from './hearing.js';
 import { Switch } from '../controls.js';
 
@@ -140,7 +141,7 @@ export const SettingsSheet = {
  * real singer, the practice voice last) and the kind note; check your range; the way to sing.
  */
 export const PartSheet = {
-    components: { Modal, Icon },
+    components: { AiVoiceLabel, Modal, Icon },
     props: {
         parts: { type: Array, required: true }, // [{ slot, name, range, voiceLabel }]
         focusId: { type: String, default: null },
@@ -149,8 +150,10 @@ export const PartSheet = {
         way: { type: String, default: 'whole' },
         disabled: Boolean,
         lend: Boolean, // your part has no real voice yet: Lend your voice's quiet line
+        aiCta: Boolean, // Be the voice beside an AI voice (js/ai-voices.js aiCtaOpen): emits `be-voice`
     },
-    emits: ['select', 'voice', 'range', 'way', 'close', 'lend'],
+    emits: ['select', 'voice', 'range', 'way', 'close', 'lend', 'be-voice'],
+    setup: () => ({ voiceCredit }),
     template: `
         <Modal :title="t('sing.yourPart.title')" @close="$emit('close')">
             <div class="space-y-4">
@@ -169,7 +172,8 @@ export const PartSheet = {
                             <legend class="mb-1 text-sm font-semibold text-cream">{{ t('sing.yourPart.voiceOf', { part: p.name }) }}</legend>
                             <label v-for="v in voice.versions" :key="v.id" class="radio-card px-3 py-2.5">
                                 <input type="radio" name="singVoice" class="radio mt-px" :checked="chosen(v)" :disabled="blocked" @change="$emit('voice', [v.id])" />
-                                <span class="min-w-0 flex-1 text-sm"><span class="block font-semibold text-cream" translate="no">{{ v.credit ? t('part.sungBy', { name: v.credit }) : t('part.sungByAnonymous') }}</span><span class="text-muted">{{ v.default ? t('part.defaultVoice') : t('part.otherVoice') }}</span></span>
+                                <span v-if="v.source === 'ai'" class="min-w-0 flex-1 text-sm"><span class="block font-semibold text-cream"><AiVoiceLabel :based-on="v.aiBasedOn ?? null" /></span><button v-if="aiCta" type="button" class="link tap-44" :aria-label="t('aiVoice.goPart', { part: p.name })" data-ai-voice-go @click.prevent.stop="$emit('be-voice')">{{ t('voices.be.go') }}</button></span>
+                                <span v-else class="min-w-0 flex-1 text-sm"><span class="block font-semibold text-cream" translate="no">{{ voiceCredit(v) }}</span><span class="text-muted">{{ v.default ? t('part.defaultVoice') : t('part.otherVoice') }}</span></span>
                             </label>
                             <label class="radio-card px-3 py-2.5">
                                 <input type="radio" name="singVoice" class="radio mt-px" :checked="voice.chosen.includes('synth') || blocked" @change="$emit('voice', 'synth')" />

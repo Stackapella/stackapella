@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Api\Account\AccountController;
 use App\Http\Controllers\Api\Account\LearningController;
+use App\Http\Controllers\Api\Admin\AiVoices\AiVoicesController as AdminAiVoices;
 use App\Http\Controllers\Api\Admin\AuditController;
 use App\Http\Controllers\Api\Admin\Beta\AssignmentsController as AdminBetaAssignments;
 use App\Http\Controllers\Api\Admin\Beta\BarController as AdminBetaBar;
@@ -544,6 +545,10 @@ Route::middleware(['auth', 'editor', 'second-factor'])->prefix('admin')->name('a
             Route::delete('/clips/{clip}', ClipRemovalController::class)->where('clip', '[A-Za-z0-9_.:-]{1,80}')->middleware('sudo')->name('clips.delete');
         });
     });
+
+    // AI guide voices (docs/ai-voices-build-plan.md): editors see them; withdrawing one is the admin's, in sudo.
+    Route::get('/ai-voices', [AdminAiVoices::class, 'index'])->name('aiVoices.list');
+    Route::post('/ai-voices/{voice}/withdraw', [AdminAiVoices::class, 'withdraw'])->middleware(['admin', 'sudo'])->name('aiVoices.withdraw');
 
     // The trust and safety screen: the admin's alone; changes need a fresh second-factor check.
     Route::middleware('admin')->group(function (): void {

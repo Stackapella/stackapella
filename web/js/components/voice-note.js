@@ -33,21 +33,25 @@ export function voiceNote(useRange) {
     const template = project?.template;
     if (!template || !session.practice) return null;
     const voices = Object.values(session.guideVoices);
+    // Only AI voices behind the reason (js/ai-voices.js): said as AI voices, never "a real singer".
+    const onlyAi = (why) => voices.filter((v) => v.why === why).every((v) => v.ai);
     if (voices.some((v) => v.why === 'key')) {
         const original = keyLabel(template.key);
+        const ai = onlyAi('key');
         return {
-            text: t('studio.realVoiceKey', { key: original, current: keyLabel(project.key) }),
-            action: { label: t('studio.singInOriginal', { key: original }), run: () => useRange({ transpose: 0, partId: session.focusPart?.templatePartKey }) },
+            text: ai ? t('aiVoice.keyNote', { key: original, current: keyLabel(project.key) }) : t('studio.realVoiceKey', { key: original, current: keyLabel(project.key) }),
+            action: { label: ai ? t('aiVoice.singInOriginal', { key: original }) : t('studio.singInOriginal', { key: original }), run: () => useRange({ transpose: 0, partId: session.focusPart?.templatePartKey }) },
             fit: fit(original),
         };
     }
     if (voices.some((v) => v.why === 'speed')) {
+        const percent = Math.round((session.practice.speed ?? 1) * 100);
         return {
-            text: t('studio.realVoiceSpeed', { percent: Math.round((session.practice.speed ?? 1) * 100) }),
+            text: onlyAi('speed') ? t('aiVoice.speedNote', { percent }) : t('studio.realVoiceSpeed', { percent }),
             action: { label: t('studio.fullSpeed'), run: () => sessionStore.setSpeed(1) },
         };
     }
-    if (voices.some((v) => v.why === 'failed')) return { text: t('studio.realVoiceFailed'), action: null };
+    if (voices.some((v) => v.why === 'failed')) return { text: onlyAi('failed') ? t('aiVoice.failedNote') : t('studio.realVoiceFailed'), action: null };
     return null;
 }
 
