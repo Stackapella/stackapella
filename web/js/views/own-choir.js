@@ -159,6 +159,12 @@ export const OwnChoirView = {
     unmounted() {
         this.stopTrack();
     },
+    watch: {
+        // A refresh (coming back, the poll) that finds the song ready while it's open here: its notice goes too.
+        'request.status'(now) {
+            if (now === 'ready' && this.state === 'ready') markSeen(this.request);
+        },
+    },
     created() {
         this.load();
     },
@@ -188,7 +194,8 @@ export const OwnChoirView = {
             if (!account.loaded) await loadAccount().catch((error) => console.warn('The account was not checked', error));
             if (!account.me) {
                 this.state = 'off';
-                this.offReason = 'signedOut';
+                // A fresh page offline can't tell who's signed in: it says it's offline, never "sign in".
+                this.offReason = navigator.onLine === false ? 'offline' : 'signedOut';
                 return;
             }
             await loadCatalogue().catch((error) => console.warn('The catalogue did not load', error));

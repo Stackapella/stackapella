@@ -5705,7 +5705,7 @@
             "title": "Turn off songs in your voice?",
             "body": "We'll delete your saved voice and every song made from your singing. You can turn it on again any time.",
             "action": "Turn it off",
-            "done": "Turned off. Everything made from your singing is deleted."
+            "done": "Turned off. Everything made from your singing is deleted; the service that makes the songs keeps its copies encrypted for up to 7 days, then deletes them."
         },
         "terms": {
             "agree": "I'm 18 or over: I agree"
@@ -5716,7 +5716,7 @@
             "line": "Kept privately to make your choir songs, until {date} or until you delete it.",
             "delete": "Delete",
             "deleteTitle": "Delete your saved voice?",
-            "deleteBody": "We delete the voice made from your singing at once. Songs already made stay. For your next song, you'll sing 30 seconds again.",
+            "deleteBody": "We promptly delete the voice made from your singing. Songs already made stay. For your next song, you'll sing 30 seconds again.",
             "deleteAction": "Delete my voice",
             "deleted": "Your voice is deleted.",
             "again": "Make my choir",

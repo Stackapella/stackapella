@@ -7462,8 +7462,9 @@ operation answers `404 not_found`, except `ownChoir.show` (`data: null` with not
 kept (consent, a voice, a song) can still read it and delete it (`ownChoir.requests.delete`, `ownChoir.voice.delete`, `ownChoir.delete`), whatever the
 switch. **What counts toward the quotas:** every song that reached the renderer, made, deleted after, or failed through
 something the singer could cause (`clip_unusable`, `reference_gone`); and every song waiting for it. A song gives its
-place back only when it never reached the renderer (never sent, a clip that failed its check, deleted before its turn)
-or failed through ours (`render_failed`, `gates_failed`).
+place back to the free and monthly allowances only when it never reached the renderer (never sent, a clip that failed
+its check, deleted before its turn) or failed through ours (`render_failed`, `gates_failed`); the daily cap
+(`todayLeft`) counts every song that reached the renderer, ours included.
 
 #### `ownChoir.show`
 
@@ -7585,7 +7586,8 @@ How the voices lane's batch renderer reaches the server (docs/ai-voices-build-pl
 
 - **Auth:** `Authorization: Bearer <token>`, kept only in the server's env, never in the database or the repo: the
   catalogue's (`worker.ai.*`, `AI_WORKER_TOKEN`) and the choir jobs' own (`worker.choir.*`, `AI_CHOIR_TOKEN`), so neither
-  opens the other (a batch machine with the catalogue's token can never claim a user's private clip). No session, cookie or CSRF. With no token set (or one
+  opens the other (a batch machine with the catalogue's token can never claim a user's private clip). Set to the same value,
+  neither API opens (`404`) until they differ. No session, cookie or CSRF. With no token set (or one
   shorter than 32 characters) every worker route answers `404 not_found`: the API is off. A missing or wrong token is
   `401 unauthenticated`. Limited (`ai-worker`).
 - **Not behind `ai_voices`:** the worker makes guides while the switch is off; they stay in Admin until it's on.

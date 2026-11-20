@@ -780,6 +780,8 @@ export const SettingsView = {
             const answer = await this.run('delete', () => api.account.delete({ password: this.deletePassword || null }));
             if (this.errors.password) this.errors = { ...this.errors, deletePassword: this.errors.password };
             if (answer) {
+                // Hear yourself as a choir's parts kept on this device go with the account.
+                await import('../own-choir.js').then((m) => m.forgetAllHere()).catch((error) => console.warn('Choir parts not cleared', error));
                 account.me = null;
                 this.confirmDelete = false;
                 toast(t('settings.delete.done'), { seconds: 12 });

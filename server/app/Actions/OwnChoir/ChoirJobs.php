@@ -182,9 +182,10 @@ final class ChoirJobs
         }
 
         $drop = DB::transaction(function () use ($voice, $received, $good): array {
-            // Read again under its lock (dropVoices takes it too): deleted meanwhile, or its song gone, keeps nothing.
-            $locked = OwnChoirVoice::query()->whereKey($voice->id)->where('status', 'uploading')->lockForUpdate()->first();
+            // Read again under their locks (dropVoices takes the voice's too): deleted meanwhile, or its song gone, keeps
+            // nothing. The song first, then the voice: the order purging a song takes them in, so the two never deadlock.
             $job = OwnChoirRequest::query()->where('own_choir_voice_id', $voice->id)->where('status', OwnChoirStatus::Rendering->value)->lockForUpdate()->first();
+            $locked = OwnChoirVoice::query()->whereKey($voice->id)->where('status', 'uploading')->lockForUpdate()->first();
             $live = $job !== null && $job->claimHeld();
 
             if ($locked === null || ! $live || ! $good) {
@@ -246,9 +247,8 @@ final class ChoirJobs
     public function finish(OwnChoirRequest $request, string $claim, ?string $failed): OwnChoirRequest
     {
         if ($failed !== null) {
-            DB::transaction(static fn (): OwnChoirRequest => self::lockHeld($request->id, $claim));
-
-            return self::failAndClean($request, $failed);
+            // The claim checked in the same transaction, under the same lock, as the failure.
+            return self::failAndClean($request, $failed, $claim);
         }
 
         $wanted = array_column(array_filter((array) ($request->templateVersion->data['parts'] ?? []), 'is_array'), 'key');
@@ -305,10 +305,11 @@ final class ChoirJobs
      * A song ends without being made: failed with its reason, its clip and every part deleted (rows locked, files after
      * the commit, so an encode finishing meanwhile keeps nothing).
      */
-    public static function failAndClean(OwnChoirRequest $request, string $failure): OwnChoirRequest
+    public static function failAndClean(OwnChoirRequest $request, string $failure, ?string $claim = null): OwnChoirRequest
     {
-        $files = DB::transaction(function () use ($request, $failure): array {
-            $locked = OwnChoirRequest::query()->whereKey($request->id)->lockForUpdate()->first();
+        $files = DB::transaction(function () use ($request, $failure, $claim): array {
+            // A worker's failure (a claim given) only while its claim still holds, checked under this lock.
+            $locked = $claim !== null ? self::lockHeld($request->id, $claim) : OwnChoirRequest::query()->whereKey($request->id)->lockForUpdate()->first();
 
             // Only a song still on its way: one just made ready, or deleted, is left as it is.
             if ($locked === null || ! $locked->status->open()) {

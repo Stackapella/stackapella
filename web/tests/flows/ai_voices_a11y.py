@@ -21,7 +21,8 @@ OWN = "22222222-3333-4444-8555-666666666666"
 def journey(f):
     failures = []
     f.chrome.send("Emulation.setEmulatedMedia", {"features": [{"name": "prefers-reduced-motion", "value": "reduce"}]})
-    f.expected_errors += ["/contract/examples/"]
+    # The mock's flow server has no /api/counts: the usage beacon's 404 is the server's, not the page's (deploy.py's way).
+    f.expected_errors += ["/contract/examples/", "/api/counts"]
 
     def visit(name, opener, ready, then=None):
         try:
@@ -101,6 +102,8 @@ def journey(f):
         f.run(f"""const {{ loadTemplate }} = await import('/js/templates.js'); const s = await import('/js/stores/templates.js');
             const own = structuredClone(await loadTemplate('amazing-grace')); Object.assign(own, {{ id: {json.dumps(OWN)}, title: 'My tune' }});
             await s.saveTemplate(own, {{ visibility: 'private', libraryOptIn: false }});""")
+        # Saved on this device before the page opens (under load the save can trail the step that made it).
+        f.wait(f"(async () => !!(await (await import('/js/stores/templates.js')).ownTemplate({json.dumps(OWN)})))()", timeout=30, what="the own song saved")
         visit(f"{lang} own song page", lambda: f.go(f"/t/{OWN}?{q}&as=member", "document.querySelector('main h1')"), "document.querySelector('[data-template-choir]')")
         f.run(f"const s = await import('/js/stores/templates.js'); await s.deleteTemplate({json.dumps(OWN)});")
         clear_projects(f)

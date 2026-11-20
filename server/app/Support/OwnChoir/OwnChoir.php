@@ -72,7 +72,7 @@ final class OwnChoir
         return [
             'freeLeft' => max(0, (int) config('own_choir.free_songs') - (clone $counted)->count()),
             'monthLeft' => $plus ? max(0, (int) config('own_choir.plus_month') - (clone $counted)->where('created_at', '>=', now()->startOfMonth())->count()) : 0,
-            'todayLeft' => max(0, (int) config('own_choir.daily') - (clone $counted)->where('created_at', '>=', now()->subDay())->count()),
+            'todayLeft' => max(0, (int) config('own_choir.daily') - self::attempted($user)->where('created_at', '>=', now()->subDay())->count()),
             'plus' => $plus,
         ];
     }
@@ -95,7 +95,21 @@ final class OwnChoir
                 ->orWhere(fn (Builder $failed) => $failed->where('status', OwnChoirStatus::Failed->value)->whereNotIn('failure', self::OURS)))));
     }
 
-    /** Failures that are ours, not the singer's: their song is given back. */
+    /**
+     * The songs that count toward the daily cap: every song waiting for the renderer or that reached it (tries > 0),
+     * however it ended, ours included. A singer can cause even our failures (a song at the limit expiring after its
+     * tries), so only the free and monthly allowances give those back; the cap on what one person costs a day never does.
+     *
+     * @return Builder<OwnChoirRequest>
+     */
+    public static function attempted(User $user): Builder
+    {
+        return OwnChoirRequest::query()->where('user_id', $user->id)->where(fn (Builder $query) => $query
+            ->whereIn('status', [OwnChoirStatus::Queued->value, OwnChoirStatus::Rendering->value, OwnChoirStatus::Ready->value])
+            ->orWhere('tries', '>', 0));
+    }
+
+    /** Failures that are ours, not the singer's: their song is given back to the free and monthly allowances. */
     public const OURS = ['render_failed', 'gates_failed'];
 
     /**

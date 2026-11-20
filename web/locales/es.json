@@ -5705,7 +5705,7 @@
             "title": "¿Desactivar las canciones con tu voz?",
             "body": "Borraremos tu voz guardada y todas las canciones hechas con tu canto. Puedes volver a activarlo cuando quieras.",
             "action": "Desactivar",
-            "done": "Desactivado. Todo lo hecho con tu canto está borrado."
+            "done": "Desactivado. Todo lo hecho con tu canto está borrado; el servicio que hace las canciones guarda sus copias cifradas hasta 7 días y luego las borra."
         },
         "terms": {
             "agree": "Tengo 18 años o más: acepto"
@@ -5716,7 +5716,7 @@
             "line": "Guardada en privado para hacer tus coros, hasta el {date} o hasta que la borres.",
             "delete": "Borrar",
             "deleteTitle": "¿Borrar tu voz guardada?",
-            "deleteBody": "Borramos al instante la voz hecha con tu canto. Las canciones ya hechas se quedan. Para tu próxima canción, cantarás 30 segundos otra vez.",
+            "deleteBody": "Borramos sin demora la voz hecha con tu canto. Las canciones ya hechas se quedan. Para tu próxima canción, cantarás 30 segundos otra vez.",
             "deleteAction": "Borrar mi voz",
             "deleted": "Tu voz está borrada.",
             "again": "Haz mi coro",

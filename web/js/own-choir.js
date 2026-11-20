@@ -104,14 +104,15 @@ async function keptChoirs() {
 /** Drops the parts of songs the server no longer has (deleted on another device, or with the account). */
 async function forgetGone() {
     const live = new Set((ownChoir.data?.requests ?? []).map((r) => r.id));
-    for (const { request } of await keptChoirs()) {
-        if (!live.has(request.requestId)) await forgetParts({ templateId: request.templateId ?? null, ...request, id: request.requestId });
+    for (const { project, request } of await keptChoirs()) {
+        // An older choir project kept no templateId of its own: its song's id is the project's template.
+        if (!live.has(request.requestId)) await forgetParts({ ...request, templateId: request.templateId ?? project.template?.id, id: request.requestId });
     }
 }
 
 /** Signing out: every choir part kept on this device goes (they're the singer's, not this device's). */
 export async function forgetAllHere() {
-    for (const { project, request } of await keptChoirs()) await forgetParts({ templateId: project.template?.id, ...request, id: request.requestId });
+    for (const { project, request } of await keptChoirs()) await forgetParts({ ...request, templateId: request.templateId ?? project.template?.id, id: request.requestId });
     for (const request of ownChoir.data?.requests ?? []) await forgetParts(request);
     ownChoir.data = null;
 }
@@ -217,7 +218,11 @@ export async function deleteEverything() {
     const requests = ownChoir.data?.requests ?? [];
     await api.ownChoir.delete();
     for (const request of requests) await forgetParts(request);
-    await loadOwnChoir();
+    // Their choir projects go too, as a single song's delete does, so Home never lists songs whose parts are gone.
+    const { deleteProject, loadProjects, projects } = await import('./stores/projects.js');
+    await loadProjects();
+    for (const project of projects.all.filter((p) => p.choir)) await deleteProject(project.id).catch((error) => console.warn('A choir project was not removed', error));
+    await loadOwnChoir({ force: true });
 }
 
 async function forgetParts(request) {
