@@ -9,6 +9,7 @@ import { formatList, t } from '../i18n.js';
 import { templatePartName } from '../templates.js';
 import { EmptyState, StatusChip } from '../components/form.js';
 import { AiVoiceLabel } from '../ai-voices.js';
+import { navigate } from '../router.js';
 import { Icon } from '../components/icon.js';
 import { toast } from '../components/ui.js';
 import { ChangeSheet, LoadFailed, loadInto, refused, when } from './common.js';
@@ -18,7 +19,7 @@ export const GuidesSection = {
     components: { AiVoiceLabel, ChangeSheet, EmptyState, LoadFailed, PartNeeds, StatusChip, Icon },
     props: { me: { type: Object, required: true } },
     data: () => ({ songs: null, failed: false, playing: null, removing: null, busy: false, errors: null, abuse: false, clips: null }),
-    setup: () => ({ templatePartName, when }),
+    setup: () => ({ templatePartName, when, navigate }),
     template: `
         <div class="space-y-6">
             <div>
@@ -52,6 +53,8 @@ export const GuidesSection = {
                                 <li v-for="guide in part.guides" :key="guide.id" class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
                                     <button type="button" class="btn-ghost btn-sm" :aria-pressed="playing?.id === guide.id" :aria-label="playing?.id === guide.id ? t('studio.stop') : t('admin.guides.play', { name: who(guide) })" @click="play(guide)"><Icon :name="playing?.id === guide.id ? 'stop' : 'play'" :size="14" /></button>
                                     <AiVoiceLabel v-if="isAiGuide(guide)" tag data-guide-ai />
+                                    <!-- The AI review (phase 1c): not offered until approved there. -->
+                                    <a v-if="isAiGuide(guide) && guide.review && guide.review !== 'approved'" href="/admin/ai-review" class="chip" data-guide-review @click.prevent="navigate('/admin/ai-review')">{{ guide.review === 'pending' ? t('admin.aiReview.status.pending') : t('admin.aiReview.status.rejected') }}</a>
                                     <span class="min-w-0 flex-1 text-cream"><span translate="no">{{ who(guide) }}</span> <span class="text-muted">· {{ when(guide.publishedAt) }}<template v-if="guide.pitchPercent !== null && guide.pitchPercent !== undefined"> · {{ t('admin.review.onPitch', { percent: guide.pitchPercent }) }}</template></span></span>
                                     <StatusChip v-if="guide.reports" tone="warn" :label="t('admin.guides.reports', { count: guide.reports })" data-guide-reports />
                                     <StatusChip v-if="isBest(part, guide)" tone="info" :label="t('admin.guides.best')" />

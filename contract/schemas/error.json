@@ -73,6 +73,15 @@
                 "null"
             ],
             "description": "A 451 not_available_here only: the year the song is free where the visitor is (from 1 January), or null when that can't be known yet."
+        },
+        "which": {
+            "type": "string",
+            "enum": [
+                "free",
+                "month",
+                "day"
+            ],
+            "description": "quota_reached (ownChoir.requests.create): which limit was reached."
         }
     }
 }

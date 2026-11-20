@@ -1,0 +1,115 @@
+{
+    "$id": "ownChoir.show.json",
+    "title": "Hear yourself as a choir for ownChoir.show: the state, or null with nothing kept and the switch off",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "consent",
+                "voice",
+                "termsVersion",
+                "quota",
+                "requests"
+            ],
+            "properties": {
+                "consent": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "version",
+                        "acceptedAt"
+                    ],
+                    "properties": {
+                        "version": {
+                            "type": "integer"
+                        },
+                        "acceptedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    }
+                },
+                "voice": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "savedAt",
+                        "lastUsedAt",
+                        "expiresAt",
+                        "wordless"
+                    ],
+                    "properties": {
+                        "savedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "lastUsedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "expiresAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "description": "Deleted then if not used again (12 months unused)."
+                        },
+                        "wordless": {
+                            "type": "boolean",
+                            "description": "Prepared from a clip of a part with no words (a hum): for a song with words the app may suggest one sung line; never required."
+                        }
+                    },
+                    "description": "Their voice, kept privately for their next songs (prepared from their first clip); null until then, or once deleted."
+                },
+                "termsVersion": {
+                    "type": "integer"
+                },
+                "quota": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "freeLeft",
+                        "monthLeft",
+                        "todayLeft",
+                        "plus"
+                    ],
+                    "properties": {
+                        "freeLeft": {
+                            "type": "integer"
+                        },
+                        "monthLeft": {
+                            "type": "integer"
+                        },
+                        "todayLeft": {
+                            "type": "integer"
+                        },
+                        "plus": {
+                            "type": "boolean"
+                        }
+                    },
+                    "description": "Songs left: the free one (ever), this month's with Plus, and today's (everyone)."
+                },
+                "requests": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "ownChoir.json#/$defs/request"
+                    }
+                }
+            },
+            "description": "ownChoir.json's state, or null: nothing of theirs kept while own_choir is off for them (Settings asks for everyone)."
+        }
+    }
+}

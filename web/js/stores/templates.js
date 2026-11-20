@@ -338,6 +338,8 @@ export async function loadDraft(id) {
  * sung lines and its place among the drafts), or null when there was nothing to discard.
  */
 export async function discardDraft(id) {
+    // A hummed draft's humming goes with it (js/own-choir.js keepHum); a saved song's moved to the song first.
+    await db.remove('audio', `hum:${id}`).catch((error) => console.warn('A kept hum was not removed', error));
     const kept = await db.get('templateDrafts', id);
     await db.remove('templateDrafts', id);
     mine.drafts = mine.drafts.filter((d) => d.id !== id);

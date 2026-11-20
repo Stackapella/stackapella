@@ -99,6 +99,11 @@ return [
         'mix_rest_synth' => 'the other parts synthesized',
         'voice_real' => 'Real voice',
         'voice_generated' => 'Generated voice',
+        // Hear yourself as a choir (docs/ai-voices-build-plan.md, phase 2, behind own_choir_teaser): its angle first, AI said once.
+        'choir' => [
+            'button' => 'Hear yourself as a choir',
+            'soon' => 'Sing for 30 seconds, and hear every part of this arrangement in a voice like yours, made by AI.',
+        ],
         // An AI part (docs/ai-voices-build-plan.md, behind ai_voices): the same words as the app's label (agreed with
         // the frontend, docs/decisions.md). `wanted` is the site's call to record it; `mix` is a part in the mix's credit.
         'ai' => [
@@ -107,7 +112,12 @@ return [
             'based_on' => 'AI voice based on :name\'s singing, with permission',
             'wanted' => 'Real voice wanted: be the voice',
             'mix' => ':part: AI voice',
+            'mix_based_on' => ':part: AI voice based on :name\'s singing',
+            // A part of a song in a singer's own voice (Hear yourself as a choir), on what they share.
+            'mix_own' => ':part: AI voice, made from :name\'s singing',
             'about' => 'About AI voices',
+            // The ask under a song's parts when one is sung by AI (be_voice_note says "the app's own voice").
+            'note' => 'Some parts are still waiting for a real singer. Sing one, make your harmony public and say yes to featuring it, and we may choose your part as the voice others learn from, credited to you by your profile name. For singers 18 and over.',
         ],
         'be_voice' => 'Be the voice: sing the :part',
         'be_voice_note' => 'Some parts still have the app\'s own voice. Sing one, make your harmony public and say yes to featuring it, and we may choose your part as the voice others learn from, credited to you by your profile name. For singers 18 and over.',
@@ -1265,6 +1275,7 @@ return [
                 'sections' => [
                     ['What it means', [
                         'Most songs start with a practice voice, and real voices join them part by part. When you share a harmony and tick "Stackapella may feature it on our X and Bluesky", it becomes public, and we may choose your part as the voice everyone learns from: other singers learning the same song can sing along with you.',
+                        ['text' => 'Until a real singer records a part, it may have an AI voice for now, always marked as AI. [About AI voices](/about/ai-voices)', 'flag' => 'ai_voices'],
                         'It\'s always credited to you, by your profile\'s name. We choose which voices are used. Public harmonies are for singers 18 and over.',
                         'A harmony you only share by link, without that tick, is never used: only the people you send it to can find it.',
                     ]],

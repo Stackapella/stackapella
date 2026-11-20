@@ -1,0 +1,96 @@
+{
+    "data": {
+        "consent": {
+            "version": 2,
+            "acceptedAt": "2026-11-20T17:55:00Z"
+        },
+        "voice": {
+            "savedAt": "2026-11-21T09:04:00Z",
+            "lastUsedAt": "2026-11-21T09:04:00Z",
+            "expiresAt": "2027-11-21T09:04:00Z",
+            "wordless": false
+        },
+        "termsVersion": 2,
+        "quota": {
+            "freeLeft": 0,
+            "monthLeft": 19,
+            "todayLeft": 4,
+            "plus": true
+        },
+        "requests": [
+            {
+                "id": "Rq5Sn1",
+                "templateId": "silent-night",
+                "title": "Silent Night",
+                "version": 8,
+                "status": "ready",
+                "failure": null,
+                "createdAt": "2026-11-21T09:00:00Z",
+                "readyAt": "2026-11-21T09:04:00Z",
+                "seen": false,
+                "parts": [
+                    {
+                        "id": "Cp1Sop",
+                        "partKey": "soprano",
+                        "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/choir/1a2b1a2b1a2b1a2b1a2b1a2b1a2b1a2b.m4a?X-Amz-Expires=7200&X-Amz-Signature=abc",
+                        "sampleRate": 48000,
+                        "frames": 6840000,
+                        "offsetFrames": 0,
+                        "credit": null,
+                        "creditHandle": null,
+                        "source": "ai",
+                        "aiBasedOn": null
+                    },
+                    {
+                        "id": "Cp1Alt",
+                        "partKey": "alto",
+                        "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/choir/3c4d3c4d3c4d3c4d3c4d3c4d3c4d3c4d.m4a?X-Amz-Expires=7200&X-Amz-Signature=abc",
+                        "sampleRate": 48000,
+                        "frames": 6840000,
+                        "offsetFrames": 0,
+                        "credit": null,
+                        "creditHandle": null,
+                        "source": "ai",
+                        "aiBasedOn": null
+                    },
+                    {
+                        "id": "Cp1Ten",
+                        "partKey": "tenor",
+                        "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/choir/5e6f5e6f5e6f5e6f5e6f5e6f5e6f5e6f.m4a?X-Amz-Expires=7200&X-Amz-Signature=abc",
+                        "sampleRate": 48000,
+                        "frames": 6840000,
+                        "offsetFrames": 0,
+                        "credit": null,
+                        "creditHandle": null,
+                        "source": "ai",
+                        "aiBasedOn": null
+                    },
+                    {
+                        "id": "Cp1Bas",
+                        "partKey": "bass",
+                        "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/choir/7a8b7a8b7a8b7a8b7a8b7a8b7a8b7a8b.m4a?X-Amz-Expires=7200&X-Amz-Signature=abc",
+                        "sampleRate": 48000,
+                        "frames": 6840000,
+                        "offsetFrames": 0,
+                        "credit": null,
+                        "creditHandle": null,
+                        "source": "ai",
+                        "aiBasedOn": null
+                    }
+                ]
+            },
+            {
+                "id": "Rq4Ag2",
+                "templateId": "amazing-grace",
+                "title": "Amazing Grace",
+                "version": 4,
+                "status": "failed",
+                "failure": "clip_unusable",
+                "createdAt": "2026-11-20T18:00:00Z",
+                "readyAt": null,
+                "seen": true,
+                "parts": []
+            }
+        ]
+    }
+}

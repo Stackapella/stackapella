@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Mail\Account\ExportReady;
+use App\Models\AiVoice;
 use App\Models\BetaAssignment;
 use App\Models\BetaSinger;
 use App\Models\BetaSubmission;
@@ -241,6 +242,13 @@ final class BuildExport implements ShouldQueue
         if ($singer !== null) {
             $zip->addFromString('beta-singer.json', (string) json_encode([
                 'agreement' => ['version' => $singer->consent_version, 'acceptedAt' => $singer->consented_at?->utc()->toIso8601ZuluString()],
+                // The AI voice licence (phase 1b), each time they accepted it: what its terms say is kept.
+                'aiVoiceLicence' => AiVoice::query()->where('beta_singer_id', $singer->id)->whereNotNull('accepted_at')->orderBy('id')->get()->map(static fn (AiVoice $voice): array => [
+                    'version' => (int) $voice->consent_version,
+                    'acceptedAt' => $voice->accepted_at?->utc()->toIso8601ZuluString(),
+                    'credited' => $voice->credited,
+                    'withdrawnAt' => $voice->withdrawn_at?->utc()->toIso8601ZuluString(),
+                ])->values()->all(),
                 'credit' => $singer->credit_mode?->value,
                 'creditLinksYourProfile' => $singer->credit_links_profile,
                 // Lend your voice: a volunteer, and when claiming stopped (a take refused for abuse).
@@ -428,6 +436,11 @@ final class BuildExport implements ShouldQueue
             'passkeys' => $lazy(DB::table('passkeys')->where('user_id', $id)->orderBy('id')->select(['name', 'last_used_at', 'created_at'])),
             'event-schedule' => $lazy(DB::table('es_connections')->where('user_id', $id)->orderBy('id')->select(['mode', 'base_url', 'es_user_name', 'schedule_name', 'schedule_timezone', 'status', 'disconnected_at', 'created_at'])),
             'choir-parts' => $lazy(DB::table('group_assignments')->join('group_songs', 'group_songs.id', '=', 'group_assignments.group_song_id')->join('templates', 'templates.id', '=', 'group_songs.template_id')->where('group_assignments.user_id', $id)->orderBy('group_assignments.id')->select(['templates.slug', 'group_assignments.part_key', 'group_assignments.created_at'])),
+            // Hear yourself as a choir (track B): the terms you accepted and each song asked for (the clips aren't kept;
+            // the parts are yours in the app while the song is).
+            'own-choir-consent' => $lazy(DB::table('own_choir_consents')->where('user_id', $id)->orderBy('id')->select(['version', 'accepted_at'])),
+            'own-choir-voice' => $lazy(DB::table('own_choir_voices')->where('user_id', $id)->where('status', 'ready')->orderBy('id')->select(['saved_at', 'last_used_at'])),
+            'own-choir' => $lazy(DB::table('own_choir_requests')->join('template_versions', 'template_versions.id', '=', 'own_choir_requests.template_version_id')->join('templates', 'templates.id', '=', 'template_versions.template_id')->where('own_choir_requests.user_id', $id)->orderBy('own_choir_requests.id')->select(['templates.slug', 'own_choir_requests.part_key', 'own_choir_requests.status', 'own_choir_requests.failure', 'own_choir_requests.created_at', 'own_choir_requests.ready_at'])),
             'share-videos' => $lazy(DB::table('share_videos')->where('user_id', $id)->orderBy('id')->select(['start_ms', 'end_ms', 'look', 'words', 'status', 'expires_at', 'created_at'])),
             'project-invites-you-made' => $lazy(DB::table('project_invites')->where('created_by', $id)->orderBy('id')->select(['part_name', 'expires_at', 'used_at', 'revoked_at', 'created_at'])),
             // The gallery (N1).

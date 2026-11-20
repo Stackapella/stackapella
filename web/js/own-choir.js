@@ -1,0 +1,302 @@
+// Hear yourself as a choir (track B, phase 3; docs/own-choir-app-plan.md; contract: ownChoir.*). Behind own_choir
+// (auth.config `ownChoir`, per account): a singer's 30 seconds, sung along in Sing on a project made for it, come back as
+// every part of that song in a voice like theirs, the project's own guides, labelled as AI. The clip goes once its song is
+// made; the voice prepared from it is kept privately for their next songs until they delete it (Settings) or a year
+// unused. The parts made are the singer's, kept on this device to play offline, and deleted here with the song, on
+// signing out, or when the server no longer has their song.
+
+import { reactive } from 'vue';
+import { api, uploadTo } from './api.js';
+import * as db from './db.js';
+import { account, loadAccount, loadAuthConfig } from './stores/account.js';
+import { guideKey } from './recorded-guides.js';
+import { encodeWav } from './wav.js';
+import { count } from './usage.js';
+import { formatDate, t } from './i18n.js';
+import { confirmAction } from './components/confirm.js';
+import { toast } from './components/ui.js';
+import { Icon } from './components/icon.js';
+
+export const MIN_SECONDS = 15; // shorter, the card asks for a little longer (ownChoir.record.short)
+export const MAX_SECONDS = 30; // the contract's most (and at least 5)
+const OPEN = ['uploading', 'queued', 'rendering'];
+
+/** Whether it's on for this account: auth.config `ownChoir`, known to be true. */
+export function ownChoirOn() {
+    return account.config?.ownChoir === true;
+}
+
+/** Whether their own songs can be heard in their voice too (auth.config `ownChoirSongs`, the own_choir_songs switch). */
+export function ownChoirSongsOn() {
+    return ownChoirOn() && account.config?.ownChoirSongs === true;
+}
+
+/** Whether a song has words to sing (any note with a lyric). */
+export function hasWords(template) {
+    return !!template?.parts?.some((part) => part.guide?.notes?.some((note) => note.lyric));
+}
+
+/** The part a hum or a song's own tune is (the melody, else the first part). */
+export function tunePart(template) {
+    return (template?.parts?.find((p) => p.melody) ?? template?.parts?.[0])?.key ?? null;
+}
+
+// A hummed tune's humming, kept on this device only while own songs are on, so "Hear it in your voice" can use it as the
+// clip (Hillel: "they could hum it and have their voice replace their humming"); deleted once it's sent.
+const humKey = (id) => `hum:${id}`;
+
+/** Keeps a hum's take for a draft or a song (`id`). */
+export async function keepHum(id, take) {
+    await db.put('audio', { samples: db.toInt16(take.samples), sampleRate: take.sampleRate }, humKey(id));
+}
+
+/** The kept hum for `id`: `{ samples, sampleRate }`, or null. */
+export async function humFor(id) {
+    const kept = await db.get('audio', humKey(id)).catch((error) => (console.warn('The kept hum was not read', error), null));
+    return kept?.samples ? { samples: db.toFloat32(kept.samples), sampleRate: kept.sampleRate } : null;
+}
+
+/** Moves a draft's hum to the saved song's id (the creator, when it's saved). */
+export async function moveHum(from, to) {
+    const kept = await db.get('audio', humKey(from)).catch((error) => (console.warn('The kept hum was not read', error), null));
+    if (!kept) return;
+    await db.put('audio', kept, humKey(to));
+    await dropHum(from);
+}
+
+export async function dropHum(id) {
+    await db.remove('audio', humKey(id)).catch((error) => console.warn('A kept hum was not removed', error));
+}
+
+/** The singer's consent, quota and songs (ownChoir.show), once loaded; null while off or unknown. */
+export const ownChoir = reactive({ data: null, loaded: false });
+
+/** Loads (or reloads) where things stand; quietly nothing while it's off. */
+export async function loadOwnChoir({ force = false } = {}) {
+    // `force`: even with the switch off, so someone with a kept voice or songs can still see and delete them. A guest has
+    // no choir: nothing is asked for (it would only answer 401, a page error on every guest page). Who's signed in is
+    // known first (the app's own account check, shared, never a second request).
+    if (!account.loaded) await loadAccount().catch((error) => console.warn('The account was not checked', error));
+    if ((!ownChoirOn() && !force) || !account.me) {
+        ownChoir.data = null;
+        ownChoir.loaded = true;
+        return null;
+    }
+    try {
+        ownChoir.data = (await api.ownChoir.show()).data;
+        forgetGone().catch((error) => console.warn('Old choir parts were not cleared', error));
+    } catch (error) {
+        if (error?.code !== 'not_found') console.warn('Hear yourself as a choir did not load', error);
+        if (error?.code === 'not_found') ownChoir.data = null; // off for this person: nothing of theirs to show
+    } finally {
+        ownChoir.loaded = true;
+    }
+    return ownChoir.data;
+}
+
+/** Every choir part this device keeps, from the projects that kept them: `[{ project, request }]`. */
+async function keptChoirs() {
+    const { loadProjects, projects } = await import('./stores/projects.js');
+    await loadProjects();
+    return projects.all.filter((p) => p.choir?.parts?.length).map((p) => ({ project: p, request: p.choir }));
+}
+
+/** Drops the parts of songs the server no longer has (deleted on another device, or with the account). */
+async function forgetGone() {
+    const live = new Set((ownChoir.data?.requests ?? []).map((r) => r.id));
+    for (const { request } of await keptChoirs()) {
+        if (!live.has(request.requestId)) await forgetParts({ templateId: request.templateId ?? null, ...request, id: request.requestId });
+    }
+}
+
+/** Signing out: every choir part kept on this device goes (they're the singer's, not this device's). */
+export async function forgetAllHere() {
+    for (const { project, request } of await keptChoirs()) await forgetParts({ templateId: project.template?.id, ...request, id: request.requestId });
+    for (const request of ownChoir.data?.requests ?? []) await forgetParts(request);
+    ownChoir.data = null;
+}
+
+/** A song's newest request, or null. */
+export function requestFor(templateId) {
+    return ownChoir.data?.requests?.find((r) => r.templateId === templateId) ?? null;
+}
+
+/** Whether a request is still being made. */
+export const isOpen = (request) => !!request && OPEN.includes(request.status);
+
+/** The ready songs not yet heard: Home's one quiet notice each. */
+export function readyUnseen() {
+    return (ownChoir.data?.requests ?? []).filter((r) => r.status === 'ready' && !r.seen);
+}
+
+/**
+ * The project's guides when it's a choir project (`project.choir`): the song's parts made from the singer's voice, as
+ * voiceChoice expects them (`{ versions, version }`), or null. Each says it's AI and made from their singing (`choir`).
+ */
+export function choirVoices(project, partKey) {
+    // The server's answer, else the parts the project kept when it was opened (so it plays offline, after a reload too).
+    const request = (ownChoir.data?.requests ?? []).find((r) => r.id === project?.choir?.requestId && r.status === 'ready') ?? (project?.choir?.parts ? project.choir : null);
+    const part = request?.parts?.find((p) => p.partKey === partKey);
+    return part ? { versions: [{ ...part, default: true, choir: true }], version: request.version } : null;
+}
+
+/** What a choir project keeps of its song: the request, its version and parts (to play offline). */
+export function choirOf(request) {
+    return { requestId: request.id, templateId: request.templateId, version: request.version, parts: request.parts.map((p) => ({ ...p })) };
+}
+
+/**
+ * The clip from a take (`samples` at `sampleRate`, its frame 0 at `startSeconds` of the song, latency already out):
+ * from the song's beat 0 (or the take's start, if it started later), at most 30 seconds, as a 16-bit mono WAV, and
+ * where beat 0 falls in it. `{ wav, frames, offsetFrames, seconds }`.
+ */
+export function clipFrom(samples, sampleRate, startSeconds) {
+    const beat0 = Math.round(-startSeconds * sampleRate); // the take's frame at the song's beat 0
+    const start = Math.max(0, beat0);
+    const end = Math.min(samples.length, start + MAX_SECONDS * sampleRate);
+    const clip = samples.subarray(start, end);
+    return { wav: encodeWav([clip], sampleRate), frames: clip.length, offsetFrames: beat0 >= 0 ? beat0 - start : null, seconds: clip.length / sampleRate };
+}
+
+const hex = (buffer) => [...new Uint8Array(buffer)].map((b) => b.toString(16).padStart(2, '0')).join('');
+
+/**
+ * Sends a take as a song's clip: the request, the upload, then complete. Resolves the request (queued); refusals are the
+ * contract's ApiErrors (consent_required, quota_reached with `which`, request_open, account_required).
+ */
+export async function sendClip({ templateId, partKey, samples, sampleRate, startSeconds, hum = false }) {
+    const clip = clipFrom(samples, sampleRate, startSeconds);
+    if (hum) clip.offsetFrames = null; // a hum sets its own tempo: where the song's beat 0 falls in it isn't known
+    const bytes = await clip.wav.arrayBuffer();
+    const sha256 = hex(await crypto.subtle.digest('SHA-256', bytes));
+    const { data: request, upload } = await api.ownChoir.requests.create({ templateId, partKey, offsetFrames: clip.offsetFrames, sampleRate, frames: clip.frames, bytes: bytes.byteLength, sha256 });
+    // The upload and complete, once more if the first try fails (the contract: send it again after a mismatch); if it still
+    // fails, the request goes, so it never sits "on its way" and a new try isn't refused as one song at a time.
+    const finish = async () => {
+        await uploadTo(upload, clip.wav);
+        return (await api.ownChoir.requests.complete(request.id)).data;
+    };
+    let queued;
+    try {
+        queued = await finish().catch(finish);
+    } catch (error) {
+        await api.ownChoir.requests.delete(request.id).catch((cleanup) => console.warn('The unsent choir request was not removed', cleanup));
+        throw error;
+    }
+    await loadOwnChoir();
+    return queued;
+}
+
+/** Whether the terms need agreeing (again): none yet, or a newer version than the one agreed. */
+export function termsNeeded() {
+    const c = ownChoir.data?.consent;
+    return !c || c.version < (ownChoir.data?.termsVersion ?? 0);
+}
+
+/** The voice kept for their next songs (Hillel: "store a model to make it easier"), or null. */
+export function savedVoice() {
+    return ownChoir.data?.voice ?? null;
+}
+
+/** A song from the saved voice: one tap, no recording (the request comes back queued). */
+export async function makeFromVoice(templateId) {
+    const { data: queued } = await api.ownChoir.requests.create({ templateId });
+    await loadOwnChoir();
+    return queued;
+}
+
+/** Deletes a song made from their singing: on the server, then its parts kept on this device. */
+export async function deleteSong(request) {
+    await api.ownChoir.requests.delete(request.id);
+    await forgetParts(request);
+    await loadOwnChoir();
+}
+
+/** Turns it all off: every song, any recording waiting, the consent; and every part kept here. */
+export async function deleteEverything() {
+    const requests = ownChoir.data?.requests ?? [];
+    await api.ownChoir.delete();
+    for (const request of requests) await forgetParts(request);
+    await loadOwnChoir();
+}
+
+async function forgetParts(request) {
+    for (const part of request.parts ?? []) {
+        await db.remove('guides', guideKey(request.templateId, request.version, part.partKey, part.id)).catch((error) => console.warn('A choir part was not removed from the device', error));
+    }
+}
+
+/** A ready song opened: its notice goes (once). */
+export async function markSeen(request) {
+    if (!request || request.seen) return;
+    request.seen = true;
+    await api.ownChoir.requests.seen(request.id).catch((error) => console.warn('The choir notice was not marked seen', error));
+}
+
+/** The anonymous counts the app sends (contract: own_choir_heard, _sing, _replaced). */
+export function countChoir(kind) {
+    count(kind);
+}
+
+/**
+ * The card under a choir project's take (Sing's review), in place of Be the voice's invitation: Make my choir, or, under
+ * 15 seconds, why not yet and Sing again. `seconds`: the take's length; `busy` while it sends; `error`: words to show.
+ */
+export const ChoirCard = {
+    props: { seconds: { type: Number, required: true }, busy: Boolean, error: { type: String, default: '' } },
+    emits: ['make', 'again'],
+    setup: () => ({ MIN_SECONDS }),
+    template: `
+        <div class="card flex flex-col gap-3 p-4 sm:flex-row sm:items-center" data-choir-card>
+            <div class="min-w-0 flex-1">
+                <p class="font-bold text-cream">{{ t('ownChoir.title') }}</p>
+                <p class="text-sm text-muted" :role="error ? 'alert' : null">{{ error || (seconds < MIN_SECONDS ? t('ownChoir.record.short') : t('ownChoir.wait.kept')) }}</p>
+            </div>
+            <div class="flex shrink-0 flex-wrap gap-2">
+                <button v-if="seconds >= MIN_SECONDS" type="button" class="btn-secondary" :disabled="busy" :aria-busy="busy ? 'true' : null" data-choir-make @click="$emit('make')"><span v-if="busy" class="spinner" aria-hidden="true"></span>{{ busy ? t('ownChoir.record.sending') : t('ownChoir.record.use') }}</button>
+                <button v-else type="button" class="btn-secondary" data-choir-again @click="$emit('again')">{{ t('ownChoir.record.again') }}</button>
+            </div>
+        </div>`,
+};
+
+/**
+ * Settings' "Your voice" row: shown only while a voice is kept, what it's for and until when, and Delete in a styled
+ * confirmation naming exactly what goes (the voice) and what stays (the songs made).
+ */
+export const SavedVoiceRow = {
+    components: { Icon },
+    data: () => ({ busy: false }),
+    setup: () => ({ ownChoir }),
+    computed: {
+        // Shown whenever a voice is kept, the switch on or not, so it can always be deleted (the security review).
+        voice: () => savedVoice(),
+        until: (vm) => (vm.voice?.expiresAt ? formatDate(vm.voice.expiresAt, { day: 'numeric', month: 'long', year: 'numeric' }) : ''),
+    },
+    created() {
+        // Once the switch is known (a fresh page asks for auth.config at start): where the voice stands.
+        loadAuthConfig().then(() => (account.me && !ownChoir.data ? loadOwnChoir({ force: true }) : null)).catch((error) => console.warn('Your voice did not load', error));
+    },
+    template: `
+        <div v-if="voice" class="card flex flex-wrap items-center gap-4 p-5" data-saved-voice>
+            <span class="grid size-10 shrink-0 place-items-center rounded-full bg-raised text-cream" aria-hidden="true"><Icon name="mic" :size="20" /></span>
+            <span class="min-w-0 flex-1"><span class="block font-bold text-cream">{{ t('ownChoir.voice.title') }}</span><span class="block text-sm text-muted">{{ t('ownChoir.voice.line', { date: until }) }}</span></span>
+            <button type="button" class="btn-ghost btn-sm text-bad" :disabled="busy" data-saved-voice-delete @click="remove">{{ t('ownChoir.voice.delete') }}</button>
+        </div>`,
+    methods: {
+        async remove() {
+            const yes = await confirmAction({ title: t('ownChoir.voice.deleteTitle'), body: t('ownChoir.voice.deleteBody'), action: t('ownChoir.voice.deleteAction') });
+            if (!yes) return;
+            this.busy = true;
+            try {
+                await api.ownChoir.voice.delete();
+                await loadOwnChoir();
+                toast(t('ownChoir.voice.deleted'));
+            } catch (error) {
+                console.warn('The saved voice was not deleted', error);
+                toast(t('common.didntWork'), { tone: 'error' });
+            } finally {
+                this.busy = false;
+            }
+        },
+    },
+};

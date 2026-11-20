@@ -238,6 +238,74 @@ LANDING_DATA = (
 )
 
 
+# Hear yourself as a choir's card (YourChoirStage::cards; the coordinator, 2026-11-20: "in the stage's look, glass lanes of
+# one real voice becoming two"): the page's own dark ground and voice light, the mark, the eyebrow, the headline with its
+# accent words, the Play line; at right her real lane on top ("Really singing") and the two AI lanes it opens into, the
+# tune and the harmony ("AI"), each lane's opening notes from the songs as the app's glass gems (css/glass.css, the one
+# recipe, inlined). No people, no photos.
+CHOIR = """<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..900&display=swap">
+<style>
+{glass}
+html,body{margin:0}
+body{width:1200px;height:630px;position:relative;overflow:hidden;background:#050403;color:#f8f1e7;font-family:'Figtree',sans-serif;--gem-lane-tint:.18}
+.light{position:absolute;border-radius:50%;background:radial-gradient(closest-side,var(--c),transparent);pointer-events:none}
+.brand{position:absolute;left:72px;top:64px;display:flex;align-items:center;gap:14px;font:800 30px/1 Figtree;letter-spacing:-.01em}
+.brand svg{width:48px;height:48px;border-radius:9px}
+.words{position:absolute;left:72px;top:170px;width:470px}
+.eyebrow{display:flex;align-items:center;gap:12px;font:800 17px/1 Figtree;letter-spacing:.16em;text-transform:uppercase;color:#ff9139}
+.eyebrow i{width:9px;height:9px;border-radius:9px;display:inline-block}
+h1{margin:22px 0 0;font:800 88px/.93 Figtree;letter-spacing:-.045em;text-wrap:balance}
+h1 span{display:block}h1 em{display:block;font-style:normal;color:#e8b479}
+.line{display:flex;align-items:center;gap:14px;margin-top:34px;font:700 24px/1.2 Figtree;color:#f8f1e7}
+.line .bubble{width:46px;height:46px;--bubble:#e8b479;--bubble-ink:#1b1206;display:inline-grid;place-items:center}
+.deck{position:absolute;right:0;top:118px;width:610px;display:grid;gap:12px;perspective:1300px}
+.ln{--c:#ff9139;position:relative;height:118px;container-type:size;overflow:hidden;border-block:1px solid color-mix(in srgb,var(--c) 62%,transparent);background:linear-gradient(180deg,color-mix(in srgb,var(--c) 20%,transparent),color-mix(in srgb,var(--c) 9%,transparent));box-shadow:0 0 60px -8px color-mix(in srgb,var(--c) 55%,transparent),inset 0 1px 0 color-mix(in srgb,var(--c) 40%,transparent);transform:rotateX(5deg);transform-origin:50% 100%}
+.ln.v2{--c:#ffea6b}
+.ln.real{height:120px;margin-bottom:22px}
+.ln.ai{height:116px}
+.lb{position:absolute;left:24px;top:14px;display:flex;align-items:center;gap:10px;font:800 21px/1 Figtree;color:var(--c);z-index:3}
+.lb .bubble{width:28px;height:28px;font-size:12px;--bubble:var(--c);--bubble-ink:#1b1206;display:inline-grid;place-items:center}
+.chip{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:99px;background:rgba(248,241,231,.1);border:1px solid rgba(248,241,231,.22);color:#f8f1e7;font:800 11.5px/1 Figtree;letter-spacing:.06em;text-transform:uppercase}
+.song{position:absolute;left:24px;bottom:12px;font:500 15px/1 Figtree;color:#b9ad9e;z-index:3}
+.tr{position:absolute;left:230px;right:-20px;top:0;bottom:0}
+.tr .gem-note{position:absolute;left:calc(var(--b) * var(--ppb));width:calc(var(--l) * var(--ppb) - 6px);top:calc(18% + var(--y) * 52%);--gem-c:var(--c);--gem-hl:30px;--gem-surf:color-mix(in srgb,var(--c) calc(var(--gem-lane-tint) * 100%),#050403);--gem-ring:#f8f1e7;--gem-text:#f8f1e7;--gem-ink:var(--gem-ink-dark)}
+.split{position:absolute;right:300px;top:240px;width:2px;height:24px}
+</style></head><body>
+<i class="light" style="--c:rgba(232,180,121,.32);width:900px;height:640px;left:-300px;top:-260px"></i>
+<i class="light" style="--c:rgba(255,145,57,.30);width:1100px;height:700px;left:200px;top:120px"></i>
+<i class="light" style="--c:rgba(255,234,107,.18);width:800px;height:500px;left:600px;top:330px"></i>
+<div class="brand">{mark}Stackapella</div>
+<div class="words">
+<div class="eyebrow"><span style="display:inline-flex;gap:5px"><i style="background:#ff9139"></i><i style="background:#ffea6b"></i><i style="background:#45eca4"></i><i style="background:#968dfd"></i></span>{eyebrow}</div>
+<h1><span>{headline}</span><em>{em}</em></h1>
+<div class="line"><span class="bubble"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="#1b1206"/></svg></span>{line}</div>
+</div>
+<div class="deck">{lanes}</div>
+</body></html>"""
+
+
+def choir(card, tmp):
+    data = card["choir"]
+    glass = (SERVER.parent / "web" / "css" / "glass.css").read_text()
+    glass = glass[glass.index("/* gem-spec:start */"):]
+    lanes = []
+    for lane in data["lanes"]:
+        tune = lane["tune"]
+        ppb = 380 / max(1.0, float(tune["beats"]))
+        gems = "".join(f'<span class="gem-note" style="--b:{n["beat"]};--l:{n["length"]};--y:{n["y"]}"></span>' for n in tune["notes"])
+        lanes.append(
+            f'<div class="ln {lane["seg"]} v{lane["n"]}" style="--ppb:{ppb:.2f}px">'
+            f'<div class="lb"><span class="bubble">{html.escape(lane["name"][0])}</span>{html.escape(lane["name"])}<span class="chip">{html.escape(lane["chip"])}</span></div>'
+            f'<div class="song">{html.escape(lane["song"])}</div><div class="tr">{gems}</div></div>'
+        )
+    page = Path(tmp) / f"{card['key']}.html"
+    page.write_text(CHOIR.replace("{glass}", glass).replace("{mark}", mark().replace("{{", "{").replace("}}", "}"))
+                    .replace("{eyebrow}", html.escape(data["eyebrow"])).replace("{headline}", html.escape(data["headline"]))
+                    .replace("{em}", html.escape(data["em"])).replace("{line}", html.escape(data["line"])).replace("{lanes}", "".join(lanes)))
+    shoot(page, OUT / f"{card['key']}.png", tmp, card["key"], colors=0)
+
+
 def shoot(page, out, tmp, name, colors=96):
     """A page drawn at 1200 by 630 in headless Chrome, kept as a small PNG (a designed card, colors=0, in full colour)."""
     shot = Path(tmp) / f"{name}.png"
@@ -277,6 +345,10 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as tmp:
         for card in cards:
+            if card.get("choir"):
+                choir(card, tmp)
+                print("drew", card["key"])
+                continue
             if card.get("theme"):
                 collection(card, tmp)
                 print("drew", card["key"])

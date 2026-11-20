@@ -4,5 +4,5 @@
      address, else null). Shared by the song page, its part pages and About AI voices, so they never drift. --}}
 <span data-ai-voice>{{ ($basedOn ?? null) !== null ? __('pages.song.ai.based_on', ['name' => $basedOn]) : __('pages.song.ai.credit') }}</span>
 @if (($wanted ?? null) !== null)
-    <a href="{{ $wanted }}" class="s-lk" @isset($part) data-be-voice="{{ $part }}" @endisset>{{ __('pages.song.ai.wanted') }}</a>
+    <a href="{{ $wanted }}" class="s-lk"@isset($part) data-be-voice="{{ $part }}"@endisset>{{ __('pages.song.ai.wanted') }}</a>
 @endif

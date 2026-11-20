@@ -18,6 +18,7 @@ import { Icon, Logo } from '../components/icon.js';
 import { InstallRow } from '../components/install.js';
 import { Modal, toast } from '../components/ui.js';
 import { anySkipped, askAgain, confirmAction } from '../components/confirm.js';
+import { SavedVoiceRow } from '../own-choir.js';
 import { learning, loadLearning, restartCourse, undoRestart } from '../stores/learning.js';
 import { formatBytes, SyncStatus } from '../components/cloud.js';
 import { appearanceSummary } from '../components/appearance.js';
@@ -85,7 +86,7 @@ const SECTIONS = ['profile', 'account', 'game', 'practice', 'plan', 'data', 'dev
 const SECTION_WORDS = { profile: tk('settings.nav.profile'), account: tk('settings.nav.account'), game: tk('settings.nav.game'), practice: tk('settings.nav.practice'), plan: tk('settings.nav.plan'), data: tk('settings.nav.data'), device: tk('settings.nav.device') };
 
 export const SettingsView = {
-    components: { InstallRow, GameElements, GameModeSwitch, AppScreen, ThemeSwitch, Field, Notice, StatusChip, Icon, Logo, Modal, SyncStatus, Switch },
+    components: { SavedVoiceRow, InstallRow, GameElements, GameModeSwitch, AppScreen, ThemeSwitch, Field, Notice, StatusChip, Icon, Logo, Modal, SyncStatus, Switch },
     data: () => ({
         notices: 0, // statements of reasons about this account (views/notices.js): a row only when there are any
         hereSongs: null, // a guest's songs on this device (the Settings card's tally)
@@ -356,6 +357,8 @@ export const SettingsView = {
                     <span class="min-w-0 flex-1"><span class="block font-bold text-cream">{{ t('voices.title') }}</span><span class="block text-sm text-muted">{{ t('voices.settingsHint') }}</span></span>
                     <Icon name="arrow" :size="18" class="text-muted" />
                 </a>
+                <!-- Hear yourself as a choir (js/own-choir.js): the voice kept for their next songs, and Delete; only while one is kept. -->
+                <SavedVoiceRow v-if="account.me" />
                 <!-- Statements of reasons (views/notices.js): only for someone who has had one. -->
                 <a v-if="account.me && notices" href="/notices" class="card-interactive flex items-center gap-4 p-5" data-notices-row @click.prevent="navigate('/notices')">
                     <span class="grid size-10 shrink-0 place-items-center rounded-full bg-raised text-cream" aria-hidden="true"><Icon name="alert" :size="20" /></span>

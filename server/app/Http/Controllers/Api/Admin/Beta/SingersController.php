@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Admin\Beta;
 
+use App\Actions\AiVoices\OfferAiLicence;
 use App\Actions\Beta\ForgetSinger;
 use App\Actions\Beta\InviteSinger;
 use App\Actions\Beta\MarkSingerPaid;
@@ -87,6 +88,13 @@ final class SingersController extends Controller
     public function forget(Request $request, BetaSinger $singer, ForgetSinger $forget, #[CurrentUser] User $admin): JsonResponse
     {
         $forget->handle($singer, $admin, $request->ip());
+
+        return $this->singer($singer);
+    }
+
+    public function offerAiLicence(Request $request, BetaSinger $singer, OfferAiLicence $offer, #[CurrentUser] User $admin): JsonResponse
+    {
+        $offer->handle($singer, $admin, $request->ip());
 
         return $this->singer($singer);
     }

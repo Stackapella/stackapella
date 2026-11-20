@@ -59,7 +59,9 @@ final class AiVoicesPageTest extends TestCase
         // The staff cookie's plain "1" (anyone can set it) is no key.
         $this->withUnencryptedCookie(StaffDevice::PREVIEW_COOKIE, '1')->get('/about/ai-voices')->assertNotFound();
 
-        $admin = $this->withUnencryptedCookie(StaffDevice::PREVIEW_COOKIE, StaffDevice::previewCookie(request())->getValue())
+        $preview = StaffDevice::previewCookie(request())->getValue();
+        $this->assertNotNull($preview);
+        $admin = $this->withUnencryptedCookie(StaffDevice::PREVIEW_COOKIE, $preview)
             ->get('/about/ai-voices')->assertOk()->assertHeader('X-Robots-Tag', 'noindex');
         $this->assertStringContainsString('no-store', (string) $admin->headers->get('Cache-Control'));
         $this->assertStringContainsString('<meta name="robots" content="noindex">', (string) $admin->getContent());
@@ -87,6 +89,15 @@ final class AiVoicesPageTest extends TestCase
             ->assertSee('Sobre las voces de IA')
             ->assertSee('Voz de IA, a la espera de una voz real')
             ->assertSee('Se busca una voz real: sé la voz')
-            ->assertSee('Nada de lo que cantas en la app se convierte en una voz de IA.');
+            ->assertSee('Nada de lo que cantas en la app se convierte en una voz de IA, salvo que aceptes nuestra licencia de voz de IA.');
+    }
+
+    public function test_own_voice_songs_alone_make_it_everyones_too(): void
+    {
+        config(['flags.own_choir' => ['kind' => 'feature', 'values' => ['off', 'on']]]);
+        app(Flags::class)->set('own_choir', 'on', null, 'Own choir live');
+
+        $this->get('/about/ai-voices')->assertOk()->assertHeaderMissing('X-Robots-Tag')
+            ->assertSee(__('site.ai_voices.sections.yours.choir'));
     }
 }

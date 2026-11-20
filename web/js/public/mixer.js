@@ -22,7 +22,8 @@
 // - [data-beat] (with data-length for a note, each voice's bars): data-lit while it sounds,
 //   data-sung once it has; a word (no length) is lit until the next word starts;
 // - [data-time]: "0:06 / 0:18".
-// The player gets data-playing while it plays, and --p (0 to 1) for its playhead.
+// The player gets data-playing while it plays; its playhead, --p (0 to 1), goes on what draws it (PLAYHEADS), and each
+// frame of a play is the event mixer-frame on its root ({ p }, 0 to 1), for a page that draws more from it.
 // Anywhere on the page, [data-hear="<player id>"] (the hero's "Hear four voices") brings that player
 // into view and plays it, unless it's playing already. Without the script it's a link to the player.
 // - [data-part-key="<part key>"] (a song card's part rows): data-sounding while that part sings a note.
@@ -87,6 +88,9 @@ const MIX_MOVE = 0.03; // the time constant of moving between the render and the
 const JOIN_FADE = 0.12; // seconds a joining voice takes to open, ending on its beat: a fade, not a click
 
 /** The render this browser plays: the m4a where it can, else the mp3; null without one. Pure (the tests check it). */
+/** What reads a player's playhead (--p) in the site's sheet: the Play button (its ring), a wave's line, a score's bar. */
+export const PLAYHEADS = '[data-play], .s-ch-wave, .s-score-bar';
+
 export function renderUrl(audio, canPlay) {
     if (audio?.m4a && canPlay('audio/mp4') !== '') return audio.m4a;
     return audio?.mp3 ?? null;
@@ -344,9 +348,12 @@ function setUp(root) {
         const decoder = new OfflineAudioContext(1, 1, RATE);
         const voices = {};
         await Promise.all(song.parts.map(async (part) => {
-            if (!guides[part.key]) return;
+            // An AI voice sings only where the page names it on its part (`aiVoices`, the song page), never in a realOnly
+            // player (the landing) and never on a page that doesn't say so (docs/ai-voices-build-plan.md): there the synth.
+            const guide = guides[part.key];
+            if (!guide || (guide.source === 'ai' && (realOnly || song.aiVoices !== true))) return;
             try {
-                voices[part.key] = await realVoice(guides[part.key], decoder, arrived(part.key));
+                voices[part.key] = await realVoice(guide, decoder, arrived(part.key));
                 await quieted(part.key, voices[part.key]);
             } catch (error) {
                 console.warn('A real voice could not load: the synth sings it', error);
@@ -427,8 +434,19 @@ function setUp(root) {
         if (line) line.hidden = !on;
     }
 
+    // The playhead (--p, 0 to 1) is written on the elements that read it (PLAYHEADS: the Play button's ring, a wave's
+    // line, a score's bar), not on the player's root: an inherited value written on the root restyled and laid out
+    // everything inside it every frame (a song page at 26% of the main thread while it played, 2026-11-20). The time is
+    // written only when its words change. Found again as a play starts, so an element added since is included.
+    let heads = [];
+    let shownP = '';
+    let shownTime = '';
     function show(sung) {
-        root.style.setProperty('--p', String(Math.min(1, sung / length)));
+        const p = String(Math.round(Math.min(1, sung / length) * 10000) / 10000);
+        if (p !== shownP) {
+            shownP = p;
+            for (const head of heads) head.style.setProperty('--p', p);
+        }
         // The notes and the words follow the pass being sung.
         const at = passes > 1 ? sung % single : sung;
         if (rows.size) {
@@ -449,7 +467,8 @@ function setUp(root) {
             mark.el.toggleAttribute('data-lit', lit);
             mark.el.toggleAttribute('data-sung', play !== null && at > 0 && at >= mark.from && !lit);
         }
-        if (time) time.textContent = `${clock(sung)} / ${clock(length)}`;
+        const words = `${clock(sung)} / ${clock(length)}`;
+        if (time && words !== shownTime) time.textContent = (shownTime = words);
     }
 
     // Where the song has got to: the render's own time while it plays, else the audio clock from the voices' start.
@@ -461,7 +480,11 @@ function setUp(root) {
 
     function tick() {
         if (!play) return;
-        show(position());
+        const at = position();
+        show(at);
+        // One frame loop for the page: a page that draws more from the song's place (the home page's stage) follows
+        // this event rather than running a loop of its own.
+        root.dispatchEvent(new CustomEvent('mixer-frame', { detail: { p: Math.min(1, at / length) } }));
         frame = requestAnimationFrame(tick);
     }
 
@@ -692,6 +715,7 @@ function setUp(root) {
     }
 
     function playing() {
+        heads = [...root.querySelectorAll(PLAYHEADS)];
         root.setAttribute('data-playing', '');
         root.setAttribute('data-played', '');
         loading(false);

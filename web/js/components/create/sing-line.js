@@ -119,6 +119,9 @@ export const SingStep = {
 
                 <Notice v-if="line?.mismatch" tone="warn">
                     <p>{{ t('create.sing.mismatch', { syllables: line.mismatch.syllables, notes: line.mismatch.notes }) }}</p>
+                    <!-- More syllables than notes: no word of this line is placed (lyrics.js fitLine), so it would be sung without
+                         them; said plainly (the coordinator for Hillel, 2026-11-20). Split or Join below makes them fit. -->
+                    <p v-if="line.syllables.length > line.notes.length" class="mt-1 font-semibold" data-unsung>{{ t('create.sing.unsung') }}</p>
                     <div class="mt-2 flex flex-wrap gap-3">
                         <button type="button" class="btn-secondary btn-sm" @click="splitLongest">{{ t('create.sing.split', { note: midiName(line.notes[line.mismatch.split].pitch) }) }}</button>
                         <button type="button" class="btn-ghost btn-sm" :aria-expanded="joining" @click="joining = !joining">{{ t('create.sing.join') }}</button>

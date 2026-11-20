@@ -24,6 +24,10 @@ use Illuminate\Support\Carbon;
  * @property int $ai_voice_id
  * @property AiUploadStatus $status
  * @property string|null $failure
+ * @property string|null $review Hillel's review once published: pending, approved or rejected (phase 1c)
+ * @property string|null $review_note why it was rejected
+ * @property Carbon|null $reviewed_at
+ * @property int|null $reviewed_by
  * @property string $upload_key
  * @property string|null $master_key
  * @property int $sample_rate
@@ -37,6 +41,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property-read TemplateVersion $templateVersion
  * @property-read AiVoice $voice
+ * @property-read TemplateGuide|null $guide
+ * @property-read User|null $reviewer
  */
 #[UseFactory(AiUploadFactory::class)]
 final class AiUpload extends Model
@@ -59,6 +65,7 @@ final class AiUpload extends Model
             'bytes' => 'integer',
             'checks' => 'array',
             'renderer' => 'array',
+            'reviewed_at' => 'datetime',
         ];
     }
 
@@ -68,6 +75,24 @@ final class AiUpload extends Model
     public function templateVersion(): BelongsTo
     {
         return $this->belongsTo(TemplateVersion::class);
+    }
+
+    /**
+     * The AI guide it became, while it's live (any review state).
+     *
+     * @return BelongsTo<TemplateGuide, $this>
+     */
+    public function guide(): BelongsTo
+    {
+        return $this->belongsTo(TemplateGuide::class, 'template_guide_id')->withoutGlobalScopes();
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function reviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
     }
 
     /**

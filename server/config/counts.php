@@ -110,6 +110,9 @@ return [
         // AI voices (docs/ai-voices-build-plan.md): a playback in which an AI part sang (the app and the site, once a start),
         // and the site's "Hear yourself as a choir" teaser tapped (behind own_choir_teaser).
         'ai_heard', 'choir_teaser',
+        // Hear yourself as a choir (track B): a song in your own voice heard, gone on into Sing, shared, and a real part
+        // recorded that replaced an AI one in it.
+        'own_choir_heard', 'own_choir_sing', 'own_choir_shared', 'own_choir_replaced', 'own_choir_download',
         // Weekly use of what section 2 found under-used, once a device a week (read against app_week).
         'use_library', 'use_song_course', 'use_course', 'use_workout', 'use_boss', 'use_studio', 'use_group', 'use_tools', 'remind_on',
         // The app's health where Sentry can't see it (the coordinator, 2026-11-14): the "didn't start" screen shown
@@ -192,6 +195,8 @@ return [
         'take_sent', 'guide_published', 'guide_not_chosen', 'mudeo_visit', 'mudeo_used', 'plus_started',
         // A real take that retired an AI guide (App\Support\AiVoices\AiGuides).
         'ai_replaced',
+        // Hear yourself as a choir: a song asked for (its clip in), and one ready.
+        'own_choir_requested', 'own_choir_ready', 'own_choir_again', 'own_choir_own',
         // An app start (auth.config) with a country and without one (XX, T1): geo_rights' unknown-country share.
         'cfg_country', 'cfg_no_country'],
 

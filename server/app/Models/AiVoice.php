@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
@@ -19,15 +20,18 @@ use Illuminate\Support\Carbon;
  * recorded (consented()), and withdrawing it retires all of them (App\Actions\AiVoices\WithdrawAiVoice). Never deleted.
  *
  * @property int $id
+ * @property int|null $beta_singer_id the beta singer who licensed it in the app (null: added by app:ai-voice:add)
  * @property string $name
  * @property string|null $based_on
  * @property Carbon|null $consent_date
  * @property string|null $consent_version
+ * @property Carbon|null $accepted_at when they accepted the licence in the app (its version is consent_version)
  * @property bool $payment_noted
  * @property bool $credited the singer chose to be named on the label (else the plain AI label)
  * @property Carbon|null $withdrawn_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read BetaSinger|null $betaSinger
  */
 #[UseFactory(AiVoiceFactory::class)]
 final class AiVoice extends Model
@@ -49,6 +53,7 @@ final class AiVoice extends Model
             'payment_noted' => 'boolean',
             'credited' => 'boolean',
             'withdrawn_at' => 'datetime',
+            'accepted_at' => 'datetime',
         ];
     }
 
@@ -79,6 +84,14 @@ final class AiVoice extends Model
     public function scopeConsented(Builder $query): Builder
     {
         return $query->whereNull('withdrawn_at')->whereNotNull('consent_date');
+    }
+
+    /**
+     * @return BelongsTo<BetaSinger, $this>
+     */
+    public function betaSinger(): BelongsTo
+    {
+        return $this->belongsTo(BetaSinger::class);
     }
 
     /**

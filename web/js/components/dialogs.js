@@ -28,6 +28,7 @@ import { aiPartsOf, catalogue } from '../stores/catalogue.js';
 import { SLOW_MS } from './screen-loading.js';
 import { pastFirstWeek, voiceAskOpen, voicelessParts } from '../be-the-voice.js';
 import { AiVoiceLabel, voiceCredit } from '../ai-voices.js';
+import { ownChoirOn } from '../own-choir.js';
 import { versionsOf } from '../song-versions.js';
 
 // A song's pace in words for a new singer (no BPM: the design rules' first-week words).
@@ -648,7 +649,7 @@ export const PartDialog = {
                         <input type="radio" name="guideVoice" class="radio mt-px" :checked="chosen(v)" :disabled="blocked" @change="$emit('voice', [v.id])" />
                         <span class="min-w-0">
                             <!-- An AI voice says so in the singer's place (js/ai-voices.js), with Be the voice under it where it's open. -->
-                            <span v-if="v.source === 'ai'" class="block font-semibold text-cream"><AiVoiceLabel :based-on="v.aiBasedOn ?? null" /></span>
+                            <span v-if="v.source === 'ai'" class="block font-semibold text-cream"><AiVoiceLabel :based-on="v.aiBasedOn ?? null" :choir="!!v.choir" /></span>
                             <span v-else class="block font-semibold text-cream">{{ voiceCredit(v) }}</span>
                             <span v-if="v.source === 'ai'" class="text-sm text-muted"><button v-if="aiCta" type="button" class="link tap-44" :aria-label="t('aiVoice.goPart', { part: shownName })" data-ai-voice-go @click.prevent.stop="$emit('be-voice')">{{ t('voices.be.go') }}</button><template v-if="voice.why === 'failed' && voice.chosen.includes(v.id)"><template v-if="aiCta"> · </template>{{ t('part.realVoiceFailed') }}</template></span>
                             <span v-else class="text-sm text-muted">{{ v.default ? t('part.defaultVoice') : t('part.otherVoice') }}<template v-if="voice.why === 'failed' && voice.chosen.includes(v.id)"> · {{ t('part.realVoiceFailed') }}</template></span>
@@ -712,7 +713,9 @@ export const PartDialog = {
         },
         nudgeLabel() {
             const ms = this.nudgeMs;
-            return ms === 0 ? t('part.asRecorded') : ms < 0 ? t('part.earlier', { ms: -ms }) : t('part.later', { ms });
+            // An AI voice is never "recorded" (design rules, "AI: plain about it"): a part it sings with no take is "As written".
+            const ai = !this.recorded && this.voice?.kind === 'real' && this.voice.ai;
+            return ms === 0 ? (ai ? t('part.asWritten') : t('part.asRecorded')) : ms < 0 ? t('part.earlier', { ms: -ms }) : t('part.later', { ms });
         },
     },
     methods: {
@@ -837,43 +840,52 @@ export const TemplateDialog = {
     // taste: a guest on a library song whose first phrase they may sing (templates.firstPhrase): Start sings that, the ask after.
     // load: the song's notes still coming ('loading'), or why they didn't ('failed', 'offline'); starting: Start was tapped.
     props: { template: { type: Object, required: true }, previewing: Boolean, preparing: Boolean, credits: { type: Array, default: () => [] }, locked: Boolean, taste: Boolean, singers: { type: Number, default: 4 }, fresh: Boolean, load: { type: String, default: null }, notHere: { type: String, default: null }, starting: Boolean },
-    emits: ['start', 'preview', 'close', 'signup', 'copy', 'singers', 'retry', 'voice', 'version'],
+    emits: ['start', 'preview', 'close', 'signup', 'copy', 'singers', 'retry', 'voice', 'version', 'choir'],
     setup: () => ({ midiName, formatTime, formatNumber, primary, secondary, singerOptions, templatePartName, keyLabel, DIFFICULTY, formatList, TEMPO, songTitle, versionsOf }),
     template: `
-        <Modal :title="songTitle(template)" title-is-content wide @close="$emit('close')">
+        <!-- Hillel's song sheet (2026-11-20, shots-review/designs/song-sheet-2026-11-20): the title and its line in the header
+             with a full 44 px close (and a grab handle on a phone); the facts as chips; one group between hairlines for
+             what you choose or should know (the version, how many sing it, who sings it); then Sing it, Hear it and Edit;
+             the credits last, folded into one row, a draft said only as its badge until it opens. -->
+        <Modal :title="songTitle(template)" :lead="description" title-is-content wide sheet @close="$emit('close')">
             <div class="space-y-5">
-                <p class="text-cream" translate="no" data-song-description>{{ description }}</p>
                 <p v-if="locked" class="font-semibold text-part-2">{{ template.previewUrl ? t('templates.needsAccount') : t('templates.needsAccountNoClip') }}</p>
-                <p class="text-sm text-muted">{{ t(DIFFICULTY[template.difficulty] ?? DIFFICULTY.beginner) }} · {{ t('studio.meta.key', { key: keyLabel(template.key) }) }} · {{ t(TEMPO[template.tempo <= 84 ? 'slow' : template.tempo <= 112 ? 'steady' : 'lively']) }}<template v-if="!template.summary"> · {{ formatTime(seconds) }}</template></p>
-                <p v-if="template.credits" class="text-xs text-muted">{{ [t('templates.credits', { words: template.credits.words, tune: template.credits.tune, arrangement: template.credits.arrangement }), template.reviewed ? '' : t('templates.draftNote')].filter(Boolean).join(' ') }}</p>
-                <p v-if="credits.length" class="text-sm text-cream">{{ t('templates.sungBy', { names: formatList(credits) }) }}</p>
-                <!-- Its versions (song-versions.js; Hillel's US and UK switch, 2026-11-18): where the UK sings it another way,
-                     a small switch, the one open chosen; it opened on the one kept on this device, else the one sung where you are. -->
-                <div v-if="versionsOf(template).length" class="flex flex-wrap items-center justify-between gap-3" data-song-versions>
-                    <span :id="'versions-' + $.uid" class="text-sm font-semibold text-cream">{{ t('templates.versions.question') }}</span>
-                    <div class="seg" role="radiogroup" :aria-labelledby="'versions-' + $.uid">
-                        <button v-for="v in versionsOf(template)" :key="v.id" type="button" role="radio" class="seg-option tap-44" :aria-checked="v.id === template.id ? 'true' : 'false'" :data-version="v.name" translate="no" @click="v.id !== template.id && $emit('version', v.id)">{{ v.name === 'uk' ? t('templates.versions.uk') : v.name === 'us' ? t('templates.versions.us') : v.name.toUpperCase() }}</button>
+                <p data-ui="facts" class="flex flex-wrap gap-2" data-song-facts>
+                    <span v-for="fact in facts" :key="fact" class="chip min-h-8 px-3 text-sm font-medium text-cream">{{ fact }}</span>
+                </p>
+                <div v-if="groupShown" class="divide-y divide-line border-y border-line" data-song-group>
+                    <!-- Its versions (song-versions.js; Hillel's US and UK switch, 2026-11-18): where the UK sings it another way,
+                         a small switch, the one open chosen; it opened on the one kept on this device, else the one sung where you are. -->
+                    <div v-if="versionsOf(template).length" class="flex flex-wrap items-center justify-between gap-3 py-3.5" data-song-versions>
+                        <span :id="'versions-' + $.uid" class="font-semibold text-cream">{{ t('templates.versions.question') }}</span>
+                        <div class="seg" role="radiogroup" :aria-labelledby="'versions-' + $.uid">
+                            <button v-for="v in versionsOf(template)" :key="v.id" type="button" role="radio" class="seg-option tap-44" :aria-checked="v.id === template.id ? 'true' : 'false'" :data-version="v.name" translate="no" @click="v.id !== template.id && $emit('version', v.id)">{{ v.name === 'uk' ? t('templates.versions.uk') : v.name === 'us' ? t('templates.versions.us') : v.name.toUpperCase() }}</button>
+                        </div>
                     </div>
+                    <!-- Hillel: "add back the 2/3/4 part toggle": how many sing it, from the song's own voicings; Start sings that many.
+                         A first visit (fresh: no song sung yet; the first-session review, Hillel: yes): it waits until a first song is sung. -->
+                    <div v-if="singersShown" class="flex flex-wrap items-center justify-between gap-3 py-3.5" data-song-singers>
+                        <span :id="'singers-' + $.uid" class="font-semibold text-cream">{{ t('templates.singers.question') }}</span>
+                        <div class="seg" role="radiogroup" :aria-labelledby="'singers-' + $.uid">
+                            <button v-for="n in singerOptions(template)" :key="n" type="button" role="radio" class="seg-option tap-44" :aria-checked="singers === n ? 'true' : 'false'" @click="$emit('singers', n)">{{ formatNumber(n) }}</button>
+                        </div>
+                    </div>
+                    <p v-if="credits.length" class="py-3.5 text-sm text-cream" data-song-real-voices>{{ t('templates.sungBy', { names: formatList(credits) }) }}</p>
+                    <!-- AI voices (js/ai-voices.js): one quiet row, a small dot, Be the voice inline once the call is open. -->
+                    <p v-if="aiParts.length" class="py-3.5 text-sm text-muted" data-song-ai-voices><AiVoiceLabel :parts="aiParts" :cta="voiceOpen" dot @voice="$emit('voice')" /></p>
+                    <!-- Hear yourself as a choir (js/own-choir.js, behind own_choir): one row, its words and the way in. -->
+                    <div v-if="choirShown" class="py-3.5" data-song-choir>
+                        <button type="button" class="link tap-44 font-semibold" data-song-choir-go @click="$emit('choir')">{{ t('ownChoir.entry.button') }}</button>
+                        <p class="text-sm text-muted">{{ t('ownChoir.entry.line', { song: songTitle(template) }) }}</p>
+                    </div>
+                    <!-- Be the voice (be-the-voice.js): the parts no one has sung yet, past the first week, one quiet row. -->
+                    <p v-if="voiceless.length" class="py-3.5 text-sm text-muted" data-song-no-voice>{{ t('voices.be.sheet', { parts: formatList(voiceless) }) }} <button type="button" class="link tap-44 font-semibold" data-be-the-voice-go @click="$emit('voice')">{{ t('voices.be.go') }}</button></p>
                 </div>
-                <!-- AI voices (js/ai-voices.js): the parts an AI voice sings, always said, with Be the voice beside it once
-                     the call is open (past the first week); then the parts no one sings at all, as before. -->
-                <p v-if="aiParts.length" class="text-sm text-muted" data-song-ai-voices><AiVoiceLabel :parts="aiParts" :cta="voiceOpen" @voice="$emit('voice')" /></p>
-                <!-- Be the voice (be-the-voice.js): the parts no one has sung yet, past the first week, one quiet line. -->
-                <p v-if="voiceless.length" class="text-sm text-muted" data-song-no-voice>{{ t('voices.be.sheet', { parts: formatList(voiceless) }) }} <button type="button" class="link tap-44" data-be-the-voice-go @click="$emit('voice')">{{ t('voices.be.go') }}</button></p>
                 <div v-if="locked" class="flex flex-wrap items-center gap-3">
                     <button v-if="template.previewUrl" type="button" :class="secondary" @click="$emit('preview')"><span class="inline-flex items-center gap-2"><Icon :name="previewing ? 'stop' : 'play'" :size="16" />{{ previewing ? t('studio.stop') : t('templates.previewClip') }}</span></button>
                     <button type="button" :class="[primary, 'ms-auto']" data-song-signup @click="$emit('signup')">{{ t('wrap.makeAccount') }}</button>
                 </div>
                 <div v-else class="space-y-3">
-                    <!-- Hillel: "add back the 2/3/4 part toggle": how many sing it, from the song's own voicings; Start sings that many. -->
-                    <!-- A first visit (fresh: no song sung yet; the first-session review, Hillel: yes): the song, Start and Play;
-                         how many sing it and Edit wait until a first song is sung. -->
-                    <div v-if="!fresh && singerOptions(template).length > 1" class="flex flex-wrap items-center justify-between gap-3" data-song-singers>
-                        <span :id="'singers-' + $.uid" class="text-sm font-semibold text-cream">{{ t('templates.singers.question') }}</span>
-                        <div class="seg" role="radiogroup" :aria-labelledby="'singers-' + $.uid">
-                            <button v-for="n in singerOptions(template)" :key="n" type="button" role="radio" class="seg-option tap-44" :aria-checked="singers === n ? 'true' : 'false'" @click="$emit('singers', n)">{{ formatNumber(n) }}</button>
-                        </div>
-                    </div>
                     <!-- One primary (Hillel, 2026-11-02, the first-15-minutes review, superseding "3 buttons the same width"):
                          Start full width first, then Play and Edit (Edit makes a copy), quieter, side by side. -->
                     <!-- Instant feedback (Hillel, 2026-11-12): Start is busy at once while the notes come or the song opens; a line after
@@ -885,15 +897,25 @@ export const TemplateDialog = {
                     <!-- Not available where the singer is (geo rights): said calmly, with nothing to retry or buy. -->
                     <p v-else-if="load === 'withheld'" class="text-center text-sm text-muted" role="status" data-song-not-here>{{ notHere }}</p>
                     <p v-else-if="load === 'failed' || load === 'offline'" class="flex flex-wrap items-center justify-center gap-2 text-sm text-warn" role="alert" data-song-load-failed>{{ load === 'offline' ? t('common.offline') : t('templates.loadFailed') }} <button type="button" class="link tap-44" @click="$emit('retry')">{{ t('common.tryAgain') }}</button></p>
-                    <div class="grid grid-cols-2 gap-2 sm:gap-3">
+                    <!-- Hear it and Edit: two equal secondaries under the one primary (Hillel's design). -->
+                    <div class="grid gap-2.5" :class="!fresh && !taste ? 'grid-cols-2' : 'grid-cols-1'">
                         <button type="button" :class="[secondary, 'w-full justify-center']" :aria-pressed="previewing ? 'true' : 'false'" data-song-play @click="$emit('preview')"><span class="inline-flex items-center gap-2"><Icon :name="previewing ? 'stop' : 'play'" :size="16" />{{ preparing ? t('templates.preparing') : previewing ? t('studio.stop') : t('templates.play') }}</span></button>
-                        <button v-if="!fresh && !taste" type="button" class="btn-ghost w-full justify-center" :aria-label="t('templates.editLabel', { title: songTitle(template) })" data-song-edit @click="$emit('copy')">{{ t('template.edit') }}</button>
+                        <button v-if="!fresh && !taste" type="button" :class="[secondary, 'w-full justify-center']" :aria-label="t('templates.editLabel', { title: songTitle(template) })" data-song-edit @click="$emit('copy')">{{ t('template.edit') }}</button>
                     </div>
                     <button v-if="hasCourse" type="button" class="btn-ghost btn-sm" data-song-course @click="learnIt"><Icon name="arrow" :size="16" /> {{ t('songCourse.open') }}</button>
                 </div>
+                <!-- The credits, last and folded: one row, a draft said only as its badge until it opens. -->
+                <div v-if="template.credits">
+                    <button type="button" class="flex min-h-11 w-full items-center gap-2 text-sm font-semibold text-muted hover:text-cream" :aria-expanded="creditsOpen ? 'true' : 'false'" :aria-controls="'credits-' + $.uid" data-song-credits-toggle @click="creditsOpen = !creditsOpen">
+                        <span>{{ t('templates.creditsRow') }}</span>
+                        <span v-if="!template.reviewed" class="chip text-warn" data-song-draft>{{ t('projects.draft') }}</span>
+                        <Icon name="chevron" :size="16" class="ms-auto transition-transform" :class="creditsOpen ? 'rotate-180' : ''" />
+                    </button>
+                    <p v-if="creditsOpen" :id="'credits-' + $.uid" class="mt-2 text-xs text-muted" data-song-credits>{{ [t('templates.credits', { words: template.credits.words, tune: template.credits.tune, arrangement: template.credits.arrangement }), template.reviewed ? '' : t('templates.draftNote')].filter(Boolean).join(' ') }}</p>
+                </div>
             </div>
         </Modal>`,
-    data: () => ({ slow: false }),
+    data: () => ({ slow: false, creditsOpen: false }),
     watch: {
         /** After 4 s of loading, "Still loading" (a timer for the words only, never for audio). */
         load: {
@@ -925,6 +947,25 @@ export const TemplateDialog = {
         },
         /** Be the voice is offered here: past the first week, and the call open. */
         voiceOpen: () => pastFirstWeek() && voiceAskOpen(),
+        /** The details as chips: the level, the key, the tempo in words, and the length (when the notes are here). */
+        facts() {
+            const tempo = TEMPO[this.template.tempo <= 84 ? 'slow' : this.template.tempo <= 112 ? 'steady' : 'lively'];
+            const facts = [t(DIFFICULTY[this.template.difficulty] ?? DIFFICULTY.beginner), t('templates.keyChip', { key: keyLabel(this.template.key) }), t(tempo)];
+            if (!this.template.summary) facts.push(formatTime(this.seconds));
+            return facts;
+        },
+        /** How many sing it: not on a first visit, nor for a song a guest can't start yet. */
+        singersShown() {
+            return !this.locked && !this.fresh && singerOptions(this.template).length > 1;
+        },
+        /** The hairline group shows only when it has a row. */
+        groupShown() {
+            return !!(versionsOf(this.template).length || this.singersShown || this.credits.length || this.aiParts.length || this.voiceless.length || this.choirShown);
+        },
+        /** Hear yourself as a choir: on for this account, a library song they can start (not a guest's taste or a locked one). */
+        choirShown() {
+            return ownChoirOn() && !!account.me && !this.locked && !this.taste && !!catalogue.list.find((entry) => entry.id === this.template.id);
+        },
         /** The song's parts an AI voice sings, by name (none while the ai_voices switch is off). */
         aiParts() {
             const keys = aiPartsOf(this.template.id);

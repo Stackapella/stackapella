@@ -50,7 +50,7 @@ def journey(f):
     # song file's English.
     f.wait(f"(await import('/js/stores/catalogue.js')).catalogue.list.some((e) => e.id === {SONG!r})", what="the catalogue")
     f.run(f"const e = (await import('/js/stores/catalogue.js')).catalogue.list.find((e) => e.id === {SONG!r}); window.__said = e.description; e.description = 'Una descripción en el idioma de quien la visita.';")
-    f.wait("document.querySelector('[data-song-description]')?.textContent === 'Una descripción en el idioma de quien la visita.'", what="the catalogue's description on the sheet")
+    f.wait("document.querySelector('[data-sheet-lead]')?.textContent === 'Una descripción en el idioma de quien la visita.'", what="the catalogue's description on the sheet")
     f.run(f"(await import('/js/stores/catalogue.js')).catalogue.list.find((e) => e.id === {SONG!r}).description = window.__said")
     assert not f.js("!!document.querySelector('[role=dialog] [data-song-signup], [role=dialog] [data-song-edit]')"), "a wall or Edit on a guest's taste"
     f.shot("sheet")

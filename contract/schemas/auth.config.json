@@ -27,6 +27,8 @@
                 "sheetImport",
                 "lendVoice",
                 "aiVoices",
+                "ownChoir",
+                "ownChoirSongs",
                 "experiment",
                 "experiments",
                 "schools",
@@ -131,6 +133,14 @@
                 "aiVoices": {
                     "type": "boolean",
                     "description": "AI guide voices are on for this person (the ai_voices switch, read for their account): a part with no real voice may sing in an AI voice, labelled as AI (guide.recording's source). Off, no AI guide is sent anywhere."
+                },
+                "ownChoir": {
+                    "type": "boolean",
+                    "description": "Hear yourself as a choir is on for this person (the own_choir switch, read for their account)."
+                },
+                "ownChoirSongs": {
+                    "type": "boolean",
+                    "description": "Hear yourself as a choir on their own songs from the creator too (the own_choir_songs switch, read for their account)."
                 },
                 "experiment": {
                     "type": [

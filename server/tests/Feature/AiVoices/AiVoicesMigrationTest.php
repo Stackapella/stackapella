@@ -22,7 +22,7 @@ final class AiVoicesMigrationTest extends TestCase
         $guide = TemplateGuide::factory()->create();
         DB::table('template_guides')->where('id', $guide->id)->update(['source' => '']);
 
-        foreach (['2026_11_20_100000_create_ai_voices_table', '2026_11_20_100100_add_source_to_template_guides', '2026_11_20_100200_create_ai_uploads_table'] as $name) {
+        foreach (['2026_11_20_100000_create_ai_voices_table', '2026_11_20_100100_add_source_to_template_guides', '2026_11_20_100200_create_ai_uploads_table', '2026_11_20_120000_add_the_ai_voice_licence', '2026_11_20_130000_add_ai_guide_review'] as $name) {
             $migration = require database_path("migrations/{$name}.php");
             $migration->up();
             $migration->up();
@@ -31,5 +31,6 @@ final class AiVoicesMigrationTest extends TestCase
         $this->assertSame('recorded', DB::table('template_guides')->where('id', $guide->id)->value('source'));
         $this->assertTrue(Schema::hasColumn('template_guides', 'ai_voice_id'));
         $this->assertTrue(Schema::hasTable('ai_uploads'));
+        $this->assertTrue(Schema::hasColumn('beta_singers', 'ai_licence_offered_at'));
     }
 }

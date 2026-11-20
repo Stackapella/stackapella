@@ -98,8 +98,13 @@
             @if ($harmony['song'] && $harmony['song']['credits'])
                 <p>{{ $harmony['song']['credits'] }}</p>
             @endif
+            {{-- A real voice by its singer's name; an AI part in the app's Share words, its singer named only as they chose
+                 (design rules, "AI: plain about it, never loud"), with one link to About AI voices. --}}
             @if (count($harmony['guides']))
-                <p>{{ __('sharing.page.voices', ['names' => collect($harmony['guides'])->map(fn ($g) => $g['name'].' ('.$g['part'].')')->join(', ')]) }}</p>
+                {{-- An own-voice part (Hear yourself as a choir: `ownVoice`) is "made from" its singer's singing, a catalogue AI
+                     part "based on" a consenting singer's; either says only "AI voice" without a name. --}}
+                @php($credit = static fn (array $g): string => ($g['ai'] ?? false) ? (string) (($g['aiBasedOn'] ?? null) !== null ? __(($g['ownVoice'] ?? false) ? 'pages.song.ai.mix_own' : 'pages.song.ai.mix_based_on', ['part' => $g['part'], 'name' => $g['aiBasedOn']]) : __('pages.song.ai.mix', ['part' => $g['part']])) : $g['name'].' ('.$g['part'].')')
+                <p>{{ __('sharing.page.voices', ['names' => collect($harmony['guides'])->map($credit)->join(', ')]) }}@if (collect($harmony['guides'])->contains('ai', true)) <a href="/about/ai-voices" class="s-lk">{{ __('pages.song.ai.about') }}</a>@endif</p>
             @endif
             <button type="button" class="hidden btn-ghost s-report" data-report-open>{{ __('sharing.page.report') }}</button>
         </section>

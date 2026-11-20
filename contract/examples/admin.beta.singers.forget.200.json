@@ -34,6 +34,7 @@
             "published": 1,
             "defaults": 1,
             "pitchPercent": 91
-        }
+        },
+        "aiLicence": null
     }
 }

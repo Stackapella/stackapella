@@ -32,6 +32,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $revoked_at
  * @property int|null $consent_version
  * @property Carbon|null $consented_at
+ * @property Carbon|null $ai_licence_offered_at an admin offered them the AI voice licence (docs/ai-voices-build-plan.md, phase 1b)
  * @property CreditMode|null $credit_mode
  * @property bool $credit_links_profile
  * @property int|null $hourly_rate_cents
@@ -73,6 +74,7 @@ final class BetaSinger extends Model
             'forgotten_at' => 'datetime',
             'accepted_at' => 'datetime',
             'consented_at' => 'datetime',
+            'ai_licence_offered_at' => 'datetime',
             'consent_version' => 'integer',
             'volunteer' => 'boolean',
             'volunteer_blocked_at' => 'datetime',
@@ -81,6 +83,16 @@ final class BetaSinger extends Model
             'hourly_rate_cents' => 'integer',
             'last_seen_at' => 'datetime',
         ];
+    }
+
+    /**
+     * The AI voices they licensed in the app, newest first in AiLicence (a voice withdrawn and licensed again is a new one).
+     *
+     * @return HasMany<AiVoice, $this>
+     */
+    public function aiVoices(): HasMany
+    {
+        return $this->hasMany(AiVoice::class);
     }
 
     /**

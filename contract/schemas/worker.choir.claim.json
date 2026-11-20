@@ -1,0 +1,142 @@
+{
+    "$id": "worker.choir.claim.json",
+    "title": "A track B render job, claimed (the worker API)",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "#/$defs/job"
+        }
+    },
+    "$defs": {
+        "job": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "claim",
+                "template",
+                "version",
+                "title",
+                "data",
+                "clip",
+                "reference",
+                "parts"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "claim": {
+                    "type": "string",
+                    "description": "This claim's token: send it as `claim` with parts.create, references.create and jobs.finish; only the claim holding it acts on the job."
+                },
+                "template": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "data": {
+                    "type": "object",
+                    "description": "The version's template.json."
+                },
+                "clip": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "url",
+                        "sampleRate",
+                        "frames",
+                        "sha256",
+                        "part",
+                        "offsetFrames"
+                    ],
+                    "properties": {
+                        "url": {
+                            "type": "string",
+                            "format": "uri",
+                            "description": "A presigned GET, 30 minutes."
+                        },
+                        "sampleRate": {
+                            "type": "integer"
+                        },
+                        "frames": {
+                            "type": "integer"
+                        },
+                        "sha256": {
+                            "type": "string"
+                        },
+                        "part": {
+                            "type": "string",
+                            "description": "The part the singer sang along to."
+                        },
+                        "offsetFrames": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "description": "The clip frame where the song's beat 0 falls (latency removed), or null if the app didn't know."
+                        }
+                    },
+                    "description": "A new clip to prepare (exactly one of clip and reference)."
+                },
+                "reference": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "id",
+                        "url",
+                        "sampleRate",
+                        "frames",
+                        "sha256",
+                        "meta"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "url": {
+                            "type": "string",
+                            "format": "uri",
+                            "description": "A presigned GET, 30 minutes."
+                        },
+                        "sampleRate": {
+                            "type": "integer"
+                        },
+                        "frames": {
+                            "type": "integer"
+                        },
+                        "sha256": {
+                            "type": "string"
+                        },
+                        "meta": {
+                            "type": "object",
+                            "description": "The renderer's own metadata, as it sent it."
+                        }
+                    },
+                    "description": "The singer's saved voice, prepared before (exactly one of clip and reference)."
+                },
+                "parts": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "The parts to render, by key."
+                }
+            }
+        }
+    }
+}

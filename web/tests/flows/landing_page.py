@@ -55,8 +55,8 @@ FLIP = """(() => { const menu = document.querySelector('.lnf-top [data-look-menu
 WATCH = """window.__beacons = []; const send = Navigator.prototype.sendBeacon;
     Navigator.prototype.sendBeacon = function (url, data) { try { data?.text?.().then((t) => window.__beacons.push([String(url), t])); } catch (e) { window.__beacons.push([String(url), '']); } return send.apply(this, arguments); };"""
 STATE = """(() => { const s = document.getElementById('lnf'); return {
-    playing: s.hasAttribute('data-playing'), p: Number.parseFloat(s.style.getPropertyValue('--p')) || 0,
-    t: Number.parseFloat(s.style.getPropertyValue('--lnf-t')) || 0,
+    playing: s.hasAttribute('data-playing'), p: Number.parseFloat(s.querySelector('[data-play]').style.getPropertyValue('--p')) || 0,
+    t: Number.parseFloat(s.querySelector('.lnf-tr').style.getPropertyValue('--lnf-t')) || 0,
     lit: s.querySelectorAll('.lnf-g[data-ring]').length, sung: s.querySelectorAll('.lnf-g[data-state=settled]').length,
     line: [...s.querySelectorAll('.lnf-line')].find((l) => !l.hidden)?.textContent.trim() ?? '',
     now: s.querySelectorAll('.lnf-line [data-now]').length,

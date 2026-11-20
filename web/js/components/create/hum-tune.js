@@ -29,7 +29,7 @@ const perBar = (ts) => ({ '4/4': 4, '3/4': 3, '2/4': 2, '6/8': 2 })[ts] ?? 4;
 export const HumTuneStep = {
     components: { Icon, MicPicker, Notice, Roll, Stepper, Switch },
     props: { draft: { type: Object, required: true } },
-    emits: ['change', 'tune'],
+    emits: ['change', 'tune', 'take'],
     data: () => ({ state: 'idle', seconds: 0, live: [], problem: null, micProblem: null, melody: null, playing: false, taps: [], again: null, useClick: false, clickBpm: 80, audio }),
     setup: () => ({ formatNumber, keyLabel, MOST_SECONDS, COLOR }),
     template: `
@@ -173,6 +173,7 @@ export const HumTuneStep = {
                     return;
                 }
                 this.take = take;
+                this.$emit('take', take); // the humming itself, for Hear it in your voice (js/own-choir.js keepHum), if it's on
                 let heard = noteEvents(track);
                 if (heard.empty) {
                     this.problem = { kind: 'silent', tone: 'bad', text: t('create.sing.silent') };

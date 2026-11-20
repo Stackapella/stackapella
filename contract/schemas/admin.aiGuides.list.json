@@ -1,0 +1,228 @@
+{
+    "$id": "admin.aiGuides.list.json",
+    "title": "AI guides to review, by song (phase 1c)",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "meta"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "templateId",
+                    "title",
+                    "version",
+                    "versionId",
+                    "parts"
+                ],
+                "properties": {
+                    "templateId": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "version": {
+                        "type": "integer"
+                    },
+                    "versionId": {
+                        "type": "string"
+                    },
+                    "parts": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/$defs/part"
+                        }
+                    }
+                }
+            }
+        },
+        "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "counts"
+            ],
+            "properties": {
+                "counts": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "pending",
+                        "approved",
+                        "rejected"
+                    ],
+                    "properties": {
+                        "pending": {
+                            "type": "integer"
+                        },
+                        "approved": {
+                            "type": "integer"
+                        },
+                        "rejected": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "$defs": {
+        "part": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "partKey",
+                "partName",
+                "status",
+                "voice",
+                "recording",
+                "checks",
+                "renderer",
+                "publishedAt",
+                "note",
+                "reviewedAt",
+                "reviewedBy"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "The AI upload's id: what approve and reject name (it stays when a rejected guide's file is gone)."
+                },
+                "partKey": {
+                    "type": "string"
+                },
+                "partName": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "pending",
+                        "approved",
+                        "rejected"
+                    ]
+                },
+                "voice": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "id",
+                        "name"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "recording": {
+                    "$ref": "guide.recording.json#/$defs/nullable",
+                    "description": "To play it; null once rejected (its file is gone)."
+                },
+                "checks": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "pitchMaxCents",
+                        "pitchMedianCents",
+                        "notesMeasured",
+                        "notesTotal",
+                        "notesOver15",
+                        "notesOver30",
+                        "dropouts",
+                        "heldSeconds",
+                        "durationSeconds"
+                    ],
+                    "properties": {
+                        "pitchMaxCents": {
+                            "type": "number"
+                        },
+                        "pitchMedianCents": {
+                            "type": "number"
+                        },
+                        "notesMeasured": {
+                            "type": "integer"
+                        },
+                        "notesTotal": {
+                            "type": "integer"
+                        },
+                        "notesOver15": {
+                            "type": "integer"
+                        },
+                        "notesOver30": {
+                            "type": "integer"
+                        },
+                        "dropouts": {
+                            "type": "integer"
+                        },
+                        "heldSeconds": {
+                            "type": "number"
+                        },
+                        "durationSeconds": {
+                            "type": "number"
+                        }
+                    },
+                    "description": "The voices lane's gates for this render, as the worker sent them."
+                },
+                "renderer": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "model",
+                        "steps",
+                        "pitchShift",
+                        "reference"
+                    ],
+                    "properties": {
+                        "model": {
+                            "type": "string"
+                        },
+                        "steps": {
+                            "type": "integer"
+                        },
+                        "pitchShift": {
+                            "type": "integer"
+                        },
+                        "reference": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "publishedAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                },
+                "note": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "Why it was rejected."
+                },
+                "reviewedAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                },
+                "reviewedBy": {
+                    "$ref": "admin.person.json"
+                }
+            }
+        }
+    }
+}

@@ -15,7 +15,6 @@ use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\DB;
 
 /**
  * admin.beta.guides.*: every template's real voices, per part; admin.beta.needs.show: only what needs Hillel.
@@ -50,7 +49,7 @@ final class GuidesController extends Controller
 
         // Retiring an AI guide (docs/ai-voices-build-plan.md): not a real voice lost, so no email to Hillel.
         if ($guide->isAi()) {
-            DB::transaction(fn () => AiGuides::retire([$guide], $admin, 'removed'));
+            AiGuides::retireByAdmin($guide, $admin);
 
             return response()->noContent();
         }

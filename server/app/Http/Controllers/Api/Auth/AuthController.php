@@ -36,6 +36,7 @@ use App\Support\AiVoices\AiGuides;
 use App\Support\Flags;
 use App\Support\Languages\Languages;
 use App\Support\Media\Instruments;
+use App\Support\OwnChoir\OwnChoir;
 use App\Support\Rights\RightsHere;
 use App\Support\Templates\SheetImport;
 use App\Support\Trust\Blocklist;
@@ -119,6 +120,10 @@ final class AuthController extends Controller
             'lendVoice' => $flags->on('lend_voice'),
             // AI guide voices (the ai_voices switch, read for this account: docs/ai-voices-build-plan.md).
             'aiVoices' => AiGuides::on($request->user() instanceof User ? $request->user() : null),
+            // Hear yourself as a choir (the own_choir switch, read for this account: track B).
+            'ownChoir' => OwnChoir::on($request->user() instanceof User ? $request->user() : null),
+            // On their own songs from the creator too (own_choir_songs).
+            'ownChoirSongs' => OwnChoir::songsOn($request->user() instanceof User ? $request->user() : null),
             // Song requests (the song_requests switch); staff see them before (account.songRequests).
             'songRequests' => $flags->on('song_requests'),
             'schools' => $flags->on('schools'),

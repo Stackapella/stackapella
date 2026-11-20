@@ -111,5 +111,8 @@ return [
     'ai_voices' => ['kind' => 'feature', 'values' => ['off', 'on']],
     'own_choir_teaser' => ['kind' => 'feature', 'values' => ['off', 'on']],
     'own_choir' => ['kind' => 'feature', 'values' => ['off', 'on']],
+    // Hear yourself as a choir on a singer's own songs from the creator (hummed, or with words they typed; Hillel,
+    // 2026-11-20: "they could hum it and have their voice replace their humming", "definiety allow typed words").
+    'own_choir_songs' => ['kind' => 'feature', 'values' => ['off', 'on']],
 
 ];

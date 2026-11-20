@@ -598,7 +598,10 @@ export const EditorStep = {
             const i = this.selected[0] ?? 0;
             const sylls = splitWords(text.replace(/\n/g, ' '));
             this.commit(wordsFrom(this.notes, i, sylls), { select: [Math.min(this.notes.length - 1, i + sylls.length)], sound: false });
-            this.said = t('create.edit.pasted', { count: sylls.length });
+            // Words past the last note have no note to sing on: said plainly, by name (a song keeps words only on its notes).
+            const placed = Math.min(sylls.length, Math.max(0, this.notes.length - i));
+            const unsung = sylls.slice(placed);
+            this.said = unsung.length ? t('create.edit.pastedUnsung', { count: placed, words: unsung.join(' ') }) : t('create.edit.pasted', { count: sylls.length });
         },
         /** The playhead moved (dragged, a key, the ruler, Back to the start): Play starts there; playing, it plays on from there. */
         async seek(beat) {

@@ -42,7 +42,7 @@
                 "string",
                 "null"
             ],
-            "description": "Why it failed, null unless failed: bad_audio, real_voice_exists, voice_withdrawn, template_changed, publish_failed (encoding or storage broke after its tries: send it again) or expired (never completed within the hour). A file of the wrong size or hash is refused at complete (409) and stays uploading."
+            "description": "Why it failed, null unless failed: bad_audio, real_voice_exists, voice_withdrawn, licence_changed (its singer hasn't accepted the AI voice licence's current terms), template_changed, publish_failed (encoding or storage broke after its tries: send it again) or expired (never completed within the hour). A file of the wrong size or hash is refused at complete (409) and stays uploading."
         },
         "guideId": {
             "type": [

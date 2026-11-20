@@ -20,7 +20,15 @@
                     "version": 8,
                     "partKey": "alto"
                 }
-            ]
+            ],
+            "singer": {
+                "id": "Pq7Rm2",
+                "name": "Sarah Kim"
+            },
+            "licence": {
+                "version": 1,
+                "acceptedAt": "2026-11-19T10:00:00Z"
+            }
         },
         {
             "id": "Vc9Tn2",
@@ -38,7 +46,9 @@
                     "version": 2,
                     "partKey": "tenor"
                 }
-            ]
+            ],
+            "singer": null,
+            "licence": null
         }
     ]
 }

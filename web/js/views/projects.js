@@ -14,12 +14,13 @@ import { navigate } from '../router.js';
 import { betaWaiting, homeBands, sangThisWeek } from '../home.js';
 import { aiPartsOf, creditsFor, loadCatalogue, recordingFor } from '../stores/catalogue.js';
 import { AiVoiceLabel } from '../ai-voices.js';
+import { loadOwnChoir, ownChoirOn, readyUnseen } from '../own-choir.js';
 import { guideKey, keepAhead } from '../recorded-guides.js';
 import { defineAsyncComponent, markRaw, toRaw } from 'vue';
 import { createProject, deleteProject, loadProjects, projects, saveProject, shownTitle, startFromTemplate } from '../stores/projects.js';
 import { ideas, ideasOpen } from '../stores/ideas.js';
 import { learning } from '../stores/learning.js';
-import { account, loadAccount } from '../stores/account.js';
+import { account, loadAccount, loadAuthConfig } from '../stores/account.js';
 import { canStart, lengthBeats, linkedTemplate, listTemplates, loadTemplate, onDraftsChange, partsFor, singerOptions, templatePartName } from '../templates.js';
 import { asVersion, entryFor, keepVersion, startingVersion, versionsOf } from '../song-versions.js';
 import { formatTime, keyLabel, PART_COLORS } from '../theme.js';
@@ -126,6 +127,12 @@ export const ProjectsView = {
 
                         <!-- Hillel's Home design: the course card, the workout and your songs share one width, so their edges line up. -->
             <div class="mt-2 space-y-5">
+                <!-- Hear yourself as a choir (js/own-choir.js): a song made in a voice like theirs and not yet heard is one quiet
+                     card until it's opened, the in-app notice (never email, a pop-up or a badge). -->
+                <div v-for="r in choirReady" :key="r.id" class="card flex flex-wrap items-center gap-3 p-4" role="status" data-choir-notice>
+                    <p class="min-w-0 flex-1 text-cream">{{ t('ownChoir.ready.notice', { song: r.title }) }}</p>
+                    <button type="button" class="btn-secondary btn-sm" @click="navigate('/t/' + encodeURIComponent(r.templateId) + '/choir')">{{ t('ownChoir.ready.button') }}</button>
+                </div>
                 <HomeLead :compact="order.compactCourse">
                     <template #week><WeekCard v-if="learning.loaded && courseStarted" bare /></template>
                 </HomeLead>
@@ -211,9 +218,9 @@ export const ProjectsView = {
                                                 <!-- New, or Carol season (retention plan, idea 5): one pick at most, in the singer's range. -->
                                                 <span v-if="!songsOpen && news?.item === item" data-ui="tag" data-tone="yellow" class="rounded-full bg-raised px-2 py-0.5 text-[10px] font-bold text-cream" data-news-tag :data-news="news.kind">{{ newsWords }}</span>
                                                 <span v-if="creditsFor(item.tpl.id).length" data-ui="tag" data-tone="cyan" class="rounded-full bg-raised px-2 py-0.5 text-[10px] font-bold text-accent-strong">{{ t('home.songs.realVoices') }}</span>
+                                                <span v-else-if="!item.tpl.reviewed" data-ui="tag" data-tone="pink" class="rounded-full bg-raised px-2 py-0.5 text-[10px] text-muted">{{ t('projects.draft') }}</span>
                                                 <!-- The card's Play sings its AI parts too (js/ai-voices.js): the card says so, once, beside its other tags. -->
                                                 <AiVoiceLabel v-if="aiPartsOf(item.tpl.id).length" tag data-card-ai />
-                                                <span v-else-if="!item.tpl.reviewed" data-ui="tag" data-tone="pink" class="rounded-full bg-raised px-2 py-0.5 text-[10px] text-muted">{{ t('projects.draft') }}</span>
                                             </span>
                                         </span>
                                         <span class="px-1 font-bold leading-tight text-cream" translate="no" data-ui="cartridge-title">{{ songTitle(item.tpl) }}</span>
@@ -279,7 +286,7 @@ export const ProjectsView = {
             </div>
 
             <TemplateDialog v-if="openTemplate && showInfo" :template="openTemplate" :credits="creditsFor(openTemplate.id)" :singers="singers" @singers="(n) => { singers = n; if (previewing && !locked) previewLevels(); }"
-                :previewing="previewing" :preparing="preparingPreview" :load="songLoad" :fresh="!sungYet()" :not-here="songNotHere" :starting="starting" @retry="pickTemplate(openTemplate)" @version="switchVersion" @copy="navigate('/create?copy=' + openTemplate.id)" @close="closeTemplate" @preview="preview" @start="start()" @voice="beTheVoice" :locked="locked" :taste="taste" @signup="navigate(signUpForSong)" />
+                :previewing="previewing" :preparing="preparingPreview" :load="songLoad" :fresh="!sungYet()" :not-here="songNotHere" :starting="starting" @retry="pickTemplate(openTemplate)" @version="switchVersion" @copy="navigate('/create?copy=' + openTemplate.id)" @close="closeTemplate" @preview="preview" @start="start()" @voice="beTheVoice" @choir="navigate('/t/' + encodeURIComponent(openTemplate.id) + '/choir')" :locked="locked" :taste="taste" @signup="navigate(signUpForSong)" />
             <Modal v-if="renaming" :title="t('home.yours.renameTitle')" @close="renaming = null">
                 <form class="space-y-4" @submit.prevent="saveName">
                     <label class="block space-y-1"><span class="text-sm font-semibold text-cream">{{ t('home.yours.nameLabel') }}</span>
@@ -336,6 +343,10 @@ export const ProjectsView = {
             </div>
         </div>`,
     computed: {
+        /** Songs made in a voice like theirs, ready and not yet heard (Hear yourself as a choir): Home's notice. */
+        choirReady() {
+            return ownChoirOn() ? readyUnseen() : [];
+        },
         /** Make your own's ways in, each with its own icon; Hum a tune only for staff or once the server switches it on. */
         makeWays() {
             const hum = account.me?.staff || account.config?.humTune;
@@ -534,6 +545,8 @@ export const ProjectsView = {
         // Friends' projects come to this device (the projects list hears the change).
         loadShared().catch((error) => error?.code !== 'offline' && console.warn('Shared projects not loaded', error));
         loadCatalogue(); // real voices' credits on the songs
+        // Hear yourself as a choir: where its songs stand, for the notice (quietly nothing while it's off).
+        loadAuthConfig().then(() => loadOwnChoir()).catch((error) => console.warn('Hear yourself as a choir did not load', error));
         // Drafts start or stop showing (before the launch, an admin): the library again.
         this.stopDrafts = onDraftsChange(() => listTemplates().then((list) => (this.templates = list), (error) => console.warn('Templates not loaded', error)));
         // The library (/api/templates and the bundled songs) after Home's first frame (the first-visit speed pass,
@@ -624,9 +637,19 @@ export const ProjectsView = {
             if (query.get('song') !== song.id) return; // opened already
             const part = query.get('part');
             if (part && song.parts?.some((p) => p.key === part)) this.linkedPart = { song: song.id, part };
+            // The site's "Try it with <song>" (/your-choir: ?choir=1): straight to that song's Hear yourself as a choir when it's
+            // on for this account; otherwise the song's sheet, as any song link.
+            if (query.get('choir') === '1' && account.me) {
+                const url = new URL(location.href);
+                ['song', 'part', 'choir'].forEach((name) => url.searchParams.delete(name));
+                history.replaceState(history.state, '', url.pathname + url.search); // Back from the page never comes here again
+                loadAuthConfig().then(() => (ownChoirOn() ? navigate(`/t/${encodeURIComponent(song.id)}/choir`) : this.infoSong(song)), () => this.infoSong(song));
+                return;
+            }
             const url = new URL(location.href);
             url.searchParams.delete('song');
             url.searchParams.delete('part');
+            url.searchParams.delete('choir');
             history.replaceState(history.state, '', url.pathname + url.search);
             // Once the account is known: a Plus member must never see the song as locked.
             if (account.loaded) this.infoSong(song);

@@ -129,7 +129,7 @@
                             @php($pictured = ($band['picture']['picture'] ?? null) !== null)
                             @if ($pictured)
                                 <div class="s-sh-pic-wrap">
-                                    @include('site._song-picture', ['picture' => $band['picture']['picture'], 'song' => $band['picture'], 'tone' => $band['key'], 'background' => true, 'class' => 's-sh-pic', 'sizes' => '(min-width: 1200px) 592px, (min-width: 900px) 48vw, calc(100vw - 32px)'])
+                                    @include('site._song-picture', ['picture' => $band['picture']['picture'], 'song' => $band['picture'], 'tone' => $band['key'], 'background' => true, 'class' => 's-sh-pic', 'sizes' => '(min-width: 1200px) 592px, (min-width: 900px) 48vw, 240px'])
                                     <a href="{{ $band['picture']['url'] }}" class="s-sh-pic-song" translate="no">{{ $band['picture']['title'] }}</a>
                                 </div>
                             @endif

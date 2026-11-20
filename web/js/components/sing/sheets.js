@@ -172,7 +172,7 @@ export const PartSheet = {
                             <legend class="mb-1 text-sm font-semibold text-cream">{{ t('sing.yourPart.voiceOf', { part: p.name }) }}</legend>
                             <label v-for="v in voice.versions" :key="v.id" class="radio-card px-3 py-2.5">
                                 <input type="radio" name="singVoice" class="radio mt-px" :checked="chosen(v)" :disabled="blocked" @change="$emit('voice', [v.id])" />
-                                <span v-if="v.source === 'ai'" class="min-w-0 flex-1 text-sm"><span class="block font-semibold text-cream"><AiVoiceLabel :based-on="v.aiBasedOn ?? null" /></span><button v-if="aiCta" type="button" class="link tap-44" :aria-label="t('aiVoice.goPart', { part: p.name })" data-ai-voice-go @click.prevent.stop="$emit('be-voice')">{{ t('voices.be.go') }}</button></span>
+                                <span v-if="v.source === 'ai'" class="min-w-0 flex-1 text-sm"><span class="block font-semibold text-cream"><AiVoiceLabel :based-on="v.aiBasedOn ?? null" :choir="!!v.choir" /></span><button v-if="aiCta" type="button" class="link tap-44" :aria-label="t('aiVoice.goPart', { part: p.name })" data-ai-voice-go @click.prevent.stop="$emit('be-voice')">{{ t('voices.be.go') }}</button></span>
                                 <span v-else class="min-w-0 flex-1 text-sm"><span class="block font-semibold text-cream" translate="no">{{ voiceCredit(v) }}</span><span class="text-muted">{{ v.default ? t('part.defaultVoice') : t('part.otherVoice') }}</span></span>
                             </label>
                             <label class="radio-card px-3 py-2.5">

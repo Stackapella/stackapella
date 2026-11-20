@@ -118,6 +118,7 @@
         "label": "Counting in"
     },
     "common": {
+        "didntWork": "That didn't work. Try again.",
         "loading": "Opening",
         "loadingScreen": "Opening {screen}",
         "backToProjects": "Back to your songs",
@@ -664,6 +665,7 @@
         "panLeft": "{percent}% left",
         "panRight": "{percent}% right",
         "asRecorded": "As recorded",
+        "asWritten": "As written",
         "earlier": "{ms} ms earlier",
         "later": "{ms} ms later",
         "guideVoice": "Guide voice",
@@ -715,6 +717,8 @@
             "advanced": "A challenge"
         },
         "range": "{low} to {high}",
+        "keyChip": "Key of {key}",
+        "creditsRow": "Credits",
         "credits": "Words: {words}. Tune: {tune}. Arrangement: {arrangement}.",
         "draftNote": "Draft: not yet checked by a musician.",
         "tempo": {
@@ -891,6 +895,8 @@
             "guides": "Real voices",
             "guidesHint": "Each song's voices per part: the default, the alternates, and what still needs a singer.",
             "aiVoices": "AI voices",
+            "aiReview": "AI review",
+            "aiReviewHint": "New AI guides by song: hear each beside its written part, its checks, then approve or reject.",
             "aiVoicesHint": "The AI guide voices: who each is based on, their consent, and withdrawing one.",
             "feedback": "Feedback",
             "feedbackHint": "What singers told you with Tell Hillel, with the song and the place.",
@@ -1263,6 +1269,7 @@
             "ai_voices": "AI guide voices",
             "own_choir_teaser": "Own choir teaser",
             "own_choir": "Your own choir",
+            "own_choir_songs": "Your own choir on your own songs",
             "schools": "Schools",
             "compare_pages": "Comparison pages",
             "open_source": "Open source",
@@ -1306,6 +1313,7 @@
             "ai_voices": "AI voices fill parts with no real voice, labelled as AI everywhere, in the app and on the site, and only voices whose consent is recorded. Off, they exist only in Admin.",
             "own_choir_teaser": "The song pages' \"Hear yourself as a choir, coming soon\" button.",
             "own_choir": "Hear yourself as a whole choir: record, wait and listen. Invited accounts first.",
+            "own_choir_songs": "Singers hear their own songs from the creator in a voice like theirs too, a hummed one from the humming itself. Needs Your own choir on.",
             "schools": "Teachers make class codes that give students a free year of Plus. Off until its terms and privacy lines are read.",
             "compare_pages": "/compare pages in search, the sitemap and the footer. They answer either way; this only lets them be found.",
             "open_source": "/open-source, /selfhost, the self-hosting terms and every mention of it on the site. Only true once the repos are public.",
@@ -1446,6 +1454,17 @@
             "rejected": "Thank you for your {part} for {song}, {name}. I won't use this one, and my note is in My parts."
         },
         "singers": {
+            "ai": {
+                "offer": "Offer the AI voice licence",
+                "offerTitle": "Offer the AI voice licence to {name}?",
+                "offerConfirm": "Offer the licence",
+                "offerBody": "They'll see it on My parts: the short version first, then the full terms, the credit choice and Accept, or Not now. Until the lawyer has read the terms, offering it here is the only way a singer sees them.",
+                "offered": "AI voice licence offered {date}, not accepted yet",
+                "accepted": "AI voice licence version {version} accepted {date}",
+                "credited": "credited by name",
+                "notCredited": "not credited by name",
+                "withdrawn": "AI voice withdrawn {date}"
+            },
             "intro": "The app sends singers nothing: you send each link yourself, and copy a status message when something changes.",
             "invite": "Invite a singer",
             "inviteTitle": "Invite a singer",
@@ -1973,6 +1992,45 @@
                 "rejected": "refused"
             }
         },
+        "aiReview": {
+            "intro": "New AI guides wait here before anyone hears them. Hear each part alone, its written part, or both together, check its numbers, then approve it or reject it with a note. Only approved guides are offered, and only while AI voices are on.",
+            "statusLabel": "Which guides",
+            "status": {
+                "pending": "To review",
+                "approved": "Approved",
+                "rejected": "Rejected"
+            },
+            "hearLabel": "Hear",
+            "hear": {
+                "ai": "AI voice",
+                "written": "Written part",
+                "both": "Both"
+            },
+            "none": "Nothing here",
+            "nonePending": "No AI guides waiting for review",
+            "partsCount": "{count, plural, one {1 part} other {{count} parts}}",
+            "play": "Play the {part}: {hear}",
+            "playFailed": "That guide wouldn't play. Try again.",
+            "listen": "Listen closely",
+            "checks": {
+                "pitch": "Pitch median {median}¢, worst {worst}¢",
+                "over": "{over30} over 30¢, {over15} over 15¢",
+                "dropouts": "{count, plural, one {1 dropout} other {{count} dropouts}}",
+                "measured": "{measured} of {total} notes measured"
+            },
+            "noteLine": "Note: {note}",
+            "reviewed": "Reviewed by {who}, {when}",
+            "approve": "Approve",
+            "reject": "Reject",
+            "approveSong": "Approve all {count}",
+            "rejectSong": "Reject all {count}",
+            "approved": "{count, plural, one {Approved. It's offered once AI voices are on.} other {{count} approved. They're offered once AI voices are on.}}",
+            "rejected": "{count, plural, one {Rejected. The part goes back to the voices lane with your note.} other {{count} rejected. The parts go back to the voices lane with your note.}}",
+            "rejectTitle": "Reject the AI {parts} of {song}?",
+            "rejectConfirm": "Reject the {part}",
+            "rejectConfirmMany": "Reject {count} parts",
+            "rejectBody": "Its file is deleted and the part goes back on the voices lane's list with your note, so say what to fix (a note's pitch, a dropout, the words)."
+        },
         "aiVoices": {
             "intro": "AI voices sing parts no real singer has recorded yet, always labelled as AI in the app and on the site. A real take published for a part retires its AI guide. A voice without consent recorded stays here in Admin only.",
             "none": "No AI voices yet",
@@ -1981,6 +2039,8 @@
             "adminOnly": "Admin only: no consent recorded",
             "basedOn": "Based on {name}'s singing",
             "notBased": "Not based on a named singer",
+            "licensed": "Licensed in the app by {name}: version {version}, {date}",
+            "singerOnly": "{name}'s voice, not yet licensed in the app",
             "credited": "credited by name in its label",
             "notCredited": "not credited: the label doesn't name them",
             "noConsent": "No consent recorded",
@@ -3572,6 +3632,41 @@
         "fieldDisabledHelp": "Templates are set when the song is made."
     },
     "beta": {
+        "ai": {
+            "title": "Your AI voice",
+            "offerTitle": "Lend your voice to an AI voice?",
+            "offerLine": "With your OK, we make an AI voice from your recordings to sing parts nobody has recorded yet. It's always marked as AI, a real singer's take replaces it, and you can withdraw it here at any time.",
+            "notTaken": "AI voice licence: not taken. You can read it any time.",
+            "read": "Read the licence",
+            "later": "Not now",
+            "withdrawnOn": "You withdrew your AI voice on {date}.",
+            "changed": "The licence has changed. Read it again to keep new parts coming in your voice; the parts already made stay.",
+            "acceptedOn": "Licence version {version}, accepted {date}",
+            "sings": "It sings {songs}.",
+            "singsNothing": "It sings no parts yet.",
+            "songParts": "{song}: {parts}",
+            "changeCredit": "Change credit",
+            "creditTitle": "How your AI voice is credited",
+            "creditLegend": "Learners see",
+            "creditHelp": "The name is your account's. You can change this choice at any time; the label changes at once.",
+            "saveCredit": "Save",
+            "creditSaved": "Saved. Learners see the new label at once.",
+            "withdraw": "Withdraw",
+            "withdrawTitle": "Withdraw your AI voice?",
+            "withdrawSings": "{count, plural, one {It stops singing at once: {songs}.} other {It stops singing all {count} of its parts at once: {songs}.}}",
+            "withdrawNothing": "It sings no parts yet, and nothing more is made with it.",
+            "withdrawDeleted": "Its reference recording and everything it sang are deleted. Harmonies people already exported can't be recalled.",
+            "withdrawAction": "Withdraw my AI voice",
+            "keep": "Keep it",
+            "withdrawn": "{count, plural, =0 {Your AI voice is withdrawn.} one {Your AI voice is withdrawn and its one part retired.} other {Your AI voice is withdrawn and its {count} parts retired.}}",
+            "fullTerms": "The full licence",
+            "accept": "I'm 18 or over: accept the licence",
+            "accepted": "Thank you. Your AI voice licence is saved.",
+            "back": "Back to my parts",
+            "notOffered": "This licence isn't open to you just now. Ask Hillel.",
+            "alreadyWithdrawn": "Your AI voice was already withdrawn.",
+            "failed": "That didn't work. Check your connection and try again."
+        },
         "badge": "Beta",
         "loading": "Loading your parts",
         "ended": {
@@ -6123,6 +6218,7 @@
             "failed": "Something went wrong finding the notes. Sing the line again.",
             "slower": "Slower ({bpm}) and again",
             "keepIt": "Keep it",
+            "unsung": "Until they match, this line is sung without its words.",
             "mismatch": "This line has {syllables} syllables and {notes} notes.",
             "split": "Split the long {note}",
             "join": "Join two syllables",
@@ -6283,6 +6379,7 @@
             "held": "held",
             "undone": "Undone.",
             "redone": "Done again.",
+            "pastedUnsung": "{count, plural, one {# syllable placed.} other {# syllables placed.}} No note for: {words}. Those won't be sung.",
             "pasted": "{count, plural, one {# syllable placed.} other {# syllables placed.}}",
             "phoneEmpty": "No notes in this part yet.",
             "addNote": "Add a note",
@@ -8409,6 +8506,112 @@
         "mapLine": "Sung a lot today?",
         "settingsTitle": "Voice-care notes",
         "settingsHint": "A quiet line after 20 and 40 minutes of singing in a day, with a 2-minute cool-down. Counted only on this device, never sent."
+    },
+    "ownChoir": {
+        "entry": {
+            "button": "Hear yourself as a choir",
+            "line": "Sing for 30 seconds, then hear every part of {song} in a voice like yours."
+        },
+        "title": "Hear yourself as a choir",
+        "intro": {
+            "one": "Sing along with {song} for 30 seconds, any part, in your own voice.",
+            "two": "We make every part of it in a voice like yours, labelled as AI.",
+            "three": "Then learn your part: each one you record takes the place of its AI version."
+        },
+        "record": {
+            "title": "Sing for 30 seconds",
+            "headphones": "Headphones on, so only your voice is recorded.",
+            "start": "Start singing",
+            "short": "That was under 15 seconds. Sing a little longer so we can hear your voice.",
+            "use": "Make my choir",
+            "sending": "Sending your recording...",
+            "again": "Sing again",
+            "failed": "Your recording didn't send. Try again."
+        },
+        "wait": {
+            "title": "Your choir is on its way",
+            "body": "We're making every part of {song} in a voice like yours. It can take a few minutes; we'll tell you here when it's ready.",
+            "kept": "We keep your voice privately, so your next song needs no new recording."
+        },
+        "ready": {
+            "download": "Download my choir",
+            "fileName": "{song} (with AI voices)",
+            "notice": "Your choir is ready: {song}, sung in a voice like yours",
+            "button": "Listen"
+        },
+        "failed": {
+            "title": "We couldn't make your choir this time",
+            "body": "Your recording has been deleted. Try again with a new one, somewhere quiet, singing a little louder.",
+            "clip_unusable": "We couldn't hear enough of the part in your recording. Try again, singing along clearly with your part.",
+            "bad_clip": "Your recording didn't arrive as it should. Try again.",
+            "gates_failed": "Some parts didn't come out in tune. Try again with a new recording.",
+            "render_failed": "Something went wrong on our side. Try again.",
+            "expired": "It took too long and stopped. Try again.",
+            "reference_gone": "Your saved voice was deleted before this song was made. Sing 30 seconds again to make it."
+        },
+        "listen": {
+            "title": "{song}, in a voice like yours",
+            "label": "AI voice made from your singing"
+        },
+        "learn": {
+            "button": "Learn the {part} part",
+            "progress": "{n} of {total} parts are really you"
+        },
+        "limit": {
+            "free": "Your first choir is free.",
+            "left": "{n, plural, one {# left this month} other {# left this month}}",
+            "month": "You've made this month's choirs. More next month, or with Plus.",
+            "day": "That's today's choirs. Try again tomorrow.",
+            "free_used": "You've made your free choir. More with Plus."
+        },
+        "delete": {
+            "button": "Delete this choir",
+            "title": "Delete {song} in a voice like yours?",
+            "body": "This removes the song made from your singing. It still counts toward your songs, and it can't be undone.",
+            "action": "Delete this choir",
+            "done": "Deleted."
+        },
+        "stop": {
+            "button": "Stop making songs in my voice",
+            "title": "Turn off songs in your voice?",
+            "body": "We'll delete your saved voice and every song made from your singing. You can turn it on again any time.",
+            "action": "Turn it off",
+            "done": "Turned off. Everything made from your singing is deleted."
+        },
+        "terms": {
+            "agree": "I'm 18 or over: I agree"
+        },
+        "open": "One song at a time: your last one is still being made.",
+        "voice": {
+            "title": "Your voice",
+            "line": "Kept privately to make your choir songs, until {date} or until you delete it.",
+            "delete": "Delete",
+            "deleteTitle": "Delete your saved voice?",
+            "deleteBody": "We delete the voice made from your singing at once. Songs already made stay. For your next song, you'll sing 30 seconds again.",
+            "deleteAction": "Delete my voice",
+            "deleted": "Your voice is deleted.",
+            "again": "Make my choir",
+            "againLine": "From your saved voice, no need to sing again.",
+            "record": "Sing again instead"
+        },
+        "songs": {
+            "entry": "Hear it in your voice",
+            "fromHum": "Make my choir from my humming",
+            "fromHumLine": "Your humming becomes the voice for every part of your song, labelled as AI.",
+            "singInstead": "Sing it instead",
+            "wordless": "Your saved voice came from humming. For a song with words, singing one line with words makes it clearer.",
+            "wordlessGo": "Sing a line with words",
+            "notEnglish": "It sings English words; others may sound off.",
+            "notSaved": "Your song is still saving to your account. Try again in a moment.",
+            "tooLong": "This song is too long to make in your voice: at most 8 parts, each up to 5 minutes."
+        },
+        "share": {
+            "button": "Share my choir"
+        },
+        "off": {
+            "signedOut": "Sign in to hear yourself as a choir.",
+            "unavailable": "Hear yourself as a choir isn't open to you just now."
+        }
     },
     "aiVoice": {
         "about": "About AI voices",

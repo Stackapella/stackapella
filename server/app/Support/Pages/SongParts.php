@@ -306,6 +306,14 @@ final class SongParts
         return $parts;
     }
 
+    /** A switch the site reads that may not be defined yet: off until it is. */
+    public static function switchedOn(string $name): bool
+    {
+        $flags = app(Flags::class);
+
+        return $flags->exists($name) && $flags->on($name);
+    }
+
     /** Whether the song and part pages ask a singer to be a part's voice: the lend_voice flag, off where it isn't defined. */
     public static function lendVoice(): bool
     {

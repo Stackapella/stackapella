@@ -47,6 +47,7 @@ final class BetaGuideResource extends JsonResource
             'pitchPercent' => is_numeric($pitch = $guide->submission?->scores['pitchPercent'] ?? null) ? (int) round((float) $pitch) : null,
             // Recorded or AI (docs/ai-voices-build-plan.md), and the AI voice that sang it.
             'source' => $guide->source->value,
+            'review' => $guide->review(),
             'aiVoice' => $guide->isAi() && ($voice = $guide->loadMissing('aiVoice')->aiVoice) !== null ? ['id' => $voice->sqid(), 'name' => $voice->name] : null,
         ];
     }

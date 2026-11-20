@@ -20,7 +20,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  */
 final class BetaSingerResource extends JsonResource
 {
-    public const RELATIONS = ['user', 'assignments.template', 'assignments.clip', 'assignments.latestSubmission', 'assignments.submissions.guide'];
+    public const RELATIONS = ['user', 'aiVoices', 'assignments.template', 'assignments.clip', 'assignments.latestSubmission', 'assignments.submissions.guide'];
 
     /**
      * RELATIONS without the takes' outlines, which the list never shows (one per take, large).
@@ -31,7 +31,7 @@ final class BetaSingerResource extends JsonResource
     {
         $withoutPeaks = static fn ($query) => $query->select(array_values(array_diff((new BetaSubmission)->getConnection()->getSchemaBuilder()->getColumnListing('beta_submissions'), ['peaks'])));
 
-        return ['user', 'assignments.template', 'assignments.clip', 'assignments.latestSubmission', 'assignments.submissions' => $withoutPeaks, 'assignments.submissions.guide'];
+        return ['user', 'aiVoices', 'assignments.template', 'assignments.clip', 'assignments.latestSubmission', 'assignments.submissions' => $withoutPeaks, 'assignments.submissions.guide'];
     }
 
     /**
@@ -76,7 +76,29 @@ final class BetaSingerResource extends JsonResource
             'lastSeenAt' => $singer->last_seen_at?->utc()->toIso8601ZuluString(),
             'createdAt' => $singer->created_at?->utc()->toIso8601ZuluString(),
             'stats' => self::stats($singer),
+            // The AI voice licence (phase 1b): the offer, and their newest voice's acceptance and withdrawal.
+            'aiLicence' => self::aiLicence($singer),
             'assignments' => $singer->assignments->sortByDesc('id')->map(static fn (BetaAssignment $a): array => BetaAssignmentResource::fields($a))->values()->all(),
+        ];
+    }
+
+    /**
+     * @return array{offeredAt: string|null, version: int|null, acceptedAt: string|null, credited: bool|null, withdrawnAt: string|null}|null
+     */
+    private static function aiLicence(BetaSinger $singer): ?array
+    {
+        $voice = $singer->aiVoices->sortByDesc('id')->first();
+
+        if ($singer->ai_licence_offered_at === null && $voice === null) {
+            return null;
+        }
+
+        return [
+            'offeredAt' => $singer->ai_licence_offered_at?->utc()->toIso8601ZuluString(),
+            'version' => $voice?->accepted_at !== null ? (int) $voice->consent_version : null,
+            'acceptedAt' => $voice?->accepted_at?->utc()->toIso8601ZuluString(),
+            'credited' => $voice?->accepted_at !== null ? $voice->credited : null,
+            'withdrawnAt' => $voice?->withdrawn_at?->utc()->toIso8601ZuluString(),
         ];
     }
 

@@ -6,14 +6,17 @@ namespace App\Actions\Sharing;
 
 use App\Actions\Gallery\OpenParts;
 use App\Actions\Projects\Owned;
+use App\Enums\OwnChoirStatus;
 use App\Exceptions\Refusal;
 use App\Models\Harmony;
+use App\Models\OwnChoirPart;
 use App\Models\Part;
 use App\Models\Project;
 use App\Models\Take;
 use App\Models\TemplateGuide;
 use App\Models\TemplateVersion;
 use App\Models\User;
+use App\Support\AiVoices\AiGuides;
 use App\Support\Ids;
 use App\Support\Moderation\TextFilter;
 use App\Support\Storage\Uploads;
@@ -36,7 +39,7 @@ final class StartHarmony
     public function __construct(private readonly TrustLevel $trust, private readonly Uploads $uploads, private readonly ShareGate $gate, private readonly Plans $plans) {}
 
     /**
-     * @param  array{changeId: string, projectId: string, partId?: string|null, title?: string|null, visibility: string, sampleRate: int, channels: int, frames: int, bytes: int, sha256: string, beatZeroSeconds?: float|int|null, guides?: list<string>|null, parentId?: string|null, fillPart?: string|null, tracks: list<array{name: string, color: string, peaks: string, kind?: string}>}  $data
+     * @param  array{changeId: string, projectId: string, partId?: string|null, title?: string|null, visibility: string, sampleRate: int, channels: int, frames: int, bytes: int, sha256: string, beatZeroSeconds?: float|int|null, guides?: list<string>|null, choirParts?: list<string>|null, parentId?: string|null, fillPart?: string|null, tracks: list<array{name: string, color: string, peaks: string, kind?: string}>}  $data
      * @return array{harmony: Harmony, upload: array{url: string, method: string, headers: array<string, string>, expiresAt: DateTimeInterface}|null}
      */
     public function handle(User $user, array $data, string $ip): array
@@ -54,7 +57,7 @@ final class StartHarmony
     }
 
     /**
-     * @param  array{changeId: string, projectId: string, partId?: string|null, title?: string|null, visibility: string, sampleRate: int, channels: int, frames: int, bytes: int, sha256: string, beatZeroSeconds?: float|int|null, guides?: list<string>|null, parentId?: string|null, fillPart?: string|null, tracks: list<array{name: string, color: string, peaks: string, kind?: string}>}  $data
+     * @param  array{changeId: string, projectId: string, partId?: string|null, title?: string|null, visibility: string, sampleRate: int, channels: int, frames: int, bytes: int, sha256: string, beatZeroSeconds?: float|int|null, guides?: list<string>|null, choirParts?: list<string>|null, parentId?: string|null, fillPart?: string|null, tracks: list<array{name: string, color: string, peaks: string, kind?: string}>}  $data
      */
     private function start(User $user, array $data, string $ip): Harmony
     {
@@ -91,7 +94,17 @@ final class StartHarmony
 
         // A fill (N5): sung for someone's open part, its mix as long as their stems.
         $fill = ($data['parentId'] ?? null) !== null ? app(OpenParts::class)->checkFill($user, $project, (string) $data['parentId'], (string) ($data['fillPart'] ?? '')) : null;
-        ['singers' => $singers, 'takes' => $takes] = $this->checkMix($project, $part, $data['frames'] / $data['sampleRate'], $fill['seconds'] ?? 0.0);
+        // Hear yourself as a choir: the sharer's own AI parts count as something to share (a fresh choir song has no take).
+        // Those the client names, and those the project records itself (settings.choir), so a share is labelled whatever
+        // the client sends (the security review).
+        $settings = (array) $project->settings;
+        $choirSaved = is_array($settings['choir'] ?? null) ? $settings['choir'] : [];
+        $choir = $this->ownVoice(
+            [...($data['choirParts'] ?? []), ...array_values(array_filter(array_map(static fn (mixed $p): mixed => is_array($p) ? ($p['id'] ?? null) : null, (array) ($choirSaved['parts'] ?? [])), 'is_string'))],
+            $user,
+            is_string($choirSaved['requestId'] ?? null) ? [$choirSaved['requestId']] : [],
+        );
+        ['singers' => $singers, 'takes' => $takes] = $this->checkMix($project, $part, $data['frames'] / $data['sampleRate'], $fill['seconds'] ?? 0.0, $choir['seconds']);
 
         if ($this->plans->storageUsed($user) + $data['bytes'] > $this->plans->storageLimit($user)) {
             throw $this->plans->storageFull($user);
@@ -136,7 +149,11 @@ final class StartHarmony
             'upload_key' => 'uploads/harmonies/'.Str::lower(Str::random(32)).'.wav',
             // Each track's kind (a voice unless the app says it's an instrument) words the credits.
             'tracks' => array_map(static fn (array $track): array => ['name' => $track['name'], 'color' => strtolower($track['color']), 'peaks' => $track['peaks'], 'kind' => ($track['kind'] ?? 'voice') === 'instrument' ? 'instrument' : 'voice'], $data['tracks']),
-            'guide_ids' => $this->guideIds($data['guides'] ?? [], $version),
+            'guide_ids' => $guideIds = $this->guideIds($data['guides'] ?? [], $version, $user),
+            // Its AI parts kept on the share itself: a real take or a withdrawal can retire the guide later, while the
+            // mix still holds the AI singing, and its page must still say so.
+            'ai_parts' => $this->aiParts([...$guideIds, ...$this->untakenAiGuides($project, $version, $user)]),
+            'own_voice_parts' => $choir['parts'] === [] ? null : $choir['parts'],
             'template_version_id' => $version?->id,
             'words_part_key' => $version !== null ? ($part->template_part_key ?? $this->melodyKey($version)) : null,
             'bpm' => $project->bpm,
@@ -154,7 +171,7 @@ final class StartHarmony
      *
      * @return array{singers: list<int>, takes: list<int>}
      */
-    private function checkMix(Project $project, ?Part $part, float $seconds, float $stems = 0.0): array
+    private function checkMix(Project $project, ?Part $part, float $seconds, float $stems = 0.0, float $choir = 0.0): array
     {
         $parts = Part::query()->with('currentTake')->where('project_id', $project->id)->when($part !== null, fn ($query) => $query->whereKey($part?->id))->get();
         $longest = null;
@@ -178,11 +195,11 @@ final class StartHarmony
             $longest = max($longest ?? 0, $end);
         }
 
-        if ($longest === null) {
+        if ($longest === null && $choir <= 0.0) {
             throw new Refusal(409, 'no_takes');
         }
 
-        if ($seconds > max($longest, $stems) + (float) config('sharing.tail_seconds')) {
+        if ($seconds > max($longest ?? 0.0, $stems, $choir) + (float) config('sharing.tail_seconds')) {
             throw new Refusal(409, 'mix_mismatch');
         }
 
@@ -203,10 +220,69 @@ final class StartHarmony
     }
 
     /**
+     * The sharer's own AI parts in the mix (Hear yourself as a choir): only parts of their own ready songs, by name, kept
+     * on the share so its page labels them as AI even after the song is deleted; and how long the longest is (the mix
+     * may be that long).
+     *
+     * @param  list<string>  $sqids
+     * @param  list<string>  $requestSqids  songs whose every ready part counts (the project's settings.choir.requestId)
+     * @return array{parts: list<string>, seconds: float}
+     */
+    private function ownVoice(array $sqids, User $user, array $requestSqids = []): array
+    {
+        $ids = array_values(array_filter(array_map(static fn (string $sqid): ?int => Ids::decode($sqid), $sqids)));
+        $requests = array_values(array_filter(array_map(static fn (string $sqid): ?int => Ids::decode($sqid), $requestSqids)));
+
+        if ($ids === [] && $requests === []) {
+            return ['parts' => [], 'seconds' => 0.0];
+        }
+
+        $parts = OwnChoirPart::query()->with('request.templateVersion')->where(fn ($query) => $query->whereKey($ids)->orWhereIn('own_choir_request_id', $requests))->where('status', 'ready')
+            ->whereHas('request', fn ($query) => $query->where('user_id', $user->id)->where('status', OwnChoirStatus::Ready->value))->orderBy('id')->get();
+        $names = array_values($parts->map(static function (OwnChoirPart $part): string {
+            $named = collect((array) ($part->request->templateVersion->data['parts'] ?? []))->first(static fn (mixed $p): bool => is_array($p) && ($p['key'] ?? null) === $part->part_key);
+
+            return is_array($named) && is_string($named['name'] ?? null) ? $named['name'] : $part->part_key;
+        })->unique()->all());
+
+        return ['parts' => $names, 'seconds' => (float) $parts->max(static fn (OwnChoirPart $p): float => $p->frames / max(1, $p->sample_rate))];
+    }
+
+    /**
+     * The song's AI guides this person heard for parts with no take of theirs in the mix: the app plays a part's default
+     * voice without saving it, so these are labelled from the song itself.
+     *
+     * @return list<int>
+     */
+    private function untakenAiGuides(Project $project, ?TemplateVersion $version, User $user): array
+    {
+        if ($version === null || ! AiGuides::on($user)) {
+            return [];
+        }
+
+        $taken = Part::query()->where('project_id', $project->id)->whereHas('currentTake', fn ($query) => $query->where('status', Take::READY)->whereNull('binned_at'))
+            ->whereNotNull('template_part_key')->pluck('template_part_key')->all();
+
+        return array_values(array_map('intval', AiGuides::shownWith(true)->where('source', 'ai')->where('template_version_id', $version->id)->whereNotIn('part_key', $taken)->pluck('id')->all()));
+    }
+
+    /**
+     * @param  list<int>  $guideIds
+     * @return list<array{part: string, voice: int|null}>|null
+     */
+    private function aiParts(array $guideIds): ?array
+    {
+        $parts = array_values(TemplateGuide::withAi()->whereKey(array_values(array_unique($guideIds)))->where('source', 'ai')->orderBy('id')->get(['part_key', 'ai_voice_id'])
+            ->map(static fn (TemplateGuide $g): array => ['part' => $g->part_key, 'voice' => $g->ai_voice_id])->all());
+
+        return $parts === [] ? null : $parts;
+    }
+
+    /**
      * @param  list<string>  $sqids
      * @return list<int>
      */
-    private function guideIds(array $sqids, ?TemplateVersion $version): array
+    private function guideIds(array $sqids, ?TemplateVersion $version, User $user): array
     {
         $ids = array_values(array_filter(array_map(static fn (string $sqid): ?int => Ids::decode($sqid), $sqids)));
 
@@ -214,7 +290,8 @@ final class StartHarmony
             return [];
         }
 
-        return array_values(array_map('intval', TemplateGuide::query()->whereKey($ids)->where('template_version_id', $version->id)->orderBy('id')->pluck('id')->all()));
+        // AI guides too, those this person could hear (docs/ai-voices-build-plan.md): its credits name them as AI.
+        return array_values(array_map('intval', AiGuides::shownWith(AiGuides::on($user))->whereKey($ids)->where('template_version_id', $version->id)->orderBy('id')->pluck('id')->all()));
     }
 
     /**

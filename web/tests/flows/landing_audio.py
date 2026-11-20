@@ -36,9 +36,9 @@ def plays(f, label):
     f.wait(f"(() => {{ const b = {PLAY}; const r = b.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(b).visibility !== 'hidden'; }})()", timeout=20, what=f"{label}: Play visible")
     f.run(f"{PLAY}.click();")
     f.wait(f"{PAGE}.hasAttribute('data-playing')", timeout=40, what=f"{label}: the song playing")
-    start = float(f.js(f"{PAGE}.style.getPropertyValue('--p') || '0'"))
+    start = float(f.js(f"{PAGE}.querySelector('[data-play]').style.getPropertyValue('--p') || '0'"))
     time.sleep(1.2)
-    later = float(f.js(f"{PAGE}.style.getPropertyValue('--p') || '0'"))
+    later = float(f.js(f"{PAGE}.querySelector('[data-play]').style.getPropertyValue('--p') || '0'"))
     assert later > start, f"{label}: the playhead didn't move ({start} then {later}): no audio clock running"
     assert f.js("window.__workers") == [], f"{label}: the practice voice was made: {f.js('window.__workers')}"
     f.shot(label)

@@ -81,6 +81,8 @@ workers:
 
   # ffmpeg work (ProcessTake, ProcessHarmony, RenderShareVideo): its own resident worker on the
   # `long` queue, 2 processes, which is also the cap on video renders at once (docs/conventions.md).
+  # Then the `ai` queue (PublishAiGuide, with AI_GUIDES_QUEUE=ai): a catalogue run's hundreds of
+  # AI guides wait behind every user's take and video, never in front of them.
   - name: long
     github:
       repo: hillelcoren/stackapella
@@ -96,7 +98,7 @@ workers:
     run_command: >-
       sh -c 'cd /app/server && php artisan optimize &&
       for worker in 1 2; do
-      (while true; do php artisan queue:work database_long --queue=long --timeout=300 --max-jobs=50 --max-time=3600; sleep 1; done) &
+      (while true; do php artisan queue:work database_long --queue=long,ai --timeout=300 --max-jobs=50 --max-time=3600; sleep 1; done) &
       done;
       (while true; do php artisan queue:work database --queue=default --timeout=60 --tries=3 --max-jobs=500 --max-time=3600; sleep 1; done) &
       wait'

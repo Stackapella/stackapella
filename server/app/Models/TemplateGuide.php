@@ -31,6 +31,7 @@ use Illuminate\Support\Carbon;
  * @property string $part_key
  * @property GuideSource $source
  * @property int|null $ai_voice_id
+ * @property Carbon|null $approved_at an AI guide Hillel approved: only then may it reach the app (phase 1c)
  * @property int|null $beta_submission_id
  * @property int|null $harmony_id
  * @property int|null $take_id
@@ -68,6 +69,7 @@ final class TemplateGuide extends Model
     {
         return [
             'source' => GuideSource::class,
+            'approved_at' => 'datetime',
             'is_default' => 'boolean',
             'defaulted_at' => 'datetime',
             'sample_rate' => 'integer',
@@ -124,6 +126,12 @@ final class TemplateGuide extends Model
     public function isAi(): bool
     {
         return $this->source === GuideSource::Ai;
+    }
+
+    /** An AI guide's review: approved, or pending (a rejected one is retired); null for a recorded guide. */
+    public function review(): ?string
+    {
+        return $this->isAi() ? ($this->approved_at !== null ? 'approved' : 'pending') : null;
     }
 
     /**

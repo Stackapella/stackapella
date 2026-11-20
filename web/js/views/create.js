@@ -33,6 +33,7 @@ import { SaveStep } from '../components/create/save.js';
 import { EditorStep } from '../components/create/editor.js';
 import { ChordsKeyStep, ChordsStep, chosenLetters, HumStep } from '../components/create/chords.js';
 import { HumTuneStep } from '../components/create/hum-tune.js';
+import { keepHum, moveHum, ownChoirSongsOn } from '../own-choir.js';
 import { chordsFor } from '../theory.js';
 import { Icon } from '../components/icon.js';
 import { AppScreen } from '../components/page.js';
@@ -129,7 +130,7 @@ export const CreateView = {
                     <ChordsStep v-else-if="draft.step === 'chords'" :draft="draft" @change="change" />
                     <ChordsKeyStep v-else-if="draft.step === 'key'" :draft="draft" @change="change" />
                     <HumStep v-else-if="draft.step === 'hum'" :draft="draft" @change="change" @melody="setHummed" />
-                    <HumTuneStep v-else-if="draft.step === 'humtune'" :draft="draft" @change="change" @tune="setHumTune" />
+                    <HumTuneStep v-else-if="draft.step === 'humtune'" :draft="draft" @change="change" @tune="setHumTune" @take="keepHumTake" />
                     <WordsStep v-else-if="draft.step === 'words'" :draft="draft" @change="change" />
                     <SingStep v-else-if="draft.step === 'sing'" :draft="draft" @change="change" @line="setLine" @tempo="draft.step = 'tempo'" />
                     <CheckStep v-else-if="draft.step === 'check'" :draft="draft" @change="change" @line="setLine" @resing="resing" @editor="openEditor" />
@@ -421,6 +422,10 @@ export const CreateView = {
             navigate('/create?mode=write', { replace: true });
             this.open(); // the same page, so it's started here
         },
+        /** The humming itself, kept with the draft on this device while own songs are on (Hear it in your voice). */
+        keepHumTake(take) {
+            if (ownChoirSongsOn()) keepHum(this.draft.id, take).catch((error) => console.warn('The hum was not kept', error));
+        },
         async save() {
             if (this.problems.length || this.saving) return;
             this.saving = true;
@@ -429,6 +434,8 @@ export const CreateView = {
                 const record = await saveTemplate(this.finished, { visibility: d.authorship === 'other' ? 'private' : d.visibility, libraryOptIn: d.authorship === 'other' ? false : d.libraryOptIn, copiedFrom: d.copiedFrom ?? null });
                 clearTimeout(this.autosave);
                 this.dirty = false;
+                // The humming moves to the saved song before the draft (and anything kept with it) goes.
+                if (ownChoirSongsOn()) await moveHum(d.id, record.id).catch((error) => console.warn('The hum was not kept with the song', error));
                 await discardDraft(d.id);
                 if (d.mode === 'hum') count('hum_saved'); // a hummed tune kept as a song
                 tried('create'); // breadth: a song of your own saved (the builder, or Hum a tune)

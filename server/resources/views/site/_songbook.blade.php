@@ -44,7 +44,7 @@
                              "Lets make the phots more of a background element and the song titke the feature"; App\Support\Pages\SongPictures),
                              in the page's palette (`tone`); a song with no picture of a place or thing has the palette alone. --}}
                         <div class="s-xhead s-tone s-tone-{{ $tone ?? 'song' }}">
-                            @include('site._song-picture', ['picture' => $carol['picture'] ?? null, 'song' => $carol, 'tone' => $tone ?? 'song', 'background' => true, 'class' => 's-xpic', 'sizes' => '(min-width: 1200px) 370px, (min-width: 900px) 31vw, (min-width: 600px) 47vw, calc(100vw - 32px)'])
+                            @include('site._song-picture', ['picture' => $carol['picture'] ?? null, 'song' => $carol, 'tone' => $tone ?? 'song', 'background' => true, 'class' => 's-xpic', 'sizes' => '(min-width: 1200px) 370px, (min-width: 900px) 31vw, (min-width: 600px) 47vw, 240px'])
                             <h3 id="carol-{{ $carol['slug'] }}-h" translate="no">{{ $carol['title'] }}</h3>
                         </div>
                         <div class="s-xcard-top">

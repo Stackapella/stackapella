@@ -53,7 +53,7 @@ final class WithdrawAiVoice
             AuditLog::record('ai.voice_withdrawn', $locked, $actor, after: ['guides' => $guides->count(), 'uploads' => $uploads->count()], ip: $ip);
 
             return ['retired' => $guides->count(), 'files' => $files];
-        });
+        }, 3);
 
         // Its masters (private): nothing it sang is kept.
         if ($done['files'] !== []) {

@@ -189,6 +189,10 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `beta.submissions.create` | `POST /api/beta/submissions` | A beta singer who has consented | M2 |
 | `beta.submissions.complete` | `POST /api/beta/submissions/{id}/complete` | The singer who made it | M2 |
 | `beta.feedback.create` | `POST /api/beta/feedback` | A beta singer | M2 |
+| `beta.aiLicence.show` | `GET /api/beta/ai-licence` | A beta singer | AI voices |
+| `beta.aiLicence.accept` | `POST /api/beta/ai-licence` | A beta singer | AI voices |
+| `beta.aiLicence.update` | `PATCH /api/beta/ai-licence` | A beta singer | AI voices |
+| `beta.aiLicence.withdraw` | `POST /api/beta/ai-licence/withdraw` | A beta singer | AI voices |
 | `admin.overview` | `GET /api/admin/overview` | An admin or editor | M2 |
 | `admin.beta.singers.list` | `GET /api/admin/beta/singers` | An admin | M2 |
 | `admin.beta.singers.create` | `POST /api/admin/beta/singers` | An admin | M2 |
@@ -197,6 +201,7 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `admin.beta.singers.revoke` | `POST /api/admin/beta/singers/{id}/revoke` | An admin | M2 |
 | `admin.beta.singers.paid` | `POST /api/admin/beta/singers/{id}/paid` | An admin, in sudo | M2 |
 | `admin.beta.singers.forget` | `POST /api/admin/beta/singers/{id}/forget` | An admin, in sudo | M2 |
+| `admin.beta.singers.aiLicence.offer` | `POST /api/admin/beta/singers/{id}/ai-licence` | An admin | AI voices |
 | `admin.beta.assignments.create` | `POST /api/admin/beta/singers/{id}/assignments` | An admin | M2 |
 | `admin.beta.assignments.delete` | `DELETE /api/admin/beta/assignments/{id}` | An admin | M2 |
 | `admin.beta.assignments.again` | `POST /api/admin/beta/assignments/{id}/again` | An admin | L |
@@ -218,6 +223,17 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `admin.beta.guides.delete` | `DELETE /api/admin/beta/guides/{id}` | An admin, in sudo | M2 |
 | `admin.aiVoices.list` | `GET /api/admin/ai-voices` | An admin or editor | AI voices |
 | `admin.aiVoices.withdraw` | `POST /api/admin/ai-voices/{id}/withdraw` | An admin, in sudo | AI voices |
+| `admin.aiGuides.list` | `GET /api/admin/ai-guides` | An admin or editor | AI voices |
+| `admin.aiGuides.approve` | `POST /api/admin/ai-guides/approve` | An admin | AI voices |
+| `admin.aiGuides.reject` | `POST /api/admin/ai-guides/reject` | An admin, in sudo | AI voices |
+| `ownChoir.show` | `GET /api/own-choir` | Anyone signed in | Own choir |
+| `ownChoir.consent` | `POST /api/own-choir/consent` | Anyone signed in | Own choir |
+| `ownChoir.requests.create` | `POST /api/own-choir/requests` | Anyone signed in | Own choir |
+| `ownChoir.requests.complete` | `POST /api/own-choir/requests/{id}/complete` | Anyone signed in, their own | Own choir |
+| `ownChoir.requests.seen` | `POST /api/own-choir/requests/{id}/seen` | Anyone signed in, their own | Own choir |
+| `ownChoir.requests.delete` | `DELETE /api/own-choir/requests/{id}` | Anyone signed in, their own | Own choir |
+| `ownChoir.delete` | `DELETE /api/own-choir` | Anyone signed in | Own choir |
+| `ownChoir.voice.delete` | `DELETE /api/own-choir/voice` | Anyone signed in | Own choir |
 | `admin.beta.feedback.list` | `GET /api/admin/beta/feedback` | An admin or editor | M2 |
 | `admin.beta.feedback.read` | `POST /api/admin/beta/feedback/{id}/read` | An admin or editor | M2 |
 | `auth.config` | `GET /api/auth/config` | Anyone | M3 |
@@ -1139,6 +1155,64 @@ the time, the credit and the 18+ answer); it replaces `voices.join`. Anyone sign
 | 409 | `beta_singer` | `error.json` | `voices.share.beta_singer.json` |
 | 429 | `rate_limited` | `error.json` | `voices.share.rate_limited.json` |
 
+#### The AI voice licence
+
+A singer licenses their voice for AI parts in the app, as they agree to the guide agreement (docs/ai-voices-build-plan.md,
+phase 1b; Hillel: "just like singer agreed to intiial terms in the app please also build in the terms for AI licensing
+for voice"). Its own opt-in, never bundled with the guide or volunteers' agreements. Its text is
+`beta.agreement.show?for=ai_voice` (the short version first, then the full terms; `reviewed: false` until the lawyer's
+OK). **Offered** means an admin offered it to this singer (`admin.beta.singers.aiLicence.offer`; until the lawyer's
+OK the only way, and it works with `ai_voices` off, so the first singers can accept before anything is public), or the
+terms are reviewed and `ai_voices` is on for them. Not offered, `beta.aiLicence.show` says so and the app shows
+nothing. Accepting makes their AI voice (`admin.aiVoices.list`), or renews its consent; withdrawing retires every part
+it sang at once and deletes its files (as `admin.aiVoices.withdraw` does), and accepting again later makes a new voice.
+A new version of the terms stops new parts in their voice (the worker's `403 licence_changed`) until they accept it;
+the parts already made stay. Stored: the version, the time accepted, the credit choice, withdrawn and when.
+
+#### `beta.aiLicence.show`
+
+The licence's state for this singer. Always `200`, `offered: false` when it isn't offered. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `beta.aiLicence.json` | `beta.aiLicence.show.200.json` |
+
+#### `beta.aiLicence.accept`
+
+Accept the current terms. **Request:** `{ "version": 1, "adult": true, "credited": true }`: `version` is the one
+shown; `adult` must be `true` (18 or over); `credited` names them on the label ("AI voice based on <name>'s singing",
+by their account's name), or not (the plain AI label). Accepting again (new terms, or to change the credit) updates
+it. `403 not_offered`; `409 agreement_changed`: `version` isn't the current one, show the terms again.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `beta.aiLicence.json` | `beta.aiLicence.accept.200.json` |
+| 403 | `not_offered` | `error.json` | `beta.aiLicence.accept.not_offered.json` |
+| 409 | `agreement_changed` | `error.json` | `beta.aiLicence.accept.agreement_changed.json` |
+| 422 | `validation_failed` | `error.json` | `beta.aiLicence.accept.validation_failed.json` |
+
+#### `beta.aiLicence.update`
+
+Change the credit choice at any time, even after their beta role ended (as are `show` and `withdraw`); the label
+changes at once. **Request:** `{ "credited": false }`. `409
+not_accepted`: no live acceptance.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `beta.aiLicence.json` | `beta.aiLicence.update.200.json` |
+| 409 | `not_accepted` | `error.json` | `beta.aiLicence.update.not_accepted.json` |
+
+#### `beta.aiLicence.withdraw`
+
+Take it back: every part their AI voice sang is retired at once, purged from the CDN and its files deleted; nothing
+more is made with it. The app's styled modal names exactly what goes first (`voice.guides`). `meta.retired` is how
+many parts went. No sudo: it's their own voice. `409 not_accepted`: nothing to withdraw. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `beta.aiLicence.withdraw.json` | `beta.aiLicence.withdraw.200.json` |
+| 409 | `not_accepted` | `error.json` | `beta.aiLicence.withdraw.not_accepted.json` |
+
 #### `beta.me.show`
 
 The signed-in singer: the welcome, consent and My parts read it. **Request:** none.
@@ -1152,7 +1226,8 @@ The signed-in singer: the welcome, consent and My parts read it. **Request:** no
 The beta agreement, current version, as text blocks the app shows with `{{ }}` (never HTML).
 `reviewed: false` means the lawyer hasn't checked it yet: the app says it's a draft. **Request:**
 `?lang=` (optional; English, the only language at launch, otherwise), and `?for=volunteer` for
-the volunteers' agreement (Lend your voice) instead.
+the volunteers' agreement (Lend your voice) instead, or `?for=ai_voice` for the AI voice licence ("The AI voice
+licence", below), always in English (Hillel: "just need english for accepting AI terms").
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -1336,6 +1411,16 @@ outside the app). **Request:** none.
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 |  | `admin.beta.singer.update.json` | `admin.beta.singers.paid.200.json` |
+
+#### `admin.beta.singers.aiLicence.offer`
+
+Offer the AI voice licence to this singer (they see it in the app from then on; "The AI voice licence"). Offering
+again changes nothing. The singer's `aiLicence` says what they did with it. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `admin.beta.singer.update.json` | `admin.beta.singers.aiLicence.offer.200.json` |
+| 404 | `not_found` | `error.json` | `admin.beta.singers.aiLicence.offer.not_found.json` |
 
 #### `admin.beta.singers.forget`
 
@@ -1650,7 +1735,9 @@ switch: `on` for everyone, `directors` for anyone who directs a choir group; off
 are live; staff see it before). `lendVoice` says whether Lend
 your voice is on (the `lend_voice` switch). `aiVoices` says whether AI guide voices are on for
 this person (the `ai_voices` switch, read for their account, so it can be on for one account first;
-"AI voices" below). `languages` lists the languages open to everyone, English
+"AI voices" below). `ownChoir` says whether Hear yourself as a choir is on for this person (the `own_choir` switch,
+read for their account; "Hear yourself as a choir"), and `ownChoirSongs` whether it is on their own songs from the creator
+too (`own_choir_songs`). `languages` lists the languages open to everyone, English
 first, then each whose switch is on (`lang_es`, `lang_de`): the app offers only these in Settings and
 follows the browser only into these (`?lang=` still shows a draft).
 `experiment` is the funnel's running A/B test, `{ "id": "onb1", "arms": ["a", "b"], "enrol": true }`,
@@ -2974,7 +3061,11 @@ Start sharing a mix. `partId` must be one of the project's parts (`409 part_miss
 - `beatZeroSeconds`: where the template's beat 0 falls in the mix (0 to 60), for the video's
   words; `null` for a project not from a template, or to leave the words out;
 - `guides`: the published voices heard in the mix (`guide.recording`'s `id`, at most 16), for the
-  credits. Ids the server doesn't know, or of another song, are ignored;
+  credits, AI ones included (credited as AI on the page; ignored unless this person could hear them). Ids the server
+  doesn't know, or of another song, are ignored;
+- `choirParts`: Hear yourself as a choir's parts heard in the mix (`ownChoir.show`'s `parts[].id`, at most 16): only the
+  sharer's own, from a ready song; the share keeps which parts they were and its page credits them as AI in the sharer's
+  own voice (`ownVoice`). A share with such parts and no take of its own is not `no_takes`;
 - `tracks`: each part in the mix, in order (1 to 12): `name` (1 to 60 characters), `color` (lower
   case `#rrggbb`), `kind` (optional, `voice` or `instrument`: the page, card and posts then say
   "Played by" or "Sung and played by") and `peaks`, base64 of one byte (0 to 255) per 50 ms of the mix from its start,
@@ -7142,7 +7233,11 @@ $harmony = [
     'id' => 'k3Xb9QmT7wLp',
     'title' => 'Silent Night for Mum',          // "Untitled song" when blank or held
     'singers' => [['name' => 'Ana Ruiz', 'avatarUrl' => 'https://.../a.jpg']], // the owner; avatarUrl may be null
-    'guides' => [['name' => 'Maria Lopez', 'part' => 'Alto']], // beta singers whose voices are in it
+    // The voices in it: beta singers by name; an AI part as `ai` with no name, and `aiBasedOn` only when its singer
+    // chose a credit (the view words it: "Alto: AI voice").
+    // `ownVoice`: an AI part in the sharer's own voice (Hear yourself as a choir), `aiBasedOn` the sharer's name as the
+    // page shows it (null when their profile is hidden: the plain "AI voice").
+    'guides' => [['name' => 'Maria Lopez', 'part' => 'Alto', 'ai' => false, 'aiBasedOn' => null, 'ownVoice' => false], ['name' => null, 'part' => 'Tenor', 'ai' => true, 'aiBasedOn' => null, 'ownVoice' => false], ['name' => null, 'part' => 'Bass', 'ai' => true, 'aiBasedOn' => 'Sam R.', 'ownVoice' => true]],
     'song' => [                                   // null when the project isn't from a template
         'slug' => 'silent-night',
         'title' => 'Silent Night',
@@ -7268,8 +7363,8 @@ chose no credit (the plain AI label), and on a recorded guide. An AI guide's
 
 - **Off** (for the person asking): no AI guide anywhere in the app's API (`templates.catalogue`, `templates.show`),
   admins included; AI guides are seen only in Admin (`admin.beta.guides.list`, `admin.aiVoices.list`).
-- **On:** an AI guide is sent only for a part with no published recorded voice, and only once its voice's consent is
-  recorded. It's the part's default (`guide`; `default: true` in `versions`) and never the default over a recorded
+- **On:** an AI guide is sent only for a part with no published recorded voice, only once its voice's consent is
+  recorded, and only once Hillel has approved it (`admin.aiGuides.*`: a new AI guide starts pending). It's the part's default (`guide`; `default: true` in `versions`) and never the default over a recorded
   one.
 - **A real voice replaces it:** publishing a recorded take for the part retires its AI guide at once (gone from the
   answer and from the CDN).
@@ -7306,6 +7401,169 @@ a voice coming back is a new voice with a new consent. `meta.retired` is how man
 | 404 | `not_found` | `error.json` | `admin.aiVoices.withdraw.not_found.json` |
 | 409 | `already_withdrawn` | `error.json` | `admin.aiVoices.withdraw.already_withdrawn.json` |
 
+#### `admin.aiGuides.list`
+
+The review queue (docs/ai-voices-build-plan.md, phase 1c): the AI guides of each song's current version in one review
+state, by song (by title). **Request:** `?status=pending` (the default), `approved` or `rejected`. Each part: its id (the
+AI upload's, which approve and reject name, and which stays when a rejected guide's file is gone), its voice, its
+`recording` to play (null once rejected), the voices lane's `checks` and `renderer` as the worker sent them, and the
+review (`note` is why it was rejected). Play it beside the written part from `templates.show` (admins get every song).
+`meta.counts` is how many are in each state, for the tabs.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `admin.aiGuides.list.json` | `admin.aiGuides.list.200.json` |
+
+#### `admin.aiGuides.approve`
+
+Approve parts: they reach the app and the site (with `ai_voices` on). **Request:** `{ "ids": ["Up1Sop", "Up1Alt"] }`:
+exactly the parts the reviewer saw (a song's Approve all sends that song's shown ids), so a part that arrived after the
+list loaded is never approved unheard. Parts not pending are skipped; `approved` is how many it changed.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `admin.aiGuides.approve.json` | `admin.aiGuides.approve.200.json` |
+| 422 | `validation_failed` | `error.json` | `admin.aiGuides.approve.validation_failed.json` |
+
+#### `admin.aiGuides.reject`
+
+Reject parts, pending or approved: each guide is retired at once (its file deleted and purged from the CDN), and the
+part goes back on the voices lane's list (`worker.ai.catalogue`'s `todo`) with the note. In sudo, as withdrawing and
+retiring are (it deletes files). **Request:** `{ "ids": [..], "note": "Flat on the low B flats" }`: the parts the
+reviewer saw; `note` 1 to 500 characters. Parts already rejected are skipped; `rejected` is how many it changed.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `admin.aiGuides.reject.json` | `admin.aiGuides.reject.200.json` |
+| 422 | `validation_failed` | `error.json` | `admin.aiGuides.reject.validation_failed.json` |
+
+### Hear yourself as a choir
+
+Track B, phase 3 (docs/ai-voices-build-plan.md), behind `own_choir` (`auth.config`'s `ownChoir`, read for the account):
+a singer records about 30 seconds singing along to one part of a song, and later hears every part of that song in their
+own voice, labelled as AI. **Their voice, kept for them** (Hillel, 2026-11-20: "i think we shoud store a model to make
+it easier"): the renderer prepares a short reference from their first clip, and only that is kept, privately in their
+account (`voice`), so their next songs need no new recording; only they can use it, only for their own songs. The raw
+clip is still deleted the moment its song finishes. The voice is deleted at once on `ownChoir.voice.delete`, with the
+account, or after 12 months unused (config `own_choir.voice_months`). A finished track is a full outcome; learning is
+an option. The parts are private to the
+singer (signed URLs for 2 hours; the app keeps them in its guides store to play offline). The terms are
+`beta.agreement.show?for=own_choir`, English only, the short version first. **Quotas** (config `own_choir`): one free
+song ever, 20 a month with Plus, 5 a day for everyone; a failed song gives its place back. **Failures:** `bad_clip` (not
+the audio declared), `clip_unusable` (the singing fits too few of the part's notes: sing along clearly and try again),
+`gates_failed` (a part failed the pitch checks), `render_failed` (the renderer failed), `reference_gone` (their saved
+voice was deleted while the song was being made), `expired` (never finished).
+**Counts:** `own_choir_heard`, `own_choir_sing`, `own_choir_shared` and `own_choir_replaced` from the app;
+`own_choir_download` (the finished track saved from the device, "(with AI voices)"); `own_choir_requested`,
+`own_choir_ready`, `own_choir_again` (a song made from a saved voice: a singer back for more) and `own_choir_own` (a song of
+their own from the creator) by the server. A song made with these parts is shared as any song is, its parts named in
+`harmonies.create`'s `choirParts` and credited on its page as AI in the sharer's voice. While `own_choir` is off for this person, every
+operation answers `404 not_found`, except `ownChoir.show` (`data: null` with nothing kept), and a singer with anything
+kept (consent, a voice, a song) can still read it and delete it (`ownChoir.requests.delete`, `ownChoir.voice.delete`, `ownChoir.delete`), whatever the
+switch. **What counts toward the quotas:** every song that reached the renderer, made, deleted after, or failed through
+something the singer could cause (`clip_unusable`, `reference_gone`); and every song waiting for it. A song gives its
+place back only when it never reached the renderer (never sent, a clip that failed its check, deleted before its turn)
+or failed through ours (`render_failed`, `gates_failed`).
+
+#### `ownChoir.show`
+
+The singer's consent, quota and songs, newest first. A ready song not yet `seen` is the app's in-app notice (never
+email). **Request:** none. `data` is `null` while `own_choir` is off for this person and they have nothing kept (no
+consent, voice or song): Settings asks for everyone signed in, so it never answers 404: `{ "data": null }`.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `ownChoir.show.json` | `ownChoir.show.200.json` |
+
+#### `ownChoir.consent`
+
+Accept the terms. **Request:** `{ "version": 1, "adult": true }`. `409 agreement_changed`: `version` isn't the
+current one.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `ownChoir.json` | `ownChoir.consent.200.json` |
+| 409 | `agreement_changed` | `error.json` | `ownChoir.consent.agreement_changed.json` |
+| 422 | `validation_failed` | `error.json` | `ownChoir.consent.validation_failed.json` |
+
+#### `ownChoir.requests.create`
+
+A song in their voice: a library song by its id, or (with `own_choir_songs` on, `auth.config`'s `ownChoirSongs`) one of
+their own songs from the creator by its id, hummed or with words they typed (Hillel: "definiety allow typed words, AI
+needs to know what to sing"); it must be saved to their account first, and an id the server doesn't hold for them is
+`404 not_found`. For a hummed song with no saved voice, the clip can be the humming take itself (`offsetFrames` null
+when beat 0 isn't known). With their saved voice, `{ "templateId": "silent-night" }` alone: the request comes back `queued`,
+`upload` null (a returning singer). With a new clip, the request and a presigned PUT for it ("Uploads"); the voice
+prepared from it replaces their saved one. `409 voice_required`: no saved voice and no clip. `409 song_too_long`: a song with more parts, or a longer part, than
+one song may cost to render (config `own_choir.max_parts`, 8, and `max_part_seconds`, 300). **Request** with a clip: `{ "templateId":
+"silent-night", "partKey": "alto", "offsetFrames": 24000, "sampleRate": 48000, "frames": 1440000, "bytes": 2880044,
+"sha256": "<64 hex>" }`: a 16-bit mono WAV recorded in the app (no file uploads), 5 to 30 seconds; `partKey` the part
+they sang along to; `offsetFrames` the clip frame where the song's beat 0 falls (latency removed), or null. `403
+consent_required`; `403 quota_reached` with `which` (`free`, `month` or `day`); `403 account_required` for a song they
+can't start; `409 request_open`: one song at a time; `404 not_found`: no such song or part.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 201 |  | `ownChoir.requests.create.json` | `ownChoir.requests.create.201.json` |
+| 403 | `consent_required` | `error.json` | `ownChoir.requests.create.consent_required.json` |
+| 403 | `quota_reached` | `error.json` | `ownChoir.requests.create.quota_reached.json` |
+| 403 | `account_required` | `error.json` | `ownChoir.requests.create.account_required.json` |
+| 404 | `not_found` | `error.json` | `ownChoir.requests.create.not_found.json` |
+| 409 | `request_open` | `error.json` | `ownChoir.requests.create.request_open.json` |
+| 409 | `voice_required` | `error.json` | `ownChoir.requests.create.voice_required.json` |
+| 409 | `song_too_long` | `error.json` | `ownChoir.requests.create.song_too_long.json` |
+| 422 | `validation_failed` | `error.json` | `ownChoir.requests.create.validation_failed.json` |
+
+#### `ownChoir.requests.complete`
+
+The PUT is done: size and SHA-256 checked (`409 upload_incomplete`, `409 upload_mismatch`: send it again), then
+`queued`; its audio is checked in a job (`failed`, `bad_clip`). Called again past `uploading`, it answers as it is.
+**Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `ownChoir.request.json` | `ownChoir.requests.complete.200.json` |
+| 404 | `not_found` | `error.json` | `ownChoir.requests.complete.not_found.json` |
+| 409 | `upload_incomplete` | `error.json` | `ownChoir.requests.complete.upload_incomplete.json` |
+| 409 | `upload_mismatch` | `error.json` | `ownChoir.requests.complete.upload_mismatch.json` |
+
+#### `ownChoir.requests.seen`
+
+They opened a ready song: the notice goes. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `ownChoir.request.json` | `ownChoir.requests.seen.200.json` |
+| 404 | `not_found` | `error.json` | `ownChoir.requests.seen.not_found.json` |
+
+#### `ownChoir.requests.delete`
+
+A song and its parts gone (its clip too, if still there). It still counts toward the quota: only a failed song gives its
+place back. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 204 | | | |
+| 404 | `not_found` | `error.json` | `ownChoir.requests.delete.not_found.json` |
+
+#### `ownChoir.voice.delete`
+
+Their saved voice deleted at once; the songs already made stay. A song being made from it fails `reference_gone`.
+**Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 204 | | | |
+| 404 | `not_found` | `error.json` | `ownChoir.voice.delete.not_found.json` |
+
+#### `ownChoir.delete`
+
+Everything: every song, part and clip, their saved voice, and the consent. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 204 | | | |
+
 ### The AI voices worker
 
 How the voices lane's batch renderer reaches the server (docs/ai-voices-build-plan.md, phase 1). Not the apps':
@@ -7314,12 +7572,20 @@ How the voices lane's batch renderer reaches the server (docs/ai-voices-build-pl
 | Operation | Method and path | Who | Since |
 |---|---|---|---|
 | `worker.ai.needs` | `GET /api/worker/ai/needs` | The AI voices worker | AI voices |
+| `worker.ai.catalogue` | `GET /api/worker/ai/catalogue` | The AI voices worker | AI voices |
+| `worker.choir.claim` | `POST /api/worker/choir/claim` | The AI voices worker | Own choir |
+| `worker.choir.parts.create` | `POST /api/worker/choir/jobs/{id}/parts` | The AI voices worker | Own choir |
+| `worker.choir.parts.complete` | `POST /api/worker/choir/parts/{id}/complete` | The AI voices worker | Own choir |
+| `worker.choir.jobs.finish` | `POST /api/worker/choir/jobs/{id}/finish` | The AI voices worker | Own choir |
+| `worker.choir.references.create` | `POST /api/worker/choir/jobs/{id}/reference` | The AI voices worker | Own choir |
+| `worker.choir.references.complete` | `POST /api/worker/choir/references/{id}/complete` | The AI voices worker | Own choir |
 | `worker.ai.uploads.create` | `POST /api/worker/ai/uploads` | The AI voices worker | AI voices |
 | `worker.ai.uploads.complete` | `POST /api/worker/ai/uploads/{id}/complete` | The AI voices worker | AI voices |
 | `worker.ai.uploads.show` | `GET /api/worker/ai/uploads/{id}` | The AI voices worker | AI voices |
 
-- **Auth:** `Authorization: Bearer <token>`, one token (Admin's power over AI guides only), kept only in the server's
-  env (`AI_WORKER_TOKEN`), never in the database or the repo. No session, cookie or CSRF. With no token set (or one
+- **Auth:** `Authorization: Bearer <token>`, kept only in the server's env, never in the database or the repo: the
+  catalogue's (`worker.ai.*`, `AI_WORKER_TOKEN`) and the choir jobs' own (`worker.choir.*`, `AI_CHOIR_TOKEN`), so neither
+  opens the other (a batch machine with the catalogue's token can never claim a user's private clip). No session, cookie or CSRF. With no token set (or one
   shorter than 32 characters) every worker route answers `404 not_found`: the API is off. A missing or wrong token is
   `401 unauthenticated`. Limited (`ai-worker`).
 - **Not behind `ai_voices`:** the worker makes guides while the switch is off; they stay in Admin until it's on.
@@ -7331,15 +7597,109 @@ How the voices lane's batch renderer reaches the server (docs/ai-voices-build-pl
 What a song's current version still needs. **Request:** `?template=<slug>` (required: one song at a time). The song
 must be an official, reviewed song. `data.data` is the version's `template.json` exactly as stored, to render from.
 Each part says whether a recorded voice is published (`hasRealGuide`), its AI guide on this version if any
-(`aiGuide`), the newest AI upload still on its way (`pending`), and `wanted`: true whenever no recorded voice sings
+(`aiGuide`, with its `review`: pending or approved), the newest AI upload still on its way (`pending`), and `wanted`: true whenever no recorded voice sings
 it, even with an AI guide (a new upload replaces it). `meta.voices` is every AI voice, `active: false` once withdrawn
-(never render with it).
+(never render with it; its reference and renders are deleted), `licensed: false` while its singer hasn't accepted the AI
+voice licence's current terms (don't render with it yet; keep its reference).
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 |  | `worker.ai.needs.json` | `worker.ai.needs.200.json` |
 | 404 | `not_found` | `error.json` | `worker.ai.needs.not_found.json` |
 | 422 | `validation_failed` | `error.json` | `worker.ai.needs.validation_failed.json` |
+
+#### `worker.ai.catalogue`
+
+Every official, reviewed song's current version and what each part still needs, without the notes (`worker.ai.needs`
+has them, per song), for the catalogue runner (phase 1c). Each part: its `range` (MIDI) and `seconds` (beat 0 to its
+last note's end) to choose a voice and estimate the cost; `aiGuide` with its `review` (pending or approved); `pending`,
+the newest upload on its way; `rejected`, its newest render if Hillel rejected it (with his note); and `todo`: no
+recorded voice, no AI guide pending or approved, nothing in flight. A new template version lists its parts afresh (AI
+guides are never carried over). `meta.voices` as in `worker.ai.needs`: every AI voice ever, withdrawn ones with
+`active: false` (purge what you hold of them). **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `worker.ai.catalogue.json` | `worker.ai.catalogue.200.json` |
+
+#### `worker.choir.claim`
+
+The next queued song in a singer's voice (track B), or `204` when none waits. It carries exactly one of `clip` (a new
+clip: prepare a reference from it and send it with `worker.choir.references.create`) or `reference` (their saved voice,
+prepared before, with your own `meta`). `claim` is this claim's token: every call on the job sends it (`"claim":
+"<token>"`), and one with a missing or stale token is `409 job_not_claimed` (another worker may have it now). A claim lasts 20 minutes; a job not
+finished by then goes back to the queue, at most twice, then fails (`render_failed`). The clip's link lasts 30 minutes;
+delete everything you held once you post `finish`. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `worker.choir.claim.json` | `worker.choir.claim.200.json` |
+| 204 | | | |
+
+#### `worker.choir.parts.create`
+
+Start sending one rendered part, as `worker.ai.uploads.create` does (the same `sampleRate: 48000`, `frames`, `bytes`,
+`sha256`, `checks` and `renderer`; `part` one of the job's; and the job's `claim`). `409 job_not_claimed`: the claim ended (another worker may
+have it).
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 201 |  | `worker.choir.parts.create.json` | `worker.choir.parts.create.201.json` |
+| 404 | `not_found` | `error.json` | `worker.choir.parts.create.not_found.json` |
+| 409 | `job_not_claimed` | `error.json` | `worker.choir.parts.create.job_not_claimed.json` |
+| 422 | `validation_failed` | `error.json` | `worker.choir.parts.create.validation_failed.json` |
+
+#### `worker.choir.parts.complete`
+
+The PUT is done: checked and encoded as a private part for that singer only. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `worker.choir.part.json` | `worker.choir.parts.complete.200.json` |
+| 404 | `not_found` | `error.json` | `worker.choir.parts.complete.not_found.json` |
+| 409 | `upload_incomplete` | `error.json` | `worker.choir.parts.complete.upload_incomplete.json` |
+| 409 | `upload_mismatch` | `error.json` | `worker.choir.parts.complete.upload_mismatch.json` |
+
+#### `worker.choir.jobs.finish`
+
+The job is done (with the job's `claim`): `{ "failed": null }` once every part is in (`409 parts_missing` otherwise), or `{ "failed":
+"clip_unusable" }`, `gates_failed`, `render_failed` or `reference_gone`. The server deletes the clip at once either way
+(a reference sent with the job stays as their saved voice).
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `worker.choir.jobs.finish.json` | `worker.choir.jobs.finish.200.json` |
+| 404 | `not_found` | `error.json` | `worker.choir.jobs.finish.not_found.json` |
+| 409 | `job_not_claimed` | `error.json` | `worker.choir.jobs.finish.job_not_claimed.json` |
+| 409 | `parts_missing` | `error.json` | `worker.choir.jobs.finish.parts_missing.json` |
+| 422 | `validation_failed` | `error.json` | `worker.choir.jobs.finish.validation_failed.json` |
+
+
+#### `worker.choir.references.create`
+
+On a job with a `clip` (`409 no_clip` otherwise): send the reference prepared from it. **Request:** `{ "claim": "<token>", "sampleRate":
+24000, "frames": 480000, "bytes": 960044, "sha256": "<64 hex>", "meta": { ... } }`: a 16-bit mono WAV; `meta` your own
+JSON, at most 64 KB, given back with the reference on later jobs.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 201 |  | `worker.choir.references.create.json` | `worker.choir.references.create.201.json` |
+| 404 | `not_found` | `error.json` | `worker.choir.references.create.not_found.json` |
+| 409 | `job_not_claimed` | `error.json` | `worker.choir.references.create.job_not_claimed.json` |
+| 409 | `no_clip` | `error.json` | `worker.choir.references.create.no_clip.json` |
+| 422 | `validation_failed` | `error.json` | `worker.choir.references.create.validation_failed.json` |
+
+#### `worker.choir.references.complete`
+
+The PUT is done: size, SHA-256 and format checked, and it becomes the singer's saved voice, replacing the old one.
+**Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `worker.choir.reference.json` | `worker.choir.references.complete.200.json` |
+| 404 | `not_found` | `error.json` | `worker.choir.references.complete.not_found.json` |
+| 409 | `upload_incomplete` | `error.json` | `worker.choir.references.complete.upload_incomplete.json` |
+| 409 | `upload_mismatch` | `error.json` | `worker.choir.references.complete.upload_mismatch.json` |
 
 #### `worker.ai.uploads.create`
 
@@ -7362,11 +7722,14 @@ already has an AI guide may be uploaded again: the new one replaces it when it's
 - `409 real_voice_exists`: a recorded voice is published for this part of this version;
 - `409 template_changed`: `versionId` isn't the song's current version;
 - `403 voice_withdrawn`: the voice was withdrawn;
+- `403 licence_changed`: its singer licensed it in the app and hasn't accepted the current terms yet (stop; never retry
+  until `worker.ai.needs` shows it `licensed` again);
 - `422`: the numbers don't add up, or a check or renderer field is missing.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 201 |  | `worker.ai.uploads.create.json` | `worker.ai.uploads.create.201.json` |
+| 403 | `licence_changed` | `error.json` | `worker.ai.uploads.create.licence_changed.json` |
 | 403 | `voice_withdrawn` | `error.json` | `worker.ai.uploads.create.voice_withdrawn.json` |
 | 404 | `not_found` | `error.json` | `worker.ai.uploads.create.not_found.json` |
 | 409 | `real_voice_exists` | `error.json` | `worker.ai.uploads.create.real_voice_exists.json` |
@@ -7381,7 +7744,7 @@ checks the audio itself (a 16-bit mono WAV at 48000 Hz of `frames`; else `failed
 as a guide the way a beta take is (levelled to the guides' loudness, encoded as AAC, on the CDN at an immutable key):
 `published` with its `guideId`, retiring the part's earlier AI guide. If a recorded voice was published, the version
 replaced or the voice withdrawn meanwhile, it ends `failed` (`real_voice_exists`, `template_changed`,
-`voice_withdrawn`) and nothing goes up; `publish_failed` if encoding or storage broke after its tries (send it again).
+`voice_withdrawn`, `licence_changed`) and nothing goes up; `publish_failed` if encoding or storage broke after its tries (send it again).
 An upload never completed within the hour ends `expired`. Called again past `uploading`, it answers the upload as it
 is. **Request:** none.
 

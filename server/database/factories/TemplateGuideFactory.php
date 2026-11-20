@@ -47,6 +47,13 @@ final class TemplateGuideFactory extends Factory
             'ai_voice_id' => $voice !== null ? $voice->id : AiVoice::factory()->consented()->credited()->state(['based_on' => $basedOn]),
             'is_default' => true,
             'beta_submission_id' => null,
+            'approved_at' => now(),
         ]);
+    }
+
+    /** An AI guide still waiting for Hillel's review (phase 1c). */
+    public function pendingReview(): self
+    {
+        return $this->state(['approved_at' => null]);
     }
 }

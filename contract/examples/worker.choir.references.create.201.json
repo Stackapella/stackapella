@@ -1,0 +1,16 @@
+{
+    "data": {
+        "id": "Rf1Sn1",
+        "job": "Jb5Sn1",
+        "status": "uploading"
+    },
+    "upload": {
+        "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/uploads/choir/6f9a3c1b7d4e0a6f8c2b1d3e5a7c9e4f.wav?X-Amz-Expires=1800&X-Amz-Signature=abc",
+        "method": "PUT",
+        "headers": {
+            "Content-Type": "audio/wav",
+            "Content-Length": "960044"
+        },
+        "expiresAt": "2026-11-21T09:30:00Z"
+    }
+}

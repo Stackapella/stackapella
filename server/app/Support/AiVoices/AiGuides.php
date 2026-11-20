@@ -37,7 +37,8 @@ final class AiGuides
     }
 
     /**
-     * Guides as the app and the site may hear them: recorded ones, and with `$ai` the AI ones of a consented, active voice.
+     * Guides as the app and the site may hear them: recorded ones, and with `$ai` the AI ones Hillel approved, of a
+     * consented, active voice.
      *
      * @return Builder<TemplateGuide>
      */
@@ -49,7 +50,7 @@ final class AiGuides
 
         return TemplateGuide::withAi()->where(fn (Builder $query) => $query
             ->where('source', GuideSource::Recorded->value)
-            ->orWhere(fn (Builder $ai) => $ai->where('source', GuideSource::Ai->value)->whereHas('aiVoice', fn (Builder $voice) => $voice->whereNull('withdrawn_at')->whereNotNull('consent_date'))));
+            ->orWhere(fn (Builder $ai) => $ai->where('source', GuideSource::Ai->value)->whereNotNull('approved_at')->whereHas('aiVoice', fn (Builder $voice) => $voice->whereNull('withdrawn_at')->whereNotNull('consent_date'))));
     }
 
     /**
@@ -68,13 +69,19 @@ final class AiGuides
         return $guides->count();
     }
 
+    /** Hillel retires an AI guide in Admin (admin.beta.guides.delete): not a real voice lost, so no email. */
+    public static function retireByAdmin(TemplateGuide $guide, User $admin): void
+    {
+        DB::transaction(static fn () => self::retire([$guide], $admin, 'removed'));
+    }
+
     /**
      * Retire these AI guides: their rows deleted now, their files deleted and purged from the CDN once the change is
      * committed, each written to the audit log.
      *
      * @param  iterable<TemplateGuide>  $guides
-     * @param  'replaced'|'withdrawn'|'rerendered'|'removed'  $why  a recorded voice took the part (counted as ai_replaced), the voice
-     *                                                              was withdrawn, or a new AI render replaced it, or Hillel retired it in Admin
+     * @param  'replaced'|'withdrawn'|'rerendered'|'removed'|'rejected'  $why  a recorded voice took the part (counted as ai_replaced), the voice
+     *                                                                         was withdrawn, or a new AI render replaced it, or Hillel retired it in Admin
      */
     public static function retire(iterable $guides, ?User $actor, string $why): void
     {

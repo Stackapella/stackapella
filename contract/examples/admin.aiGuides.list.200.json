@@ -1,0 +1,191 @@
+{
+    "data": [
+        {
+            "templateId": "silent-night",
+            "title": "Silent Night",
+            "version": 8,
+            "versionId": "Tv8Sn2",
+            "parts": [
+                {
+                    "id": "Up1Sop",
+                    "partKey": "soprano",
+                    "partName": "Soprano",
+                    "status": "pending",
+                    "voice": {
+                        "id": "Vc3Ad8",
+                        "name": "Alto A"
+                    },
+                    "recording": {
+                        "id": "Ai7Sop",
+                        "partKey": "soprano",
+                        "url": "https://stackapella-media.nyc3.cdn.digitaloceanspaces.com/guides/1a2b1a2b1a2b1a2b1a2b1a2b1a2b1a2b.m4a",
+                        "sampleRate": 48000,
+                        "frames": 6840000,
+                        "offsetFrames": 0,
+                        "credit": null,
+                        "creditHandle": null,
+                        "source": "ai",
+                        "aiBasedOn": null
+                    },
+                    "checks": {
+                        "pitchMaxCents": 18.2,
+                        "pitchMedianCents": 7.4,
+                        "notesMeasured": 52,
+                        "notesTotal": 52,
+                        "notesOver15": 2,
+                        "notesOver30": 0,
+                        "dropouts": 1,
+                        "heldSeconds": 40.5,
+                        "durationSeconds": 142.5
+                    },
+                    "renderer": {
+                        "model": "soulx-singer",
+                        "steps": 32,
+                        "pitchShift": 0,
+                        "reference": "synthetic-alto"
+                    },
+                    "publishedAt": "2026-11-21T10:00:00Z",
+                    "note": null,
+                    "reviewedAt": null,
+                    "reviewedBy": null
+                },
+                {
+                    "id": "Up1Alt",
+                    "partKey": "alto",
+                    "partName": "Alto",
+                    "status": "pending",
+                    "voice": {
+                        "id": "Vc3Ad8",
+                        "name": "Alto A"
+                    },
+                    "recording": {
+                        "id": "Ai7Alt",
+                        "partKey": "alto",
+                        "url": "https://stackapella-media.nyc3.cdn.digitaloceanspaces.com/guides/3c4d3c4d3c4d3c4d3c4d3c4d3c4d3c4d.m4a",
+                        "sampleRate": 48000,
+                        "frames": 6840000,
+                        "offsetFrames": 0,
+                        "credit": null,
+                        "creditHandle": null,
+                        "source": "ai",
+                        "aiBasedOn": null
+                    },
+                    "checks": {
+                        "pitchMaxCents": 18.2,
+                        "pitchMedianCents": 7.4,
+                        "notesMeasured": 52,
+                        "notesTotal": 52,
+                        "notesOver15": 2,
+                        "notesOver30": 0,
+                        "dropouts": 1,
+                        "heldSeconds": 40.5,
+                        "durationSeconds": 142.5
+                    },
+                    "renderer": {
+                        "model": "soulx-singer",
+                        "steps": 32,
+                        "pitchShift": 0,
+                        "reference": "synthetic-alto"
+                    },
+                    "publishedAt": "2026-11-21T10:00:00Z",
+                    "note": null,
+                    "reviewedAt": null,
+                    "reviewedBy": null
+                },
+                {
+                    "id": "Up1Ten",
+                    "partKey": "tenor",
+                    "partName": "Tenor",
+                    "status": "pending",
+                    "voice": {
+                        "id": "Vc9Tn2",
+                        "name": "Tenor B"
+                    },
+                    "recording": {
+                        "id": "Ai7Ten",
+                        "partKey": "tenor",
+                        "url": "https://stackapella-media.nyc3.cdn.digitaloceanspaces.com/guides/5e6f5e6f5e6f5e6f5e6f5e6f5e6f5e6f.m4a",
+                        "sampleRate": 48000,
+                        "frames": 6840000,
+                        "offsetFrames": 0,
+                        "credit": null,
+                        "creditHandle": null,
+                        "source": "ai",
+                        "aiBasedOn": null
+                    },
+                    "checks": {
+                        "pitchMaxCents": 34.0,
+                        "pitchMedianCents": 7.4,
+                        "notesMeasured": 52,
+                        "notesTotal": 52,
+                        "notesOver15": 6,
+                        "notesOver30": 1,
+                        "dropouts": 1,
+                        "heldSeconds": 40.5,
+                        "durationSeconds": 142.5
+                    },
+                    "renderer": {
+                        "model": "soulx-singer",
+                        "steps": 32,
+                        "pitchShift": 0,
+                        "reference": "synthetic-alto"
+                    },
+                    "publishedAt": "2026-11-21T10:00:00Z",
+                    "note": null,
+                    "reviewedAt": null,
+                    "reviewedBy": null
+                },
+                {
+                    "id": "Up1Bas",
+                    "partKey": "bass",
+                    "partName": "Bass",
+                    "status": "pending",
+                    "voice": {
+                        "id": "Vc9Tn2",
+                        "name": "Tenor B"
+                    },
+                    "recording": {
+                        "id": "Ai7Bas",
+                        "partKey": "bass",
+                        "url": "https://stackapella-media.nyc3.cdn.digitaloceanspaces.com/guides/7a8b7a8b7a8b7a8b7a8b7a8b7a8b7a8b.m4a",
+                        "sampleRate": 48000,
+                        "frames": 6840000,
+                        "offsetFrames": 0,
+                        "credit": null,
+                        "creditHandle": null,
+                        "source": "ai",
+                        "aiBasedOn": null
+                    },
+                    "checks": {
+                        "pitchMaxCents": 18.2,
+                        "pitchMedianCents": 7.4,
+                        "notesMeasured": 52,
+                        "notesTotal": 52,
+                        "notesOver15": 2,
+                        "notesOver30": 0,
+                        "dropouts": 1,
+                        "heldSeconds": 40.5,
+                        "durationSeconds": 142.5
+                    },
+                    "renderer": {
+                        "model": "soulx-singer",
+                        "steps": 32,
+                        "pitchShift": 0,
+                        "reference": "synthetic-alto"
+                    },
+                    "publishedAt": "2026-11-21T10:00:00Z",
+                    "note": null,
+                    "reviewedAt": null,
+                    "reviewedBy": null
+                }
+            ]
+        }
+    ],
+    "meta": {
+        "counts": {
+            "pending": 4,
+            "approved": 3,
+            "rejected": 1
+        }
+    }
+}

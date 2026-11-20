@@ -10,6 +10,7 @@ use App\Models\AiUpload;
 use App\Models\AiVoice;
 use App\Models\TemplateGuide;
 use App\Models\TemplateVersion;
+use App\Support\AiVoices\AiLicence;
 use App\Support\Ids;
 use App\Support\Storage\Uploads;
 use Illuminate\Support\Str;
@@ -40,6 +41,11 @@ final class StartAiUpload
 
         if (! $voice->isActive()) {
             throw new Refusal(403, 'voice_withdrawn');
+        }
+
+        // Licensed in the app and the terms changed since: no new parts in this voice until its singer accepts them.
+        if (! AiLicence::licensed($voice)) {
+            throw new Refusal(403, 'licence_changed');
         }
 
         if ($template->current_version_id !== $version->id || ! $version->reviewed) {

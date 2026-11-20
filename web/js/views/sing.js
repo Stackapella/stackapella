@@ -21,6 +21,7 @@ import * as sessionStore from '../stores/session.js';
 import { account } from '../stores/account.js';
 import { claimInvitation, countVoice, later, needsVoice, saidLater, usableTake, voiceAskOpen } from '../be-the-voice.js';
 import { aiCredit, aiCtaOpen } from '../ai-voices.js';
+import { ownChoirOn, sendClip } from '../own-choir.js';
 import { aiPartsOf } from '../stores/catalogue.js';
 import { sendVoiceTake } from '../voice-take.js';
 import { signUpFor } from '../components/account-wall.js';
@@ -103,7 +104,7 @@ export const SingView = {
     components: { SingShell: screenLoading(), ShareVoice: defineAsyncComponent(() => import('../components/share-voice.js').then((m) => m.ShareVoice)), DailyShare, RingMeter, VoiceCareLine, TimingLine, PopupSlot, TakeBest, IdeaVoice, PhraseStage, Chooser, Stage, RecordingStage, Lane, NowCard, Coach, StepDone, JustRecorded, LineBar, ModeBar, SingHeader, Transport, TurnBand, PartSheet, SettingsSheet, HeadphonesDialog, TimingDialog, RangeDialog, Icon, VoiceNote, ResingSheet, ResungCard, TrimSheet, WhatsNext, LockedBanner, ShareSheet },
     props: { id: { type: String, required: true } },
     setup: () => ({ ...toRefs(session), audio, formatTime, shownTitle, prefs, game, effect, aiCtaOpen }),
-    data: () => ({ tasteAsked: false, crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null, ring: null, ringChord: '', lessonStep: null, lessonOpening: false, voiceAt: 0, voicePartId: null }),
+    data: () => ({ tasteAsked: false, crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null, ring: null, ringChord: '', lessonStep: null, lessonOpening: false, voiceAt: 0, voicePartId: null, choirSending: false, choirError: '' }),
     template: `
         <div class="flex h-dvh flex-col bg-ink" :data-paused="paused ? '' : null">
             <p class="sr-only" aria-live="polite">{{ said }}</p>
@@ -158,7 +159,7 @@ export const SingView = {
                         <JustRecorded v-else-if="recorded" class="m-auto" :outcome="recorded" :part-name="nameOf(recorded.part)" :next-name="recorded.next ? nameOf(recorded.next) : ''" :hearing="playing"
                             :nudge-ms="nudgeMsOf(recorded.part)" :lining="lining" :lined="lined" :can-resing="phraseRows.length > 1" :color="paint(recorded.part.color)" :stack="recordedStack"
                             :score="recorded.report?.score ?? null" :notes="reportNotes" :track="recorded.report?.track ?? null" :beat-seconds="fullBeatSeconds" :offset-seconds="recorded.part.offsetSeconds + (recorded.part.nudgeSeconds || 0)"
-                            :phrases="reportPhrases" :phrase-labels="phraseRows.map((p) => p.label)" :position="position" :length-seconds="lengthSeconds" :bleed="!!recorded.report?.bleed" :sung-by="sungBy" :voice="voiceInvite"
+                            :phrases="reportPhrases" :phrase-labels="phraseRows.map((p) => p.label)" :position="position" :length-seconds="lengthSeconds" :bleed="!!recorded.report?.bleed" :sung-by="sungBy" :voice="voiceInvite" :choir="choirTake" @choir-make="makeChoir"
                             @hear="hearTake" @mute="toggleHearing" @again="recordPart" @next="nextPart" @nudge="nudge" @nudged="nudged" @line-up="lineUp" @studio="openStudio" @resing="resingFrom" @trim="openTrim" :polished="prefs.hearPolished" @polish="hearPolished" @share="dialog = 'share'" @hear-phrase="hearPhrase" @voice-share="voiceShare" @voice-later="voiceLater">
                             <template #report>
                                 <!-- The part's leaderboard (components/boards.js): your best, or why it didn't count; never a lesson's song -->
@@ -417,7 +418,7 @@ export const SingView = {
             const span = range ? t('sing.about.rangeInline', { low: this.noteName({ pitch: range.low }), high: this.noteName({ pitch: range.high }) }) : '';
             const voice = this.focusPart && this.guideVoices[this.focusPart.id];
             // An AI voice says so (js/ai-voices.js), never a singer's name.
-            const who = voice?.kind === 'real' && voice.ai ? aiCredit(voice.aiBasedOn) : voice?.kind === 'real' && voice.credit ? t('part.sungBy', { name: voice.credit }) : '';
+            const who = voice?.kind === 'real' && voice.ai ? aiCredit(voice.aiBasedOn, voice.choir) : voice?.kind === 'real' && voice.credit ? t('part.sungBy', { name: voice.credit }) : '';
             return [span, who].filter(Boolean).join(' · ');
         },
         settingsBadge() {
@@ -434,7 +435,7 @@ export const SingView = {
         voicesLabel() {
             if (!Object.values(this.guideVoices).some((v) => v?.versions?.length)) return '';
             const voice = this.focusPart && this.guideVoices[this.focusPart.id];
-            const yours = voice?.kind === 'real' && voice.ai ? aiCredit(voice.aiBasedOn) : voice?.kind === 'real' && voice.credit ? t('part.sungBy', { name: voice.credit }) : t('part.practiceVoice');
+            const yours = voice?.kind === 'real' && voice.ai ? aiCredit(voice.aiBasedOn, voice.choir) : voice?.kind === 'real' && voice.credit ? t('part.sungBy', { name: voice.credit }) : t('part.practiceVoice');
             return t('sing.settings.voicesOf', { part: this.partName, voice: yours });
         },
         /**
@@ -460,6 +461,15 @@ export const SingView = {
             if (saidLater(this.project.template.id, part.templatePartKey) || !claimInvitation(this.project.template.id, part.templatePartKey)) return null;
             return { part: this.nameOf(part), guest: !account.me };
         },
+        /**
+         * A choir project's take, waiting to become the song in a voice like theirs (js/own-choir.js): its length and how the
+         * sending goes; null once it's sent (the choir page says the rest), or anywhere else.
+         */
+        choirTake() {
+            const part = this.recorded?.part;
+            if (!this.project?.choir || this.project.choir.requestId || !part?.templatePartKey || !ownChoirOn()) return null;
+            return { seconds: (part.frames || 0) / (part.sampleRate || 48000), busy: this.choirSending, error: this.choirError };
+        },
         /** The part Be the voice's sheet is for: the review's, or the one a sign-up came back to (?voice=<partId>). */
         voicePart() {
             return this.parts.find((p) => p.id === this.voicePartId) ?? null;
@@ -475,12 +485,12 @@ export const SingView = {
          */
         /** The parts an AI voice sings (js/ai-voices.js): always marked, whether or not Be the voice is open. */
         aiVoiceSlots() {
-            if (this.project?.beta || !this.project?.template?.id) return [];
+            if (this.project?.beta || this.project?.choir || !this.project?.template?.id) return [];
             const ai = aiPartsOf(this.project.template.id);
             return this.partChoices.filter((c) => ai.includes(c.slot.templatePartKey)).map((c) => c.slot.id);
         },
         noVoiceSlots() {
-            if (!voiceAskOpen() || this.project?.beta || this.project?.course || !this.project?.template?.id) return [];
+            if (!voiceAskOpen() || this.project?.beta || this.project?.course || this.project?.choir || !this.project?.template?.id) return [];
             return this.partChoices.filter((c) => needsVoice(this.project.template.id, c.slot.templatePartKey)).map((c) => c.slot.id);
         },
         /** Your part's sheet: each part with its range and its guide's voice. */
@@ -808,12 +818,17 @@ export const SingView = {
         // Back from making an account to share a take (Be the voice): the same take, its sheet open.
         const query = new URLSearchParams(location.search);
         const back = query.get('voice');
-        if (back) {
+        // Learn the alto part (Hear yourself as a choir's page): Sing opens on that part (?part=<key>).
+        const wantedPart = query.get('part');
+        if (back || wantedPart) {
             query.delete('voice');
+            query.delete('part');
             history.replaceState(history.state, '', location.pathname + (query.size ? `?${query}` : ''));
         }
         // The studio may have it open already (Sing from the studio): no need to load it again.
         if (session.openedId !== this.id || !session.project) await sessionStore.openSession(this.id);
+        const wanted = wantedPart && session.parts.find((p) => p.templatePartKey === wantedPart);
+        if (wanted && session.practice?.focus !== wanted.id) sessionStore.practise(wanted);
         // A beta take is recorded in the studio's beta mode (the sound check, Check and send).
         if (session.project?.beta) {
             navigate(`/p/${this.id}`, { replace: true });
@@ -1013,7 +1028,7 @@ export const SingView = {
         },
         /** Whether `part`'s take could be the guide (be-the-voice.js usableTake): the call open, a library song, no voice yet. */
         voiceTake(part) {
-            if (!part?.templatePartKey || !voiceAskOpen() || this.project?.beta || this.project?.course || this.project?.shared || !this.project?.template?.id) return false;
+            if (!part?.templatePartKey || !voiceAskOpen() || this.project?.beta || this.project?.course || this.project?.shared || this.project?.choir || !this.project?.template?.id) return false;
             if (!needsVoice(this.project.template.id, part.templatePartKey)) return false;
             return usableTake({
                 seconds: (part.frames || 0) / (part.sampleRate || 48000),
@@ -1025,6 +1040,35 @@ export const SingView = {
             });
         },
         /** Share it: a guest makes a free account first ("Save your alto and share it") and comes straight back to this take. */
+        /**
+         * Make my choir: the take's first 30 seconds from the song's start go as this song's clip (js/own-choir.js); the
+         * project remembers the request, and the choir page says what happens next. A refusal is said on the card.
+         */
+        async makeChoir() {
+            const part = this.recorded?.part;
+            const samples = part && sessionStore.takeOf(part);
+            if (!samples || this.choirSending) return;
+            this.choirSending = true;
+            this.choirError = '';
+            try {
+                const request = await sendClip({ templateId: this.project.template.id, partKey: part.templatePartKey, samples, sampleRate: part.sampleRate, startSeconds: part.offsetSeconds + (part.nudgeSeconds || 0) });
+                this.project.choir = { ...this.project.choir, requestId: request.id };
+                await sessionStore.persist(async () => {});
+                // The take was only for making the choir (the server keeps only the voice made from it): it isn't kept here
+                // either, once the project has the request saved (persist only warns when a save fails).
+                const db = await import('../db.js');
+                if ((await db.get('projects', this.project.id))?.choir?.requestId === request.id) await sessionStore.clearTakeOf(part);
+                navigate(`/t/${encodeURIComponent(this.project.template.id)}/choir`);
+            } catch (error) {
+                console.warn('The choir clip did not send', error);
+                const which = error?.body?.which;
+                const quota = which === 'day' ? t('ownChoir.limit.day') : which === 'free' ? t('ownChoir.limit.free_used') : t('ownChoir.limit.month');
+                // One of their own songs not in the account yet answers not_found: it's still saving.
+                this.choirError = error?.code === 'quota_reached' ? quota : error?.code === 'request_open' ? t('ownChoir.open') : error?.code === 'not_found' ? t('ownChoir.songs.notSaved') : error?.code === 'song_too_long' ? t('ownChoir.songs.tooLong') : t('ownChoir.record.failed');
+            } finally {
+                this.choirSending = false;
+            }
+        },
         voiceShare() {
             const part = this.recorded?.part;
             if (!part) return;

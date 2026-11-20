@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "adult": [
+            "The adult field must be accepted."
+        ]
+    }
+}

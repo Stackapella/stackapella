@@ -11,7 +11,15 @@
         },
         "status": "withdrawn",
         "withdrawnAt": "2026-11-22T10:15:00Z",
-        "guides": []
+        "guides": [],
+        "singer": {
+            "id": "Pq7Rm2",
+            "name": "Sarah Kim"
+        },
+        "licence": {
+            "version": 1,
+            "acceptedAt": "2026-11-19T10:00:00Z"
+        }
     },
     "meta": {
         "retired": 1

@@ -118,6 +118,7 @@
         "label": "Counting in"
     },
     "common": {
+        "didntWork": "That didn't work. Try again.",
         "loading": "Opening",
         "loadingScreen": "Opening {screen}",
         "backToProjects": "Back to your songs",
@@ -641,6 +642,7 @@
         "panLeft": "{percent}% left",
         "panRight": "{percent}% right",
         "asRecorded": "As recorded",
+        "asWritten": "As written",
         "earlier": "{ms} ms earlier",
         "later": "{ms} ms later",
         "guideVoice": "Guide voice",
@@ -692,6 +694,8 @@
             "advanced": "A challenge"
         },
         "range": "{low} to {high}",
+        "keyChip": "Key of {key}",
+        "creditsRow": "Credits",
         "credits": "Words: {words}. Tune: {tune}. Arrangement: {arrangement}.",
         "draftNote": "Draft: not yet checked by a musician.",
         "tempo": {
@@ -3343,6 +3347,7 @@
             "failed": "Something went wrong finding the notes. Sing the line again.",
             "slower": "Slower ({bpm}) and again",
             "keepIt": "Keep it",
+            "unsung": "Until they match, this line is sung without its words.",
             "mismatch": "This line has {syllables} syllables and {notes} notes.",
             "split": "Split the long {note}",
             "join": "Join two syllables",
@@ -3503,6 +3508,7 @@
             "held": "held",
             "undone": "Undone.",
             "redone": "Done again.",
+            "pastedUnsung": "{count, plural, one {# syllable placed.} other {# syllables placed.}} No note for: {words}. Those won't be sung.",
             "pasted": "{count, plural, one {# syllable placed.} other {# syllables placed.}}",
             "phoneEmpty": "No notes in this part yet.",
             "addNote": "Add a note",
@@ -5629,6 +5635,112 @@
         "mapLine": "Sung a lot today?",
         "settingsTitle": "Voice-care notes",
         "settingsHint": "A quiet line after 20 and 40 minutes of singing in a day, with a 2-minute cool-down. Counted only on this device, never sent."
+    },
+    "ownChoir": {
+        "entry": {
+            "button": "Hear yourself as a choir",
+            "line": "Sing for 30 seconds, then hear every part of {song} in a voice like yours."
+        },
+        "title": "Hear yourself as a choir",
+        "intro": {
+            "one": "Sing along with {song} for 30 seconds, any part, in your own voice.",
+            "two": "We make every part of it in a voice like yours, labelled as AI.",
+            "three": "Then learn your part: each one you record takes the place of its AI version."
+        },
+        "record": {
+            "title": "Sing for 30 seconds",
+            "headphones": "Headphones on, so only your voice is recorded.",
+            "start": "Start singing",
+            "short": "That was under 15 seconds. Sing a little longer so we can hear your voice.",
+            "use": "Make my choir",
+            "sending": "Sending your recording...",
+            "again": "Sing again",
+            "failed": "Your recording didn't send. Try again."
+        },
+        "wait": {
+            "title": "Your choir is on its way",
+            "body": "We're making every part of {song} in a voice like yours. It can take a few minutes; we'll tell you here when it's ready.",
+            "kept": "We keep your voice privately, so your next song needs no new recording."
+        },
+        "ready": {
+            "download": "Download my choir",
+            "fileName": "{song} (with AI voices)",
+            "notice": "Your choir is ready: {song}, sung in a voice like yours",
+            "button": "Listen"
+        },
+        "failed": {
+            "title": "We couldn't make your choir this time",
+            "body": "Your recording has been deleted. Try again with a new one, somewhere quiet, singing a little louder.",
+            "clip_unusable": "We couldn't hear enough of the part in your recording. Try again, singing along clearly with your part.",
+            "bad_clip": "Your recording didn't arrive as it should. Try again.",
+            "gates_failed": "Some parts didn't come out in tune. Try again with a new recording.",
+            "render_failed": "Something went wrong on our side. Try again.",
+            "expired": "It took too long and stopped. Try again.",
+            "reference_gone": "Your saved voice was deleted before this song was made. Sing 30 seconds again to make it."
+        },
+        "listen": {
+            "title": "{song}, in a voice like yours",
+            "label": "AI voice made from your singing"
+        },
+        "learn": {
+            "button": "Learn the {part} part",
+            "progress": "{n} of {total} parts are really you"
+        },
+        "limit": {
+            "free": "Your first choir is free.",
+            "left": "{n, plural, one {# left this month} other {# left this month}}",
+            "month": "You've made this month's choirs. More next month, or with Plus.",
+            "day": "That's today's choirs. Try again tomorrow.",
+            "free_used": "You've made your free choir. More with Plus."
+        },
+        "delete": {
+            "button": "Delete this choir",
+            "title": "Delete {song} in a voice like yours?",
+            "body": "This removes the song made from your singing. It still counts toward your songs, and it can't be undone.",
+            "action": "Delete this choir",
+            "done": "Deleted."
+        },
+        "stop": {
+            "button": "Stop making songs in my voice",
+            "title": "Turn off songs in your voice?",
+            "body": "We'll delete your saved voice and every song made from your singing. You can turn it on again any time.",
+            "action": "Turn it off",
+            "done": "Turned off. Everything made from your singing is deleted."
+        },
+        "terms": {
+            "agree": "I'm 18 or over: I agree"
+        },
+        "open": "One song at a time: your last one is still being made.",
+        "voice": {
+            "title": "Your voice",
+            "line": "Kept privately to make your choir songs, until {date} or until you delete it.",
+            "delete": "Delete",
+            "deleteTitle": "Delete your saved voice?",
+            "deleteBody": "We delete the voice made from your singing at once. Songs already made stay. For your next song, you'll sing 30 seconds again.",
+            "deleteAction": "Delete my voice",
+            "deleted": "Your voice is deleted.",
+            "again": "Make my choir",
+            "againLine": "From your saved voice, no need to sing again.",
+            "record": "Sing again instead"
+        },
+        "songs": {
+            "entry": "Hear it in your voice",
+            "fromHum": "Make my choir from my humming",
+            "fromHumLine": "Your humming becomes the voice for every part of your song, labelled as AI.",
+            "singInstead": "Sing it instead",
+            "wordless": "Your saved voice came from humming. For a song with words, singing one line with words makes it clearer.",
+            "wordlessGo": "Sing a line with words",
+            "notEnglish": "It sings English words; others may sound off.",
+            "notSaved": "Your song is still saving to your account. Try again in a moment.",
+            "tooLong": "This song is too long to make in your voice: at most 8 parts, each up to 5 minutes."
+        },
+        "share": {
+            "button": "Share my choir"
+        },
+        "off": {
+            "signedOut": "Sign in to hear yourself as a choir.",
+            "unavailable": "Hear yourself as a choir isn't open to you just now."
+        }
     },
     "aiVoice": {
         "about": "About AI voices",

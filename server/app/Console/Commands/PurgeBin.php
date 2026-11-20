@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Actions\OwnChoir\OwnChoirRequests;
 use App\Models\IdeaVoice;
 use App\Models\Project;
 use App\Models\SyncTombstone;
 use App\Models\Take;
 use App\Models\Template;
 use App\Models\TemplateRecording;
+use App\Models\TemplateVersion;
 use App\Models\User;
 use App\Support\Sync\SyncSeq;
 use Illuminate\Console\Command;
@@ -170,7 +172,11 @@ final class PurgeBin extends Command
      */
     private function purgeTemplates(): int
     {
-        return Template::query()->whereNotNull('owner_id')->whereNotNull('deleted_at')->where('deleted_at', '<', now()->subDays(Take::BIN_DAYS))->delete();
+        $gone = Template::query()->whereNotNull('owner_id')->whereNotNull('deleted_at')->where('deleted_at', '<', now()->subDays(Take::BIN_DAYS));
+        // Hear yourself as a choir's songs on them first: their private files go, their emptied rows stay (still counting).
+        OwnChoirRequests::purgeForVersions(array_values(array_map('intval', TemplateVersion::query()->whereIn('template_id', (clone $gone)->select('id'))->pluck('id')->all())));
+
+        return $gone->delete();
     }
 
     private function pruneTombstones(): int

@@ -1,0 +1,21 @@
+{
+    "$id": "ownChoir.requests.create.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "upload"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "ownChoir.json#/$defs/request"
+        },
+        "upload": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "description": "A presigned PUT for the clip (upload.json), or null when the song is made from their saved voice."
+        }
+    }
+}

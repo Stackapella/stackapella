@@ -1,0 +1,185 @@
+{
+    "$id": "ownChoir.json",
+    "title": "Hear yourself as a choir: the singer's consent, quota and songs (track B phase 3)",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "#/$defs/state"
+        }
+    },
+    "$defs": {
+        "state": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "consent",
+                "voice",
+                "termsVersion",
+                "quota",
+                "requests"
+            ],
+            "properties": {
+                "consent": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "version",
+                        "acceptedAt"
+                    ],
+                    "properties": {
+                        "version": {
+                            "type": "integer"
+                        },
+                        "acceptedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    }
+                },
+                "voice": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "savedAt",
+                        "lastUsedAt",
+                        "expiresAt",
+                        "wordless"
+                    ],
+                    "properties": {
+                        "savedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "lastUsedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "expiresAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "description": "Deleted then if not used again (12 months unused)."
+                        },
+                        "wordless": {
+                            "type": "boolean",
+                            "description": "Prepared from a clip of a part with no words (a hum): for a song with words the app may suggest one sung line; never required."
+                        }
+                    },
+                    "description": "Their voice, kept privately for their next songs (prepared from their first clip); null until then, or once deleted."
+                },
+                "termsVersion": {
+                    "type": "integer"
+                },
+                "quota": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "freeLeft",
+                        "monthLeft",
+                        "todayLeft",
+                        "plus"
+                    ],
+                    "properties": {
+                        "freeLeft": {
+                            "type": "integer"
+                        },
+                        "monthLeft": {
+                            "type": "integer"
+                        },
+                        "todayLeft": {
+                            "type": "integer"
+                        },
+                        "plus": {
+                            "type": "boolean"
+                        }
+                    },
+                    "description": "Songs left: the free one (ever), this month's with Plus, and today's (everyone)."
+                },
+                "requests": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/request"
+                    }
+                }
+            }
+        },
+        "request": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "templateId",
+                "title",
+                "version",
+                "status",
+                "failure",
+                "createdAt",
+                "readyAt",
+                "seen",
+                "parts"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "templateId": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "uploading",
+                        "queued",
+                        "rendering",
+                        "ready",
+                        "failed"
+                    ]
+                },
+                "failure": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "Why it failed: bad_clip, clip_unusable, gates_failed, render_failed, reference_gone or expired (api.md, \"Hear yourself as a choir\")."
+                },
+                "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "readyAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                },
+                "seen": {
+                    "type": "boolean",
+                    "description": "The singer has opened it since it was ready (the in-app notice shows until then)."
+                },
+                "parts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "guide.recording.json"
+                    },
+                    "description": "Each part in their own voice once ready (source ai, credit null, a private signed URL for 2 hours); [] until then."
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,40 @@
+{
+    "data": {
+        "version": 1,
+        "reviewed": false,
+        "language": "en",
+        "title": "Your voice as an AI voice: the licence",
+        "blocks": [
+            {
+                "type": "heading",
+                "level": 2,
+                "text": "The short version",
+                "items": null
+            },
+            {
+                "type": "list",
+                "level": null,
+                "text": null,
+                "items": [
+                    "**We make an AI voice from your recordings** to sing parts nobody has recorded yet.",
+                    "**It's always marked as AI,** and credited by your name only if you choose.",
+                    "**A real singer's take replaces it.**",
+                    "**You can withdraw it here at any time:** it stops singing everywhere at once, and its files are deleted.",
+                    "**You must be 18 or over.**"
+                ]
+            },
+            {
+                "type": "heading",
+                "level": 2,
+                "text": "1. What you allow",
+                "items": null
+            },
+            {
+                "type": "paragraph",
+                "level": null,
+                "text": "1.1 This is a test fixture for the mock (web/tests/fixtures/ai-voice-licence.json). The real terms are server/resources/legal/en/ai-voice-licence.md.",
+                "items": null
+            }
+        ]
+    }
+}

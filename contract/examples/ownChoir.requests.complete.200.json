@@ -1,0 +1,14 @@
+{
+    "data": {
+        "id": "Rq6Am3",
+        "templateId": "amazing-grace",
+        "title": "Amazing Grace",
+        "version": 4,
+        "status": "queued",
+        "failure": null,
+        "createdAt": "2026-11-21T10:00:00Z",
+        "readyAt": null,
+        "seen": false,
+        "parts": []
+    }
+}

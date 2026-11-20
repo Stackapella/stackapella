@@ -11,6 +11,7 @@ use App\Models\AiUpload;
 use App\Models\AiVoice;
 use App\Models\Template;
 use App\Models\TemplateGuide;
+use App\Support\AiVoices\AiLicence;
 use App\Support\Ids;
 
 /**
@@ -21,7 +22,7 @@ use App\Support\Ids;
 final class AiNeeds
 {
     /**
-     * @return array{data: array<string, mixed>, meta: array{voices: list<array{id: string, name: string, active: bool}>}}
+     * @return array{data: array<string, mixed>, meta: array{voices: list<array{id: string, name: string, active: bool, licensed: bool}>}}
      */
     public function handle(string $slug): array
     {
@@ -32,7 +33,7 @@ final class AiNeeds
             throw new Refusal(404, 'not_found');
         }
 
-        $guides = TemplateGuide::withAi()->where('template_version_id', $version->id)->get(['id', 'part_key', 'source', 'ai_voice_id', 'published_at']);
+        $guides = TemplateGuide::withAi()->where('template_version_id', $version->id)->get(['id', 'part_key', 'source', 'ai_voice_id', 'approved_at', 'published_at']);
         $pending = AiUpload::query()->where('template_version_id', $version->id)->whereIn('status', [AiUploadStatus::Uploading->value, AiUploadStatus::Processing->value])
             ->orderByDesc('id')->get()->unique('part_key')->keyBy('part_key');
         $data = (array) $version->data;
@@ -55,15 +56,25 @@ final class AiNeeds
                         'key' => (string) $part['key'],
                         'name' => (string) ($part['name'] ?? $part['key']),
                         'hasRealGuide' => $real,
-                        'aiGuide' => $ai instanceof TemplateGuide && $ai->ai_voice_id !== null ? ['id' => $ai->sqid(), 'voice' => Ids::encode($ai->ai_voice_id), 'publishedAt' => $ai->published_at->utc()->toIso8601ZuluString()] : null,
+                        'aiGuide' => $ai instanceof TemplateGuide && $ai->ai_voice_id !== null ? ['id' => $ai->sqid(), 'voice' => Ids::encode($ai->ai_voice_id), 'publishedAt' => $ai->published_at->utc()->toIso8601ZuluString(), 'review' => (string) $ai->review()] : null,
                         'pending' => $upload instanceof AiUpload ? ['upload' => $upload->sqid(), 'voice' => Ids::encode($upload->ai_voice_id), 'status' => $upload->status->value] : null,
                         'wanted' => ! $real,
                     ];
                 }, $parts),
             ],
             'meta' => [
-                'voices' => array_values(AiVoice::query()->orderBy('id')->get()->map(static fn (AiVoice $voice): array => ['id' => $voice->sqid(), 'name' => $voice->name, 'active' => $voice->isActive()])->all()),
+                'voices' => $this->voices(),
             ],
         ];
+    }
+
+    /**
+     * Every AI voice, for the worker: withdrawn ones inactive, ones waiting for their singer's yes to new terms unlicensed.
+     *
+     * @return list<array{id: string, name: string, active: bool, licensed: bool}>
+     */
+    public function voices(): array
+    {
+        return array_values(AiVoice::query()->orderBy('id')->get()->map(static fn (AiVoice $voice): array => ['id' => $voice->sqid(), 'name' => $voice->name, 'active' => $voice->isActive(), 'licensed' => AiLicence::licensed($voice)])->all());
     }
 }

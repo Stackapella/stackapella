@@ -229,7 +229,10 @@ async function stateful(operation, params, body, cases, query = {}) {
         const withheldSongs = JSON.parse(tabStorage.get('stackapella.mockWithheld') || 'null') ?? data.withheldSongs ?? [];
         // AI guide voices switched on for a flow (stackapella.mockAiVoices, this tab): the catalogue's AI guides then play.
         const aiVoices = tabStorage.get('stackapella.mockAiVoices') === '1' || !!data.aiVoices;
-        return respond(200, { data: { ...data, ideas: !scenarios().includes('ideas.list:not_found'), experiments, lendVoice, selfHosted, withheldSongs, aiVoices } });
+        // Hear yourself as a choir, on for the tab (stackapella.mockOwnChoir): its own state below.
+        const ownChoir = tabStorage.get('stackapella.mockOwnChoir') === '1' || !!data.ownChoir;
+        const ownChoirSongs = tabStorage.get('stackapella.mockOwnChoirSongs') === '1' || !!data.ownChoirSongs; // their own songs too
+        return respond(200, { data: { ...data, ideas: !scenarios().includes('ideas.list:not_found'), experiments, lendVoice, selfHosted, withheldSongs, aiVoices, ownChoir, ownChoirSongs } });
     }
     // Who's signed in, and what that allows.
     const as = tabStorage.get('stackapella.mockAs') || 'member';
@@ -322,7 +325,129 @@ async function stateful(operation, params, body, cases, query = {}) {
         if (operation === 'beta.me.show') return respond(200, await fresh('beta.me.show.200.json'));
         if (operation === 'beta.consent.create') tabStorage.set('stackapella.mockFresh', '');
     }
+    // Hear yourself as a choir (track B): its terms from a fixture, and its state kept for the tab. `stackapella.mockOwnChoir`
+    // turns it on; `stackapella.mockChoirState` `fresh` starts with no consent and no songs, else the example's. A new song
+    // goes uploading, queued on complete, then ready at the next look (as if the render ran in between).
+    if (operation === 'beta.agreement.show' && query.for === 'own_choir') {
+        const terms = await fetch('/tests/fixtures/ai-voice-licence.json').then((r) => r.json());
+        const { termsVersion } = (await example('ownChoir.show.200.json')).data; // the version the choir's state names
+        return respond(200, { data: { ...terms.data, version: termsVersion, title: 'Hear yourself as a choir: the terms' } }); // i18n-ignore: a fixture's title
+    }
+    if (operation.startsWith('ownChoir.') && !scenarios().some((s) => s.startsWith(operation + ':'))) {
+        if (tabStorage.get('stackapella.mockOwnChoir') !== '1') return respond(404, { message: 'not_found', code: 'not_found' });
+        const shown = (await example('ownChoir.show.200.json')).data;
+        const local = (p) => ({ ...p, url: `${location.origin}/tests/fixtures/guide-48000.m4a?choir=${p.id}`, sampleRate: 48000, frames: 144000, offsetFrames: 0 });
+        // Kept in the tab (a page load keeps it), saved after each change.
+        state.ownChoir ??= JSON.parse(tabStorage.get('stackapella.mockChoir') || 'null') ?? (tabStorage.get('stackapella.mockChoirState') === 'fresh'
+            ? { ...shown, consent: null, voice: null, requests: [], quota: { ...shown.quota, freeLeft: 1, plus: false } }
+            : { ...shown, requests: shown.requests.map((r) => ({ ...r, parts: r.parts.map(local) })) });
+        const choir = state.ownChoir;
+        const save = (answer) => {
+            tabStorage.set('stackapella.mockChoir', JSON.stringify(state.ownChoir));
+            return answer;
+        };
+        if (operation === 'ownChoir.show') {
+            for (const r of choir.requests) {
+                if (r.status !== 'queued') continue;
+                Object.assign(r, { status: 'ready', readyAt: now, parts: shown.requests[0].parts.map((p) => local({ ...p, id: `${p.id}-${r.id}` })) });
+                // The first song made from a clip leaves its voice kept for the next ones (the contract's `voice`).
+                choir.voice ??= { savedAt: now, lastUsedAt: now, expiresAt: now };
+            }
+            return save(respond(200, { data: choir }));
+        }
+        if (operation === 'ownChoir.consent') {
+            if (body?.version !== choir.termsVersion) return caseFor('agreement_changed');
+            choir.consent = { version: body.version, acceptedAt: now };
+            return save(respond(200, { data: choir }));
+        }
+        if (operation === 'ownChoir.voice.delete') {
+            if (!choir.voice) return caseFor('not_found');
+            choir.voice = null;
+            return save(respond(204, null));
+        }
+        if (operation === 'ownChoir.delete') {
+            state.ownChoir = { ...choir, consent: null, voice: null, requests: [] };
+            return save(respond(204, null));
+        }
+        if (operation === 'ownChoir.requests.create') {
+            if (!choir.consent) return caseFor('consent_required');
+            if (!body?.sha256 && !choir.voice) return caseFor('voice_required');
+            if (choir.requests.some((r) => ['uploading', 'queued', 'rendering'].includes(r.status))) return caseFor('request_open');
+            const listed = (await example('templates.catalogue.200.json')).data.find((song) => song.id === body.templateId);
+            const request = { id: `Rq${choir.requests.length + 7}x`, templateId: body.templateId, title: listed?.title ?? body.templateId, version: listed?.version ?? 1, status: 'uploading', failure: null, createdAt: now, readyAt: null, seen: false, parts: [] };
+            choir.requests.unshift(request);
+            globalThis.mockChoirClip = body; // what was sent, for the flows
+            // From the saved voice ({ templateId } alone): queued at once, nothing to upload.
+            if (!body?.sha256) {
+                request.status = 'queued';
+                return save(respond(201, { data: request, upload: null }));
+            }
+            return save(respond(201, { data: request, upload: { url: `${location.origin}/dev/upload/choir`, method: 'PUT', headers: { 'Content-Type': 'audio/wav' }, expiresAt: now } }));
+        }
+        const request = choir.requests.find((r) => r.id === params.id);
+        if (!request) return caseFor('not_found');
+        if (operation === 'ownChoir.requests.complete') {
+            if (request.status === 'uploading') request.status = 'queued';
+            return save(respond(200, { data: request }));
+        }
+        if (operation === 'ownChoir.requests.seen') {
+            request.seen = true;
+            return save(respond(200, { data: request }));
+        }
+        if (operation === 'ownChoir.requests.delete') {
+            choir.requests = choir.requests.filter((r) => r !== request);
+            return save(respond(204, null));
+        }
+    }
+    // The AI voice licence (phase 1b), kept for the tab: `stackapella.mockAiLicence` starts it `none` (offered, not
+    // taken) or `off` (not offered); otherwise the example's (accepted). Its terms come from a test fixture.
+    if (operation === 'beta.agreement.show' && query.for === 'ai_voice') {
+        return respond(200, await fetch('/tests/fixtures/ai-voice-licence.json').then((r) => r.json()));
+    }
+    if (operation.startsWith('beta.aiLicence.') && !scenarios().some((s) => s.startsWith(operation + ':'))) {
+        const shown = (await example('beta.aiLicence.show.200.json')).data;
+        const start = tabStorage.get('stackapella.mockAiLicence');
+        state.aiLicence ??= start === 'none' || start === 'off' ? { offered: start === 'none', version: shown.version, accepted: null, withdrawnAt: null, voice: null } : shown;
+        const licence = state.aiLicence;
+        if (operation === 'beta.aiLicence.accept') {
+            if (!licence.offered) return caseFor('not_offered');
+            if (body?.version !== licence.version) return caseFor('agreement_changed');
+            state.aiLicence = { ...licence, accepted: { version: body.version, acceptedAt: now, credited: !!body.credited }, withdrawnAt: null, voice: licence.voice ?? shown.voice };
+        } else if (operation === 'beta.aiLicence.update') {
+            if (!licence.accepted) return caseFor('not_accepted');
+            state.aiLicence = { ...licence, accepted: { ...licence.accepted, credited: !!body?.credited } };
+        } else if (operation === 'beta.aiLicence.withdraw') {
+            if (!licence.accepted) return caseFor('not_accepted');
+            state.aiLicence = { ...licence, accepted: null, withdrawnAt: now, voice: null };
+            return respond(200, { data: state.aiLicence, meta: { retired: licence.voice?.guides?.length ?? 0 } });
+        }
+        return respond(200, { data: state.aiLicence });
+    }
     if (operation === 'voices.join' && !scenarios().some((s) => s.startsWith('voices.join:'))) tabStorage.set('stackapella.mockVolunteer', '1');
+    // The AI review (phase 1c): the example's parts, their decisions kept for the tab's state, filtered by ?status=.
+    if (operation.startsWith('admin.aiGuides.') && !scenarios().some((s) => s.startsWith(operation + ':'))) {
+        // Their audio is on a CDN the mock can't reach: the local 3-second fixture, as the catalogue's real voices are.
+        state.aiReview ??= (await example('admin.aiGuides.list.200.json')).data.map((song) => ({ ...song, parts: song.parts.map((p) => (p.recording ? { ...p, recording: { ...p.recording, url: `${location.origin}/tests/fixtures/guide-48000.m4a?ai=${p.id}`, sampleRate: 48000, frames: 144000, offsetFrames: 0 } } : p)) }));
+        const songs = state.aiReview;
+        const all = songs.flatMap((song) => song.parts.map((part) => ({ song, part })));
+        if (operation === 'admin.aiGuides.list') {
+            const wanted = query.status || 'pending';
+            const counts = { pending: 0, approved: 0, rejected: 0 };
+            all.forEach(({ part }) => counts[part.status]++);
+            const data = songs.map((song) => ({ ...song, parts: song.parts.filter((p) => p.status === wanted) })).filter((song) => song.parts.length);
+            return respond(200, { data, meta: { counts } });
+        }
+        const chosen = all.filter(({ part }) => (body?.ids ?? []).includes(part.id));
+        if (operation === 'admin.aiGuides.reject') {
+            if (!body?.note?.trim()) return respond(422, { message: 'The note field is required.', code: 'validation_failed', errors: { note: ['The note field is required.'] } }); // i18n-ignore: the server's words
+            const changed = chosen.filter(({ part }) => part.status !== 'rejected');
+            changed.forEach(({ part }) => Object.assign(part, { status: 'rejected', note: body.note, recording: null, reviewedAt: now, reviewedBy: { id: ME.id, name: ME.name } }));
+            return respond(200, { data: { rejected: changed.length } });
+        }
+        const changed = chosen.filter(({ part }) => part.status === 'pending');
+        changed.forEach(({ part }) => Object.assign(part, { status: 'approved', reviewedAt: now, reviewedBy: { id: ME.id, name: ME.name } }));
+        return respond(200, { data: { approved: changed.length } });
+    }
     // Admin's AI voices: a withdrawn voice stays withdrawn for the tab's kept state, its guides gone, as on the server.
     if (operation === 'admin.aiVoices.list' && !scenarios().some((s) => s.startsWith(operation + ':'))) {
         const { data } = await example('admin.aiVoices.list.200.json');

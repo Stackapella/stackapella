@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\Worker\AiCatalogueController;
 use App\Http\Controllers\Api\Worker\AiNeedsController;
 use App\Http\Controllers\Api\Worker\AiUploadsController;
 use Illuminate\Support\Facades\Route;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/needs', AiNeedsController::class)->name('needs');
+Route::get('/catalogue', AiCatalogueController::class)->name('catalogue');
 Route::post('/uploads', [AiUploadsController::class, 'store'])->name('uploads.create');
 Route::post('/uploads/{upload}/complete', [AiUploadsController::class, 'complete'])->name('uploads.complete');
 Route::get('/uploads/{upload}', [AiUploadsController::class, 'show'])->name('uploads.show');

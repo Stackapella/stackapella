@@ -30,14 +30,14 @@ def journey(f):
     f.wait(CARD + ".hasAttribute('data-playing')", timeout=40, what="the card playing")
     assert not f.js(CARD + ".hasAttribute('data-loading')"), "still loading while it plays"
     f.wait(CARD + ".querySelector('[data-part-key][data-sounding]') !== null", timeout=10, what="a part row lit")
-    f.wait("Number(getComputedStyle(" + CARD + ").getPropertyValue('--p')) > 0", timeout=10, what="the progress ring moving")
+    f.wait("Number(getComputedStyle(" + CARD + ".querySelector('[data-play]')).getPropertyValue('--p')) > 0", timeout=10, what="the progress ring moving")
     f.shot("card-playing")
     if f.size == "desktop":
         # Past its opening line it still plays: the rest has joined.
         line = song["beats"] * 60 / song["tempo"]
         time.sleep(line + 3)
         assert f.js(CARD + ".hasAttribute('data-playing')"), f"it stopped at the end of its opening line ({line:.1f} s)"
-        progress = float(f.js("getComputedStyle(" + CARD + ").getPropertyValue('--p')") or 0)
+        progress = float(f.js("getComputedStyle(" + CARD + ".querySelector('[data-play]')).getPropertyValue('--p')") or 0)
         whole = song["songBeats"] * 60 / song["tempo"]
         assert progress < 1 and progress > (line - 1) / whole, f"the progress isn't the whole song's: {progress}"
     # Stop.

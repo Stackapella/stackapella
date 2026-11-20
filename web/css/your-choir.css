@@ -1,0 +1,792 @@
+/* Hear yourself as a choir (/your-choir; server/resources/views/site/your-choir.blade.php). Hillel, 2026-11-20: "really
+   impressive, as immersive as our home page: something immersive to experience one real voice becoming 2 fake ones".
+   The page's own sheet, written by hand (no Tailwind, nothing from site.css), every class .yc-*, in the home page's
+   dress (css/landing.css: its tokens, its top line, its lanes and gems, its dock, its footer) so the two read as one
+   site. Calm only, light and dark; a game-mode visitor sees this calm page. The top line's Game mode switch and
+   Language and appearance are the site's own (css/game-toggle.css).
+   js/public/your-choir.js sets on .yc: data-view (hero, real, split, four, yours: the scene the scroll shows),
+   data-tail (past the stage), data-top ("small" on the way down), data-playing, data-loading, data-failed, data-played
+   and data-load (the percent) with --yc-load (0 to 1) while the voices come; on each lane's track and each floor's
+   band --yc-b (where its song is, in its own beats: the player's while it plays, a still pose for the view while it
+   doesn't), and on the rail --yc-p (how far through the play, 0 to 1); on a lane data-live while its voice sounds, data-wait while it is
+   silent in a play, data-in as it joins; on a gem (the app's glass, .gem-note, copied below) data-ring while its note
+   sounds and data-state="settled" once it has, and its words' place (data-fit, --gem-word-px).
+   Two layouts for the stage: pinned (motion allowed and scripts on: it sticks, a scene a screen of scroll) and still
+   (reduced motion or no script: nothing pinned, the scenes panels in order, the lanes one picture). Still is the base. */
+@font-face { font-family: Figtree; font-style: normal; font-weight: 300 900; font-display: swap; src: url('/fonts/figtree-latin.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: Figtree; font-style: normal; font-weight: 300 900; font-display: swap; src: url('/fonts/figtree-latin-ext.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+/* Where a lane's (or a floor's) notes are, in its song's beats, and how far through the play the rail is: each set on the
+   one element it moves, never inherited, so a frame of the song restyles those few elements and nothing else (an
+   inherited value on the page's root restyled and laid out the whole page every frame: 93% of the main thread while
+   it played, 2026-11-20). */
+@property --yc-b { syntax: '<number>'; inherits: false; initial-value: 0; }
+@property --yc-p { syntax: '<number>'; inherits: false; initial-value: 0; }
+
+/* The home page's colours (css/landing.css), so the two pages are one site. */
+:root {
+    --c1: #ff9139; --c2: #ffea6b; --c3: #45eca4; --c4: #968dfd;
+    --ink: #f8f1e7; --mute: #b9ad9e; --ground: #050403; --em: #e8b479; --gi: #1b1206; --rec: #ff6b5e;
+    --panel: rgb(255 255 255 / .06); --edge: rgb(255 255 255 / .15); --btn: #f8f1e7; --btn-ink: #15100b;
+    color-scheme: dark; background: var(--ground);
+}
+:root[data-theme$="-light"] {
+    --c1: #a14301; --c2: #7a5a00; --c3: #00704f; --c4: #5b46c4;
+    --ink: #1d1712; --mute: #65584b; --ground: #f5eee1; --em: #82520f; --gi: #fffaf2; --rec: #b3261e;
+    --panel: rgb(255 255 255 / .6); --edge: rgb(60 40 10 / .16); --btn: #1d1712; --btn-ink: #fbf6ec;
+    color-scheme: light;
+}
+*, *::before, *::after { box-sizing: border-box; }
+/* The app's glass: css/glass.css's gem numbers, the bubble and the note gem, copied here so the page keeps one sheet. */
+/* glass:start (tool/glass_copy.py writes this from css/glass.css; never edit it here) */
+/* gem-spec:start */
+:root {
+    --gem-radius: 0.38;
+    --gem-body-top: 0.42;
+    --gem-body-flat-from: 0.3;
+    --gem-body-flat-to: 0.7;
+    --gem-body-bottom: 0.32;
+    --gem-edge-width: 1.5;
+    --gem-edge-dark: 0.45;
+    --gem-edge-light: 0.5;
+    --gem-gloss-x0: 0.12;
+    --gem-gloss-x1: 0.78;
+    --gem-gloss-y0: 0.07;
+    --gem-gloss-y1: 0.29;
+    --gem-gloss-dark: 0.7;
+    --gem-gloss-light: 0.85;
+    --gem-foot-width: 1;
+    --gem-foot-at: 0.11;
+    --gem-foot-white: 0.5;
+    --gem-foot-alpha: 0.75;
+    --gem-drop-a-dy: 3;
+    --gem-drop-a-spread: -1;
+    --gem-drop-a-dark: 0.32;
+    --gem-drop-a-light: 0.14;
+    --gem-drop-b-dy: 4;
+    --gem-drop-b-spread: 1;
+    --gem-drop-b-dark: 0.18;
+    --gem-drop-b-light: 0.07;
+    --gem-glow-dark-blur: 14;
+    --gem-glow-dark-alpha: 0.6;
+    --gem-glow-light-blur: 10;
+    --gem-glow-light-alpha: 0.4;
+    --gem-level-next: 0.3;
+    --gem-level-now: 0.8;
+    --gem-level-hit: 1;
+    --gem-ring-knockout: 3;
+    --gem-ring-width: 2;
+    --gem-ring-keyline: 1;
+    --gem-ink-dark: #17110a;
+    --gem-ink-light: #ffffff;
+    --gem-ghost-fill: 0.07;
+    --gem-ghost-edge: 1.5;
+    --gem-ghost-edge-alpha: 0.55;
+    --gem-ghost-height: 0.7;
+    --gem-settled-body: 0.4;
+    --gem-settled-edge: 0.65;
+    --gem-settled-gloss: 0.3;
+    --gem-settled-drop-a: 0.5;
+    --gem-hit-pop: 1.05;
+    --gem-hit-pop-ms: 250;
+    --gem-hit-flash-ms: 500;
+    --gem-hit-tick-width: 2;
+    --gem-hit-tick-max: 15;
+    --gem-hit-tick-of-h: 0.42;
+    --gem-hit-tick-end: 6;
+    --gem-words-weight: 750;
+    --gem-words-of-h: 0.44;
+    --gem-words-min: 11;
+    --gem-words-max: 20;
+    --gem-words-tracking: 0.005;
+    --gem-words-inset: 6;
+    --gem-words-inset-of-r: 0.5;
+    --gem-words-step: 12;
+    --gem-words-min-gem: 18;
+    --gem-words-above-size: 12;
+    --gem-words-above-weight: 700;
+    --gem-words-above-gap: 4;
+    --gem-words-above-clear: 6;
+    --gem-motion-next-s: 0.45;
+    --gem-motion-onset-ms: 90;
+    --gem-motion-release-ms: 160;
+    --gem-motion-settle-ms: 240;
+    --gem-motion-join-ms: 900;
+    --gem-motion-join-fade-ms: 300;
+    --gem-motion-join-deg: 100;
+    --gem-lane-tint: 0.14;
+}
+/* gem-spec:end */
+
+/* Bubbles (Hillel, 2026-11-08: "i really like the bubble effect for HC by my name ... circles in the app we'll add a
+   bubble effect to"; "this is for serious mode, game mode can have its own thing"; docs/bubble-circles-plan.md). The
+   gem's glass for serious mode's circles that stand for a thing: path nodes, done days, people, play discs. The light
+   sits above the icon and the body colour is flat across the middle, so the icon keeps the flat fill's contrast.
+   Set --bubble (the colour) and --bubble-ink (the icon). Never a Tailwind ring-* or an inline box-shadow on a bubble:
+   rings are outlines or --bubble-ring. */
+.bubble {
+    --bubble: var(--color-accent);
+    --bubble-ink: var(--color-accent-ink);
+    --bubble-hi: 0.75; /* the body's share in the light at the top (1 = no light) */
+    --bubble-spec: 0.75; /* the crescent's strength */
+    --bubble-glow: 0.35; /* the coloured glow under it */
+    --bubble-rim: 1.5px;
+    --bubble-drop: 0 2px 3px rgb(0 0 0 / 0.3);
+    --bubble-glow-shape: 0 4px 10px -4px;
+    --bubble-ring: 0 0 0 0 transparent; /* the halo (.bubble-now) */
+    isolation: isolate;
+    border-radius: 999px;
+    color: var(--bubble-ink);
+    background: radial-gradient(120% 90% at 35% 6%,
+        color-mix(in oklab, var(--bubble) calc(var(--bubble-hi) * 100%), white) 0%,
+        var(--bubble) 16%,
+        var(--bubble) 86%,
+        color-mix(in oklab, var(--bubble) 72%, black) 100%);
+    border: var(--bubble-rim) solid color-mix(in oklab, var(--bubble) 60%, black);
+    box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.55),
+        inset 0 -1px 0 color-mix(in oklab, var(--bubble) 70%, white),
+        var(--bubble-glow-shape) color-mix(in oklab, var(--bubble) calc(var(--bubble-glow) * 100%), transparent),
+        var(--bubble-drop),
+        var(--bubble-ring);
+}
+@layer components {
+    .bubble { position: relative; } /* as .gem: an `absolute` utility still wins */
+}
+/* The crescent: above the icon box (its tilted end reaches about 26% down; the icon box starts at 28 to 32%). The light
+   and the crescent end above the box because the part colours carry their icons at about 4.6:1 flat: any light under
+   an icon takes it under 4.5 (tests/flows/bubble_contrast.py measures the real pixels). */
+.bubble::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    left: 27%;
+    top: 5%;
+    width: 42%;
+    height: 17%;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgb(255 255 255 / var(--bubble-spec)), rgb(255 255 255 / 0));
+    transform: rotate(-10deg);
+    pointer-events: none;
+}
+:root[data-theme$="-light"] .bubble {
+    --bubble-glow: 0.18;
+    --bubble-drop: 0 1px 3px rgb(0 0 0 / 0.22);
+}
+/* A filled bubble's rim is deeper in a light theme; a clear one keeps its own edge (and a challenge its cream). */
+:root[data-theme$="-light"] .bubble:not(.bubble-clear) { border-color: color-mix(in oklab, var(--bubble) 50%, black); }
+/* Upcoming: a clear pearl. No glow, a quieter crescent, the checkbox edge (3:1 on the panel) for its rim. */
+.bubble-clear {
+    --bubble: var(--color-raised);
+    --bubble-ink: var(--color-muted);
+    --bubble-glow: 0;
+    --bubble-spec: 0.5;
+}
+.bubble.bubble-clear { border-color: var(--box-edge); }
+/* A challenge not yet done: cream ink and a 2 px cream rim, as its plain ring was. */
+.bubble-challenge { --bubble-ink: var(--color-cream); }
+.bubble.bubble-challenge { border: 2px solid var(--color-cream); }
+/* The play and record discs (docs/bubble-circles-plan.md, step 5): Play in the primary, Record in its red (a white dot),
+   and while recording the Stop disc red with its red halo, so recording is never mistaken for anything else. A large
+   Play keeps its ring of the raised colour around it (it was ring-8). */
+.bubble-primary { --bubble: var(--primary); --bubble-ink: var(--primary-ink); }
+/* In a dark theme the primary is cream, and its glow spread a white haze under Sing's transport: a softer one there. */
+:root:not([data-theme$="-light"]) .bubble-primary { --bubble-glow: 0.14; }
+.bubble-record { --bubble: var(--color-record); --bubble-ink: var(--color-record-label); }
+.bubble-ringed { --bubble-ring: 0 0 0 8px color-mix(in srgb, var(--color-raised) 70%, transparent); }
+/* The one now: its halo, in its own colour. */
+.bubble-now { --bubble-ring: 0 0 0 var(--bubble-halo, 6px) color-mix(in srgb, var(--bubble) 24%, transparent); }
+/* Sizes: small (24 to 32 px), medium (the default, 36 to 48), large (56 to 80). */
+.bubble-sm { --bubble-rim: 1px; --bubble-drop: 0 1px 2px rgb(0 0 0 / 0.28); --bubble-glow: 0; --bubble-spec: 0.65; --bubble-halo: 4px; }
+.bubble-lg { --bubble-rim: 2px; --bubble-drop: 0 3px 6px rgb(0 0 0 / 0.32); --bubble-glow-shape: 0 8px 18px -6px; --bubble-glow: 0.45; --bubble-spec: 0.8; }
+:root[data-theme$="-light"] .bubble-sm { --bubble-drop: 0 1px 2px rgb(0 0 0 / 0.2); }
+:root[data-theme$="-light"] .bubble-lg { --bubble-drop: 0 3px 6px rgb(0 0 0 / 0.22); --bubble-glow: 0.22; }
+.bubble-clear.bubble-lg, .bubble-clear.bubble-sm { --bubble-glow: 0; }
+/* Pressed, hovered, focused: the light above the icon and the glow change, never the body under it. */
+:is(button, a).bubble { cursor: pointer; transition: box-shadow 150ms ease, transform 100ms ease; }
+:is(button, a).bubble:hover { --bubble-hi: 0.65; --bubble-glow: 0.45; }
+:root[data-theme$="-light"] :is(button, a).bubble:hover { --bubble-glow: 0.28; }
+:is(button, a).bubble:active:not(:disabled) { transform: translateY(1px); --bubble-drop: 0 1px 1px rgb(0 0 0 / 0.3); }
+:is(button, a).bubble:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+.bubble-now:focus-visible { outline-offset: calc(var(--bubble-halo, 6px) + 2px); } /* outside the halo */
+.bubble:disabled, .bubble[aria-disabled="true"] { --bubble-glow: 0; --bubble-spec: 0.35; opacity: 0.55; cursor: not-allowed; }
+@media (prefers-reduced-motion: reduce) {
+    :is(button, a).bubble { transition: none; }
+    :is(button, a).bubble:active:not(:disabled) { transform: none; }
+}
+@media (prefers-contrast: more) {
+    .bubble { --bubble-hi: 1; --bubble-spec: 0.35; }
+    .bubble.bubble-clear { border-color: var(--color-cream); }
+}
+
+/* The note gem in the DOM (docs/glass-spec.md 0, 1): js/glass.js's gemBar in CSS, the same numbers, so a gem on a page
+   without a canvas (the home page) is the app's. Set --gem-c (the colour), --gem-h (its height, unitless px; or
+   --gem-hl, a length, where the height is a clamp of the page's) and --gem-surf (the colour under it); data-state "settled" or "ghost", data-ring for the note being sung, --gem-g its
+   glow level. tests/flows/glass_parity.py compares it with the canvas pixel for pixel in every theme. */
+.gem-note {
+    --gem-c: var(--color-part-1);
+    --gem-h: 34;
+    --gem-hl: calc(var(--gem-h) * 1px);
+    --gem-g: 0;
+    --gem-surf: var(--color-ink);
+    --gem-ring: var(--color-cream);
+    --gem-edge: var(--gem-edge-dark);
+    --gem-gloss: var(--gem-gloss-dark);
+    --gem-drop-a: var(--gem-drop-a-dark);
+    --gem-drop-b: var(--gem-drop-b-dark);
+    --gem-glow-blur: var(--gem-glow-dark-blur);
+    --gem-glow-alpha: var(--gem-glow-dark-alpha);
+    --gem-base: var(--gem-c);
+    --gem-rim: color-mix(in srgb, var(--gem-c), black calc(var(--gem-edge) * 100%));
+    --gem-glow: 0 0 calc(var(--gem-glow-blur) * 1px) color-mix(in srgb, var(--gem-c) calc(var(--gem-glow-alpha) * var(--gem-g) * 100%), transparent);
+    --gem-drops: 0 calc(var(--gem-drop-b-dy) * 1px) 0 calc(var(--gem-drop-b-spread) * 1px) rgb(0 0 0 / var(--gem-drop-b)),
+        0 calc(var(--gem-drop-a-dy) * 1px) 0 calc(var(--gem-drop-a-spread) * 1px) rgb(0 0 0 / var(--gem-drop-a));
+    --gem-ringed: 0 0 0 0 transparent, 0 0 0 0 transparent, 0 0 0 0 transparent; /* as many as the ring's, so it eases in layer by layer */
+    position: relative;
+    isolation: isolate;
+    box-sizing: border-box;
+    height: var(--gem-hl);
+    border-radius: calc(var(--gem-hl) * var(--gem-radius));
+    border: calc(var(--gem-edge-width) * 1px) solid var(--gem-rim);
+    background: linear-gradient(180deg,
+        color-mix(in srgb, var(--gem-base), white calc(var(--gem-body-top) * 100%)) 0%,
+        var(--gem-base) calc(var(--gem-body-flat-from) * 100%),
+        var(--gem-base) calc(var(--gem-body-flat-to) * 100%),
+        color-mix(in srgb, var(--gem-base), black calc(var(--gem-body-bottom) * 100%)) 100%) border-box;
+    box-shadow: var(--gem-ringed), var(--gem-glow), var(--gem-drops);
+}
+:root[data-theme$="-light"] .gem-note {
+    --gem-edge: var(--gem-edge-light);
+    --gem-gloss: var(--gem-gloss-light);
+    --gem-drop-a: var(--gem-drop-a-light);
+    --gem-drop-b: var(--gem-drop-b-light);
+    --gem-glow-blur: var(--gem-glow-light-blur);
+    --gem-glow-alpha: var(--gem-glow-light-alpha);
+}
+/* The gloss pill (positions inside the edge, so less its width) and the foot line, on whole pixels from the top as the
+   canvas draws them. */
+.gem-note::before, .gem-note::after { content: ""; position: absolute; pointer-events: none; }
+.gem-note::before {
+    left: calc(max(1px, var(--gem-hl) * var(--gem-gloss-x0)) - var(--gem-edge-width) * 1px);
+    right: calc((1 - var(--gem-gloss-x1)) * 100% + (1 - var(--gem-gloss-x1)) * var(--gem-edge-width) * 2px - var(--gem-edge-width) * 1px);
+    top: calc(round(var(--gem-hl) * var(--gem-gloss-y0), 1px) - var(--gem-edge-width) * 1px);
+    height: round(var(--gem-hl) * (var(--gem-gloss-y1) - var(--gem-gloss-y0)), 1px);
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgb(255 255 255 / var(--gem-gloss)), rgb(255 255 255 / 0));
+}
+.gem-note::after {
+    left: calc(var(--gem-hl) * var(--gem-radius) - var(--gem-edge-width) * 1px);
+    right: calc(var(--gem-hl) * var(--gem-radius) - var(--gem-edge-width) * 1px);
+    top: calc(round(var(--gem-hl) * (1 - var(--gem-foot-at)) - var(--gem-foot-width) * 0.5px, 1px) - var(--gem-edge-width) * 1px);
+    height: calc(var(--gem-foot-width) * 1px);
+    background: color-mix(in srgb, color-mix(in srgb, var(--gem-c), white calc(var(--gem-foot-white) * 100%)) calc(var(--gem-foot-alpha) * 100%), transparent);
+}
+/* Settled: the colour at 40% over the ground under it, its edge at 65%, a quiet gloss, no foot line, half drop A. */
+.gem-note[data-state="settled"] {
+    --gem-base: color-mix(in srgb, var(--gem-c) calc(var(--gem-settled-body) * 100%), var(--gem-surf));
+    --gem-rim: color-mix(in srgb, var(--gem-c) calc(var(--gem-settled-edge) * 100%), var(--gem-surf));
+    --gem-gloss: var(--gem-settled-gloss);
+    --gem-drops: 0 calc(var(--gem-drop-a-dy) * 1px) 0 calc(var(--gem-drop-a-spread) * 1px) rgb(0 0 0 / calc(var(--gem-drop-a) * var(--gem-settled-drop-a)));
+}
+.gem-note[data-state="settled"]::after { display: none; }
+/* Ghost (another part) and waiting (a voice not joined): an outline, nothing else. */
+.gem-note[data-state="ghost"] {
+    background: color-mix(in srgb, var(--gem-c) calc(var(--gem-ghost-fill) * 100%), transparent);
+    border: calc(var(--gem-ghost-edge) * 1px) dashed color-mix(in srgb, var(--gem-c) calc(var(--gem-ghost-edge-alpha) * 100%), transparent);
+    box-shadow: none;
+}
+.gem-note[data-state="ghost"]::before, .gem-note[data-state="ghost"]::after { display: none; }
+/* The ring round the note being sung: a knockout and a keyline in the ground under it, the theme's text colour between
+   (game mode: the arcade's yellow, and no soft glow). */
+.gem-note[data-ring] {
+    --gem-ringed: 0 0 0 calc(var(--gem-ring-knockout) * 1px) var(--gem-surf),
+        0 0 0 calc((var(--gem-ring-knockout) + var(--gem-ring-width)) * 1px) var(--gem-ring),
+        0 0 0 calc((var(--gem-ring-knockout) + var(--gem-ring-width) + var(--gem-ring-keyline)) * 1px) var(--gem-surf);
+}
+:root[data-skin="game"] .gem-note { --gem-ring: var(--arc-yellow, #ffd84a); --gem-glow: 0 0 0 0 transparent; }
+/* Motion (docs/glass-spec.md 4): a note settles over the settle time, its colour easing to the settled shade; the ring
+   comes in over the onset time and goes over the release time (a transition takes the time of the state it goes to).
+   A page that moves --gem-g itself (the next note's ramp) does so a frame at a time. */
+@property --gem-base { syntax: '<color>'; inherits: false; initial-value: transparent; }
+@property --gem-rim { syntax: '<color>'; inherits: false; initial-value: transparent; }
+.gem-note {
+    transition: --gem-base calc(var(--gem-motion-settle-ms) * 1ms) cubic-bezier(.16, 1, .3, 1),
+        --gem-rim calc(var(--gem-motion-settle-ms) * 1ms) cubic-bezier(.16, 1, .3, 1),
+        box-shadow calc(var(--gem-motion-release-ms) * 1ms) ease-out;
+}
+.gem-note[data-ring] { transition-duration: calc(var(--gem-motion-settle-ms) * 1ms), calc(var(--gem-motion-settle-ms) * 1ms), calc(var(--gem-motion-onset-ms) * 1ms); }
+@media (prefers-reduced-motion: reduce) { .gem-note { transition: none; } }
+/* The words (docs/glass-spec.md 2): a .gem-word inside the gem, placed by js/glass.js's gemFit, which the page runs and
+   writes as data-fit ("in", "above" or "none") and --gem-word-px (the size it chose) on the gem. "in": from the start
+   inset, in the gem's ink (--gem-ink, by contrast; a Settled gem's in the page's text, --gem-text); "above": small, over
+   the gem and clear of a ring, in --gem-text; "none": not shown. Never clipped. Before a fit, nothing shows. */
+.gem-note { --gem-ink: var(--gem-ink-dark); --gem-text: var(--color-cream); --gem-word-px: 12; }
+.gem-word {
+    position: absolute;
+    left: calc(max(var(--gem-words-inset) * 1px, var(--gem-hl) * var(--gem-radius) * var(--gem-words-inset-of-r)) - var(--gem-edge-width) * 1px);
+    top: 50%;
+    translate: 0 -50%;
+    visibility: hidden;
+    white-space: nowrap;
+    pointer-events: none;
+    font: var(--gem-words-weight) calc(var(--gem-word-px) * 1px) / 1 Figtree, system-ui, sans-serif;
+    letter-spacing: calc(var(--gem-words-tracking) * var(--gem-word-px) * 1px);
+    color: var(--gem-ink);
+}
+.gem-note[data-fit="in"] > .gem-word { visibility: visible; }
+.gem-note[data-state="settled"] > .gem-word { color: var(--gem-text); }
+.gem-note[data-fit="above"] > .gem-word {
+    visibility: visible;
+    left: calc(var(--gem-edge-width) * -1px);
+    top: auto;
+    bottom: calc(100% + (var(--gem-ring-knockout) + var(--gem-ring-width) + var(--gem-ring-keyline) + var(--gem-words-above-gap)) * 1px - var(--gem-edge-width) * 1px);
+    translate: none;
+    font: var(--gem-words-above-weight) calc(var(--gem-words-above-size) * 1px) / 1 Figtree, system-ui, sans-serif;
+    letter-spacing: 0;
+    color: var(--gem-text);
+}
+
+/* A voice joining: one band of its colour crosses its lane (the studio, the first take of a part; the home page, each
+   voice coming in). Set --gem-c on it; it sits over the lane, absolutely, and is gone when it ends. */
+.gem-join {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    overflow: hidden;
+    pointer-events: none;
+    --gem-join-band: color-mix(in srgb, color-mix(in srgb, var(--gem-c), white 45%) 55%, transparent);
+}
+:root[data-theme$="-light"] .gem-join { --gem-join-band: color-mix(in srgb, var(--gem-c) 30%, transparent); }
+.gem-join::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 30%, var(--gem-join-band) 50%, transparent 70%);
+    animation: gem-join calc(var(--gem-motion-join-ms) * 1ms) cubic-bezier(.16, 1, .3, 1) both;
+}
+@keyframes gem-join { from { translate: -100% 0; } to { translate: 100% 0; } }
+@media (prefers-reduced-motion: reduce) { .gem-join { display: none; } }
+/* glass:end */
+
+body { margin: 0; background: var(--ground); }
+.yc {
+    --pad: max(20px, calc((100vw - 1240px) / 2 + 20px));
+    --top: 72px; --bar: 88px; --split: 46svh; --ppb: 84px; --ph: calc(var(--pad) + 330px); --tilt: 7deg;
+    --ease: cubic-bezier(.16, 1, .3, 1);
+    position: relative; isolation: isolate; background: var(--ground); color: var(--ink);
+    font: 400 17px/1.5 Figtree, system-ui, sans-serif; -webkit-font-smoothing: antialiased; overflow-x: clip;
+}
+:where(.yc) a { color: inherit; text-decoration: none; }
+:where(.yc) button { font: inherit; color: inherit; }
+.yc svg { display: block; flex: none; }
+.yc :focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 6px; }
+.yc:is(:not([data-played]), [data-loading], [data-failed]) .yc-disc:focus-visible { outline-offset: 9px; border-radius: 50%; }
+.yc-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.yc-skip { position: fixed; z-index: 60; left: 12px; top: -80px; padding: 12px 18px; border-radius: 12px; background: var(--btn); color: var(--btn-ink) !important; font: 800 16px/1.2 Figtree, system-ui, sans-serif; text-decoration: none; }
+.yc-skip:focus { top: 12px; }
+.yc-v1 { --c: var(--c1); } .yc-v2 { --c: var(--c2); } .yc-v3 { --c: var(--c3); } .yc-v4 { --c: var(--c4); }
+
+/* The top line: slim and see-through over the stage; smaller on the way down, back on the way up. */
+.yc-top { position: fixed; z-index: 40; inset: var(--yc-note, 0px) 0 auto 0; height: var(--top); padding: 0 var(--pad); display: flex; align-items: center; gap: 10px 22px; font-size: 15px; font-weight: 600; background: linear-gradient(color-mix(in srgb, var(--ground) 82%, transparent), transparent); transition: height .35s var(--ease), font-size .35s var(--ease), background-color .35s; }
+.yc-logo { display: inline-flex; align-items: center; gap: 10px; margin-inline-end: auto; font-size: 18px; font-weight: 800; letter-spacing: -.01em; min-height: 44px; }
+.yc-logo svg { border-radius: 7px; transition: scale .35s var(--ease); }
+.yc-logo.s-brand { position: relative; } .yc-logo > .s-hat[hidden] { display: none; }
+.yc-logo > .s-hat { position: absolute; left: -8px; top: calc(50% - 24px); width: 34px; height: 36px; border-radius: 0; pointer-events: none; filter: drop-shadow(0 1px 1px rgb(0 0 0 / .3)); }
+.yc-nav { display: flex; gap: 4px; }
+.yc-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 99px; color: color-mix(in srgb, var(--ink) 78%, transparent); }
+.yc-nav a:hover { color: var(--ink); background: var(--panel); }
+.yc .yc-look { --lk-ink: var(--ink); --lk-mute: var(--mute); --lk-btn: var(--panel); --lk-btn-line: var(--edge); --lk-panel: color-mix(in srgb, var(--ground) 92%, var(--ink)); --lk-raised: var(--panel); --lk-line: var(--edge); --lk-em: var(--em); --lk-gutter: var(--pad); }
+.yc-look .s-look-panel { box-shadow: 0 20px 50px -20px rgb(0 0 0 / .6); }
+.yc-open { display: inline-flex; align-items: center; height: 44px; padding: 0 18px; border-radius: 99px; background: var(--panel); border: 1px solid var(--edge); font-weight: 700; white-space: nowrap; }
+.yc[data-top="small"] .yc-top:not(:focus-within) { --top: 52px; font-size: 13.5px; }
+.yc[data-top="small"] .yc-top:not(:focus-within) .yc-logo span { opacity: 0; width: 0; overflow: hidden; }
+.yc[data-top="small"] .yc-top:not(:focus-within) .yc-logo svg { scale: .85; }
+.yc[data-top="small"] .yc-top:not(:focus-within) :is(.s-look-btn, .yc-open) { height: 36px; min-width: 36px; }
+.yc[data-top="small"] .yc-top:not(:focus-within) .yc-look:not(.s-look--lang) > .s-look-btn { width: 36px; }
+.yc[data-top="small"] .yc-top:not(:focus-within) .yc-nav a { min-height: 36px; padding: 0 9px; }
+.yc[data-tail] .yc-top { background: color-mix(in srgb, var(--ground) 86%, transparent); }
+.yc-notes { position: relative; z-index: 41; background: color-mix(in srgb, var(--em) 24%, var(--ground)); color: var(--ink); font: 600 14.5px/1.4 Figtree, system-ui, sans-serif; text-align: center; }
+.yc-note-bar { margin: 0; padding: 10px 20px; } .yc-notes a { color: inherit; }
+:root:not([data-skin="game"]) .s-skin-g { display: none !important; }
+
+/* The ground: light in the four voices' colours (plain gradients, never a blurred layer), and a vignette. Each view
+   moves it a little, as the home page's scenes do. */
+.yc-bg { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: -1; }
+.yc-bg i { position: absolute; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--c) 36%, transparent), transparent); transition: translate 1.4s var(--ease), opacity 1.4s; }
+.yc-bg i:nth-child(1) { --c: var(--em); width: 70vw; height: 70svh; left: -22vw; top: -34svh; opacity: .55; }
+.yc-bg i:nth-child(2) { --c: var(--c1); width: 90vw; height: 80svh; left: -30vw; top: 22svh; }
+.yc-bg i:nth-child(3) { --c: var(--c2); width: 70vw; height: 60svh; left: 22vw; top: 40svh; opacity: 0; }
+.yc-bg i:nth-child(4) { --c: var(--c3); width: 80vw; height: 70svh; right: -30vw; top: 44svh; opacity: 0; }
+.yc-bg i:nth-child(5) { --c: var(--c4); width: 110vw; height: 70svh; left: -5vw; top: 66svh; opacity: 0; }
+.yc-bg::after { content: ""; position: absolute; inset: 0; background: radial-gradient(120% 90% at 50% 38%, transparent 42%, color-mix(in srgb, var(--ground) 90%, transparent) 100%); }
+/* One voice's light, then two, then the four as the choir fills out. */
+.yc:is([data-view="split"], [data-view="four"], [data-view="yours"]) .yc-bg i:nth-child(3) { opacity: .6; }
+.yc:is([data-view="four"], [data-view="yours"]) .yc-bg i:nth-child(4) { opacity: .75; }
+.yc:is([data-view="four"], [data-view="yours"]) .yc-bg i:nth-child(5) { opacity: 1; }
+.yc[data-view="split"] .yc-bg i:nth-child(2) { translate: 10vw -6svh; }
+:root[data-theme$="-light"] .yc-bg i { filter: opacity(.55); }
+
+/* Words. */
+.yc-h1, .yc-h2 { margin: 0; font-weight: 800; letter-spacing: -.045em; line-height: .93; text-wrap: balance; }
+.yc-h1 { font-size: clamp(50px, 7.7vw, 112px); } .yc-h1 span, .yc-h1 em { display: block; }
+.yc-h2 { font-size: clamp(36px, 5.2vw, 80px); line-height: .98; }
+.yc-h1 em, .yc-h2 em { font-style: normal; color: var(--em); }
+.yc-sc[data-s="real"] .yc-h2 { font-size: clamp(34px, 4.4vw, 68px); }
+.yc-h3 { margin: 0; font-size: clamp(30px, 3.6vw, 52px); font-weight: 800; line-height: 1.02; letter-spacing: -.035em; text-wrap: balance; }
+.yc-say { margin: 0 0 20px; font-size: clamp(16.5px, 1.4vw, 20px); line-height: 1.45; color: color-mix(in srgb, var(--ink) 86%, transparent); max-width: 32em; }
+.yc-note { margin: 14px 0 0; font-size: 14px; font-weight: 600; line-height: 1.4; color: var(--mute); max-width: 32em; }
+.yc-lk { text-decoration: underline !important; text-underline-offset: 4px; font-weight: 700; display: inline-flex; align-items: center; min-height: 44px; margin-block: -10px; }
+.yc-kick { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; font-size: 13px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--mute); }
+.yc-eyebrow { display: flex; align-items: center; gap: 12px; margin: 0 0 18px; font-size: 13px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--c1); }
+.yc-dots4 { display: inline-flex; gap: 4px; } .yc-dots4 i { width: 8px; height: 8px; border-radius: 9px; background: var(--c); }
+.yc-bars { display: inline-flex; gap: 4px; } .yc-bars i { width: 24px; height: 6px; border-radius: 6px; background: color-mix(in srgb, var(--ink) 16%, transparent); }
+.yc-bars .yc-on:nth-child(1) { background: var(--c1); } .yc-bars .yc-on:nth-child(2) { background: var(--c2); } .yc-bars .yc-on:nth-child(3) { background: var(--c3); } .yc-bars .yc-on:nth-child(4) { background: var(--c4); }
+.yc-go { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+
+/* Buttons are flat; glass is for the gems and the round things you press. */
+.yc-orb { --c: var(--em); --bubble: var(--c); --bubble-ink: var(--gi); position: relative; display: inline-grid; place-items: center; flex: none; }
+.yc-play { position: relative; display: inline-flex; align-items: center; gap: 16px; height: 76px; padding: 0 34px 0 12px; border: 0; border-radius: 99px; background: var(--btn); color: var(--btn-ink) !important; font-weight: 800; font-size: 20px; line-height: 1; text-align: start; white-space: nowrap; cursor: pointer; box-shadow: 0 0 0 8px color-mix(in srgb, var(--em) 22%, transparent), 0 0 70px 6px color-mix(in srgb, var(--em) 36%, transparent); }
+.yc-play .yc-orb { width: 52px; height: 52px; }
+.yc-play-w { display: grid; gap: 6px; } .yc-play-w small { font-size: 13.5px; font-weight: 600; letter-spacing: .01em; opacity: .72; }
+.yc-load:empty, .yc:is([data-loading], [data-failed]) .yc-meta, .yc[data-loading] .yc-time { display: none; }
+.yc-play-w .yc-load { font-variant-numeric: tabular-nums; opacity: .85; }
+.yc-tp .yc-load { white-space: nowrap; }
+.yc[data-failed] .yc-play-w .yc-load { opacity: 1; }
+.yc-quiet { display: inline-flex; align-items: center; gap: 8px; height: 56px; padding: 0 24px; border-radius: 99px; background: var(--panel); border: 1px solid var(--edge); font-size: 17px; font-weight: 700; white-space: nowrap; cursor: pointer; }
+.yc-prim { display: inline-flex; align-items: center; gap: 10px; height: 64px; padding: 0 32px; border-radius: 99px; background: var(--btn); color: var(--btn-ink) !important; font-size: 19px; font-weight: 800; white-space: nowrap; }
+.yc-arrow { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 16px; font-weight: 700; text-decoration: underline !important; text-decoration-color: color-mix(in srgb, var(--ink) 40%, transparent) !important; text-underline-offset: 5px; }
+/* Play and Stop: the player stops and goes back to the start, so the square and the word Stop, never a pause. */
+.yc-i-stop, .yc:is([data-playing], [data-loading]) .yc-i-play { display: none; }
+.yc:is([data-playing], [data-loading]) .yc-i-stop { display: inline-flex; }
+.yc-orb > .yc-i-play { display: inline-flex; }
+/* The round thing you press says where it is, by the bubble's one ring (docs/glass-spec.md 3): it breathes until the
+   first press, turns while the voices load, fills as their share can be told, and stands ringed if they couldn't. */
+:is(.yc-play .yc-orb, .yc-disc)::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 3px solid color-mix(in srgb, var(--ink) 70%, transparent); opacity: 0; pointer-events: none; }
+.yc[data-loading] :is(.yc-play .yc-orb, .yc-disc)::after { opacity: 1; border-style: dashed; }
+.yc-play .yc-orb::after { border-color: color-mix(in srgb, var(--btn-ink) 70%, transparent); }
+.yc[data-failed] :is(.yc-play .yc-orb, .yc-disc)::after { opacity: 1; border-style: solid; border-color: var(--rec); }
+.yc[data-loading][data-load] :is(.yc-play .yc-orb, .yc-disc)::after { border: 0; color: var(--ink); background: conic-gradient(currentColor calc(var(--yc-load, 0) * 1turn), color-mix(in srgb, currentColor 22%, transparent) 0); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px)); mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px)); }
+.yc[data-loading][data-load] .yc-play .yc-orb::after { color: var(--btn-ink); }
+.s-play-hint { position: absolute; bottom: calc(100% + 10px); inset-inline-start: 0; z-index: 3; padding: 5px 11px; border-radius: 99px; background: color-mix(in srgb, var(--ground) 92%, var(--ink)); border: 1px solid var(--edge); color: var(--ink); font-size: 13px; font-weight: 600; line-height: 1.2; white-space: nowrap; }
+.s-play-hint:empty { display: none; }
+@media (prefers-reduced-motion: no-preference) {
+    .yc:not([data-played], [data-loading], [data-failed]) :is(.yc-play .yc-orb, .yc-disc)::after { animation: yc-breathe 2.4s ease-in-out 5; } /* five breaths, then still: nothing on the page animates for ever */
+    .yc[data-loading]:not([data-load]) :is(.yc-play .yc-orb, .yc-disc)::after { border-style: solid; border-color: color-mix(in srgb, var(--ink) 22%, transparent); border-top-color: var(--ink); animation: yc-turn .9s linear infinite; }
+    .yc[data-loading]:not([data-load]) .yc-play .yc-orb::after { border-color: color-mix(in srgb, var(--btn-ink) 22%, transparent); border-top-color: var(--btn-ink); }
+}
+@keyframes yc-turn { to { rotate: 1turn; } }
+@keyframes yc-breathe { 0%, 100% { opacity: 0; scale: 1; } 50% { opacity: .6; scale: 1.08; } }
+
+/* ---------- the lanes ---------- */
+/* One deck of lanes: the real one on top, then the AI ones. In the still layout every lane shows, as one picture of the
+   story; pinned, each view opens the lanes it needs (below) and the others fold away to nothing. */
+.yc-world { position: relative; height: 460px; margin: 30px 0 0; }
+.yc-deck { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.yc-ln { position: relative; flex: 1 1 0; min-height: 0; margin-top: 10px; overflow: hidden; container-type: size;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--c) 20%, transparent), color-mix(in srgb, var(--c) 9%, transparent));
+    border-block: 1px solid color-mix(in srgb, var(--c) 62%, transparent);
+    box-shadow: 0 0 60px -8px color-mix(in srgb, var(--c) 55%, transparent), inset 0 1px 0 color-mix(in srgb, var(--c) 40%, transparent);
+    transition: flex-grow .9s var(--ease), margin .9s var(--ease), opacity .6s, background-color .5s, border-color .5s, box-shadow .5s, filter .5s; }
+.yc-ln:first-child { margin-top: 0; }
+:root[data-theme$="-light"] .yc-ln { background: linear-gradient(180deg, color-mix(in srgb, var(--c) 18%, #fbf6ec), color-mix(in srgb, var(--c) 9%, #f6efe2)); border-color: color-mix(in srgb, var(--c) 40%, transparent); box-shadow: 0 18px 40px -22px color-mix(in srgb, var(--c) 60%, transparent), inset 0 1px 0 #fff; }
+/* The real voice's lane is warmer and a step apart from the AI ones under it (its own line of light), never louder. */
+.yc-ln.yc-real { margin-bottom: 8px; }
+.yc-tr { position: absolute; inset: 0 auto 0 var(--ph); pointer-events: none; will-change: translate; }
+.yc-tr { translate: calc(var(--yc-b) * var(--ppb) * -1) 0; }
+/* A note is the app's gem (.gem-note: docs/glass-spec.md), in its voice's colour and as tall as the lane allows. */
+.yc-g { position: absolute; left: calc(var(--b) * var(--ppb)); width: calc(var(--l) * var(--ppb) - 6px); top: calc(14% + var(--y) * 52%);
+    --gem-c: var(--c); --gem-hl: clamp(14px, 28cqh, 54px); --gem-surf: color-mix(in srgb, var(--c) calc(var(--gem-lane-tint) * 100%), var(--ground));
+    --gem-ring: var(--ink); --gem-text: var(--ink); --gem-ink: var(--gem-ink-dark); }
+:root[data-theme$="-light"] .yc-g { --gem-ink: var(--gem-ink-light); }
+.yc-g[data-ring] { z-index: 2; --gem-g: var(--gem-level-now); }
+/* The label's ground: solid under the label, fading out just before the playhead, so a sung note never shows behind
+   the words. */
+.yc-ln::before { content: ""; position: absolute; z-index: 2; inset: 0 auto 0 0; width: calc(var(--ph) - 8px); background: linear-gradient(90deg, color-mix(in srgb, var(--ground) 92%, var(--c)) calc(100% - 64px), transparent); pointer-events: none; }
+/* Each lane's label: its part, the one word that says whether it's really sung or AI, and the song and its role. */
+.yc-lb { position: absolute; z-index: 3; left: var(--pad); top: 0; bottom: 0; width: 320px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 6px; pointer-events: none; transition: opacity .5s; }
+.yc-lb b { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 800; line-height: 1; letter-spacing: -.01em; color: var(--c); white-space: nowrap; }
+.yc-lb small { padding-inline-start: 42px; font-size: 14px; font-weight: 500; line-height: 1.2; color: var(--mute); white-space: nowrap; }
+.yc-lb .yc-orb { --c: inherit; width: 32px; height: 32px; font-size: 13px; font-weight: 800; }
+.yc-chip { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 99px; background: color-mix(in srgb, var(--ink) 10%, transparent); border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent); color: var(--ink); font-size: 11.5px; font-weight: 800; line-height: 1; letter-spacing: .06em; text-transform: uppercase; }
+@container (max-height: 70px) { .yc-lb small { display: none; } }
+@container (max-height: 44px) { .yc-lb .yc-orb { width: 22px; height: 22px; font-size: 10px; } .yc-lb b { font-size: 16px; gap: 7px; } .yc-chip { height: 20px; font-size: 10px; } }
+.yc-mt { display: inline-flex; align-items: center; gap: 3px; height: 16px; } .yc-mt i { width: 3px; border-radius: 2px; background: var(--c); height: 8px; }
+.yc-mt i:nth-child(2) { height: 16px; } .yc-mt i:nth-child(3) { height: 11px; } .yc-mt i:nth-child(4) { height: 6px; }
+.yc-ln:not([data-live]) .yc-mt { opacity: 0; }
+@media (prefers-reduced-motion: no-preference) {
+    .yc[data-playing] .yc-ln[data-live] .yc-mt i { animation: yc-meter .7s ease-in-out infinite alternate; }
+    .yc[data-playing] .yc-mt i:nth-child(2) { animation-delay: -.2s; } .yc[data-playing] .yc-mt i:nth-child(3) { animation-delay: -.45s; } .yc[data-playing] .yc-mt i:nth-child(4) { animation-delay: -.3s; }
+    .yc-ln[data-in]::after { content: ""; position: absolute; z-index: 2; inset: 0; background: linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--c) 60%, white) 50%, transparent 70%); pointer-events: none; animation: yc-sweep 1.1s var(--ease) both; }
+}
+@keyframes yc-meter { from { scale: 1 .45; } to { scale: 1 1.25; } }
+@keyframes yc-sweep { from { translate: -100% 0; opacity: .85; } to { translate: 100% 0; opacity: 0; } }
+/* While it plays, a lane whose voice is silent (the AI ones while she sings, hers once the AI's song begins, the tenor
+   and bass before they join) waits: dim and still, its glass gone, its notes ghosts. The picture is the sound. */
+.yc .yc-ln[data-wait] { background: color-mix(in srgb, var(--ink) 3%, transparent); border-color: color-mix(in srgb, var(--ink) 12%, transparent); box-shadow: none; }
+.yc-ln[data-wait] .yc-g { background: color-mix(in srgb, var(--gem-c) calc(var(--gem-ghost-fill) * 100%), transparent); border: calc(var(--gem-ghost-edge) * 1px) dashed color-mix(in srgb, var(--gem-c) calc(var(--gem-ghost-edge-alpha) * 100%), transparent); box-shadow: none; }
+.yc-ln[data-wait] .yc-g::before, .yc-ln[data-wait] .yc-g::after, .yc-ln[data-wait] .yc-g > .gem-word { display: none; }
+.yc-ln[data-wait] .yc-lb { opacity: .5; }
+/* The lane being heard glows at its edge in its own colour (the whole edge, never a stripe). */
+.yc-ln[data-live] { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--c) 70%, transparent), 0 0 46px -8px var(--c); }
+@media (prefers-reduced-motion: reduce) { .yc-ln, .yc-lb, .yc-bg i { transition: none; } }
+.yc-beam { display: none; position: absolute; z-index: 5; top: 0; bottom: 0; left: var(--ph); width: 3px; margin-left: -1.5px; border-radius: 3px; background: linear-gradient(#fff, #ffd9b0); box-shadow: 0 0 16px 3px #ff9139, 0 0 80px 24px rgb(255 145 57 / .35); pointer-events: none; transition: opacity .5s; }
+:root[data-theme$="-light"] .yc-beam { background: #a14301; box-shadow: 0 0 22px 2px rgb(161 67 1 / .4); }
+/* Who is heard: its words live here (the script reads them), and the dock says them, once. */
+.yc-now { display: none !important; }
+.yc-cue, .yc-dots, .yc-snaps { display: none; }
+
+/* ---------- the dock: it stays, through the stage and down the page ---------- */
+.yc-dock { position: fixed; z-index: 30; inset: auto 0 0 0; height: var(--bar); padding: 0 var(--pad) env(safe-area-inset-bottom); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, auto) minmax(0, 1fr); align-items: center; gap: 20px; background: color-mix(in srgb, var(--ground) 84%, transparent); border-top: 1px solid var(--edge); }
+@supports (backdrop-filter: blur(4px)) { .yc-dock { backdrop-filter: blur(16px) saturate(1.2); } }
+.yc-tp { display: flex; align-items: center; gap: 14px; font-size: 15px; font-weight: 600; line-height: 1.2; color: var(--mute); font-variant-numeric: tabular-nums; }
+.yc-disc { width: 52px; height: 52px; border: 0; cursor: pointer; color: var(--gi) !important; }
+.yc-time { white-space: nowrap; }
+.yc-who { margin: 0; min-width: 0; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(16px, 1.5vw, 21px); font-weight: 800; line-height: 1.15; letter-spacing: -.015em; }
+.yc-start { justify-self: end; display: inline-flex; align-items: center; gap: 8px; height: 52px; padding: 0 24px; border-radius: 99px; background: var(--btn); color: var(--btn-ink) !important; font-size: 16.5px; font-weight: 800; line-height: 1.05; white-space: nowrap; }
+.yc-rail { position: absolute; left: 0; top: -2px; display: block; height: 3px; width: 100%; transform-origin: 0 50%; transform: scaleX(var(--yc-p)); background: linear-gradient(90deg, var(--c1), var(--c2), var(--c3), var(--c4)); pointer-events: none; }
+.yc:not([data-playing]) .yc-rail { opacity: 0; }
+
+/* What floats: glass, lit at its edge (the whole edge, never a stripe). */
+.yc-glass, .yc-card { background: var(--panel); border: 1px solid var(--edge); border-radius: 28px; box-shadow: 0 40px 90px -40px rgb(0 0 0 / .8), inset 0 1px 0 rgb(255 255 255 / .16); }
+:root[data-theme$="-light"] :is(.yc-glass, .yc-card) { box-shadow: 0 40px 80px -40px rgb(80 50 10 / .45), inset 0 1px 0 #fff; }
+
+/* ---------- the stage, still: the base. Nothing pinned; each scene a panel, in order, the lanes one picture. ---------- */
+.yc-stage { position: relative; padding-top: calc(var(--top) + 24px); }
+.yc-sc { position: relative; padding: 0 var(--pad); display: grid; gap: 28px; }
+.yc-stage .yc-sc ~ .yc-sc { padding-top: clamp(64px, 10svh, 120px); }
+.yc-cap { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px 72px; align-items: end; }
+.yc-hero .yc-cap { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
+/* In the still layout the lanes come after the scenes' words, before the page goes on. */
+.yc-stage { display: flex; flex-direction: column; } .yc-world { order: 9; margin-inline: 0; }
+.yc-stage .yc-sc.yc-yours { order: 11; padding-bottom: 40px; }
+.yc-world { --ppb: calc((100vw - var(--ph) - var(--pad)) / 12); }
+
+/* The three steps of "now yours": numbered in their voice's colour, plain words. */
+.yc-steps { list-style: none; margin: 0 0 26px; padding: 0; display: grid; gap: 16px; counter-reset: none; }
+.yc-steps li { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 14px; align-items: start; }
+.yc-n { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: color-mix(in srgb, var(--c) 18%, transparent); border: 1.5px solid var(--c); color: var(--ink); font-size: 18px; font-weight: 800; }
+.yc-steps h3 { margin: 2px 0 2px; font-size: 19px; font-weight: 800; line-height: 1.2; letter-spacing: -.01em; }
+.yc-steps p { margin: 0; color: var(--mute); font-size: 15.5px; line-height: 1.45; }
+.yc-mark { display: grid; gap: clamp(8px, 1.4svh, 14px); width: min(36vw, 420px); }
+.yc-yours .yc-mark { margin-top: clamp(24px, 6svh, 64px); }
+.yc-mark i { height: clamp(18px, 3.6svh, 36px); border-radius: 99px; border: 1px solid color-mix(in oklab, var(--c) 60%, black); background: linear-gradient(180deg, color-mix(in oklab, var(--c) 52%, white) 0%, var(--c) 44%, color-mix(in oklab, var(--c) 62%, black) 100%); box-shadow: inset 0 3px 0 rgb(255 255 255 / .75), inset 0 -8px 14px color-mix(in oklab, var(--c) 48%, black), 0 0 60px -6px var(--c); }
+.yc-mark i:nth-child(2) { width: 74%; } .yc-mark i:nth-child(3) { width: 88%; } .yc-mark i:nth-child(4) { width: 62%; }
+
+/* ---------- the page that scrolls, in the stage's dress ---------- */
+.yc-tail { position: relative; padding-bottom: 24px;
+    background:
+        radial-gradient(60vw 50svh at 0% 8%, color-mix(in srgb, var(--c1) 16%, transparent), transparent 70%),
+        radial-gradient(60vw 60svh at 100% 34%, color-mix(in srgb, var(--c3) 14%, transparent), transparent 70%),
+        radial-gradient(70vw 60svh at 0% 62%, color-mix(in srgb, var(--c4) 16%, transparent), transparent 70%),
+        radial-gradient(80vw 50svh at 50% 100%, color-mix(in srgb, var(--em) 22%, transparent), transparent 70%); }
+.yc-sec { position: relative; display: grid; gap: clamp(28px, 5svh, 56px); align-content: center; padding: clamp(80px, 14svh, 160px) var(--pad) clamp(120px, 22svh, 240px); }
+.yc-sec .yc-cap { align-items: start; }
+.yc-cap-top { grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); }
+.yc-sec .yc-say { margin-bottom: 0; }
+.yc-h4 { margin: 0 0 10px; font-size: clamp(22px, 2vw, 30px); font-weight: 800; line-height: 1.1; letter-spacing: -.025em; }
+.yc-sec .yc-more { margin: 14px 0 0; }
+
+/* The library: each song a lane of glass, its tune's opening as the app's gems in its colour (no words, no photo: the
+   page's own look, Hillel 2026-11-20), leaning back a little as the stage's lanes do; a lane lights at its edge to say
+   it's the way in. */
+.yc-library { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; perspective: 1400px; perspective-origin: 50% 0; }
+.yc-library li { transform-origin: 50% 100%; transform: rotateX(5deg); }
+.yc-song { position: relative; display: grid; grid-template-columns: minmax(150px, 260px) minmax(0, 1fr); align-items: center; gap: 24px; height: clamp(76px, 10svh, 104px); padding: 0 28px; overflow: hidden; container-type: size;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--c) 18%, transparent), color-mix(in srgb, var(--c) 7%, transparent));
+    border-block: 1px solid color-mix(in srgb, var(--c) 55%, transparent);
+    box-shadow: 0 0 50px -14px color-mix(in srgb, var(--c) 50%, transparent), inset 0 1px 0 color-mix(in srgb, var(--c) 36%, transparent);
+    transition: box-shadow .4s, background-color .4s; }
+:root[data-theme$="-light"] .yc-song { background: linear-gradient(180deg, color-mix(in srgb, var(--c) 16%, #fbf6ec), color-mix(in srgb, var(--c) 7%, #f6efe2)); border-color: color-mix(in srgb, var(--c) 38%, transparent); box-shadow: 0 16px 34px -22px color-mix(in srgb, var(--c) 60%, transparent), inset 0 1px 0 #fff; }
+.yc-song:hover, .yc-song:focus-visible { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--c) 70%, transparent), 0 0 46px -8px var(--c); }
+.yc-song b { font-size: clamp(19px, 1.8vw, 26px); font-weight: 800; line-height: 1.05; letter-spacing: -.02em; color: var(--c); }
+.yc-song-tr { position: relative; align-self: stretch; }
+.yc-song-tr i { position: absolute; left: calc(var(--b) / var(--beats) * 100%); width: calc(var(--l) / var(--beats) * 100% - 5px); top: calc(16% + var(--y) * 46%);
+    --gem-c: var(--c); --gem-hl: clamp(12px, 22cqh, 22px); --gem-surf: color-mix(in srgb, var(--c) calc(var(--gem-lane-tint) * 100%), var(--ground)); --gem-ring: var(--ink); --gem-text: var(--ink); --gem-ink: var(--gem-ink-dark); }
+.yc-learn { margin: 0; color: var(--mute); font-size: 16px; font-weight: 600; line-height: 1.45; max-width: 46em; }
+.yc-own { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); gap: 16px 72px; padding: 28px 32px; box-shadow: 0 40px 90px -40px rgb(0 0 0 / .8), inset 0 1px 0 rgb(255 255 255 / .16), 0 0 0 1px color-mix(in srgb, var(--c3) 40%, transparent), 0 0 70px -22px var(--c3); }
+.yc-own .yc-kick { color: var(--c3); } .yc-own .yc-say { margin-bottom: 18px; }
+
+/* What happens to your voice: plain ruled facts on one panel of glass. */
+.yc-facts-panel { padding: 10px 30px 24px; }
+.yc-facts { list-style: none; margin: 0; padding: 0; }
+.yc-facts li { padding: 18px 0; border-bottom: 1px solid var(--edge); font-size: clamp(16.5px, 1.4vw, 19.5px); line-height: 1.45; }
+.yc-faq { display: grid; gap: 12px; align-content: start; }
+.yc-faq details { border-radius: 22px; transition: box-shadow .4s; }
+.yc-faq details[open] { box-shadow: 0 40px 90px -40px rgb(0 0 0 / .8), inset 0 0 0 1.5px color-mix(in srgb, var(--em) 55%, transparent), 0 0 60px -24px var(--em); }
+.yc-faq summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 60px; padding: 8px 12px 8px 24px; font-size: clamp(17px, 1.5vw, 20px); font-weight: 800; line-height: 1.2; letter-spacing: -.01em; cursor: pointer; list-style: none; border-radius: 22px; }
+.yc-faq summary::-webkit-details-marker { display: none; }
+.yc-faq summary .yc-orb { width: 36px; height: 36px; }
+.yc-faq details p { margin: 0; padding: 0 24px 20px; color: var(--mute); font-size: 16px; line-height: 1.5; max-width: 40em; }
+.yc-faq details[open] .yc-plus-i, .yc-faq details:not([open]) .yc-minus-i { display: none; }
+.yc-plus-i, .yc-minus-i { display: inline-flex; }
+.yc-close { justify-items: center; text-align: center; padding-bottom: clamp(80px, 14svh, 160px); }
+.yc-close .yc-h1 span { display: inline; }
+.yc-close .yc-go { justify-content: center; }
+.yc-close .yc-mark { width: min(40vw, 360px); justify-items: center; } .yc-close .yc-mark i { width: 100%; } .yc-close .yc-mark i:nth-child(2) { width: 74%; } .yc-close .yc-mark i:nth-child(3) { width: 88%; } .yc-close .yc-mark i:nth-child(4) { width: 62%; }
+
+/* The lanes, lying down as a floor of light at the foot of a section, as on the home page: a picture while nothing
+   plays; while the song plays, a floor in view is the AI song itself, its real notes passing a playhead, a band whose
+   voice is silent dim (the script makes the notes, a track <u> of bars <b> per band, and lights them). */
+.yc-floor { position: absolute; z-index: -1; left: 0; right: 0; bottom: 0; height: min(30svh, 260px); perspective: 900px; perspective-origin: 50% 0; overflow: hidden; pointer-events: none; opacity: .7; -webkit-mask-image: linear-gradient(transparent, #000 60%); mask-image: linear-gradient(transparent, #000 60%); }
+.yc-floor span { position: absolute; inset: 0 -12% 0 -12%; display: grid; gap: 8px; transform-origin: 50% 100%; transform: rotateX(64deg); }
+.yc-floor i { --c: var(--c1); position: relative; overflow: hidden; border-block: 1px solid color-mix(in srgb, var(--c) 60%, transparent); background: linear-gradient(90deg, transparent 0 6%, var(--c) 6% 15%, transparent 15% 19%, var(--c) 19% 24%, transparent 24% 33%, var(--c) 33% 47%, transparent 47% 52%, var(--c) 52% 58%, transparent 58% 66%, var(--c) 66% 80%, transparent 80% 84%, var(--c) 84% 92%, transparent 92%) 0 50% / 100% 34% no-repeat, color-mix(in srgb, var(--c) 12%, transparent); transition: opacity .5s, filter .5s; }
+.yc-floor i:nth-child(2) { --c: var(--c2); background-position: 7% 50%; } .yc-floor i:nth-child(3) { --c: var(--c3); background-position: -5% 50%; } .yc-floor i:nth-child(4) { --c: var(--c4); background-size: 140% 34%; }
+.yc-floor i[data-wait] { opacity: .25; filter: saturate(.2); }
+.yc-floor u { display: none; }
+.yc-floor[data-live] i { background-image: none; }
+.yc-floor[data-live] u { display: block; position: absolute; inset: 0; translate: calc((var(--yc-b) - 5) * -6.25%) 0; will-change: translate; }
+.yc-floor b { position: absolute; left: calc(var(--b) * 6.25%); width: calc(var(--l) * 6.25% - 4px); top: calc(16% + var(--y) * 34%); height: 34%; border-radius: 99px; background: var(--c); opacity: .6; }
+.yc-floor b[data-sung] { opacity: .28; }
+.yc-floor b[data-lit] { opacity: 1; filter: brightness(1.25); box-shadow: 0 0 22px 3px var(--c); }
+.yc-floor[data-live] span::after { content: ""; position: absolute; left: 31.25%; top: 0; bottom: 0; width: 3px; margin-left: -1.5px; border-radius: 3px; background: var(--ink); box-shadow: 0 0 16px 3px var(--em); }
+@media (min-width: 900px) {
+    .yc-sec:not(.yc-close) { min-height: 92svh; }
+    .yc-facts-panel { transform: perspective(1600px) rotateY(-3deg); }
+    .yc-faq { transform: perspective(1600px) rotateY(-2deg); }
+}
+@media (prefers-reduced-motion: reduce) { .yc-floor i { transition: none; } .yc-facts-panel, .yc-faq, .yc-library li { transform: none !important; } }
+
+/* The site's own foot (components/site/footer.blade.php), in this page's dress, as the home page wears it. */
+.yc-foot-wrap { position: relative; padding: 56px var(--pad) calc(var(--bar) + env(safe-area-inset-bottom) + 28px); border-top: 1px solid var(--edge); background: var(--ground); font-size: 15px; line-height: 1.45; }
+.yc-foot-wrap .s-wrap.s-footer { margin: 0; }
+.yc-foot-wrap .s-foot-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2.4fr); gap: 40px 64px; }
+.yc-foot-wrap .s-brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-size: 18px; font-weight: 800; letter-spacing: -.01em; } .yc-foot-wrap .s-brand svg { border-radius: 7px; }
+.yc-foot-wrap .s-foot-brand p { margin: 8px 0 0; max-width: 28em; color: var(--mute); } .yc-foot-wrap .s-foot-xmas { font-weight: 600; }
+.yc-foot-wrap .s-social { display: flex; gap: 8px; margin-top: 16px; }
+.yc-foot-wrap .s-iconbtn { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 99px; background: var(--panel); border: 1px solid var(--edge); }
+.yc-foot-wrap .s-foot-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 32px; }
+.yc-foot-wrap .s-foot-h { margin: 0 0 6px; font-size: 12.5px; font-weight: 700; line-height: 1.3; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+.yc-foot-wrap ul { margin: 0; padding: 0; list-style: none; }
+.yc-foot-wrap .s-flink { display: inline-flex; align-items: center; min-height: 36px; color: color-mix(in srgb, var(--ink) 88%, transparent); } .yc-foot-wrap .s-flink:hover { text-decoration: underline; text-underline-offset: 4px; }
+.yc-foot-wrap .s-foot-legal { margin: 28px 0 0; font-size: 13px; color: var(--mute); } .yc-foot-wrap .s-foot-legal + .s-foot-legal { margin-top: 6px; }
+.yc-foot-wrap .s-fix-wrap { display: none; }
+.yc:not([data-stage]) .yc-foot-wrap { padding-bottom: calc(env(safe-area-inset-bottom) + 28px); }
+
+/* ---------- the stage, pinned: it fills the screen and stays for its scenes, a scene a screen of scroll ---------- */
+@media (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+    .yc-page { scroll-snap-type: y proximity; }
+    .yc[data-stage] .yc-pin { position: relative; }
+    .yc[data-stage] .yc-snaps { display: block; margin-top: -100svh; } .yc-snaps div { height: 100svh; scroll-snap-align: start; }
+    .yc[data-stage] .yc-stage { display: block; position: sticky; top: 0; height: 100svh; overflow: hidden; padding: 0; }
+    .yc[data-stage] .yc-stage .yc-sc { position: absolute; inset: 0; z-index: 7; padding: 0; display: block; opacity: 0; pointer-events: none; translate: 0 26px; transition: opacity .45s, translate .7s var(--ease); }
+    .yc[data-stage][data-view="hero"] .yc-stage [data-s="hero"], .yc[data-stage][data-view="real"] .yc-stage [data-s="real"], .yc[data-stage][data-view="split"] .yc-stage [data-s="split"], .yc[data-stage][data-view="four"] .yc-stage [data-s="four"], .yc[data-stage][data-view="yours"] .yc-stage [data-s="yours"] { opacity: 1; translate: 0 0; transition-delay: .12s; }
+    .yc[data-stage][data-view="hero"] .yc-stage [data-s="hero"] > *, .yc[data-stage][data-view="real"] .yc-stage [data-s="real"] > *, .yc[data-stage][data-view="split"] .yc-stage [data-s="split"] > *, .yc[data-stage][data-view="four"] .yc-stage [data-s="four"] > *, .yc[data-stage][data-view="yours"] .yc-stage [data-s="yours"] > * { pointer-events: auto; }
+    /* The headline is the first paint: it never waits on a transition. */
+    .yc[data-stage] .yc-stage .yc-sc[data-s="hero"] { transition: opacity .3s; translate: 0 0; }
+    .yc[data-stage] .yc-stage .yc-cap { position: absolute; left: var(--pad); right: var(--pad); top: calc(var(--top) + 20px); height: calc(var(--split) - var(--top) - 34px); }
+    .yc[data-stage] .yc-world { position: absolute; z-index: 5; left: 0; right: 0; top: var(--split); bottom: calc(var(--bar) + 34px); height: auto; margin: 0; perspective: 1500px; perspective-origin: 50% 0%; transition: top .9s var(--ease), bottom .9s var(--ease), opacity .6s; }
+    .yc[data-stage] .yc-deck { transform-origin: 50% 100%; transform: rotateX(var(--tilt)); transition: transform .9s var(--ease); }
+    .yc[data-stage] .yc-beam { display: block; }
+    .yc:not([data-playing]) .yc-tr { transition: --yc-b 1s var(--ease); }
+    .yc-cue { position: absolute; z-index: 8; left: var(--pad); bottom: calc(var(--bar) + 6px); display: flex; align-items: center; gap: 6px; margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink); }
+    .yc[data-playing] .yc-cue { visibility: hidden; }
+    .yc[data-stage] .yc-dots { position: absolute; z-index: 9; right: 14px; top: 50%; translate: 0 -50%; display: grid; }
+    .yc-dots a { display: grid; place-items: center; width: 24px; height: 24px; }
+    .yc-dots a::before { content: ""; width: 6px; height: 6px; border-radius: 9px; background: color-mix(in srgb, var(--ink) 30%, transparent); transition: height .4s var(--ease), background-color .4s; }
+    .yc-dots a[aria-current="true"]::before { height: 22px; background: var(--ink); }
+
+    /* The views. A lane folds away to nothing (no height, no gap, unseen), and opens when its view needs it. */
+    .yc[data-stage] .yc-ln { flex-grow: 0; margin-top: 0; opacity: 0; border-width: 0; }
+    .yc[data-stage] .yc-ln.yc-real { margin-bottom: 0; }
+    /* The first screen and "one real voice": her lane alone, wide; the AI ones still folded inside it. */
+    .yc:is([data-view="hero"], [data-view="real"]) .yc-ln.yc-real { flex-grow: 1; opacity: 1; border-width: 1px; }
+    .yc[data-view="hero"] { --split: 58svh; }
+    .yc[data-view="real"] { --ppb: 120px; --tilt: 4deg; }
+    .yc[data-view="real"] .yc-world { top: calc(var(--split) + 2svh); }
+    /* The split: her lane narrows to a line of its own at the top, and the tune and the harmony open out of it. */
+    .yc[data-view="split"] { --ppb: 104px; --tilt: 6deg; --split: 42svh; }
+    .yc[data-view="split"] .yc-ln.yc-real { flex-grow: .34; opacity: .62; border-width: 1px; margin-bottom: 14px; filter: saturate(.7); }
+    /* Folded to a line, her notes keep their shape and lose their words (they'd crowd the line). */
+    .yc[data-view="split"] .yc-real .gem-word { display: none; }
+    .yc[data-view="split"] .yc-real .yc-lb small { display: none; }
+    .yc[data-view="split"] .yc-ln.yc-ai:is([data-part="soprano"], [data-part="alto"]) { flex-grow: 1; opacity: 1; border-width: 1px; margin-top: 10px; }
+    .yc[data-view="split"] .yc-ln.yc-ai[data-part="soprano"] { margin-top: 0; }
+    /* The whole choir: her lane gone, the four AI parts. */
+    .yc[data-view="four"] { --ppb: 92px; --tilt: 9deg; --split: 40svh; }
+    .yc[data-view="four"] .yc-ln.yc-ai { flex-grow: 1; opacity: 1; border-width: 1px; margin-top: 8px; }
+    .yc[data-view="four"] .yc-ln.yc-ai:first-of-type { margin-top: 0; }
+    /* Now yours: the lanes fold into the mark's four bars, beside the steps. */
+    .yc[data-view="yours"] .yc-world { opacity: 0; }
+    .yc[data-stage] .yc-yours .yc-cap { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); align-items: center; height: auto; bottom: calc(var(--bar) + 24px); }
+    .yc[data-stage] .yc-yours .yc-cap > div:first-child { align-self: start; }
+    .yc[data-stage] .yc-stage .yc-yours .yc-cue { display: none; }
+}
+
+/* ---------- wide ---------- */
+@media (max-width: 1180px) and (min-width: 900px) {
+    .yc-game .gt-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    .yc .yc-game.gt--pill { padding-inline: 8px; }
+    .yc-dock { gap: 12px; } .yc-tp { gap: 8px; }
+}
+
+/* ---------- phone ---------- */
+@media (max-width: 899px) {
+    .yc { --pad: 18px; --top: 96px; --bar: calc(110px + env(safe-area-inset-bottom)); --ppb: 64px; --ph: 92px; --tilt: 6deg; }
+    .yc-top { flex-wrap: wrap; align-content: center; gap: 0 8px; }
+    .yc-nav { order: 9; flex: 1; min-width: 0; justify-content: space-between; margin-top: -4px; } .yc-nav a { min-height: 40px; padding: 0 6px; font-size: 14px; }
+    .yc-logo { flex: 1; }
+    .yc-top::after { content: ""; order: 8; width: 100%; }
+    .yc-open { padding: 0 14px; font-size: 14px; }
+    .yc-top > .yc-game { display: none; }
+    .yc .yc-look { --lk-top: 56px; }
+    .yc[data-top="small"] .yc-top:not(:focus-within) { --top: 52px; } .yc[data-top="small"] .yc-top:not(:focus-within) .yc-nav { display: none; } .yc[data-top="small"] .yc-top:not(:focus-within)::after { display: none; }
+    .yc-bg i { display: none; }
+    .yc-bg { background: radial-gradient(120vw 46svh at 0% 44%, color-mix(in srgb, var(--c1) 24%, transparent), transparent 70%), radial-gradient(120vw 46svh at 100% 70%, color-mix(in srgb, var(--c3) 20%, transparent), transparent 70%), radial-gradient(140vw 40svh at 40% 100%, color-mix(in srgb, var(--c4) 26%, transparent), transparent 70%); }
+    .yc-cap, .yc-hero .yc-cap { grid-template-columns: 1fr; gap: 12px; align-content: safe end; }
+    .yc-h1 { font-size: clamp(44px, 14.6vw, 58px); } .yc-h2 { font-size: clamp(34px, 10.4vw, 46px); } .yc-say { margin-bottom: 14px; font-size: 16px; } .yc-kick { margin-bottom: 10px; font-size: 12px; } .yc-eyebrow { margin-bottom: 12px; font-size: 12px; }
+    .yc-note { margin-top: 10px; font-size: 13px; }
+    .yc-play { height: auto; min-height: 66px; width: 100%; justify-content: flex-start; padding: 9px 18px 9px 70px; font-size: 18px; line-height: 1.15; white-space: normal; } /* a longer label (Spanish) wraps inside, never off the screen */ .yc-play .yc-orb { width: 48px; height: 48px; position: absolute; left: 9px; } .yc-play-w { gap: 5px; } .yc-play-w small { font-size: 13px; }
+    .yc-prim { width: 100%; justify-content: center; height: 58px; font-size: 18px; } .yc-quiet { height: 46px; padding: 0 16px; font-size: 14.5px; } .yc-go { gap: 8px 14px; }
+    .yc-world { height: 360px; }
+    .yc-lb { left: 12px; top: 6px; bottom: auto; width: auto; flex-direction: row; align-items: center; z-index: 6; gap: 8px; } .yc-lb b { font-size: 15px; gap: 7px; } .yc-lb small { display: none; } .yc-lb .yc-orb { width: 20px; height: 20px; font-size: 10px; }
+    .yc-chip { height: 20px; padding: 0 8px; font-size: 10px; }
+    .yc-ln::before { z-index: 6; width: 200px; height: 32px; inset: 0 auto auto 0; background: linear-gradient(90deg, color-mix(in srgb, var(--ground) 88%, var(--c)) 62%, transparent); }
+    .yc-g { top: calc(40% + var(--y) * 30%); --gem-hl: clamp(14px, 22cqh, 34px); }
+    .yc-dock { height: auto; padding: 0 10px calc(10px + env(safe-area-inset-bottom)); grid-template-columns: 1fr auto; grid-template-areas: "who who" "tp start"; gap: 0; border: 0; background: linear-gradient(transparent, var(--ground) 10px); -webkit-backdrop-filter: none; backdrop-filter: none; pointer-events: none; }
+    .yc-dock::before { content: ""; grid-area: 2 / 1 / 3 / 3; align-self: stretch; border-radius: 99px; background: color-mix(in srgb, var(--ground) 86%, var(--ink)); border: 1px solid var(--edge); box-shadow: 0 14px 40px -14px rgb(0 0 0 / .7); }
+    .yc-dock > * { pointer-events: auto; }
+    .yc-who { grid-area: who; height: 44px; display: flex; align-items: center; justify-content: center; padding: 8px 6px 0; font-size: 15px; pointer-events: none; }
+    .yc-tp { grid-area: tp; height: 56px; padding-inline-start: 6px; gap: 10px; } .yc-disc { width: 44px; height: 44px; }
+    .yc-time { font-size: 13px; }
+    .yc-start { grid-area: start; align-self: center; height: 44px; margin-inline-end: 6px; padding: 0 16px; font-size: 13.5px; }
+    .yc-rail { top: auto; bottom: 0; }
+    .yc[data-tail]:not([data-playing]) .yc-dock { background: none; }
+    .yc-sec { padding: 64px var(--pad) 150px; gap: 24px; }
+    .yc-cap-top, .yc-own { grid-template-columns: 1fr; gap: 16px; }
+    .yc-song { grid-template-columns: 1fr; grid-template-rows: auto 1fr; gap: 0; height: 96px; padding: 12px 16px 6px; }
+    .yc-song b { font-size: 17px; }
+    .yc-own { padding: 20px; border-radius: 22px; }
+    .yc-facts-panel { padding: 4px 18px 18px; border-radius: 22px; } .yc-facts li { padding: 14px 0; font-size: 16px; }
+    .yc-faq { gap: 8px; } .yc-faq summary { min-height: 56px; padding: 6px 10px 6px 16px; } .yc-faq details p { padding: 0 16px 14px; font-size: 15px; }
+    .yc-close .yc-mark { width: 62vw; } .yc-close .yc-go { width: 100%; }
+    .yc-floor { height: 150px; }
+    .yc-foot-wrap { padding: 40px 18px calc(76px + env(safe-area-inset-bottom) + 28px); }
+    .yc-foot-wrap .s-foot-grid { grid-template-columns: 1fr; gap: 28px; } .yc-foot-wrap .s-foot-cols { grid-template-columns: 1fr 1fr; gap: 22px 16px; } .yc-foot-wrap .s-flink { min-height: 44px; }
+    .yc-yours .yc-mark { display: none; }
+    .yc-steps { gap: 12px; margin-bottom: 18px; } .yc-steps li { grid-template-columns: 36px minmax(0, 1fr); gap: 12px; } .yc-n { width: 36px; height: 36px; font-size: 15px; } .yc-steps h3 { font-size: 17px; } .yc-steps p { font-size: 14.5px; }
+}
+@media (max-width: 899px) and (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+    .yc[data-stage] .yc-stage .yc-cap { top: calc(var(--top) + 8px); height: calc(var(--split) - var(--top) - 16px); }
+    .yc[data-stage] .yc-world { bottom: calc(var(--bar) + 26px); }
+    .yc-cue { display: none; }
+    .yc[data-stage] .yc-dots { display: none; }
+    .yc[data-view="real"] { --ppb: 80px; --split: 52svh; } .yc[data-view="split"] { --ppb: 72px; --split: 48svh; } .yc[data-view="four"] { --ppb: 60px; --split: 44svh; --tilt: 7deg; }
+    .yc[data-stage] .yc-yours .yc-cap { grid-template-columns: 1fr; align-content: center; top: calc(var(--top) + 8px); bottom: calc(var(--bar) + 12px); height: auto; }
+}
+@media (max-width: 400px) {
+    .yc-top { gap: 0 5px; } .yc-logo { font-size: 16px; gap: 7px; } .yc-open { padding: 0 10px; font-size: 13px; }
+}
+@media (max-width: 359px) {
+    .yc-logo span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    .yc-start { padding: 0 10px; font-size: 12.5px; }
+    .yc-nav a { padding: 0 3px; font-size: 13px; }
+}
+@media (max-width: 899px) and (max-height: 760px) {
+    .yc-h1 { font-size: clamp(40px, 12.5vw, 52px); }
+    .yc-steps p { display: none; }
+}
+/* A phone: the first screen is the words and Play (they're long in Spanish); her lane comes in on the next one. */
+@media (max-width: 899px) and (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+    .yc[data-stage][data-view="hero"] .yc-world { opacity: 0; }
+    .yc[data-view="hero"] { --split: calc(100svh - var(--bar)); }
+    .yc[data-stage] .yc-stage .yc-hero .yc-cap { align-content: safe center; }
+}

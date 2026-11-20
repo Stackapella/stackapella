@@ -34,6 +34,18 @@ export const OPERATIONS = {
     'beta.agreement.show': ['GET', '/api/beta/agreement'],
     'beta.consent.create': ['POST', '/api/beta/consent'],
     'beta.credit.update': ['PUT', '/api/beta/credit'],
+    'beta.aiLicence.show': ['GET', '/api/beta/ai-licence'],
+    'ownChoir.show': ['GET', '/api/own-choir'],
+    'ownChoir.consent': ['POST', '/api/own-choir/consent'],
+    'ownChoir.requests.create': ['POST', '/api/own-choir/requests'],
+    'ownChoir.requests.complete': ['POST', '/api/own-choir/requests/{id}/complete'],
+    'ownChoir.requests.seen': ['POST', '/api/own-choir/requests/{id}/seen'],
+    'ownChoir.requests.delete': ['DELETE', '/api/own-choir/requests/{id}'],
+    'ownChoir.delete': ['DELETE', '/api/own-choir'],
+    'ownChoir.voice.delete': ['DELETE', '/api/own-choir/voice'],
+    'beta.aiLicence.accept': ['POST', '/api/beta/ai-licence'],
+    'beta.aiLicence.update': ['PATCH', '/api/beta/ai-licence'],
+    'beta.aiLicence.withdraw': ['POST', '/api/beta/ai-licence/withdraw'],
     'beta.parts.list': ['GET', '/api/beta/parts'],
     // M6: sharing (contract/api.md, "Sharing: harmonies, videos and reports")
     'harmonies.create': ['POST', '/api/harmonies'],
@@ -147,6 +159,7 @@ export const OPERATIONS = {
     'beta.feedback.create': ['POST', '/api/beta/feedback'],
     'admin.overview': ['GET', '/api/admin/overview'],
     'admin.beta.singers.list': ['GET', '/api/admin/beta/singers'],
+    'admin.beta.singers.aiLicence.offer': ['POST', '/api/admin/beta/singers/{id}/ai-licence'],
     'admin.beta.singers.create': ['POST', '/api/admin/beta/singers'],
     'admin.beta.singers.update': ['PATCH', '/api/admin/beta/singers/{id}'],
     'admin.beta.singers.link': ['POST', '/api/admin/beta/singers/{id}/link'],
@@ -170,6 +183,9 @@ export const OPERATIONS = {
     'admin.beta.guides.delete': ['DELETE', '/api/admin/beta/guides/{id}'],
     'admin.aiVoices.list': ['GET', '/api/admin/ai-voices'],
     'admin.aiVoices.withdraw': ['POST', '/api/admin/ai-voices/{id}/withdraw'],
+    'admin.aiGuides.list': ['GET', '/api/admin/ai-guides'],
+    'admin.aiGuides.approve': ['POST', '/api/admin/ai-guides/approve'],
+    'admin.aiGuides.reject': ['POST', '/api/admin/ai-guides/reject'],
     'admin.beta.clips.delete': ['DELETE', '/api/admin/beta/clips/{slot}'],
     'admin.beta.feedback.list': ['GET', '/api/admin/beta/feedback'],
     'admin.beta.feedback.read': ['POST', '/api/admin/beta/feedback/{id}/read'],
@@ -797,6 +813,12 @@ export const api = {
             list: () => call('admin.aiVoices.list'),
             withdraw: (id) => call('admin.aiVoices.withdraw', { params: { id } }),
         },
+        // The AI review queue (phase 1c): by song; approve or reject parts by `ids`, or a whole song by `templateId`.
+        aiGuides: {
+            list: ({ status = 'pending' } = {}) => call('admin.aiGuides.list', { query: { status } }),
+            approve: ({ ids }) => call('admin.aiGuides.approve', { body: { ids } }),
+            reject: ({ ids, note }) => call('admin.aiGuides.reject', { body: { ids, note } }),
+        },
         beta: {
             removeClip: (slot, body) => call('admin.beta.clips.delete', { params: { slot }, body }),
             // The course clips beta singers record (web/course/plus/clips.json), for the admin.
@@ -809,6 +831,8 @@ export const api = {
                 revoke: (id) => call('admin.beta.singers.revoke', { params: { id } }),
                 paid: (id) => call('admin.beta.singers.paid', { params: { id } }),
                 forget: (id) => call('admin.beta.singers.forget', { params: { id } }),
+                // The AI voice licence offered to this singer (docs/ai-voices-build-plan.md, phase 1b).
+                offerAiLicence: (id) => call('admin.beta.singers.aiLicence.offer', { params: { id } }),
             },
             assignments: {
                 create: (singerId, { templateId, partKey, clipId, minutes }) => call('admin.beta.assignments.create', { params: { id: singerId }, body: clipId ? { clipId, minutes } : { templateId, partKey, minutes } }),
@@ -1153,6 +1177,21 @@ export const api = {
             delete: (id, token) => call('reminders.devices.delete', { params: { id }, headers: { 'X-Device-Token': token } }),
         },
     },
+    // Hear yourself as a choir (track B, behind own_choir; docs/own-choir-app-plan.md).
+    ownChoir: {
+        show: () => call('ownChoir.show'),
+        consent: ({ version }) => call('ownChoir.consent', { body: { version, adult: true } }),
+        delete: () => call('ownChoir.delete'),
+        voice: {
+            delete: () => call('ownChoir.voice.delete'), // the voice kept for their next songs; songs made stay
+        },
+        requests: {
+            create: (clip) => call('ownChoir.requests.create', { body: clip }),
+            complete: (id) => call('ownChoir.requests.complete', { params: { id } }),
+            seen: (id) => call('ownChoir.requests.seen', { params: { id } }),
+            delete: (id) => call('ownChoir.requests.delete', { params: { id } }),
+        },
+    },
     beta: {
         invite: {
             show: (token) => call('beta.invite.show', { params: { token } }),
@@ -1169,6 +1208,13 @@ export const api = {
         },
         credit: {
             update: ({ creditMode }) => call('beta.credit.update', { body: { creditMode } }),
+        },
+        // The AI voice licence (docs/ai-voices-build-plan.md, phase 1b): its own opt-in, its text at agreement.show({ for: 'ai_voice' }).
+        aiLicence: {
+            show: () => call('beta.aiLicence.show'),
+            accept: ({ version, adult, credited }) => call('beta.aiLicence.accept', { body: { version, adult, credited } }),
+            update: ({ credited }) => call('beta.aiLicence.update', { body: { credited } }),
+            withdraw: () => call('beta.aiLicence.withdraw'),
         },
         parts: {
             list: () => call('beta.parts.list'),

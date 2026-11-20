@@ -284,6 +284,8 @@ return [
                         'pic' => 'parts',
                         'heading' => 'Credited on the part',
                         'body' => 'Each real voice says who sang it: "Sung by" and their name, or "one of our singers" if they\'d rather stay anonymous. Where a part has no real voice yet, the practice voice sings it.',
+                        // Joined to the body while ai_voices is on (SitePages::page; Hillel's rule "AI: plain about it, never loud").
+                        'ai_voices' => 'Until a real singer records a part, it may have an AI voice for now, always marked as AI.',
                     ],
                     [
                         'pic' => 'voices',
@@ -1346,36 +1348,76 @@ return [
     // singing, learning your part, the ethics up front. AI said plainly, never first. No prices until Hillel sets them.
     'your_choir' => [
         'title' => 'Hear yourself as a choir',
-        'description' => 'Sing for 30 seconds, then hear any song in our library with every part of a real choir arrangement in a voice like yours. Then learn your part, and make it really you.',
+        'description' => 'Sing for 30 seconds, then hear any song in our library with every part of a real choir arrangement sung in a voice like yours: a finished choir track to play, download or share.',
         'eyebrow' => 'Hear yourself as a choir',
-        'headline' => 'You, as a whole choir',
-        'lead' => 'Sing for 30 seconds, then hear any song in our library with every part, soprano, alto, tenor and bass, sung in a voice like yours. Then learn your part, and make the choir really you.',
+        // The headline in two, its key phrase in the warm accent (design rules, the five pages' headline).
+        'headline_before' => 'You, as a',
+        'headline_em' => 'whole choir',
+        // `lead` without own_choir_hum, `lead_hum` with it (the hummed-song path's own switch).
+        'lead' => 'Sing for 30 seconds, then pick any song from our library. Hear every part, soprano to bass, sung by AI in a voice like yours: a finished choir track to play, download or share.',
+        'lead_hum' => 'Sing for 30 seconds, then pick any song from our library, or hum one of your own. Hear every part, soprano to bass, sung by AI in a voice like yours: a finished choir track to play, download or share.',
         'start' => 'Try it with Silent Night',
-        'start_note' => 'In your browser. You choose before anything is recorded.',
-        'steps_title' => 'How it works',
+        'hum' => 'Hum your own tune',
+        'start_note' => 'In your browser. You choose when it records, and your voice stays private to you.',
+        // The pinned stage (ai-choir-page): one real voice, then AI in two parts, then four.
+        'stage' => [
+            'label' => 'Hear one voice become a choir',
+            'play' => 'Hear one voice become a choir',
+            'play_meta' => 'One real voice, then AI · :length',
+            'stop' => 'Stop',
+            'time' => 'Time',
+            'loading' => 'Loading the voices…',
+            'failed' => 'Couldn\'t load the voices. Try again.',
+            'scroll' => 'Scroll',
+            'real_chip' => 'Really singing',
+            'ai_chip' => 'AI',
+            'roles' => ['tune' => 'the tune', 'harmony' => 'harmony'],
+        ],
+        's1' => ['kick' => 'One real voice', 'title' => ':name, really singing', 'body' => ':song, as :name recorded it for our library.'],
+        's2' => ['kick' => 'Then AI', 'title_before' => 'One voice,', 'title_em' => 'two parts', 'body' => ':song\'s tune and harmony, sung by an AI voice based on :name\'s singing, with permission. :name never sang it.'],
+        's3' => ['kick' => 'Then the whole choir', 'title_before' => 'Four parts,', 'title_em' => 'one voice', 'body' => 'Soprano, alto, tenor and bass, the arrangement a real choir sings, all made from :name\'s singing.'],
+        's4' => ['kick' => 'Now yours', 'title' => 'Now, you as a whole choir'],
+        'now' => ['real' => ':name, really singing :song', 'two' => 'AI: :song\'s tune and harmony', 'four' => 'AI: all four parts'],
+        'live' => ['playing' => 'Playing: one voice becoming a choir', 'stopped' => 'Stopped'],
+        'ways' => [
+            'title' => 'Every song in our library',
+            'title_hum' => 'A song from our library, or one you make',
+            'library' => ['kick' => 'From our library', 'heading' => 'Real arrangements', 'body' => 'Not harmonies made up around a tune: the soprano, alto, tenor and bass a choir actually sings, words and all, arranged from songs in the public domain.', 'all' => 'See every song'],
+            // A song you make sings the words you give it, else "oo" (Hillel, 2026-11-20: "definiety allow typed words").
+            'own' => ['kick' => 'Made by you', 'heading' => 'A song of your own', 'body' => 'Hum a tune and give it your own words, if you like. The app writes it down and arranges the harmony, then every part, your tune included, is sung in a voice like yours: with your words, or on "oo".', 'cta' => 'Make your own'],
+        ],
         'steps' => [
-            ['title' => 'Sing for 30 seconds', 'body' => 'Sing along with the song, any part, in your own voice. It needn\'t be perfect: we only need to hear your voice.'],
-            ['title' => 'Hear your choir', 'body' => 'A few minutes later, every part of the song is sung in a voice like yours, by AI, from the arrangement a real choir sings.'],
-            ['title' => 'Learn your part', 'body' => 'Pick the part that suits you and sing it for real. Each part you record takes the place of its AI version.'],
+            ['title' => 'Sing for 30 seconds', 'body' => 'Just once. It needn\'t be perfect: we only need to hear your voice, and it\'s kept privately for every next song.'],
+            ['title' => 'Choose a song', 'body' => 'Any song in our library.'],
+            ['title' => 'Hear your choir', 'body' => 'A few minutes later, every part is sung by AI in a voice like yours. Play it, download it or share it.'],
         ],
-        'points_title' => 'What makes it different',
-        'points' => [
-            'real' => ['heading' => 'Real arrangements', 'body' => 'Not harmonies made up around a tune: the soprano, alto, tenor and bass a choir actually sings, words and all, from our library.'],
-            'any' => ['heading' => 'Any song, from 30 seconds', 'body' => 'You don\'t record the song first. Thirty seconds of your singing, then pick any song in the library.'],
-            'learn' => ['heading' => 'Made for learning', 'body' => 'Hear what you\'ll sound like once you\'ve learned it, then learn it. Part by part, the choir becomes really you.'],
+        // Step 2's body while own_choir_hum is on.
+        'step_choose_hum' => 'Any song in our library, or a tune you hum yourself.',
+        'learn' => 'Want to sing it yourself too? Learn any part, and your own takes replace the AI ones.',
+        'voice' => [
+            'title' => 'What happens to your voice',
+            'facts' => [
+                'A short reference of your voice, made from your 30 seconds, is kept privately in your account, so every next song needs no new recording.',
+                'Only you can use your voice, and only for your own songs.',
+                'Delete it any time, and it\'s gone. Unused for 12 months, it goes by itself.',
+                'It\'s never used for anything else, or by anyone else.',
+                'What the AI sings is always marked as AI, in the app and on anything you share.',
+                'Your songs are made on our GPU provider\'s servers, which keep what they process encrypted for at most 7 days, then delete it.',
+            ],
         ],
-        'honest' => ['heading' => 'Honest about AI', 'body' => 'What the AI sings is always marked as AI, here and on anything you share. Your recording is deleted once your choir is made, no model of your voice is kept, and it only ever sings our songs.'],
         'faq_title' => 'Questions',
+        // Without own_choir_hum. With it, `faq_hum` joins after the second, and own_songs takes `own_songs_hum`.
         'faq' => [
-            'mine' => ['Is it really my voice?', 'It\'s an AI voice made from your singing: close to yours, but not a recording of you. Every part you then record yourself is really you.'],
+            'mine' => ['Is it really my voice?', 'It\'s an AI voice made from your singing: close to yours, but not a recording of you.'],
             'sing_well' => ['Do I need to sing well?', 'No. The AI sings the notes; your 30 seconds only tell it what your voice sounds like.'],
-            'who' => ['Who hears it?', 'Only you, unless you share it. Anything you share says it was made with AI.'],
-            'kept' => ['What happens to my recording?', 'It\'s used once, to make your choir, then deleted. We never keep a model of your voice, so each new song starts from a new recording.'],
-            'own_songs' => ['Can it sing my own songs, or other words?', 'No. It only sings the songs in our library, with their own words.'],
-            'delete' => ['Can I delete it?', 'Yes, any choir at any time, or every one at once, in the app.'],
+            'who' => ['Who hears it?', 'Only you, unless you choose to share it.'],
+            'own_songs' => ['Can it sing my own songs, or other words?', 'It sings the songs in our library, with their own words.'],
+            'delete' => ['Can I delete it?', 'Yes, in the app at any time: any choir, every one at once, or your saved voice. Once deleted, it\'s gone.'],
         ],
+        'faq_hum' => ['Does my humming need to be in tune?', 'No. The app writes down what you hum, and you can fix any note before the parts are made.'],
+        'own_songs_hum' => 'Yes. Hum a tune and type its words, and every part sings them; without words it sings "oo". A song from our library keeps its own words. Songs you make are private to you unless you share them, and anything shared says it was made with AI.',
         'more' => 'About AI voices',
-        'end' => ['title' => 'Hear yourself as a choir', 'body' => 'Thirty seconds of singing, then every part in a voice like yours.'],
+        'end' => ['title' => 'Hear yourself as a choir', 'body' => 'Thirty seconds of singing, then every part in a voice like yours.', 'hum' => 'or hum your own tune'],
     ],
 
     // About AI voices (/about/ai-voices; docs/ai-voices-build-plan.md, marketing item 2): unlisted and noindex until the
@@ -1398,9 +1440,9 @@ return [
             'checked' => ['heading' => 'Checked note by note', 'body' => 'Learners copy their guide, so every AI part is measured against its written notes before it goes up. A part that drifts off pitch is never published.'],
             'label' => ['heading' => 'Always labelled', 'body' => 'Wherever a voice is credited or chosen, an AI part says "AI voice, waiting for a real singer". One learned from a real singer names them: "AI voice based on Ana\'s singing, with permission". It never wears a plain singer credit.'],
             'replace' => ['heading' => 'A real singer replaces it', 'body' => 'When a real take of the part is published, it becomes the part\'s voice and the AI voice leaves that song at once. Until then the part stays on the list of parts wanted, and an AI part is never counted among the real voices.'],
-            'whose' => ['heading' => 'Whose voice it is', 'body' => 'An AI voice may be learned from a short recording of a real singer, only with their written permission for exactly this. If they wish, it is named after them on every part it sings; otherwise it is simply marked "AI voice". The recording it learns from is never published.'],
+            'whose' => ['heading' => 'Whose voice it is', 'body' => 'An AI voice may be learned from a short recording of a real singer, only with their written permission for exactly this. If they wish, it is named after them on every part it sings; otherwise it is simply marked "AI voice". The recording it learns from is never published. Parts are made on our GPU provider\'s servers, which keep what they process encrypted for at most 7 days, then delete it.'],
             // `body` while own_choir is off, `choir` while it's on (Hillel, 2026-11-20, through the coordinator).
-            'yours' => ['heading' => 'Your voice stays yours', 'body' => 'Nothing you sing in the app becomes an AI voice.', 'choir' => 'Nothing you sing becomes an AI voice unless you choose to hear yourself as a choir. Even then, your recording is deleted once your song is made, and no model of your voice is kept.'],
+            'yours' => ['heading' => 'Your voice stays yours', 'body' => 'Nothing you sing in the app becomes an AI voice, unless you accept our AI voice licence.', 'choir' => 'Nothing you sing becomes an AI voice unless you choose to: by accepting our AI voice licence, or by hearing yourself as a choir. For your choir, a short reference of your voice is kept privately in your account, only for your own songs, until you delete it, and at most 12 months after you last use it.'],
         ],
         'remove' => [
             'kick' => 'Removal on request',
@@ -2288,6 +2330,8 @@ return [
             'pause' => 'Pause',
             'loading' => 'Getting the voices ready',
             'real' => 'Real voice',
+            // The voice toggle's name for an AI guide (pages.song.ai): never "Real voice".
+            'ai' => 'AI voice',
             'synth' => 'Synth',
             'voice' => 'The part\'s voice',
             'micNote' => 'Sing along: the mic listens only while it plays. Nothing is recorded.',

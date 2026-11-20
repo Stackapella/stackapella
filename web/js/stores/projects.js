@@ -179,7 +179,7 @@ let persisting = null;
  * waveform outline (for the projects page). Counts toward the free limit like any project, except
  * a beta singer's recording project (`beta`), which is kept apart.
  */
-export async function startFromTemplate(whole, { transpose = 0, focusKey = null, singers = null, beta = null, course = null, idea = null, keyChosen = false, renderGuides = true, taste = false } = {}) {
+export async function startFromTemplate(whole, { transpose = 0, focusKey = null, singers = null, beta = null, course = null, idea = null, choir = null, keyChosen = false, renderGuides = true, taste = false } = {}) {
     // A guest's taste of a library song: its first phrase, then the free account's invitation (Sing; Hillel, 2026-11-15).
     const template = taste ? (firstPhrase(toRaw(whole)) ?? whole) : whole;
     const project = await createProject({
@@ -196,6 +196,7 @@ export async function startFromTemplate(whole, { transpose = 0, focusKey = null,
         practice: { ...PRACTICE_DEFAULTS, seedVoices: true, ...(keyChosen ? { sing: { keyChosen: true } } : {}) },
         ...(beta ? { beta } : {}),
         ...(course ? { course } : {}), // a song a lesson opened: listed, but not counted toward the limit
+        ...(choir ? { choir } : {}), // Hear yourself as a choir (js/own-choir.js): { requestId } once its song is asked for
         ...(idea ? { idea } : {}), // an idea's tune (docs/ideas-app-plan.md): { id, writer, partKey }, to add your voice to it
         ...(taste ? { taste: { song: whole.id } } : {}), // the song's first phrase only, until an account opens the rest (wholeSong)
     });

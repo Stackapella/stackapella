@@ -19,6 +19,7 @@ import { lengthBeats, partsFor, singerOptions, templatePartName, validateTemplat
 import { formatTime, keyLabel } from '../theme.js';
 import { newSinger, startFromTemplate } from '../stores/projects.js';
 import { deleteTemplate, loadMine, mine, ownTemplate, saveTemplate, setVisibility } from '../stores/templates.js';
+import { ownChoirSongsOn } from '../own-choir.js';
 import { knownRange, learning, loadLearning, pickRange } from '../stores/learning.js';
 import { account } from '../stores/account.js';
 import { confirmAction, UNDO_SECONDS } from '../components/confirm.js';
@@ -64,7 +65,7 @@ export const TemplateView = {
     components: { AccountWall, Field, Icon, AppScreen, PartBoard, ShareIdea, PrivateNote, PrivatePlus },
     props: { id: { type: String, required: true } },
     data: () => ({ directed: null, template: null, grant: null, boards: null, missing: false, failed: false, plusNeeded: false, plusSheet: '', singers: 4, picked: null, player: null, playingPart: null, starting: false, changing: false, details: { description: '', words: '', tune: '' }, backingUp: false }),
-    setup: () => ({ STATES, DIFFICULTY, account, signInTo, signUpFor, keyLabel, midiName, templatePartName, singerOptions, formatTime, goBack, paint, PART_COLORS, game, songTitle }),
+    setup: () => ({ ownChoirSongsOn, STATES, DIFFICULTY, account, signInTo, signUpFor, keyLabel, midiName, templatePartName, singerOptions, formatTime, goBack, paint, PART_COLORS, game, songTitle }),
     template: `
         <AppScreen :title="template ? songTitle(template) : t('template.title')" :title-is-content="!!template" back="/" measure="">
             <PrivatePlus v-if="plusSheet" :kind="plusSheet" @close="plusSheet = ''" />
@@ -142,6 +143,9 @@ export const TemplateView = {
                     <div class="flex flex-wrap gap-3">
                         <button type="button" :class="choirSong ? 'btn-secondary' : 'btn-primary'" :disabled="starting || !picked" @click="learn">{{ t('template.learnPart', { part: pickedName }) }} <Icon name="arrow" :size="16" /></button>
                         <button type="button" class="btn-secondary" @click="hear"><Icon :name="player && !playingPart ? 'stop' : 'play'" :size="16" /> {{ player && !playingPart ? t('studio.stop') : t('template.hearAll') }}</button>
+                        <!-- Your own song in a voice like yours (js/own-choir.js, own_choir_songs; Hillel: "they could hum it and have
+                             their voice replace their humming"): one quiet way in, beside Hear it. -->
+                        <button v-if="record && ownChoirSongsOn()" type="button" class="btn-ghost" data-template-choir @click="navigate('/t/' + encodeURIComponent(id) + '/choir')">{{ t('ownChoir.songs.entry') }}</button>
                     </div>
                 </section>
 

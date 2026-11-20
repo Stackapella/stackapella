@@ -1,0 +1,23 @@
+{
+    "$id": "admin.aiGuides.approve.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "approved"
+            ],
+            "properties": {
+                "approved": {
+                    "type": "integer",
+                    "description": "How many it changed (parts not pending are skipped)."
+                }
+            }
+        }
+    }
+}

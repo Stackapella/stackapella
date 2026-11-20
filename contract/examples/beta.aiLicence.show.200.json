@@ -1,0 +1,25 @@
+{
+    "data": {
+        "offered": true,
+        "version": 1,
+        "accepted": {
+            "version": 1,
+            "acceptedAt": "2026-11-21T10:00:00Z",
+            "credited": true
+        },
+        "withdrawnAt": null,
+        "voice": {
+            "id": "Vc3Ad8",
+            "name": "Sarah Kim",
+            "guides": [
+                {
+                    "id": "Ai7Alt",
+                    "templateId": "silent-night",
+                    "title": "Silent Night",
+                    "version": 8,
+                    "partKey": "alto"
+                }
+            ]
+        }
+    }
+}

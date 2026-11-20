@@ -1,8 +1,8 @@
 // The landing, the site's home page (server/resources/views/pages/landing.blade.php): a stage that fills the screen for the first five
 // scenes, the song's four lanes on it, then a page that scrolls, and a dock that stays. The sound is the song page's
-// player, js/public/mixer.js: this module only reads what it says (data-playing and --p on the page's root, the lanes'
+// player, js/public/mixer.js: this module only reads what it says (data-playing on the page's root, its mixer-frame, the lanes'
 // data-solo, its mixer-solo event) and presses its own buttons (the dock's disc, a lane). So the page has one clock,
-// the player's: where the song is comes from its --p each frame, and nothing here plays, seeks, pauses or mutes
+// the player's: where the song is comes from each of its frames (mixer-frame, its place p), and nothing here plays, seeks, pauses or mutes
 // anything. Scrolling changes the scene and never touches the sound, and the page never scrolls by itself.
 //
 // The song plays as the showreel plays it (Hillel, 2026-11-16: "the song plays twice, but the first time it plays each
@@ -13,15 +13,16 @@
 // alone wins: nothing waits while one is.
 // The strips of lanes between the sections down the page are pictures while nothing plays; while the song plays, each
 // one in view is the song itself (Hillel: "as the song is playing we make the song visible here"): its real notes
-// passing a playhead, from the same place, in this module's one frame loop.
+// passing a playhead, from the same place, on the player's frames (the page runs one frame loop, the player's).
 //
 // What it sets, for css/landing.css:
 // - on <html>: the class lnf-page (the page rests on a scene of the stage as it scrolls);
 // - on .lnf: data-scene (0 to 4, from the scroll: the stage's scenes), data-tail (past the stage, on the page that
 //   scrolls), data-alone (the voice heard alone, while one is), data-top ("small" on the way down, gone on the way up),
 //   --lnf-t, the song's place in beats (the player's while it plays; while it doesn't, a still pose for the scene, so
-//   each story scene shows its moment), --lnf-page, the sung line's first beat (the still page shows a line at a
-//   time), --lnf-run, how far through both passes the play is (0 to 1, the dock's rail), and --lnf-load with
+//   each story scene shows its moment; written on the tracks, the trace and the strips' bands, not on .lnf), --lnf-page,
+//   the sung line's first beat (the still page shows a line at a
+//   time; on the tracks too), --lnf-run on the dock's rail, how far through both passes the play is (0 to 1), and --lnf-load with
 //   data-load (the percent) while the voices' download can be told;
 // - on a gem (the app's glass, css/glass.css's .gem-note, copied into landing.css): data-ring while its note sounds,
 //   data-state="settled" once it has, --gem-g as the next note nears (the app's ramp, docs/glass-spec.md 4), and its
@@ -150,11 +151,30 @@ function setUp() {
     const dots = [...root.querySelectorAll('[data-lnf-dots] a')];
     let scene = 0;
     let shownLine = -1;
-    let frame = 0;
+    // What moves with the song, each written on itself (registered, never inherited: a frame restyles these few elements,
+    // not the page; an inherited --lnf-t on .lnf restyled and laid out the whole page every frame, 71% of the main
+    // thread while it played, 2026-11-20): the lanes' tracks and the trace (--lnf-t, and --lnf-page, the sung line's
+    // first beat), the strips' bands (--lnf-t, made with their notes) and the dock's rail (--lnf-run).
+    const movers = [...root.querySelectorAll('.lnf-tr, .lnf-trace')];
+    const rail = root.querySelector('.lnf-rail');
+    let shownT = '';
+    let shownRun = '';
+    function moveTo(beat) {
+        const t = String(Math.round(beat * 1000) / 1000);
+        if (t === shownT) return;
+        shownT = t;
+        for (const el of movers) el.style.setProperty('--lnf-t', t);
+    }
+    function runTo(p) {
+        const run = String(Math.round(p * 1000) / 1000);
+        if (run === shownRun) return;
+        shownRun = run;
+        rail?.style.setProperty('--lnf-run', run);
+    }
 
     // ---- the song's place, drawn -------------------------------------------------------------------------------
     function draw(beat) {
-        root.style.setProperty('--lnf-t', String(beat));
+        moveTo(beat);
         for (const gem of gems) {
             const state = noteState(gem, beat);
             // The next note's glow rises frame by frame while the song plays (not in a still pose, nor with reduced motion).
@@ -176,7 +196,7 @@ function setUp() {
             shownLine = at;
             lines.forEach((line, i) => (line.el.hidden = i !== at));
             if (next) next.textContent = lines[at + 1]?.words.map((word) => word.el.textContent).join(' ') ?? '';
-            root.style.setProperty('--lnf-page', String(lines[at].from));
+            for (const el of movers) el.style.setProperty('--lnf-page', String(lines[at].from));
         }
         const line = lines[at];
         line.words.forEach((word, i) => {
@@ -187,34 +207,31 @@ function setUp() {
     }
 
     const playing = () => root.hasAttribute('data-playing');
-    // The player's own place, 0 to 1 of the whole play (it writes --p on its root each frame, from its one clock).
-    const run = () => Number.parseFloat(root.style.getPropertyValue('--p')) || 0;
     // Stopped, the song is back at its start (the player's Stop is a stop): the lanes show the scene's still pose, and
     // every lane is lit again.
     const rest = () => {
-        root.style.setProperty('--lnf-run', '0');
+        runTo(0);
         draw(still.matches ? 0 : poseOf(scene));
         build(null);
         strips(0);
     };
 
-    function tick() {
+    // One frame loop, the player's: each of its frames (mixer-frame, its place p, 0 to 1 of the whole play, from its one
+    // clock) draws the stage; this module runs no loop of its own.
+    root.addEventListener('mixer-frame', (event) => {
         if (!playing()) return;
-        const p = run();
+        const p = Number(event.detail?.p) || 0;
         const at = buildAt(p * beats * passes, beats, passes);
-        root.style.setProperty('--lnf-run', String(p));
+        runTo(p);
         draw(at.beat);
         build(at);
         strips(at.beat);
-        frame = requestAnimationFrame(tick);
-    }
+    });
 
-    // The player says when it starts and stops (its attribute): the lanes follow from the next frame.
+    // The player says when it starts and stops (its attribute): the lanes follow its next frame.
     new MutationObserver(() => {
-        cancelAnimationFrame(frame);
         liven();
         if (playing()) {
-            frame = requestAnimationFrame(tick);
             say(live?.dataset.playing);
         } else {
             rest();
@@ -359,6 +376,8 @@ function setUp() {
                 made.push({ el: bar, b: Number(gem.dataset.b), l: Number(gem.dataset.l), state: '' });
             }
             band.append(track);
+            movers.push(track);
+            track.style.setProperty('--lnf-t', shownT || '0');
         });
         return made;
     }

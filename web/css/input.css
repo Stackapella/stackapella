@@ -4357,6 +4357,8 @@ main:has(> .s-close) .s-ink:not(.s-close) { padding-block: var(--k-sec); margin-
 .cp-bb2-ladder { margin: 0; }
 .cp-bb2-window { position: relative; max-width: 500px; padding: clamp(64px, 14vw, 96px) clamp(18px, 4vw, 34px) 26px; border-radius: 50% 50% 10px 10px / 30% 30% 10px 10px; background: radial-gradient(90% 60% at 50% 8%, #4b3726, #251c15 62%, #1b1511); color: var(--bb-night-ink);
     box-shadow: inset 0 0 0 9px #2b2018, inset 0 0 0 10.5px var(--bb-gold), 0 30px 60px -30px #000a; }
+/* The window's night as a solid colour under its gradient, so anything reading the background (a contrast check) finds the night. */
+.cp-bb2-window { background-color: #1b1511; }
 .cp-bb2-window-sign { padding-inline: 9%; text-align: center; font-family: var(--bb-serif); font-size: clamp(13px, 3.4vw, 16px); font-weight: 700; letter-spacing: .3em; text-transform: uppercase; color: var(--bb-gold); text-wrap: balance; }
 .cp-bb2-window-sub { margin-top: 6px; text-align: center; font-family: var(--bb-serif); font-style: italic; font-size: 16px; color: #d8c9ad; }
 .cp-bb2-window svg { display: block; width: 100%; height: auto; margin-top: 18px; overflow: visible; }
@@ -5043,7 +5045,7 @@ a.cp-yo3-sign:hover { filter: brightness(1.05); }
     --cpt-red: #ff4fd8; --cpt-staff: rgba(34, 211, 238, .4); --cpt-v1: #22d3ee; --cpt-v3: #ffe14d; --cpt-gold: #ffe14d; --cpt-v4: #a3e635;
     --cpt-night: #07061a; --cpt-night-ink: #ede9ff; --cpt-night-muted: #b8b2d8; --cpt-on-red: #1a0414; --cp-a: #ff4fd8; --cp-a-ink: #1a0414; --cp-a-text: #ff4fd8; }
 :root[data-skin="game"][data-theme$="-light"] .cp-cp2 { --cpt-bg: #f4f1ff; --cpt-surface: #ece8ff; --cpt-deep: #e3ddff; --cpt-card: #fff; --cpt-ink: #14122b; --cpt-muted: #403a66; --cpt-line: rgba(20, 18, 43, .18);
-    --cpt-red: #b0157a; --cpt-staff: rgba(0, 112, 138, .38); --cpt-v1: #00708a; --cpt-v3: #8a6a00; --cpt-gold: #6e5500; --cpt-v4: #3d7a00;
+    --cpt-red: #b0157a; --cpt-staff: rgba(0, 112, 138, .38); --cpt-v1: #005b70; --cpt-v3: #8a6a00; --cpt-gold: #6e5500; --cpt-v4: #3d7a00;
     --cpt-night: #14122b; --cpt-night-ink: #f4f1ff; --cpt-night-muted: #c8c2ea; --cpt-on-red: #fff; --cp-a: #b0157a; --cp-a-ink: #fff; --cp-a-text: #b0157a; }
 .cp-cp2 .cp-cp2-v1 { --v: var(--cpt-v1); --vt: var(--cpt-v1); } .cp-cp2 .cp-cp2-v2 { --v: var(--cpt-v2); --vt: var(--cpt-red); }
 .cp-cp2 .cp-cp2-v3 { --v: var(--cpt-v3); --vt: var(--cpt-gold); } .cp-cp2 .cp-cp2-v4 { --v: var(--cpt-v4); --vt: var(--cpt-v4); }
@@ -5335,6 +5337,8 @@ a.cp-yo3-sign:hover { filter: brightness(1.05); }
 /* What the app listens for: the night band, the two real screens staggered. */
 .cp-cp2-app { background: var(--cpt-night); color: var(--cpt-night-ink); --cpt-ink: var(--cpt-night-ink); --cpt-muted: var(--cpt-night-muted); }
 :root[data-theme$="-light"]:not([data-skin="game"]) .cp-cp2-app { --cpt-red: #f08f86; }
+/* Game's light themes: the app band stays night, so its red and teal are game night's (AA on #14122b). */
+:root[data-skin="game"][data-theme$="-light"] .cp-cp2-app { --cpt-red: #ff4fd8; --cpt-v1: #22d3ee; }
 :root:not([data-theme$="-light"]) .cp-cp2-app { border-block: 1px solid var(--cpt-line); }
 .cp-cp2-app .cp-cp2-split { margin-top: 0; align-items: center; }
 .cp-cp2-app .s-course-shots { max-width: 640px; }
@@ -5442,7 +5446,7 @@ a.cp-yo3-sign:hover { filter: brightness(1.05); }
 :root:not([data-theme$="-light"]) :is(body[data-course="vibrato"], .cp-vibrato) {
     --vi-paper: #141118; --vi-card: #1e1a24; --vi-card-line: #302a3a; --vi-ink: #f3eefa; --vi-body: #d8d0e2; --vi-muted: #b7aec4; --vi-faint: #aca2c4;
     --vi-label: #c7b0ff; --vi-line: #c7b0ff; --vi-lav: #241c32; --vi-lav-2: #1b1624; --vi-lav-line: #3a3050; --vi-grid: #2c2540; --vi-dash: #4c3f6c; --vi-soft: #6b58a0;
-    --vi-orange-text: #f3b57c; --vi-free: #2f9e5f; --vi-rule: #f3eefa; --vi-row: #302a3a;
+    --vi-orange-text: #f3b57c; --vi-free: #2f9e5f; --vi-free-ink: #04140d; --vi-rule: #f3eefa; --vi-row: #302a3a;
     --vi-night: #0c0a0f; --vi-night-card: #1b1820; --vi-night-deep: #070609; }
 :root[data-skin="game"] :is(body[data-course="vibrato"], .cp-vibrato) {
     --vi-paper: #07060e; --vi-card: #12101e; --vi-card-line: #2a2640; --vi-ink: #ede9ff; --vi-body: #d2ccf0; --vi-muted: #b8b2d8; --vi-faint: #aaa4d0;
@@ -5878,6 +5882,12 @@ a.cp-yo3-sign:hover { filter: brightness(1.05); }
 .cp-rg-map-bar { position: absolute; top: 5px; height: 24px; left: var(--l); width: var(--w); display: flex; align-items: center; justify-content: center; border-radius: 12px; background: var(--rg-c);
     -webkit-mask-image: linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent); mask-image: linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent); }
 .cp-rg-map-bar span { font-size: 12px; font-weight: 650; color: #fff; white-space: nowrap; }
+/* Calm's dark themes: the register codes lighter, and the bars and Start here deeper, so their words keep AA. */
+:root:not([data-theme$="-light"]):not([data-skin="game"]) .cp-rg-map-row b { color: color-mix(in srgb, var(--rg-c) 60%, #fff); }
+:root:not([data-theme$="-light"]):not([data-skin="game"]) .cp-rg-map-bar { background: color-mix(in srgb, var(--rg-c) 70%, #000); }
+:root:not([data-theme$="-light"]):not([data-skin="game"]) .cp-rg-start { background: var(--rg-rust-deep); }
+/* Game's dark themes: the neon bars and Start here carry dark words. */
+:root[data-skin="game"]:not([data-theme$="-light"]) body.s-arcade .cp-rg :is(.cp-rg-map-bar span, .cp-rg-lessons a.cp-rg-start) { color: #07060e; }
 .cp-rg-m0 { --rg-c: var(--rg-rust-deep); --l: 0%; --w: 32%; }
 .cp-rg-m1 { --rg-c: var(--rg-rust); --l: 8%; --w: 58%; }
 .cp-rg-m2 { --rg-c: var(--rg-blue); --l: 32%; --w: 56%; }
@@ -6989,6 +6999,7 @@ a.cp-yo3-sign:hover { filter: brightness(1.05); }
 .cp-dn-close-p { max-width: 36em; margin: 22px auto 0; font-size: clamp(16px, 1.7vw, 18px); line-height: 1.65; color: var(--dn-n-body); }
 .cp-dn-close-btns { justify-content: center; }
 :root:not([data-skin="game"]) .cp-dn-close .btn-primary { background: var(--dn-gold); border-color: var(--dn-gold); color: #1a1520; }
+:root[data-skin="game"] body.s-arcade .cp-dn-close .btn-secondary { background: transparent; color: #3be7ff; box-shadow: inset 0 0 0 2px #3be7ff; } /* the band stays night in game's light themes too */
 :root:not([data-skin="game"]) .cp-dn-close .btn-secondary { background: color-mix(in srgb, var(--dn-n-ink) 10%, var(--dn-night)); border-color: transparent; color: var(--dn-n-ink); }
 .cp-dn-close-note { margin-top: 16px; font-size: 14px; color: var(--dn-n-muted); }
 .cp-dn-close-rel { max-width: 1120px; margin: clamp(40px, 6vw, 56px) auto 0; padding-top: 32px; border-top: 1px solid var(--dn-n-rule); }
@@ -10855,6 +10866,9 @@ body:has(.cp-sc) { background-color: var(--sc-paper); }
 /* Your turn: the page's one ochre block, the band's bars and yours, centred; its buttons in ink. */
 .cp-sc-close { --primary: #1d1915; --primary-ink: #f8f4ee; --primary-hover-to: #000; --btn-soft: rgb(29 25 21 / .1); --btn-soft-hover: rgb(29 25 21 / .16); --btn-soft-active: rgb(29 25 21 / .22); background: var(--sc-ochre); color: var(--sc-ochre-ink); }
 .cp-sc-close .btn-secondary { color: var(--sc-ochre-ink); }
+:root[data-skin="game"][data-theme] body.s-arcade .cp-sc-close :is(.btn-secondary, .cp-join-btns .btn-secondary) { background: transparent; color: var(--sc-ochre-ink); box-shadow: inset 0 0 0 2px var(--sc-ochre-ink); } /* over the game join buttons' cyan: the band is ochre */
+/* Game's light themes: the headline's full stop a deeper red, AA on the light ground at the pixel heading's size. */
+:root[data-skin="game"][data-theme$="-light"] .cp-sc { --sc-v-text: #a8301f; }
 .cp-sc-close-in { display: flex; flex-direction: column; align-items: center; gap: 28px; padding-block: clamp(64px, 9vw, 96px); text-align: center; }
 .cp-sc-close .cp-sc-kick { color: inherit; }
 .cp-sc-close-h { margin: 0; font-size: clamp(88px, 16vw, 220px); line-height: .8; }

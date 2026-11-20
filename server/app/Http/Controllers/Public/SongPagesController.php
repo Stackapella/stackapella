@@ -236,6 +236,8 @@ final class SongPagesController extends Controller
             // The ask to sing a part with no real voice yet, once the lend_voice flag is on (docs/open-guide-voices-plan.md);
             // a flag this install doesn't have yet is off.
             'lendVoice' => SongParts::lendVoice(),
+            // "Hear yourself as a choir, coming soon" (docs/ai-voices-build-plan.md, phase 2): its taps counted, nothing more.
+            'choirTeaser' => SongParts::switchedOn('own_choir_teaser'),
             'learn' => array_combine(array_column($partCards, 'key'), array_map(static fn (array $card): string => Hosts::app('/?'.http_build_query(['song' => $sung->slug, 'part' => $card['key'], 'ref' => 'song-page'])), $partCards)),
             // The page that collects it gives the hero its palette (its link card's and band's); a song no page collects, the songs' own.
             'tone' => $home['key'] ?? 'song',

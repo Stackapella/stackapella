@@ -42,6 +42,7 @@ import { prefs } from './prefs.js';
 import { local, session as tabStorage } from '../storage.js';
 import { count, tried } from '../usage.js';
 import { countAiHeard, isAi } from '../ai-voices.js';
+import { choirVoices, countChoir, loadOwnChoir } from '../own-choir.js';
 import { keptIn } from '../unit-song.js';
 import { chipCountIn } from '../game/modules.js';
 
@@ -188,7 +189,9 @@ export async function openSession(id, { refresh = true } = {}) {
         session.project.practice = { ...PRACTICE_DEFAULTS, ...session.project.practice, withOthers: false, compare: false };
         // Real voices come from the catalogue, and whether AI voices are on from auth.config (js/ai-voices.js): wait a moment
         // for both, then go with what's known.
-        await Promise.race([Promise.all([loadCatalogue(), configKnown()]), new Promise((resolve) => setTimeout(resolve, 1500))]);
+        // A choir of their own (js/own-choir.js) waits for its parts too, once the switch is known.
+        const choir = session.project.choir ? configKnown().then(() => loadOwnChoir()) : null;
+        await Promise.race([Promise.all([loadCatalogue(), configKnown(), choir]), new Promise((resolve) => setTimeout(resolve, 1500))]);
         if (session.openedId !== id) return;
         prepareGuides(engine.unlocked ? engine.sampleRate : GUIDE_PEAKS_RATE);
     }
@@ -439,8 +442,9 @@ export function chosenVoices(practice, partKey) {
  */
 function voiceChoice(slot, speed = session.practice?.speed ?? 1) {
     const template = session.project.template;
-    const found = session.project.beta ? betaVoice(slot) : versionsFor(template.id, slot.templatePartKey);
-    if (!found) return { recordings: [], why: null, credit: null, ai: false, aiBasedOn: null, versions: [], chosen: [] };
+    // A choir project (js/own-choir.js) plays the parts made from the singer's own singing, once they're ready.
+    const found = session.project.beta ? betaVoice(slot) : session.project.choir ? choirVoices(session.project, slot.templatePartKey) : versionsFor(template.id, slot.templatePartKey);
+    if (!found) return { recordings: [], why: null, credit: null, ai: false, aiBasedOn: null, choir: false, versions: [], chosen: [] };
     const transpose = session.project.transpose || 0;
     const chosen = chosenVoices(session.practice, slot.templatePartKey);
     const synth = chosen.includes('synth');
@@ -450,7 +454,7 @@ function voiceChoice(slot, speed = session.practice?.speed ?? 1) {
     const applies = picked.every((recording) => recordingApplies({ recording, version: found.version, template, transpose, speed, voice: synth ? 'synth' : 'real' }));
     const why = applies ? null : synth ? 'chosen' : found.version !== template.version ? 'version' : transpose !== 0 ? 'key' : 'speed';
     // `ai`: the voice picked is an AI one (js/ai-voices.js), so wherever it's credited it says so, never a singer's name.
-    return { recordings: applies ? picked : [], why, credit: picked[0].credit, credits: picked.map((r) => r.credit), ai: isAi(picked[0]), aiBasedOn: picked[0].aiBasedOn ?? null, versions: found.versions, chosen: synth ? ['synth'] : picked.map((r) => r.id) };
+    return { recordings: applies ? picked : [], why, credit: picked[0].credit, credits: picked.map((r) => r.credit), ai: isAi(picked[0]), aiBasedOn: picked[0].aiBasedOn ?? null, choir: !!picked[0].choir, versions: found.versions, chosen: synth ? ['synth'] : picked.map((r) => r.id) };
 }
 
 /** A beta project's real voice for a part: the ones My parts sent, for the version being recorded. */
@@ -520,7 +524,7 @@ function realComing(part) {
 /** The synth for a slot whose real voice is still on its way (said so in its voice: `loading`). */
 async function renderSynth(part, { template, transpose, sampleRate, voices, speed = session.practice?.speed ?? 1 }) {
     const choice = voiceChoice(part, speed);
-    voices[part.id] = { kind: 'synth', credit: choice.credit, credits: choice.credits ?? [], ai: choice.ai, aiBasedOn: choice.aiBasedOn, versions: choice.versions, chosen: choice.chosen, why: null, url: null, offsetSeconds: 0, loading: true };
+    voices[part.id] = { kind: 'synth', credit: choice.credit, credits: choice.credits ?? [], ai: choice.ai, aiBasedOn: choice.aiBasedOn, choir: choice.choir, versions: choice.versions, chosen: choice.chosen, why: null, url: null, offsetSeconds: 0, loading: true };
     const samples = await renderGuide({ templateId: template.id, templateVersion: template.version, part: templatePart(part), tempo: template.tempo, transpose, speed, sampleRate });
     return { samples, sampleRate, offsetSeconds: 0 };
 }
@@ -553,7 +557,7 @@ async function realVoicesAfter(parts, { key, template, transpose, sampleRate, vo
 /** One slot's guide: its real voice when it applies and loads, otherwise the synth. */
 async function renderOne(part, { template, transpose, sampleRate, voices, speed = session.practice?.speed ?? 1 }) {
     const choice = voiceChoice(part, speed);
-    const about = { credit: choice.credit, credits: choice.credits ?? [], ai: choice.ai, aiBasedOn: choice.aiBasedOn, versions: choice.versions, chosen: choice.chosen };
+    const about = { credit: choice.credit, credits: choice.credits ?? [], ai: choice.ai, aiBasedOn: choice.aiBasedOn, choir: choice.choir, versions: choice.versions, chosen: choice.chosen };
     if (choice.recordings.length && choice.recordings.every((r) => !kept.failedVoices.has(r.url))) {
         try {
             const decoder = new OfflineAudioContext(1, 1, sampleRate);
@@ -1235,7 +1239,11 @@ export function startPlayback({ to = null } = {}) {
     if (starting) {
         // Only guides that sound: a part whose guide the mix leaves out (muted, a solo elsewhere, its take instead) doesn't count.
         const all = levels();
-        countAiHeard(session.parts.filter((p) => all.get(guideId(p.id))?.audible).map((p) => session.guideVoices?.[p.id]));
+        const heard = session.parts.filter((p) => all.get(guideId(p.id))?.audible).map((p) => session.guideVoices?.[p.id]);
+        // A song made from the singer's own singing is counted as its own (own_choir_heard), never as the catalogue's AI.
+        if (session.project.choir) {
+            if (heard.some((v) => v?.kind === 'real' && v.choir)) countChoir('own_choir_heard');
+        } else countAiHeard(heard);
     }
     singing();
     tick();
@@ -1604,6 +1612,8 @@ export async function storeTake(part, fields, samples) {
     syncMix();
     await persist(() => savePart(plainPart(part), samples));
     count('take_recorded'); // after it's saved: a save that fails isn't a take
+    // A real take for a part a voice like theirs sang (Hear yourself as a choir): the choir is that much more really them.
+    if (session.project?.choir && session.guideVoices?.[part.id]?.choir) countChoir('own_choir_replaced');
     if (session.project?.id) keptIn(session.project.id); // a unit's song opened from its end: us_kept for that place
     if (tabStorage.get(`stackapella.fromGroup.${session.project?.id}`)) first('grp_sang'); // a member's first take on a group's song
     // Voice care's day (on this device only): a take's length is time sung.
@@ -1781,6 +1791,7 @@ export async function shareMix({ room = null, partId = null } = {}) {
     const mixSeconds = rendered.channels[0].length / rendered.sampleRate;
     const tracks = [];
     const guides = [];
+    const choirParts = [];
     for (const part of session.parts) {
         const take = all.get(part.id);
         const guide = all.get(guideId(part.id));
@@ -1789,10 +1800,13 @@ export async function shareMix({ room = null, partId = null } = {}) {
             tracks.push({ name: (part.name || '').slice(0, 60) || '1', color: part.color.toLowerCase(), peaks: trackPeaks(samples, part.sampleRate, { offsetSeconds: voiceMix(part.id, all).offsetSeconds, volume: take.volume, mixSeconds }) });
         } else if (guide?.audible && kept.guides.get(part.id)) {
             tracks.push({ name: (part.name || '').slice(0, 60) || '1', color: part.color.toLowerCase(), peaks: trackPeaks(kept.guides.get(part.id), kept.guideRates.get(part.id) ?? kept.guidesRate ?? engine.sampleRate, { offsetSeconds: kept.guideOffsets.get(part.id) ?? 0, volume: guide.volume, mixSeconds }) });
-            if (session.guideVoices[part.id]?.kind === 'real') guides.push(...(session.guideVoices[part.id].ids ?? []));
+            // A part made from the singer's own singing goes as `choirParts` (its own kind of id), so the share page credits it
+            // as AI made from their singing; every other published voice as `guides`.
+            const voice = session.guideVoices[part.id];
+            if (voice?.kind === 'real') (voice.choir ? choirParts : guides).push(...(voice.ids ?? []));
         }
     }
-    return { ...rendered, tracks: tracks.slice(0, 12), guides: guides.slice(0, 16), beatZeroSeconds: session.project.template ? 0 : null };
+    return { ...rendered, tracks: tracks.slice(0, 12), guides: guides.slice(0, 16), choirParts: choirParts.slice(0, 16), beatZeroSeconds: session.project.template ? 0 : null };
 }
 
 /**

@@ -219,7 +219,8 @@ export function mountPartPlayer(el, { slug, part, url = null, startUrl = '', wor
         if (voiceToggle || !lane.hasReal()) return;
         const holder = $('part-voice');
         voiceToggle = segmented(holder, [
-            { key: 'real', label: words.real ?? '' },
+            // An AI voice standing in is never called "Real voice" (design rules, "AI: plain about it, never loud").
+            { key: 'real', label: (lane.source() === 'ai' ? words.ai : words.real) ?? '' },
             { key: 'synth', label: words.synth ?? '' },
         ], {
             current: lane.voice(),

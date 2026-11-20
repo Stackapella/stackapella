@@ -12,6 +12,7 @@ use App\Models\Template;
 use App\Models\TemplateGuide;
 use App\Services\Audio\Ffmpeg;
 use App\Support\AiVoices\AiGuides;
+use App\Support\AiVoices\AiLicence;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -43,7 +44,8 @@ final class PublishAiGuide implements ShouldQueue
 
     public function __construct(public readonly int $uploadId)
     {
-        $this->onQueue('long');
+        // `long` by default; `ai` once the long workers take it, so a catalogue run never delays a user's take.
+        $this->onQueue((string) config('services.ai_worker.queue', 'long'));
     }
 
     public function handle(Ffmpeg $ffmpeg): void
@@ -99,8 +101,8 @@ final class PublishAiGuide implements ShouldQueue
     }
 
     /**
-     * The guide, under locks taken in the same order as WithdrawAiVoice (the voice, then its uploads, then the guides):
-     * null once published, else why not.
+     * The guide, under locks taken in the same order as WithdrawAiVoice (the voice, then its uploads, then the guides),
+     * and tried again on a deadlock (three attempts): null once published, else why not.
      */
     private function land(AiUpload $upload, string $key): ?string
     {
@@ -117,6 +119,8 @@ final class PublishAiGuide implements ShouldQueue
 
             $failure = match (true) {
                 $voice === null || ! $voice->isActive() => 'voice_withdrawn',
+                // The terms changed since it was sent: no new parts until its singer accepts them.
+                ! AiLicence::licensed($voice) => 'licence_changed',
                 $template === null || $template->current_version_id !== $row->template_version_id => 'template_changed',
                 $recorded => 'real_voice_exists',
                 default => null,
@@ -149,10 +153,11 @@ final class PublishAiGuide implements ShouldQueue
                 'published_at' => now(),
             ])->save();
 
-            $row->forceFill(['status' => AiUploadStatus::Published, 'template_guide_id' => $guide->id])->save();
+            // Waits for Hillel's review (phase 1c): only approved AI guides reach the app.
+            $row->forceFill(['status' => AiUploadStatus::Published, 'template_guide_id' => $guide->id, 'review' => 'pending'])->save();
 
             return null;
-        });
+        }, 3);
     }
 
     /**

@@ -35,13 +35,15 @@ export function allowed(recording) {
  * The credit line for an AI voice: "AI voice based on Daniella G.'s singing, with permission" when it's based on a named
  * singer, else "AI voice, waiting for a real singer" (agreed with marketing so the app and the site say the same).
  */
-export function aiCredit(basedOn) {
+export function aiCredit(basedOn, choir = false) {
+    // A part made from the singer's own singing (Hear yourself as a choir, js/own-choir.js) says so in its own words.
+    if (choir) return t('ownChoir.listen.label');
     return basedOn ? t('aiVoice.basedOn', { name: basedOn }) : t('aiVoice.waiting');
 }
 
 /** Any guide's credit as the singer reads it: an AI voice's line, "Sung by Sarah K.", or "Sung by one of our singers". */
 export function voiceCredit(recording) {
-    if (isAi(recording)) return aiCredit(recording.aiBasedOn ?? null);
+    if (isAi(recording)) return aiCredit(recording.aiBasedOn ?? null, !!recording.choir);
     return recording?.credit ? t('part.sungBy', { name: recording.credit }) : t('part.sungByAnonymous');
 }
 
@@ -55,9 +57,16 @@ export function aboutUrl() {
     return new URL(path, new URL(publicSiteUrl(), location.href)).href;
 }
 
+/** Where About opens: a new tab in a browser; the same window in the installed app, so it doesn't jump out of it. */
+export function aboutTarget() {
+    const installed = globalThis.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true;
+    return installed ? '_self' : '_blank';
+}
+
 /** Whether Be the voice may sit beside the label in this project: the call is open, and not inside a lesson or a beta part. */
 export function aiCtaOpen(project) {
-    return voiceAskOpen() && !project?.course && !project?.beta;
+    // Never in a choir of your own (js/own-choir.js): its parts are yours to learn, not a call for a voice.
+    return voiceAskOpen() && !project?.course && !project?.beta && !project?.choir;
 }
 
 /**
@@ -76,19 +85,25 @@ export function countAiHeard(voices) {
  */
 export const AiVoiceLabel = {
     components: { Icon },
-    props: { basedOn: { type: String, default: null }, tag: Boolean, cta: Boolean, plain: Boolean, part: { type: String, default: '' }, parts: { type: Array, default: null } },
+    // dot: a small dot in the accent instead of the sparkle, for a quiet row among others (the song sheet; Hillel's design).
+    // choir: a part made from the singer's own singing ("AI voice made from your singing").
+    props: { basedOn: { type: String, default: null }, choir: Boolean, tag: Boolean, cta: Boolean, plain: Boolean, dot: Boolean, part: { type: String, default: '' }, parts: { type: Array, default: null } },
     emits: ['voice'],
-    setup: () => ({ aboutUrl }),
+    setup: () => ({ aboutUrl, aboutTarget }),
     computed: {
         words() {
-            return this.parts ? t('aiVoice.parts', { count: this.parts.length, parts: formatList(this.parts) }) : aiCredit(this.basedOn);
+            return this.parts ? t('aiVoice.parts', { count: this.parts.length, parts: formatList(this.parts) }) : aiCredit(this.basedOn, this.choir);
         },
     },
     template: `
         <span v-if="tag && plain" data-ai-voice="tag">{{ t('aiVoice.tag') }}</span>
         <span v-else-if="tag" data-ui="tag" data-tone="cyan" class="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-raised px-2 py-0.5 text-[10px] font-bold text-accent-strong" data-ai-voice="tag"><Icon name="sparkle" :size="10" />{{ t('aiVoice.tag') }}</span>
+        <span v-else-if="dot" class="flex gap-2.5" data-ai-voice="line">
+            <span class="mt-1.5 size-2 shrink-0 rounded-full bg-accent" aria-hidden="true"></span>
+            <span class="min-w-0"><a :href="aboutUrl()" :target="aboutTarget()" rel="noopener" class="link-quiet py-1" :title="t('aiVoice.about')" data-ai-voice-words @click.stop>{{ words }}</a><button v-if="cta" type="button" class="link tap-44 ms-1.5 font-semibold" :aria-label="part ? t('aiVoice.goPart', { part }) : null" data-ai-voice-go @click.prevent.stop="$emit('voice')">{{ t('voices.be.go') }}</button></span>
+        </span>
         <span v-else class="inline-flex flex-wrap items-center gap-x-2 gap-y-0" data-ai-voice="line">
-            <span class="inline-flex items-center gap-1.5"><Icon name="sparkle" :size="14" class="shrink-0 text-accent-strong" /><a :href="aboutUrl()" target="_blank" rel="noopener" class="link-quiet underline decoration-dotted underline-offset-2" :title="t('aiVoice.about')" data-ai-voice-words @click.stop>{{ words }}</a></span>
+            <span class="inline-flex items-center gap-1.5"><Icon name="sparkle" :size="14" class="shrink-0 text-accent-strong" /><a :href="aboutUrl()" :target="aboutTarget()" rel="noopener" class="link-quiet py-1 underline decoration-dotted underline-offset-2" :title="t('aiVoice.about')" data-ai-voice-words @click.stop>{{ words }}</a></span>
             <button v-if="cta" type="button" class="link tap-44 text-sm" :aria-label="part ? t('aiVoice.goPart', { part }) : null" data-ai-voice-go @click.prevent.stop="$emit('voice')">{{ t('voices.be.go') }}</button>
         </span>`,
 };

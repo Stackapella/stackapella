@@ -14,7 +14,9 @@ export const Modal = {
     // titleIsContent: a song's or person's name, not our words. tone: a status header (77.png): the
     // header tinted and a dot before the title, 'bad', 'busy' or 'good', with `subtitle` under it.
     // closer: the close button (a confirmation has its own safe answer instead).
-    props: { title: String, titleIsContent: Boolean, wide: Boolean, dismissable: { type: Boolean, default: true }, closer: { type: Boolean, default: true }, tone: { type: String, default: null }, subtitle: { type: String, default: '' }, dot: { type: String, default: '' } },
+    // sheet: a bottom sheet you act from (the song's sheet; Hillel's design, 2026-11-20): a grab handle on a phone, the
+    // title larger, `lead` (its one line) under it, and the close a full 44 px circle.
+    props: { sheet: Boolean, lead: { type: String, default: '' }, title: String, titleIsContent: Boolean, wide: Boolean, dismissable: { type: Boolean, default: true }, closer: { type: Boolean, default: true }, tone: { type: String, default: null }, subtitle: { type: String, default: '' }, dot: { type: String, default: '' } },
     emits: ['close'],
     data: () => ({ headingId: `dialog-${++dialogs}` }),
     setup: () => ({ TONES: { bad: 'bg-record/15', busy: 'bg-warn/15', good: 'bg-good/15' } }),
@@ -23,19 +25,21 @@ export const Modal = {
             <div class="fixed inset-0 z-40 flex items-end justify-center overscroll-none bg-black/60 md:items-center md:p-6" @click.self="dismissable && $emit('close')">
                 <section ref="panel" role="dialog" aria-modal="true" :aria-labelledby="headingId" tabindex="-1"
                     class="max-h-[92dvh] w-full overflow-y-auto overscroll-contain rounded-t-3xl border border-edge bg-panel p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl outline-none md:rounded-3xl"
-                    :class="wide ? 'md:max-w-xl' : 'md:max-w-md'">
+                    :class="[wide ? 'md:max-w-xl' : 'md:max-w-md', sheet ? 'pt-2.5' : '']">
+                    <span v-if="sheet" class="mx-auto mb-4 block h-1 w-9 rounded-full bg-line md:hidden" aria-hidden="true" data-sheet-handle></span>
                     <header class="mb-4 flex items-start justify-between gap-4" :class="tone ? '-mx-6 -mt-6 rounded-t-3xl px-6 pb-5 pt-6 transition-colors ' + TONES[tone] : ''" :data-tone="tone">
                         <div class="flex min-w-0 items-start gap-3">
                             <span v-if="tone" class="mt-1 grid size-8 shrink-0 place-items-center rounded-full bg-ink/40" aria-hidden="true"><span class="size-3 rounded-full" :class="tone === 'bad' ? 'bg-record' : tone === 'busy' ? 'animate-pulse bg-warn' : 'bg-good'"></span></span>
                             <span v-if="dot" class="mt-2 size-3 shrink-0 rounded-full" :style="{ background: dot }" aria-hidden="true"></span>
                             <div class="min-w-0">
-                                <h2 :id="headingId" class="text-xl font-bold text-cream" :translate="titleIsContent ? 'no' : null">{{ title }}</h2>
+                                <h2 :id="headingId" class="font-bold text-cream" :class="sheet ? 'text-2xl leading-tight tracking-tight' : 'text-xl'" :translate="titleIsContent ? 'no' : null">{{ title }}</h2>
+                                <p v-if="lead" class="mt-1.5 text-cream/85" translate="no" data-sheet-lead>{{ lead }}</p>
                                 <p v-if="subtitle" class="mt-1 text-sm text-cream/85" aria-live="polite">{{ subtitle }}</p>
                             </div>
                         </div>
                         <div class="-mt-1 flex shrink-0 items-center gap-2">
                             <slot name="actions" />
-                            <button v-if="dismissable && closer" type="button" class="-me-2 rounded-full p-2 text-muted hover:text-cream" @click="$emit('close')" :aria-label="t('common.close')">
+                            <button v-if="dismissable && closer" type="button" class="rounded-full text-muted hover:text-cream" :class="sheet ? '-me-2.5 -mt-1.5 grid size-11 place-items-center bg-raised text-cream' : '-me-2 p-2'" @click="$emit('close')" :aria-label="t('common.close')">
                                 <Icon name="close" />
                             </button>
                         </div>

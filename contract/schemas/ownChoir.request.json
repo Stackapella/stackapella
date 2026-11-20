@@ -1,0 +1,13 @@
+{
+    "$id": "ownChoir.request.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "ownChoir.json#/$defs/request"
+        }
+    }
+}

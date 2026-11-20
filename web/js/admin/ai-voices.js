@@ -46,6 +46,8 @@ export const AiVoicesSection = {
                         </p>
                         <p class="text-sm text-cream">{{ voice.basedOn ? t('admin.aiVoices.basedOn', { name: voice.basedOn }) : t('admin.aiVoices.notBased') }}<template v-if="voice.basedOn && typeof voice.credited === 'boolean'"> · <span data-ai-voice-credited>{{ voice.credited ? t('admin.aiVoices.credited') : t('admin.aiVoices.notCredited') }}</span></template></p>
                         <p class="text-sm text-muted" data-ai-voice-consent>{{ consentLine(voice) }}</p>
+                        <!-- Licensed in the app (phase 1b): which singer, and the licence version they accepted. -->
+                        <p v-if="voice.singer || voice.licence" class="text-sm text-muted" data-ai-voice-licence>{{ licenceLine(voice) }}</p>
                         <p v-if="voice.status === 'withdrawn'" class="text-sm text-muted">{{ t('admin.aiVoices.withdrawnOn', { date: when(voice.withdrawnAt) }) }}</p>
                         <p v-else class="text-sm text-muted" data-ai-voice-guides>{{ voice.guides.length ? t('admin.aiVoices.sings', { songs: guidesLine(voice.guides) }) : t('admin.aiVoices.singsNothing') }}</p>
                     </div>
@@ -74,6 +76,11 @@ export const AiVoicesSection = {
             const parts = [t('admin.aiVoices.consentOn', { date: formatDate(`${c.date}T12:00:00`, { day: 'numeric', month: 'short', year: 'numeric' }) }), t('admin.aiVoices.consentVersion', { version: c.version })];
             parts.push(c.paymentNoted ? t('admin.aiVoices.paymentNoted') : t('admin.aiVoices.paymentNotNoted'));
             return parts.join(' · ');
+        },
+        /** "Licensed in the app by Sarah Kim: version 1, 19 Nov 2026", or that it was added by hand. */
+        licenceLine(voice) {
+            if (!voice.licence) return t('admin.aiVoices.singerOnly', { name: voice.singer.name });
+            return t('admin.aiVoices.licensed', { name: voice.singer?.name ?? '', version: voice.licence.version, date: when(voice.licence.acceptedAt) });
         },
         ask(voice) {
             this.errors = null;

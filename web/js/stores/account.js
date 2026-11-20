@@ -81,6 +81,8 @@ export async function signOut({ everywhere = false } = {}) {
     // This device's reminders stop first (the account can't send them once nobody's signed in here).
     await import('../reminders.js').then((r) => r.turnOffHere()).catch((error) => console.warn('Reminders not stopped', error));
     await (everywhere ? api.auth.signout.everywhere() : api.auth.signout());
+    // Hear yourself as a choir's parts kept here are the singer's: they go with the sign-out (the security review).
+    await import('../own-choir.js').then((m) => m.forgetAllHere()).catch((error) => console.warn('Choir parts not cleared', error));
     account.me = null;
 }
 

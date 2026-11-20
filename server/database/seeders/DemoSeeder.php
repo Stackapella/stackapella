@@ -9,11 +9,13 @@ use App\Actions\Ideas\Ideas;
 use App\Actions\Leagues\Leagues;
 use App\Actions\Templates\Library;
 use App\Actions\Templates\SyncOfficialTemplates;
+use App\Enums\AiUploadStatus;
 use App\Enums\CreditMode;
 use App\Enums\GuideSource;
 use App\Enums\SubmissionStatus;
 use App\Enums\TemplateAccess;
 use App\Jobs\ProcessHarmony;
+use App\Models\AiUpload;
 use App\Models\AiVoice;
 use App\Models\BetaAssignment;
 use App\Models\BetaFeedback;
@@ -114,10 +116,12 @@ final class DemoSeeder extends Seeder
     }
 
     /**
-     * AI voices (docs/ai-voices-build-plan.md, phase 1; turn on `ai_voices` to hear them): Silent Night's four parts as AI
-     * guides, a plain tone each, sung by "Alto A (demo)" (based on "Ada E.", consented and credited) for the soprano and alto and
-     * "Tenor B (demo)" (not based on a named person, consented) for the tenor and bass; and "Bass C (demo)" waiting for
-     * consent, with nothing to sing. Skipped without ffmpeg or the song.
+     * AI voices (docs/ai-voices-build-plan.md; turn on `ai_voices` to hear them): Silent Night's four parts as AI guides,
+     * all sung by "Alto A (demo)" (based on "Ada E.", consented and credited), each a plain tone following its part's
+     * own notes over the song, approved; "Tenor B (demo)" (not based on a named person, consented) and "Bass C (demo)"
+     * (waiting for consent) sing nothing. And Amazing Grace's soprano as a recorded guide credited "Sarah K.", the real
+     * voice the /your-choir page sets beside them (its id printed, for VOICE_DEMO_REAL_GUIDE). Skipped without ffmpeg or
+     * the songs.
      */
     private function aiVoices(): void
     {
@@ -139,32 +143,155 @@ final class DemoSeeder extends Seeder
             return $voice;
         };
         $alto = $voice('Alto A (demo)', 'Ada E.', true);
-        $tenor = $voice('Tenor B (demo)', null, true);
+        $voice('Tenor B (demo)', null, true);
         $voice('Bass C (demo)', 'Bo B.', false);
 
-        $rate = 48000;
-        $wav = sys_get_temp_dir().'/demo-ai-'.Str::lower(Str::random(8)).'.wav';
-        $m4a = $wav.'.m4a';
-
         try {
-            foreach (['soprano' => $alto, 'alto' => $alto, 'tenor' => $tenor, 'bass' => $tenor] as $part => $singer) {
-                if (TemplateGuide::withAi()->where('template_version_id', $version->id)->where('part_key', $part)->exists()) {
+            foreach (array_values(array_filter((array) ($version->data['parts'] ?? []), 'is_array')) as $part) {
+                $key = (string) $part['key'];
+                $existing = TemplateGuide::withAi()->where('template_version_id', $version->id)->where('part_key', $key)->first();
+
+                // An earlier demo's (another voice, or a 4-second tone): made again as the page needs it.
+                if ($existing !== null && $existing->isAi() && str_starts_with($existing->media_key, 'guides/demo-ai-') && ($existing->ai_voice_id !== $alto->id || $existing->frames === 4 * 48000)) {
+                    Storage::disk('media')->delete($existing->media_key);
+                    TemplateGuide::withAi()->whereKey($existing->id)->delete();
+                    $existing = null;
+                }
+
+                if ($existing !== null) {
                     continue;
                 }
 
-                file_put_contents($wav, self::tone(4.0, $rate));
-                app(Ffmpeg::class)->encodeGuide($wav, $m4a, $rate, 0, 4 * $rate, -6.0);
-                $key = 'guides/demo-ai-silent-night-'.$part.'.m4a';
-                Storage::disk('media')->put($key, (string) file_get_contents($m4a), ['visibility' => 'public', 'ContentType' => 'audio/mp4']);
-                $guide = new TemplateGuide(['part_key' => $part]);
-                $guide->forceFill(['template_version_id' => $version->id, 'source' => GuideSource::Ai, 'ai_voice_id' => $singer->id, 'is_default' => true, 'media_key' => $key, 'sample_rate' => $rate, 'frames' => 4 * $rate, 'offset_frames' => 0, 'gain' => 1, 'published_at' => now()])->save();
+                [$key2, $rate, $frames] = $this->noteGuide($version->data, $key, 'guides/demo-ai-silent-night-'.$key.'.m4a');
+                $guide = new TemplateGuide(['part_key' => $key]);
+                $guide->forceFill(['template_version_id' => $version->id, 'source' => GuideSource::Ai, 'ai_voice_id' => $alto->id, 'approved_at' => now(), 'is_default' => true, 'media_key' => $key2, 'sample_rate' => $rate, 'frames' => $frames, 'offset_frames' => 0, 'gain' => 1, 'published_at' => now()])->save();
             }
+
+            $this->realSoprano();
+            $this->reviewQueue($alto);
         } catch (Throwable $e) {
             report($e);
+        }
+    }
+
+    /**
+     * Admin's review queue (phase 1c) with something in it: Silent Night's four AI parts as approved uploads, and Amazing
+     * Grace's tenor in the same voice waiting for review (pending: it never reaches the app or the site).
+     */
+    private function reviewQueue(AiVoice $alto): void
+    {
+        $upload = static function (TemplateGuide $guide, string $review) use ($alto): void {
+            if (AiUpload::query()->where('template_guide_id', $guide->id)->exists()) {
+                return;
+            }
+
+            $row = new AiUpload(['part_key' => $guide->part_key]);
+            $row->forceFill([
+                'template_version_id' => $guide->template_version_id, 'ai_voice_id' => $alto->id, 'status' => AiUploadStatus::Published, 'review' => $review,
+                'reviewed_at' => $review === 'approved' ? now() : null, 'upload_key' => 'uploads/ai/demo-'.$guide->id.'.wav', 'sample_rate' => 48000, 'frames' => $guide->frames,
+                'bytes' => 44 + $guide->frames * 2, 'sha256' => str_repeat('0', 64), 'template_guide_id' => $guide->id,
+                'checks' => ['pitchMaxCents' => 12.0, 'pitchMedianCents' => 5.0, 'notesMeasured' => 40, 'notesTotal' => 40, 'notesOver15' => 0, 'notesOver30' => 0, 'dropouts' => 0, 'heldSeconds' => 20.0, 'durationSeconds' => $guide->frames / max(1, $guide->sample_rate)],
+                'renderer' => ['model' => 'demo-tone', 'codeRevision' => str_repeat('0', 40), 'weightsRevision' => str_repeat('0', 40), 'steps' => 0, 'control' => 'melody', 'pitchShift' => 0, 'reference' => 'demo'],
+            ])->save();
+        };
+
+        foreach (TemplateGuide::withAi()->where('source', 'ai')->where('ai_voice_id', $alto->id)->whereNotNull('approved_at')->get() as $guide) {
+            $upload($guide, 'approved');
+        }
+
+        $grace = Template::query()->official()->with('currentVersion')->where('slug', 'amazing-grace')->first();
+        $version = $grace?->currentVersion;
+
+        if ($version === null || TemplateGuide::withAi()->where('template_version_id', $version->id)->where('part_key', 'tenor')->exists()) {
+            return;
+        }
+
+        [$key, $rate, $frames] = $this->noteGuide($version->data, 'tenor', 'guides/demo-ai-amazing-grace-tenor.m4a');
+        $guide = new TemplateGuide(['part_key' => 'tenor']);
+        $guide->forceFill(['template_version_id' => $version->id, 'source' => GuideSource::Ai, 'ai_voice_id' => $alto->id, 'approved_at' => null, 'is_default' => true, 'media_key' => $key, 'sample_rate' => $rate, 'frames' => $frames, 'offset_frames' => 0, 'gain' => 1, 'published_at' => now()])->save();
+        $upload($guide, 'pending');
+    }
+
+    /**
+     * Amazing Grace's soprano sung by Sarah (demo), published and credited "Sarah K." by her choice.
+     */
+    private function realSoprano(): void
+    {
+        $grace = Template::query()->official()->with('currentVersion')->where('slug', 'amazing-grace')->first();
+        $sarah = BetaSinger::query()->where('email', 'sarah@example.com')->first();
+        $version = $grace?->currentVersion;
+
+        if ($version === null || $sarah === null) {
+            return;
+        }
+
+        $guide = TemplateGuide::query()->where('template_version_id', $version->id)->where('part_key', 'soprano')->first();
+
+        if ($guide === null) {
+            $assignment = BetaAssignment::query()->firstOrCreate(['beta_singer_id' => $sarah->id, 'template_id' => $grace->id, 'part_key' => 'soprano'], ['minutes' => 25]);
+            [$key, $rate, $frames] = $this->noteGuide($version->data, 'soprano', 'guides/demo-real-amazing-grace-soprano.m4a');
+            $submission = new BetaSubmission(['music_key' => (string) ($version->data['key'] ?? 'G'), 'sample_rate' => $rate, 'frames' => $frames, 'latency_frames' => 0, 'bytes' => 44 + $frames * 2, 'sha256' => str_repeat('d', 64), 'device' => 'Mac, Chrome (demo)', 'mic' => 'Wired headset', 'scores' => ['pitchPercent' => 94]]);
+            $submission->forceFill(['beta_assignment_id' => $assignment->id, 'template_version_id' => $version->id, 'part_key' => 'soprano', 'status' => SubmissionStatus::Accepted, 'publish_status' => 'published', 'master_key' => ''])->save();
+            $guide = new TemplateGuide(['part_key' => 'soprano']);
+            $guide->forceFill(['template_version_id' => $version->id, 'beta_submission_id' => $submission->id, 'is_default' => true, 'defaulted_at' => now(), 'media_key' => $key, 'sample_rate' => $rate, 'frames' => $frames, 'offset_frames' => 0, 'gain' => 1, 'published_at' => now()])->save();
+        }
+
+        $this->command?->info('VOICE_DEMO_REAL_GUIDE='.$guide->sqid());
+    }
+
+    /**
+     * A part as a plain tone following its own notes over the song (a guide the app and the pages can play), encoded as
+     * the guides are and put on the CDN at `$key`.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array{0: string, 1: int, 2: int}
+     */
+    private function noteGuide(array $data, string $part, string $key): array
+    {
+        $rate = 24000;
+        $notes = [];
+
+        foreach ((array) ($data['parts'] ?? []) as $p) {
+            if (is_array($p) && ($p['key'] ?? null) === $part) {
+                $notes = array_values(array_filter((array) ($p['guide']['notes'] ?? []), 'is_array'));
+            }
+        }
+
+        $beat = 60 / max(1.0, (float) ($data['tempo'] ?? 80));
+        $end = $notes === [] ? 4.0 : max(array_map(static fn (array $n): float => (float) ($n['beat'] ?? 0) + (float) ($n['length'] ?? 0), $notes)) * $beat;
+        $frames = (int) ceil($end * $rate);
+        $samples = array_fill(0, $frames, 0);
+
+        foreach ($notes as $n) {
+            $from = (int) round((float) ($n['beat'] ?? 0) * $beat * $rate);
+            $length = (int) round((float) ($n['length'] ?? 0) * $beat * $rate);
+            $hz = 440 * 2 ** (((float) ($n['pitch'] ?? 69) - 69) / 12);
+            $fade = min(240, intdiv(max(1, $length), 4));
+
+            for ($i = 0; $i < $length && $from + $i < $frames; $i++) {
+                $envelope = min(1.0, $i / max(1, $fade), ($length - $i) / max(1, $fade));
+                $samples[$from + $i] = (int) round(sin(2 * M_PI * $hz * $i / $rate) * 0.25 * $envelope * 32767);
+            }
+        }
+
+        $pcm = '';
+        foreach ($samples as $s) {
+            $pcm .= pack('v', $s & 0xFFFF);
+        }
+
+        $wav = sys_get_temp_dir().'/demo-note-'.Str::lower(Str::random(8)).'.wav';
+        $m4a = $wav.'.m4a';
+
+        try {
+            file_put_contents($wav, 'RIFF'.pack('V', 36 + strlen($pcm)).'WAVE'.'fmt '.pack('VvvVVvv', 16, 1, 1, $rate, $rate * 2, 2, 16).'data'.pack('V', strlen($pcm)).$pcm);
+            app(Ffmpeg::class)->encodeGuide($wav, $m4a, $rate, 0, $frames, -6.0);
+            Storage::disk('media')->put($key, (string) file_get_contents($m4a), ['visibility' => 'public', 'ContentType' => 'audio/mp4']);
         } finally {
             @unlink($wav);
             @unlink($m4a);
         }
+
+        return [$key, $rate, $frames];
     }
 
     /**

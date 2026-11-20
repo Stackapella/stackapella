@@ -12,7 +12,9 @@ use App\Support\Pages\Carols;
 use App\Support\Pages\Landing;
 use App\Support\Pages\Reference;
 use App\Support\Pages\SongCollections;
+use App\Support\Pages\SongParts;
 use App\Support\Pages\Warmups;
+use App\Support\Pages\YourChoirStage;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\View;
 
@@ -468,6 +470,27 @@ final class SitePages
     }
 
     /**
+     * A section with its `ai_voices` sentence joined to its body while AI voices are on (docs/ai-voices-build-plan.md),
+     * and without it while they're off.
+     *
+     * @param  array<array-key, mixed>  $section
+     * @return array<array-key, mixed>
+     */
+    private static function withAiVoices(array $section): array
+    {
+        if (! is_string($section['ai_voices'] ?? null)) {
+            return $section;
+        }
+        $line = $section['ai_voices'];
+        unset($section['ai_voices']);
+        if (SongParts::switchedOn('ai_voices') && is_string($section['body'] ?? null)) {
+            $section['body'] .= ' '.$line;
+        }
+
+        return $section;
+    }
+
+    /**
      * A feature or "for" page's words, with its slug and, for a feature, whether it's coming.
      *
      * @param  'features'|'for'|'courses'  $area
@@ -488,7 +511,8 @@ final class SitePages
             'soon' => $area === 'features' && self::soon($slug),
             // Where a coming feature stands, in one honest line (its page's `soon`).
             'soon_line' => isset($page['soon']) && is_string($page['soon']) ? $page['soon'] : null,
-            'sections' => $sections = array_values(array_filter((array) ($page['sections'] ?? []), 'is_array')),
+            // A section's `ai_voices` sentence joins its body while that switch is on, and is gone while it's off.
+            'sections' => $sections = array_values(array_map(static fn (array $section): array => self::withAiVoices($section), array_filter((array) ($page['sections'] ?? []), 'is_array'))),
             // Direction A: the sections with a drawing of the app are rows of words beside it; the
             // rest are plain cards.
             'rows' => array_values(array_filter($sections, static fn (array $section): bool => is_string($section['pic'] ?? null))),
@@ -646,7 +670,7 @@ final class SitePages
      * words (no claims of the card's own). A song collection's card is designed for its page (its `theme`, with the
      * serif words and the promise its hero has: collectionCards).
      *
-     * @return list<array{key: string, eyebrow: string, headline: string, em?: string, lead?: string, theme?: string, promise?: string, lanes?: array<string, mixed>|null}>
+     * @return list<array{key: string, eyebrow?: string, headline?: string, em?: string, lead?: string, theme?: string, promise?: string, lanes?: array<string, mixed>|null, choir?: array<string, mixed>}>
      */
     public static function linkCards(): array
     {
@@ -670,6 +694,8 @@ final class SitePages
             ], array_keys(Reference::FAMILIES))),
             $card('/songs', (string) __('pages.songs.eyebrow'), (string) __('pages.songs.headline')),
             ...self::collectionCards(),
+            // Hear yourself as a choir's own two (English and Spanish), in its stage's look (YourChoirStage::cards).
+            ...YourChoirStage::cards(),
             ...(self::courses() === [] ? [] : [$card('/courses', (string) __('pages.site.courses'), (string) __('site.courses.index.headline'))]),
             ...(self::hasHowItWorks() ? [$card('/how-it-works', (string) __('site.how.eyebrow'), (string) __('site.how.headline'))] : []),
             $card('/pricing', (string) __('pages.nav.pricing'), (string) __('pages.pricing.headline')),

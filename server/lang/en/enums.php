@@ -18,6 +18,14 @@ return [
         'recorded' => 'Recorded',
         'ai' => 'AI voice',
     ],
+    'own_choir_status' => [
+        'uploading' => 'Uploading',
+        'queued' => 'Waiting',
+        'rendering' => 'Rendering',
+        'ready' => 'Ready',
+        'failed' => 'Failed',
+        'deleted' => 'Deleted',
+    ],
     'ai_upload_status' => [
         'uploading' => 'Uploading',
         'processing' => 'Processing',

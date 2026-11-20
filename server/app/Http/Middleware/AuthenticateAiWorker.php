@@ -13,8 +13,9 @@ use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * The AI voices worker API's one bearer token (services.ai_worker.token, from env only; contract/api.md, "The AI voices
- * worker"), read from the Authorization header alone, never a query parameter. Without a token of at least
+ * The AI voices worker API's bearer tokens, from env only (contract/api.md, "The AI voices worker"): the catalogue's
+ * (services.ai_worker.token, worker.ai.*) and the choir jobs' own (services.ai_worker.choir_token, worker.choir.*, as
+ * `ai.worker:choir`), so neither opens the other. Read from the Authorization header alone, never a query parameter. Without a token of at least
  * MIN_TOKEN_LENGTH characters the API is off: 404. A missing or wrong token is 401, its first refusal from a network
  * each hour written to the audit log (a fixed code, never the value sent).
  */
@@ -23,9 +24,9 @@ final class AuthenticateAiWorker
     /** Anything shorter turns the API off rather than guarding it with a guessable secret. */
     public const MIN_TOKEN_LENGTH = 32;
 
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next, string $api = 'catalogue'): Response
     {
-        $expected = (string) config('services.ai_worker.token');
+        $expected = (string) config($api === 'choir' ? 'services.ai_worker.choir_token' : 'services.ai_worker.token');
 
         if (strlen($expected) < self::MIN_TOKEN_LENGTH) {
             throw new Refusal(404, 'not_found');

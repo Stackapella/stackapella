@@ -1,0 +1,220 @@
+{
+    "$id": "worker.ai.catalogue.json",
+    "title": "Every song's current version and what each part still needs (the worker API, phase 1c)",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "meta"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "template",
+                    "version",
+                    "versionId",
+                    "title",
+                    "voicings",
+                    "parts"
+                ],
+                "properties": {
+                    "template": {
+                        "type": "string"
+                    },
+                    "version": {
+                        "type": "integer"
+                    },
+                    "versionId": {
+                        "type": "string"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "voicings": {
+                        "type": "object",
+                        "description": "Which parts sing for each number of singers, as in the catalogue."
+                    },
+                    "parts": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "key",
+                                "name",
+                                "range",
+                                "seconds",
+                                "hasRealGuide",
+                                "aiGuide",
+                                "pending",
+                                "rejected",
+                                "todo"
+                            ],
+                            "properties": {
+                                "key": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                },
+                                "range": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "low",
+                                        "high"
+                                    ],
+                                    "properties": {
+                                        "low": {
+                                            "type": "integer"
+                                        },
+                                        "high": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "description": "Its lowest and highest notes, MIDI."
+                                },
+                                "seconds": {
+                                    "type": "number",
+                                    "description": "Beat 0 to its last note's end, at the version's tempo."
+                                },
+                                "hasRealGuide": {
+                                    "type": "boolean"
+                                },
+                                "aiGuide": {
+                                    "type": [
+                                        "object",
+                                        "null"
+                                    ],
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "id",
+                                        "voice",
+                                        "review"
+                                    ],
+                                    "properties": {
+                                        "id": {
+                                            "type": "string"
+                                        },
+                                        "voice": {
+                                            "type": "string"
+                                        },
+                                        "review": {
+                                            "type": "string",
+                                            "enum": [
+                                                "pending",
+                                                "approved"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "pending": {
+                                    "type": [
+                                        "object",
+                                        "null"
+                                    ],
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "upload",
+                                        "voice",
+                                        "status"
+                                    ],
+                                    "properties": {
+                                        "upload": {
+                                            "type": "string"
+                                        },
+                                        "voice": {
+                                            "type": "string"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "enum": [
+                                                "uploading",
+                                                "processing"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "rejected": {
+                                    "type": [
+                                        "object",
+                                        "null"
+                                    ],
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "upload",
+                                        "voice",
+                                        "note",
+                                        "at"
+                                    ],
+                                    "properties": {
+                                        "upload": {
+                                            "type": "string"
+                                        },
+                                        "voice": {
+                                            "type": "string"
+                                        },
+                                        "note": {
+                                            "type": "string"
+                                        },
+                                        "at": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        }
+                                    },
+                                    "description": "Its newest render, if Hillel rejected it (and no newer one since)."
+                                },
+                                "todo": {
+                                    "type": "boolean",
+                                    "description": "No recorded voice, no AI guide (pending or approved), nothing in flight: render it."
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "voices"
+            ],
+            "properties": {
+                "voices": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "name",
+                            "active",
+                            "licensed"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "active": {
+                                "type": "boolean",
+                                "description": "False once withdrawn: never render with it."
+                            },
+                            "licensed": {
+                                "type": "boolean",
+                                "description": "False while its singer hasn't accepted the AI voice licence's current terms (uploads answer 403 licence_changed); keep its reference, they may accept. Always true for a voice added by command."
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

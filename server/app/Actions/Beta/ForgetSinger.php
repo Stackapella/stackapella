@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Actions\Beta;
 
+use App\Actions\AiVoices\WithdrawAiVoice;
+use App\Exceptions\Refusal;
+use App\Models\AiVoice;
 use App\Models\AuditLog;
 use App\Models\BetaFeedback;
 use App\Models\BetaSinger;
@@ -79,6 +82,20 @@ final class ForgetSinger
         }
 
         Storage::disk('private')->delete($masters);
+
+        // Their AI voice goes too (the AI voice licence, phase 1b), last, so nothing above waits on it: everything it sang
+        // retired, its files deleted, and their name off its record. An accept racing this one sees them forgotten under
+        // the singer's lock and is refused (AcceptAiLicence); one withdrawn this moment elsewhere is already gone.
+        foreach (AiVoice::query()->where('beta_singer_id', $singer->id)->whereNull('withdrawn_at')->get() as $voice) {
+            try {
+                app(WithdrawAiVoice::class)->handle($voice, $actor, $ip);
+            } catch (Refusal $refusal) {
+                if ($refusal->refusalCode !== 'already_withdrawn') {
+                    throw $refusal;
+                }
+            }
+        }
+        AiVoice::query()->where('beta_singer_id', $singer->id)->update(['name' => 'Forgotten singer', 'based_on' => null, 'credited' => false]);
 
         return $singer;
     }

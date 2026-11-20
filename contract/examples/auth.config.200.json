@@ -22,6 +22,8 @@
         "sheetImport": false,
         "lendVoice": false,
         "aiVoices": false,
+        "ownChoir": false,
+        "ownChoirSongs": false,
         "experiment": null,
         "experiments": [
             {

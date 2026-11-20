@@ -1,0 +1,40 @@
+{
+    "$id": "worker.choir.reference.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "#/$defs/reference"
+        }
+    },
+    "$defs": {
+        "reference": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "job",
+                "status"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "job": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "uploading",
+                        "ready",
+                        "failed"
+                    ]
+                }
+            }
+        }
+    }
+}

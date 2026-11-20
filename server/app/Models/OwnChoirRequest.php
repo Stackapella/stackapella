@@ -1,0 +1,117 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use App\Enums\OwnChoirStatus;
+use App\Models\Concerns\HasSqid;
+use Database\Factories\OwnChoirRequestFactory;
+use Illuminate\Database\Eloquent\Attributes\UseFactory;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
+
+/**
+ * A song requested in a singer's own voice (track B): their clip (sent to `upload_key`, kept at `clip_key` only until
+ * the song finishes), the part they sang along to and where beat 0 falls in it, the renderer's claim, and the parts.
+ *
+ * @property int $id
+ * @property int $user_id
+ * @property int|null $template_version_id null once its song is gone for good (the row kept, still counting)
+ * @property int|null $own_choir_voice_id the kept voice it's made from (null once that voice is deleted)
+ * @property bool $from_voice made from a kept voice rather than a new clip
+ * @property string|null $part_key
+ * @property int|null $offset_frames
+ * @property OwnChoirStatus $status
+ * @property string|null $failure
+ * @property string|null $upload_key
+ * @property string|null $clip_key
+ * @property Carbon|null $clip_checked_at
+ * @property int|null $sample_rate
+ * @property int|null $frames
+ * @property int|null $bytes
+ * @property string|null $sha256
+ * @property Carbon|null $claimed_at
+ * @property string|null $claim_token
+ * @property int $tries
+ * @property Carbon|null $ready_at
+ * @property Carbon|null $seen_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read User $user
+ * @property-read TemplateVersion|null $templateVersion
+ * @property-read OwnChoirVoice|null $voice
+ * @property-read Collection<int, OwnChoirPart> $parts
+ */
+#[UseFactory(OwnChoirRequestFactory::class)]
+final class OwnChoirRequest extends Model
+{
+    /** @use HasFactory<OwnChoirRequestFactory> */
+    use HasFactory;
+
+    use HasSqid;
+
+    protected $fillable = [
+        'part_key',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'status' => OwnChoirStatus::class,
+            'offset_frames' => 'integer',
+            'from_voice' => 'boolean',
+            'sample_rate' => 'integer',
+            'frames' => 'integer',
+            'bytes' => 'integer',
+            'tries' => 'integer',
+            'clip_checked_at' => 'datetime',
+            'claimed_at' => 'datetime',
+            'ready_at' => 'datetime',
+            'seen_at' => 'datetime',
+        ];
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return BelongsTo<TemplateVersion, $this>
+     */
+    public function templateVersion(): BelongsTo
+    {
+        return $this->belongsTo(TemplateVersion::class);
+    }
+
+    /**
+     * @return BelongsTo<OwnChoirVoice, $this>
+     */
+    public function voice(): BelongsTo
+    {
+        return $this->belongsTo(OwnChoirVoice::class, 'own_choir_voice_id');
+    }
+
+    /**
+     * @return HasMany<OwnChoirPart, $this>
+     */
+    public function parts(): HasMany
+    {
+        return $this->hasMany(OwnChoirPart::class);
+    }
+
+    /** Claimed by the renderer, its claim still running, and (given) by the claim holding this token. */
+    public function claimHeld(?string $token = null): bool
+    {
+        return $this->status === OwnChoirStatus::Rendering && $this->claimed_at !== null && $this->claimed_at->greaterThan(now()->subMinutes((int) config('own_choir.claim_minutes')))
+            && ($token === null || ($this->claim_token !== null && hash_equals($this->claim_token, $token)));
+    }
+}

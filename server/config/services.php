@@ -105,6 +105,12 @@ return [
     // ever here in env. Unset (or under 32 characters), every worker route answers 404.
     'ai_worker' => [
         'token' => env('AI_WORKER_TOKEN'),
+        // Hear yourself as a choir's render jobs (worker.choir.*) have a token of their own: the catalogue's batch machine
+        // never holds one that can claim a user's private clip (the security review).
+        'choir_token' => env('AI_CHOIR_TOKEN'),
+        // The queue AI guides are published on: `long` (every worker's) until the long workers also take `ai`
+        // (.do/app.yaml, --queue=long,ai), then `ai`, so a catalogue run waits behind users' takes and videos.
+        'queue' => env('AI_GUIDES_QUEUE', 'long'),
     ],
 
     'growth_data' => [

@@ -58,6 +58,13 @@ Schedule::command('app:beta:prune-masters')
     ->hourlyAt(25)
     ->withoutOverlapping(30);
 
+// Hear yourself as a choir: clips never sent, and songs whose render tries ran out (PruneOwnChoir).
+Schedule::command('app:own-choir:prune')
+    ->onOneServer()
+    ->name('own-choir-prune')
+    ->hourlyAt(40)
+    ->withoutOverlapping(30);
+
 // AI masters nobody needs: uploads never completed, failed ones, and retired AI guides' (PruneAiUploads).
 Schedule::command('app:ai-uploads:prune')
     ->onOneServer()

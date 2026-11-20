@@ -20,7 +20,7 @@ final class AiVoicesController extends Controller
 {
     public function index(): JsonResponse
     {
-        $voices = AiVoice::query()->with('guides.templateVersion.template')->orderByDesc('id')->get();
+        $voices = AiVoice::query()->with(['guides.templateVersion.template', 'betaSinger'])->orderByDesc('id')->get();
 
         return response()->json(['data' => AiVoiceResource::collection($voices)->resolve()]);
     }
@@ -29,6 +29,6 @@ final class AiVoicesController extends Controller
     {
         $retired = $withdraw->handle($voice, $admin, $request->ip());
 
-        return response()->json(['data' => (new AiVoiceResource($voice->load('guides.templateVersion.template')))->resolve(), 'meta' => ['retired' => $retired]]);
+        return response()->json(['data' => (new AiVoiceResource($voice->load(['guides.templateVersion.template', 'betaSinger'])))->resolve(), 'meta' => ['retired' => $retired]]);
     }
 }

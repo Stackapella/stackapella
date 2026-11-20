@@ -1,0 +1,12 @@
+{
+    "data": {
+        "offered": true,
+        "version": 1,
+        "accepted": null,
+        "withdrawnAt": "2026-11-22T10:00:00Z",
+        "voice": null
+    },
+    "meta": {
+        "retired": 1
+    }
+}

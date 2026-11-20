@@ -14,6 +14,7 @@ import { formatTime } from '../../theme.js';
 import { Icon } from '../icon.js';
 import { sk } from '../../skin.js';
 import { BeTheVoice } from '../../be-the-voice.js';
+import { ChoirCard } from '../../own-choir.js';
 
 const MAX_NUDGE_MS = 150;
 const LEVEL = { excellent: tk('report.level.excellent'), close: tk('report.level.close'), gettingThere: tk('report.level.gettingThere'), tricky: tk('report.level.tricky') };
@@ -60,7 +61,7 @@ const PeakRow = {
 };
 
 export const JustRecorded = {
-    components: { Icon, PeakRow, BeTheVoice },
+    components: { ChoirCard, Icon, PeakRow, BeTheVoice },
     props: {
         outcome: { type: Object, required: true }, // sessionStore.finishRecording's
         partName: { type: String, required: true },
@@ -86,8 +87,9 @@ export const JustRecorded = {
         bleed: Boolean,
         sungBy: { type: String, default: '' }, // the song and who sang it, once two or more of its parts are yours (onboarding step 10)
         voice: { type: Object, default: null }, // Be the voice's invitation (js/be-the-voice.js): { part, guest }, or null
+        choir: { type: Object, default: null }, // a choir project's take (js/own-choir.js): { seconds, busy, error }, or null
     },
-    emits: ['hear', 'mute', 'again', 'next', 'nudge', 'nudged', 'line-up', 'studio', 'resing', 'trim', 'polish', 'share', 'hear-phrase', 'voice-share', 'voice-later'],
+    emits: ['hear', 'mute', 'again', 'next', 'nudge', 'nudged', 'line-up', 'studio', 'resing', 'trim', 'polish', 'share', 'hear-phrase', 'voice-share', 'voice-later', 'choir-make'],
     data: () => ({ nudging: false, picked: null }),
     setup: () => ({ MAX_NUDGE_MS, CHART, formatNumber, formatTime, sk }),
     template: `
@@ -197,6 +199,7 @@ export const JustRecorded = {
                 </div>
                 <!-- Be the voice (Hillel, 2026-11-12): a usable take of a part no one has given a real voice, one calm card after the take's own checks. -->
                 <BeTheVoice v-if="voice" :part="voice.part" :guest="voice.guest" @share="$emit('voice-share')" @later="$emit('voice-later')" />
+                <ChoirCard v-else-if="choir" :seconds="choir.seconds" :busy="choir.busy" :error="choir.error" @make="$emit('choir-make')" @again="$emit('again')" />
             </div>
             <!-- One clear decision, always in view. -->
             <div class="sticky bottom-0 z-10 border-t border-edge bg-ink/95 px-4 py-3 backdrop-blur md:px-8">

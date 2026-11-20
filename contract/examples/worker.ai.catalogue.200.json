@@ -1,0 +1,161 @@
+{
+    "data": [
+        {
+            "template": "amazing-grace",
+            "version": 4,
+            "versionId": "Tv4Ag1",
+            "title": "Amazing Grace",
+            "voicings": {
+                "2": [
+                    "soprano",
+                    "alto"
+                ]
+            },
+            "parts": [
+                {
+                    "key": "soprano",
+                    "name": "Soprano",
+                    "range": {
+                        "low": 62,
+                        "high": 74
+                    },
+                    "seconds": 96.0,
+                    "hasRealGuide": true,
+                    "aiGuide": null,
+                    "pending": null,
+                    "rejected": null,
+                    "todo": false
+                },
+                {
+                    "key": "alto",
+                    "name": "Alto",
+                    "range": {
+                        "low": 59,
+                        "high": 71
+                    },
+                    "seconds": 96.0,
+                    "hasRealGuide": false,
+                    "aiGuide": null,
+                    "pending": null,
+                    "rejected": null,
+                    "todo": true
+                }
+            ]
+        },
+        {
+            "template": "silent-night",
+            "version": 8,
+            "versionId": "Tv8Sn2",
+            "title": "Silent Night",
+            "voicings": {
+                "2": [
+                    "soprano",
+                    "alto"
+                ],
+                "4": [
+                    "soprano",
+                    "alto",
+                    "tenor",
+                    "bass"
+                ]
+            },
+            "parts": [
+                {
+                    "key": "soprano",
+                    "name": "Soprano",
+                    "range": {
+                        "low": 65,
+                        "high": 77
+                    },
+                    "seconds": 142.5,
+                    "hasRealGuide": false,
+                    "aiGuide": {
+                        "id": "Ai7Sop",
+                        "voice": "Vc3Ad8",
+                        "review": "approved"
+                    },
+                    "pending": null,
+                    "rejected": null,
+                    "todo": false
+                },
+                {
+                    "key": "alto",
+                    "name": "Alto",
+                    "range": {
+                        "low": 58,
+                        "high": 70
+                    },
+                    "seconds": 142.5,
+                    "hasRealGuide": false,
+                    "aiGuide": {
+                        "id": "Ai7Alt",
+                        "voice": "Vc3Ad8",
+                        "review": "pending"
+                    },
+                    "pending": null,
+                    "rejected": null,
+                    "todo": false
+                },
+                {
+                    "key": "tenor",
+                    "name": "Tenor",
+                    "range": {
+                        "low": 53,
+                        "high": 65
+                    },
+                    "seconds": 142.5,
+                    "hasRealGuide": false,
+                    "aiGuide": null,
+                    "pending": {
+                        "upload": "Up4Rn7",
+                        "voice": "Vc9Tn2",
+                        "status": "processing"
+                    },
+                    "rejected": null,
+                    "todo": false
+                },
+                {
+                    "key": "bass",
+                    "name": "Bass",
+                    "range": {
+                        "low": 41,
+                        "high": 53
+                    },
+                    "seconds": 142.5,
+                    "hasRealGuide": false,
+                    "aiGuide": null,
+                    "pending": null,
+                    "rejected": {
+                        "upload": "Up2Bs5",
+                        "voice": "Vc9Tn2",
+                        "note": "Flat on the low B flats in the last line.",
+                        "at": "2026-11-21T11:00:00Z"
+                    },
+                    "todo": true
+                }
+            ]
+        }
+    ],
+    "meta": {
+        "voices": [
+            {
+                "id": "Vc3Ad8",
+                "name": "Alto A",
+                "active": true,
+                "licensed": true
+            },
+            {
+                "id": "Vc9Tn2",
+                "name": "Tenor B",
+                "active": true,
+                "licensed": true
+            },
+            {
+                "id": "Vc1Wd5",
+                "name": "Soprano C",
+                "active": false,
+                "licensed": true
+            }
+        ]
+    }
+}

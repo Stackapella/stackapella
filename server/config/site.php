@@ -53,6 +53,18 @@ return [
 
     'contact_email' => env('SITE_CONTACT_EMAIL') ?: 'contact@stackapella.com',
 
+    // Hear yourself as a choir's demo (/your-choir; App\Support\Pages\VoiceDemo; Hillel: "the name audio should come form
+    // the app"): a singer's real published guide beside the AI guides her own AI voice sings on a song she never sang, as
+    // the app serves them. `ai_voice` is that AI voice's id (Admin, AI voices; 0 hides the demo); `real.guide` may name
+    // the real guide's id, else the part's default recorded guide. The demo shows only with ai_voices on, the voice
+    // consented, active and credited, and every guide published.
+    'voice_demo' => [
+        'ai_voice' => (int) env('VOICE_DEMO_AI_VOICE', 0),
+        'real' => ['song' => 'amazing-grace', 'part' => 'soprano', 'guide' => (int) env('VOICE_DEMO_REAL_GUIDE', 0)],
+        // `parts` in order, those in `required` needed for any demo; the others join when they're published.
+        'ai' => ['song' => 'silent-night', 'parts' => ['soprano', 'alto', 'tenor', 'bass'], 'required' => ['soprano', 'alto']],
+    ],
+
     // Where an organization writes about the partner offer (/for/organizations): the address Hillel
     // picks for outreach replies, once he has; the contact address until then.
     'partners_email' => env('SITE_PARTNERS_EMAIL') ?: 'contact@stackapella.com',

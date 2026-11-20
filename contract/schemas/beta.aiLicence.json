@@ -1,0 +1,125 @@
+{
+    "$id": "beta.aiLicence.json",
+    "title": "A beta singer's AI voice licence: offered, accepted, withdrawn (docs/ai-voices-build-plan.md, phase 1b)",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "#/$defs/state"
+        }
+    },
+    "$defs": {
+        "state": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "offered",
+                "version",
+                "accepted",
+                "withdrawnAt",
+                "voice"
+            ],
+            "properties": {
+                "offered": {
+                    "type": "boolean",
+                    "description": "False: the app shows nothing about it (no nag)."
+                },
+                "version": {
+                    "type": "integer",
+                    "description": "The current terms' version (beta.agreement.show?for=ai_voice)."
+                },
+                "accepted": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "version",
+                        "acceptedAt",
+                        "credited"
+                    ],
+                    "properties": {
+                        "version": {
+                            "type": "integer",
+                            "description": "The version they accepted; older than `version`: ask them to accept the new terms (no new parts are made with their voice until then)."
+                        },
+                        "acceptedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "credited": {
+                            "type": "boolean",
+                            "description": "Named on the label (\"AI voice based on <name>'s singing\"), or the plain AI label."
+                        }
+                    },
+                    "description": "Their live acceptance, or null (never accepted, or withdrawn)."
+                },
+                "withdrawnAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time",
+                    "description": "When they last withdrew; null if never."
+                },
+                "voice": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "id",
+                        "name",
+                        "guides"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "guides": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "id",
+                                    "templateId",
+                                    "title",
+                                    "version",
+                                    "partKey"
+                                ],
+                                "properties": {
+                                    "id": {
+                                        "type": "string"
+                                    },
+                                    "templateId": {
+                                        "type": "string"
+                                    },
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "version": {
+                                        "type": "integer"
+                                    },
+                                    "partKey": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "description": "Every live part it sings, for the withdraw modal to name exactly what goes."
+                        }
+                    },
+                    "description": "Their live AI voice, or null."
+                }
+            }
+        }
+    }
+}

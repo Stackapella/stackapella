@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
+use App\Models\Template;
 use App\Support\Admin\StaffDevice;
 use App\Support\Flags;
 use App\Support\Http\Hosts;
+use App\Support\Languages\SongWords;
 use App\Support\Legal\LegalText;
 use App\Support\Pages\Landing;
 use App\Support\Pages\MudeoArrival;
 use App\Support\Pages\Prices;
+use App\Support\Pages\YourChoirStage;
 use App\Support\Site\HelpGuide;
 use App\Support\Site\OpenSource;
 use App\Support\Site\SitePages;
@@ -27,6 +30,12 @@ use Illuminate\Support\HtmlString;
  */
 final class SitePagesController extends Controller
 {
+    /** /your-choir's library card (merged-v4): the songs a visitor knows, each as its tune's opening notes. */
+    /** The switch for hearing a song of your own as a choir (named by the backend and frontend when they build it). */
+    private const OWN_SONGS = 'own_choir_songs';
+
+    private const CHOIR_SONGS = ['silent-night', 'amazing-grace', 'happy-birthday', 'joy-to-the-world'];
+
     public function about(Request $request): Response
     {
         $ref = Landing::ref($request->query('ref'));
@@ -62,14 +71,15 @@ final class SitePagesController extends Controller
     }
 
     /**
-     * About AI voices (docs/ai-voices-build-plan.md, marketing item 2): unlisted. While the ai_voices switch is off (or
-     * not yet defined) it is not found, except on an admin's device (StaffDevice::previews, the Spanish preview's key),
-     * which sees it kept out of search and kept by nobody (the coordinator, 2026-11-20). "Your voice stays yours" says
+     * About AI voices (docs/ai-voices-build-plan.md, marketing item 2): unlisted. While both the ai_voices and own_choir
+     * switches are off (or not yet defined) it is not found, except on an admin's device (StaffDevice::previews, the
+     * Spanish preview's key), which sees it kept out of search and kept by nobody (the coordinator, 2026-11-20). "Your voice stays yours" says
      * what's true of own-voice songs while own_choir is on.
      */
     public function aiVoices(Request $request, Flags $flags): Response
     {
-        $on = self::switchedOn($flags, 'ai_voices');
+        // Live with either feature it explains: AI guides (ai_voices) or own-voice songs (own_choir), whose pages link here.
+        $on = self::switchedOn($flags, 'ai_voices') || self::switchedOn($flags, 'own_choir');
 
         if (! $on && ! StaffDevice::previews($request)) {
             return response()->view('public.page-gone', ['links' => ['app' => '/about']], 404, [...SongPagesController::headers(), 'Cache-Control' => 'no-store', 'X-Robots-Tag' => 'noindex']);
@@ -88,7 +98,7 @@ final class SitePagesController extends Controller
      * own_choir switch is off (or not yet defined) it is not found, except on an admin's device, which sees it kept out
      * of search and kept by nobody, as About AI voices is.
      */
-    public function yourChoir(Request $request, Flags $flags): Response
+    public function yourChoir(Request $request, Flags $flags, YourChoirStage $stage): Response
     {
         $on = self::switchedOn($flags, 'own_choir');
 
@@ -96,12 +106,50 @@ final class SitePagesController extends Controller
             return response()->view('public.page-gone', ['links' => ['app' => '/']], 404, [...SongPagesController::headers(), 'Cache-Control' => 'no-store', 'X-Robots-Tag' => 'noindex']);
         }
 
+        $frame = $this->frame('your_choir', '/your-choir', $ref = Landing::ref($request->query('ref')));
+        // Its link card in the page's language, where one is drawn (tool/link_cards.py: your-choir, es-your-choir).
+        $card = (app()->getLocale() === 'en' ? '' : app()->getLocale().'-').'your-choir';
+        if (is_file(dirname(base_path()).'/web/icons/og/'.$card.'.png')) {
+            $frame['meta']['image'] = Hosts::public('/icons/og/'.$card.'.png');
+        }
+
         return response()->view('site.your-choir', [
-            ...$this->frame('your_choir', '/your-choir', $ref = Landing::ref($request->query('ref'))),
+            ...$frame,
             'indexed' => $on,
             // Silent Night in the app, ready to hear yourself as a choir (the app's `choir` link, agreed with the frontend).
             'try' => Hosts::app('/?'.http_build_query(['song' => 'silent-night', 'choir' => 1, 'ref' => $ref ?? 'your-choir'])),
+            // The stage: one real voice becoming the AI's two parts, then four (YourChoirStage, from VoiceDemo's own
+            // voices and gating); null, and the page shows no demo, until every voice is there.
+            'stage' => $stage->stage(),
+            // A song of your own (hummed, or with your own words: Hillel, 2026-11-20), only once its switch is on (the
+            // coordinator: the page never promises what isn't live); the app's create screen (agreed with the frontend).
+            'own' => self::switchedOn($flags, self::OWN_SONGS) ? Hosts::app('/create?'.http_build_query(['ref' => $ref ?? 'your-choir'])) : null,
+            // The library card's songs, each with its story's picture, as the songs hub shows them.
+            'songs' => self::choirSongs(),
+            'toolsUrl' => SitePages::toolsHome(),
         ], 200, [...SongPagesController::headers(), ...($on ? [] : ['X-Robots-Tag' => 'noindex', 'Cache-Control' => 'no-store'])]);
+    }
+
+    /**
+     * The songs on /your-choir's library card: the four of merged-v4, those that are open, each with its title and its
+     * tune's opening as a lane of notes (never a photo on this page: Hillel, 2026-11-20, "they look out of place").
+     *
+     * @return list<array{slug: string, title: string, tune: array{beats: float, notes: list<array{beat: float, length: float, y: float}>}, url: string}>
+     */
+    private static function choirSongs(): array
+    {
+        $songs = Template::query()->official()->whereNull('hidden_at')->whereIn('slug', self::CHOIR_SONGS)->with('currentVersion')->get()->keyBy('slug');
+
+        return array_values(array_filter(array_map(static function (string $slug) use ($songs): ?array {
+            $song = $songs->get($slug);
+
+            return $song === null ? null : [
+                'slug' => $slug,
+                'title' => SongWords::title((string) $song->title, $slug),
+                'tune' => YourChoirStage::tune($song),
+                'url' => '/songs/'.$slug,
+            ];
+        }, self::CHOIR_SONGS)));
     }
 
     /** A switch that may not be defined yet: off until it is. */

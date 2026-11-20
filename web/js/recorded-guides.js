@@ -50,7 +50,8 @@ export function trimDecoded(decoded, recording, sampleRate) {
 /** The file's bytes: from the device when kept, otherwise fetched and kept. */
 async function fileFor(recording, key, fetchImpl) {
     const kept = await db.get('guides', key).catch(() => null);
-    if (kept && kept.url === recording.url) {
+    // A part made from the singer's own singing has a fresh signed URL each time: kept by its key (its id), whatever the URL.
+    if (kept && (kept.url === recording.url || recording.choir)) {
         return kept.bytes;
     }
     const response = await fetchImpl(recording.url, { mode: 'cors', credentials: 'omit' });

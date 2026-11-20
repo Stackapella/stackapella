@@ -13,6 +13,7 @@ use App\Actions\EventSchedule\Connections;
 use App\Actions\Groups\TrackScores;
 use App\Actions\Ideas\Ideas;
 use App\Actions\Ideas\IdeaVoices;
+use App\Actions\OwnChoir\OwnChoirRequests;
 use App\Actions\Projects\Owned;
 use App\Actions\Requests\SongRequests;
 use App\Actions\Sharing\DeleteHarmony;
@@ -158,6 +159,9 @@ final class DeleteAccount
         }
 
         // Guide voices credited to them, file and CDN copy too (the row's key alone would leave both).
+        // Hear yourself as a choir (track B): the rows go by their foreign keys; their files go here first.
+        OwnChoirRequests::forgetAll($user);
+
         foreach (TemplateGuide::query()->where('credit_user_id', $user->id)->get() as $guide) {
             app(ManageGuides::class)->remove($guide, null, $ip);
         }

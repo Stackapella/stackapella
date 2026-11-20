@@ -71,7 +71,8 @@
                                 "required": [
                                     "id",
                                     "voice",
-                                    "publishedAt"
+                                    "publishedAt",
+                                    "review"
                                 ],
                                 "properties": {
                                     "id": {
@@ -83,6 +84,13 @@
                                     "publishedAt": {
                                         "type": "string",
                                         "format": "date-time"
+                                    },
+                                    "review": {
+                                        "type": "string",
+                                        "enum": [
+                                            "pending",
+                                            "approved"
+                                        ]
                                     }
                                 },
                                 "description": "The part's AI guide on this version, if any."
@@ -139,7 +147,8 @@
                         "required": [
                             "id",
                             "name",
-                            "active"
+                            "active",
+                            "licensed"
                         ],
                         "properties": {
                             "id": {
@@ -151,6 +160,10 @@
                             "active": {
                                 "type": "boolean",
                                 "description": "False once withdrawn: never render with it."
+                            },
+                            "licensed": {
+                                "type": "boolean",
+                                "description": "False while its singer hasn't accepted the AI voice licence's current terms (uploads answer 403 licence_changed); keep its reference, they may accept. Always true for a voice added by command."
                             }
                         }
                     }

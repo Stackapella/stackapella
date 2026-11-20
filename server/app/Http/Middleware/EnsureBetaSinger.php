@@ -19,7 +19,11 @@ final class EnsureBetaSinger
 {
     public const ATTRIBUTE = 'beta_singer';
 
-    public function handle(Request $request, Closure $next): Response
+    /**
+     * `beta:revoked` also lets in a singer whose role ended (not one forgotten: their account is unlinked): the AI voice
+     * licence can be withdrawn, or its credit changed, "at any time, in the app" (its terms), whatever the beta role.
+     */
+    public function handle(Request $request, Closure $next, ?string $allow = null): Response
     {
         $user = $request->user();
         $singer = $user instanceof User ? BetaSinger::query()->with('user')->where('user_id', $user->id)->first() : null;
@@ -28,7 +32,7 @@ final class EnsureBetaSinger
             return ApiError::response(403, 'not_beta_singer');
         }
 
-        if (! $singer->isLive()) {
+        if (! $singer->isLive() && ! ($allow === 'revoked' && $singer->forgotten_at === null)) {
             return ApiError::response(403, 'singer_revoked');
         }
 

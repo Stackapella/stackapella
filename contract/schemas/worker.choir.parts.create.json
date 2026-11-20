@@ -1,0 +1,17 @@
+{
+    "$id": "worker.choir.parts.create.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "upload"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "worker.choir.part.json#/$defs/part"
+        },
+        "upload": {
+            "$ref": "upload.json"
+        }
+    }
+}

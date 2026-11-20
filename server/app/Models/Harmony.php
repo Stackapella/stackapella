@@ -53,6 +53,8 @@ use Illuminate\Support\Str;
  * @property Carbon|null $fill_told_at
  * @property int|null $featured_fill_id
  * @property list<int> $guide_ids
+ * @property list<array{part: string, voice: int|null}>|null $ai_parts its catalogue AI parts (by part key) and the AI voice of each, kept on the share
+ * @property list<string>|null $own_voice_parts the parts (by name) that are AI in the sharer's own voice (Hear yourself as a choir)
  * @property int|null $template_version_id
  * @property string|null $words_part_key
  * @property string|null $bpm
@@ -137,6 +139,8 @@ final class Harmony extends Model
             'stems_ready_at' => 'datetime',
             'fill_told_at' => 'datetime',
             'guide_ids' => 'array',
+            'own_voice_parts' => 'array',
+            'ai_parts' => 'array',
             'beat_zero_ms' => 'integer',
             'sign_ups' => 'integer',
             'title_held_at' => 'datetime',

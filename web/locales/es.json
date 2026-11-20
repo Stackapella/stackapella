@@ -118,6 +118,7 @@
         "label": "Cuenta de entrada"
     },
     "common": {
+        "didntWork": "No funcionó. Inténtalo de nuevo.",
         "loading": "Abriendo",
         "loadingScreen": "Abriendo {screen}",
         "backToProjects": "Volver a tus canciones",
@@ -641,6 +642,7 @@
         "panLeft": "{percent}% izquierda",
         "panRight": "{percent}% derecha",
         "asRecorded": "Como se grabó",
+        "asWritten": "Como está escrito",
         "earlier": "{ms} ms antes",
         "later": "{ms} ms después",
         "guideVoice": "Voz guía",
@@ -692,6 +694,8 @@
             "advanced": "Un reto"
         },
         "range": "{low} a {high}",
+        "keyChip": "Tonalidad de {key}",
+        "creditsRow": "Créditos",
         "credits": "Letra: {words}. Melodía: {tune}. Arreglo: {arrangement}.",
         "draftNote": "Borrador: aún sin revisar por un músico.",
         "tempo": {
@@ -3343,6 +3347,7 @@
             "failed": "Algo salió mal al buscar las notas. Vuelve a cantar la línea.",
             "slower": "Otra vez, más lento ({bpm})",
             "keepIt": "Conservar",
+            "unsung": "Hasta que coincidan, esta línea se canta sin su letra.",
             "mismatch": "Esta línea tiene {syllables} sílabas y {notes} notas.",
             "split": "Dividir el {note} largo",
             "join": "Unir dos sílabas",
@@ -3503,6 +3508,7 @@
             "held": "sostenida",
             "undone": "Deshecho.",
             "redone": "Rehecho.",
+            "pastedUnsung": "{count, plural, one {# sílaba colocada.} other {# sílabas colocadas.}} Sin nota: {words}. Esas no se cantarán.",
             "pasted": "{count, plural, one {# sílaba colocada.} other {# sílabas colocadas.}}",
             "phoneEmpty": "Aún no hay notas en esta voz.",
             "addNote": "Añadir una nota",
@@ -5629,6 +5635,112 @@
         "mapLine": "¿Has cantado mucho hoy?",
         "settingsTitle": "Cuidado de la voz",
         "settingsHint": "Un aviso discreto tras 20 y 40 minutos de canto en un día, con un enfriamiento de 2 minutos. Se cuenta solo en este dispositivo y nunca se envía."
+    },
+    "ownChoir": {
+        "entry": {
+            "button": "Óyete como un coro",
+            "line": "Canta 30 segundos y oye cada parte de {song} con una voz como la tuya."
+        },
+        "title": "Óyete como un coro",
+        "intro": {
+            "one": "Canta con {song} durante 30 segundos, cualquier parte, con tu propia voz.",
+            "two": "Hacemos cada parte con una voz como la tuya, marcada como IA.",
+            "three": "Luego aprende tu parte: cada una que grabas ocupa el lugar de su versión de IA."
+        },
+        "record": {
+            "title": "Canta 30 segundos",
+            "headphones": "Ponte auriculares, para que solo se grabe tu voz.",
+            "start": "Empieza a cantar",
+            "short": "Han sido menos de 15 segundos. Canta un poco más para que podamos oír tu voz.",
+            "use": "Haz mi coro",
+            "sending": "Enviando tu grabación...",
+            "again": "Canta otra vez",
+            "failed": "Tu grabación no se envió. Inténtalo de nuevo."
+        },
+        "wait": {
+            "title": "Tu coro está en camino",
+            "body": "Estamos haciendo cada parte de {song} con una voz como la tuya. Puede tardar unos minutos; te avisaremos aquí cuando esté listo.",
+            "kept": "Guardamos tu voz en privado, para que tu próxima canción no necesite una grabación nueva."
+        },
+        "ready": {
+            "download": "Descarga mi coro",
+            "fileName": "{song} (con voces de IA)",
+            "notice": "Tu coro está listo: {song}, cantada con una voz como la tuya",
+            "button": "Escuchar"
+        },
+        "failed": {
+            "title": "Esta vez no pudimos hacer tu coro",
+            "body": "Tu grabación se ha borrado. Inténtalo de nuevo con una nueva, en un sitio tranquilo y cantando un poco más fuerte.",
+            "clip_unusable": "No oímos suficiente de la parte en tu grabación. Inténtalo de nuevo, cantando tu parte con claridad.",
+            "bad_clip": "Tu grabación no llegó como debía. Inténtalo de nuevo.",
+            "gates_failed": "Algunas partes no salieron afinadas. Inténtalo de nuevo con una grabación nueva.",
+            "render_failed": "Algo falló por nuestra parte. Inténtalo de nuevo.",
+            "expired": "Tardó demasiado y se detuvo. Inténtalo de nuevo.",
+            "reference_gone": "Tu voz guardada se borró antes de hacer esta canción. Canta 30 segundos otra vez para hacerla."
+        },
+        "listen": {
+            "title": "{song}, con una voz como la tuya",
+            "label": "Voz de IA hecha con tu canto"
+        },
+        "learn": {
+            "button": "Aprende la parte de {part}",
+            "progress": "{n} de {total} partes son tú de verdad"
+        },
+        "limit": {
+            "free": "Tu primer coro es gratis.",
+            "left": "{n, plural, one {Te queda # este mes} other {Te quedan # este mes}}",
+            "month": "Ya hiciste los coros de este mes. Más el mes que viene, o con Plus.",
+            "day": "Esos son los coros de hoy. Inténtalo mañana.",
+            "free_used": "Ya hiciste tu coro gratis. Más con Plus."
+        },
+        "delete": {
+            "button": "Borra este coro",
+            "title": "¿Borrar {song} con una voz como la tuya?",
+            "body": "Esto quita la canción hecha con tu canto. Sigue contando entre tus canciones, y no se puede deshacer.",
+            "action": "Borrar este coro",
+            "done": "Borrado."
+        },
+        "stop": {
+            "button": "Deja de hacer canciones con mi voz",
+            "title": "¿Desactivar las canciones con tu voz?",
+            "body": "Borraremos tu voz guardada y todas las canciones hechas con tu canto. Puedes volver a activarlo cuando quieras.",
+            "action": "Desactivar",
+            "done": "Desactivado. Todo lo hecho con tu canto está borrado."
+        },
+        "terms": {
+            "agree": "Tengo 18 años o más: acepto"
+        },
+        "open": "Una canción a la vez: la anterior aún se está haciendo.",
+        "voice": {
+            "title": "Tu voz",
+            "line": "Guardada en privado para hacer tus coros, hasta el {date} o hasta que la borres.",
+            "delete": "Borrar",
+            "deleteTitle": "¿Borrar tu voz guardada?",
+            "deleteBody": "Borramos al instante la voz hecha con tu canto. Las canciones ya hechas se quedan. Para tu próxima canción, cantarás 30 segundos otra vez.",
+            "deleteAction": "Borrar mi voz",
+            "deleted": "Tu voz está borrada.",
+            "again": "Haz mi coro",
+            "againLine": "Con tu voz guardada, sin cantar otra vez.",
+            "record": "Mejor canto otra vez"
+        },
+        "songs": {
+            "entry": "Óyela con tu voz",
+            "fromHum": "Haz mi coro con mi tarareo",
+            "fromHumLine": "Tu tarareo se convierte en la voz de cada parte de tu canción, marcada como IA.",
+            "singInstead": "Mejor la canto",
+            "wordless": "Tu voz guardada vino de un tarareo. Para una canción con letra, cantar una línea con letra la hace más clara.",
+            "wordlessGo": "Canta una línea con letra",
+            "notEnglish": "Canta palabras en inglés; las demás pueden sonar raras.",
+            "notSaved": "Tu canción aún se está guardando en tu cuenta. Inténtalo en un momento.",
+            "tooLong": "Esta canción es demasiado larga para hacerla con tu voz: como mucho 8 partes, de hasta 5 minutos cada una."
+        },
+        "share": {
+            "button": "Comparte mi coro"
+        },
+        "off": {
+            "signedOut": "Inicia sesión para oírte como un coro.",
+            "unavailable": "Óyete como un coro no está abierto para ti ahora."
+        }
     },
     "aiVoice": {
         "about": "Sobre las voces de IA",

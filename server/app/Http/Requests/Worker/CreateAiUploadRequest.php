@@ -28,21 +28,34 @@ final class CreateAiUploadRequest extends FormRequest
      */
     public function rules(): array
     {
+        return [
+            'versionId' => ['required', 'string', 'max:32'],
+            'voice' => ['required', 'string', 'max:32'],
+            ...self::masterRules(fn (string $key): mixed => $this->input($key)),
+        ];
+    }
+
+    /**
+     * A rendered master's numbers, gates and renderer (also worker.choir.parts.create's).
+     *
+     * @param  Closure(string): mixed  $input
+     * @return array<string, list<mixed>>
+     */
+    public static function masterRules(Closure $input): array
+    {
         $number = ['required', 'numeric', 'min:0', 'max:100000'];
         $count = ['required', 'integer', 'min:0', 'max:100000'];
 
         return [
-            'versionId' => ['required', 'string', 'max:32'],
             'part' => ['required', 'string', 'regex:/^[a-z0-9_-]{1,40}$/'],
-            'voice' => ['required', 'string', 'max:32'],
             'sampleRate' => ['required', 'integer', 'in:'.self::SAMPLE_RATE],
             'frames' => ['required', 'integer', 'min:1', 'max:'.(self::SAMPLE_RATE * self::MAX_SECONDS)],
-            'bytes' => ['required', 'integer', function (string $attribute, mixed $value, Closure $fail): void {
+            'bytes' => ['required', 'integer', function (string $attribute, mixed $value, Closure $fail) use ($input): void {
                 if (! is_int($value) && ! (is_string($value) && ctype_digit($value))) {
                     return;
                 }
 
-                $frames = $this->input('frames');
+                $frames = $input('frames');
 
                 if (! is_int($frames) || (int) $value !== 44 + $frames * 2) {
                     $fail(__('validation.ai_master_bytes'));

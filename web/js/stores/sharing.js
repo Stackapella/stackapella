@@ -62,13 +62,17 @@ export async function shareProject({ title, visibility = 'unlisted', partId = nu
         sha256,
         beatZeroSeconds: mix.beatZeroSeconds,
         guides: mix.guides,
+        // Parts made from the singer's own singing (Hear yourself as a choir): credited as AI on the share page.
+        ...(mix.choirParts?.length ? { choirParts: mix.choirParts } : {}),
         tracks: mix.tracks,
     };
     // A take just sent is still being processed on the server for a moment: wait for it (a minute at most).
     const create = async () => {
         for (let i = 0; ; i++) {
             try {
-                return await api.harmonies.create(body);
+                const created = await api.harmonies.create(body);
+                if (body.choirParts) count('own_choir_shared'); // a choir in a voice like theirs, shared (labelled AI)
+                return created;
             } catch (error) {
                 if (error?.code !== 'no_takes' || i >= 20) throw error;
                 await wait(3000);

@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "frames": [
+            "A clip is 5 to 30 seconds."
+        ]
+    }
+}

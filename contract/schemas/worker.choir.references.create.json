@@ -1,0 +1,17 @@
+{
+    "$id": "worker.choir.references.create.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "upload"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "worker.choir.reference.json#/$defs/reference"
+        },
+        "upload": {
+            "$ref": "upload.json"
+        }
+    }
+}

@@ -50,7 +50,8 @@ export async function abVoice({ song, part, with: under = 'all', recording = nul
     const guides = recording ? {} : ((await catalogueGuides(song.song, { version: song.version })) ?? {});
     const length = Math.max(synth.length, ...beneath.map((b) => b.length));
     const real = async (key) => {
-        if (!guides[key]) return null;
+        // The demo's "real singer" is only ever a recorded one, never an AI voice standing in.
+        if (!guides[key] || guides[key].source === 'ai') return null;
         try {
             const voice = await realVoice(guides[key], context);
             // A library voice plays with its breaths softened, by its own part's notes (js/soften-breaths.js).

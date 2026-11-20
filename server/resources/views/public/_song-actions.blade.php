@@ -11,3 +11,10 @@
     @include('site._share', ['surface' => 'page-song', 'url' => $meta['url'], 'title' => $song['title'], 'lg' => true])
 </div>
 <p class="s-sg-note">{{ __('pages.song.start_note') }} {{ __('pages.song.unsure') }} <a href="/tools/vocal-range-test" class="s-lk">{{ __('pages.song.check_range') }}</a></p>
+{{-- Behind own_choir_teaser (docs/ai-voices-build-plan.md, phase 2, finding out cheaply): one quiet button, Coming soon
+     beside it; a tap says what it will be, leading with the angle (this real arrangement, from 30 seconds of singing) and
+     naming AI once, and counts choir_teaser once (js/public/choir-teaser.js). Nothing is recorded or kept. --}}
+@if ($choirTeaser ?? false)
+    <p class="s-sg-note" data-choir-teaser><button type="button" class="s-lk" aria-expanded="false" aria-controls="choir-soon">{{ __('pages.song.choir.button') }}</button> <x-site.soon /></p>
+    <p class="s-sg-note" id="choir-soon" hidden>{{ __('pages.song.choir.soon') }}</p>
+@endif

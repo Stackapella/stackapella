@@ -1,0 +1,23 @@
+{
+    "$id": "admin.aiGuides.reject.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "rejected"
+            ],
+            "properties": {
+                "rejected": {
+                    "type": "integer",
+                    "description": "How many it changed (parts not pending are skipped)."
+                }
+            }
+        }
+    }
+}

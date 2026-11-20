@@ -318,6 +318,11 @@
   "/js/public/carols.js": [
     "/js/public/carols.js"
   ],
+  "/js/public/choir-teaser.js": [
+    "/js/public/choir-teaser.js",
+    "/js/public/count.js",
+    "/js/automated.js"
+  ],
   "/js/public/classical-singing-basics.js": [
     "/js/public/classical-singing-basics.js",
     "/js/engrave.js",
@@ -583,5 +588,10 @@
   "/js/public/yodeling.js": [
     "/js/public/yodeling.js",
     "/js/public/voices.js"
+  ],
+  "/js/public/your-choir.js": [
+    "/js/public/your-choir.js",
+    "/js/public/voices.js",
+    "/js/public/play-state.js"
   ]
 }

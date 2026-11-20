@@ -51,6 +51,9 @@ final class StartHarmonyRequest extends FormRequest
             'sha256' => ['required', 'string', 'regex:/^[0-9a-fA-F]{64}$/'],
             'beatZeroSeconds' => ['nullable', 'numeric', 'between:0,60'],
             'guides' => ['nullable', 'array', 'max:16'],
+            // Hear yourself as a choir: the sharer's own AI parts in the mix (ownChoir.show's parts[].id), credited as AI.
+            'choirParts' => ['nullable', 'array', 'max:16'],
+            'choirParts.*' => ['string', 'max:32'],
             // Open parts (N5): a fill of someone's harmony, and the part it sings.
             'parentId' => ['nullable', 'string', 'size:12', 'required_with:fillPart'],
             'fillPart' => ['nullable', 'string', 'max:40', 'required_with:parentId'],

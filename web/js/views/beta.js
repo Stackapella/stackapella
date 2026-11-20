@@ -19,6 +19,7 @@ import { Switch } from '../components/controls.js';
 import { betaBar, keepBar, startBetaRecording, TemplateChanged } from '../beta.js';
 import { discard, loadOutbox, outbox, sendAll } from '../beta-outbox.js';
 import { BetaClip } from '../components/beta-clip.js';
+import { AiLicenceCard, AiLicenceTerms } from '../components/ai-licence.js';
 
 // How a part is to be sung (its style: the part's own, else the song's), said on its card.
 const STYLE_WORDS = { straight: tk('beta.parts.style.straight'), free: tk('beta.parts.style.free'), vibrato: tk('beta.parts.style.vibrato') };
@@ -46,12 +47,13 @@ export function browserCanRecord(ua = navigator.userAgent, has = window) {
 }
 
 export const Agreement = {
-    props: { agreement: { type: Object, required: true } },
+    // level: its headings' level under the page's own (h3 under a page's h2; 2 where the page's title is the h1).
+    props: { agreement: { type: Object, required: true }, level: { type: Number, default: 3 } },
     setup: () => ({ boldSegments }),
     template: `
         <div class="space-y-3 text-sm text-cream" translate="no">
             <template v-for="(block, i) in agreement.blocks" :key="i">
-                <h3 v-if="block.type === 'heading'" class="pt-2 text-base font-bold">{{ block.text }}</h3>
+                <component :is="'h' + level" v-if="block.type === 'heading'" class="pt-2 text-base font-bold">{{ block.text }}</component>
                 <p v-else-if="block.type === 'paragraph'"><template v-for="(seg, j) in boldSegments(block.text)" :key="j"><strong v-if="seg.bold">{{ seg.text }}</strong><template v-else>{{ seg.text }}</template></template></p>
                 <ul v-else-if="block.type === 'list'" class="list-disc space-y-1 ps-5">
                     <li v-for="(item, k) in block.items" :key="k"><template v-for="(seg, j) in boldSegments(item)" :key="j"><strong v-if="seg.bold">{{ seg.text }}</strong><template v-else>{{ seg.text }}</template></template></li>
@@ -101,10 +103,12 @@ export const TellHillel = {
 };
 
 export const BetaView = {
-    components: { Logo, Icon, Notice, StatusChip, EmptyState, Field, Agreement, TellHillel, Modal, Switch, BetaClip },
+    components: { AiLicenceCard, AiLicenceTerms, Logo, Icon, Notice, StatusChip, EmptyState, Field, Agreement, TellHillel, Modal, Switch, BetaClip },
     props: { token: { type: String, default: null } },
     data: () => ({
-        step: 'loading', // loading | retry | ended | invite | signin | notSinger | welcome | consent | parts
+        step: 'loading', // loading | retry | ended | invite | signin | notSinger | welcome | consent | parts | aiLicence
+        aiLicence: null, // the AI voice licence's state (beta.aiLicence.show), once My parts has asked
+        aiAgreement: null, // its terms, while they're read
         invite: null, // the invite link's { name, status }
         ended: null, // why the link can't be used
         acceptError: null, // why accepting the invite failed, in words
@@ -182,6 +186,7 @@ export const BetaView = {
                     <p class="text-muted">{{ acceptError ?? t('beta.notSinger.body', { name: account.me?.name ?? '' }) }}</p>
                     <button type="button" class="btn-ghost" @click="otherAccount">{{ t('beta.notSinger.otherAccount') }}</button>
                 </section>
+                <AiLicenceCard v-if="step === 'notSinger' && ended === 'singer_revoked'" :state="aiLicence" :name="account.me?.name ?? ''" @changed="aiLicence = $event" />
 
                 <section v-else-if="step === 'welcome'" class="space-y-5">
                     <p class="eyebrow">{{ t('beta.welcome.eyebrow') }}</p>
@@ -206,7 +211,7 @@ export const BetaView = {
                 <section v-else-if="step === 'consent' && agreement" class="space-y-5">
                     <h1 class="text-2xl font-bold text-cream" translate="no">{{ agreement.title }}</h1>
                     <Notice v-if="!agreement.reviewed" tone="warn">{{ t('beta.consent.draft') }}</Notice>
-                    <div class="card max-h-[50dvh] overflow-y-auto p-5" tabindex="0" role="region" :aria-label="t('beta.consent.agreement')"><Agreement :agreement="agreement" /></div>
+                    <div class="card max-h-[50dvh] overflow-y-auto p-5" tabindex="0" role="region" :aria-label="t('beta.consent.agreement')"><Agreement :agreement="agreement" :level="2" /></div>
                     <form class="card space-y-4 p-5" @submit.prevent="consent">
                         <fieldset class="space-y-2">
                             <legend class="label">{{ t('beta.consent.creditAs') }}</legend>
@@ -314,7 +319,14 @@ export const BetaView = {
                             <button type="button" class="btn-secondary btn-sm" @click="editingCredit = true; credit = { mode: me.credit.mode ?? 'name', links: !!me.creditLinksProfile }; consentErrors = null">{{ t('beta.parts.editCredit') }}</button>
                         </div>
                     </section>
+                    <!-- The AI voice licence (phase 1b): its own opt-in, only once an admin has offered it; nothing otherwise. -->
+                    <AiLicenceCard :state="aiLicence" :name="me.credit?.name || account.me?.name || ''" @read="readAiLicence" @changed="aiLicence = $event" />
                 </section>
+
+                <AiLicenceTerms v-else-if="step === 'aiLicence' && aiAgreement" :agreement="aiAgreement" :name="me?.credit?.name || account.me?.name || ''" :credited="aiLicence?.accepted?.credited ?? null"
+                    @done="aiLicence = $event; aiAgreement = null; step = 'parts'" @back="aiAgreement = null; step = 'parts'" @changed-terms="readAiLicence">
+                    <template #blocks="{ blocks }"><Agreement :agreement="{ blocks }" :level="2" /></template>
+                </AiLicenceTerms>
             </div>
 
             <TellHillel v-if="telling" @close="telling = false" />
@@ -337,7 +349,10 @@ export const BetaView = {
         </div>`,
     watch: {
         // A new step: the page starts at its top, with its heading in focus for screen readers.
-        step() {
+        step(now) {
+            // My parts asks once where the AI voice licence stands (a quiet call: not offered, nothing shows).
+            // A singer whose role ended (singer_revoked) still reaches an accepted licence there (contract: beta.aiLicence.*).
+            if ((now === 'parts' || now === 'notSinger') && !this.aiLicence) this.loadAiLicence();
             this.$nextTick(() => {
                 window.scrollTo(0, 0);
                 const heading = this.$el.querySelector?.('main h1');
@@ -619,6 +634,25 @@ export const BetaView = {
                 else await this.toConsent();
             } else {
                 this.step = 'parts';
+            }
+        },
+        /** The AI voice licence's state; a failure only leaves the section out. */
+        async loadAiLicence() {
+            try {
+                this.aiLicence = (await api.beta.aiLicence.show()).data;
+            } catch (error) {
+                console.warn('The AI voice licence did not load', error);
+            }
+        },
+        /** Its terms, then the terms screen (the guide agreement's pattern); a failure stays on My parts. */
+        async readAiLicence() {
+            try {
+                this.aiAgreement = (await api.beta.agreement.show({ lang: 'en', for: 'ai_voice' })).data; // English only (Hillel)
+                this.aiLicence = (await api.beta.aiLicence.show()).data; // the version it accepts is the one shown
+                this.step = 'aiLicence';
+            } catch (error) {
+                console.warn('The AI voice licence did not load', error);
+                toast(t('beta.ai.failed'), { tone: 'error' });
             }
         },
         /** My parts; false if the page moved on (the link ended, or nothing could load). */

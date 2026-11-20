@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\AiUpload;
 use App\Models\AiVoice;
 use App\Models\Engagement;
 use App\Models\EsConnection;
@@ -47,7 +48,9 @@ final class DemoSeederTest extends TestCase
         $this->assertTrue(User::query()->where('google_id', 'dev-admin')->firstOrFail()->is_admin);
         $this->assertTrue(User::query()->where('google_id', 'dev-editor')->firstOrFail()->is_editor);
         // Silent Night's four AI parts, once, in two consented voices (and one waiting for consent).
-        $this->assertSame(4, TemplateGuide::withAi()->where('source', 'ai')->count());
+        $this->assertSame(5, TemplateGuide::withAi()->where('source', 'ai')->count());
+        // Admin's review queue: Silent Night's four approved, Amazing Grace's tenor waiting.
+        $this->assertSame(['approved' => 4, 'pending' => 1], AiUpload::query()->selectRaw('review, count(*) n')->groupBy('review')->orderBy('review')->pluck('n', 'review')->map(fn ($n) => (int) $n)->all());
         $this->assertSame(3, AiVoice::query()->count());
     }
 

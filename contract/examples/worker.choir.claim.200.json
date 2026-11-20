@@ -1,0 +1,28 @@
+{
+    "data": {
+        "id": "Jb5Sn1",
+        "claim": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "template": "silent-night",
+        "version": 8,
+        "title": "Silent Night",
+        "data": {
+            "id": "silent-night",
+            "...": "the version's template.json, exactly as stored"
+        },
+        "clip": {
+            "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/choir/clips/8e2f1a9c5b3d7e4f6a0c9b1d2e5f7a3c.wav?X-Amz-Expires=1800&X-Amz-Signature=abc",
+            "sampleRate": 48000,
+            "frames": 1440000,
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+            "part": "alto",
+            "offsetFrames": 24000
+        },
+        "reference": null,
+        "parts": [
+            "soprano",
+            "alto",
+            "tenor",
+            "bass"
+        ]
+    }
+}

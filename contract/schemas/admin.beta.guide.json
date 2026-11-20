@@ -12,7 +12,8 @@
         "publishedAt",
         "pitchPercent",
         "source",
-        "aiVoice"
+        "aiVoice",
+        "review"
     ],
     "properties": {
         "id": {
@@ -78,6 +79,13 @@
                 }
             },
             "description": "The AI voice that sang it; null for a recorded guide."
+        },
+        "review": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "description": "An AI guide's review: pending, approved or rejected; null for a recorded one. Only approved AI guides reach the app and the site."
         }
     }
 }

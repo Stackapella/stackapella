@@ -58,7 +58,8 @@
                             "publishedAt": "2026-10-26T15:51:00Z",
                             "pitchPercent": 91,
                             "source": "recorded",
-                            "aiVoice": null
+                            "aiVoice": null,
+                            "review": null
                         }
                     ],
                     "needs": {
@@ -110,7 +111,8 @@
                             "aiVoice": {
                                 "id": "Vc9Tn2",
                                 "name": "Tenor B"
-                            }
+                            },
+                            "review": "approved"
                         }
                     ],
                     "needs": {
@@ -168,7 +170,8 @@
                             "publishedAt": "2026-10-26T15:51:00Z",
                             "pitchPercent": 91,
                             "source": "recorded",
-                            "aiVoice": null
+                            "aiVoice": null,
+                            "review": null
                         }
                     ],
                     "needs": {

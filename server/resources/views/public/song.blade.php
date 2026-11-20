@@ -104,7 +104,8 @@
                 </div>
                 @if ($line !== null)
                     <div class="s-sh-try s-xcoll-try s-sg-try">
-                        @include('public._song-score')
+                        {{-- An AI part may sing here: the page names it on its part (aiVoices, mixer.js); other players never play one. --}}
+                        @include('public._song-score', ['line' => [...$line, 'aiVoices' => true]])
                     </div>
                 @elseif ($song['previewUrl'] !== null)
                     <div class="s-step s-v1 s-listen">
@@ -181,6 +182,9 @@
                                         @elseif ($guide['credit'] !== null)
                                             <span>{{ __('site.song_part.sung_by', ['name' => $guide['credit']]) }}</span>
                                         @endif
+                                    @elseif ($guide !== null && ($guide['source'] ?? null) === 'ai')
+                                        {{-- An AI voice, said once on its part (design rules, "AI: plain about it, never loud"). --}}
+                                        @include('site._ai-voice', ['basedOn' => $guide['aiBasedOn'] ?? null, 'wanted' => $lendVoice ? $learn[$card['key']] : null, 'part' => $card['key']])
                                     @else
                                         <span>{{ __('pages.song.voice_generated') }}</span>
                                         @if ($lendVoice)
@@ -200,8 +204,11 @@
                         </li>
                     @endforeach
                 </ul>
-                @if ($lendVoice && collect($guides)->contains('realVoice', false))
-                    <p class="s-sg-voices-note">{{ __('pages.song.be_voice_note') }} <a href="/features/real-voices" class="s-lk">{{ __('pages.landing.guide.more') }}</a></p>
+                {{-- The ask to sing a waiting part, and once a part is sung by AI, the one link to About AI voices. --}}
+                @php($aiParts = collect($guides)->contains('source', 'ai'))
+                @php($asking = $lendVoice && collect($guides)->contains('realVoice', false))
+                @if ($asking || $aiParts)
+                    <p class="s-sg-voices-note">@if ($asking){{ __($aiParts ? 'pages.song.ai.note' : 'pages.song.be_voice_note') }} <a href="/features/real-voices" class="s-lk">{{ __('pages.landing.guide.more') }}</a>@endif @if ($aiParts)<a href="/about/ai-voices" class="s-lk">{{ __('pages.song.ai.about') }}</a>@endif</p>
                 @endif
             </section>
         @endif
@@ -270,6 +277,9 @@
         <script type="module" src="/js/public/mixer.js"></script>
     @endif
     <script type="module" src="/js/public/song-page.js"></script>
+    @if ($choirTeaser ?? false)
+        <script type="module" src="/js/public/choir-teaser.js"></script>
+    @endif
     @if (($song['versions'] ?? []) !== [])
         <script type="module" src="/js/public/song-version.js"></script>
     @endif

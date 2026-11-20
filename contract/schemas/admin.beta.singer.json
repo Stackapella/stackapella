@@ -20,7 +20,8 @@
         "assignments",
         "account",
         "acceptedAt",
-        "stats"
+        "stats",
+        "aiLicence"
     ],
     "properties": {
         "id": {
@@ -217,6 +218,57 @@
                     "description": "Their sent takes' average pitch score (the device's own)."
                 }
             }
+        },
+        "aiLicence": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "offeredAt",
+                "version",
+                "acceptedAt",
+                "credited",
+                "withdrawnAt"
+            ],
+            "properties": {
+                "offeredAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                },
+                "version": {
+                    "type": [
+                        "integer",
+                        "null"
+                    ],
+                    "description": "The terms' version they accepted (their latest voice's), or null."
+                },
+                "acceptedAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                },
+                "credited": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
+                "withdrawnAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                }
+            },
+            "description": "The AI voice licence (phase 1b): offered by an admin, accepted, withdrawn; null if never offered nor accepted."
         }
     },
     "title": "A beta singer, for Hillel"

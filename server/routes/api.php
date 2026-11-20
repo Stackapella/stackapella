@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Api\Account\AccountController;
 use App\Http\Controllers\Api\Account\LearningController;
+use App\Http\Controllers\Api\Admin\AiVoices\AiGuidesController as AdminAiGuides;
 use App\Http\Controllers\Api\Admin\AiVoices\AiVoicesController as AdminAiVoices;
 use App\Http\Controllers\Api\Admin\AuditController;
 use App\Http\Controllers\Api\Admin\Beta\AssignmentsController as AdminBetaAssignments;
@@ -57,6 +58,7 @@ use App\Http\Controllers\Api\Auth\EarlyAccessController as EarlyAccessShow;
 use App\Http\Controllers\Api\Auth\InviteLinkController as InviteLinkShow;
 use App\Http\Controllers\Api\Auth\SignInLinkController;
 use App\Http\Controllers\Api\Beta\AgreementController;
+use App\Http\Controllers\Api\Beta\AiLicenceController as BetaAiLicence;
 use App\Http\Controllers\Api\Beta\ConsentController;
 use App\Http\Controllers\Api\Beta\FeedbackController;
 use App\Http\Controllers\Api\Beta\InvitesController;
@@ -89,6 +91,7 @@ use App\Http\Controllers\Api\Ideas\IdeasController as IdeasApi;
 use App\Http\Controllers\Api\Leagues\LeaguesController as LeaguesApi;
 use App\Http\Controllers\Api\Library\LibraryController as LibraryApi;
 use App\Http\Controllers\Api\Live\BeatController;
+use App\Http\Controllers\Api\OwnChoir\OwnChoirController as OwnChoirApi;
 use App\Http\Controllers\Api\Projects\EditableController;
 use App\Http\Controllers\Api\Projects\PartsController as ProjectParts;
 use App\Http\Controllers\Api\Projects\ProjectsController;
@@ -471,6 +474,18 @@ Route::middleware('auth')->prefix('school')->name('school.')->group(function ():
 });
 
 // The beta singers: an invite attaches the singer to their own account; then their parts and takes.
+// Hear yourself as a choir (docs/ai-voices-build-plan.md, track B phase 3), behind own_choir (OwnChoir::ensureOn).
+Route::middleware('auth')->prefix('own-choir')->name('ownChoir.')->group(function (): void {
+    Route::get('/', [OwnChoirApi::class, 'show'])->name('show');
+    Route::delete('/', [OwnChoirApi::class, 'forget'])->name('delete');
+    Route::post('/consent', [OwnChoirApi::class, 'consent'])->name('consent');
+    Route::post('/requests', [OwnChoirApi::class, 'store'])->middleware(['age', 'throttle:take-uploads', 'paused:uploads'])->name('requests.create');
+    Route::post('/requests/{song}/complete', [OwnChoirApi::class, 'complete'])->middleware('paused:uploads')->name('requests.complete');
+    Route::post('/requests/{song}/seen', [OwnChoirApi::class, 'seen'])->name('requests.seen');
+    Route::delete('/requests/{song}', [OwnChoirApi::class, 'destroy'])->name('requests.delete');
+    Route::delete('/voice', [OwnChoirApi::class, 'deleteVoice'])->name('voice.delete');
+});
+
 Route::prefix('beta')->name('beta.')->group(function (): void {
     Route::get('/invites/{token}', [InvitesController::class, 'show'])->middleware('throttle:beta-link')->name('invite.show');
     Route::post('/invites/{token}/accept', [InvitesController::class, 'accept'])->middleware(['auth', 'throttle:beta-link'])->name('invite.accept');
@@ -485,6 +500,15 @@ Route::prefix('beta')->name('beta.')->group(function (): void {
         Route::post('/submissions', [SubmissionsController::class, 'store'])->middleware(['throttle:take-uploads', 'paused:uploads'])->name('submissions.create');
         Route::post('/submissions/{submission}/complete', [SubmissionsController::class, 'complete'])->middleware('paused:uploads')->name('submissions.complete');
         Route::post('/feedback', FeedbackController::class)->middleware('throttle:contact')->name('feedback.create');
+    });
+
+    // The AI voice licence (docs/ai-voices-build-plan.md, phase 1b): a singer whose role ended can still see it, change
+    // its credit and withdraw it (accepting needs an offer, which a revoked singer no longer has).
+    Route::middleware(['auth', 'beta:revoked'])->group(function (): void {
+        Route::get('/ai-licence', [BetaAiLicence::class, 'show'])->name('aiLicence.show');
+        Route::post('/ai-licence', [BetaAiLicence::class, 'accept'])->name('aiLicence.accept');
+        Route::patch('/ai-licence', [BetaAiLicence::class, 'update'])->name('aiLicence.update');
+        Route::post('/ai-licence/withdraw', [BetaAiLicence::class, 'withdraw'])->name('aiLicence.withdraw');
     });
 });
 
@@ -533,6 +557,7 @@ Route::middleware(['auth', 'editor', 'second-factor'])->prefix('admin')->name('a
             Route::post('/singers/{singer}/revoke', [AdminBetaSingers::class, 'revoke'])->name('singers.revoke');
             Route::post('/singers/{singer}/paid', [AdminBetaSingers::class, 'paid'])->middleware('sudo')->name('singers.paid');
             Route::post('/singers/{singer}/forget', [AdminBetaSingers::class, 'forget'])->middleware('sudo')->name('singers.forget');
+            Route::post('/singers/{singer}/ai-licence', [AdminBetaSingers::class, 'offerAiLicence'])->name('singers.aiLicence.offer');
             Route::post('/singers/{singer}/assignments', [AdminBetaAssignments::class, 'store'])->name('assignments.create');
             Route::delete('/assignments/{assignment}', [AdminBetaAssignments::class, 'destroy'])->name('assignments.delete');
             Route::post('/assignments/{assignment}/again', [AdminBetaAssignments::class, 'again'])->name('assignments.again');
@@ -549,6 +574,11 @@ Route::middleware(['auth', 'editor', 'second-factor'])->prefix('admin')->name('a
     // AI guide voices (docs/ai-voices-build-plan.md): editors see them; withdrawing one is the admin's, in sudo.
     Route::get('/ai-voices', [AdminAiVoices::class, 'index'])->name('aiVoices.list');
     Route::post('/ai-voices/{voice}/withdraw', [AdminAiVoices::class, 'withdraw'])->middleware(['admin', 'sudo'])->name('aiVoices.withdraw');
+    // The review queue (phase 1c): editors see it; deciding is the admin's.
+    Route::get('/ai-guides', [AdminAiGuides::class, 'index'])->name('aiGuides.list');
+    Route::post('/ai-guides/approve', [AdminAiGuides::class, 'approve'])->middleware('admin')->name('aiGuides.approve');
+    // Rejecting deletes the file and purges the CDN: in sudo, as withdrawing and retiring are.
+    Route::post('/ai-guides/reject', [AdminAiGuides::class, 'reject'])->middleware(['admin', 'sudo'])->name('aiGuides.reject');
 
     // The trust and safety screen: the admin's alone; changes need a fresh second-factor check.
     Route::middleware('admin')->group(function (): void {

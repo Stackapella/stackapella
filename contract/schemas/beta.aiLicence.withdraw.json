@@ -1,0 +1,27 @@
+{
+    "$id": "beta.aiLicence.withdraw.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "meta"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "beta.aiLicence.json#/$defs/state"
+        },
+        "meta": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "retired"
+            ],
+            "properties": {
+                "retired": {
+                    "type": "integer",
+                    "description": "How many parts it sang were retired and their files deleted."
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,52 @@
+{
+    "$id": "worker.choir.part.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "#/$defs/part"
+        }
+    },
+    "$defs": {
+        "part": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "job",
+                "part",
+                "status",
+                "failure"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "job": {
+                    "type": "string"
+                },
+                "part": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "uploading",
+                        "processing",
+                        "ready",
+                        "failed"
+                    ]
+                },
+                "failure": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                }
+            }
+        }
+    }
+}

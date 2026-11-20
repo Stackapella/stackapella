@@ -44,14 +44,15 @@ test('glass: the built sheets carry glass.css (input.css @imports it) and the bu
     }
 });
 
-test('glass: the home page\'s own sheet carries glass.css as it is (tool/glass_copy.py writes the copy)', async () => {
+test('glass: the pages with a sheet of their own carry glass.css as it is (tool/glass_copy.py writes the copies)', async () => {
     const glass = await text('/css/glass.css');
-    const landing = await text('/css/landing.css');
-    const start = '/* glass:start (tool/glass_copy.py writes this from css/glass.css; never edit it here) */\n';
-    const a = landing.indexOf(start);
-    const b = landing.indexOf('/* glass:end */');
-    assert(a >= 0 && b > a, 'landing.css marks its glass copy');
-    const copy = landing.slice(a + start.length, b);
     const source = glass.slice(glass.indexOf('/* gem-spec:start */')).trimEnd() + '\n';
-    assert(copy === source, 'landing.css\'s glass differs from glass.css: run python3 -I tool/glass_copy.py in web/');
+    const start = '/* glass:start (tool/glass_copy.py writes this from css/glass.css; never edit it here) */\n';
+    for (const name of ['landing.css', 'your-choir.css']) {
+        const sheet = await text(`/css/${name}`);
+        const a = sheet.indexOf(start);
+        const b = sheet.indexOf('/* glass:end */');
+        assert(a >= 0 && b > a, `${name} marks its glass copy`);
+        assert(sheet.slice(a + start.length, b) === source, `${name}'s glass differs from glass.css: run python3 -I tool/glass_copy.py in web/`);
+    }
 });

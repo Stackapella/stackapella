@@ -404,6 +404,14 @@ const SingerCard = {
     emits: ['act'],
     setup: () => ({ LINK, ASSIGNMENT, money, when, templatePartName, assignmentTitle, singerName, formatDate, formatNumber, navigate }),
     computed: {
+        /** The AI voice licence (phase 1b): offered when, accepted which version and how credited, or withdrawn. */
+        aiLicenceLine() {
+            const l = this.singer.aiLicence;
+            if (!l) return '';
+            if (l.withdrawnAt) return t('admin.singers.ai.withdrawn', { date: when(l.withdrawnAt) });
+            if (l.acceptedAt) return t('admin.singers.ai.accepted', { version: l.version, date: when(l.acceptedAt) }) + ' · ' + (l.credited ? t('admin.singers.ai.credited') : t('admin.singers.ai.notCredited'));
+            return t('admin.singers.ai.offered', { date: when(l.offeredAt) });
+        },
         /** Every take of theirs, whatever its status, in the review queue. */
         takesPath() {
             return `/admin/review?status=&singer=${encodeURIComponent(this.singer.id)}`;
@@ -444,11 +452,13 @@ const SingerCard = {
                 </li>
                 <li v-if="!singer.assignments.length" class="px-3 py-2.5 text-sm text-muted">{{ t('admin.singers.noParts') }}</li>
             </ul>
+            <p v-if="singer.aiLicence" class="mt-3 text-sm text-muted" data-singer-ai-licence>{{ aiLicenceLine }}</p>
             <div v-if="singer.name" class="mt-4 flex flex-wrap gap-2">
                 <a v-if="singer.stats?.takes" :href="takesPath" class="btn-secondary btn-sm" @click.prevent="navigate(takesPath)">{{ t('admin.singers.theirTakes') }}</a>
                 <button type="button" class="btn-secondary btn-sm" @click="$emit('act', 'addPart')"><Icon name="plus" :size="14" /> {{ t('admin.singers.addPart') }}</button>
                 <button type="button" class="btn-secondary btn-sm" @click="$emit('act', 'link')">{{ t('admin.singers.newLink') }}</button>
                 <button type="button" class="btn-secondary btn-sm" @click="$emit('act', 'edit')">{{ t('admin.singers.edit') }}</button>
+                <button v-if="!singer.aiLicence" type="button" class="btn-secondary btn-sm" data-singer-ai-offer @click="$emit('act', 'offerAi')">{{ t('admin.singers.ai.offer') }}</button>
                 <button v-if="singer.owedCents > 0" type="button" class="btn-secondary btn-sm" @click="$emit('act', 'paid')">{{ t('admin.singers.markPaid') }}</button>
                 <button v-if="singer.link !== 'revoked'" type="button" class="btn-ghost btn-sm" @click="$emit('act', 'revoke')">{{ t('admin.singers.revoke') }}</button>
                 <button type="button" class="btn-ghost btn-sm text-bad" @click="$emit('act', 'forget')">{{ t('admin.singers.forget') }}</button>
@@ -548,6 +558,9 @@ export const SingersSection = {
             </ChangeSheet>
             <ChangeSheet v-if="sheet?.kind === 'revoke'" :needs-sudo="false" :title="t('admin.singers.revokeTitle', { name: singerName(sheet.singer) })" :me="me" :busy="busy" :errors="errors" :reasoned="false" @close="sheet = null" @confirm="revoke">
                 <p class="text-cream">{{ t('admin.singers.revokeBody') }}</p>
+            </ChangeSheet>
+            <ChangeSheet v-if="sheet?.kind === 'offerAi'" :needs-sudo="false" :title="t('admin.singers.ai.offerTitle', { name: singerName(sheet.singer) })" :confirm-label="t('admin.singers.ai.offerConfirm')" :me="me" :busy="busy" :errors="errors" :reasoned="false" @close="sheet = null" @confirm="offerAi">
+                <p class="text-cream" data-singer-ai-offer-body>{{ t('admin.singers.ai.offerBody') }}</p>
             </ChangeSheet>
             <ChangeSheet v-if="sheet?.kind === 'paid'" :title="t('admin.singers.paidTitle', { amount: money(sheet.singer.owedCents, sheet.singer.currency), name: singerName(sheet.singer) })" :me="me" :busy="busy" :errors="errors" :reasoned="false" @close="sheet = null" @confirm="paid">
                 <p class="text-cream">{{ t('admin.singers.paidBody') }}</p>
@@ -660,6 +673,10 @@ export const SingersSection = {
         },
         async revoke() {
             const answer = await this.change(() => api.admin.beta.singers.revoke(this.sheet.singer.id));
+            if (answer) this.saved(answer);
+        },
+        async offerAi() {
+            const answer = await this.change(() => api.admin.beta.singers.offerAiLicence(this.sheet.singer.id));
             if (answer) this.saved(answer);
         },
         async paid() {

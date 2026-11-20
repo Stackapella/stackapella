@@ -26,7 +26,7 @@
 // playing): the others play at once, and the notes light once the mic answers ('mic' says { listening } or { error });
 // listen() asks again mid-song (the mic just allowed). A new mode carries on from the same place, only the mix
 // changes. A song's blocks carry its words only (the keyboard names the notes). voice('real' | 'synth') chooses the
-// part's voice; hasReal() says whether it has a real one. The mic only on the sing tap; nothing is recorded or sent.
+// part's voice; hasReal() says whether it has a real one, and source() whether that one is an AI voice ('ai'). The mic only on the sing tap; nothing is recorded or sent.
 // Every lane shares one AudioContext; `unlock()` (exported) makes it inside a click, for a page that
 // mounts its lane a moment after the click (Safari). The bar's spoken names come from the page, in its
 // language (`words`: { play, pause, zoom, zoomOut, zoomIn }), since the app's words need Vue.
@@ -314,6 +314,7 @@ export function mount(el, { take: takeUrl = null, song: songSource = null, zoom 
         };
         const guides = await catalogueGuides(song.take.song, song.template);
         song.hasReal = Boolean(guides?.[song.take.part]);
+        song.guideSource = guides?.[song.take.part]?.source ?? null;
         const synth = (key, i) => renderOff(song.parts[key], { bpm: song.template.tempo, sampleRate: rate, human: 'full', seed: 40 + i });
         const real = (guide) => realVoice(guide, decoder);
         const voiceOf = async (key, i) => {
@@ -528,6 +529,8 @@ export function mount(el, { take: takeUrl = null, song: songSource = null, zoom 
         mode: () => state.mode,
         /** Whether the part has a real singer's voice for this version (known once its voices are made). */
         hasReal: () => Boolean(song?.hasReal),
+        /** That voice's kind: 'ai' for an AI voice standing in (docs/ai-voices-build-plan.md; the page names it as AI), else 'recorded' or null. */
+        source: () => song?.guideSource ?? null,
         /** The part's voice: 'real' (its singer, where there is one) or 'synth'; the next play uses it. */
         voice(kind) {
             if (kind && kind !== state.voice) {

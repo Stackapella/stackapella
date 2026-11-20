@@ -19,7 +19,8 @@
                 "aiGuide": {
                     "id": "Ai7Sop",
                     "voice": "Vc3Ad8",
-                    "publishedAt": "2026-11-21T08:40:00Z"
+                    "publishedAt": "2026-11-21T08:40:00Z",
+                    "review": "approved"
                 },
                 "pending": null,
                 "wanted": true
@@ -31,7 +32,8 @@
                 "aiGuide": {
                     "id": "Ai7Alt",
                     "voice": "Vc3Ad8",
-                    "publishedAt": "2026-11-21T08:45:00Z"
+                    "publishedAt": "2026-11-21T08:45:00Z",
+                    "review": "pending"
                 },
                 "pending": null,
                 "wanted": true
@@ -63,17 +65,20 @@
             {
                 "id": "Vc3Ad8",
                 "name": "Alto A",
-                "active": true
+                "active": true,
+                "licensed": true
             },
             {
                 "id": "Vc9Tn2",
                 "name": "Tenor B",
-                "active": true
+                "active": true,
+                "licensed": true
             },
             {
                 "id": "Vc1Wd5",
                 "name": "Soprano C",
-                "active": false
+                "active": false,
+                "licensed": true
             }
         ]
     }

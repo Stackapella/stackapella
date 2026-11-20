@@ -11,7 +11,9 @@
         "consent",
         "status",
         "withdrawnAt",
-        "guides"
+        "guides",
+        "singer",
+        "licence"
     ],
     "properties": {
         "id": {
@@ -105,6 +107,47 @@
                     }
                 }
             }
+        },
+        "singer": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "name"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            },
+            "description": "The beta singer who accepted the licence in the app; null for a voice added by app:ai-voice:add."
+        },
+        "licence": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "version",
+                "acceptedAt"
+            ],
+            "properties": {
+                "version": {
+                    "type": "integer"
+                },
+                "acceptedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            },
+            "description": "The licence version they accepted in the app, and when; null for a voice added by command."
         }
     }
 }

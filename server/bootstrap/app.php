@@ -116,6 +116,7 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::get('/api/internal/corrections', CorrectionsExportController::class)->middleware('throttle:corrections-export')->name('internal.corrections');
             // The AI voices worker (contract/api.md, "The AI voices worker"): its bearer token, no session; limited first.
             Route::prefix('api/worker/ai')->name('worker.ai.')->middleware(['throttle:ai-worker', AuthenticateAiWorker::class, ReadOnlyMode::class, NoStore::class, SubstituteBindings::class])->group(base_path('routes/worker.php'));
+            Route::prefix('api/worker/choir')->name('worker.choir.')->middleware(['throttle:ai-worker', AuthenticateAiWorker::class.':choir', ReadOnlyMode::class, NoStore::class, SubstituteBindings::class])->group(base_path('routes/worker-choir.php'));
             Route::get('/.well-known/security.txt', SecurityTxtController::class)->middleware('throttle:public-pages')->name('security.txt');
 
             Route::middleware('web')->group(base_path('routes/web.php'));

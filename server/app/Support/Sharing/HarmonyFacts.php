@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support\Sharing;
 
+use App\Models\AiVoice;
 use App\Models\Harmony;
 use App\Models\HarmonyConsent;
 use App\Models\TemplateGuide;
@@ -93,27 +94,45 @@ final class HarmonyFacts
 
     /**
      * The beta singers whose published voices are in the mix (their licence covers it,
-     * docs/backend-plan.md D5). A voice removed since is left out.
+     * docs/backend-plan.md D5). A voice removed since is left out. An AI part comes as the facts for the view to word in
+     * the shared label (design rule "AI: plain about it, never loud"): `ai`, no `name`, and `aiBasedOn` only when its
+     * singer chose a credit. A part that's an AI voice in the sharer's own voice (Hear yourself as a choir) comes with
+     * `ownVoice` too, and `aiBasedOn` the sharer's name as the page shows it.
      *
-     * @return list<array{name: string, part: string}>
+     * @return list<array{name: string|null, part: string, ai: bool, aiBasedOn: string|null, ownVoice: bool}>
      */
     public function guides(Harmony $harmony): array
     {
-        if ($harmony->guide_ids === [] || $harmony->template_version_id === null) {
-            return [];
+        // Made from the sharer's own singing: named as the page names them (none when their profile is hidden or their
+        // name can't be shown, and the label is the plain "AI voice").
+        $sharer = $harmony->user;
+        $named = $sharer instanceof User && ! Gallery::hidden($sharer) && ! TextFilter::hasLink($sharer->name) && ! TextFilter::holds($sharer->name) ? $sharer->name : null;
+        $own = array_map(static fn (string $part): array => ['name' => null, 'part' => $part, 'ai' => true, 'aiBasedOn' => $named, 'ownVoice' => true], array_values(array_filter((array) $harmony->own_voice_parts, 'is_string')));
+
+        if ($harmony->template_version_id === null) {
+            return $own;
         }
 
         $parts = $this->partNames($harmony);
+        // Its catalogue AI parts as kept on the share (a guide retired since still sang in the mix); the name of the voice's
+        // singer only while they still credit it (withdrawn: the plain "AI voice").
+        $snapshot = array_values(array_filter((array) $harmony->ai_parts, 'is_array'));
+        $voices = AiVoice::query()->whereKey(array_filter(array_column($snapshot, 'voice')))->get()->keyBy('id');
+        $ai = array_map(static fn (array $p): array => ['name' => null, 'part' => $parts[(string) ($p['part'] ?? '')] ?? (string) ($p['part'] ?? ''), 'ai' => true, 'aiBasedOn' => isset($p['voice']) ? $voices->get((int) $p['voice'])?->labelName() : null, 'ownVoice' => false], $snapshot);
 
-        return array_values(TemplateGuide::query()
+        if ($harmony->guide_ids === []) {
+            return [...$ai, ...$own];
+        }
+
+        return [...array_values(TemplateGuide::query()
             ->with(['submission.assignment.singer', 'creditUser'])
             ->whereKey($harmony->guide_ids)
             ->where('template_version_id', $harmony->template_version_id)
             ->orderBy('id')
             ->get()
-            ->map(fn (TemplateGuide $guide): ?array => ($name = $guide->submission !== null ? $guide->submission->assignment->singer->credit() : ($guide->creditUser !== null ? GalleryViews::person($guide->creditUser)['name'] : null)) !== null ? ['name' => $name, 'part' => $parts[$guide->part_key] ?? $guide->part_key] : null)
+            ->map(fn (TemplateGuide $guide): ?array => (($name = $guide->submission !== null ? $guide->submission->assignment->singer->credit() : ($guide->creditUser !== null ? GalleryViews::person($guide->creditUser)['name'] : null)) !== null ? ['name' => $name, 'part' => $parts[$guide->part_key] ?? $guide->part_key, 'ai' => false, 'aiBasedOn' => null, 'ownVoice' => false] : null))
             ->filter()
-            ->all());
+            ->all()), ...$ai, ...$own];
     }
 
     /**

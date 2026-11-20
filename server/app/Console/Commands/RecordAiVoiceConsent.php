@@ -39,6 +39,12 @@ final class RecordAiVoiceConsent extends Command
             return self::FAILURE;
         }
 
+        if ($voice->beta_singer_id !== null) {
+            $this->error('That voice was licensed in the app: its singer manages it there.');
+
+            return self::FAILURE;
+        }
+
         if (! $voice->isActive()) {
             $this->error('That voice is withdrawn: add a new one instead.');
 
