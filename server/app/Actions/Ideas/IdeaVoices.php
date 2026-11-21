@@ -81,7 +81,7 @@ final class IdeaVoices
             return $voice;
         });
 
-        return ['voice' => $voice, 'upload' => $voice->status === IdeaVoice::UPLOADING ? $this->uploads->presign($voice->upload_key, 'audio/wav', $voice->upload_bytes, minutes: 10) : null];
+        return ['voice' => $voice, 'upload' => $voice->status === IdeaVoice::UPLOADING ? $this->uploads->presign($voice->upload_key, 'audio/wav', $voice->upload_bytes) : null];
     }
 
     public function complete(User $user, string $uuid): IdeaVoice

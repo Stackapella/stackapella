@@ -10026,11 +10026,11 @@
     "AI voice": "Voz de IA",
     "Until a real singer records a part, it may have an AI voice for now, always marked as AI.": "Hasta que una persona real grabe una parte, puede tener una voz de IA por ahora, siempre marcada como IA.",
     ":name, really singing :song": ":name, cantando de verdad :song",
-    "Sing for 30 seconds, then hear any song in our library with every part of a real choir arrangement sung in a voice like yours: a finished choir track to play, download or share.": "Canta 30 segundos y oye cualquier canción de nuestra biblioteca con cada parte de un arreglo coral de verdad cantada con una voz como la tuya: una pista de coro terminada para escuchar, descargar o compartir.",
+    "Sing for 30 seconds, then hear any song in our library with every part of a real choir arrangement sung in a voice like yours: a finished choir track to play and share, and to download with Plus.": "Canta 30 segundos y oye cualquier canción de nuestra biblioteca con cada parte de un arreglo coral de verdad cantada con una voz como la tuya: una pista de coro terminada para escuchar y compartir, y para descargar con Plus.",
     "You, as a": "Tú, como un",
     "whole choir": "coro entero",
-    "Sing for 30 seconds, then pick any song from our library. Hear every part, soprano to bass, sung by AI in a voice like yours: a finished choir track to play, download or share.": "Canta 30 segundos y elige cualquier canción de nuestra biblioteca. Oye cada parte, de la soprano al bajo, cantada por IA con una voz como la tuya: una pista de coro terminada para escuchar, descargar o compartir.",
-    "Sing for 30 seconds, then pick any song from our library, or hum one of your own. Hear every part, soprano to bass, sung by AI in a voice like yours: a finished choir track to play, download or share.": "Canta 30 segundos y elige cualquier canción de nuestra biblioteca, o tararea una tuya. Oye cada parte, de la soprano al bajo, cantada por IA con una voz como la tuya: una pista de coro terminada para escuchar, descargar o compartir.",
+    "Sing for 30 seconds, then pick any song from our library. Hear every part, soprano to bass, sung by AI in a voice like yours: a finished choir track to play and share, and to download with Plus.": "Canta 30 segundos y elige cualquier canción de nuestra biblioteca. Oye cada parte, de la soprano al bajo, cantada por IA con una voz como la tuya: una pista de coro terminada para escuchar y compartir, y para descargar con Plus.",
+    "Sing for 30 seconds, then pick any song from our library, or hum one of your own. Hear every part, soprano to bass, sung by AI in a voice like yours: a finished choir track to play and share, and to download with Plus.": "Canta 30 segundos y elige cualquier canción de nuestra biblioteca, o tararea una tuya. Oye cada parte, de la soprano al bajo, cantada por IA con una voz como la tuya: una pista de coro terminada para escuchar y compartir, y para descargar con Plus.",
     "Hum your own tune": "Tararea tu propia melodía",
     "In your browser. You choose when it records, and your voice stays private to you.": "En tu navegador. Tú eliges cuándo graba, y tu voz es solo tuya, en privado.",
     "Hear one voice become a choir": "Oye una voz convertirse en un coro",
@@ -10070,7 +10070,7 @@
     "Just once. It needn't be perfect: we only need to hear your voice, and it's kept privately for every next song.": "Solo una vez. No hace falta que salga perfecto: solo necesitamos oír tu voz, y se guarda en privado para cada canción siguiente.",
     "Choose a song": "Elige una canción",
     "Any song in our library.": "Cualquier canción de nuestra biblioteca.",
-    "A few minutes later, every part is sung by AI in a voice like yours. Play it, download it or share it.": "Unos minutos después, cada parte la canta una IA con una voz como la tuya. Escúchalo, descárgalo o compártelo.",
+    "A few minutes later, every part is sung by AI in a voice like yours. Play it and share it, or download it with Plus.": "Unos minutos después, cada parte la canta una IA con una voz como la tuya. Escúchalo y compártelo, o descárgalo con Plus.",
     "Any song in our library, or a tune you hum yourself.": "Cualquier canción de nuestra biblioteca, o una melodía que tararees tú.",
     "Want to sing it yourself too? Learn any part, and your own takes replace the AI ones.": "¿Quieres cantarla tú también? Aprende cualquier parte, y tus propias tomas sustituyen a las de IA.",
     "What happens to your voice": "Qué pasa con tu voz",
@@ -10087,5 +10087,7 @@
     "No. The app writes down what you hum, and you can fix any note before the parts are made.": "No. La app escribe lo que tarareas, y puedes corregir cualquier nota antes de que se hagan las partes.",
     "Yes. Hum a tune and type its words, and every part sings them; without words it sings \"oo\". A song from our library keeps its own words. Songs you make are private to you unless you share them, and anything shared says it was made with AI.": "Sí. Tararea una melodía y escribe su letra, y cada parte la canta; sin letra, canta en \"u\". Una canción de nuestra biblioteca mantiene su propia letra. Las canciones que haces son privadas salvo que las compartas, y todo lo que compartes dice que está hecho con IA.",
     "or hum your own tune": "o tararea tu propia melodía",
-    "Your songs are made on our GPU provider's servers, which keep what they process encrypted for at most 7 days, then delete it.": "Tus canciones se hacen en los servidores de nuestro proveedor de GPU, que guardan lo que procesan cifrado durante 7 días como mucho y luego lo borran."
+    "Your songs are made on our GPU provider's servers, which keep what they process encrypted for at most 7 days, then delete it.": "Tus canciones se hacen en los servidores de nuestro proveedor de GPU, que guardan lo que procesan cifrado durante 7 días como mucho y luego lo borran.",
+    "Can I download it?": "¿Puedo descargarlo?",
+    "Yes, with Plus. Listening to it and sharing it are free.": "Sí, con Plus. Escucharlo y compartirlo es gratis."
 }

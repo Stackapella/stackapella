@@ -131,7 +131,7 @@ export const BetaView = {
         consentGeneral: null, // a consent refusal that isn't about one field
         retryMessage: '',
     }),
-    setup: () => ({ STATUS, STYLE_WORDS, LINK_ENDED, REFUSED, catalogue, account, templatePartName, formatDate, formatList, keyLabel, outbox, discard, betaBar, timeAgo, navigate }),
+    setup: () => ({ STATUS, STYLE_WORDS, LINK_ENDED, REFUSED, catalogue, account, templatePartName, formatDate, formatList, keyLabel, outbox, discard, betaBar, timeAgo, navigate, toast }),
     template: `
         <div data-ui="screen" class="min-h-dvh bg-ink">
             <header class="border-b border-line">
@@ -258,13 +258,15 @@ export const BetaView = {
                                 <p v-if="group.hint" class="text-xs text-muted">{{ t(group.hint) }}</p>
                             </div>
                             <ul class="space-y-3">
-                                <li v-for="part in group.parts" :key="part.id" class="card space-y-3 p-5" :class="group.key === 'needs' && part.status === 'retake' ? 'border-warn/60' : ''">
+                                <li v-for="part in group.parts" :key="part.id" class="card space-y-3 p-5" :data-beta-part="part.id" :class="group.key === 'needs' && part.status === 'retake' ? 'border-warn/60' : ''">
                                     <div class="flex flex-wrap items-start justify-between gap-3">
                                         <div class="min-w-0">
                                             <h3 class="font-bold text-cream" translate="no">{{ part.template.title }}</h3>
                                             <p class="text-xs text-muted">{{ partName(part) }} · {{ t('beta.parts.detailsKey', { key: keyLabel(part.template.key) }) }}</p>
                                         </div>
-                                        <StatusChip :tone="chipOf(part).tone" :label="t(chipOf(part).label)" />
+                                        <!-- Not open yet: tapping it says why (the same words as the card's line). -->
+                                        <button v-if="!part.recordable" type="button" class="tap-44 -my-2 inline-flex items-center" data-not-open @click="toast(t('beta.parts.notOpen'))"><StatusChip :tone="chipOf(part).tone" :label="t(chipOf(part).label)" /></button>
+                                        <StatusChip v-else :tone="chipOf(part).tone" :label="t(chipOf(part).label)" />
                                     </div>
                                     <!-- Hillel's note, as a note: who, when, and what he said (asked again for a changed part: that note, in place of the take's). -->
                                     <div v-if="part.status === 'retake' && noteOf(part)" class="flex gap-3 rounded-2xl bg-raised p-3" :data-asked-again="part.askedAgain ? '' : null">
@@ -280,7 +282,7 @@ export const BetaView = {
                                     <p v-if="part.status === 'to_record' && part.recordable" class="text-sm text-muted">{{ t('beta.parts.readyToRecord') }}</p>
                                     <!-- How to sing it (the part's style, docs/vibrato-plan.md), while it's still to sing -->
                                     <p v-if="STYLE_WORDS[part.style] && ['to_record', 'retake'].includes(part.status)" class="text-sm text-cream">{{ t(STYLE_WORDS[part.style]) }}</p>
-                                    <p v-if="!part.recordable || !part.template.reviewed" class="text-sm text-muted">{{ t('beta.parts.notOpen') }}</p>
+                                    <p v-if="!part.recordable" class="text-sm text-muted">{{ t('beta.parts.notOpen') }}</p>
                                     <p v-if="['submitted', 'in_review'].includes(part.status) && !processing(part)" class="text-sm text-muted">{{ t('beta.parts.waiting') }}</p>
                                     <p v-if="part.status === 'guide'" class="text-sm text-muted">{{ t('beta.parts.guideLine', { part: partName(part) }) }}</p>
                                     <p v-if="part.status === 'accepted'" class="text-sm text-muted">{{ t('beta.parts.alternateLine') }}</p>
@@ -367,7 +369,9 @@ export const BetaView = {
         /** My parts sorted by what needs you (91.png): needs you, coming up, live in the library, then not used. */
         groups() {
             const parts = this.parts ?? [];
-            const coming = (p) => !p.recordable || !p.template.reviewed || ['submitted', 'in_review'].includes(p.status);
+            // Open or not is the server's one rule (`recordable`: a reviewed arrangement, or a song's staged next version,
+            // which is never reviewed by design and is exactly what's there to re-record).
+            const coming = (p) => !p.recordable || ['submitted', 'in_review'].includes(p.status);
             const library = (p) => ['guide', 'accepted'].includes(p.status);
             return {
                 retakes: parts.filter((p) => p.status === 'retake' && !coming(p)).length,
@@ -435,11 +439,11 @@ export const BetaView = {
         },
         /** Which chip a card wears: a part not open yet says so, whatever else it is. */
         chipOf(part) {
-            if (!part.recordable || !part.template.reviewed) return { label: tk('beta.status.notOpen'), tone: 'muted' };
+            if (!part.recordable) return { label: tk('beta.status.notOpen'), tone: 'muted' };
             return STATUS[part.status] ?? { label: tk('beta.status.to_record'), tone: 'muted' };
         },
         canRecordPart(part) {
-            return part.recordable && part.template.reviewed && this.canRecord && part.status !== 'guide' && !['submitted', 'in_review'].includes(part.status);
+            return part.recordable && this.canRecord && part.status !== 'guide' && !['submitted', 'in_review'].includes(part.status);
         },
         processing(part) {
             return ['processing', 'uploading'].includes(part.latestSubmission?.status);

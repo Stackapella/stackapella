@@ -20,6 +20,7 @@ use App\Support\OwnChoir\OwnChoir;
 use App\Support\Storage\ReceivedUploads;
 use App\Support\Storage\Uploads;
 use App\Support\Templates\Catalogue;
+use App\Support\Usage\UploadBytes;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -31,7 +32,7 @@ use Illuminate\Support\Str;
  */
 final class OwnChoirRequests
 {
-    public function __construct(private readonly Uploads $uploads, private readonly Catalogue $catalogue) {}
+    public function __construct(private readonly Uploads $uploads, private readonly Catalogue $catalogue, private readonly UploadBytes $uploadBytes) {}
 
     public function consent(User $user, int $version, ?string $ip = null): void
     {
@@ -115,6 +116,7 @@ final class OwnChoirRequests
             }
 
             $request = new OwnChoirRequest(['part_key' => $clip['partKey']]);
+            $this->uploadBytes->count($user, (int) $clip['bytes']);
             $request->forceFill([
                 'user_id' => $user->id,
                 'template_version_id' => $version->id,

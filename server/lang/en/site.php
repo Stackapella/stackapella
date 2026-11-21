@@ -1348,14 +1348,14 @@ return [
     // singing, learning your part, the ethics up front. AI said plainly, never first. No prices until Hillel sets them.
     'your_choir' => [
         'title' => 'Hear yourself as a choir',
-        'description' => 'Sing for 30 seconds, then hear any song in our library with every part of a real choir arrangement sung in a voice like yours: a finished choir track to play, download or share.',
+        'description' => 'Sing for 30 seconds, then hear any song in our library with every part of a real choir arrangement sung in a voice like yours: a finished choir track to play and share, and to download with Plus.',
         'eyebrow' => 'Hear yourself as a choir',
         // The headline in two, its key phrase in the warm accent (design rules, the five pages' headline).
         'headline_before' => 'You, as a',
         'headline_em' => 'whole choir',
         // `lead` without own_choir_hum, `lead_hum` with it (the hummed-song path's own switch).
-        'lead' => 'Sing for 30 seconds, then pick any song from our library. Hear every part, soprano to bass, sung by AI in a voice like yours: a finished choir track to play, download or share.',
-        'lead_hum' => 'Sing for 30 seconds, then pick any song from our library, or hum one of your own. Hear every part, soprano to bass, sung by AI in a voice like yours: a finished choir track to play, download or share.',
+        'lead' => 'Sing for 30 seconds, then pick any song from our library. Hear every part, soprano to bass, sung by AI in a voice like yours: a finished choir track to play and share, and to download with Plus.',
+        'lead_hum' => 'Sing for 30 seconds, then pick any song from our library, or hum one of your own. Hear every part, soprano to bass, sung by AI in a voice like yours: a finished choir track to play and share, and to download with Plus.',
         'start' => 'Try it with Silent Night',
         'hum' => 'Hum your own tune',
         'start_note' => 'In your browser. You choose when it records, and your voice stays private to you.',
@@ -1389,7 +1389,7 @@ return [
         'steps' => [
             ['title' => 'Sing for 30 seconds', 'body' => 'Just once. It needn\'t be perfect: we only need to hear your voice, and it\'s kept privately for every next song.'],
             ['title' => 'Choose a song', 'body' => 'Any song in our library.'],
-            ['title' => 'Hear your choir', 'body' => 'A few minutes later, every part is sung by AI in a voice like yours. Play it, download it or share it.'],
+            ['title' => 'Hear your choir', 'body' => 'A few minutes later, every part is sung by AI in a voice like yours. Play it and share it, or download it with Plus.'],
         ],
         // Step 2's body while own_choir_hum is on.
         'step_choose_hum' => 'Any song in our library, or a tune you hum yourself.',
@@ -1412,6 +1412,8 @@ return [
             'sing_well' => ['Do I need to sing well?', 'No. The AI sings the notes; your 30 seconds only tell it what your voice sounds like.'],
             'who' => ['Who hears it?', 'Only you, unless you choose to share it.'],
             'own_songs' => ['Can it sing my own songs, or other words?', 'It sings the songs in our library, with their own words.'],
+            // Hillel, 2026-11-21: "if they want to download it they need to subscribe to plus".
+            'download' => ['Can I download it?', 'Yes, with Plus. Listening to it and sharing it are free.'],
             'delete' => ['Can I delete it?', 'Yes, in the app at any time: any choir, every one at once, or your saved voice. Once deleted, it\'s gone.'],
         ],
         'faq_hum' => ['Does my humming need to be in tune?', 'No. The app writes down what you hum, and you can fix any note before the parts are made.'],

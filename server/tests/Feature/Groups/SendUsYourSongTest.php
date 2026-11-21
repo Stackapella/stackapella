@@ -172,11 +172,12 @@ final class SendUsYourSongTest extends TestCase
         $this->assertMatchesContract($this->postJson('/api/groups/'.$this->group.'/tracks/scores', $body), 'groups.tracks.scores.create', 429);
     }
 
-    public function test_the_upload_link_holds_ten_minutes_and_the_uploads_switch_pauses_sending(): void
+    public function test_the_upload_link_holds_three_minutes_and_the_uploads_switch_pauses_sending(): void
     {
         $this->travelTo(now()->startOfMinute());
         $started = $this->postJson('/api/groups/'.$this->group.'/tracks/scores', ['name' => 'a.pdf', 'contentType' => 'application/pdf', 'bytes' => strlen(self::PDF), 'sha256' => hash('sha256', self::PDF)])->assertCreated();
-        $this->assertSame(now()->addMinutes(10)->utc()->toIso8601ZuluString(), $started->json('upload.expiresAt'));
+        // Every presigned link is short (the abuse review): it can't bind its size.
+        $this->assertSame(now()->addMinutes(3)->utc()->toIso8601ZuluString(), $started->json('upload.expiresAt'));
 
         // The uploads switch (a storage attack) stops a file's start and its complete, as it does a take's.
         app(Flags::class)->set('pause_uploads', 'on', null, 'Storage attack');

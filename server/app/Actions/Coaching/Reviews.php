@@ -237,7 +237,7 @@ final class Reviews
             $media->forceFill(['uuid' => $data['id'], 'review_item_id' => $review->id, 'user_id' => $coach->id, 'status' => ReviewMedia::UPLOADING, 'upload_key' => 'uploads/reviews/'.Str::lower(Str::random(32)).'.wav'])->save();
         }
 
-        return ['media' => $media, 'upload' => $media->status === ReviewMedia::UPLOADING ? $this->uploads->presign($media->upload_key, 'audio/wav', $media->upload_bytes, minutes: 10) : null];
+        return ['media' => $media, 'upload' => $media->status === ReviewMedia::UPLOADING ? $this->uploads->presign($media->upload_key, 'audio/wav', $media->upload_bytes) : null];
     }
 
     public function completeMedia(User $coach, string $uuid): ReviewMedia

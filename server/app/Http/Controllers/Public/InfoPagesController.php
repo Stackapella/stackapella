@@ -13,6 +13,7 @@ use App\Support\Pages\Landing;
 use App\Support\Pages\LandingStage;
 use App\Support\Pages\MudeoArrival;
 use App\Support\Pages\Prices;
+use App\Support\Pages\SongParts;
 use App\Support\Site\ComingSoon;
 use App\Support\Site\HelpGuide;
 use App\Support\Site\OpenSource;
@@ -100,6 +101,11 @@ final class InfoPagesController extends Controller
         if ($private) {
             $rows['private_shared'] = (array) Lang::get('pages.pricing.private_row');
             $groups['others'] = [...$groups['others'], 'private_shared'];
+        }
+        // A song in your own voice downloads with Plus, while own_choir is on (Hillel, 2026-11-21).
+        if (SongParts::switchedOn('own_choir')) {
+            $rows['choir_download'] = (array) Lang::get('pages.pricing.choir_row');
+            $groups['share'] = [...$groups['share'], 'choir_download'];
         }
 
         return response()->view('pages.pricing', [

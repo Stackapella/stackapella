@@ -13,6 +13,7 @@ use App\Support\Storage\ReceivedUploads;
 use App\Support\Storage\Uploads;
 use App\Support\Usage\Plans;
 use App\Support\Usage\PrivateSongs;
+use App\Support\Usage\UploadBytes;
 use DateTimeInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -27,7 +28,7 @@ use Illuminate\Validation\ValidationException;
  */
 final class TemplateRecordings
 {
-    public function __construct(private readonly OwnTemplates $templates, private readonly Plans $plans, private readonly Uploads $uploads) {}
+    public function __construct(private readonly OwnTemplates $templates, private readonly Plans $plans, private readonly Uploads $uploads, private readonly UploadBytes $uploadBytes) {}
 
     /**
      * @param  array{id: string, partKey: string, sampleRate: int, frames: int, offsetFrames: int, bytes: int, sha256: string}  $data
@@ -61,6 +62,7 @@ final class TemplateRecordings
                 throw $this->plans->storageFull($user);
             }
 
+            $this->uploadBytes->count($user, $data['bytes']);
             $recording = new TemplateRecording(['part_key' => $data['partKey'], 'sample_rate' => $data['sampleRate'], 'frames' => $data['frames'], 'offset_frames' => $data['offsetFrames'], 'upload_bytes' => $data['bytes'], 'sha256' => strtolower($data['sha256'])]);
             $recording->forceFill([
                 'uuid' => $data['id'],
@@ -73,7 +75,7 @@ final class TemplateRecordings
             return $recording;
         });
 
-        return ['recording' => $recording, 'upload' => $recording->status === TemplateRecording::UPLOADING ? $this->uploads->presign($recording->upload_key, 'audio/wav', $recording->upload_bytes, minutes: 10) : null];
+        return ['recording' => $recording, 'upload' => $recording->status === TemplateRecording::UPLOADING ? $this->uploads->presign($recording->upload_key, 'audio/wav', $recording->upload_bytes) : null];
     }
 
     public function complete(User $user, string $uuid): TemplateRecording

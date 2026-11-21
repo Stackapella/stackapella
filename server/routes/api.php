@@ -185,7 +185,7 @@ Route::middleware('auth')->group(function (): void {
     Route::delete('/parts/{part}', [ProjectParts::class, 'destroy'])->name('parts.delete');
     Route::post('/takes', [TakesController::class, 'store'])->middleware(['age', 'throttle:take-uploads', 'paused:uploads'])->name('takes.create');
     Route::post('/takes/{take}/complete', [TakesController::class, 'complete'])->middleware('paused:uploads')->name('takes.complete');
-    Route::get('/takes/{take}', [TakesController::class, 'show'])->name('takes.show');
+    Route::get('/takes/{take}', [TakesController::class, 'show'])->middleware('throttle:take-links')->name('takes.show');
     Route::post('/takes/{take}/restore', [TakesController::class, 'restore'])->name('takes.restore');
     Route::delete('/takes/{take}', [TakesController::class, 'destroy'])->name('takes.delete');
     Route::get('/parts/{part}/takes', [TakesController::class, 'forPart'])->name('parts.takes.list');

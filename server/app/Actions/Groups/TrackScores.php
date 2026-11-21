@@ -62,7 +62,7 @@ final class TrackScores
             'upload_key' => 'uploads/scores/'.Str::lower(Str::random(32)).'.'.TrackScore::EXTENSIONS[$data['contentType']],
         ])->save();
 
-        return ['score' => $score, 'upload' => $this->uploads->presign($score->upload_key, $score->content_type, $score->bytes, minutes: 10)];
+        return ['score' => $score, 'upload' => $this->uploads->presign($score->upload_key, $score->content_type, $score->bytes)];
     }
 
     public function complete(User $user, string $groupId, string $scoreId): TrackScore

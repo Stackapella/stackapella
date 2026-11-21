@@ -23,6 +23,7 @@ use App\Support\Storage\Uploads;
 use App\Support\Templates\Imported;
 use App\Support\Trust\TrustLevel;
 use App\Support\Usage\Plans;
+use App\Support\Usage\UploadBytes;
 use DateTimeInterface;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -36,7 +37,7 @@ use Illuminate\Validation\ValidationException;
  */
 final class StartHarmony
 {
-    public function __construct(private readonly TrustLevel $trust, private readonly Uploads $uploads, private readonly ShareGate $gate, private readonly Plans $plans) {}
+    public function __construct(private readonly TrustLevel $trust, private readonly Uploads $uploads, private readonly ShareGate $gate, private readonly Plans $plans, private readonly UploadBytes $uploadBytes) {}
 
     /**
      * @param  array{changeId: string, projectId: string, partId?: string|null, title?: string|null, visibility: string, sampleRate: int, channels: int, frames: int, bytes: int, sha256: string, beatZeroSeconds?: float|int|null, guides?: list<string>|null, choirParts?: list<string>|null, parentId?: string|null, fillPart?: string|null, tracks: list<array{name: string, color: string, peaks: string, kind?: string}>}  $data
@@ -53,7 +54,7 @@ final class StartHarmony
             $harmony = DB::transaction(fn (): Harmony => $this->start($user, $data, $ip));
         }
 
-        return ['harmony' => $harmony, 'upload' => $harmony->status === Harmony::UPLOADING ? $this->uploads->presign($harmony->upload_key, 'audio/wav', $harmony->upload_bytes, minutes: 10) : null];
+        return ['harmony' => $harmony, 'upload' => $harmony->status === Harmony::UPLOADING ? $this->uploads->presign($harmony->upload_key, 'audio/wav', $harmony->upload_bytes) : null];
     }
 
     /**
@@ -113,6 +114,9 @@ final class StartHarmony
         if ($data['visibility'] === Harmony::UNLISTED) {
             $this->gate->mayShare($user, $ip);
         }
+
+        // Every presigned upload counts toward the day's bytes (the abuse review).
+        $this->uploadBytes->count($user, $data['bytes']);
 
         $version = $project->template_slug !== null
             ? TemplateVersion::query()->whereHas('template', fn ($query) => $query->where('slug', $project->template_slug))->where('version', $project->template_version)->first()

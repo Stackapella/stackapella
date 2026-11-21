@@ -310,6 +310,12 @@ return [
         'account' => ['max' => 200, 'per' => 'hour', 'by' => 'account'],
     ],
 
+    // A take's private link (takes.show), per account a day (the abuse review): a restore on a new device fetches each
+    // project's takes once, so this is far past any singer's, and stops one account pulling its files over and over.
+    'take-links' => [
+        'account' => ['max' => 5000, 'per' => 'day', 'by' => 'account'],
+    ],
+
     // Plus songs' full templates (templates.show): a daily cap against scraping the library; a
     // song fetched again the same day, or a 304, isn't counted (docs/trust-and-safety-plan.md).
     'plus-downloads' => [

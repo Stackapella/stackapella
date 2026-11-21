@@ -43,7 +43,8 @@ reported, and we take it down if it breaks these terms or the guidelines. You ca
 your voice reference, at any time in the app.
 
 6. **Limits.** Your first song is free. With Plus you can make 20 a month, and anyone can make at most 5 a day.
-Hearing a song you've already made is always free. Unused songs don't carry over.
+Hearing a song you've already made, and sharing it, are always free; downloading a song needs Plus. Unused songs don't
+carry over.
 
 7. **Your data.** Parts are made on the servers of our GPU provider, Modal, in the United States, which keep what they
 process (your voice reference and the parts made from it) encrypted for at most 7 days, then delete it. We keep your

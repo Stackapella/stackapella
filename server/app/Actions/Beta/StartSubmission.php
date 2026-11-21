@@ -12,6 +12,7 @@ use App\Models\BetaSubmission;
 use App\Support\Beta\TakeBar;
 use App\Support\Storage\Uploads;
 use App\Support\Templates\Staging;
+use App\Support\Usage\UploadBytes;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -21,7 +22,7 @@ use Illuminate\Validation\ValidationException;
  */
 final class StartSubmission
 {
-    public function __construct(private readonly Uploads $uploads) {}
+    public function __construct(private readonly Uploads $uploads, private readonly UploadBytes $uploadBytes) {}
 
     /**
      * @param  array{templateVersion?: int|null, key?: string|null, sampleRate: int, frames: int, latencyFrames: int, bytes: int, sha256: string, device?: string|null, mic?: string|null, scores?: array<string, mixed>|null, note?: string|null}  $take
@@ -75,6 +76,12 @@ final class StartSubmission
             if (($take['key'] ?? null) !== $key) {
                 throw ValidationException::withMessages(['key' => __('validation.take_key', ['key' => $key])]);
             }
+        }
+
+        // Counted toward the day's bytes for a singer with an account (an invite-only singer without one has their
+        // assignments to bound them).
+        if ($singer->user !== null) {
+            $this->uploadBytes->count($singer->user, (int) $take['bytes']);
         }
 
         $submission = new BetaSubmission([

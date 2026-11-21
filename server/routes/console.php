@@ -72,6 +72,15 @@ Schedule::command('app:ai-uploads:prune')
     ->hourlyAt(35)
     ->withoutOverlapping(30);
 
+// Presigned uploads can't bind their size: anything bigger than declared goes at once, and every version at a
+// link's key once it's done (the abuse review, 2026-11-21).
+Schedule::command('app:uploads:sweep')
+    ->onOneServer()
+    ->name('uploads-sweep')
+    ->everyFiveMinutes()
+    ->withoutOverlapping(10)
+    ->runInBackground();
+
 Schedule::command('app:accounts:prune')
     ->onOneServer()
     ->name('accounts-prune')

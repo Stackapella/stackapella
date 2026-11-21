@@ -46,7 +46,7 @@ final class StartTake
             $take = DB::transaction(fn (): Take => $this->start($user, $data));
         }
 
-        return ['take' => $take, 'upload' => $take->status === Take::UPLOADING ? $this->uploads->presign($take->upload_key, 'audio/wav', $take->upload_bytes, minutes: 10) : null];
+        return ['take' => $take, 'upload' => $take->status === Take::UPLOADING ? $this->uploads->presign($take->upload_key, 'audio/wav', $take->upload_bytes) : null];
     }
 
     /**

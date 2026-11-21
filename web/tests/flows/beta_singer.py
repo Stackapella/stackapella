@@ -154,6 +154,37 @@ def journey(f):
     assert f.js("document.querySelector('[data-new-take-welcome]').textContent.trim()") == t(f, "beta.parts.newTakeWelcome")
     f.shot("my-parts-asked-again")
     f.run("(await import('/js/api.js')).useTransport((await import('/js/api-mock.js')).mockFetch)")
+
+    # Open is the server's one rule, `recordable`: a song's staged next version (recordable, never reviewed by design)
+    # is ready to record and opens the recorder; a part that isn't recordable stays Not open yet, and its chip says why.
+    f.run("""const api = await import('/js/api.js'); const { mockFetch } = await import('/js/api-mock.js');
+        api.useTransport(async (url, init = {}) => {
+            const answer = await mockFetch(url, init);
+            if (init.operation !== 'beta.parts.list') return answer;
+            const json = await answer.json();
+            const staged = json.data.find((p) => p.id === 'Ef5Gh2');
+            const closed = { ...structuredClone(staged), id: 'Zz9Yy8' };
+            // Staged: an arrangement the mock can open (Amazing Grace's, as the retake part has it), not reviewed.
+            const ag = json.data.find((p) => p.id === 'Ab3Cd9');
+            Object.assign(staged, { recordable: true, status: 'to_record', latestSubmission: null, partKey: ag.partKey, template: { ...structuredClone(ag.template), reviewed: false } });
+            json.data.push(closed);
+            return new Response(JSON.stringify(json), { status: 200, headers: { 'Content-Type': 'application/json' } });
+        });
+        const { navigate } = await import('/js/router.js'); navigate('/settings'); await new Promise((r) => setTimeout(r, 300)); navigate('/beta');""")
+    staged = "document.querySelector('[data-beta-part=Ef5Gh2]')"
+    closed = "document.querySelector('[data-beta-part=Zz9Yy8]')"
+    f.wait(f"{staged} && {closed}", what="the staged part and the closed one")
+    assert t(f, "beta.parts.readyToRecord") in f.js(f"{staged}.innerText"), "the staged part isn't ready to record"
+    assert not f.js(f"{staged}.querySelector('[data-not-open]')"), "the staged part says Not open yet"
+    assert t(f, "beta.parts.notOpen") in f.js(f"{closed}.innerText"), "the closed part doesn't say why"
+    f.run(f"{closed}.querySelector('[data-not-open]').click()")
+    f.wait(f"document.querySelector('[data-toasts]')?.textContent.includes({json.dumps(t(f, 'beta.parts.notOpen'))})", what="the chip's explanation")
+    f.shot("my-parts-staged")
+    labels = json.dumps([t(f, "beta.parts.learnAndRecord"), t(f, "beta.parts.recordAgain")])
+    f.run(f"[...{staged}.querySelectorAll('button')].find((b) => {labels}.includes(b.textContent.trim())).click()")
+    f.wait("location.pathname !== '/beta'", timeout=30, what="the staged part's recorder")
+    f.go("/beta?api=mock&scenario=&as=singer", "document.querySelector('main h1')")
+    f.run("(await import('/js/api.js')).useTransport((await import('/js/api-mock.js')).mockFetch)")
     for path in ("/beta", "/settings"):
         if path != "/beta":
             f.go(f"{path}?api=mock&scenario=&as=singer", "document.querySelector('#app *')")

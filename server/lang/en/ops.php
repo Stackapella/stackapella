@@ -54,7 +54,7 @@ return [
         'reports' => ':value reports in the last hour (the line is :limit).',
         'videos' => ':value share videos waiting to be made (the line is :limit).',
         'failed_payments' => ':value failed payments in the last hour (the line is :limit): card testing?',
-        'storage' => ':value GB of new takes in a day (the line is :limit GB).',
+        'storage' => ':value GB of new recordings, shares and stems in a day (the line is :limit GB).',
         'limited' => ':value requests refused by the limits in the last hour (the line is :limit).',
         'suppressed' => ':value addresses suppressed in a day (bounces or complaints; the line is :limit).',
         'mail_waiting' => ':value emails and quick jobs waiting over 5 minutes (the line is :limit): sign-up links are late. Is the scheduler or the default worker running?',

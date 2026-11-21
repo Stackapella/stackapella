@@ -107,7 +107,10 @@ presigned `PUT` to Spaces, sends the file there, then tells the API it's done (`
   server checks it: `*.complete` copies the file on the bucket to a key no upload link points at,
   and checks and processes only that copy (so a `PUT` sent again after it changes nothing). It
   refuses a file of the wrong size or hash, and deletes it at once, and an upload that's never
-  completed is deleted within the hour. A second `*.complete` while the first is still checking
+  completed is deleted within the hour. Since 2026-11-21 (the abuse review) every link opens its `PUT` for 3 minutes
+  (config `uploads.link_minutes`; `expiresAt` says when: start the `PUT` before it, and a slow one still finishes), and
+  anything at an upload key bigger than declared is deleted within five minutes, every version with it. Every upload
+  counts toward the account's daily bytes (`429 rate_limited`, free 2 GB, Plus 10 GB). A second `*.complete` while the first is still checking
   answers as it is (still `uploading`): call it again in a moment. The private bucket's CORS
   allows the `PUT` from the app's origin;
 - **locally,** the same flow runs against a signed `PUT /dev/upload/{key}` on the Laravel server,
@@ -2498,7 +2501,7 @@ Start sending a take. **Request:** `{ "id": "<uuid>", "partId": "<uuid>", "sampl
 - `403 email_unverified`: an unverified account's takes wait until it's verified;
 - `403 storage_limit`: it doesn't fit in the allowance, counting the part's current take as gone
   (so re-recording at the limit works);
-- the `upload` URL works for 10 minutes; the same `id` again answers the take as it is, with a fresh
+- the `upload` URL opens its `PUT` for 3 minutes (see "Uploads"); the same `id` again answers the take as it is, with a fresh
   `upload` while it's `uploading`; the
   same `id` with other numbers (another `sha256`) is a `422` on `id`;
 - limited (`take-uploads`), and by bytes a day per account (2,000 MB free, 10,000 MB with Plus):
@@ -2535,13 +2538,15 @@ the take as it is. **Request:** none.
 
 #### `takes.show`
 
-A take, with `url` (the FLAC, valid 15 minutes) once it's `ready`. **Request:** none.
+A take, with `url` (the FLAC, valid 15 minutes) once it's `ready`. **Request:** none. At most 5000 a day per account
+(`429 rate_limited`; a restore on a new device fetches each take once).
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 |  | `takes.show.json` | `takes.show.200.json` |
 | 404 | `not_found` | `error.json` | `takes.show.not_found.json` |
 | 403 | `plus_required` | `error.json` | `takes.show.plus_required.json` |
+| 429 | `rate_limited` | `error.json` | `takes.show.rate_limited.json` |
 
 #### `takes.restore`
 
@@ -3071,7 +3076,7 @@ Start sharing a mix. `partId` must be one of the project's parts (`409 part_miss
   "Played by" or "Sung and played by") and `peaks`, base64 of one byte (0 to 255) per 50 ms of the mix from its start,
   the loudest that part gets in it, as heard (after its volume). They draw the video's waveforms
   and the card's;
-- the `upload` URL works for 10 minutes from when it's given (`Content-Type: audio/wav`); then
+- the `upload` URL opens its `PUT` for 3 minutes from when it's given (`Content-Type: audio/wav`); then
   `harmonies.complete`. A mix that waits in the outbox (for Wi-Fi, say) calls `harmonies.create`
   again with the same `changeId` just before sending, for a fresh `upload`: that works for a day,
   after which an upload never completed is cleared and the share starts again;
@@ -3462,7 +3467,7 @@ library songs open to its members as to any account (`grant: "account"`).
 Start sending the creator's guide for one part (every signed-in singer since 2026-11-12, against their storage). **Request:** `{ "id": "<uuid>", "partKey":
 "alto", "sampleRate": 48000, "frames": 2304000, "offsetFrames": 0, "bytes": 4608044, "sha256":
 "<64 hex>" }`, as for `takes.create` (a 16-bit mono WAV, at most 10 minutes). It replaces that
-part's earlier recording once it's ready. The `upload` works for 10 minutes.
+part's earlier recording once it's ready. The `upload` opens its `PUT` for 3 minutes.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -3813,7 +3818,7 @@ Start sending one file of the score, as `takes.create`: a presigned PUT to the p
 `.mxl`), or a photo of a page (`image/jpeg`, `image/png`, `image/heic`); the upload must be sent with it.
 At most 25 MB a file (`bytes`), counted in the day's upload cap (`429 rate_limited`, as takes); `name`
 (1 to 200) is only shown to staff. A file not in a request within a day is deleted. The upload link
-holds 10 minutes; pausable (`423 paused`, by the uploads switch).
+holds 3 minutes (see "Uploads"); pausable (`423 paused`, by the uploads switch).
 
 | Status | Code | Schema | Example |
 |---|---|---|---|

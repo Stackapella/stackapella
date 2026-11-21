@@ -14,7 +14,9 @@ use App\Models\TemplateRecording;
 use App\Models\TemplateVersion;
 use App\Models\User;
 use App\Support\Sync\SyncSeq;
+use App\Support\Usage\Plans;
 use Illuminate\Console\Command;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -35,30 +37,14 @@ final class PurgeBin extends Command
 
     protected $description = 'Remove what has been in the bin for 30 days, orphaned takes, stale uploads and old tombstones';
 
-    public function handle(SyncSeq $seq): int
+    public function handle(SyncSeq $seq, Plans $plans): int
     {
         $before = now()->subDays(Take::BIN_DAYS);
+        $capped = $this->capBins($seq, $plans);
 
         $projects = 0;
         foreach (Project::query()->whereNotNull('binned_at')->where('binned_at', '<', $before)->pluck('id') as $id) {
-            $keys = DB::transaction(function () use ($id, $before, $seq): ?array {
-                $project = Project::query()->whereKey($id)->whereNotNull('binned_at')->where('binned_at', '<', $before)->lockForUpdate()->first();
-
-                if ($project === null) {
-                    return null;
-                }
-
-                $keys = Take::query()->where('project_id', $project->id)->get(['file_key', 'upload_key'])->flatMap(fn (Take $take): array => array_filter([$take->file_key, $take->upload_key]))->values()->all();
-                $this->tombstone($project->user_id, 'project', $project->uuid, $seq);
-                $project->delete();
-
-                return $keys;
-            });
-
-            if ($keys !== null) {
-                Storage::disk('private')->delete($keys);
-                $projects++;
-            }
+            $projects += $this->purgeProject((int) $id, $before, $seq) ? 1 : 0;
         }
 
         $takes = 0;
@@ -67,32 +53,14 @@ final class PurgeBin extends Command
             ->pluck('id');
 
         foreach ($doomed as $id) {
-            $keys = DB::transaction(function () use ($id, $before, $seq): ?array {
-                $take = Take::query()->whereKey($id)->lockForUpdate()->first();
-                $current = $take !== null && DB::table('parts')->where('current_take_id', $take->id)->lockForUpdate()->exists();
-                $due = $take !== null && (($take->binned_at !== null && $take->binned_at->lt($before)) || ($take->status === Take::FAILED && $take->updated_at?->lt($before)));
-
-                if ($take === null || $current || ! $due) {
-                    return null;
-                }
-
-                $this->tombstone($take->user_id, 'take', $take->uuid, $seq);
-                $take->delete();
-
-                return array_values(array_filter([$take->file_key, $take->upload_key]));
-            });
-
-            if ($keys !== null) {
-                Storage::disk('private')->delete($keys);
-                $takes++;
-            }
+            $takes += $this->purgeTake((int) $id, $before, $seq) ? 1 : 0;
         }
 
         $stale = $this->clearUploads() + $this->clearRecordings() + $this->clearVoices();
         $templates = $this->purgeTemplates();
         $tombstones = $this->pruneTombstones();
 
-        $this->info("Purged {$projects} projects and {$takes} takes; removed {$stale} upload files, {$templates} deleted templates and {$tombstones} old tombstones.");
+        $this->info("Purged {$projects} projects and {$takes} takes; removed {$stale} upload files, {$templates} deleted templates and {$tombstones} old tombstones; {$capped} bins over their allowance emptied from the oldest.");
 
         return self::SUCCESS;
     }
@@ -192,6 +160,105 @@ final class PurgeBin extends Command
         });
 
         return $count;
+    }
+
+    /**
+     * The bin never counts toward storage (config/usage.php), so without a cap one account could fill it without end
+     * (the abuse review, 2026-11-21): a bin holding more than the plan's storage allowance loses its oldest first, a
+     * project with its takes or a take on its own, until it fits. Returns how many bins were over.
+     */
+    private function capBins(SyncSeq $seq, Plans $plans): int
+    {
+        $users = Take::query()->whereNotNull('binned_at')->distinct()->pluck('user_id')
+            ->merge(Project::query()->whereNotNull('binned_at')->distinct()->pluck('user_id'))->unique()->values();
+        $capped = 0;
+
+        foreach (User::query()->with('subscriptions')->whereKey($users->all())->get() as $user) {
+            $over = $plans->binBytes($user) - $plans->storageLimit($user);
+
+            if ($over <= 0) {
+                continue;
+            }
+
+            $capped++;
+            $bytes = DB::raw('coalesce(sum(coalesce(takes.stored_bytes, takes.upload_bytes)), 0) as bytes');
+            $projects = Project::query()->where('projects.user_id', $user->id)->whereNotNull('projects.binned_at')
+                ->leftJoin('takes', fn ($join) => $join->on('takes.project_id', '=', 'projects.id')->where('takes.status', '!=', Take::FAILED))
+                ->groupBy('projects.id', 'projects.binned_at')->get(['projects.id', 'projects.binned_at', $bytes])
+                ->map(static fn ($p): array => ['project', (int) $p->id, (string) $p->binned_at, (int) $p->getAttribute('bytes')]);
+            $loose = Take::query()->where('user_id', $user->id)->whereNotNull('binned_at')->where('status', '!=', Take::FAILED)
+                ->whereHas('project', fn ($query) => $query->whereNull('binned_at'))
+                ->get(['id', 'binned_at', 'stored_bytes', 'upload_bytes'])
+                ->map(static fn (Take $take): array => ['take', $take->id, (string) $take->binned_at, (int) ($take->stored_bytes ?? $take->upload_bytes)]);
+
+            foreach ($projects->concat($loose)->sortBy(static fn (array $item): string => $item[2].'#'.$item[1])->values() as [$kind, $id, , $size]) {
+                if ($over <= 0) {
+                    break;
+                }
+
+                if ($kind === 'project' ? $this->purgeProject($id, null, $seq) : $this->purgeTake($id, null, $seq)) {
+                    $over -= $size;
+                }
+            }
+        }
+
+        return $capped;
+    }
+
+    /** A binned project, with its takes and their files: binned before $before, or any time (null). */
+    private function purgeProject(int $id, ?Carbon $before, SyncSeq $seq): bool
+    {
+        $keys = DB::transaction(function () use ($id, $before, $seq): ?array {
+            $project = Project::query()->whereKey($id)->whereNotNull('binned_at')->when($before !== null, fn ($query) => $query->where('binned_at', '<', $before))->lockForUpdate()->first();
+
+            if ($project === null) {
+                return null;
+            }
+
+            $keys = Take::query()->where('project_id', $project->id)->get(['file_key', 'upload_key'])->flatMap(fn (Take $take): array => array_filter([$take->file_key, $take->upload_key]))->values()->all();
+            $this->tombstone($project->user_id, 'project', $project->uuid, $seq);
+            $project->delete();
+
+            return $keys;
+        });
+
+        if ($keys === null) {
+            return false;
+        }
+
+        Storage::disk('private')->delete($keys);
+
+        return true;
+    }
+
+    /**
+     * A take no part has as its current one: binned before $before (or any time, null), or failed before $before.
+     */
+    private function purgeTake(int $id, ?Carbon $before, SyncSeq $seq): bool
+    {
+        $keys = DB::transaction(function () use ($id, $before, $seq): ?array {
+            $take = Take::query()->whereKey($id)->lockForUpdate()->first();
+            $current = $take !== null && DB::table('parts')->where('current_take_id', $take->id)->lockForUpdate()->exists();
+            $binned = $take !== null && $take->binned_at !== null && ($before === null || $take->binned_at->lt($before));
+            $failed = $take !== null && $before !== null && $take->status === Take::FAILED && $take->updated_at?->lt($before) === true;
+
+            if ($take === null || $current || ! ($binned || $failed)) {
+                return null;
+            }
+
+            $this->tombstone($take->user_id, 'take', $take->uuid, $seq);
+            $take->delete();
+
+            return array_values(array_filter([$take->file_key, $take->upload_key]));
+        });
+
+        if ($keys === null) {
+            return false;
+        }
+
+        Storage::disk('private')->delete($keys);
+
+        return true;
     }
 
     private function tombstone(int $userId, string $kind, string $uuid, SyncSeq $seq): void
