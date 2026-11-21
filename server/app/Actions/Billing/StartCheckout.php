@@ -50,7 +50,7 @@ final class StartCheckout
         }
 
         // In the EU, EEA and UK, Plus starts at once only with the person's consent to that.
-        $needsConsent = Withdrawal::needsConsent($country);
+        $needsConsent = Withdrawal::needsConsent($country) || Withdrawal::needsConsent($user->country);
 
         if ($needsConsent && ! $startNowConsent) {
             throw ValidationException::withMessages(['startNowConsent' => __('billing.start_now_consent_required')]);
@@ -58,9 +58,21 @@ final class StartCheckout
 
         $offer = $this->state->trial($user);
 
-        if ($trial && ($offer === null || ! in_array($interval, $offer['intervals'], true))) {
+        // With trials off, a `trial` asked for (an older app's) is ignored: Checkout starts paid.
+        if ((int) config('billing.trial_days') <= 0) {
+            $trial = false;
+        } elseif ($trial && ($offer === null || ! in_array($interval, $offer['intervals'], true))) {
             throw new Refusal(409, 'trial_used');
         }
+
+        // One Checkout at a time (the billing review): an open one is closed first, so two can never both be paid;
+        // one that has just been paid (its webhook not here yet) means wait.
+        CheckoutSession::query()->where('user_id', $user->id)->whereNull('completed_at')->where('created_at', '>', now()->subDay())->orderBy('id')
+            ->each(function (CheckoutSession $open): void {
+                if ($this->gateway->closeCheckout($open->stripe_id) === 'complete') {
+                    throw new Refusal(409, 'checkout_pending');
+                }
+            });
 
         // Stripe ties a customer to its first currency.
         $first = CheckoutSession::query()->where('user_id', $user->id)->whereNotNull('completed_at')->oldest('id')->value('currency');
@@ -77,6 +89,8 @@ final class StartCheckout
             url('/settings/plus?checkout=cancelled'),
             ['user' => $user->sqid(), 'moment' => $moment],
             self::terms($interval, $currency, $trial, $user),
+            // A durable copy of the EU, EEA and UK consent, on every receipt and invoice.
+            $needsConsent ? (string) __('billing.start_now_receipt', ['date' => now()->toDateString()], $user->locale ?: 'en') : null,
         );
 
         $record = new CheckoutSession([

@@ -882,7 +882,6 @@ return [
         'plans_choirs' => 'For choirs:',
         'plans_choirs_link' => 'every singer free, and learning tracks for your choir',
         'plans_get' => 'Get Plus',
-        'plans_trial' => 'Try it free for :days days first. Cancel any time.',
         // Free's first line before the courses open (the plus_courses flag off, as in a fresh dev setup): every course is
         // free once they do (Hillel, 2026-11-06), and the list says so as one line.
         'plans_free_beginner' => 'The beginner course, from your first note to four-part harmony',
@@ -988,7 +987,6 @@ return [
         'compare' => 'Free and Plus, side by side',
         'only_different' => 'Only what\'s different',
         // Shown only while checkout is open and billing.trial_days is set (never a trial that isn't real).
-        'try_plus' => '{1} Try Plus free for :days day|[2,*] Try Plus free for :days days',
         'cancel_any_time' => 'Cancel any time.',
         'feature' => 'What you get',
         'yes' => 'Yes',
@@ -1024,12 +1022,9 @@ return [
         'faq_title' => 'Questions',
         'faq' => [
             ['If I stop Plus, do I lose what I made?', 'No. Nothing is deleted, and you can play and export all of it. If your recordings are over the free storage, clear some space before you record more.'],
-            ['Is there a free trial?', 'Yes: :days days of Plus, once per account.'],
             ['Can I share what I make?', 'Yes, anywhere, including monetised videos, credited "Arranged by Stackapella". The songs are in the public domain.'],
             ['I lead a choir. What does it cost?', 'Nothing for you or your singers: choir groups are free. We also make learning tracks of a choir\'s own songs, and your first song is free. See For choirs.'],
         ],
-        // The trial's answer while checkout is paused: no trial to take yet.
-        'faq_trial_paused' => 'Not yet: Plus isn\'t open. Everything in Free works now, with no card.',
         // Shared private arrangements need everyone's own Plus (the plus_private switch, Hillel 2026-11-17): a row in
         // With others and a question, shown only while it's on. The same words as the app's Plus sheet.
         'private_row' => ['Sharing a private arrangement with other singers', 'No', 'Yes, with Plus for each singer'],
@@ -1470,7 +1465,7 @@ return [
                         'Learning is free: every course, and every song in the library with a free account.',
                         'Today\'s workout as often as you like.',
                         '**Your history** on Your voice: how much of each take was on pitch over time, which way you tend to lean, and recent highlights. Without an account, it shows a sample.',
-                        'Plus adds more storage, MP3 and stems, and unlimited private arrangements. Plus and billing has the price and the trial.',
+                        'Plus adds more storage, MP3 and stems, and unlimited private arrangements. Plus and billing has the price.',
                     ]],
                 ],
             ],
@@ -1750,7 +1745,7 @@ return [
             ],
             'plus-and-billing' => [
                 'title' => 'Plus and billing',
-                'summary' => 'What\'s free, what Plus adds, the trial, cancelling and refunds.',
+                'summary' => 'What\'s free, what Plus adds, getting it, cancelling and refunds.',
                 'sections' => [
                     [
                         'What\'s free',
@@ -1773,18 +1768,10 @@ return [
                         ],
                     ],
                     [
-                        'The free trial',
-                        [
-                            'Try Plus free for :days days, once per account and once per card.',
-                            'Checkout shows the price with tax, and the date your trial ends, before you pay anything. We email you before the trial turns into a charge.',
-                            'Cancel before then and you won\'t be charged.',
-                        ],
-                    ],
-                    [
                         'Getting Plus',
                         [
                             'Sign in and confirm your email. Then open Settings (tap your name or picture at the top of the home page), and "See Plus" under Plan and storage.',
-                            'Choose Yearly or Monthly and the currency to pay in, then "Start your :days-day free trial", or "Get Plus yearly" or "Get Plus monthly" with the price.',
+                            'Choose Yearly or Monthly and the currency to pay in, then "Get Plus yearly" or "Get Plus monthly" with the price. Checkout shows the price with tax before you pay anything.',
                         ],
                     ],
                     [

@@ -69,7 +69,8 @@ final class StripeWebhookController extends WebhookController
             return $this->successMethod();
         }
 
-        app(BillingEvents::class)->checkoutCompleted((string) ($payload['data']['object']['id'] ?? ''));
+        $country = $payload['data']['object']['customer_details']['address']['country'] ?? null;
+        app(BillingEvents::class)->checkoutCompleted((string) ($payload['data']['object']['id'] ?? ''), is_string($country) ? strtoupper($country) : null);
 
         return $this->successMethod();
     }
@@ -117,6 +118,10 @@ final class StripeWebhookController extends WebhookController
 
         if ($new && in_array($payload['data']['object']['status'] ?? null, ['active', 'trialing'], true)) {
             app(RecordCounts::class)->server('plus_started', true, null);
+        }
+
+        if ($user !== null && app(BillingEvents::class)->secondPlus($user, (string) ($payload['data']['object']['id'] ?? ''))) {
+            return $response;
         }
 
         if ($user !== null) {
@@ -243,6 +248,13 @@ final class StripeWebhookController extends WebhookController
 
         if (is_string($charge['id'] ?? null)) {
             app(Books::class)->plusRefunded($charge['id'], is_string($charge['payment_intent'] ?? null) ? $charge['payment_intent'] : null, (int) ($charge['amount_refunded'] ?? 0));
+        }
+
+        // Refunded in full in Stripe's dashboard (not only from Admin): Plus ends now, as Admin's refund does.
+        $user = $this->owner($payload);
+
+        if ($user !== null && ($charge['refunded'] ?? false) === true && is_string($charge['payment_intent'] ?? null)) {
+            app(BillingEvents::class)->plusRefundedInFull($user, $charge['payment_intent']);
         }
 
         return $this->successMethod();

@@ -39,7 +39,7 @@ songs to a free account to keep them safe.
 
 - Keep your sign-in details to yourself. You're responsible for what happens on your account.
 - Give us an email address you can receive, and keep it up to date.
-- One person per account. Don't make accounts to get around a limit, a trial or a suspension.
+- One person per account. Don't make accounts to get around a limit or a suspension.
 - Your handle and name must not copy someone else's or Stackapella's, or be offensive.
 
 You can download your data or delete your account at any time in Settings.
@@ -191,9 +191,8 @@ ours: the singers agreed to them being used by Stackapella only.
   UK). If you subscribe at the launch price, you keep it for as long as you stay subscribed.
 - **Renewal:** Plus renews each month or each year, on the plan you chose, until you cancel.
   Checkout shows the price, when it renews and how to cancel before you pay.
-- **The free trial:** 7 days, once per account and once per card. Checkout shows the date the
-  trial turns into a charge, and we email you before the first charge. Cancel before then and
-  you're not charged.
+- **No free trial:** Plus is charged from the start. If you started a free trial before we
+  stopped offering one (November 2026), it runs to the end checkout showed you, as it said.
 - **Cancelling:** online at any time, in Settings, then Plan, then Manage billing. Plus stays on
   until the end of the period you've paid for, and nothing more is charged.
 - **Failed payments:** Plus keeps working while the payment is retried. If the last try fails, the

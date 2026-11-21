@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Support\Flags;
 use App\Support\Sync\SyncSeq;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -46,7 +47,23 @@ final class Plans
 
         // Plus by choice (demo), free for an active coach, paid by invoice until a date, a class
         // code's free year, bought in an app (the stores' latest day), or by Stripe.
-        return $user->plan === 'plus' || ($user->getAttributes()['coach_active_at'] ?? null) !== null || (is_string($paidUntil) && $paidUntil > $now) || (is_string($schoolUntil) && $schoolUntil > $now) || (is_string($storeUntil) && $storeUntil > $now) || $user->subscribed('default') ? 'plus' : 'free';
+        return $user->plan === 'plus' || ($user->getAttributes()['coach_active_at'] ?? null) !== null || (is_string($paidUntil) && $paidUntil > $now) || (is_string($schoolUntil) && $schoolUntil > $now) || (is_string($storeUntil) && $storeUntil > $now) || $this->stripePlus($user) ? 'plus' : 'free';
+    }
+
+    /**
+     * Plus through Stripe: a valid subscription, kept while Stripe retries a failed payment, but never past the last
+     * retry plus billing.past_due_grace_days (the billing review, 2026-11-21), whatever Stripe does with it.
+     */
+    private function stripePlus(User $user): bool
+    {
+        if (! $user->subscribed('default')) {
+            return false;
+        }
+
+        $pastDueUntil = $user->getAttributes()['past_due_until'] ?? null;
+
+        return ! ($user->subscription('default')?->pastDue() === true && is_string($pastDueUntil)
+            && Carbon::parse($pastDueUntil)->addDays((int) config('billing.past_due_grace_days'))->isPast());
     }
 
     public function isPlus(User $user): bool

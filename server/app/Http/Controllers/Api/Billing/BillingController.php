@@ -29,7 +29,8 @@ final class BillingController extends Controller
             'prices' => BillingState::prices(),
             'trial' => $state->trial($user instanceof User ? $user : null),
             // Ask for the consent to start at once (the EU, EEA and UK withdrawal right).
-            'startNowConsent' => Withdrawal::needsConsent(Withdrawal::country($request)),
+            // By the visitor's network, or the account's latest country (a VPN or travel), the same rule Checkout uses.
+            'startNowConsent' => Withdrawal::needsConsent(Withdrawal::country($request)) || ($user instanceof User && Withdrawal::needsConsent($user->country)),
         ]]);
     }
 

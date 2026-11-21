@@ -91,16 +91,17 @@ you choose to share.
 **Payments**
 - Stripe handles your card. We never see or store card numbers. We keep your plan, its dates and
   payments, the country your connection came from when you checked out (for tax and the EU and UK
-  cooling-off rules) and whether you asked Plus to start at once, and a card fingerprint from Stripe
-  (a code, not card details) so each card gets one free trial. Stripe may also tell us your card's
-  brand and last four digits.
+  cooling-off rules) and whether you asked Plus to start at once, and, for a card that started a free
+  trial while we offered one (until November 2026), its card fingerprint from Stripe (a code, not card
+  details), kept with the billing records. Stripe may also tell us your card's brand and last four
+  digits.
 - Plus bought in an app: the App Store's or Google Play's purchase record (its token stored
   encrypted), linked to you by a random code.
 - Any payment dispute.
 
 **Keeping Stackapella safe**
 - A record of sign-ups, sign-ins (and refused ones), password and email changes, account
-  deletions, failed payments, refused trials, rate limits and blocks, with the IP address. After 30
+  deletions, failed payments, rate limits and blocks, with the IP address. After 30
   days only a scrambled code (a keyed hash) is kept in place of the address, and the record goes
   after a year. Our rate limits only ever store that scrambled code.
 - While you use the app, your session keeps your IP address and browser details (it ends after 4
@@ -225,8 +226,8 @@ while we're protecting the app from an attack.
 
 Only about your account or something you did: confirming your address, a one-time sign-in link,
 resetting your password, a sign-in from a new browser or app, a change of email (to your old
-address too, with a way to undo it), a note if someone tries to sign up with your address, a trial
-ending, a failed payment, your data download being ready, answers to your support messages, and a
+address too, with a way to undo it), a note if someone tries to sign up with your address, a failed
+payment, your data download being ready, answers to your support messages, and a
 notice if your account is suspended. If support moves your account to a new address, the old one
 is told. If you share a tune as an idea, we email you when people sing it (at most once a day for
 each idea); turn that off in Settings or with the link in each email. Stripe sends payment

@@ -12,8 +12,14 @@ use Laravel\Cashier\Cashier;
  */
 final class StripeGateway implements BillingGateway
 {
-    public function checkout(User $user, string $price, string $currency, ?int $trialDays, bool $collectCard, string $successUrl, string $cancelUrl, array $metadata, string $terms): array
+    public function checkout(User $user, string $price, string $currency, ?int $trialDays, bool $collectCard, string $successUrl, string $cancelUrl, array $metadata, string $terms, ?string $receiptNote = null): array
     {
+        // On every invoice and receipt from now on (Stripe shows the customer's invoice fields there).
+        if ($receiptNote !== null) {
+            $customer = $user->createOrGetStripeCustomer();
+            Cashier::stripe()->customers->update($customer->id, ['invoice_settings' => ['custom_fields' => [['name' => mb_substr((string) __('billing.start_now_receipt_name', [], $user->locale ?: 'en'), 0, 40), 'value' => mb_substr($receiptNote, 0, 140)]]]]);
+        }
+
         $builder = $user->newSubscription('default', $price);
 
         if ($trialDays !== null) {
@@ -68,7 +74,19 @@ final class StripeGateway implements BillingGateway
             return null;
         }
 
-        $invoice = Cashier::stripe()->invoices->all(['customer' => $user->stripe_id, 'subscription' => $plus, 'status' => 'paid', 'limit' => 1, 'expand' => ['data.payments']])->data[0] ?? null;
+        return $this->paymentOf($user->stripe_id, $plus);
+    }
+
+    /**
+     * @return array{paymentIntent: string, cents: int, refunded: int, currency: string, paidAt: int}|null
+     */
+    private function paymentOf(string $customer, string $subscription): ?array
+    {
+        if ($customer === '') {
+            return null;
+        }
+
+        $invoice = Cashier::stripe()->invoices->all(['customer' => $customer, 'subscription' => $subscription, 'status' => 'paid', 'limit' => 1, 'expand' => ['data.payments']])->data[0] ?? null;
 
         if ($invoice === null) {
             return null;
@@ -91,6 +109,26 @@ final class StripeGateway implements BillingGateway
             'currency' => (string) $invoice->currency,
             'paidAt' => (int) ($invoice->status_transitions->paid_at ?? $invoice->created),
         ];
+    }
+
+    public function closeCheckout(string $sessionId): string
+    {
+        $session = Cashier::stripe()->checkout->sessions->retrieve($sessionId);
+
+        if ($session->status === 'open') {
+            $session = Cashier::stripe()->checkout->sessions->expire($sessionId);
+        }
+
+        return (string) $session->status;
+    }
+
+    public function refundSubscription(User $user, string $subscriptionId, string $idempotencyKey): void
+    {
+        $payment = $this->paymentOf((string) $user->stripe_id, $subscriptionId);
+
+        if ($payment !== null && $payment['cents'] > $payment['refunded']) {
+            $this->refund($payment['paymentIntent'], $payment['cents'] - $payment['refunded'], $idempotencyKey);
+        }
     }
 
     public function refund(string $paymentIntent, int $cents, string $idempotencyKey): void

@@ -21,4 +21,7 @@ return [
     ],
 
     'start_now_consent_required' => 'Please confirm that Plus should start now.',
+    // On every Stripe receipt and invoice once agreed (a durable copy of the consent; Stripe allows 40 and 140 characters).
+    'start_now_receipt_name' => 'Plus started at once',
+    'start_now_receipt' => 'On :date you asked for Plus to start at once and agreed that you lose the 14-day right to cancel for the time used.',
 ];

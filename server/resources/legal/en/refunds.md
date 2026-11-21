@@ -15,10 +15,11 @@ You can cancel Plus at any time, online: Settings, then Plan and storage, then M
 Plus stays on until the end of the period you've paid for, and nothing more is charged. Nothing
 you've made is deleted (see the terms, "The free plan, and moving back to it").
 
-## The free trial
+## No free trial
 
-The trial lasts 7 days, once per account and once per card. Checkout shows the date the trial
-turns into a charge, and we email you before it does. Cancel before that date and you pay nothing.
+Plus is charged from the start, with the refunds below. If you started a free trial before we
+stopped offering one (November 2026), it runs to the end checkout showed you, and cancelling before
+that date still costs nothing.
 
 ## Refunds
 

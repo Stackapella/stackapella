@@ -18,7 +18,16 @@ interface BillingGateway
      * @param  array<string, string>  $metadata
      * @return array{id: string, url: string}
      */
-    public function checkout(User $user, string $price, string $currency, ?int $trialDays, bool $collectCard, string $successUrl, string $cancelUrl, array $metadata, string $terms): array;
+    public function checkout(User $user, string $price, string $currency, ?int $trialDays, bool $collectCard, string $successUrl, string $cancelUrl, array $metadata, string $terms, ?string $receiptNote = null): array;
+
+    /**
+     * Closes a Checkout that's still open, so it can't be paid; returns its status after: `expired`, or `complete`
+     * when it was paid already.
+     */
+    public function closeCheckout(string $sessionId): string;
+
+    /** Refunds what a subscription's latest paid invoice charged, in full. */
+    public function refundSubscription(User $user, string $subscriptionId, string $idempotencyKey): void;
 
     public function portalUrl(User $user, string $returnUrl): string;
 

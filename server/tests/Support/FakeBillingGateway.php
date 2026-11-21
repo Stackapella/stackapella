@@ -23,13 +23,36 @@ final class FakeBillingGateway implements BillingGateway
     /** @var array<string, string> charge id to customer id */
     public array $charges = [];
 
-    public function checkout(User $user, string $price, string $currency, ?int $trialDays, bool $collectCard, string $successUrl, string $cancelUrl, array $metadata, string $terms): array
+    /** @var array<string, string> a Checkout's status when it's closed (default: expired) */
+    public array $sessions = [];
+
+    /** @var list<string> */
+    public array $closed = [];
+
+    /** @var list<array{0: string, 1: string}> */
+    public array $subscriptionRefunds = [];
+
+    public function checkout(User $user, string $price, string $currency, ?int $trialDays, bool $collectCard, string $successUrl, string $cancelUrl, array $metadata, string $terms, ?string $receiptNote = null): array
     {
         $id = 'cs_test_'.(count($this->checkouts) + 1);
-        $this->checkouts[] = compact('price', 'currency', 'trialDays', 'collectCard', 'successUrl', 'cancelUrl', 'metadata', 'terms') + ['id' => $id];
+        $this->checkouts[] = compact('price', 'currency', 'trialDays', 'collectCard', 'successUrl', 'cancelUrl', 'metadata', 'terms', 'receiptNote') + ['id' => $id];
         $user->forceFill(['stripe_id' => $user->stripe_id ?? 'cus_test_'.$user->id])->save();
 
         return ['id' => $id, 'url' => 'https://checkout.stripe.com/c/pay/'.$id];
+    }
+
+    public function closeCheckout(string $sessionId): string
+    {
+        $this->closed[] = $sessionId;
+
+        return $this->sessions[$sessionId] ?? 'expired';
+    }
+
+    public function refundSubscription(User $user, string $subscriptionId, string $idempotencyKey): void
+    {
+        if (! in_array($idempotencyKey, array_column($this->subscriptionRefunds, 1), true)) {
+            $this->subscriptionRefunds[] = [$subscriptionId, $idempotencyKey];
+        }
     }
 
     public function portalUrl(User $user, string $returnUrl): string

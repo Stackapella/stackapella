@@ -42,6 +42,11 @@ final class BillingState
      */
     public function trial(?User $user): ?array
     {
+        // Off (Hillel, 2026-11-21): nothing offers a trial.
+        if ((int) config('billing.trial_days') <= 0) {
+            return null;
+        }
+
         if ($user !== null && ($user->trial_used_at !== null || $this->plans->isPlus($user))) {
             return null;
         }

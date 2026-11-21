@@ -106,12 +106,9 @@
                 <h2 id="faq-h" class="s-title">{{ __('pages.pricing.faq_title') }}</h2>
                 <div class="s-faq s-faq-round">
                     @foreach ($faq as [$question, $answer])
-                        {{-- With checkout open and no trial days, there's no trial to ask about. --}}
-                        @continue($loop->index === 1 && $checkoutOpen && $trialDays === 0)
                         <details @if ($loop->first) open @endif>
                             <summary>{{ $question }}<span class="s-faq-btn" aria-hidden="true"><span class="s-faq-plus"><x-site.icon name="plus" size="16" /></span><span class="s-faq-minus"><x-site.icon name="minus" size="16" /></span></span></summary>
-                            {{-- The trial question (the second) has no trial to offer while checkout is paused. --}}
-                            <p>{{ $loop->index === 1 && ! $checkoutOpen ? __('pages.pricing.faq_trial_paused') : $answer }}</p>
+                            <p>{{ $answer }}</p>
                         </details>
                     @endforeach
                 </div>

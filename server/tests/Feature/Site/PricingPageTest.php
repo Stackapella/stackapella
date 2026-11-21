@@ -27,33 +27,35 @@ final class PricingPageTest extends TestCase
         $html = (string) $this->get('/pricing')->assertOk()->getContent();
 
         $this->assertStringContainsString(e(__('pages.landing.plans_paused')), $html);
-        $this->assertStringNotContainsString(e(trans_choice('pages.pricing.try_plus', 7, ['days' => 7])), $html);
+        $this->assertStringNotContainsString('Try Plus free', $html);
         $this->assertStringNotContainsString(e(__('pages.pricing.cancel_any_time')), $html);
         $this->assertStringNotContainsString('from=pricing-table', $html);
         // Free's Start singing is the page's primary while it's the only thing to do.
         $this->assertMatchesRegularExpression('/class="btn-primary btn-lg" data-funnel-start/', $html);
     }
 
-    public function test_once_checkout_opens_the_trial_button_leads_and_the_table_ends_with_get_plus(): void
+    public function test_once_checkout_opens_get_plus_leads_and_the_table_ends_with_get_plus(): void
     {
         $this->open(7);
         $html = (string) $this->get('/pricing')->assertOk()->getContent();
 
-        $this->assertStringContainsString(e(trans_choice('pages.pricing.try_plus', 7, ['days' => 7])), $html);
+        $this->assertStringContainsString('>'.e(__('pages.landing.plans_get')).'</a>', $html);
         $this->assertStringContainsString(e(__('pages.pricing.cancel_any_time')), $html);
         $this->assertStringContainsString('from=pricing-table', $html);
         $this->assertStringNotContainsString(e(__('pages.landing.plans_paused')), $html);
         $this->assertMatchesRegularExpression('/class="btn-secondary btn-lg" data-funnel-start/', $html);
     }
 
-    public function test_with_no_trial_days_the_button_never_names_a_trial(): void
+    /** No free trial (Hillel, 2026-11-21: "better to charge People from the start"): no page names one, whatever the config. */
+    public function test_no_page_names_a_free_trial_even_with_trial_days_set(): void
     {
-        $this->open(0);
-        $html = (string) $this->get('/pricing')->assertOk()->getContent();
+        $this->open(7);
 
-        $this->assertStringNotContainsString('Try Plus free', $html);
-        $this->assertStringContainsString('>'.e(__('pages.landing.plans_get')).'</a>', $html);
-        $this->assertStringNotContainsString(e(__('pages.pricing.faq.1.0')), $html, 'no trial question without a trial');
+        foreach (['/pricing', '/', '/help/plus-and-billing', '/legal/terms', '/legal/refunds'] as $path) {
+            $html = (string) $this->get($path)->assertOk()->getContent();
+            $this->assertStringNotContainsString('Try Plus free', $html, $path);
+            $this->assertStringNotContainsString('free trial', strtolower(strip_tags(str_replace(['No free trial', 'started a free trial before'], '', $html))), $path);
+        }
     }
 
     public function test_only_whats_different_marks_the_rows_both_plans_share(): void

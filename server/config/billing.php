@@ -28,10 +28,16 @@ return [
         'gbp' => ['month' => 449, 'year' => 3499, 'tax_inclusive' => true],
     ],
 
-    // The trial (pricing open decision #3, as recommended): yearly with a card for anyone who
-    // hasn't had one; monthly without a card only from trust level 2 (Singer).
-    'trial_days' => 7,
+    // No free trial since 2026-11-21 (Hillel: "better to charge people from the start"): 0 turns
+    // it off everywhere (Checkout starts paid, nothing offers one). Anyone already in one keeps it to
+    // its end. Set above 0, the old trial comes back: yearly with a card for anyone who hasn't had
+    // one; monthly without a card only from trust level 2 (Singer).
+    'trial_days' => 0,
     'no_card_trial_level' => 2,
+
+    // Plus through Stripe stops this many days after a failed payment's last retry, whatever Stripe
+    // does with the subscription (the billing review, 2026-11-21).
+    'past_due_grace_days' => 3,
 
     // How long a Checkout counts as "pending" without the webhook.
     'pending_minutes' => 30,

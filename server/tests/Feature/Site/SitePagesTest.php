@@ -433,7 +433,7 @@ final class SitePagesTest extends TestCase
             $this->get('/help/'.$slug)->assertOk()->assertDontSee(':price')->assertDontSee(':days');
         }
 
-        $this->get('/help/plus-and-billing')->assertSee('$3.33')->assertSee(config('billing.trial_days').' days');
+        $this->get('/help/plus-and-billing')->assertSee('$3.33');
         $this->get('/help/plus-and-billing', ['CF-IPCountry' => 'GB'])->assertSee('£2.91');
     }
 

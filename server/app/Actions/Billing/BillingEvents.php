@@ -13,11 +13,13 @@ use App\Models\CheckoutSession;
 use App\Models\TrialFingerprint;
 use App\Models\User;
 use App\Services\Billing\BillingGateway;
+use App\Support\Billing\Withdrawal;
 use App\Support\Trust\SecurityLog;
 use App\Support\Usage\Plans;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
+use Laravel\Cashier\Subscription;
 
 /**
  * What Stripe's webhook tells us beyond Cashier's own bookkeeping (docs/backend-plan.md D8;
@@ -29,9 +31,57 @@ final class BillingEvents
 {
     public function __construct(private readonly BillingGateway $gateway, private readonly Plans $plans, private readonly SecurityLog $securityLog) {}
 
-    public function checkoutCompleted(string $sessionId): void
+    public function checkoutCompleted(string $sessionId, ?string $billingCountry = null): void
     {
         CheckoutSession::query()->where('stripe_id', $sessionId)->whereNull('completed_at')->update(['completed_at' => now()]);
+        $session = CheckoutSession::query()->where('stripe_id', $sessionId)->first();
+
+        // Billed in the EU, EEA or UK without the consent to start at once (the visitor's network said elsewhere):
+        // their 14-day right to withdraw stands, so it's recorded for Admin (a refund in full if they ask in time).
+        if ($session !== null && $session->start_now_consent_at === null && Withdrawal::needsConsent($billingCountry)) {
+            AuditLog::record('billing.withdrawal_right_kept', User::query()->find($session->user_id), null, after: ['country' => $billingCountry, 'until' => now()->addDays(14)->toDateString()]);
+        }
+    }
+
+    /**
+     * A second Plus subscription (two Checkouts paid at once, the billing review): it's cancelled and refunded in full,
+     * and never recorded, so the first stays the person's Plus. True when it was one.
+     */
+    public function secondPlus(User $user, string $subscriptionId): bool
+    {
+        $others = $user->subscriptions()->where('type', 'default')->where('stripe_id', '!=', $subscriptionId)->get()->filter(static fn ($s): bool => $s instanceof Subscription && $s->valid());
+
+        if ($others->isEmpty()) {
+            return false;
+        }
+
+        $this->gateway->cancelNow($subscriptionId);
+        $this->gateway->refundSubscription($user, $subscriptionId, 'second-plus:'.$subscriptionId);
+        $user->subscriptions()->where('stripe_id', $subscriptionId)->delete();
+        $user->unsetRelation('subscriptions');
+        AuditLog::record('billing.second_plus_refunded', $user, null, after: ['subscription' => $subscriptionId]);
+
+        return true;
+    }
+
+    /**
+     * A Plus payment refunded in full outside Admin (Stripe's dashboard): Plus through Stripe ends now. Only for the
+     * Plus subscription's latest payment, so a coaching charge's refund never touches Plus.
+     */
+    public function plusRefundedInFull(User $user, string $paymentIntent): void
+    {
+        $subscription = $user->subscription('default');
+
+        if ($subscription === null || ! $subscription->valid()) {
+            return;
+        }
+
+        $latest = $this->gateway->latestPayment($user);
+
+        if ($latest !== null && $latest['paymentIntent'] === $paymentIntent) {
+            $this->endPlusNow($user, 'refunded');
+            AuditLog::record('billing.refunded_in_stripe', $user, null, after: ['paymentIntent' => $paymentIntent]);
+        }
     }
 
     /**

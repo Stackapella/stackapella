@@ -2827,7 +2827,12 @@ Start Checkout. **Request:** `{ "interval": "year", "currency": "usd", "trial": 
 - `interval` `month` or `year`; `currency` `usd`, `eur` or `gbp` (a returning subscriber keeps their
   first currency);
 - `trial` (optional; the app no longer sends it) asks for the trial `billing.show` offers (its `trial.intervals`); one this account has
-  had, or not offered for this interval, answers `409 trial_used`;
+  had, or not offered for this interval, answers `409 trial_used`. **Since 2026-11-21 there's no trial**
+  (Hillel): `billing.show`'s `trial` and the prices' `trial` are always null, a `trial` sent (an older app's)
+  is ignored and Checkout starts paid, and `409 trial_used` isn't sent. Anyone already in a trial keeps it to
+  its end (`trialing`, `subscription.trialEndsAt`);
+- one Checkout at a time: one still open is closed first, so two can never both be paid; one paid a
+  moment ago whose webhook hasn't arrived answers `409 checkout_pending` (try again in a moment);
 - `moment` is the upgrade moment that led here, counted on the server, never in the browser: the
   solo extras, `storage_limit`, `mp3`, `stems`, `guide` (your own recorded guide),
   `private_template` or `settings`, and since 2026-11-12 starting something shared, `group_start`
@@ -2849,6 +2854,7 @@ starts charging).
 | 403 | `email_unverified` | `error.json` | `billing.checkout.email_unverified.json` |
 | 409 | `already_plus` | `error.json` | `billing.checkout.already_plus.json` |
 | 409 | `trial_used` | `error.json` | `billing.checkout.trial_used.json` |
+| 409 | `checkout_pending` | `error.json` | `billing.checkout.checkout_pending.json` |
 | 422 | `validation_failed` | `error.json` | `billing.checkout.validation_failed.json` |
 | 423 | `paused` | `error.json` | `billing.checkout.paused.json` |
 | 429 | `rate_limited` | `error.json` | `billing.checkout.rate_limited.json` |

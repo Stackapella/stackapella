@@ -22,6 +22,9 @@ trait Plus
         $this->app->instance(BillingGateway::class, $this->stripe);
         // Stripe "set up" (a test key and prices), so Checkout is on; the gateway never calls it.
         config(['cashier.secret' => 'sk_test_fake', 'billing.prices' => ['month' => 'price_month', 'year' => 'price_year']]);
+        // The trial's code is kept (anyone already in one keeps it), so these tests run it as it was configured;
+        // with it off, as it is live since 2026-11-21, is BillingReviewTest's.
+        config(['billing.trial_days' => 7]);
 
         return $this->stripe;
     }
