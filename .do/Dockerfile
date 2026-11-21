@@ -9,8 +9,8 @@
 # composer:2
 FROM composer@sha256:b6dcd72ca98fa19d0e5b8476de179859704891fad06dd9e0b96833d4c430a5fc AS composer
 
-# php:8.4-fpm-bookworm
-FROM php@sha256:df5a5113e1179ddf4560cd15727eb3812f6457829756d2a96c6c11bb4c250089
+# php:8.4-fpm-bookworm, PHP 8.4.28 (2026-11-19: the November security release, CVE-2026-115560 and the rest)
+FROM php@sha256:e4b1eec29a5be22428aa93fb43da75a0e39006e403da0c3e93631dde92f067df
 
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 COPY Aptfile /tmp/Aptfile
