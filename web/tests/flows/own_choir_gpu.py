@@ -15,7 +15,7 @@ from flow import run  # noqa: E402
 from help_shots import clear_projects  # noqa: E402
 
 SONG = "11111111-2222-4333-8444-555555555556"
-FLAGS = ["stackapella.mockChoirBusy", "stackapella.mockChoirCheck", "stackapella.mockUnverified", "stackapella.mockTurnstile"]
+FLAGS = ["stackapella.mockChoirFreeUsed", "stackapella.mockChoirBusy", "stackapella.mockChoirCheck", "stackapella.mockUnverified", "stackapella.mockTurnstile"]
 # Cloudflare's script, stood in for: the widget's callback is kept so the flow can pass the check itself.
 FAKE_TURNSTILE = """const append = document.head.append.bind(document.head);
     document.head.append = (node) => {
@@ -52,11 +52,25 @@ def journey(f):
     agree(f)
     f.wait("document.querySelector('[data-choir-quota]')", what="the minutes line")
     songs = f.js("(async () => { const { partMinutes } = await import('/js/own-choir.js'); const { loadTemplate } = await import('/js/templates.js'); return Math.floor(47 / partMinutes(await loadTemplate('silent-night'))); })()")
-    expected = t(f, "ownChoir.limit.minutesLeft", {"minutes": "47", "songs": songs})
+    # Each month of the subscription: the line says when the month turns and the 60 come back (the server's resetsAt).
+    date = f.js("(async () => { const { formatDate } = await import('/js/i18n.js'); const { ownChoir } = await import('/js/own-choir.js'); return formatDate(ownChoir.data.quota.resetsAt, { day: 'numeric', month: 'long' }); })()")
+    expected = t(f, "ownChoir.limit.minutesLeftMore", {"minutes": "47", "songs": songs, "more": "60", "date": date})
     assert f.js("document.querySelector('[data-choir-quota]').textContent.trim()") == expected, f.js("document.querySelector('[data-choir-quota]').textContent")
     assert not f.js("document.querySelector('[data-choir-busy]')"), "busy said on a quiet day"
     f.no_sideways("the choir page")
     f.shot("minutes")
+
+    # The free song already had (once per email, ever), without Plus: said before any singing, with Get Plus.
+    fresh(f, on=["stackapella.mockChoirFreeUsed"])
+    f.go("/t/silent-night/choir?api=mock&scenario=&as=member", "document.querySelector('#app *')")
+    agree(f)
+    f.wait("document.querySelector('[data-choir-free-had]')", what="the free song had")
+    assert not f.js("document.querySelector('[data-choir-start]')"), "Start singing with no song left to make"
+    assert t(f, "ownChoir.limit.free_used") in f.js("document.querySelector('[data-choir-free-had]').innerText")
+    f.shot("free-had")
+    f.run("document.querySelector('[data-choir-plus]').click()")
+    f.wait("location.pathname === '/plus' && location.search.includes('from=choir_song')", what="the Plus page, from the choir")
+    f.wait(f"document.body.innerText.includes({json.dumps(t(f, 'plus.moment.choirSong'))})", what="why it's here")
 
     # Busy today: said before singing; a song asked for waits for tomorrow, and its page says so.
     fresh(f, on=["stackapella.mockChoirBusy"])

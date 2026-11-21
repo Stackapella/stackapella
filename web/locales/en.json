@@ -5850,6 +5850,7 @@
         "title": "Stackapella Plus",
         "story": "Learning to sing is free. Plus is for teaming up and for working at it: start a choir group or invite friends onto your song (everyone you invite joins free), more room for your recordings, and MP3 and each part on its own.",
         "moment": {
+            "choirSong": "More songs in your own voice come with Plus.",
             "inviteFriend": "Singing your song with friends comes with Plus. Everyone you invite joins free.",
             "groupStart": "Choir groups come with Plus. Everyone you invite joins free.",
             "storageLimit": "Your storage is nearly full. Plus has 50 GB.",
@@ -8557,13 +8558,17 @@
         },
         "limit": {
             "free": "Your first choir is free.",
-            "left": "{n, plural, one {# left this month} other {# left this month}}",
-            "month": "You've made this month's choirs. More next month, or with Plus.",
+            "left": "{n, plural, one {1 song left, counted over any 30 days} other {# songs left, counted over any 30 days}}",
+            "month": "You've made your songs for these 30 days. More soon.",
             "day": "That's today's choirs. Try again tomorrow.",
-            "free_used": "You've made your free choir. More with Plus.",
-            "minutesLeft": "{minutes} minutes of singing left this month: {songs, plural, =0 {not quite enough for this song} one {about 1 song like this one} other {about # songs like this one}}.",
-            "minutesOnly": "{minutes} minutes of singing left this month.",
-            "minutes": "This song needs about {needed} minutes of singing, and you have {left} left until {date}."
+            "free_used": "You've had your free song. More songs in your own voice come with Plus.",
+            "minutesLeft": "{minutes} minutes left this month, {songs, plural, =0 {not quite enough for this song} one {about 1 song like this one} other {about # songs like this one}}.",
+            "minutesOnly": "{minutes} minutes left this month.",
+            "minutes": "This song needs about {needed} minutes, and you have {left} left this month.",
+            "minutesLeftMore": "{minutes} minutes left this month, {songs, plural, =0 {not quite enough for this song} one {about 1 song like this one} other {about # songs like this one}}; {more} more on {date}.",
+            "minutesOnlyMore": "{minutes} minutes left this month; {more} more on {date}.",
+            "minutesMore": "This song needs about {needed} minutes, and you have {left} left this month; {more} more on {date}.",
+            "monthMore": "You've made your songs for these 30 days. More from {date}."
         },
         "delete": {
             "button": "Delete this choir",

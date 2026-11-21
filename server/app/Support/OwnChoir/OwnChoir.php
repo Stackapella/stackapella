@@ -7,6 +7,7 @@ namespace App\Support\OwnChoir;
 use App\Enums\OwnChoirStatus;
 use App\Exceptions\Refusal;
 use App\Models\OwnChoirConsent;
+use App\Models\OwnChoirFreeSong;
 use App\Models\OwnChoirPart;
 use App\Models\OwnChoirRequest;
 use App\Models\OwnChoirVoice;
@@ -15,6 +16,7 @@ use App\Support\Flags;
 use App\Support\Legal\LegalText;
 use App\Support\Usage\Plans;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -130,26 +132,106 @@ final class OwnChoir
     }
 
     /**
+     * Every key the free song is counted against (the coordinator for Hillel: once per email address, ever): the
+     * normalised address, and the Apple and Google account ids, each as a keyed one-way hash.
+     *
+     * @return list<string>
+     */
+    public static function freeKeys(User $user): array
+    {
+        $key = (string) config('app.key');
+        $google = $user->getAttributes()['google_id'] ?? null;
+        $apple = $user->getAttributes()['apple_id'] ?? null;
+
+        return array_values(array_filter([
+            self::emailKey($user),
+            is_string($google) && $google !== '' ? hash_hmac('sha256', 'google:'.$google, $key) : null,
+            is_string($apple) && $apple !== '' ? hash_hmac('sha256', 'apple:'.$apple, $key) : null,
+        ]));
+    }
+
+    /**
+     * The free song taken by this request, under each of the singer's keys: false when one is already taken (another
+     * account, or one since deleted, had it). Inside the request's transaction.
+     */
+    public static function takeFree(User $user, OwnChoirRequest $request): bool
+    {
+        try {
+            foreach (self::freeKeys($user) as $key) {
+                $row = new OwnChoirFreeSong(['key_hash' => $key]);
+                $row->forceFill(['own_choir_request_id' => $request->id])->save();
+            }
+        } catch (UniqueConstraintViolationException) {
+            // Another account (or one since deleted) had it.
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * The free song given back, as the quota gives a song back: it never reached the renderer, or failed through ours
+     * (a gates failure on the singer's own song stays theirs).
+     */
+    public static function releaseFree(OwnChoirRequest $request): void
+    {
+        $ours = $request->status === OwnChoirStatus::Failed && in_array($request->failure, self::OURS, true) && ! ($request->own && $request->failure === 'gates_failed');
+
+        if ($request->tries === 0 || $ours) {
+            OwnChoirFreeSong::query()->where('own_choir_request_id', $request->id)->delete();
+        }
+    }
+
+    /** The free song already used by this address or sign-in, on this account or one since deleted. */
+    public static function freeUsed(User $user): bool
+    {
+        return OwnChoirFreeSong::query()->whereIn('key_hash', self::freeKeys($user))->exists();
+    }
+
+    /**
+     * Paid Plus's month (the coordinator for Hillel, 2026-11-21): a month of the subscription's own billing, anchored on
+     * the day it renews (or its paid-until day from the stores or an invoice), never the calendar month.
+     */
+    public static function paidMonthStart(User $user): Carbon
+    {
+        $attributes = $user->getAttributes();
+        $anchor = collect([$attributes['plus_renews_at'] ?? null, $attributes['store_plus_until'] ?? null, $attributes['plus_paid_until'] ?? null])
+            ->first(static fn (mixed $at): bool => is_string($at));
+        $start = is_string($anchor) ? Carbon::parse($anchor) : now()->startOfMonth();
+
+        while ($start->gt(now())) {
+            $start->subMonthNoOverflow();
+        }
+
+        while ($start->copy()->addMonthNoOverflow()->lte(now())) {
+            $start->addMonthNoOverflow();
+        }
+
+        return $start;
+    }
+
+    /**
      * @return array{freeLeft: int, monthLeft: int, todayLeft: int, plus: bool, unit: 'songs'|'minutes', minutesLeft: float|null, minutesPerMonth: float|null, resetsAt: string|null}
      */
     public static function quota(User $user): array
     {
         $tier = self::tier($user);
-        $since = now()->subDays((int) config('own_choir.window_days'));
+        $since = $tier === 'paid' ? self::paidMonthStart($user) : now()->subDays((int) config('own_choir.window_days'));
         $when = DB::raw('coalesce(first_claimed_at, created_at)');
         $window = $tier === 'paid' ? self::attempted($user) : self::counted($user);
         $window->where($when, '>=', $since);
         $oldest = (clone $window)->min($when);
+        $resets = $tier === 'paid' ? $since->copy()->addMonthNoOverflow() : (is_string($oldest) ? Carbon::parse($oldest)->addDays((int) config('own_choir.window_days')) : null);
 
         return [
-            'freeLeft' => max(0, (int) config('own_choir.free_songs') - self::counted($user, byEmail: true)->count()),
+            'freeLeft' => self::freeUsed($user) ? 0 : max(0, (int) config('own_choir.free_songs') - self::counted($user, byEmail: true)->count()),
             'monthLeft' => $tier === 'comped' ? max(0, (int) config('own_choir.comped_songs') - (clone $window)->count()) : 0,
             'todayLeft' => max(0, (int) config('own_choir.daily') - self::attempted($user)->where('created_at', '>=', now()->subDay())->count()),
             'plus' => $tier !== 'free',
             'unit' => $tier === 'paid' ? 'minutes' : 'songs',
             'minutesLeft' => $tier === 'paid' ? max(0.0, round((float) config('own_choir.plus_minutes') - (float) (clone $window)->sum('part_minutes'), 1)) : null,
             'minutesPerMonth' => $tier === 'paid' ? (float) config('own_choir.plus_minutes') : null,
-            'resetsAt' => $tier !== 'free' && is_string($oldest) ? Carbon::parse($oldest)->addDays((int) config('own_choir.window_days'))->utc()->toIso8601ZuluString() : null,
+            'resetsAt' => $tier !== 'free' && $resets !== null ? $resets->utc()->toIso8601ZuluString() : null,
         ];
     }
 

@@ -3,9 +3,9 @@
 // singing (into Sing, on a project made for it); on its way; ready (Listen, how much of it is really them, Learn your
 // part, Delete); or what went wrong and Sing again. Stop making songs in my voice at the foot. Behind own_choir.
 
-import { PlusMoment } from '../components/plus-moment.js';
+import { keepNext, PlusMoment } from '../components/plus-moment.js';
 import { api } from '../api.js';
-import { formatNumber, t, tk } from '../i18n.js';
+import { formatDate, formatNumber, t, tk } from '../i18n.js';
 import { navigate } from '../router.js';
 import { AppScreen } from '../components/page.js';
 import { Notice } from '../components/form.js';
@@ -63,12 +63,22 @@ export const OwnChoirView = {
             if (!q.plus && q.freeLeft > 0) return t('ownChoir.limit.free');
             // Plus counts singing minutes (part-minutes); the songs are an estimate for this song, so "about".
             if (q.unit === 'minutes' && q.minutesLeft != null) {
+                // Each month of the subscription, from its renewal day: `resetsAt` is when the month turns and the full
+                // allowance comes back (marketing's words: "47 minutes left this month, about 10 songs; 60 more on 14 December").
                 const songs = songsLeft(q, this.template);
                 const minutes = formatNumber(Math.max(0, Math.floor(q.minutesLeft)));
-                return songs == null ? t('ownChoir.limit.minutesOnly', { minutes }) : t('ownChoir.limit.minutesLeft', { minutes, songs });
+                const more = formatNumber(Math.round(q.minutesPerMonth ?? 0));
+                const date = q.resetsAt ? formatDate(q.resetsAt, { day: 'numeric', month: 'long' }) : '';
+                if (songs == null) return date ? t('ownChoir.limit.minutesOnlyMore', { minutes, more, date }) : t('ownChoir.limit.minutesOnly', { minutes });
+                return date ? t('ownChoir.limit.minutesLeftMore', { minutes, songs, more, date }) : t('ownChoir.limit.minutesLeft', { minutes, songs });
             }
             if (q.plus && q.monthLeft > 0 && q.monthLeft <= 3) return t('ownChoir.limit.left', { n: q.monthLeft });
             return '';
+        },
+        /** Their free song is used (once per email, ever) and no Plus: said before any singing, with Get Plus. */
+        freeHad() {
+            const q = ownChoir.data?.quota;
+            return !!q && !q.plus && q.freeLeft === 0;
         },
         /** The free song waits for a confirmed email (asked before singing). */
         needEmail: () => emailNeeded(ownChoir.data?.quota),
@@ -160,6 +170,10 @@ export const OwnChoirView = {
                         <h2 class="text-lg font-bold text-cream">{{ t('ownChoir.email.title') }}</h2>
                         <p class="text-cream" role="status">{{ emailSent ? t('ownChoir.email.sent', { email: account.me.email }) : t('ownChoir.email.body') }}</p>
                         <button type="button" :class="emailSent ? 'btn-secondary' : 'btn-primary'" class="self-start" :disabled="sending" :aria-busy="sending ? 'true' : null" data-choir-email-send @click="sendEmail">{{ emailSent ? t('ownChoir.email.again') : t('ownChoir.email.send') }}</button>
+                    </div>
+                    <div v-else-if="freeHad" class="card space-y-3 p-5" data-choir-free-had>
+                        <p class="text-cream">{{ t('ownChoir.limit.free_used') }}</p>
+                        <button type="button" class="btn-primary self-start" data-choir-plus @click="getPlus">{{ t('plus.subscribe') }}</button>
                     </div>
                     <template v-else-if="savedVoice()">
                         <p class="text-sm text-cream">{{ t('ownChoir.voice.againLine') }}</p>
@@ -300,6 +314,11 @@ export const OwnChoirView = {
         freshCheck() {
             this.checkToken = null;
             this.checkRound += 1;
+        },
+        /** More songs are Plus's: the Plus page, which leads back here once Plus is on. */
+        getPlus() {
+            keepNext(location.pathname, 'choir_song');
+            navigate('/plus?from=choir_song');
         },
         /** The free song's email step: the confirmation link, sent again to their address. */
         async sendEmail() {

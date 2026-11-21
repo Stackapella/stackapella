@@ -161,9 +161,15 @@ export function choirRefusal(error, { own = false } = {}) {
         if (which === 'minutes') {
             const q = ownChoir.data?.quota;
             const minutes = (n) => formatNumber(Math.max(0, Math.round(n ?? 0)));
-            return t('ownChoir.limit.minutes', { needed: minutes(error.body.needed), left: minutes(q?.minutesLeft), date: q?.resetsAt ? formatDate(q.resetsAt, { day: 'numeric', month: 'long' }) : '' });
+            const date = q?.resetsAt ? formatDate(q.resetsAt, { day: 'numeric', month: 'long' }) : '';
+            const values = { needed: minutes(error.body.needed), left: minutes(q?.minutesLeft), more: minutes(q?.minutesPerMonth), date };
+            return date ? t('ownChoir.limit.minutesMore', values) : t('ownChoir.limit.minutes', values);
         }
-        return which === 'day' ? t('ownChoir.limit.day') : which === 'free' ? t('ownChoir.limit.free_used') : t('ownChoir.limit.month');
+        if (which === 'day') return t('ownChoir.limit.day');
+        if (which === 'free') return t('ownChoir.limit.free_used');
+        // Comped Plus's songs, in any 30 days: when the oldest leaves the window, if the server says.
+        const resets = ownChoir.data?.quota?.resetsAt;
+        return resets ? t('ownChoir.limit.monthMore', { date: formatDate(resets, { day: 'numeric', month: 'long' }) }) : t('ownChoir.limit.month');
     }
     if (code === 'request_open') return t('ownChoir.open');
     if (code === 'not_found' && own) return t('ownChoir.songs.notSaved');

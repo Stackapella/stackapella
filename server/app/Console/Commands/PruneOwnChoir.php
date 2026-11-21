@@ -8,6 +8,7 @@ use App\Actions\OwnChoir\ChoirJobs;
 use App\Enums\OwnChoirStatus;
 use App\Models\OwnChoirRequest;
 use App\Models\OwnChoirVoice;
+use App\Support\OwnChoir\OwnChoir;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 
@@ -30,6 +31,8 @@ final class PruneOwnChoir extends Command
                     /** @var OwnChoirRequest $request */
                     // Only if it's still uploading: one completed this moment keeps its clip for its check.
                     if (OwnChoirRequest::query()->whereKey($request->id)->where('status', OwnChoirStatus::Uploading->value)->update(['status' => OwnChoirStatus::Failed->value, 'failure' => 'expired']) === 1) {
+                        // Never reached the renderer: its free song is given back.
+                        OwnChoir::releaseFree($request->refresh());
                         if ($request->upload_key !== null) {
                             Storage::disk('private')->delete($request->upload_key);
                         }

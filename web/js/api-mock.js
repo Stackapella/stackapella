@@ -357,6 +357,8 @@ async function stateful(operation, params, body, cases, query = {}) {
         const monthEnd = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth() + 1, 1)).toISOString().replace(/\.\d+Z$/, 'Z');
         if (as === 'plus') choir.quota = { ...choir.quota, plus: true, freeLeft: 0, unit: 'minutes', minutesLeft: 47, minutesPerMonth: 60, resetsAt: monthEnd };
         else choir.quota = { ...choir.quota, unit: 'songs', minutesLeft: null, minutesPerMonth: null, resetsAt: monthEnd };
+        // The free song already had (once per email, ever), for a flow (stackapella.mockChoirFreeUsed, this tab).
+        if (as !== 'plus' && tabStorage.get('stackapella.mockChoirFreeUsed') === '1') choir.quota = { ...choir.quota, plus: false, freeLeft: 0 };
         choir.busyToday = tabStorage.get('stackapella.mockChoirBusy') === '1';
         choir.checkNeeded = tabStorage.get('stackapella.mockChoirCheck') === '1' && !choir.requests.length;
         const unverified = tabStorage.get('stackapella.mockUnverified') === '1';

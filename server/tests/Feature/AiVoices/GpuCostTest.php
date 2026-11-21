@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\AiVoices;
 
+use App\Actions\OwnChoir\ChoirJobs;
+use App\Actions\Users\DeleteAccount;
 use App\Enums\OwnChoirStatus;
 use App\Models\OwnChoirConsent;
+use App\Models\OwnChoirFreeSong;
 use App\Models\OwnChoirPart;
 use App\Models\OwnChoirRequest;
 use App\Models\OwnChoirVoice;
@@ -68,7 +71,8 @@ final class GpuCostTest extends TestCase
 
     public function test_paid_plus_counts_part_minutes_and_says_what_a_song_needs(): void
     {
-        $paid = $this->singer(['store_plus_until' => now()->addMonth()]);
+        // Bought in an app, renewing in ten days: its month began twenty-odd days ago.
+        $paid = $this->singer(['store_plus_until' => now()->addDays(10)]);
         $needed = OwnChoir::partMinutes((array) json_decode((string) DB::table('template_versions')->where('id', $this->version())->value('data'), true));
         $this->assertGreaterThan(0, $needed);
         config(['own_choir.plus_minutes' => $needed * 1.5]);
@@ -83,8 +87,10 @@ final class GpuCostTest extends TestCase
         $this->assertMatchesContract($refused, 'ownChoir.requests.create', 403);
         $refused->assertJsonPath('which', 'minutes')->assertJsonPath('needed', $needed);
 
-        // Thirty days on, it counts no more.
-        OwnChoirRequest::query()->update(['first_claimed_at' => now()->subDays(31), 'created_at' => now()->subDays(31)]);
+        // The subscription's own month, renewing with it (never the calendar month).
+        $this->assertSame(now()->addDays(10)->utc()->toDateString(), substr((string) $quota['resetsAt'], 0, 10));
+        // A song from before this month began counts no more.
+        OwnChoirRequest::query()->update(['first_claimed_at' => now()->subDays(25), 'created_at' => now()->subDays(25)]);
         $this->postJson('/api/own-choir/requests', ['templateId' => 'amazing-grace'])->assertCreated()->assertJsonPath('data.startsAfter', null);
         $this->assertSame(1, OwnChoirRequest::query()->where('priority', 1)->count(), 'Paid Plus goes first.');
     }
@@ -228,5 +234,42 @@ final class GpuCostTest extends TestCase
 
         $this->assertGreaterThan(0, $filled);
         $this->assertSame($filled, $song->refresh()->part_minutes);
+    }
+
+    public function test_the_free_song_is_once_per_address_even_after_the_account_is_deleted(): void
+    {
+        $ada = $this->singer(['google_id' => 'g-ada-1']);
+        $this->postJson('/api/own-choir/requests', ['templateId' => 'amazing-grace'])->assertCreated();
+        $this->assertSame(2, OwnChoirFreeSong::query()->count(), 'The address and the Google id.');
+        // Made (it reached the renderer): a song that never did would be given back.
+        OwnChoirRequest::query()->update(['status' => OwnChoirStatus::Ready->value, 'tries' => 1]);
+
+        app(DeleteAccount::class)->handle($ada->fresh() ?? $ada, '203.0.113.5');
+
+        // Only the hashes stay: no request, voice or consent, and nothing that names them.
+        $this->assertSame(0, OwnChoirRequest::query()->count());
+        $this->assertSame(0, OwnChoirVoice::query()->count());
+        $this->assertSame(0, OwnChoirConsent::query()->count());
+        $this->assertSame([null, null], OwnChoirFreeSong::query()->pluck('own_choir_request_id')->all());
+        $this->assertFalse(OwnChoirFreeSong::query()->pluck('key_hash')->contains(fn (string $hash): bool => str_contains($hash, 'ada') || str_contains($hash, 'g-ada')));
+
+        // Signed up again with the same address, or the same Google account under another: no second free song.
+        $this->singer(['email' => (string) $ada->email, 'google_id' => null]);
+        $this->postJson('/api/own-choir/requests', ['templateId' => 'amazing-grace'])->assertForbidden()->assertJsonPath('which', 'free');
+        $this->singer(['google_id' => 'g-ada-1']);
+        $this->getJson('/api/own-choir')->assertJsonPath('data.quota.freeLeft', 0);
+    }
+
+    public function test_a_free_song_that_fails_through_ours_is_given_back(): void
+    {
+        $user = $this->singer();
+        $this->postJson('/api/own-choir/requests', ['templateId' => 'amazing-grace'])->assertCreated();
+        $song = OwnChoirRequest::query()->firstOrFail();
+        $song->forceFill(['status' => OwnChoirStatus::Rendering, 'tries' => 1])->save();
+
+        ChoirJobs::failAndClean($song, 'render_failed');
+
+        $this->assertSame(0, OwnChoirFreeSong::query()->count());
+        $this->assertSame(1, OwnChoir::quota($user)['freeLeft']);
     }
 }

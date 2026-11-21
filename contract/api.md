@@ -2839,7 +2839,7 @@ Start Checkout. **Request:** `{ "interval": "year", "currency": "usd", "trial": 
   `private_template` or `settings`, and since 2026-11-12 starting something shared, `group_start`
   (Start a group) or `invite_friend` (a friend on your song), and since 2026-11-17 `private_shared`
   (a shared private arrangement, behind `plus_private`), and since 2026-11-21 `choir_download` (Download on a choir song
-  made from your voice) (anything else, an older app's
+  made from your voice) and `choir_song` (more choir songs once the free one is had) (anything else, an older app's
   `plus_song` too, is kept as `other`);
 - `startNowConsent` (optional): true when the person ticked the consent to start at once. Where
   `billing.prices` says it's needed and it isn't true, `422 validation_failed` on
@@ -7521,10 +7521,13 @@ can't start; `409 request_open`: one song at a time; `404 not_found`: no such so
 
 **What it costs (the GPU review, 2026-11-21):** a song costs its part-minutes (each part's last note's end, beat 0 to
 it, at the song's tempo, summed over its parts), counted once it reaches the renderer, whatever happens after. Paid
-Plus (Stripe, the stores, an invoice) has `own_choir.plus_minutes` part-minutes per 30 days (60 until Hillel sets it):
+Plus (Stripe, the stores, an invoice) has `own_choir.plus_minutes` part-minutes a month of its own billing, anchored on
+the day it renews, never the calendar month (60, the coordinator for Hillel, 2026-11-21):
 `403 quota_reached` with `which: "minutes"` and `needed` when the song needs more than is left. Plus not paid for (a
 trial, a school code, a coach, a grant) has `own_choir.comped_songs` songs per 30 days (3), `which: "month"`; everyone
-else the one free song, `which: "free"`, counted per email address (dots and `+tags` don't make a new one). An own song
+else the one free song, `which: "free"`, once per email address ever (dots and `+tags` don't make a new one), and per
+Apple or Google account: a keyed one-way hash of each is kept, even after the account is deleted, and the song is
+given back only if it never reached the renderer or failed through ours. An own song
 is at most `own_choir.max_total_seconds` of singing across its parts (1200, `409 song_too_long`). **The free song needs a
 confirmed email** (`403 email_unverified`) from a lasting address (a throwaway one is `422 validation_failed` on
 `email`, Settings changes it), and Turnstile before a person's first song when the state's `checkNeeded` is true

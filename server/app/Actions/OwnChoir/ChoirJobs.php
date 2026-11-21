@@ -375,6 +375,7 @@ final class ChoirJobs
             $files = [...array_filter([$locked->clip_key]), ...$parts->flatMap(static fn (OwnChoirPart $p): array => self::partFiles($p))->all()];
             OwnChoirPart::query()->whereKey($parts->modelKeys())->delete();
             $locked->forceFill(['status' => OwnChoirStatus::Failed, 'failure' => $failure, 'clip_key' => null, 'claimed_at' => null, 'claim_token' => null])->save();
+            OwnChoir::releaseFree($locked);
 
             return array_values($files);
         });

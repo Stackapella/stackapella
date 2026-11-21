@@ -2979,6 +2979,7 @@
         "title": "Stackapella Plus",
         "story": "Aprender a cantar es gratis. Plus es para formar equipo y para trabajarlo a fondo: crea un grupo de coro o invita a amigos a tu canción (todas las personas que invites se unen gratis), más espacio para tus grabaciones, y MP3 y cada voz por separado.",
         "moment": {
+            "choirSong": "Más canciones con tu propia voz vienen con Plus.",
             "choirDownload": "Descargar tu coro viene con Plus. Escucharlo y compartirlo siguen siendo gratis.",
             "groupStart": "Los grupos de coro vienen con Plus. Todas las personas que invites se unen gratis.",
             "storageLimit": "Tu almacenamiento está casi lleno. Plus tiene 50 GB.",
@@ -5686,13 +5687,17 @@
         },
         "limit": {
             "free": "Tu primer coro es gratis.",
-            "left": "{n, plural, one {Te queda # este mes} other {Te quedan # este mes}}",
-            "month": "Ya hiciste los coros de este mes. Más el mes que viene, o con Plus.",
+            "left": "{n, plural, one {Te queda 1 canción, contando cualquier periodo de 30 días} other {Te quedan # canciones, contando cualquier periodo de 30 días}}",
+            "month": "Ya hiciste tus canciones de estos 30 días. Pronto habrá más.",
             "day": "Esos son los coros de hoy. Inténtalo mañana.",
-            "free_used": "Ya hiciste tu coro gratis. Más con Plus.",
-            "minutesLeft": "Te quedan {minutes} minutos de canto este mes: {songs, plural, =0 {no llega para esta canción} one {más o menos 1 canción como esta} other {más o menos # canciones como esta}}.",
-            "minutesOnly": "Te quedan {minutes} minutos de canto este mes.",
-            "minutes": "Esta canción necesita unos {needed} minutos de canto, y te quedan {left} hasta el {date}."
+            "free_used": "Ya tuviste tu canción gratis. Más canciones con tu propia voz vienen con Plus.",
+            "minutesLeft": "Te quedan {minutes} minutos este mes, {songs, plural, =0 {no llega para esta canción} one {una canción como esta} other {unas # canciones como esta}}.",
+            "minutesOnly": "Te quedan {minutes} minutos este mes.",
+            "minutes": "Esta canción necesita unos {needed} minutos, y te quedan {left} este mes.",
+            "minutesLeftMore": "Te quedan {minutes} minutos este mes, {songs, plural, =0 {no llega para esta canción} one {una canción como esta} other {unas # canciones como esta}}; {more} más el {date}.",
+            "minutesOnlyMore": "Te quedan {minutes} minutos este mes; {more} más el {date}.",
+            "minutesMore": "Esta canción necesita unos {needed} minutos, y te quedan {left} este mes; {more} más el {date}.",
+            "monthMore": "Ya hiciste tus canciones de estos 30 días. Más a partir del {date}."
         },
         "delete": {
             "button": "Borra este coro",

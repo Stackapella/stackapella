@@ -118,14 +118,14 @@
                                 "number",
                                 "null"
                             ],
-                            "description": "Part-minutes left in the last 30 days (unit `minutes`), else null."
+                            "description": "Part-minutes left this month of the subscription's billing (unit `minutes`), else null."
                         },
                         "minutesPerMonth": {
                             "type": [
                                 "number",
                                 "null"
                             ],
-                            "description": "The allowance in part-minutes per 30 days (unit `minutes`), else null."
+                            "description": "The allowance in part-minutes per month of the subscription's billing (unit `minutes`), else null."
                         },
                         "resetsAt": {
                             "type": [
@@ -133,7 +133,7 @@
                                 "null"
                             ],
                             "format": "date-time",
-                            "description": "When the oldest song counted in the 30-day window stops counting, or null."
+                            "description": "Paid Plus: when its month of billing turns (anchored on the day it renews, never the calendar month). Plus not paid for: when the oldest song in its rolling 30 days stops counting. Null for the free song."
                         }
                     },
                     "description": "What's left: the free song (ever), this 30 days' songs (Plus not paid for, `monthLeft`) or part-minutes (paid Plus, `minutesLeft`), and today's (everyone)."

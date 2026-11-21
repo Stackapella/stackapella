@@ -144,6 +144,7 @@ final class OwnChoirRequests
 
                 $request = new OwnChoirRequest;
                 $request->forceFill(['user_id' => $user->id, 'template_version_id' => $version->id, 'own_choir_voice_id' => $voice->id, 'from_voice' => true, 'status' => OwnChoirStatus::Queued, ...$cost])->save();
+                $this->ensureFree($user, $request);
                 app(RecordCounts::class)->server('own_choir_requested', true, null);
                 app(RecordCounts::class)->server('own_choir_again', true, null);
                 $this->countOwn($version->id);
@@ -166,6 +167,7 @@ final class OwnChoirRequests
                 'sha256' => strtolower((string) $clip['sha256']),
                 ...$cost,
             ])->save();
+            $this->ensureFree($user, $request);
 
             return ['request' => $request, 'put' => $this->uploads->presign((string) $request->upload_key, 'audio/wav', (int) $request->bytes)];
         });
@@ -343,6 +345,7 @@ final class OwnChoirRequests
             OwnChoirPart::query()->whereKey($parts->modelKeys())->delete();
             OwnChoirVoice::query()->whereKey($preparing->modelKeys())->delete();
             $locked->forceFill(['status' => OwnChoirStatus::Deleted, 'upload_key' => null, 'clip_key' => null, 'claimed_at' => null, 'claim_token' => null, 'part_key' => null, 'offset_frames' => null, 'sha256' => null])->save();
+            OwnChoir::releaseFree($locked);
 
             return array_values($files);
         });
@@ -379,6 +382,21 @@ final class OwnChoirRequests
 
         return array_values($request->parts()->where('status', 'ready')->whereNotNull('media_key')->orderBy('part_key')->get()
             ->map(static fn (OwnChoirPart $part): array => ['partKey' => $part->part_key, 'url' => Storage::disk('private')->temporaryUrl((string) $part->media_key, $until), 'sampleRate' => $part->sample_rate, 'frames' => $part->frames, 'offsetFrames' => 0])->all());
+    }
+
+    /**
+     * A free singer's song that uses up the free allowance (the one song, in production) is kept against their address
+     * and sign-in, once ever; one already had there refuses (it rolls back).
+     */
+    private function ensureFree(User $user, OwnChoirRequest $request): void
+    {
+        if (OwnChoir::tier($user) !== 'free' || OwnChoir::counted($user, byEmail: true)->count() < (int) config('own_choir.free_songs')) {
+            return;
+        }
+
+        if (! OwnChoir::takeFree($user, $request)) {
+            throw new Refusal(403, 'quota_reached', ['which' => 'free']);
+        }
     }
 
     private function ensureMine(User $user, OwnChoirRequest $request): void
