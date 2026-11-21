@@ -677,7 +677,7 @@
         "realVoiceOtherVersion": "recorded for another version of this song",
         "realVoiceFailed": "couldn't load just now",
         "realVoiceOtherSpeed": "plays at full speed only",
-        "defaultVoice": "Recommended by Hillel",
+        "defaultVoice": "Recommended",
         "otherVoice": "Another singer",
         "mix": "Mix",
         "yourTake": "Your take",
@@ -899,7 +899,7 @@
             "aiReviewHint": "New AI guides by song: hear each beside its written part, its checks, then approve or reject.",
             "aiVoicesHint": "The AI guide voices: who each is based on, their consent, and withdrawing one.",
             "feedback": "Feedback",
-            "feedbackHint": "What singers told you with Tell Hillel, with the song and the place.",
+            "feedbackHint": "What singers told you with Tell us, with the song and the place.",
             "corrections": "Corrections",
             "correctionsHint": "Readers' suggested corrections to songs, parts, courses and tools.",
             "correctionsCount": "{count, plural, one {1 correction to read} other {# corrections to read}}",
@@ -2213,7 +2213,7 @@
             "send": "Send the next {count}",
             "sending": "Sending",
             "sendTitleAsk": "Send to the next {count} people?",
-            "sendBody": "Each gets their own email from Hillel, now. It can't be unsent.",
+            "sendBody": "Each gets their own email from us, now. It can't be unsent.",
             "batchSending": "Sending {count}, started {when}.",
             "batchSent": "Last batch: {count}, sent {when}.",
             "batchFailed": "Last batch ({count}, {when}) didn't go.",
@@ -3408,7 +3408,7 @@
             "notIn": "{who}; never with {ids}",
             "audience": {
                 "new": "New devices",
-                "firstWeek": "A new singer's first week (Hillel's OK)",
+                "firstWeek": "A new singer's first week (only with our OK)",
                 "signedIn": "Signed in",
                 "serious": "Serious mode",
                 "game": "Game mode",
@@ -3450,7 +3450,7 @@
                 "metric": "Read by",
                 "guardrails": "Guardrails, up to {most}: steps that mustn't drop",
                 "audience": "Who may join",
-                "firstWeekNote": "A new singer's first week stays as it is unless Hillel agrees to test it.",
+                "firstWeekNote": "A new singer's first week stays as it is unless we agree to test it.",
                 "excludes": "Never with these (they change the same screen)",
                 "planned": "The sample it's read at",
                 "base": "The step's rate today (%)",
@@ -3465,7 +3465,7 @@
             "button": "Ask for a new take",
             "title": "Ask {name} for a new {part} take?",
             "body": "{name} gets this part back in My parts with your note, and records it again. Their take stays live until you accept the new one.",
-            "note": "Hillel asked for a new take of this part.",
+            "note": "We asked for a new take of this part.",
             "done": "Asked {name} for a new take."
         },
         "withdraw": {
@@ -3502,7 +3502,7 @@
         "gems": "Gems and bars",
         "gemsHelp": "The note gems are the only glass. Bars are flat blocks.",
         "coins": "Coins",
-        "coinsHelp": "Game mode's circles are arcade coins (Hillel's pick, 2026-11-08): a flat round in its colour, a dark edge, a hard light at the top and shade at the foot, and a cabinet button's solid depth under it. Done in its colour, the one you're on in the accent with its ring, the next an empty slot, the challenge a diamond.",
+        "coinsHelp": "Game mode's circles are arcade coins (our pick, 2026-11-08): a flat round in its colour, a dark edge, a hard light at the top and shade at the foot, and a cabinet button's solid depth under it. Done in its colour, the one you're on in the accent with its ring, the next an empty slot, the challenge a diamond.",
         "coinsLocked": "A locked stage",
         "library": "Bands, cartridges and rows",
         "libraryHelp": "A band's title in its tone, songs as cartridges (a hover lifts one and a cursor blinks), their tags in tones, and rows in a frame with player slots. Scanlines have their own switch in Settings."
@@ -3553,7 +3553,7 @@
         "radioTwo": "Keep me anonymous",
         "messages": "Messages",
         "noticeInfo": "Your take is saved on this device until it's sent.",
-        "noticeGood": "Sent. Hillel will listen soon.",
+        "noticeGood": "Sent. We'll listen soon.",
         "noticeWarn": "A little quiet: move closer to the mic.",
         "noticeBad": "That didn't send. It's kept here, and goes when you're back online.",
         "openSheet": "Open a sheet",
@@ -3665,7 +3665,7 @@
             "accept": "I'm 18 or over: accept the licence",
             "accepted": "Thank you. Your AI voice licence is saved.",
             "back": "Back to my parts",
-            "notOffered": "This licence isn't open to you just now. Ask Hillel.",
+            "notOffered": "This licence isn't open to you just now. Ask us.",
             "alreadyWithdrawn": "Your AI voice was already withdrawn.",
             "failed": "That didn't work. Check your connection and try again."
         },
@@ -3675,12 +3675,12 @@
             "not_found": "This link doesn't work.",
             "expired": "This link has expired.",
             "revoked": "This link has been replaced.",
-            "askHillel": "Ask Hillel for a new one. Your takes and credit are safe."
+            "askHillel": "Ask us for a new one. Your takes and credit are safe."
         },
         "welcome": {
             "eyebrow": "The Stackapella beta",
             "title": "Welcome, {name}",
-            "who": "I'm Hillel. I'm making Stackapella, an app where people learn to sing harmony one part at a time.",
+            "who": "We're making Stackapella, an app where people learn to sing harmony one part at a time.",
             "what": "You'll record parts of our songs. The takes we accept become the voice learners sing along with, instead of our synthesized one. You can always see how your parts are doing here.",
             "asked": "What I've asked you to sing",
             "sample": "A song sung by real voices",
@@ -3700,14 +3700,14 @@
         "parts": {
             "title": "My parts",
             "none": "No parts yet",
-            "noneHint": "When Hillel asks you to sing a part, it shows here.",
-            "processing": "Getting your take ready for Hillel.",
+            "noneHint": "When we ask you to sing a part, it shows here.",
+            "processing": "Getting your take ready to send.",
             "failed": "Your take didn't arrive in one piece. Record it again, or send it again from this device.",
             "learnAndRecord": "Learn and record",
             "recordAgain": "Record another take",
             "hearYourVoice": "Hear your voice",
             "creditSaved": "Your credit is saved. Learners see it at once.",
-            "openFailed": "That part couldn't open. Tell Hillel, and try again later.",
+            "openFailed": "That part couldn't open. Tell us, and try again later.",
             "detailsKey": "Key of {key}",
             "learnersSee": "Learners see: {part} sung by {name}",
             "templateChanged": "This song's notes were updated since your part was set. Reload the page to get the new version, then try again.",
@@ -3718,18 +3718,18 @@
                 "library": "{count} in the library"
             },
             "needsYou": "Needs you",
-            "needsYouHint": "Hillel asked for something, or a part is ready to record.",
+            "needsYouHint": "We asked for something, or a part is ready to record.",
             "comingUp": "Coming up",
             "comingUpHint": "Nothing to do yet.",
             "library": "Live in the library",
             "libraryHint": "Learners are singing along with you. Thank you!",
             "notUsed": "Not used this time",
-            "noteFrom": "Hillel · {when}",
-            "newTakeWelcome": "A new take is welcome. Your take stays live until Hillel accepts the new one.",
+            "noteFrom": "Stackapella · {when}",
+            "newTakeWelcome": "A new take is welcome. Your take stays live until we accept the new one.",
             "practisePhrase": "Practise phrase {number}",
             "hearLastTake": "Hear your last take",
             "notOpen": "Our musician is checking the arrangement. It opens for recording here once it's checked.",
-            "waiting": "Hillel listens to every take. What he decides shows here.",
+            "waiting": "We listen to every take. What we decide shows here.",
             "guideLine": "Yours is the {part} that learners hear first.",
             "alternateLine": "Another singer is the guide. Learners can choose your take under Guide voice.",
             "tryForGuide": "Try for guide",
@@ -3741,7 +3741,7 @@
             "editCredit": "Edit",
             "creditModal": "Your credit",
             "creditLinked": "Linked to your public profile.",
-            "hillelSays": "Hillel asked for another take:",
+            "hillelSays": "We asked for another take:",
             "style": {
                 "straight": "Sing this part with a straight, light tone so the chord rings.",
                 "free": "Your natural vibrato is fine here.",
@@ -3752,7 +3752,7 @@
             "to_record": "To record",
             "held": "Waiting for your email",
             "submitted": "Sent",
-            "in_review": "Hillel is listening",
+            "in_review": "We're listening",
             "retake": "Another take, please",
             "guide": "Guide voice",
             "accepted": "Alternate voice",
@@ -3760,14 +3760,14 @@
             "notOpen": "Not open yet"
         },
         "tell": {
-            "button": "Tell Hillel",
-            "title": "Tell Hillel",
+            "button": "Tell us",
+            "title": "Tell us",
             "intro": "Anything at all: a note that feels wrong, the timing check failing, an idea.",
             "note": "Your note",
             "attached": "The song, part and place you were on are attached.",
             "sending": "Sending",
             "empty": "Write a few words first.",
-            "sent": "Sent to Hillel. Thank you!",
+            "sent": "Sent. Thank you!",
             "failed": "That didn't send. Try again in a moment."
         },
         "retry": {
@@ -3775,7 +3775,7 @@
         },
         "serverError": "Something went wrong on our side. Try again in a moment.",
         "studio": {
-            "recordingFor": "You're recording the {part} of {song} for Hillel.",
+            "recordingFor": "You're recording the {part} of {song}.",
             "checkAndSend": "Check and send",
             "loopPhrase": "Loop phrase {number}",
             "recorded": "{name} recorded. Listen back, then Check and send when you're happy with it."
@@ -3820,10 +3820,10 @@
             "title": "Check before sending",
             "checking": "Listening to your take",
             "hear": "Hear it as learners will",
-            "note": "A note for Hillel",
+            "note": "A note for us",
             "noteHelp": "Anything he should know about this take.",
             "again": "Record again",
-            "send": "Send to Hillel",
+            "send": "Send",
             "sending": "Keeping it to send",
             "checked": "The checks are done.",
             "previous": "Use my previous take instead",
@@ -3837,14 +3837,14 @@
             "toFix": "The phrases to work on",
             "thenAgain": "Loop each one until it feels easy, then record the whole part again.",
             "otherTitle": "This part may not suit your voice today",
-            "otherBody": "You've given it a few goes. It might sit outside your range, or it just isn't the day. You could ask Hillel for a part that fits your voice better, or warm up with the course. Come back any time: your part will wait for you.",
+            "otherBody": "You've given it a few goes. It might sit outside your range, or it just isn't the day. You could ask us for a part that fits your voice better, or warm up with the course. Come back any time: your part will wait for you.",
             "askOther": "Ask for another part",
             "course": "Warm up with the course",
             "phraseWords": "Phrase {number}: “{words}”",
             "phraseNumber": "Phrase {number}"
         },
         "send": {
-            "queued": "Your take is on its way to Hillel. It's kept on this device until it arrives.",
+            "queued": "Your take is on its way to us. It's kept on this device until it arrives.",
             "queuedCellular": "Your take is on its way. On mobile data it can take a while: Wi-Fi is quicker. It's kept on this device until it arrives.",
             "keepFailed": "Your take couldn't be kept to send. Your recording is still here: try again."
         },
@@ -3879,14 +3879,14 @@
             "haveAccount": "I have an account",
             "install": "On an iPhone, the app works best installed: tap Share, then Add to Home Screen, and sign in there.",
             "unverified": "Confirm your email first: open the link we sent you, then come back to this page.",
-            "used": "This invite was already used by another account. Sign in with that account, or ask Hillel for a new link.",
+            "used": "This invite was already used by another account. Sign in with that account, or ask us for a new link.",
             "signedIn": "You're signed in as {name}. Join with this account, or use another one.",
             "join": "Join as {name}"
         },
         "notSinger": {
             "title": "This account isn't a beta singer",
             "revoked": "This account doesn't sing for the beta any more",
-            "body": "You're signed in as {name}. If Hillel invited you, open his link again, or sign in with the account you used for it.",
+            "body": "You're signed in as {name}. If you were invited, open the invite link again, or sign in with the account you used for it.",
             "otherAccount": "Use another account"
         },
         "signIn": {
@@ -4342,7 +4342,7 @@
         "signIn": "Sign in",
         "intro": "Optional. You can learn and record without an account. Signing in syncs your songs across your devices.",
         "introGroups": "A group needs an account, so your singers can join you. Free for you and every singer.",
-        "inviteIntro": "Sign in, or make an account, to sing for Hillel. Your invite goes with you.",
+        "inviteIntro": "Sign in, or make an account, to sing for Stackapella. Your invite goes with you.",
         "google": "Continue with Google",
         "apple": "Continue with Apple",
         "lastUsed": "(used last time)",
@@ -4616,7 +4616,7 @@
             "plus": "You're on Plus.",
             "freeName": "Free plan",
             "plusName": "Plus",
-            "freeLine": "Every song, course and workout, your history, and singing with friends and your choir. Plus adds room and extras for more professional work.",
+            "freeLine": "Every song, course and workout, your history, and joining any song or choir group you're invited to. Plus is for what you make.",
             "seePlus": "See Plus",
             "songs": "Songs",
             "storage": "Storage",
@@ -5840,6 +5840,8 @@
         "warmUpOurs": "Today's usual"
     },
     "plus": {
+        "storyChoir": "Learning to sing is free. Plus is for what you make: about 15 songs a month sung by AI in a voice like yours, yours to download; starting a choir group or inviting friends onto your songs (everyone you invite joins free); more room for your recordings; and MP3 and each part on its own.",
+        "headlineChoir": "Songs in a voice like yours. Sing together. More room.",
         "storySolo": "Learning to sing is free, with your friends and your choir too. Plus is for working at it: more room for your recordings, and MP3 and each part on its own.",
         "headlineSolo": "More room. Every format.",
         "next": {
@@ -5852,7 +5854,7 @@
         "title": "Stackapella Plus",
         "story": "Learning to sing is free. Plus is for teaming up and for working at it: start a choir group or invite friends onto your song (everyone you invite joins free), more room for your recordings, and MP3 and each part on its own.",
         "moment": {
-            "choirSong": "More songs in your own voice come with Plus.",
+            "choirSong": "More songs in a voice like yours come with Plus.",
             "inviteFriend": "Singing your song with friends comes with Plus. Everyone you invite joins free.",
             "groupStart": "Choir groups come with Plus. Everyone you invite joins free.",
             "storageLimit": "Your storage is nearly full. Plus has 50 GB.",
@@ -5860,7 +5862,7 @@
             "stems": "Each part on its own is on Plus.",
             "privateTemplate": "Your first private arrangement is free. Plus keeps as many as you like.",
             "privateShared": "Shared private arrangements need Plus for everyone in them.",
-            "choirDownload": "Downloading your choir comes with Plus. Listening and sharing stay free."
+            "choirDownload": "Downloading your choir comes with Plus, and so do about 15 more songs a month in a voice like yours. Listening and sharing stay free."
         },
         "yours": "Your plan",
         "manage": "Manage your plan",
@@ -5887,6 +5889,7 @@
         "compare": "Free and Plus, side by side",
         "what": "What you get",
         "free": {
+            "choirSongs": "Your first one",
             "joinInvited": "Join when invited",
             "title": "Free",
             "storage": "1 GB",
@@ -5894,6 +5897,7 @@
             "templates": "1"
         },
         "plus": {
+            "choirSongs": "About 15 a month",
             "startChoir": "Start groups, free for members",
             "startInvite": "Invite anyone, free for them",
             "title": "Plus",
@@ -5908,6 +5912,8 @@
         "no": "No",
         "unlimited": "Unlimited",
         "row": {
+            "choirSongs": "Songs sung by AI in a voice like yours",
+            "choirDownload": "Download a song in a voice like yours",
             "songs": "Songs",
             "course": "Courses",
             "workout": "Today's workout",
@@ -6065,7 +6071,7 @@
             "imported": "A song made from sheet music stays private, so it can't be shared by link."
         },
         "feature": "Stackapella may feature it on our X and Bluesky",
-        "featureHint": "Credited to you, after Hillel listens. Everyone who sang on it agrees first. Untick any time: nothing more is posted, and its voices stop being guides.",
+        "featureHint": "Credited to you, after we listen. Everyone who sang on it agrees first. Untick any time: nothing more is posted, and its voices stop being guides.",
         "stillProcessing": "Your harmony is still being prepared. In a few minutes, open Share again and choose Use that link.",
         "guides": "Public songs can be featured: your parts may become the voice other singers learn from, credited to you.",
         "guidesTerms": "Read the terms",
@@ -7348,7 +7354,7 @@
         "accept": "Accept invite",
         "orWith": "or accept with",
         "expires": "{count, plural, one {invite expires tomorrow} other {invite expires in # days}}",
-        "founder": "Hillel",
+        "founder": "Stackapella",
         "earlyAccess": "Early access",
         "lead": "Your invite gets you in before Stackapella opens to everyone.",
         "apple": "Apple",
@@ -8559,11 +8565,12 @@
             "progress": "{n} of {total} parts are really you"
         },
         "limit": {
-            "free": "Your first choir is free.",
+            "unlocks": "Plus makes about 15 songs a month in a voice like yours, and lets you download them.",
+            "free": "Your first choir is free, once per email address.",
             "left": "{n, plural, one {1 song left, counted over any 30 days} other {# songs left, counted over any 30 days}}",
             "month": "You've made your songs for these 30 days. More soon.",
             "day": "That's today's choirs. Try again tomorrow.",
-            "free_used": "You've had your free song. More songs in your own voice come with Plus.",
+            "free_used": "You've had your free song. More songs in a voice like yours come with Plus.",
             "minutesLeft": "{minutes} minutes left this month, {songs, plural, =0 {not quite enough for this song} one {about 1 song like this one} other {about # songs like this one}}.",
             "minutesOnly": "{minutes} minutes left this month.",
             "minutes": "This song needs about {needed} minutes, and you have {left} left this month.",
@@ -8580,8 +8587,8 @@
             "done": "Deleted."
         },
         "stop": {
-            "button": "Stop making songs in my voice",
-            "title": "Turn off songs in your voice?",
+            "button": "Stop making songs from my singing",
+            "title": "Turn off songs made from your singing?",
             "body": "We'll delete your saved voice and every song made from your singing. You can turn it on again any time.",
             "action": "Turn it off",
             "done": "Turned off. Everything made from your singing is deleted; the service that makes the songs keeps its copies encrypted for up to 7 days, then deletes them."
@@ -8603,7 +8610,7 @@
             "record": "Sing again instead"
         },
         "songs": {
-            "entry": "Hear it in your voice",
+            "entry": "Hear it in a voice like yours",
             "fromHum": "Make my choir from my humming",
             "fromHumLine": "Your humming becomes the voice for every part of your song, labelled as AI.",
             "singInstead": "Sing it instead",
@@ -8611,7 +8618,7 @@
             "wordlessGo": "Sing a line with words",
             "notEnglish": "It sings English words; others may sound off.",
             "notSaved": "Your song is still saving to your account. Try again in a moment.",
-            "tooLong": "This song is too long to make in your voice: at most 8 parts, each up to 5 minutes."
+            "tooLong": "This song is too long to make in a voice like yours: at most 8 parts, each up to 5 minutes."
         },
         "share": {
             "button": "Share my choir"
@@ -8659,10 +8666,10 @@
         "offNow": "Until then, learn a part and keep your takes: once it opens, you can offer one from Sing.",
         "isBetaSinger": "You already sing for Stackapella: your parts are on your beta page.",
         "toYourParts": "Your parts",
-        "intro": "Some song parts and lesson clips still play a synth voice. Record one, and once Hillel accepts it, everyone learning hears your voice there.",
+        "intro": "Some song parts and lesson clips still play a synth voice. Record one, and once we accept it, everyone learning hears your voice there.",
         "point": {
             "unpaid": "It's unpaid, and nothing is promised to be used.",
-            "review": "Every take is checked on your phone, then reviewed by Hillel before anyone hears it.",
+            "review": "Every take is checked on your phone, then reviewed by us before anyone hears it.",
             "yours": "Only your own voice: never a sample or someone else's recording."
         },
         "agreement": "The Lend your voice agreement",
@@ -8674,7 +8681,7 @@
         "held": "Yours to record",
         "until": "Yours until {date}",
         "ending": "Ends {date}: record it soon, or it goes back on the list",
-        "sent": "Sent, waiting for Hillel's review",
+        "sent": "Sent, waiting for our review",
         "record": "Record it",
         "release": "Let it go",
         "releaseTitle": "Let it go?",

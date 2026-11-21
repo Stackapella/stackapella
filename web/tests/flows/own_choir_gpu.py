@@ -67,10 +67,16 @@ def journey(f):
     f.wait("document.querySelector('[data-choir-free-had]')", what="the free song had")
     assert not f.js("document.querySelector('[data-choir-start]')"), "Start singing with no song left to make"
     assert t(f, "ownChoir.limit.free_used") in f.js("document.querySelector('[data-choir-free-had]').innerText")
+    # What Plus unlocks and what it costs, on the card itself (Plus for what you make).
+    assert t(f, "ownChoir.limit.unlocks") in f.js("document.querySelector('[data-choir-free-had]').innerText")
+    f.wait("document.querySelector('[data-choir-free-had] [data-plus-price]')", what="Plus's prices on the card")
     f.shot("free-had")
     f.run("document.querySelector('[data-choir-plus]').click()")
     f.wait("location.pathname === '/plus' && location.search.includes('from=choir_song')", what="the Plus page, from the choir")
     f.wait(f"document.body.innerText.includes({json.dumps(t(f, 'plus.moment.choirSong'))})", what="why it's here")
+    # With own_choir on, the Plus page lists the songs in a voice like yours, and downloading them.
+    f.wait(f"document.body.innerText.includes({json.dumps(t(f, 'plus.row.choirSongs'))})", what="the choir songs row")
+    assert t(f, "plus.plus.choirSongs") in f.js("document.body.innerText"), "about 15 a month"
 
     # Busy today: said before singing; a song asked for waits for tomorrow, and its page says so.
     fresh(f, on=["stackapella.mockChoirBusy"])

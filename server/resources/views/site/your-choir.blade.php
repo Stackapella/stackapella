@@ -14,7 +14,12 @@
      close. Every scene's words are here, in order, so the page reads and paints with no script; with reduced motion (or
      no script) nothing is pinned and the scenes are still panels. --}}
 @php($web = (string) config('app.web_path'))
-@php($views = $stage === null ? ['hero', 'yours'] : array_values(array_filter(['hero', 'real', 'split', $stage['four'] ? 'four' : null, 'yours'])))
+{{-- Without the demo's voices the stage is a picture (YourChoirStage::picture, Hillel, 2026-11-21: "lets support starting
+     track B without A ... so there aren't samples"): the arrangement's notes as lanes, no sound, no singer: one voice line
+     becoming four parts in the first screen, then the four parts with their words, then "now yours". The designed
+     default; the audio stage, when a singer's voices are licensed, is the extra. --}}
+@php($pic = $stage === null && ($picture ?? null) !== null)
+@php($views = $stage !== null ? array_values(array_filter(['hero', 'real', 'split', $stage['four'] ? 'four' : null, 'yours'])) : ($pic ? ['hero', 'four', 'yours'] : ['hero', 'yours']))
 @php($pinned = count($views))
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ __('meta.dir') }}">
@@ -43,7 +48,7 @@
     @if (is_string($links['partner'] ?? null))
         <div class="yc-notes" data-yc-note><p class="yc-note-bar"><span>{{ __('pages.site.partner_line') }}</span> <a href="{{ $links['partner'] }}" class="yc-lk">{{ __('pages.site.partner_link') }}</a></p></div>
     @endif
-    <div class="yc" id="yc" data-yc data-view="hero" @if ($stage !== null) data-stage @if ($stage['four']) data-four @endif @endif>
+    <div class="yc" id="yc" data-yc data-view="hero" @if ($stage !== null || $pic) data-stage @endif @if ($stage !== null && $stage['four']) data-four @endif @if ($pic) data-picture @endif>
         @if ($stage !== null)
             <script type="application/json" data-yc-data>@json($stage['play'])</script>
         @endif
@@ -62,7 +67,7 @@
 
         <main>
             <div class="yc-pin">
-                <div class="yc-stage" data-yc-stage role="group" aria-label="{{ __('site.your_choir.stage.label') }}">
+                <div class="yc-stage" data-yc-stage role="group" aria-label="{{ $pic ? __('site.your_choir.picture.label') : __('site.your_choir.stage.label') }}">
                     <div class="yc-bg" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
 
                     {{-- The first screen: the headline, the one press that starts the experience, and the way in. --}}
@@ -80,7 +85,8 @@
                                         <button type="button" class="yc-play" data-yc-go><span class="yc-orb bubble" aria-hidden="true"><span class="yc-i-play"><x-site.icon name="play" size="22" /></span><span class="yc-i-stop"><x-site.icon name="stop" size="22" /></span></span><span class="yc-play-w"><span class="yc-i-play">{{ __('site.your_choir.stage.play') }}</span><span class="yc-i-stop">{{ __('site.your_choir.stage.stop') }}</span><small class="yc-meta">{{ __('site.your_choir.stage.play_meta', ['length' => $stage['length']]) }}</small><small class="yc-load" data-yc-load data-loading="{{ __('site.your_choir.stage.loading') }}" data-failed="{{ __('site.your_choir.stage.failed') }}"></small></span></button>
                                         <a href="{{ $try }}" class="yc-quiet" data-your-choir-try>{{ __('site.your_choir.start') }}</a>
                                     @else
-                                        <a href="{{ $try }}" class="yc-prim" data-your-choir-try>{{ __('site.your_choir.start') }} <x-site.icon name="arrow" size="18" /></a>
+                                        {{-- No demo to hear: the way in is the page's first press (the coordinator, 2026-11-21). --}}
+                                        <a href="{{ $try }}" class="yc-prim" data-your-choir-try>{{ __('site.your_choir.start_voice') }} <x-site.icon name="arrow" size="18" /></a>
                                         @if ($own !== null)
                                             <a href="{{ $own }}" class="yc-quiet" data-your-choir-hum>{{ __('site.your_choir.hum') }}</a>
                                         @endif
@@ -89,10 +95,26 @@
                                 <p class="yc-note">{{ __('site.your_choir.start_note') }}</p>
                             </div>
                         </div>
-                        @if ($stage !== null)
+                        @if ($stage !== null || $pic)
                             <p class="yc-cue" aria-hidden="true">{{ __('site.your_choir.stage.scroll') }} <x-site.icon name="chevron" size="14" /></p>
                         @endif
                     </section>
+
+                    @if ($pic)
+                        {{-- One voice, four parts: the picture opened, in words (AI named once, here and on the lanes' chips). --}}
+                        <section class="yc-sc" id="yc-s1" data-s="four" aria-labelledby="yc-hp">
+                            <div class="yc-cap">
+                                <div>
+                                    {{-- No eyebrow when its words are empty (one would echo the heading). --}}
+                                    @if ((string) __('site.your_choir.picture.two.kick') !== '')
+                                        <p class="yc-kick"><span class="yc-bars" aria-hidden="true"><i class="yc-on"></i><i class="yc-on"></i><i class="yc-on"></i><i class="yc-on"></i></span>{{ __('site.your_choir.picture.two.kick') }}</p>
+                                    @endif
+                                    <h2 id="yc-hp" class="yc-h2">{{ __('site.your_choir.picture.two.title_before') }} <em>{{ __('site.your_choir.picture.two.title_em') }}</em></h2>
+                                </div>
+                                <p class="yc-say">{{ __('site.your_choir.picture.two.body') }}</p>
+                            </div>
+                        </section>
+                    @endif
 
                     @if ($stage !== null)
                         {{-- One real voice: the singer's own recording, as the app plays it. --}}
@@ -132,7 +154,7 @@
                         @endif
                     @endif
 
-                    {{-- Now yours: the three steps, and the way in. --}}
+                    {{-- How it works: the three steps (the way in is the hero's, once). --}}
                     <section class="yc-sc yc-yours" id="yc-s{{ $pinned - 1 }}" data-s="yours" aria-labelledby="yc-hy">
                         <div class="yc-cap">
                             <div>
@@ -147,16 +169,44 @@
                                         <li class="yc-v{{ $loop->iteration }}"><span class="yc-n" aria-hidden="true">{{ $loop->iteration }}</span><div><h3>{{ $step['title'] }}</h3><p>{{ $own !== null && $loop->iteration === 2 ? __('site.your_choir.step_choose_hum') : $step['body'] }}</p></div></li>
                                     @endforeach
                                 </ol>
-                                <div class="yc-go">
-                                    <a href="{{ $try }}" class="yc-prim" data-your-choir-try>{{ __('site.your_choir.start') }} <x-site.icon name="arrow" size="18" /></a>
-                                    @if ($own !== null)
-                                        <a href="{{ $own }}" class="yc-quiet" data-your-choir-hum>{{ __('site.your_choir.hum') }}</a>
-                                    @endif
-                                </div>
-                                <p class="yc-note">{{ __('site.your_choir.start_note') }}</p>
+                                {{-- No second try block: the hero's is the page's one (Hillel, 2026-11-21: "the 'try it' block is
+                                     also repeated"). --}}
                             </div>
                         </div>
                     </section>
+
+                    @if ($pic)
+                        {{-- The picture's lanes: the visitor's one voice line (the song's tune), then the four parts the AI
+                             sings from it, each chipped AI. Notes only: no sound, no singer, no control. --}}
+                        <div class="yc-world" aria-hidden="true">
+                            <div class="yc-deck" data-yc-lanes>
+                                @php($lanes = [['seg' => 'you', 'lane' => $picture['you'], 'n' => 1], ...array_map(static fn (array $lane, int $i): array => ['seg' => 'ai', 'lane' => $lane, 'n' => $i % 4 + 1], $picture['parts'], array_keys($picture['parts']))])
+                                @foreach ($lanes as $l)
+                                    @php($part = $l['lane']['part'])
+                                    <div @class(['yc-ln', 'yc-v'.$l['n'], 'yc-real yc-you' => $l['seg'] === 'you', 'yc-ai' => $l['seg'] === 'ai']) data-seg="{{ $l['seg'] }}" data-part="{{ $part }}">
+                                        <div class="yc-tr">
+                                            @foreach ($l['lane']['notes'] as $note)
+                                                <span class="yc-g gem-note" data-b="{{ $note['beat'] }}" data-l="{{ $note['length'] }}" style="--b: {{ $note['beat'] }}; --l: {{ $note['length'] }}; --y: {{ $note['y'] }}"><span class="gem-word">{{ $note['text'] }}</span></span>
+                                            @endforeach
+                                        </div>
+                                        <div class="yc-lb">
+                                            @if ($l['seg'] === 'you')
+                                                <b><span class="yc-orb bubble bubble-sm">{{ mb_substr((string) __('site.your_choir.picture.you'), 0, 1) }}</span>{{ __('site.your_choir.picture.you') }}<span class="yc-chip">{{ __('site.your_choir.picture.you_chip') }}</span></b>
+                                            @else
+                                                <b><span class="yc-orb bubble bubble-sm">{{ mb_substr((string) __('pages.landing.hero.parts.'.$part), 0, 1) }}</span>{{ __('pages.landing.hero.parts.'.$part) }}<span class="yc-chip">{{ __('site.your_choir.stage.ai_chip') }}</span></b>
+                                                <small>{{ $picture['song'] }} · {{ $part === 'soprano' ? __('site.your_choir.stage.roles.tune') : __('site.your_choir.stage.roles.harmony') }}</small>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        <nav class="yc-dots" aria-label="{{ __('landing.scenes') }}" data-yc-dots>
+                            @for ($i = 0; $i < $pinned; $i++)
+                                <a href="#yc-at-{{ $i }}" aria-label="{{ __('landing.scene', ['n' => $i + 1, 'count' => $pinned]) }}" @if ($i === 0) aria-current="true" @endif></a>
+                            @endfor
+                        </nav>
+                    @endif
 
                     @if ($stage !== null)
                         {{-- The lanes, in every scene of the stage: the real one, then the AI ones (each says which it is,
@@ -192,7 +242,7 @@
                         </nav>
                     @endif
                 </div>
-                @if ($stage !== null)
+                @if ($stage !== null || $pic)
                     {{-- One screen of scroll for each of the stage's scenes: where the page rests, and what the dots lead to. --}}
                     <div class="yc-snaps" aria-hidden="true">
                         @for ($i = 0; $i < $pinned; $i++)
@@ -289,16 +339,12 @@
                     <div class="yc-floor" aria-hidden="true"><span><i></i><i></i><i></i><i></i></span></div>
                 </section>
 
-                <section class="yc-sec yc-close" aria-labelledby="yc-end">
+                {{-- The end: the mark's bars, left-aligned as the mark always is (Hillel: "always keep our logo bars left
+                     aligned"), and one plain button, no heading or lines again (Hillel: "feels like the text is too
+                     repetitive", "the 'try it' block is also repeated"). --}}
+                <section class="yc-sec yc-close" aria-label="{{ __('site.your_choir.start_voice') }}">
                     <span class="yc-mark" aria-hidden="true"><i class="yc-v1"></i><i class="yc-v2"></i><i class="yc-v3"></i><i class="yc-v4"></i></span>
-                    <h2 id="yc-end" class="yc-h1">{{ __('site.your_choir.end.title') }}</h2>
-                    <p class="yc-say">{{ __('site.your_choir.end.body') }}</p>
-                    <div class="yc-go">
-                        <a href="{{ $try }}" class="yc-prim" data-your-choir-try>{{ __('site.your_choir.start') }} <x-site.icon name="arrow" size="18" /></a>
-                        @if ($own !== null)
-                            <a href="{{ $own }}" class="yc-arrow" data-your-choir-hum>{{ __('site.your_choir.end.hum') }}</a>
-                        @endif
-                    </div>
+                    <p class="yc-go"><a href="{{ $try }}" class="yc-prim" data-your-choir-try>{{ __('site.your_choir.start_voice') }} <x-site.icon name="arrow" size="18" /></a></p>
                 </section>
             </div>
         </main>

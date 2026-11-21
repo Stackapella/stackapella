@@ -221,7 +221,7 @@ return [
     // New embedding sites a day kept by name before the rest are counted as embed-other.
     'new_embed_hosts_a_day' => 5,
 
-    'sources' => ['hn', 'mudeo', 'songs', 'song-page', 'part-page', 'carols', 'lesson-page', 'course-page', 'courses-hub', 'features-course', 'lesson-try', 'warmups', 'intervals', 'chords', 'voice-types', 'tools', 'tools-embed', 'share-range', 'share-pitch-matching', 'share-interval-ear-training', 'share-chord-ear-training', 'share-lesson', 'for-choir-directors', 'for-choirs-footer', 'for-choirs-songs', 'for-choirs-collection', 'for-choirs-carols', 'for-choirs-pricing', 'for-choirs-landing', 'for-choirs-course', 'for-choirs-help', 'features-choirs', 'social', 'reddit', 'producthunt', 'newsletter', 'press',
+    'sources' => ['choir-share', 'hn', 'mudeo', 'songs', 'song-page', 'part-page', 'carols', 'lesson-page', 'course-page', 'courses-hub', 'features-course', 'lesson-try', 'warmups', 'intervals', 'chords', 'voice-types', 'tools', 'tools-embed', 'share-range', 'share-pitch-matching', 'share-interval-ear-training', 'share-chord-ear-training', 'share-lesson', 'for-choir-directors', 'for-choirs-footer', 'for-choirs-songs', 'for-choirs-collection', 'for-choirs-carols', 'for-choirs-pricing', 'for-choirs-landing', 'for-choirs-course', 'for-choirs-help', 'features-choirs', 'social', 'reddit', 'producthunt', 'newsletter', 'press',
         // The improvement loop: the verify email's next lesson, the day's part (/today), and the thread back.
         'welcome', 'today', 'back-link', 'back-calendar',
         // Each share surface's tag (share-lesson was already one; never folded, as every share- tag).

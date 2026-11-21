@@ -294,9 +294,10 @@ final class Landing
      * Stackapella is open source, the privacy answer says the code can be checked, and one more
      * question says so.
      *
+     * @param  array{month: string, year: string, yearAsMonth: string}  $price  the visitor's prices (Prices::of)
      * @return list<array{0: string, 1: string}>
      */
-    public static function faq(int $freeSongs, string $price, bool $openSource = false): array
+    public static function faq(int $freeSongs, array $price, bool $openSource = false): array
     {
         $faq = (array) Teams::words('pages.landing.faq');
         if ($openSource) {
@@ -306,7 +307,7 @@ final class Landing
 
         return array_values(array_map(static fn (array $qa): array => [
             (string) $qa[0],
-            str_replace([':free_songs', ':price'], [(string) $freeSongs, $price], (string) $qa[1]),
+            str_replace([':free_songs', ':price_month', ':price_year', ':price'], [(string) $freeSongs, $price['month'], $price['year'], $price['yearAsMonth']], (string) $qa[1]),
         ], $faq));
     }
 

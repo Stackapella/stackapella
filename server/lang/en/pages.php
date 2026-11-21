@@ -449,7 +449,7 @@ return [
             'songs' => ['name' => 'Songs', 'fact' => ':count songs to learn, part by part'],
             'courses' => ['name' => 'Courses', 'fact' => ':count courses, every one free'],
             'tools' => ['name' => 'Tools', 'fact' => ':count free tools, no account'],
-            'pricing' => ['name' => 'Pricing', 'fact' => 'Free to learn, Plus for your work', 'readout' => 'Free'],
+            'pricing' => ['name' => 'Pricing', 'fact' => 'Free to learn, Plus for what you make', 'readout' => 'Free'],
         ],
         // Every play control while it loads (js/public/play-state.js; Hillel: "make sure there is instant feedback if we
         // need to load for good UX"): said at once, a quiet hint after a few seconds, and a failure.
@@ -666,7 +666,7 @@ return [
         'orgs_heading' => 'Running a whole organization?',
         'orgs_body' => 'Choirs, societies and school bodies can have a free year for every member.',
         'orgs_link' => 'See the offer for organizations',
-        'partner_line' => 'Here from Hillel\'s email?',
+        'partner_line' => 'Here from our email?',
         'partner_link' => 'See the offer for your organization',
         'final_title' => 'Your first voice is the hardest. Let\'s find it together.',
         'final_body' => 'Lesson 1 starts with one comfortable note.',
@@ -678,7 +678,7 @@ return [
         'og_image_alt' => 'Stackapella, harmony made by you: four voices stacked in their colours, soprano, alto, tenor and bass.',
         'headline' => 'Harmony,',
         'headline_em' => 'made by you.',
-        // Free to learn, Plus for your work (docs/pricing-plan.md): learning is what's free, so the line says so.
+        // Free to learn, Plus for what you make (docs/pricing-plan.md): learning is what's free, so the line says so.
         'lead' => 'Learn a part, sing it over the others, and share a song where every voice is yours. Bring friends or your choir. It runs in your browser, and learning is free.',
         // Beside Start singing: scrolls to the hero's player and plays it (js/public/mixer.js, [data-hear]).
         'hear' => 'Hear four voices',
@@ -859,7 +859,7 @@ return [
         // Free to learn, Plus to work (Hillel, 2026-11-07: "it's free to learn to sing and become a better singer but we
         // charge to use the app in a more professional capacity"; docs/pricing-plan.md, top section). Code keeps `plus`.
         'plans_title' => 'Free to learn.',
-        'plans_title_more' => 'Plus for your work.',
+        'plans_title_more' => 'Plus for what you make.',
         'plans_free' => 'Free',
         'plans_free_note' => 'Free forever. No card.',
         'plans_free_includes' => 'What you get',
@@ -867,7 +867,7 @@ return [
         'plans_free_list' => ['Every course, from your first note to barbershop', 'Every song in the library, with a free account', 'Unlimited workouts, and your history', 'Sing with friends, and choir groups', ':free_storage for your recordings'],
         'plans_plus' => 'Plus',
         'plans_month' => 'a month',
-        'plans_plus_for' => 'For arrangers and creators.',
+        'plans_plus_for' => 'For what you make.',
         // Each a benefit first, then the plain fact (Hillel, 2026-11-08: "rework the plus features"). Checked against the
         // app: stems are a ZIP of WAVs and the mix exports as MP3 (a creator's own recorded guide left the list on 2026-11-12:
         // Hillel made it free); private covers private, unlisted and
@@ -892,7 +892,9 @@ return [
         'plans_save' => 'Save :percent%',
         'plans_billing' => 'How you pay',
         'plans_billed_year' => 'Billed :year once a year.',
-        'plans_billed_month' => 'Billed monthly. Cancel anytime.',
+        // The home card's line under the monthly price (the marketing review: the monthly price shown, the yearly beside it).
+        'plans_or_year' => 'Or :year a year. Cancel any time.',
+        'plans_billed_month' => 'Billed monthly. Cancel any time.',
         'plans_plus_includes' => 'Everything in Free, plus',
         'plans_soon' => 'Coming soon',
         // Help fill in the recordings (Hillel): a public harmony's parts may become the guide voices.
@@ -930,7 +932,7 @@ return [
             'privacy' => ['Who hears my recordings?', 'Only you, until you choose. Your singing stays on your device until you save it to your account or share it, and a shared harmony can be heard only by people with its link. If you make a song public, its parts may become guide voices for other singers, credited to you; making it private again stops that.'],
             'guide' => ['Can my voice become a guide voice?', 'Yes, if you\'d like it to. Most songs start with a practice voice. When you share a harmony and say yes to featuring it, it\'s public, and we may choose your part as the voice everyone learns from, credited to you by your profile name. Public harmonies are for singers 18 and over. Untick featuring any time, and your voice stops being a guide.'],
             'coach' => ['Can an app replace a vocal coach?', 'No. No app can replace a real vocal coach. Only a person can hear everything and guide you. That\'s why Stackapella is built to work with coaches: soon you\'ll be able to send a coach your takes and learn with them right here. Until then, Stackapella is for practising between lessons, or for starting out.'],
-            'free' => ['Is it really free?', 'Yes. Learning is free, with no card and no time limit: every course, every song with a free account, unlimited workouts, your history, recording every part, and singing with friends. You can start without an account. Plus, from :price a month, adds more storage, MP3 and stems, and unlimited private arrangements.'],
+            'free' => ['Is it really free?', 'Yes. Learning is free, with no card and no time limit: every course, every song with a free account, unlimited workouts, your history, recording every part, and singing with friends. You can start without an account. Plus, :price_month a month or :price_year a year, adds more storage, MP3 and stems, and unlimited private arrangements.'],
             'read_music' => ['Do I need to read music?', 'No. You learn each part by ear from a guide voice, with the notes drawn as shapes you can follow.'],
             'instruments' => ['Can I add an instrument?', 'Yes. Singing comes first here, but any part can be an instrument: record a ukulele, a guitar or a beatbox in the studio, name the part, and stack it with the voices.'],
         ],
@@ -947,7 +949,7 @@ return [
                 'If you made harmony videos on mudeo, this is what it grew into. It\'s audio only now, so every part lines up exactly in time, and there are lessons and guide voices to help you learn each part.',
                 'mudeo accounts and videos didn\'t move over, so you start fresh here. If you\'d like a copy of your mudeo videos, write to contact@stackapella.com.',
             ],
-            'signature' => 'Hillel, who made both',
+            'signature' => 'The Stackapella team',
             'banner' => 'Welcome, mudeo singer. Stackapella is mudeo, rebuilt for sound.',
             'banner_link' => 'What changed',
         ],
@@ -967,9 +969,9 @@ return [
         'title' => 'Pricing',
         // The hero's eyebrow (the five-pages direction: the page, then what it holds).
         'eyebrow' => 'Pricing · Free and Plus',
-        'meta_title' => 'Stackapella pricing: free to learn, Plus for your work',
-        'description' => 'Every course, every song and your history are free. Plus adds storage, MP3 and stems, and unlimited private arrangements, for working with what you make.',
-        'headline' => 'Free to learn. Plus for your work.',
+        'meta_title' => 'Stackapella pricing: free to learn, Plus for what you make',
+        'description' => 'Every course and song is free to learn. Plus adds singing together, more storage, stems and private arrangements.',
+        'headline' => 'Free to learn. Plus for what you make.',
         'free' => 'Free',
         'free_story' => 'Learn to sing harmony: every course, every song with a free account, unlimited workouts, your history, recording, singing with friends and choir groups.',
         'plus' => 'Plus',
@@ -986,7 +988,7 @@ return [
         'currencies' => ['usd' => 'US dollars', 'eur' => 'euros', 'gbp' => 'pounds'],
         'compare' => 'Free and Plus, side by side',
         'only_different' => 'Only what\'s different',
-        // Shown only while checkout is open and billing.trial_days is set (never a trial that isn't real).
+        // Under Plus's button while checkout is open; the same words as the monthly line's.
         'cancel_any_time' => 'Cancel any time.',
         'feature' => 'What you get',
         'yes' => 'Yes',
@@ -1605,7 +1607,7 @@ return [
                     ['The mixer', [
                         '**Solo** (**S** on a narrow row) plays only the soloed parts. **Mute** (**M**) leaves a part out. A muted part\'s **Mute** is lit and its name says **Muted**; while another part is soloed, the others\' **Mute** is softly lit. Every part you can\'t hear is greyed.',
                         'Tap a part\'s name for its **Level**, with its value (100 is as recorded), and its **Pan**, from **L** to **R** with **C** in the middle, on any screen.',
-                        '**Voice** has **Practise this part**, the part\'s **Name**, and under **Mix** its **Volume**, **Pan** and **Timing**, on any screen. Where a real singer sang the part, **Guide voice** chooses them (**Recommended by Hillel**) or the **Practice voice**. Under **Your take**: **Delete take**, **Trim** and **Re-record**.',
+                        '**Voice** has **Practise this part**, the part\'s **Name**, and under **Mix** its **Volume**, **Pan** and **Timing**, on any screen. Where a real singer sang the part, **Guide voice** chooses them (**Recommended**) or the **Practice voice**. Under **Your take**: **Delete take**, **Trim** and **Re-record**.',
                         'Mute, solo and level are for the studio and its export. Sing plays the parts you choose in its **What you hear**.',
                         ['shot' => 'studio--mixer', 'alt' => 'The tracks on a bigger screen: each with Solo and Mute, the Tenor soloed and the other parts greyed, their Mute lit.'],
                     ]],
@@ -1674,7 +1676,7 @@ return [
                         'The pages about the mic and parts out of time have the details.',
                     ]],
                     ['Your plan and storage', [
-                        '**Plan and storage** says whether you\'re on the **Free plan** or **Plus**. **See Plus** (or **Manage your plan**, on Plus) opens the plan page. Plus and billing covers the trial, cancelling and refunds.',
+                        '**Plan and storage** says whether you\'re on the **Free plan** or **Plus**. **See Plus** (or **Manage your plan**, on Plus) opens the plan page. Plus and billing covers paying, cancelling and refunds.',
                         '**Storage** is a bar of the space your recordings use in your account, and how much you have. On the free plan, **More room with Plus** opens the plan page.',
                         '**See what\'s using space** opens **Storage**: **Space**, and **Your songs**, biggest first. Open a song to see its current takes and the older takes you didn\'t keep. **Clear older takes** frees their space. **Course voice takes**, the first takes kept on this device for Then and now, has its own **Delete**.',
                         '**Recently deleted** keeps deleted songs and replaced recordings for 30 days, each saying when it\'s gone for good. They don\'t use space or count toward your songs. **Restore** brings a song back, **Restore take** brings back a recording as an older take, and **Delete now** removes it for good.',
@@ -1687,7 +1689,7 @@ return [
                     ]],
                     ['Contact us', [
                         '**Contact us** is at the bottom of Settings. We read every message.',
-                        'Choose what it\'s about (**Account or Plus** for anything about your account or paying), and say what happened: the box suggests what helps for that topic. For a recording problem, or something broken, **Include device details** is on; **See exactly what\'s sent** shows every detail, and never any audio. Tap **Send message**: Hillel replies by email.',
+                        'Choose what it\'s about (**Account or Plus** for anything about your account or paying), and say what happened: the box suggests what helps for that topic. For a recording problem, or something broken, **Include device details** is on; **See exactly what\'s sent** shows every detail, and never any audio. Tap **Send message**: We reply by email.',
                     ]],
                 ],
             ],
@@ -1765,8 +1767,9 @@ return [
                             'Plus is for working with what you make. Learning stays free.',
                             '50 GB for recordings.',
                             'MP3 export, and each part on its own (stems).',
-                            'Unlimited private or unlisted arrangements, and your own recorded voice as a song\'s guide.',
-                            'Plus is from :price a month.',
+                            'Unlimited private or unlisted arrangements.',
+                            'Invite friends to sing on your songs, and start choir groups.',
+                            'Plus is :price_month a month, or :price_year a year.',
                         ],
                     ],
                     [
@@ -1819,7 +1822,7 @@ return [
                         [
                             'When you\'re signed in, your songs and takes are saved to your account, so they\'re kept safe and open on your other devices.',
                             'When you share a harmony, its mix comes to us to make the link, and the video if you make one.',
-                            'When you send a take to a coach or teacher, they get the take and its scores. A beta singer\'s take goes to Hillel to review.',
+                            'When you send a take to a coach or teacher, they get the take and its scores. A beta singer\'s take comes to us to review.',
                         ],
                     ],
                     [

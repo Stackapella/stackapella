@@ -1,5 +1,5 @@
 """Hear yourself as a choir on a singer's own song (own_choir_songs; Hillel: "they could hum it and have their voice
-replace their humming"): a hummed song kept with its humming offers "Hear it in your voice" on its page; with no voice
+replace their humming"): a hummed song kept with its humming offers "Hear it in a voice like yours" on its page; with no voice
 saved, "Make my choir from my humming" sends the humming itself as the clip (its beat 0 unknown) and deletes it from the
 device; a song with words in another language says once that it sings English words. Off, the song page has no such way.
 """

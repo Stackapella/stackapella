@@ -5,7 +5,7 @@ declare(strict_types=1);
 return [
     'return' => [
         'done_title' => 'You\'re on Plus',
-        'done_body' => 'Thank you. Every song in the library is yours to sing now.',
+        'done_body' => 'Thank you. Plus is on: room for every take, stems and MP3, private arrangements and singing together.',
         'waiting_title' => 'Still confirming...',
         'waiting_body' => 'Stripe is telling us about your payment; it takes a few seconds. You can go back to the app now: Plus turns on by itself.',
         'back' => 'Go back to the app',

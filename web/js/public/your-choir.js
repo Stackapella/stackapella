@@ -152,7 +152,15 @@ function setUp() {
 
     onScroll();
     if (!play) {
+        // No demo voices: the picture (data-picture), lanes of the arrangement's notes and no player. They rest a beat
+        // into the song, their words fitted to their gems; the scroll and the CSS do the rest.
+        const lanes = [...root.querySelectorAll('[data-yc-lanes] .yc-ln')].map((el) => ({
+            el,
+            gems: [...el.querySelectorAll('.yc-g')].map((g) => ({ el: g, word: g.textContent.trim() })),
+        }));
+        for (const lane of lanes) lane.el.querySelector('.yc-tr')?.style.setProperty('--yc-b', '1');
         root.dataset.ready = '';
+        if (lanes.length) fitWords(lanes);
         return;
     }
 
@@ -470,43 +478,44 @@ function setUp() {
     };
     rest();
     root.dataset.ready = '';
-    fitWords();
+    fitWords(lanes);
+}
 
-    // ---- the gems' words: the app's fit ladder (docs/glass-spec.md 2), as the home page places them ---------------
-    function fitWords() {
-        import('../glass.js').then(({ gemFit, whenWordsReady }) => {
-            const probe = document.createElement('canvas').getContext('2d');
-            const place = () => {
-                for (const lane of lanes) {
-                    lane.gems.forEach((gem, i) => {
-                        const box = getComputedStyle(gem.el);
-                        const w = Number.parseFloat(box.width);
-                        const h = Number.parseFloat(box.height);
-                        if (!(w > 0) || !(h > 0)) return;
-                        const next = lane.gems[i + 1];
-                        const fit = gemFit(probe, { x: gem.el.offsetLeft, y: gem.el.offsetTop, w, h, word: gem.word, nextX: next ? next.el.offsetLeft : Infinity, bounds: { top: 0, right: Infinity } });
-                        const span = gem.el.querySelector('.gem-word');
-                        if (span && fit.text && span.textContent !== fit.text) span.textContent = fit.text;
-                        const px = /(\d+(?:\.\d+)?)px/.exec(fit.font ?? '')?.[1];
-                        if (px) gem.el.style.setProperty('--gem-word-px', px);
-                        gem.el.dataset.fit = fit.where;
-                    });
-                }
-            };
-            place();
-            whenWordsReady(place);
-            if ('ResizeObserver' in window) {
-                let waiting = false;
-                const again = new ResizeObserver(() => {
-                    if (waiting) return;
-                    waiting = true;
-                    requestAnimationFrame(() => {
-                        waiting = false;
-                        place();
-                    });
+// ---- the gems' words: the app's fit ladder (docs/glass-spec.md 2), as the home page places them -------------------
+// `lanes`: [{ el, gems: [{ el, word }] }]. Once the glass module is in, again when the font is, and as a lane resizes.
+function fitWords(lanes) {
+    import('../glass.js').then(({ gemFit, whenWordsReady }) => {
+        const probe = document.createElement('canvas').getContext('2d');
+        const place = () => {
+            for (const lane of lanes) {
+                lane.gems.forEach((gem, i) => {
+                    const box = getComputedStyle(gem.el);
+                    const w = Number.parseFloat(box.width);
+                    const h = Number.parseFloat(box.height);
+                    if (!(w > 0) || !(h > 0)) return;
+                    const next = lane.gems[i + 1];
+                    const fit = gemFit(probe, { x: gem.el.offsetLeft, y: gem.el.offsetTop, w, h, word: gem.word, nextX: next ? next.el.offsetLeft : Infinity, bounds: { top: 0, right: Infinity } });
+                    const span = gem.el.querySelector('.gem-word');
+                    if (span && fit.text && span.textContent !== fit.text) span.textContent = fit.text;
+                    const px = /(\d+(?:\.\d+)?)px/.exec(fit.font ?? '')?.[1];
+                    if (px) gem.el.style.setProperty('--gem-word-px', px);
+                    gem.el.dataset.fit = fit.where;
                 });
-                for (const lane of lanes) again.observe(lane.el);
             }
-        }, (error) => console.warn('The gems\' words could not be placed', error));
-    }
+        };
+        place();
+        whenWordsReady(place);
+        if ('ResizeObserver' in window) {
+            let waiting = false;
+            const again = new ResizeObserver(() => {
+                if (waiting) return;
+                waiting = true;
+                requestAnimationFrame(() => {
+                    waiting = false;
+                    place();
+                });
+            });
+            for (const lane of lanes) again.observe(lane.el);
+        }
+    }, (error) => console.warn('The gems\' words could not be placed', error));
 }

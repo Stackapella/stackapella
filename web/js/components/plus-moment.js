@@ -33,6 +33,17 @@ export function keptNext() {
     }
 }
 
+/** "Plus is $39.99 a year or $4.99 a month", in the account's currency (else the region's); empty until the prices load. */
+export function plusPriceLine() {
+    if (selfHosted()) return '';
+    const currency = plan.billing?.subscription?.currency ?? guessCurrency();
+    const of = (interval) => plan.prices?.prices?.find((p) => p.interval === interval && p.currency === currency)?.amountCents;
+    const [year, month] = [of('year'), of('month')];
+    if (!year || !month) return '';
+    const money = (cents) => formatNumber(cents / 100, { style: 'currency', currency: currency.toUpperCase() });
+    return t('plus.momentPrice', { year: money(year), month: money(month) });
+}
+
 export const PlusMoment = {
     components: { Icon, Modal },
     props: {
@@ -59,15 +70,9 @@ export const PlusMoment = {
         </Modal>`,
     setup: () => ({ selfHosted }),
     computed: {
-        /** "Plus is $39.99 a year or $4.99 a month", in the account's currency (else the region's); empty until the prices load. */
+        /** What Plus costs, when asked for (`price`). */
         priceLine() {
-            if (!this.price || selfHosted()) return '';
-            const currency = plan.billing?.subscription?.currency ?? guessCurrency();
-            const of = (interval) => plan.prices?.prices?.find((p) => p.interval === interval && p.currency === currency)?.amountCents;
-            const [year, month] = [of('year'), of('month')];
-            if (!year || !month) return '';
-            const money = (cents) => formatNumber(cents / 100, { style: 'currency', currency: currency.toUpperCase() });
-            return t('plus.momentPrice', { year: money(year), month: money(month) });
+            return this.price ? plusPriceLine() : '';
         },
     },
     created() {

@@ -68,7 +68,7 @@ final class InfoPagesController extends Controller
             'counts' => LandingStage::counts(),
             'price' => $price,
             'plans' => $plans,
-            'questions' => LandingStage::questions($plans['freeSongs'], $price['yearAsMonth']),
+            'questions' => LandingStage::questions($plans['freeSongs'], $price),
             'toolsUrl' => SitePages::toolsHome(),
             // Starting a choir group takes Plus while this switch is on: the choir scene says so.
             'teams' => Teams::on(),
@@ -203,13 +203,16 @@ final class InfoPagesController extends Controller
     }
 
     /**
-     * The numbers in the guide's words: the price in the visitor's currency, the trial's days, and our address.
+     * The numbers in the guide's words: the prices in the visitor's currency (a month, a year, a year as a month), the
+     * trial's days, and our address.
      *
      * @return array<string, string>
      */
     private function numbers(Request $request): array
     {
-        return ['price' => Prices::of(Prices::currency($request))['yearAsMonth'], 'days' => (string) config('billing.trial_days'), 'email' => (string) config('site.contact_email')];
+        $prices = Prices::of(Prices::currency($request));
+
+        return ['price' => $prices['yearAsMonth'], 'price_month' => $prices['month'], 'price_year' => $prices['year'], 'days' => (string) config('billing.trial_days'), 'email' => (string) config('site.contact_email')];
     }
 
     /**

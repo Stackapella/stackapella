@@ -242,8 +242,8 @@ final class SitePagesTest extends TestCase
         // About is Hillel's signed note: his name linked, the address linked inside its sentence.
         $this->get('/about')->assertSee('<p class="s-sig">'.$founder.'</p>', false)->assertSee('write to me at <a class="s-lk" href="mailto:contact@stackapella.com">contact@stackapella.com</a>.', false)
             ->assertDontSee(':founder')->assertDontSee(':email');
-        $this->get('/press')->assertOk()->assertSee($founder, false)->assertSee('$3.33')->assertDontSee(':founder')->assertSee('href="/icons/icon.svg"', false);
-        $this->get('/press', ['CF-IPCountry' => 'GB'])->assertSee('£2.91');
+        $this->get('/press')->assertOk()->assertSee($founder, false)->assertSee('$4.99')->assertSee('$39.99')->assertDontSee(':founder')->assertSee('href="/icons/icon.svg"', false);
+        $this->get('/press', ['CF-IPCountry' => 'GB'])->assertSee('£4.49');
         // The site's own pages first in the screenshots, each in light, dark and game mode.
         foreach (['landing', 'song-page', 'courses'] as $id) {
             foreach (['light', 'dark', 'game'] as $variant) {
@@ -433,8 +433,8 @@ final class SitePagesTest extends TestCase
             $this->get('/help/'.$slug)->assertOk()->assertDontSee(':price')->assertDontSee(':days');
         }
 
-        $this->get('/help/plus-and-billing')->assertSee('$3.33');
-        $this->get('/help/plus-and-billing', ['CF-IPCountry' => 'GB'])->assertSee('£2.91');
+        $this->get('/help/plus-and-billing')->assertSee('$4.99')->assertSee('$39.99');
+        $this->get('/help/plus-and-billing', ['CF-IPCountry' => 'GB'])->assertSee('£4.49');
     }
 
     public function test_the_sitemap_lists_every_site_page(): void

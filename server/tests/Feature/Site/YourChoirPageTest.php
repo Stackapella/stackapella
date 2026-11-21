@@ -80,7 +80,7 @@ final class YourChoirPageTest extends TestCase
         $this->get('/es/your-choir')->assertOk()
             ->assertSee('<html lang="es"', false)
             ->assertSee('coro entero')
-            ->assertSee('Pruébalo con Noche de paz')
+            ->assertSee('Pruébalo con tu voz')
             ->assertSee('<meta property="og:image" content="'.url('/icons/og/es-your-choir.png').'">', false);
     }
 
@@ -144,6 +144,32 @@ final class YourChoirPageTest extends TestCase
         $voice->forceFill(['credited' => true])->save();
         $alto->delete();
         $this->assertStringNotContainsString('data-yc-play', (string) $this->get('/your-choir')->getContent());
+    }
+
+    public function test_without_the_demos_voices_the_page_is_the_picture_with_no_sound_and_no_singer(): void
+    {
+        // Hillel, 2026-11-21: "lets support starting track B without A, we just need to adjust the your voice page so
+        // there aren't samples". No AI voice licensed: the arrangement's notes as a picture, never a recording.
+        app(SyncOfficialTemplates::class)->handle();
+        app(Flags::class)->set('own_choir', 'on', null, 'Own choir live');
+
+        $html = (string) $this->get('/your-choir')->assertOk()->getContent();
+        $this->assertStringContainsString('data-picture', $html);
+        foreach (['data-yc-data', 'data-yc-play', 'data-yc-go', 'yc-dock', '<audio', '/media/'] as $sound) {
+            $this->assertStringNotContainsString($sound, $html, 'no player and no sound: '.$sound);
+        }
+        // One voice line, then the four parts, each saying AI; nothing calls a lane a real singer.
+        $this->assertSame(1, substr_count($html, 'data-seg="you"'));
+        $this->assertSame(4, substr_count($html, 'data-seg="ai"'));
+        $this->assertSame(4, substr_count($html, '>'.e(__('site.your_choir.stage.ai_chip')).'<'));
+        $this->assertStringNotContainsString(e(__('site.your_choir.stage.real_chip')), $html);
+        $this->assertStringContainsString(e(__('site.your_choir.picture.two.body')), $html);
+        // The way in on the first screen, in the hero, before anything else.
+        $hero = (string) strstr((string) strstr($html, 'data-s="hero"'), 'data-s="four"', true);
+        $this->assertStringContainsString(e(__('site.your_choir.start_voice')), $hero);
+        $this->assertStringContainsString('song=silent-night&amp;choir=1', $hero);
+        // The scenes: the first screen, the four parts, now yours.
+        $this->assertSame(['hero', 'four', 'yours'], array_values(array_filter(array_map(static fn (string $s): string => $s, (array) (preg_match_all('/data-s="([a-z]+)"/', $html, $m) ? $m[1] : [])))));
     }
 
     public function test_a_song_of_your_own_is_offered_only_once_its_switch_is_on(): void

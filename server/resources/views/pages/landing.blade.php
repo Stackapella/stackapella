@@ -305,7 +305,7 @@
                 <section class="lnf-sc" id="lnf-s7" data-s="7" aria-labelledby="lnf-h7">
                     <div class="lnf-cap">
                         <h2 id="lnf-h7" class="lnf-h2 lnf-h2-two">{{ __('pages.landing.plans_title') }} <em>{{ __('pages.landing.plans_title_more') }}</em></h2>
-                        <p class="lnf-say">{{ __('landing.plans.body') }} <a href="/pricing" class="lnf-lk">{{ __('pages.landing.plans_compare') }}</a></p>
+                        <p class="lnf-say">{{ \App\Support\Site\Teams::text('landing.plans.body') }} <a href="/pricing" class="lnf-lk">{{ __('pages.landing.plans_compare') }}</a></p>
                     </div>
                     @php($replace = [':free_songs' => (string) $plans['freeSongs'], ':free_storage' => $plans['freeStorage'], ':storage' => $plans['storage']])
                     <div class="lnf-money">
@@ -323,8 +323,9 @@
                             </div>
                             <div class="lnf-glass lnf-plan lnf-plus">
                                 <h3>{{ __('pages.landing.plans_plus') }} @unless ($plans['checkoutOpen'])<span class="lnf-soon">{{ __('pages.landing.plans_soon') }}</span>@endunless</h3>
-                                <p class="lnf-price">{{ $price['yearAsMonth'] }} <small>{{ __('pages.landing.plans_month') }}</small></p>
-                                <p class="lnf-note">{{ __('pages.landing.plans_billed_year', ['year' => $price['year']]) }} @unless ($plans['checkoutOpen']){{ __('pages.landing.plans_paused') }}@endunless</p>
+                                {{-- The monthly price, the yearly beside it (the marketing review, 2026-11-22). --}}
+                                <p class="lnf-price">{{ $price['month'] }} <small>{{ __('pages.landing.plans_month') }}</small></p>
+                                <p class="lnf-note">{{ __('pages.landing.plans_or_year', ['year' => $price['year']]) }} @unless ($plans['checkoutOpen']){{ __('pages.landing.plans_paused') }}@endunless</p>
                                 <ul>
                                     @foreach (\App\Support\Pages\Landing::list('plans_plus_list') as [$gain, $fact])
                                         <li><x-site.icon name="check" size="16" /><span><b>{{ $gain }}</b> {{ strtr($fact, $replace) }}</span></li>

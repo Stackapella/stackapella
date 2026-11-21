@@ -188,9 +188,10 @@ final class LandingStage
     /**
      * The four questions, each with its answer, from the landing's own (their numbers filled in as there).
      *
+     * @param  array{month: string, year: string, yearAsMonth: string}  $price
      * @return list<array{0: string, 1: string}>
      */
-    public static function questions(int $freeSongs, string $price): array
+    public static function questions(int $freeSongs, array $price): array
     {
         $keys = array_keys((array) Teams::words('pages.landing.faq'));
         $all = array_combine($keys, array_slice(Landing::faq($freeSongs, $price), 0, count($keys)));

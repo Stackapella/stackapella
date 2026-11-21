@@ -11,8 +11,9 @@
   Stop puts it back at the start;
 - reduced motion: nothing pinned, every scene in the page's flow, and a press still lights the lanes in place;
 - Spanish at /es/your-choir;
-- without the demo's voices, no stage and no player: the headline and "now yours" only (the server's own test covers
-  each way the voices can be missing; this checks the page that results, wherever this server has none).
+- without the demo's voices, the picture (the designed default until a singer's voice is licensed): one voice line
+  becoming four AI parts from the song's notes, no player and no sound, the way in on the first screen (the server's own
+  test covers each way the voices can be missing; this checks the page that results, wherever this server has none).
 
 The page is behind own_choir: run it against a server whose database has own_choir on (and, for the stage, the demo's
 voices: DemoSeeder's AI guides, VOICE_DEMO_AI_VOICE and VOICE_DEMO_REAL_GUIDE in its env). The voices' files are stubbed
@@ -150,6 +151,12 @@ def still(size):
         f.go("/your-choir", READY)
         if not f.js(f"{ROOT}.hasAttribute('data-stage')"):
             return
+        if f.js(f"{ROOT}.hasAttribute('data-picture')"):
+            # The picture, still: every scene in the page's flow, the lanes one picture, nothing animating.
+            assert f.js("getComputedStyle(document.querySelector('.yc-stage')).position") != "sticky", "nothing is pinned"
+            assert len(f.js(OPEN)) == 5, f"the voice line and the four parts, in one picture: {f.js(OPEN)}"
+            assert f.js("document.getAnimations().filter((a) => a.playState === 'running').length") == 0, "nothing animates"
+            return
         assert f.js("getComputedStyle(document.querySelector('.yc-stage')).position") != "sticky", "nothing is pinned"
         tops = f.js("[...document.querySelectorAll('[data-yc-stage] [data-s]')].map((s) => getComputedStyle(s).opacity === '1' ? Math.round(s.getBoundingClientRect().top + scrollY) : -1)")
         assert -1 not in tops and len(set(tops)) == len(tops), f"every scene shows, one after another: {tops}"
@@ -166,11 +173,36 @@ def still(size):
 
 
 def without_voices(f):
-    """No demo voices on this server: no stage and no player, the headline and "now yours" only."""
-    assert f.js("document.querySelectorAll('[data-yc-play], .yc-ln, .yc-dock').length") == 0, "no stage, no player"
-    assert f.js("!!document.querySelector('[data-s=hero] h1') && !!document.querySelector('[data-s=yours] [data-your-choir-try]')"), "the headline and Try it"
-    assert f.js("getComputedStyle(document.querySelector('[data-s=yours]')).opacity") == "1", "now yours shows, unpinned"
+    """No demo voices on this server (Hillel, 2026-11-21: "lets support starting track B without A ... so there aren't
+    samples"): the picture, no player. One voice line ("Your voice", no AI chip) becomes four parts, each chipped AI,
+    with the song's own notes; no sound, no singer's name, no recording; the way in ("Try it with your voice") is on the
+    first screen; scrolling opens the four parts, then "now yours"."""
+    assert f.js(f"{ROOT}.hasAttribute('data-picture')"), "the page is the picture"
+    assert f.js("document.querySelectorAll('[data-yc-play], [data-yc-data], [data-yc-go], .yc-dock, audio').length") == 0, "no player, no sound"
+    lanes = f.js("[...document.querySelectorAll('.yc-ln')].map((l) => [l.dataset.seg, l.dataset.part, l.querySelector('.yc-chip')?.textContent.trim() ?? '', l.querySelectorAll('.yc-g').length])")
+    assert [lane[0] for lane in lanes] == ["you", "ai", "ai", "ai", "ai"], f"one voice line, then four AI parts: {lanes}"
+    assert [lane[1] for lane in lanes[1:]] == ["soprano", "alto", "tenor", "bass"], f"soprano to bass: {lanes}"
+    assert all(lane[3] > 0 for lane in lanes), f"every lane has its notes: {lanes}"
+    assert len({lane[2] for lane in lanes[1:]}) == 1 and lanes[0][2] != lanes[1][2], f"each AI lane says AI, the voice line doesn't: {lanes}"
+    try_box = f.js("(() => { const a = document.querySelector('[data-s=hero] [data-your-choir-try]'); const r = a.getBoundingClientRect(); return [r.top, r.bottom, innerHeight]; })()")
+    assert try_box[1] <= try_box[2] and try_box[0] >= 0, f"the way in is on the first screen: {try_box}"
     assert f.js("document.querySelectorAll('img').length") == 0, "no photos on this page"
+    views = f.js("[...document.querySelectorAll('[data-yc-stage] [data-s]')].map((s) => s.dataset.s)")
+    assert views == ["hero", "four", "yours"], f"the picture's scenes: {views}"
+    # The first screen: the voice line becomes the four parts once, on its own, then rests (nothing animates for ever).
+    time.sleep(3.5)
+    opened = f.js(OPEN)
+    assert opened == ["you:soprano", "ai:soprano", "ai:alto", "ai:tenor", "ai:bass"], f"the first screen: one voice line, four parts: {opened}"
+    assert f.js("document.getAnimations().filter((a) => a.playState === 'running' && /yc-lane/.test(a.animationName ?? '')).length") == 0, "the opening has finished"
+    f.run("window.scrollTo(0, innerHeight)")
+    f.wait(f"{ROOT}.dataset.view === 'four'", timeout=5, what="the four parts scene")
+    time.sleep(1.2)
+    assert f.js("getComputedStyle(document.querySelector('[data-s=four]')).opacity") == "1", "the four parts' words show"
+    assert f.js(OPEN) == ["you:soprano", "ai:soprano", "ai:alto", "ai:tenor", "ai:bass"], f"four: the voice line folded, the four parts open: {f.js(OPEN)}"
+    f.run("window.scrollTo(0, 2 * innerHeight)")
+    f.wait(f"{ROOT}.dataset.view === 'yours'", timeout=5, what="now yours")
+    f.no_sideways("the picture")
+    f.run("window.scrollTo(0, 0)")
 
 
 def main():
@@ -183,7 +215,7 @@ def main():
             f.go("/your-choir", "document.readyState !== 'loading'")
             assert f.js("!!document.querySelector('[data-yc]')"), "the page is there (own_choir on in this server's database?)"
             f.wait(READY, timeout=20, what="the page's script")
-            stage = f.js(f"{ROOT}.hasAttribute('data-stage')")
+            stage = f.js("!!document.querySelector('[data-yc-data]')")
             if stage:
                 first_frame(f)
                 scenes(f)
@@ -205,7 +237,7 @@ def main():
         except AssertionError as error:
             failures.append(f"{size}, still: {error}")
     if stage is False and not failures:
-        print("note your_choir: this server has no demo voices, so the stage wasn't played (checked: no stage, no player)")
+        print("note your_choir: this server has no demo voices, so the picture was checked (no player, no sound), not the audio stage")
     print("FAIL your_choir\n     " + "\n     ".join(failures) if failures else "ok   your_choir")
     sys.exit(1 if failures else 0)
 

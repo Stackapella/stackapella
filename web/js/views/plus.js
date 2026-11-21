@@ -15,6 +15,7 @@ import { formatDate, formatNumber, t, tk } from '../i18n.js';
 import { goBack, navigate, route } from '../router.js';
 import { account, selfHosted } from '../stores/account.js';
 import { teams } from '../teams.js';
+import { ownChoirOn } from '../own-choir.js';
 import { checkout, guessCurrency, isPlus, loadBilling, loadPrices, plan, portal } from '../stores/plan.js';
 import { Notice } from '../components/form.js';
 import { Icon, Logo } from '../components/icon.js';
@@ -55,6 +56,10 @@ const GROUPS = [
         // while the plus_teams switch is on (`teams`); until then both are free, in the group below (`solo`).
         { what: tk('plus.row.friends'), free: tk('plus.free.joinInvited'), plus: tk('plus.plus.startInvite'), teams: true },
         { what: tk('plus.row.choir'), free: tk('plus.free.joinInvited'), plus: tk('plus.plus.startChoir'), teams: true },
+        // Hear yourself as a choir (own_choir; Hillel's "Free to learn. Plus for what you make."): the first song free,
+        // about 15 a month with Plus (60 minutes of singing), and downloading them.
+        { what: tk('plus.row.choirSongs'), free: tk('plus.free.choirSongs'), plus: tk('plus.plus.choirSongs'), choir: true },
+        { what: tk('plus.row.choirDownload'), free: null, plus: tk('plus.yes'), choir: true },
     ] },
     // Free for every singer (Hillel, 2026-11-06 and 11-07): the same on both, so only under Everything.
     { name: tk('plus.group.free'), rows: [
@@ -87,8 +92,8 @@ export const PlusView = {
                 <div v-if="!selfHosted()" class="mt-4 grid gap-8 md:mt-6 md:grid-cols-[minmax(0,1fr)_minmax(0,25rem)] md:gap-12">
                     <section class="space-y-6" aria-labelledby="plus-heading">
                         <p v-if="moment" class="font-semibold text-accent-strong">{{ t(MOMENTS[moment]) }}</p>
-                        <h2 id="plus-heading" class="text-4xl font-extrabold tracking-tight text-cream md:text-5xl">{{ teamsOn ? t('plus.headline') : t('plus.headlineSolo') }}</h2>
-                        <p class="text-lg text-muted">{{ teamsOn ? t('plus.story') : t('plus.storySolo') }}</p>
+                        <h2 id="plus-heading" class="text-4xl font-extrabold tracking-tight text-cream md:text-5xl">{{ choirOn && teamsOn ? t('plus.headlineChoir') : teamsOn ? t('plus.headline') : t('plus.headlineSolo') }}</h2>
+                        <p class="text-lg text-muted">{{ choirOn && teamsOn ? t('plus.storyChoir') : teamsOn ? t('plus.story') : t('plus.storySolo') }}</p>
                         <ul class="space-y-5">
                             <li v-for="(h, i) in highlights" :key="h.title" class="flex gap-4">
                                 <span class="gem grid size-10 shrink-0 place-items-center rounded-xl" :style="{ '--gem': HIGHLIGHT_COLORS[i], '--gem-ink': 'var(--color-ink)' }" aria-hidden="true"><Icon :name="h.icon" :size="20" /></span>
@@ -199,9 +204,11 @@ export const PlusView = {
         },
         /** The table: only the rows where Free and Plus differ, unless Everything. */
         shownGroups() {
-            const shown = (r) => (r.teams ? this.teamsOn : r.solo ? !this.teamsOn : true);
+            const shown = (r) => (r.choir ? this.choirOn : r.teams ? this.teamsOn : r.solo ? !this.teamsOn : true);
             return GROUPS.map((g) => ({ ...g, rows: g.rows.filter(shown).filter((r) => this.everything || r.free !== r.plus) }));
         },
+        /** Hear yourself as a choir is on: its rows, and the headline and story that name it. */
+        choirOn: () => ownChoirOn(),
         onPlus: () => isPlus(),
         moment: () => {
             const from = new URLSearchParams(location.search).get('from') ?? route.params.from;

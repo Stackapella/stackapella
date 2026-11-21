@@ -62,7 +62,7 @@ final class OwnChoirRequests
      * @param  array{templateId: string, partKey?: string|null, offsetFrames?: int|null, sampleRate?: int|null, frames?: int|null, bytes?: int|null, sha256?: string|null, turnstileToken?: string|null}  $clip
      * @return array{request: OwnChoirRequest, put: array{url: string, method: string, headers: array<string, string>, expiresAt: \DateTimeInterface}|null}
      */
-    public function start(User $user, array $clip, ?string $ip = null): array
+    public function start(User $user, array $clip, ?string $ip = null, bool $staffTest = false): array
     {
         OwnChoir::ensureOn($user);
 
@@ -80,7 +80,8 @@ final class OwnChoirRequests
         }
 
         // And Turnstile before their first song, where it's set up.
-        if (OwnChoir::checkNeeded($user)) {
+        // (Staff's console test, app:own-choir:test-request, has no browser to show Turnstile: it's run by hand on the server.)
+        if (! $staffTest && OwnChoir::checkNeeded($user)) {
             $token = $clip['turnstileToken'] ?? null;
 
             if (! is_string($token) || $token === '') {

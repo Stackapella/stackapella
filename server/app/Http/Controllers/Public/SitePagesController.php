@@ -21,6 +21,7 @@ use App\Support\Site\SitePages;
 use App\Support\Site\WhatsNew;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\HtmlString;
 
@@ -120,7 +121,10 @@ final class SitePagesController extends Controller
             'try' => Hosts::app('/?'.http_build_query(['song' => 'silent-night', 'choir' => 1, 'ref' => $ref ?? 'your-choir'])),
             // The stage: one real voice becoming the AI's two parts, then four (YourChoirStage, from VoiceDemo's own
             // voices and gating); null, and the page shows no demo, until every voice is there.
-            'stage' => $stage->stage(),
+            'stage' => $shown = $stage->stage(),
+            // Without the demo's voices (track B may open before any singer's voice is licensed for AI; Hillel, 2026-11-21:
+            // "lets support starting track B without A ... so there aren't samples"): the arrangement as a picture, no sound.
+            'picture' => $shown === null ? YourChoirStage::picture(self::choirTemplates()->get((string) config('site.voice_demo.ai.song'))) : null,
             // A song of your own (hummed, or with your own words: Hillel, 2026-11-20), only once its switch is on (the
             // coordinator: the page never promises what isn't live); the app's create screen (agreed with the frontend).
             'own' => self::switchedOn($flags, self::OWN_SONGS) ? Hosts::app('/create?'.http_build_query(['ref' => $ref ?? 'your-choir'])) : null,
@@ -138,7 +142,7 @@ final class SitePagesController extends Controller
      */
     private static function choirSongs(): array
     {
-        $songs = Template::query()->official()->whereNull('hidden_at')->whereIn('slug', self::CHOIR_SONGS)->with('currentVersion')->get()->keyBy('slug');
+        $songs = self::choirTemplates();
 
         return array_values(array_filter(array_map(static function (string $slug) use ($songs): ?array {
             $song = $songs->get($slug);
@@ -150,6 +154,16 @@ final class SitePagesController extends Controller
                 'url' => '/songs/'.$slug,
             ];
         }, self::CHOIR_SONGS)));
+    }
+
+    /**
+     * The library card's songs with their current versions, loaded once a request (the picture reuses its song).
+     *
+     * @return Collection<string, Template>
+     */
+    private static function choirTemplates(): Collection
+    {
+        return once(static fn () => Template::query()->official()->whereNull('hidden_at')->whereIn('slug', self::CHOIR_SONGS)->with('currentVersion')->get()->keyBy('slug'));
     }
 
     /** A switch that may not be defined yet: off until it is. */
@@ -171,7 +185,7 @@ final class SitePagesController extends Controller
 
                 return $files === null ? null : ['id' => $id, 'caption' => $caption, 'files' => $files];
             }, array_keys((array) Lang::get('site.press_words.shots')), array_values((array) Lang::get('site.press_words.shots')))))],
-            'facts' => array_map(static fn (mixed $v): HtmlString => self::founder(str_replace([':price', ':repo'], [$price['yearAsMonth'], OpenSource::repo()], (string) $v)), [
+            'facts' => array_map(static fn (mixed $v): HtmlString => self::founder(str_replace([':price_month', ':price_year', ':price', ':repo'], [$price['month'], $price['year'], $price['yearAsMonth'], OpenSource::repo()], (string) $v)), [
                 ...(array) Lang::get('site.press.facts'),
                 ...(OpenSource::on() ? [(string) __('site.press.open_source_label') => (string) __('site.press.open_source_fact')] : []),
             ]),

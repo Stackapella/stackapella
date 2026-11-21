@@ -91,7 +91,7 @@ final class LandingPageTest extends TestCase
 
         $this->get('/')->assertOk()
             ->assertSee('2 GB for your recordings')->assertSee('70 GB for your recordings')
-            ->assertSee('$3.33')->assertSee('$39.99')->assertSee('$0<', false);
+            ->assertSee('$4.99')->assertSee('$39.99')->assertSee('$0<', false);
 
         config(['billing.prices.month' => null]);
         $this->get('/')->assertSee(__('pages.landing.plans_paused'));

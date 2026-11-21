@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Support\Flags;
 use Database\Factories\FlagUserFactory;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -26,6 +27,13 @@ final class FlagUser extends Model
     use HasFactory;
 
     public const UPDATED_AT = null;
+
+    protected static function booted(): void
+    {
+        // Flags keeps an account's switches for the request: a change is read afresh.
+        self::saved(static fn () => app(Flags::class)->forgetAccounts());
+        self::deleted(static fn () => app(Flags::class)->forgetAccounts());
+    }
 
     protected $fillable = [
         'flag',

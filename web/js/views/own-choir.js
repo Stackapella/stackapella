@@ -3,7 +3,8 @@
 // singing (into Sing, on a project made for it); on its way; ready (Listen, how much of it is really them, Learn your
 // part, Delete); or what went wrong and Sing again. Stop making songs in my voice at the foot. Behind own_choir.
 
-import { keepNext, PlusMoment } from '../components/plus-moment.js';
+import { keepNext, plusPriceLine, PlusMoment } from '../components/plus-moment.js';
+import { loadPrices } from '../stores/plan.js';
 import { api } from '../api.js';
 import { formatDate, formatNumber, t, tk } from '../i18n.js';
 import { navigate } from '../router.js';
@@ -80,6 +81,8 @@ export const OwnChoirView = {
             const q = ownChoir.data?.quota;
             return !!q && !q.plus && q.freeLeft === 0;
         },
+        /** What Plus costs, for the free song's card (once the prices load). */
+        priceLine: () => plusPriceLine(),
         /** The free song waits for a confirmed email (asked before singing). */
         needEmail: () => emailNeeded(ownChoir.data?.quota),
         /** The check before the account's first song, when the server asks for it and a site key is set. */
@@ -135,7 +138,7 @@ export const OwnChoirView = {
                         <button type="button" class="btn-secondary w-full justify-center" :disabled="busy" data-choir-share @click="share">{{ t('ownChoir.share.button') }}</button>
                     </div>
                     <!-- Downloading is Plus's (Hillel, 2026-11-21); listening and sharing stay free. The server says who may. -->
-                    <PlusMoment v-if="plusFor" :title="t('ownChoir.ready.download')" :text="t('plus.moment.choirDownload')" from="choir_download" :next="here" @close="plusFor = false" />
+                    <PlusMoment v-if="plusFor" :title="t('ownChoir.ready.download')" :text="t('plus.moment.choirDownload')" from="choir_download" :next="here" price @close="plusFor = false" />
                     <p class="text-sm text-muted" data-choir-learn><span data-choir-progress>{{ t('ownChoir.learn.progress', { n: realCount, total: parts.length }) }}</span><template v-if="nextPart"> · <button type="button" class="link inline-flex min-h-11 items-center font-semibold" :disabled="busy" data-choir-learn-part @click="learn(nextPart)">{{ t('ownChoir.learn.button', { part: templatePartName(nextPart) }) }}</button></template></p>
                     <button type="button" class="btn-ghost btn-sm text-bad" data-choir-delete @click="remove">{{ t('ownChoir.delete.button') }}</button>
                 </template>
@@ -173,6 +176,9 @@ export const OwnChoirView = {
                     </div>
                     <div v-else-if="freeHad" class="card space-y-3 p-5" data-choir-free-had>
                         <p class="text-cream">{{ t('ownChoir.limit.free_used') }}</p>
+                        <!-- What Plus unlocks here, and what it costs (the tagline: Plus is for what you make). -->
+                        <p class="text-sm text-muted">{{ t('ownChoir.limit.unlocks') }}</p>
+                        <p v-if="priceLine" class="font-semibold text-cream" data-plus-price>{{ priceLine }}</p>
                         <button type="button" class="btn-primary self-start" data-choir-plus @click="getPlus">{{ t('plus.subscribe') }}</button>
                     </div>
                     <template v-else-if="savedVoice()">
@@ -200,6 +206,13 @@ export const OwnChoirView = {
         this.stopTrack();
     },
     watch: {
+        // The free song had (however the page got there: a load, or the terms just agreed): its card says what Plus costs.
+        freeHad: {
+            immediate: true,
+            handler(had) {
+                if (had) loadPrices().catch((error) => console.info('The prices were not read', error?.message ?? error));
+            },
+        },
         // A refresh (coming back, the poll) that finds the song ready while it's open here: its notice goes too.
         'request.status'(now) {
             if (now === 'ready' && this.state === 'ready') markSeen(this.request);

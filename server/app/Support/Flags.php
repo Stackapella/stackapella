@@ -69,7 +69,21 @@ final class Flags
             return true;
         }
 
-        return $user !== null && FlagUser::query()->where('flag', $name)->where('user_id', $user->getKey())->exists();
+        if ($user === null) {
+            return false;
+        }
+
+        // Read once a request (Flags is scoped): a page asks about one account's switches many times.
+        return $this->forAccount[$name.':'.$user->getKey()] ??= FlagUser::query()->where('flag', $name)->where('user_id', $user->getKey())->exists();
+    }
+
+    /** @var array<string, bool> an account's own switches, read this request */
+    private array $forAccount = [];
+
+    /** An account's own switches changed (FlagUser): read them afresh. */
+    public function forgetAccounts(): void
+    {
+        $this->forAccount = [];
     }
 
     /**

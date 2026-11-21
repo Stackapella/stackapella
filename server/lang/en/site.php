@@ -832,8 +832,8 @@ return [
                 // pay for learning tracks"): one song free, by hand, public domain or the choir's own arrangement. No
                 // price and no plan named until stage 2.
                 'end' => ['title' => 'Ask for one song you\'re rehearsing.', 'body' => 'We\'ll make part-by-part learning tracks of it for your singers, free.'],
-                'try' => ['Write to Hillel', 'mailto::partners_email?subject=Learning%20tracks'],
-                'try_note' => 'Start a group, then ask for learning tracks from its page. Rather email? Write to Hillel with the song and your choir\'s parts.',
+                'try' => ['Write to us', 'mailto::partners_email?subject=Learning%20tracks'],
+                'try_note' => 'Start a group, then ask for learning tracks from its page. Rather email? Write to us with the song and your choir\'s parts.',
                 'name' => 'Directors and teachers',
                 'summary' => 'Learning tracks of your songs, and see who has started.',
                 'title' => 'Choir learning tracks, one song free',
@@ -886,7 +886,7 @@ return [
                 'faq' => [
                     ['What does it cost?', 'Your first song\'s learning tracks are free, and your singers never pay: learning on Stackapella is free.'],
                     ['Which songs can you do?', 'Public domain pieces, or an arrangement that\'s your choir\'s own. You confirm which in writing when you send it.'],
-                    ['How do I ask for learning tracks?', 'Start a group, then on its page, under "Want learning tracks of a piece you\'re rehearsing?", tap Ask us. Rather email? Write to Hillel with the song, your choir\'s parts and when you\'re rehearsing it. A score helps, as a PDF or MusicXML.'],
+                    ['How do I ask for learning tracks?', 'Start a group, then on its page, under "Want learning tracks of a piece you\'re rehearsing?", tap Ask us. Rather email? Write to us with the song, your choir\'s parts and when you\'re rehearsing it. A score helps, as a PDF or MusicXML.'],
                     ['Can I hear my singers\' recordings?', 'No. You see only where each singer is with their part: not started, started or recorded. Their recordings and contact details stay theirs.'],
                     ['How do singers join?', 'Send them the group\'s invite link. Each singer makes a free account, says they\'re 18 or over, and they\'re in.'],
                     ['Does it work for a school choir?', 'Not as a group yet: choir groups are for singers 18 and over. Students from 13 can still learn any part on their own.'],
@@ -1255,8 +1255,8 @@ return [
             // (docs/outreach-plan.md) in plain words, only what's built. Not in the "Who it's for" band,
             // so a singer's first week never meets it; outreach links reach it from a quiet line.
             'organizations' => [
-                'try' => ['Write to Hillel', 'mailto::partners_email?subject=Partner%20offer'],
-                'try_note' => 'A plain email to Hillel, who built Stackapella. He answers it himself.',
+                'try' => ['Write to us', 'mailto::partners_email?subject=Partner%20offer'],
+                'try_note' => 'A plain email to us, answered by a person.',
                 'pic' => 'icon:users',
                 'name' => 'Organizations',
                 'summary' => 'Choirs, societies and school bodies: a free year for every member.',
@@ -1283,7 +1283,7 @@ return [
                     ],
                     [
                         'heading' => 'A person to talk to',
-                        'body' => 'You write to Hillel, who built Stackapella, and he answers himself. There\'s a call to get started if you\'d like one, and your feedback shapes what we build next.',
+                        'body' => 'You write to us, and a person answers. There\'s a call to get started if you\'d like one, and your feedback shapes what we build next.',
                     ],
                     [
                         'heading' => 'Your name, only if you want it',
@@ -1296,7 +1296,7 @@ return [
                     ],
                 ],
                 'features' => ['choirs', 'learn-a-part', 'course'],
-                'end' => ['title' => 'Tell us about your singers.', 'body' => 'Write to Hillel with your organization\'s name and roughly how many singers you have. That\'s all it takes to start.'],
+                'end' => ['title' => 'Tell us about your singers.', 'body' => 'Write to us with your organization\'s name and roughly how many singers you have. That\'s all it takes to start.'],
             ],
         ],
     ],
@@ -1550,7 +1550,7 @@ return [
         'facts' => [
             'What it is' => 'A web app for learning and stacking vocal harmony',
             'Where it runs' => 'In the browser on phones, tablets and computers, and installs to the home screen',
-            'Price' => 'Free to learn. Plus from :price a month.',
+            'Price' => 'Free to learn. Plus for what you make, :price_month a month or :price_year a year.',
             'Songs' => 'Public-domain songs, arranged for learning by Stackapella',
             'Ages' => 'Accounts from 13. Choir groups from 18.',
             'Made by' => ':founder',
@@ -7192,7 +7192,7 @@ return [
             'eyebrow' => 'Integrations',
             'headline' => 'Stackapella with Event Schedule and Invoice Ninja',
             'lead' => 'Your dates and your invoices in the apps made for them, and the singing here. Each works beside Stackapella today, and connections between them are being built.',
-            'maker' => 'Both come from Stackapella\'s maker: Hillel Coren co-founded Invoice Ninja and Event Schedule.',
+            'maker' => 'Both come from Stackapella\'s maker, who co-founded Invoice Ninja and Event Schedule.',
             'about' => 'About Stackapella',
             'open' => 'See how they fit',
         ],
@@ -7254,7 +7254,7 @@ return [
                     ['When does the connection open?', 'It\'s being built now, and this page will say so the day it opens. Until then nothing changes in either app.'],
                     ['Do my singers need an Event Schedule account?', 'No. Your schedule page is public, and a student books a lesson with a name and an email address. Singers who practise in Stackapella make a free account here.'],
                     ['What does each cost?', 'Event Schedule\'s free plan runs a choir\'s season of events and one free lesson type; paid lessons and tickets need its Pro plan. On Stackapella, learning is free: the courses, the warm-up builder and choir groups.'],
-                    ['Who makes Event Schedule?', 'Hillel Coren, who makes Stackapella, co-founded it. He co-founded Invoice Ninja too.'],
+                    ['Who makes Event Schedule?', 'Stackapella\'s maker co-founded it, and Invoice Ninja too.'],
                 ],
             ],
             'invoice-ninja' => [
@@ -7306,7 +7306,7 @@ return [
                     ['Can I use the two together today?', 'Yes, side by side. You bill in Invoice Ninja as you do now, and your students and singers practise in Stackapella. Nothing needs connecting.'],
                     ['When does the connection open?', 'With coaching on Stackapella, which is coming. This page will say so the day it opens.'],
                     ['Does Event Schedule work with Invoice Ninja?', 'Yes, today. On Event Schedule\'s Pro plan, a ticket sale can be billed as an invoice or a payment link in your Invoice Ninja company.'],
-                    ['Who makes Invoice Ninja?', 'Hillel Coren, who makes Stackapella, co-founded it. He co-founded Event Schedule too.'],
+                    ['Who makes Invoice Ninja?', 'Stackapella\'s maker co-founded it, and Event Schedule too.'],
                 ],
             ],
         ],

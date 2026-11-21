@@ -517,6 +517,9 @@ body { margin: 0; background: var(--ground); }
     .yc[data-playing] .yc-mt i:nth-child(2) { animation-delay: -.2s; } .yc[data-playing] .yc-mt i:nth-child(3) { animation-delay: -.45s; } .yc[data-playing] .yc-mt i:nth-child(4) { animation-delay: -.3s; }
     .yc-ln[data-in]::after { content: ""; position: absolute; z-index: 2; inset: 0; background: linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--c) 60%, white) 50%, transparent 70%); pointer-events: none; animation: yc-sweep 1.1s var(--ease) both; }
 }
+@keyframes yc-lane-open { from { flex-grow: 0; opacity: 0; margin-top: 0; border-width: 0; } to { flex-grow: 1; opacity: 1; margin-top: 8px; border-width: 1px; } }
+@keyframes yc-lane-hush { to { opacity: 0; } }
+@keyframes yc-lane-fold { from { flex-grow: 1; opacity: 1; margin-bottom: 0; } to { flex-grow: .4; opacity: .7; margin-bottom: 12px; border-width: 1px; } }
 @keyframes yc-meter { from { scale: 1 .45; } to { scale: 1 1.25; } }
 @keyframes yc-sweep { from { translate: -100% 0; opacity: .85; } to { translate: 100% 0; opacity: 0; } }
 /* While it plays, a lane whose voice is silent (the AI ones while she sings, hers once the AI's song begins, the tenor
@@ -618,10 +621,10 @@ body { margin: 0; background: var(--ground); }
 .yc-faq details p { margin: 0; padding: 0 24px 20px; color: var(--mute); font-size: 16px; line-height: 1.5; max-width: 40em; }
 .yc-faq details[open] .yc-plus-i, .yc-faq details:not([open]) .yc-minus-i { display: none; }
 .yc-plus-i, .yc-minus-i { display: inline-flex; }
-.yc-close { justify-items: center; text-align: center; padding-bottom: clamp(80px, 14svh, 160px); }
-.yc-close .yc-h1 span { display: inline; }
-.yc-close .yc-go { justify-content: center; }
-.yc-close .yc-mark { width: min(40vw, 360px); justify-items: center; } .yc-close .yc-mark i { width: 100%; } .yc-close .yc-mark i:nth-child(2) { width: 74%; } .yc-close .yc-mark i:nth-child(3) { width: 88%; } .yc-close .yc-mark i:nth-child(4) { width: 62%; }
+/* The end: the mark's bars and one plain button, from the page's left edge (the mark's bars share a left edge, always). */
+.yc-close { justify-items: start; gap: 28px; padding-bottom: clamp(80px, 14svh, 160px); }
+.yc-close .yc-go { margin: 0; }
+.yc-close .yc-mark { width: min(40vw, 360px); justify-items: stretch; } /* the bars stretch from one left edge to their own lengths: the mark, never a centred pyramid */
 
 /* The lanes, lying down as a floor of light at the foot of a section, as on the home page: a picture while nothing
    plays; while the song plays, a floor in view is the AI song itself, its real notes passing a playhead, a band whose
@@ -659,7 +662,9 @@ body { margin: 0; background: var(--ground); }
 .yc-foot-wrap .s-flink { display: inline-flex; align-items: center; min-height: 36px; color: color-mix(in srgb, var(--ink) 88%, transparent); } .yc-foot-wrap .s-flink:hover { text-decoration: underline; text-underline-offset: 4px; }
 .yc-foot-wrap .s-foot-legal { margin: 28px 0 0; font-size: 13px; color: var(--mute); } .yc-foot-wrap .s-foot-legal + .s-foot-legal { margin-top: 6px; }
 .yc-foot-wrap .s-fix-wrap { display: none; }
-.yc:not([data-stage]) .yc-foot-wrap { padding-bottom: calc(env(safe-area-inset-bottom) + 28px); }
+.yc:not([data-stage]) .yc-foot-wrap, .yc[data-picture] .yc-foot-wrap { padding-bottom: calc(env(safe-area-inset-bottom) + 28px); }
+/* The picture has no player, so no dock: nothing kept for one at the foot of the stage. */
+.yc[data-picture] { --bar: calc(16px + env(safe-area-inset-bottom)); }
 
 /* ---------- the stage, pinned: it fills the screen and stays for its scenes, a scene a screen of scroll ---------- */
 @media (prefers-reduced-motion: no-preference) and (scripting: enabled) {
@@ -704,6 +709,19 @@ body { margin: 0; background: var(--ground); }
     .yc[data-view="four"] { --ppb: 92px; --tilt: 9deg; --split: 40svh; }
     .yc[data-view="four"] .yc-ln.yc-ai { flex-grow: 1; opacity: 1; border-width: 1px; margin-top: 8px; }
     .yc[data-view="four"] .yc-ln.yc-ai:first-of-type { margin-top: 0; }
+    /* The picture (no demo voices: Hillel, 2026-11-21, "so there aren't samples"): the first screen's one voice line
+       becomes the four parts once, on its own, then rests (a finite animation: nothing on the page animates for ever);
+       the next scene holds the four parts, the voice line folded above them. */
+    .yc[data-picture][data-view="hero"] .yc-ln.yc-ai { animation: yc-lane-open 1.3s var(--ease) 1s both; }
+    .yc[data-picture][data-view="hero"] .yc-ln.yc-ai[data-part="alto"] { animation-delay: 1.15s; }
+    .yc[data-picture][data-view="hero"] .yc-ln.yc-ai[data-part="tenor"] { animation-delay: 1.3s; }
+    .yc[data-picture][data-view="hero"] .yc-ln.yc-ai[data-part="bass"] { animation-delay: 1.45s; }
+    .yc[data-picture][data-view="hero"] .yc-ln.yc-you { animation: yc-lane-fold 1.3s var(--ease) .9s both; }
+    .yc[data-picture]:is([data-view="hero"], [data-view="four"]) .yc-you .gem-word { transition: opacity .4s; }
+    .yc[data-picture][data-view="four"] .yc-ln.yc-you { flex-grow: .34; opacity: .7; border-width: 1px; margin-bottom: 14px; }
+    .yc[data-picture][data-view="four"] .yc-you .gem-word, .yc[data-picture][data-view="hero"] .yc-you .gem-word { opacity: 0; }
+    .yc[data-picture][data-view="four"] .yc-ln.yc-ai:first-of-type, .yc[data-picture][data-view="four"] .yc-ln.yc-ai[data-part="soprano"] { margin-top: 0; }
+    .yc[data-picture][data-view="hero"] { --split: 50svh; --ppb: 70px; }
     /* Now yours: the lanes fold into the mark's four bars, beside the steps. */
     .yc[data-view="yours"] .yc-world { opacity: 0; }
     .yc[data-stage] .yc-yours .yc-cap { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); align-items: center; height: auto; bottom: calc(var(--bar) + 24px); }
@@ -757,7 +775,7 @@ body { margin: 0; background: var(--ground); }
     .yc-own { padding: 20px; border-radius: 22px; }
     .yc-facts-panel { padding: 4px 18px 18px; border-radius: 22px; } .yc-facts li { padding: 14px 0; font-size: 16px; }
     .yc-faq { gap: 8px; } .yc-faq summary { min-height: 56px; padding: 6px 10px 6px 16px; } .yc-faq details p { padding: 0 16px 14px; font-size: 15px; }
-    .yc-close .yc-mark { width: 62vw; } .yc-close .yc-go { width: 100%; }
+    .yc-close .yc-mark { width: 62vw; } .yc-close .yc-go, .yc-close .yc-prim { width: 100%; }
     .yc-floor { height: 150px; }
     .yc-foot-wrap { padding: 40px 18px calc(76px + env(safe-area-inset-bottom) + 28px); }
     .yc-foot-wrap .s-foot-grid { grid-template-columns: 1fr; gap: 28px; } .yc-foot-wrap .s-foot-cols { grid-template-columns: 1fr 1fr; gap: 22px 16px; } .yc-foot-wrap .s-flink { min-height: 44px; }
@@ -770,7 +788,11 @@ body { margin: 0; background: var(--ground); }
     .yc-cue { display: none; }
     .yc[data-stage] .yc-dots { display: none; }
     .yc[data-view="real"] { --ppb: 80px; --split: 52svh; } .yc[data-view="split"] { --ppb: 72px; --split: 48svh; } .yc[data-view="four"] { --ppb: 60px; --split: 44svh; --tilt: 7deg; }
-    .yc[data-stage] .yc-yours .yc-cap { grid-template-columns: 1fr; align-content: center; top: calc(var(--top) + 8px); bottom: calc(var(--bar) + 12px); height: auto; }
+    .yc[data-stage] .yc-yours .yc-cap { grid-template-columns: 1fr; align-content: start; top: calc(var(--top) + 20px); bottom: calc(var(--bar) + 12px); height: auto; }
+    /* A scene's words start near the top, not low on an empty band (the coordinator's read of the phone shots,
+       2026-11-21); the lanes start right under them. */
+    .yc[data-stage] .yc-stage .yc-sc:not(.yc-hero, .yc-yours) .yc-cap { top: calc(var(--top) + 20px); align-content: start; }
+    .yc[data-picture][data-view="four"] { --split: max(34svh, calc(var(--top) + 225px)); }
 }
 @media (max-width: 400px) {
     .yc-top { gap: 0 5px; } .yc-logo { font-size: 16px; gap: 7px; } .yc-open { padding: 0 10px; font-size: 13px; }
@@ -789,4 +811,16 @@ body { margin: 0; background: var(--ground); }
     .yc[data-stage][data-view="hero"] .yc-world { opacity: 0; }
     .yc[data-view="hero"] { --split: calc(100svh - var(--bar)); }
     .yc[data-stage] .yc-stage .yc-hero .yc-cap { align-content: safe center; }
+
+/* A phone, the picture: it sits above the words in the first screen (the words and the way in stay in view). */
+@media (max-width: 899px) and (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+    /* The picture takes the room the words leave (about 400 px of them at 390 wide), starting clear of the header. */
+    .yc[data-picture] { --pic-h: clamp(150px, calc(100svh - var(--top) - 430px), 40svh); }
+    .yc[data-picture][data-view="hero"] .yc-world { opacity: 1; top: calc(var(--top) + 16px); bottom: auto; height: var(--pic-h); }
+    .yc[data-picture][data-view="hero"] .yc-stage .yc-hero .yc-cap { top: calc(var(--top) + var(--pic-h) + 34px); bottom: calc(var(--bar) + 8px); height: auto; align-content: start; }
+    .yc[data-picture][data-view="hero"] .yc-lb small, .yc[data-picture][data-view="hero"] .yc-chip { display: none; }
+    /* Folded to a line, the voice line's name gives way (it's read before it folds). */
+    .yc[data-picture][data-view="hero"] .yc-you .yc-lb { animation: yc-lane-hush .5s ease 1.6s both; }
+    .yc[data-picture] .yc-hero .yc-cue { display: none; }
+}
 }

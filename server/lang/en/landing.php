@@ -114,6 +114,6 @@ return [
         'singers' => ['Priya Shah', 'Sam Lee', 'Kim Ode', 'Tom Okafor'],
     ],
     'plans' => [
-        'body' => 'Learning never needs a card. Plus is for arrangers and creators.',
+        'body' => 'Learning never needs a card. Plus is for what you make: your files and private arrangements.',
     ],
 ];

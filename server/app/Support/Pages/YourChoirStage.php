@@ -172,6 +172,35 @@ final class YourChoirStage
         return $cards;
     }
 
+    /**
+     * The page's picture while there's no audio demo (Hillel, 2026-11-21: "lets support starting track B without A, we
+     * just need to adjust the your voice page so there aren't samples"): the AI song's own arrangement as lanes, no
+     * sound and no singer: its tune as the visitor's one voice line, then its four parts, each the app's glass gems with
+     * their syllables, from the song's notes (never a recording). Null without the song in the library. `loaded`: the
+     * song, when the page has it already.
+     *
+     * @return array{song: string, you: array{part: string, beats: float, notes: list<array{beat: float, length: float, y: float, text: string}>}, parts: list<array{part: string, beats: float, notes: list<array{beat: float, length: float, y: float, text: string}>}>}|null
+     */
+    public static function picture(?Template $loaded = null): ?array
+    {
+        $slug = (string) (((array) config('site.voice_demo'))['ai']['song'] ?? '');
+        // The page has usually loaded the song already (its library list): used as is, not fetched again.
+        $template = $loaded !== null && $loaded->slug === $slug ? $loaded : ($slug === '' ? null : Template::query()->where('slug', $slug)->whereNull('hidden_at')->with('currentVersion')->first());
+        $parts = array_values(array_filter((array) (((array) $template?->currentVersion?->data)['parts'] ?? []), 'is_array'));
+        $lanes = [];
+        foreach (['soprano', 'alto', 'tenor', 'bass'] as $key) {
+            $part = collect($parts)->firstWhere('key', $key);
+            if (is_array($part)) {
+                $lanes[] = self::lane(['part' => $key, 'notes' => (array) ($part['guide']['notes'] ?? [])]);
+            }
+        }
+        if ($template === null || count($lanes) !== 4) {
+            return null;
+        }
+
+        return ['song' => SongWords::title((string) $template->title, (string) $template->slug), 'you' => $lanes[0], 'parts' => $lanes];
+    }
+
     /** "1:42". */
     public static function clock(float $seconds): string
     {
