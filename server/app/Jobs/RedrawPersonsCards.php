@@ -8,6 +8,7 @@ use App\Models\Harmony;
 use App\Models\ShareVideo;
 use App\Support\Sharing\HarmonyFiles;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -19,7 +20,7 @@ use Illuminate\Support\Facades\Storage;
  * they sang on, is drawn again with the name others should now see, and the share videos that
  * already show the old one go (a new one is made when asked for).
  */
-final class RedrawPersonsCards implements ShouldQueue
+final class RedrawPersonsCards implements ShouldBeUniqueUntilProcessing, ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
@@ -27,9 +28,19 @@ final class RedrawPersonsCards implements ShouldQueue
 
     public int $tries = 3;
 
+    /** One waiting per person (the CPU review): a run of changes redraws once, with the last. */
+    public int $uniqueFor = 600;
+
     public function __construct(public readonly int $userId)
     {
         $this->onQueue('long');
+        // A moment's wait, so changes made together are drawn together.
+        $this->delay(now()->addMinute());
+    }
+
+    public function uniqueId(): string
+    {
+        return (string) $this->userId;
     }
 
     public function handle(HarmonyFiles $files): void

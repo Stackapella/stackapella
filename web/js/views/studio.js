@@ -1,4 +1,5 @@
 import { toRaw, toRefs } from 'vue';
+import { ownChoir } from '../own-choir.js';
 import { styleOf } from '../band-style.js';
 import { audio, closeMic, engine, unlock } from '../audio.js';
 import { midiName } from '../dsp.js';
@@ -363,7 +364,7 @@ export const StudioView = {
                 @close="closeReport" @again="recordAgain" @loop="loopFromReport" @hear="hearAsLearners" @send="sendTake" />
             <TellHillel v-if="dialog === 'tell'" :context="tellContext" @close="dialog = null" />
             <MicDialog v-if="dialog === 'mic'" @close="dialog = null" @timing="openAudioDialog('timing')" />
-            <ExportDialog v-if="dialog === 'export'" :title="shownTitle(project)" :seconds="contentLength" :parts="exportParts" :default-name="exportName" :sample-rate="engine.sampleRate" @unmute="(id) => update(parts.find((p) => p.id === id), { muted: false })" :credits="voiceCredits" :credits-line="creditsLine" :has-chords="!!project.template?.chords?.length" :score-parts="scoreParts" :busy="exporting" @close="dialog = null" @export="exportMix" @upgrade="navigate('/plus?from=' + $event)" />
+            <ExportDialog v-if="dialog === 'export'" :title="shownTitle(project)" :seconds="contentLength" :parts="exportParts" :default-name="exportName" :sample-rate="engine.sampleRate" @unmute="(id) => update(parts.find((p) => p.id === id), { muted: false })" :credits="voiceCredits" :credits-line="creditsLine" :choir-locked="choirLocked" :has-chords="!!project.template?.chords?.length" :score-parts="scoreParts" :busy="exporting" @close="dialog = null" @export="exportMix" @upgrade="navigate('/plus?from=' + $event)" />
             <PartDialog v-if="dialog === 'part' && dialogPart" :breaths="sessionStore.canSoftenBreaths(dialogPart)" :theirs="sessionStore.mine(dialogPart) ? null : (dialogPart.createdBy?.name ?? project.shared?.owner?.name ?? '')" :part="dialogPart" :shown-name="nameOf(dialogPart)" :color="paint(dialogPart.color)" :voice="guideVoices[dialogPart.id] ?? null" :recording="recording" @voice="chooseVoice(dialogPart, $event)" :slot="!!dialogPart.templatePartKey" :recorded="hasTake(dialogPart)" @close="dialog = null" @update="update(dialogPart, $event)" @rerecord="rerecord(dialogPart)" @delete="removePart(dialogPart)" @clear="clearTakeOf(dialogPart)" @practise="dialog = null; singPart(dialogPart)" :ai-cta="aiCtaOpen(project)" @be-voice="dialog = null; singPart(dialogPart)" @trim="openTrim(dialogPart)" :harmonise="!project.template && !project.beta && !project.shared" @harmonise="harmonise(dialogPart)" />
             <TrimSheet v-if="dialog === 'trim' && dialogPart" :part="dialogPart" :name="nameOf(dialogPart)" :color="paint(dialogPart.color)" :beat-seconds="60 / (project.bpm || 90)" :playing="playing" :can-line-up="parts.filter(hasTake).length > 1"
                 @trim="trim(dialogPart, $event)" @play-start="hearEdge(dialogPart, 'start')" @play-end="hearEdge(dialogPart, 'end')" @play-trimmed="hearTrimmed(dialogPart)" @stop="stopPlayback" @line-up="lineUp" @close="closeTrim(dialogPart)" />
@@ -608,6 +609,13 @@ export const StudioView = {
                 return voice.credit ? t('export.credit', { part: this.nameOf(p), name: voice.credit }) : null;
             };
             return heard.map(credit).filter(Boolean);
+        },
+        /** A choir of your own: while a part made from your voice is in it, exporting audio is Plus's unless the server
+         * says this song may be downloaded (`canDownload`; Hillel, 2026-11-21). Unknown (offline) counts as not. */
+        choirLocked() {
+            if (!this.project?.choir) return false;
+            if (!this.parts.some((p) => !hasTake(p) && this.guideVoices[p.id]?.kind === 'real' && this.guideVoices[p.id].choir)) return false;
+            return ownChoir.data?.requests?.find((r) => r.id === this.project.choir.requestId)?.canDownload !== true;
         },
         /** An AI voice sings in the mix as heard (js/ai-voices.js): its credits and its file's name say so. */
         aiInMix() {

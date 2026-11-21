@@ -6,6 +6,7 @@ namespace App\Actions\Sharing;
 
 use App\Actions\Gallery\Consents;
 use App\Exceptions\Refusal;
+use App\Jobs\RedrawHarmonyCard;
 use App\Models\Harmony;
 use App\Models\User;
 use App\Services\Social\SocialPoster;
@@ -128,8 +129,13 @@ final class UpdateHarmony
             return $renamed;
         });
 
-        // Both read the row afresh, and leave the harmony as saved. A new title needs a new card.
-        $renamed ? $this->files->redrawCard($harmony) : $this->files->sync($harmony);
+        // A new title needs a new card: drawn off the request, once for a run of renames (the CPU review). Otherwise
+        // its public copies follow what was saved now.
+        if ($renamed) {
+            RedrawHarmonyCard::dispatch($harmony->id);
+        }
+
+        $this->files->sync($harmony);
 
         return $harmony;
     }

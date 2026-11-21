@@ -137,7 +137,7 @@ export const GroupsView = {
                     </li>
                 </ul>
             </div>
-            <!-- Teaming up is Plus (docs/pricing-plan.md, top): a singer without it meets the Plus moment, with the trial, before
+            <!-- Teaming up is Plus (docs/pricing-plan.md, top): a singer without it meets the Plus moment (Get Plus) before
                  the form, and comes back here (?start=1) once Plus is on. Everyone they invite joins free. -->
             <PlusMoment v-if="making && needsPlus" :title="t('groups.start')" :text="t('groups.plusText')" from="group_start" :next="'/groups?start=1' + (shareAfter ? '&share=' + encodeURIComponent(shareAfter) : '')" @close="making = false" />
             <Modal v-else-if="making" :title="t('groups.start')" @close="making = false">

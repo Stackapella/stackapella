@@ -11,6 +11,7 @@ use App\Models\TemplateRecording;
 use App\Models\User;
 use App\Support\Storage\ReceivedUploads;
 use App\Support\Storage\Uploads;
+use App\Support\Usage\InFlight;
 use App\Support\Usage\Plans;
 use App\Support\Usage\PrivateSongs;
 use App\Support\Usage\UploadBytes;
@@ -63,6 +64,7 @@ final class TemplateRecordings
             }
 
             $this->uploadBytes->count($user, $data['bytes']);
+            InFlight::ensure($user, TemplateRecording::class);
             $recording = new TemplateRecording(['part_key' => $data['partKey'], 'sample_rate' => $data['sampleRate'], 'frames' => $data['frames'], 'offset_frames' => $data['offsetFrames'], 'upload_bytes' => $data['bytes'], 'sha256' => strtolower($data['sha256'])]);
             $recording->forceFill([
                 'uuid' => $data['id'],

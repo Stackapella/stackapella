@@ -305,4 +305,20 @@ final class OwnChoirTest extends TestCase
         unset($shown['type'], $shown['description'], $state['type'], $state['description']);
         $this->assertSame(json_encode($state, JSON_UNESCAPED_SLASHES), str_replace('ownChoir.json#/', '#/', (string) json_encode($shown, JSON_UNESCAPED_SLASHES)), 'ownChoir.show.json mirrors ownChoir.json\'s state: change both.');
     }
+
+    public function test_only_plus_may_download_a_made_song_while_listening_stays_free(): void
+    {
+        $this->singer();
+        $this->assertMatchesContract($this->getJson('/api/own-choir'), 'ownChoir.show', 200);
+        $version = (int) Template::query()->where('slug', 'amazing-grace')->value('current_version_id');
+        $free = OwnChoirRequest::factory()->create(['user_id' => auth()->id(), 'template_version_id' => $version, 'status' => OwnChoirStatus::Ready, 'tries' => 1]);
+        $this->getJson('/api/own-choir')->assertJsonPath('data.requests.0.canDownload', false);
+        $this->assertMatchesContract($this->postJson("/api/own-choir/requests/{$free->sqid()}/seen"), 'ownChoir.requests.seen', 200);
+        $this->postJson("/api/own-choir/requests/{$free->sqid()}/seen")->assertJsonPath('data.canDownload', false);
+
+        $plus = User::factory()->create(['plan' => 'plus']);
+        $mine = OwnChoirRequest::factory()->create(['user_id' => $plus->id, 'template_version_id' => $version, 'status' => OwnChoirStatus::Ready, 'tries' => 1]);
+        $this->actingAs($plus)->getJson('/api/own-choir')->assertJsonPath('data.requests.0.canDownload', true);
+        $this->postJson("/api/own-choir/requests/{$mine->sqid()}/seen")->assertJsonPath('data.canDownload', true);
+    }
 }

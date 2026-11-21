@@ -178,10 +178,10 @@ Route::middleware('auth')->prefix('account')->name('account.')->group(function (
 Route::middleware('auth')->group(function (): void {
     Route::get('/sync', SyncController::class)->name('sync.pull');
     Route::get('/projects/{project}', [ProjectsController::class, 'show'])->whereUuid('project')->name('projects.show');
-    Route::put('/projects/{project}', [ProjectsController::class, 'save'])->whereUuid('project')->name('projects.save');
+    Route::put('/projects/{project}', [ProjectsController::class, 'save'])->whereUuid('project')->middleware('throttle:project-saves')->name('projects.save');
     Route::delete('/projects/{project}', [ProjectsController::class, 'destroy'])->whereUuid('project')->name('projects.delete');
     Route::post('/projects/{project}/restore', [ProjectsController::class, 'restore'])->whereUuid('project')->name('projects.restore');
-    Route::put('/parts/{part}', [ProjectParts::class, 'save'])->name('parts.save');
+    Route::put('/parts/{part}', [ProjectParts::class, 'save'])->middleware('throttle:project-saves')->name('parts.save');
     Route::delete('/parts/{part}', [ProjectParts::class, 'destroy'])->name('parts.delete');
     Route::post('/takes', [TakesController::class, 'store'])->middleware(['age', 'throttle:take-uploads', 'paused:uploads'])->name('takes.create');
     Route::post('/takes/{take}/complete', [TakesController::class, 'complete'])->middleware('paused:uploads')->name('takes.complete');
@@ -329,7 +329,7 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/harmonies/{harmony}/complete', [HarmoniesController::class, 'complete'])->middleware('paused:uploads')->name('harmonies.complete');
     Route::get('/harmonies', [HarmoniesController::class, 'index'])->name('harmonies.list');
     Route::get('/harmonies/{harmony}', [HarmoniesController::class, 'show'])->name('harmonies.show');
-    Route::patch('/harmonies/{harmony}', [HarmoniesController::class, 'update'])->name('harmonies.update');
+    Route::patch('/harmonies/{harmony}', [HarmoniesController::class, 'update'])->middleware('throttle:harmony-edits')->name('harmonies.update');
     Route::delete('/harmonies/{harmony}', [HarmoniesController::class, 'destroy'])->name('harmonies.delete');
     Route::post('/harmonies/{harmony}/videos', [VideosController::class, 'store'])->middleware('age')->name('videos.create');
     Route::get('/videos/{video}', [VideosController::class, 'show'])->name('videos.show');
@@ -362,7 +362,7 @@ Route::get('/harmonies/{harmony}/comments', [GalleryApi::class, 'comments'])->mi
 // Open parts (N5): parts left open, what a filler sings with, and the fills.
 Route::get('/harmonies/{harmony}/fills', [OpenPartsApi::class, 'fills'])->middleware(['throttle:public-pages', 'revalidate'])->name('harmonies.fills.list');
 Route::middleware('auth')->group(function (): void {
-    Route::put('/harmonies/{harmony}/open', [OpenPartsApi::class, 'open'])->name('harmonies.open');
+    Route::put('/harmonies/{harmony}/open', [OpenPartsApi::class, 'open'])->middleware('throttle:open-parts')->name('harmonies.open');
     Route::get('/harmonies/{harmony}/stems', [OpenPartsApi::class, 'stems'])->middleware(['age', 'throttle:stems'])->name('harmonies.stems');
 });
 Route::middleware('auth')->group(function (): void {

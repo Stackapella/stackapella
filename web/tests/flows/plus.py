@@ -1,5 +1,5 @@
 """Plus (M5), against the mock: the shelf marks the song of the month free; the Plus page from an
-upgrade moment says what led there, shows the yearly price as a monthly one and the trial, and
+upgrade moment says what led there, shows the yearly price as a monthly one (no free trial), and
 Checkout opens Stripe's page (caught here); Export offers MP3 and each part with Plus, and leads a
 free account to Plus; on Plus, the page shows the plan as it stands, with Manage.
 """
@@ -37,8 +37,9 @@ def journey(f):
     f.wait_text(t(f, "plus.yearly"))
     f.run("const s = document.querySelector('select'); s.value = 'usd'; s.dispatchEvent(new Event('change'));")
     f.wait_text("$3.33")
-    # The mock's billing.show is a Plus account's (no trial on offer), so the button may say Get Plus.
-    f.wait(f"document.body.innerText.includes({I18N}.t('plus.startTrial', {{ days: 7 }})) || document.body.innerText.includes({I18N}.t('plus.subscribe'))", what="the button")
+    # No free trial (Hillel, 2026-11-21): the button names the plan and its price.
+    f.wait(f"document.body.innerText.includes({I18N}.t('plus.getYearly', {{ price: '$39.99' }})) || document.body.innerText.includes({I18N}.t('plus.subscribe'))", what="the button")
+    assert "trial" not in f.js("document.querySelector('[aria-labelledby=price-heading]')?.innerText ?? ''").lower(), "a trial offered on the price card"
     f.shot("plus-page")
     f.run(f"const p = {PLAN}; window.opened = null; p.stripe.open = (url) => (window.opened = url);")
     f.run("document.querySelector('button.btn-lg').click()")

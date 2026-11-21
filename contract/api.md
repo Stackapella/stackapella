@@ -1972,7 +1972,7 @@ fills an unsent mode with `system` and an unsent colour or accent with null, whi
 chosen: the mode's own, Stage in dark and Warm in light, and the palette's own accent). No links in names, handles or bios. A
 handle that's taken, reserved (Stackapella's own names, and look-alikes such as "stackape11a") or
 not allowed is a `422` on `handle`. The account's `appearance` is null until the person chooses
-one: the device's own choice stands until then, and a new device takes the account's.
+one: the device's own choice stands until then, and a new device takes the account's. A new `name`, or `hideProfile` changed, redraws every share card naming them: ten a day (`429 rate_limited`).
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -2415,7 +2415,7 @@ Grace", "bpm": 80, "key": "G", "timeSignature": "3/4", "template": { "id": "amaz
   "Untitled song" for a blank one, in lists, exports and shares); `bpm` 20 to 300; `key` a key name or `null`; `timeSignature` like
   `4/4`; `template` `null` for a project not from a template;
 - a binned project answers `409 binned` (restore it first), here and for its parts and takes;
-- `version` must be `0` to make one; a project that's gone (purged) answers `404 not_found`.
+- `version` must be `0` to make one; a project that's gone (purged) answers `404 not_found`. Saves are limited to 3000 an hour per account, with `parts.save` (`429 rate_limited`), and no account keeps more than 2000 projects, the bin included (`403 project_limit`).
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -2466,7 +2466,7 @@ made it>" }`:
 - `currentTakeId` must be one of this part's takes (any status, so the device can point at a take
   still uploading, and a binned one comes out of the bin: an offline Undo is just this save). The
   take it replaces is kept (see "A part's kept takes"), and so is the one a `null` leaves;
-- a part's project can't change.
+- a part's project can't change. Limited with `projects.save` (`429 rate_limited`, 3000 an hour per account).
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -2505,7 +2505,7 @@ Start sending a take. **Request:** `{ "id": "<uuid>", "partId": "<uuid>", "sampl
   `upload` while it's `uploading`; the
   same `id` with other numbers (another `sha256`) is a `422` on `id`;
 - limited (`take-uploads`), and by bytes a day per account (2,000 MB free, 10,000 MB with Plus):
-  `429 rate_limited` with `retryAfter`; pausable (`423 paused`, by the uploads switch).
+  `429 rate_limited` with `retryAfter`; pausable (`423 paused`, by the uploads switch). Waits while two of the account's takes are still being made (`429 rate_limited`, `retryAfter` 30).
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -2826,13 +2826,14 @@ Start Checkout. **Request:** `{ "interval": "year", "currency": "usd", "trial": 
 "storage_limit" }`:
 - `interval` `month` or `year`; `currency` `usd`, `eur` or `gbp` (a returning subscriber keeps their
   first currency);
-- `trial` asks for the trial `billing.show` offers (its `trial.intervals`); one this account has
+- `trial` (optional; the app no longer sends it) asks for the trial `billing.show` offers (its `trial.intervals`); one this account has
   had, or not offered for this interval, answers `409 trial_used`;
 - `moment` is the upgrade moment that led here, counted on the server, never in the browser: the
   solo extras, `storage_limit`, `mp3`, `stems`, `guide` (your own recorded guide),
   `private_template` or `settings`, and since 2026-11-12 starting something shared, `group_start`
   (Start a group) or `invite_friend` (a friend on your song), and since 2026-11-17 `private_shared`
-  (a shared private arrangement, behind `plus_private`) (anything else, an older app's
+  (a shared private arrangement, behind `plus_private`), and since 2026-11-21 `choir_download` (Download on a choir song
+  made from your voice) (anything else, an older app's
   `plus_song` too, is kept as `other`);
 - `startNowConsent` (optional): true when the person ticked the consent to start at once. Where
   `billing.prices` says it's needed and it isn't true, `422 validation_failed` on
@@ -3082,7 +3083,7 @@ Start sharing a mix. `partId` must be one of the project's parts (`409 part_miss
   after which an upload never completed is cleared and the share starts again;
 - the mix counts toward the storage allowance (the WAV while it's on its way, then the AAC), so
   one that doesn't fit answers `403 storage_limit`; limited like takes (`take-uploads`) and
-  paused with uploads (`423 paused`), as well as by the share limit when it's unlisted.
+  paused with uploads (`423 paused`), as well as by the share limit when it's unlisted. Waits while two of the account's shares are still being mixed (`429 rate_limited`, `retryAfter` 30).
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -3467,7 +3468,7 @@ library songs open to its members as to any account (`grant: "account"`).
 Start sending the creator's guide for one part (every signed-in singer since 2026-11-12, against their storage). **Request:** `{ "id": "<uuid>", "partKey":
 "alto", "sampleRate": 48000, "frames": 2304000, "offsetFrames": 0, "bytes": 4608044, "sha256":
 "<64 hex>" }`, as for `takes.create` (a 16-bit mono WAV, at most 10 minutes). It replaces that
-part's earlier recording once it's ready. The `upload` opens its `PUT` for 3 minutes.
+part's earlier recording once it's ready. The `upload` opens its `PUT` for 3 minutes. Waits while two of the account's recordings are still being made (`429 rate_limited`, try again shortly), as takes and shares do.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -5968,7 +5969,7 @@ reads `404`.
 **Request:** `{ "parts": ["tenor"], "guide": true }` (part keys of the song's parts sung in it;
 `guide`: whether the open parts play their guide in its mix, kept for the page). Answers the
 harmony. Copying the stems takes a moment: `harmonies.stems` answers `409 stems_not_ready` until
-it's done.
+it's done. Twenty an hour per account (`429 rate_limited`); one copy of a harmony's stems is made at a time.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -7474,7 +7475,10 @@ its check, deleted before its turn) or failed through ours (`render_failed`, `ga
 #### `ownChoir.show`
 
 The singer's consent, quota and songs, newest first. A ready song not yet `seen` is the app's in-app notice (never
-email). **Request:** none. `data` is `null` while `own_choir` is off for this person and they have nothing kept (no
+email). Each song's `canDownload` says whether the app offers Download (Plus, Hillel 2026-11-21); without it, Download
+opens the Plus sheet (`billing.checkout`'s `moment` `choir_download`), and listening and sharing stay free. It's a gate
+in the app, as MP3 export is, not a lock on bytes: the app mixes the WAV from the parts' private playback links, which
+are unchanged, so there's no download endpoint to refuse. **Request:** none. `data` is `null` while `own_choir` is off for this person and they have nothing kept (no
 consent, voice or song): Settings asks for everyone signed in, so it never answers 404: `{ "data": null }`.
 
 | Status | Code | Schema | Example |

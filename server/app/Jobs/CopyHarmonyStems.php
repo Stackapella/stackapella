@@ -8,6 +8,7 @@ use App\Actions\Gallery\OpenParts;
 use App\Models\Harmony;
 use App\Models\HarmonyStem;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -21,7 +22,7 @@ use Throwable;
  * as stems, placed as its parts were, so a filler sings with them even after the original project
  * changes. A take whose file is gone is left out.
  */
-final class CopyHarmonyStems implements ShouldQueue
+final class CopyHarmonyStems implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
@@ -32,9 +33,17 @@ final class CopyHarmonyStems implements ShouldQueue
     /** @var list<int> */
     public array $backoff = [30, 120];
 
+    /** One copy of a harmony's stems at a time, queued or running (the CPU review). */
+    public int $uniqueFor = 3600;
+
     public function __construct(public readonly int $harmonyId)
     {
         $this->onQueue('long');
+    }
+
+    public function uniqueId(): string
+    {
+        return (string) $this->harmonyId;
     }
 
     public function handle(): void

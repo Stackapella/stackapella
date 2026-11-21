@@ -7,6 +7,7 @@ namespace App\Actions\Counts;
 use App\Support\Outreach\Outreach;
 use App\Support\Stats\GrowthStart;
 use App\Support\Stats\ReportDay;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -124,14 +125,16 @@ final class RecordCounts
         return match (true) {
             $ref === '' => '',
             in_array($ref, (array) config('counts.sources'), true) => $ref,
-            // A Reddit campaign's tag, one per subreddit we post in (reddit-judaism): our own tag, never a person.
-            preg_match('/^reddit-[a-z0-9-]{1,24}$/', $ref) === 1 => $ref,
+            // A Reddit campaign's tag, one per subreddit we post in (reddit-judaism, reddit-choir-dec): our own tag,
+            // never a person; one we don't post in is reddit-other.
+            preg_match('/^reddit-([a-z0-9]{1,24})(?:-[a-z0-9]{1,8})?$/', $ref, $sub) === 1 && in_array($sub[1], (array) config('counts.reddit'), true) => $ref,
+            preg_match('/^reddit-[a-z0-9]{1,24}(?:-[a-z0-9]{1,8})?$/', $ref) === 1 => 'reddit-other',
             // A free tool's share card: share-<slug> (docs/retention-plan.md, section 8; the surfaces' are in sources).
             str_starts_with($ref, 'share-') && in_array(substr($ref, 6), (array) config('tools.slugs'), true) => $ref,
             str_starts_with($ref, self::TOOL_PREFIX) && in_array(substr($ref, strlen(self::TOOL_PREFIX)), (array) config('tools.slugs'), true) => $ref,
             // A free tool embedded on another site (docs/tools-plan.md): that site's host, which
             // names a website, never a person; a source of under five a day is folded in Growth.
-            preg_match(self::EMBED, $ref) === 1 => $ref,
+            preg_match(self::EMBED, $ref) === 1 => self::embedHost($ref),
             // A shared song's page (its links carry the harmony's id for the song's own count, ShareSignUps): read as
             // the song surface's share tag, never by its id (docs/retention-plan.md, sharing).
             str_starts_with($ref, 'h-') => 'share-song',
@@ -142,6 +145,42 @@ final class RecordCounts
             Outreach::known($ref) => $ref,
             default => 'other',
         };
+    }
+
+    /**
+     * An embedding site's tag: one already counted, or one of the day's first few new ones, as itself; past those,
+     * embed-other, so a stream of made-up hosts never mints sources (the CPU review, 2026-11-21).
+     */
+    private static function embedHost(string $ref): string
+    {
+        // The hosts kept so far (each beacon reads this one cached list, never the counts table).
+        $known = 'counts:embed-hosts';
+
+        if (in_array($ref, (array) Cache::get($known, []), true)) {
+            return $ref;
+        }
+
+        $today = 'counts:new-embeds:'.now()->format('Ymd');
+
+        return Cache::lock($known.':lock', 5)->block(2, static function () use ($known, $today, $ref): string {
+            /** @var list<string> $hosts */
+            $hosts = (array) Cache::get($known, []);
+
+            if (in_array($ref, $hosts, true)) {
+                return $ref;
+            }
+
+            $new = (int) Cache::get($today, 0);
+
+            if ($new >= (int) config('counts.new_embed_hosts_a_day')) {
+                return 'embed-other';
+            }
+
+            Cache::put($today, $new + 1, now()->addDays(2));
+            Cache::forever($known, [...$hosts, $ref]);
+
+            return $ref;
+        });
     }
 
     /**

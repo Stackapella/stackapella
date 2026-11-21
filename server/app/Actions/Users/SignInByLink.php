@@ -16,6 +16,7 @@ use App\Support\Accounts\EarlyAccess;
 use App\Support\Accounts\Sessions;
 use App\Support\Admin\IntendedUrl;
 use App\Support\Flags;
+use App\Support\Trust\AuthEmails;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -58,6 +59,7 @@ final class SignInByLink
 
         // In the account's language, or a newcomer's (the request's: App\Http\Middleware\RequestLanguage).
         Mail::to($email)->locale(User::query()->where('email', $email)->value('locale') ?? app()->getLocale())->send(new SignInLinkMail($token));
+        AuthEmails::sent();
     }
 
     /**

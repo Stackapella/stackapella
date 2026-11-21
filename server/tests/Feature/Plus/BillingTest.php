@@ -69,6 +69,16 @@ final class BillingTest extends TestCase
         $this->assertSame('other', CheckoutSession::query()->latest('id')->value('moment'));
     }
 
+    public function test_checkout_without_a_trial_field_starts_paid(): void
+    {
+        // As the app has asked since 2026-11-21: no `trial` at all.
+        $this->actingAs($this->member());
+
+        $this->postJson('/api/billing/checkout', ['interval' => 'year', 'currency' => 'usd', 'moment' => 'settings'])->assertCreated();
+
+        $this->assertNull($this->stripe->checkouts[0]['trialDays']);
+    }
+
     public function test_a_trial_becomes_plus_and_a_second_trial_on_the_same_card_is_refused(): void
     {
         $user = $this->member();

@@ -208,6 +208,13 @@ return [
     // Growth's sources (docs/admin-growth-plan.md): the campaign tags of our own ?ref= links, kept
     // as written. Any other tag is grouped (h-* "harmony", c-* "coach", else "other"), so no
     // harmony's or coach's id, and no one-off tag, is ever kept. A new campaign adds its tag here.
+    // The subreddits we post in (marketing adds one before its first post): their tags count as written
+    // (reddit-choir, or with a campaign's suffix, reddit-choir-dec); any other reddit-* is counted as reddit-other,
+    // so nobody can mint sources (the CPU review, 2026-11-21).
+    'reddit' => ['acappella', 'barbershop', 'choir', 'choralmusic', 'churchmusic', 'judaism', 'laravel', 'opensource', 'selfhosted', 'sheetmusic', 'sideproject', 'singing', 'vuejs', 'worshipleaders'],
+    // New embedding sites a day kept by name before the rest are counted as embed-other.
+    'new_embed_hosts_a_day' => 5,
+
     'sources' => ['hn', 'mudeo', 'songs', 'song-page', 'part-page', 'carols', 'lesson-page', 'course-page', 'courses-hub', 'features-course', 'lesson-try', 'warmups', 'intervals', 'chords', 'voice-types', 'tools', 'tools-embed', 'share-range', 'share-pitch-matching', 'share-interval-ear-training', 'share-chord-ear-training', 'share-lesson', 'for-choir-directors', 'for-choirs-footer', 'for-choirs-songs', 'for-choirs-collection', 'for-choirs-carols', 'for-choirs-pricing', 'for-choirs-landing', 'for-choirs-course', 'for-choirs-help', 'features-choirs', 'social', 'reddit', 'producthunt', 'newsletter', 'press',
         // The improvement loop: the verify email's next lesson, the day's part (/today), and the thread back.
         'welcome', 'today', 'back-link', 'back-calendar',

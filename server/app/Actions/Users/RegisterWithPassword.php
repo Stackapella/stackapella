@@ -19,6 +19,7 @@ use App\Support\Accounts\EarlyAccess;
 use App\Support\Accounts\EmailTokens;
 use App\Support\Flags;
 use App\Support\Sharing\ShareSignUps;
+use App\Support\Trust\AuthEmails;
 use App\Support\Trust\SecurityLog;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -99,6 +100,7 @@ final class RegisterWithPassword
         if ($this->limits->allows('verification-email', $email) && ! EmailSuppression::isSuppressed($email)) {
             // Bound to the browser or app that signed up (SignUpBrowser).
             Mail::to($email)->locale($user->preferredLocale())->send(new VerifyEmailAddress($this->tokens->issue($user, EmailToken::VERIFY, $email, 24, browserHash: $browserHash), $user->name, $doneLessons));
+            AuthEmails::sent();
         }
     }
 }

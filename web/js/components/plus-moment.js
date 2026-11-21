@@ -1,9 +1,10 @@
 // An upgrade moment (docs/plus-plan.md; Hillel's 99.png): when the free plan stops something, a short sheet says what
 // happened and the ways on. Teaming up is Plus (docs/pricing-plan.md, top; Hillel, 2026-11-12: "you can learn alone for
 // free but to team up becomes more serious"): starting a choir group, inviting a friend onto your song. The primary
-// offers the 7-day trial where it's offered, else Plus; the Plus page brings you back to `next` once Plus is on. Never a
+// is Get Plus, never a free trial (Hillel, 2026-11-21: "better to charge people from the start"); the Plus page brings
+// you back to `next` once Plus is on. Never a
 // toast that leaves the person guessing; never in front of a course, song or workout; never asked of someone joining.
-// With `price`, it also says what Plus costs (Invite singers, Hillel 2026-11-15: a trial to add someone to a song).
+// With `price`, it also says what Plus costs (Invite singers, Hillel 2026-11-15).
 
 import { navigate } from '../router.js';
 import { formatNumber, t } from '../i18n.js';
@@ -48,22 +49,16 @@ export const PlusMoment = {
             <div class="space-y-5" data-plus-moment :data-moment="from">
                 <p class="text-cream/85">{{ text }}</p>
                 <p v-if="priceLine" class="font-semibold text-cream" data-plus-price>{{ priceLine }}</p>
-                <p v-if="trialDays" class="text-sm text-muted" data-plus-trial>{{ t('plus.momentTrial', { days: trialDays }) }}</p>
                 <!-- On a phone the primary takes the width, stacked first; from sm up, side by side at the end (design rules). -->
                 <div class="flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap sm:justify-end">
                     <button v-if="other" type="button" class="btn-secondary w-full sm:w-auto" @click="$emit('other')">{{ other }}</button>
                     <button v-else type="button" class="btn-secondary w-full sm:w-auto" @click="$emit('close')">{{ t('common.notNow') }}</button>
-                    <button v-if="!selfHosted()" type="button" class="btn-primary w-full sm:w-auto" data-plus-go @click="go">{{ trialDays ? t('plus.startTrial', { days: trialDays }) : t('plus.subscribe') }}</button>
+                    <button v-if="!selfHosted()" type="button" class="btn-primary w-full sm:w-auto" data-plus-go @click="go">{{ t('plus.subscribe') }}</button>
                 </div>
             </div>
         </Modal>`,
     setup: () => ({ selfHosted }),
     computed: {
-        /** The trial's days when this account (or, before billing loads, the prices) offers it; else 0. */
-        trialDays() {
-            const offer = plan.billing ? plan.billing.trial : plan.prices?.trial;
-            return offer ? offer.days ?? 7 : 0;
-        },
         /** "Plus is $39.99 a year or $4.99 a month", in the account's currency (else the region's); empty until the prices load. */
         priceLine() {
             if (!this.price || selfHosted()) return '';
@@ -77,10 +72,10 @@ export const PlusMoment = {
     },
     created() {
         if (selfHosted()) return;
-        const unread = (error) => console.info('The trial offer was not read', error?.message ?? error);
-        // Whether the trial is this account's to take (billing.show), else the prices' offer for someone not signed in.
-        if (!plan.billing) (account.me ? loadBilling() : loadPrices()).catch(unread);
-        if (this.price && account.me) loadPrices().catch(unread);
+        // The price line's prices, and the account's own currency where it pays already.
+        const unread = (error) => console.info('The prices were not read', error?.message ?? error);
+        if (this.price) loadPrices().catch(unread);
+        if (this.price && account.me && !plan.billing) loadBilling().catch(unread);
     },
     methods: {
         go() {

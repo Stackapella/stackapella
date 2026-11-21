@@ -9,6 +9,7 @@
         "createdAt": "2026-11-21T09:00:00Z",
         "readyAt": "2026-11-21T09:04:00Z",
         "seen": true,
+        "canDownload": false,
         "parts": [
             {
                 "id": "Cp1Sop",

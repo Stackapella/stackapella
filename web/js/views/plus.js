@@ -3,7 +3,8 @@
 // price beside them, yearly first with the saving worked out ("Save 33%", "$3.33 a month, billed
 // yearly"), in dollars, euros or pounds; a button naming what you're buying; the renewal, the tax and
 // the launch-price promise in plain sentences; and Free and Plus side by side, only the differences
-// first. The 7-day trial where it's offered; Checkout shows the tax, the renewal and how to cancel
+// first. No free trial (Hillel, 2026-11-21: "better to charge people from the start"; someone already in one still
+// sees when it ends); Checkout shows the tax, the renewal and how to cancel
 // before anything is paid. On Plus: the plan as it stands, and Manage (Stripe's portal). Opened from
 // an upgrade moment (`?from=`), it says what led here first.
 
@@ -34,9 +35,11 @@ const MOMENTS = {
     invite_friend: tk('plus.moment.inviteFriend'),
     // Shared private arrangements need everyone's own Plus (plus_private, Hillel 2026-11-17).
     private_shared: tk('plus.moment.privateShared'),
+    // Downloading a choir made from your voice (Hillel, 2026-11-21; listening and sharing stay free).
+    choir_download: tk('plus.moment.choirDownload'),
 };
 // Once Plus is on, the way back to what led here (components/plus-moment.js keepNext), by its moment.
-const NEXT_WORDS = { group_start: tk('plus.next.groupStart'), invite_friend: tk('plus.next.inviteFriend'), private_shared: tk('plus.next.inviteFriend') };
+const NEXT_WORDS = { group_start: tk('plus.next.groupStart'), invite_friend: tk('plus.next.inviteFriend'), private_shared: tk('plus.next.inviteFriend'), choir_download: tk('plus.next.choirDownload') };
 const CARRY_ON = tk('plus.next.carryOn');
 // docs/features.md, "Free and Plus, side by side": the extras Plus adds for you, then what's free for every
 // singer. `free: null` is a dash (Free hasn't it); a row the same on both shows only under Everything.
@@ -112,10 +115,9 @@ export const PlusView = {
                             <p v-else-if="billing" class="text-sm text-muted">{{ t('plus.byInvoice') }}</p>
                         </section>
 
-                        <!-- Not on Plus: the price and the trial -->
+                        <!-- Not on Plus: the price -->
                         <section v-else class="card space-y-5 p-5 md:p-6" aria-labelledby="price-heading">
                             <h2 id="price-heading" class="sr-only">{{ t('plus.price') }}</h2>
-                            <Notice v-if="billing?.notice === 'card_had_trial'" tone="info">{{ t('plus.notice.cardHadTrial') }}</Notice>
                             <div class="space-y-3" role="radiogroup" :aria-label="t('plus.billing')">
                                 <label v-for="choice in ['year', 'month']" :key="choice" class="radio-card items-center p-4">
                                     <input v-model="interval" type="radio" :value="choice" class="radio" />
@@ -133,7 +135,7 @@ export const PlusView = {
                             <AccountWall v-if="notice?.signIn" reason="plus" />
                             <Notice v-else-if="notice" :tone="notice.tone">{{ notice.text }}</Notice>
                             <button type="button" class="btn-primary btn-lg w-full" :disabled="busy || failed || (!!account.me && !plan.loaded)" @click="start">{{ buyLabel }}</button>
-                            <p class="text-sm text-muted">{{ trialOffered ? t('plus.smallTrial', { days: plan.prices?.trial?.days ?? 7 }) : interval === 'year' ? t('plus.renewsYear') : t('plus.renewsMonth') }}</p>
+                            <p class="text-sm text-muted">{{ interval === 'year' ? t('plus.renewsYear') : t('plus.renewsMonth') }}</p>
                             <div class="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
                                 <label class="flex items-center gap-2 text-sm text-muted">{{ t('plus.currency') }}
                                     <select v-model="currency" class="input w-auto py-1.5"><option v-for="c in CURRENCIES" :key="c" :value="c" translate="no">{{ c.toUpperCase() }}</option></select>
@@ -187,9 +189,8 @@ export const PlusView = {
             const month = this.priceOf('month')?.amountCents;
             return year && month ? Math.round((1 - year / (12 * month)) * 100) : 0;
         },
-        /** The button says what you're buying: "Get Plus yearly · $39.99", or the trial. */
+        /** The button says what you're buying: "Get Plus yearly · $39.99". */
         buyLabel() {
-            if (this.trialOffered) return t('plus.startTrial', { days: plan.prices?.trial?.days ?? 7 });
             const price = this.priceOf(this.interval);
             if (!price) return t('plus.subscribe');
             return t(this.interval === 'year' ? tk('plus.getYearly') : tk('plus.getMonthly'), { price: this.money(price.amountCents) });
@@ -206,11 +207,6 @@ export const PlusView = {
         },
         /** Back from Checkout, before the payment is confirmed. */
         pending: () => plan.billing?.status === 'pending' && !isPlus(),
-        /** The trial, when the account (or a visitor) would get it for this interval (the prices' offer if the plan didn't load). */
-        trialOffered() {
-            const offer = account.me && plan.billing ? plan.billing.trial : plan.prices?.trial;
-            return !!offer && (offer.intervals ?? []).includes(this.interval);
-        },
         statusText() {
             const b = this.billing;
             const s = b?.subscription;
@@ -269,7 +265,7 @@ export const PlusView = {
             }
             this.busy = true;
             try {
-                await checkout({ interval: this.interval, currency: this.currency, trial: this.trialOffered, moment: this.moment ?? 'settings' });
+                await checkout({ interval: this.interval, currency: this.currency, moment: this.moment ?? 'settings' });
             } catch (error) {
                 this.notice = { tone: 'bad', text: refusal(error) };
             } finally {
@@ -293,7 +289,6 @@ function refusal(error) {
     if (!(error instanceof ApiError)) return t('plus.failed');
     if (error.code === 'email_unverified') return t('plus.verifyFirst');
     if (error.code === 'already_plus') return t('plus.alreadyPlus');
-    if (error.code === 'trial_used') return t('plus.trialUsed');
     if (error.code === 'paused') return t('plus.paused');
     if (error.code === 'no_subscription') return t('plus.noSubscription');
     if (error.code === 'rate_limited') return t('auth.error.wait');

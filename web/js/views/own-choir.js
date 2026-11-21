@@ -3,6 +3,7 @@
 // singing (into Sing, on a project made for it); on its way; ready (Listen, how much of it is really them, Learn your
 // part, Delete); or what went wrong and Sing again. Stop making songs in my voice at the foot. Behind own_choir.
 
+import { PlusMoment } from '../components/plus-moment.js';
 import { api } from '../api.js';
 import { formatNumber, t, tk } from '../i18n.js';
 import { navigate } from '../router.js';
@@ -23,11 +24,13 @@ import { choirPosition, loadChoir, mixChoir, playChoir, stopChoir } from '../own
 const FAILURES = { clip_unusable: tk('ownChoir.failed.clip_unusable'), bad_clip: tk('ownChoir.failed.bad_clip'), gates_failed: tk('ownChoir.failed.gates_failed'), render_failed: tk('ownChoir.failed.render_failed'), expired: tk('ownChoir.failed.expired'), reference_gone: tk('ownChoir.failed.reference_gone') };
 
 export const OwnChoirView = {
-    components: { Agreement, AppScreen, Notice },
+    components: { Agreement, AppScreen, Notice, PlusMoment },
     props: { id: { type: String, required: true } },
-    data: () => ({ state: 'loading', offReason: 'unavailable', canStart: false, template: null, terms: null, busy: false, playing: false, loadingTrack: false, hum: null, own: false }),
+    data: () => ({ plusFor: false, state: 'loading', offReason: 'unavailable', canStart: false, template: null, terms: null, busy: false, playing: false, loadingTrack: false, hum: null, own: false }),
     setup: () => ({ ownChoir, isOpen, templatePartName, savedVoice, formatNumber, navigate }),
     computed: {
+        /** Back here from the Plus page, once Plus is on. */
+        here: () => location.pathname,
         song() {
             return this.template ? songTitle(this.template) : '';
         },
@@ -110,6 +113,8 @@ export const OwnChoirView = {
                         <!-- Share (the share page credits each part as AI made from their singing): the studio's share sheet. -->
                         <button type="button" class="btn-secondary w-full justify-center" :disabled="busy" data-choir-share @click="share">{{ t('ownChoir.share.button') }}</button>
                     </div>
+                    <!-- Downloading is Plus's (Hillel, 2026-11-21); listening and sharing stay free. The server says who may. -->
+                    <PlusMoment v-if="plusFor" :title="t('ownChoir.ready.download')" :text="t('plus.moment.choirDownload')" from="choir_download" :next="here" @close="plusFor = false" />
                     <p class="text-sm text-muted" data-choir-learn><span data-choir-progress>{{ t('ownChoir.learn.progress', { n: realCount, total: parts.length }) }}</span><template v-if="nextPart"> · <button type="button" class="link inline-flex min-h-11 items-center font-semibold" :disabled="busy" data-choir-learn-part @click="learn(nextPart)">{{ t('ownChoir.learn.button', { part: templatePartName(nextPart) }) }}</button></template></p>
                     <button type="button" class="btn-ghost btn-sm text-bad" data-choir-delete @click="remove">{{ t('ownChoir.delete.button') }}</button>
                 </template>
@@ -351,8 +356,13 @@ export const OwnChoirView = {
             this.playing = false;
             this.loadingTrack = false;
         },
-        /** The finished track as a WAV on the device, its name saying AI (design rules, "AI: plain about it"). */
+        /** The finished track as a WAV on the device, its name saying AI (design rules, "AI: plain about it"). Only where
+         * the server says this song may be downloaded (`canDownload`, Plus): else the Plus sheet, saying so. */
         async download() {
+            if (this.request?.canDownload !== true) {
+                this.plusFor = true;
+                return;
+            }
             this.loadingTrack = true;
             try {
                 const wav = mixChoir(await this.voices());

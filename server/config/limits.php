@@ -224,7 +224,7 @@ return [
     ],
 
     'error-reports' => [
-        'ip' => ['max' => 60, 'per' => 'minute', 'by' => 'ip'],
+        'ip' => ['max' => 10, 'per' => 'minute', 'by' => 'ip'],
     ],
 
     // Event Schedule's webhooks: generous (each is signed), but bounded per sender.
@@ -308,6 +308,21 @@ return [
 
     'likes' => [
         'account' => ['max' => 200, 'per' => 'hour', 'by' => 'account'],
+    ],
+
+    // The CPU review (2026-11-21): a new name or hiding the profile redraws every card naming them; a harmony's
+    // edit can redraw its card; project and part saves; opening parts copies stems. Each far past real use.
+    'profile-changes' => [
+        'account' => ['max' => 10, 'per' => 'day', 'by' => 'account'],
+    ],
+    'harmony-edits' => [
+        'account' => ['max' => 20, 'per' => 'hour', 'by' => 'account'],
+    ],
+    'project-saves' => [
+        'account' => ['max' => 3000, 'per' => 'hour', 'by' => 'account'],
+    ],
+    'open-parts' => [
+        'account' => ['max' => 20, 'per' => 'hour', 'by' => 'account'],
     ],
 
     // A take's private link (takes.show), per account a day (the abuse review): a restore on a new device fetches each

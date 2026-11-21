@@ -6,7 +6,7 @@
 // taking them out). A project not yet on the account, or signed out, says what's needed first.
 // Teaming up is Plus (behind plus_teams; Hillel, 2026-11-15: "in the studio if you click invite singers you should need
 // to start a trial to be able to add someone to a song"): the song's starter without Plus (a trial counts) gets the Plus
-// sheet in its place, with the price and the trial; once Plus is on, the Plus page leads back here (?sheet=together).
+// sheet in its place, with the price (Get Plus, no free trial since 2026-11-21); once Plus is on, the Plus page leads back here (?sheet=together).
 // A starter whose friends already sing in it (paused, their Plus ended) sees them and the paused note instead.
 
 import { AccountWall } from './account-wall.js';

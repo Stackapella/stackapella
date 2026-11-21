@@ -5,7 +5,7 @@
 // and Share as a video. Keeping a copy for yourself belongs to Export.
 
 import { ApiError, api } from '../api.js';
-import { t, timeAgo, tk } from '../i18n.js';
+import { formatWait, t, timeAgo, tk } from '../i18n.js';
 import { formatTime } from '../theme.js';
 import { navigate } from '../router.js';
 import { account } from '../stores/account.js';
@@ -35,6 +35,13 @@ const REFUSED = {
     slow: tk('share.refused.slow'),
     validation_failed: tk('share.refused.title'),
 };
+
+/** A share refused for its limits: two still being mixed is a short wait (the server's `retryAfter`, a minute or two),
+ * not the day's limit, so it says that. */
+function limitWords(error) {
+    const wait = error?.retryAfter;
+    return wait && wait <= 300 ? t('share.refused.busy', { wait: formatWait(wait) }) : t('share.refused.limit');
+}
 
 export const ShareSheet = {
     components: { Modal, Icon, Notice, Switch },
@@ -198,7 +205,7 @@ export const ShareSheet = {
                 console.error('Sharing failed', error);
                 // A 422 is about the name only when the name is what it names.
                 const nameRefused = code === 'validation_failed' && !!error?.errors?.title;
-                this.error = code === 'validation_failed' && !nameRefused ? t('share.refused.generic') : REFUSED[code] ? t(REFUSED[code]) : t('share.refused.generic');
+                this.error = code === 'rate_limited' ? limitWords(error) : code === 'validation_failed' && !nameRefused ? t('share.refused.generic') : REFUSED[code] ? t(REFUSED[code]) : t('share.refused.generic');
                 this.stage = 'error';
             }
         },
@@ -223,7 +230,7 @@ export const ShareSheet = {
             } catch (error) {
                 console.error('The video was not made', error);
                 this.videoState = error instanceof ApiError && error.code === 'rate_limited' ? null : 'failed';
-                if (error instanceof ApiError && error.code === 'rate_limited') toast(t('share.refused.limit'));
+                if (error instanceof ApiError && error.code === 'rate_limited') toast(limitWords(error));
             }
         },
         async shareVideo() {

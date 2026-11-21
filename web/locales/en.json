@@ -5842,10 +5842,10 @@
         "headlineSolo": "More room. Every format.",
         "next": {
             "carryOn": "Carry on",
+            "choirDownload": "Back to your choir",
             "inviteFriend": "Back to your song",
             "groupStart": "Start your choir group"
         },
-        "momentTrial": "Try it free for {days} days. Learning alone stays free: every course, song and workout.",
         "momentPrice": "Plus is {year} a year or {month} a month.",
         "title": "Stackapella Plus",
         "story": "Learning to sing is free. Plus is for teaming up and for working at it: start a choir group or invite friends onto your song (everyone you invite joins free), more room for your recordings, and MP3 and each part on its own.",
@@ -5856,7 +5856,8 @@
             "mp3": "MP3 export is on Plus. WAV is free.",
             "stems": "Each part on its own is on Plus.",
             "privateTemplate": "Your first private arrangement is free. Plus keeps as many as you like.",
-            "privateShared": "Shared private arrangements need Plus for everyone in them."
+            "privateShared": "Shared private arrangements need Plus for everyone in them.",
+            "choirDownload": "Downloading your choir comes with Plus. Listening and sharing stay free."
         },
         "yours": "Your plan",
         "manage": "Manage your plan",
@@ -5869,8 +5870,7 @@
             "pending": "Confirming your payment..."
         },
         "notice": {
-            "paymentFailed": "Update your card by {date} to keep Plus.",
-            "cardHadTrial": "This card has already had a free trial, so that trial was cancelled with no charge. You can subscribe without the trial."
+            "paymentFailed": "Update your card by {date} to keep Plus."
         },
         "price": "The price",
         "billing": "How often to pay",
@@ -5879,9 +5879,7 @@
         "perMonthYearly": "{price} a month, billed yearly",
         "currency": "Pay in",
         "taxIncluded": "Tax is included.",
-        "startTrial": "Start your {days}-day free trial",
         "subscribe": "Get Plus",
-        "smallTrial": "Free for {days} days, then billed until you cancel. Checkout shows the price with tax and the date your trial ends before you pay anything.",
         "launchPrice": "Launch price: it stays the same for as long as you stay subscribed.",
         "compare": "Free and Plus, side by side",
         "what": "What you get",
@@ -5927,7 +5925,6 @@
         "notLoaded": "Couldn't load the prices just now. Try again in a moment.",
         "verifyFirst": "Confirm your email first: the link is in your inbox.",
         "alreadyPlus": "You're already on Plus.",
-        "trialUsed": "This account has had its free trial. You can subscribe without it.",
         "paused": "Plus isn't open just yet. Please try again soon.",
         "failed": "Couldn't open Checkout just now. Try again in a moment.",
         "pendingHint": "This takes a moment after Checkout. The page updates by itself when it's done.",
@@ -6054,6 +6051,7 @@
             "noTakes": "Record a part first: there's nothing to hear yet.",
             "mismatch": "The mix didn't match the recordings. Try again.",
             "paused": "Sharing is paused for a little while. Your earlier links still work.",
+            "busy": "Your last shares are still being mixed. Try again in {wait}.",
             "limit": "You've shared a lot today. Try again tomorrow.",
             "failed": "The mix couldn't be processed. Try again.",
             "unavailable": "This harmony isn't available to share.",

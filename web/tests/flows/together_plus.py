@@ -1,6 +1,6 @@
 """Teaming up is Plus (docs/pricing-plan.md, top; Hillel, 2026-11-12): frontend2's moments, against fixtures
 (tests/fixtures/together/) until backend's server side is on main.
-- Start a group without Plus: the Plus moment with the trial, before the form; Plus's page says why and, once Plus is
+- Start a group without Plus: the Plus moment (Get Plus, never a trial), before the form; Plus's page says why and, once Plus is
   on, leads back to the start sheet. A refusal (plus_required) brings the same moment, never an error.
 - A paused choir (its leader's Plus ended): the leader's note with the way back to Plus, Invite and Share a song gone;
   a member's note with nothing to buy; its join page takes nobody new and offers singing alone; a join refused as
@@ -45,14 +45,16 @@ def journey(f):
     go(f, "/groups")
     f.wait("document.querySelector('[data-group-paused]')", what="the paused tag on the list")
 
-    # Start a group, free: the Plus moment first, with the trial; no form behind it.
-    # A free account with the trial still to take (the mock's billing example is a Plus account's).
+    # Start a group, free: the Plus moment first, no form behind it, and never a free trial (Hillel, 2026-11-21), even
+    # from an answer that still offers one (the mock's billing example is a Plus account's).
     f.run("const { api } = await import('/js/api.js'); api.billing.show = async () => ({ data: { plan: 'free', trial: { days: 7, intervals: ['year'] } } }); const { plan } = await import('/js/stores/plan.js'); plan.billing = null;")
     f.click(f.js("(await import('/js/i18n.js')).t('groups.start')"))
     f.wait("document.querySelector('[data-plus-moment][data-moment=group_start]')", what="the Plus moment")
     assert not f.js("!!document.querySelector('[role=dialog] form')"), "no form before Plus"
     assert f.js("document.querySelector('[data-plus-moment]').textContent").find(t(f, "groups.plusText")) >= 0
-    f.wait("document.querySelector('[data-plus-trial]')", what="the trial offered")
+    f.wait("document.querySelector('[data-plus-go]')", what="Get Plus")
+    assert f.js("document.querySelector('[data-plus-go]').textContent.trim()") == t(f, "plus.subscribe"), "the button isn't Get Plus"
+    assert "trial" not in f.js("document.querySelector('[data-plus-moment]').innerText").lower(), "a trial offered"
     f.shot("start-moment")
     f.run("document.querySelector('[data-plus-go]').click()")
     f.wait("location.pathname === '/plus' && location.search.includes('from=group_start')", what="the Plus page from the moment")

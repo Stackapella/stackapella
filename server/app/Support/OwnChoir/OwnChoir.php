@@ -147,9 +147,9 @@ final class OwnChoir
                 'wordless' => $voice->wordless,
             ],
             'termsVersion' => self::termsVersion(),
-            'quota' => self::quota($user),
+            'quota' => $quota = self::quota($user),
             'requests' => array_values(OwnChoirRequest::query()->with(['templateVersion.template', 'parts'])->where('user_id', $user->id)->where('status', '!=', OwnChoirStatus::Deleted->value)->orderByDesc('id')->get()
-                ->map(static fn (OwnChoirRequest $r): array => self::request($r))->all()),
+                ->map(static fn (OwnChoirRequest $r): array => self::request($r, $quota['plus']))->all()),
         ];
     }
 
@@ -168,10 +168,13 @@ final class OwnChoir
     }
 
     /**
+     * @param  bool|null  $plus  whether the singer has Plus, when the caller knows already
      * @return array<string, mixed>
      */
-    public static function request(OwnChoirRequest $request): array
+    public static function request(OwnChoirRequest $request, ?bool $plus = null): array
     {
+        // Downloading a song is Plus's (Hillel, 2026-11-21), decided per song so a later rule needs no contract change.
+        $plus ??= app(Plans::class)->isPlus($request->loadMissing('user')->user);
         $ready = $request->status === OwnChoirStatus::Ready;
         // Only a deleted song outlives its version, and deleted songs are never shown.
         $version = $request->templateVersion ?? throw new \LogicException('A shown song has its version.');
@@ -186,6 +189,7 @@ final class OwnChoir
             'createdAt' => $request->created_at?->utc()->toIso8601ZuluString(),
             'readyAt' => $request->ready_at?->utc()->toIso8601ZuluString(),
             'seen' => $request->seen_at !== null,
+            'canDownload' => $plus,
             'parts' => $ready ? array_values($request->parts->where('status', 'ready')->whereNotNull('media_key')->map(static fn (OwnChoirPart $p): array => self::recording($p))->all()) : [],
         ];
     }

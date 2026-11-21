@@ -2,7 +2,7 @@
 // of the users (creator and otehrs) have plus accounts"; docs/pricing-plan.md, top; behind the plus_private switch,
 // js/teams.js's teams.private). A person's own song with a link or another singer on it needs every person's own Plus,
 // the creator's too; alone it stays free. Without Plus the song stays listed and every take is kept: opening it shows
-// this sheet (the shared PlusMoment: the 7-day trial where the account still has it, else Get Plus, and Not now), never
+// this sheet (the shared PlusMoment: Get Plus, and Not now; no free trial since 2026-11-21), never
 // an error. Its words say whose song it is: yours (shared), someone else's (by a link or an invite), or a link you're
 // turning on. PrivateNote is the calm line left on the screen once the sheet is closed.
 

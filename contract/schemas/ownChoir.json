@@ -125,6 +125,7 @@
                 "createdAt",
                 "readyAt",
                 "seen",
+                "canDownload",
                 "parts"
             ],
             "properties": {
@@ -171,6 +172,10 @@
                 "seen": {
                     "type": "boolean",
                     "description": "The singer has opened it since it was ready (the in-app notice shows until then)."
+                },
+                "canDownload": {
+                    "type": "boolean",
+                    "description": "Whether the app offers Download for this song (a WAV it mixes itself from the parts it plays): with Plus (Hillel, 2026-11-21); without it, Download opens the Plus sheet (billing.checkout moment choir_download). Listening and sharing stay free. A gate in the app, as MP3 export is, not a lock on bytes: the parts' playback links are unchanged."
                 },
                 "parts": {
                     "type": "array",

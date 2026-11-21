@@ -99,7 +99,7 @@ final class ContractTest extends TestCase
      * (`shares`, ShareGate), a new video (`share-videos`, StartShareVideo), a Plus song's notes a day
      * (`plus-downloads`, TemplatesController).
      */
-    private const LIMITED_INSIDE = ['harmonies.update', 'videos.create', 'templates.show'];
+    private const LIMITED_INSIDE = ['harmonies.update', 'videos.create', 'templates.show', 'account.update', 'templates.recordings.create'];
 
     public function test_every_operation_the_contract_says_is_limited_has_a_limit_of_its_own(): void
     {

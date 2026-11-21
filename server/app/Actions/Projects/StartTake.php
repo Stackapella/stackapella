@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Support\Storage\Uploads;
 use App\Support\Sync\SyncSeq;
 use App\Support\Trust\TrustLevel;
+use App\Support\Usage\InFlight;
 use App\Support\Usage\Plans;
 use App\Support\Usage\PrivateSongs;
 use App\Support\Usage\UploadBytes;
@@ -118,6 +119,7 @@ final class StartTake
         }
 
         $this->bytes->count($user, $data['bytes']);
+        InFlight::ensure($user, Take::class);
 
         $take = new Take([
             'sample_rate' => $data['sampleRate'],

@@ -36,7 +36,7 @@ final class ErrorTunnelController extends Controller
         $parts = parse_url($ours);
 
         try {
-            Http::withBody($envelope, 'application/x-sentry-envelope')->timeout(5)
+            Http::withBody($envelope, 'application/x-sentry-envelope')->connectTimeout(1)->timeout(2)
                 ->post(sprintf('%s://%s/api/%s/envelope/', $parts['scheme'] ?? 'https', $parts['host'] ?? '', trim((string) ($parts['path'] ?? ''), '/')));
         } catch (Throwable $e) {
             // Reporting must never fail a page (and report() would only loop back to Sentry).

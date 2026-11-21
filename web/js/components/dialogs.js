@@ -487,8 +487,9 @@ export const ExportDialog = {
     setup: () => ({ formatList, formatTime }),
     // parts: [{ id, name, muted }]; seconds: the song's length, for the size. scoreParts: the song's
     // written parts ([{ key, name }]), for sheet music; none, and it isn't offered.
+    // choirLocked: a choir made from your voice is in the mix and this song isn't the singer's to download (Plus).
     // creditsLine: the credits as one line, "Real voices: ..." or, with an AI voice among them, "Voices: ..." (the studio's).
-    props: { title: { type: String, default: '' }, defaultName: String, busy: Boolean, credits: { type: Array, default: () => [] }, creditsLine: { type: String, default: null }, hasChords: Boolean, parts: { type: Array, default: () => [] }, scoreParts: { type: Array, default: () => [] }, seconds: { type: Number, default: 0 }, sampleRate: { type: Number, default: 48000 } },
+    props: { title: { type: String, default: '' }, defaultName: String, busy: Boolean, credits: { type: Array, default: () => [] }, creditsLine: { type: String, default: null }, hasChords: Boolean, parts: { type: Array, default: () => [] }, scoreParts: { type: Array, default: () => [] }, seconds: { type: Number, default: 0 }, sampleRate: { type: Number, default: 48000 }, choirLocked: Boolean },
     emits: ['export', 'close', 'upgrade', 'unmute'],
     data() {
         return { name: this.defaultName, format: 'wav', chords: false, polish: prefs.polish, room: prefs.room, what: 'song', partId: this.parts[0]?.id ?? null, kind: 'without', clicks: true, sheetFormat: 'musicxml', sheetPart: '', field, label, primary, secondary, ROOM_CHOICES, SHEET_FORMATS };
@@ -557,7 +558,7 @@ export const ExportDialog = {
                     </div>
                     <p class="text-xs text-muted">{{ what === 'sheet' ? (printing ? t('export.printHint') : sheetFormat === 'midi' ? t('export.midiHint') : t('export.musicxmlHint')) : what === 'stems' ? t('export.stemsHint') : format === 'mp3' ? t('export.mp3Hint') : t('export.wavHint') }}</p>
                 </fieldset>
-                <p v-if="locked" class="text-sm text-cream" role="status">{{ what === 'stems' ? t('plus.moment.stems') : t('plus.moment.mp3') }}</p>
+                <p v-if="locked" class="text-sm text-cream" role="status" data-export-plus>{{ choirLocked ? t('plus.moment.choirDownload') : what === 'stems' ? t('plus.moment.stems') : t('plus.moment.mp3') }}</p>
                 <p v-if="credits.length && what !== 'sheet'" class="text-sm text-cream">{{ creditsLine ?? t('export.credits', { names: formatList(credits) }) }}</p>
                 <div class="flex flex-wrap items-center gap-3 border-t border-line pt-4">
                     <span class="me-auto text-xs tabular-nums text-muted" translate="no">{{ summary }}</span>
@@ -595,6 +596,8 @@ export const ExportDialog = {
         /** MP3 and each part are Plus (docs/features.md): picked, a line says so and the button is Get Plus. */
         locked() {
             if (this.what === 'sheet') return false;
+            // A choir made from your voice, in the mix, downloads with Plus (the server's canDownload; sheet music stays free).
+            if (this.choirLocked) return true;
             return exportNeedsPlus(this.what === 'stems' ? 'stems' : this.format);
         },
         /** "WAV · about 6.5 MB · 0:37": stereo 16-bit at the mix's rate, MP3 at about 128 kbps, each recorded part a mono WAV at its own. */
@@ -611,7 +614,7 @@ export const ExportDialog = {
             // Remembered for next time (and Hear it polished plays the same room).
             Object.assign(prefs, { polish: this.polish, room: this.room });
             if (this.locked) {
-                this.$emit('upgrade', this.what === 'stems' ? 'stems' : this.format);
+                this.$emit('upgrade', this.choirLocked ? 'choir_download' : this.what === 'stems' ? 'stems' : this.format);
                 return;
             }
             if (this.what === 'sheet') {

@@ -16,6 +16,12 @@ declare(strict_types=1);
 
 return [
 
+    // The CPU review (2026-11-21): a new take, mix or guide recording waits while this many of the account's of that
+    // kind are still being made (App\Support\Usage\InFlight); and no account keeps more projects than this, bin
+    // included (far past any singer's; each holds up to 256 KB of settings).
+    'processing_at_once' => 2,
+    'max_projects' => 2000,
+
     'plans' => [
         // `singers`: friends on one of the owner's projects; `templates`: private or unlisted
         // templates kept on the server (docs/pricing-plan.md).

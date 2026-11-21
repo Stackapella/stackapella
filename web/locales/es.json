@@ -2969,16 +2969,17 @@
     "plus": {
         "storySolo": "Aprender a cantar es gratis, también con tus amigos y tu coro. Plus es para trabajarlo a fondo: más espacio para tus grabaciones, y MP3 y cada voz por separado.",
         "next": {
+            "choirDownload": "Volver a tu coro",
             "inviteFriend": "Volver a tu canción",
             "groupStart": "Crear tu grupo de coro",
             "carryOn": "Seguir"
         },
-        "momentTrial": "Pruébalo gratis durante {days} días. Aprender por tu cuenta sigue siendo gratis: todos los cursos, canciones y entrenamientos.",
         "momentPrice": "Plus cuesta {year} al año o {month} al mes.",
         "headlineSolo": "Más espacio. Todos los formatos.",
         "title": "Stackapella Plus",
         "story": "Aprender a cantar es gratis. Plus es para formar equipo y para trabajarlo a fondo: crea un grupo de coro o invita a amigos a tu canción (todas las personas que invites se unen gratis), más espacio para tus grabaciones, y MP3 y cada voz por separado.",
         "moment": {
+            "choirDownload": "Descargar tu coro viene con Plus. Escucharlo y compartirlo siguen siendo gratis.",
             "groupStart": "Los grupos de coro vienen con Plus. Todas las personas que invites se unen gratis.",
             "storageLimit": "Tu almacenamiento está casi lleno. Plus tiene 50 GB.",
             "inviteFriend": "Cantar tu canción con amigos viene con Plus. Todas las personas que invites se unen gratis.",
@@ -2998,8 +2999,7 @@
             "pending": "Confirmando tu pago..."
         },
         "notice": {
-            "paymentFailed": "Actualiza tu tarjeta antes del {date} para mantener Plus.",
-            "cardHadTrial": "Esta tarjeta ya tuvo una prueba gratis, así que esa prueba se canceló sin cobrarte nada. Puedes suscribirte sin la prueba."
+            "paymentFailed": "Actualiza tu tarjeta antes del {date} para mantener Plus."
         },
         "price": "El precio",
         "billing": "Cada cuánto pagar",
@@ -3008,9 +3008,7 @@
         "perMonthYearly": "{price} al mes, en un pago anual",
         "currency": "Pagar en",
         "taxIncluded": "Impuestos incluidos.",
-        "startTrial": "Empieza tu prueba gratis de {days} días",
         "subscribe": "Hazte Plus",
-        "smallTrial": "Gratis durante {days} días; después se te cobra hasta que canceles. La página de pago muestra el precio con impuestos y la fecha en que termina tu prueba antes de que pagues nada.",
         "launchPrice": "Precio de lanzamiento: se mantiene mientras sigas con la suscripción.",
         "compare": "Gratis y Plus, frente a frente",
         "what": "Qué incluye",
@@ -3056,7 +3054,6 @@
         "notLoaded": "No se pudieron cargar los precios ahora. Vuelve a intentarlo en un momento.",
         "verifyFirst": "Primero confirma tu correo: el enlace está en tu bandeja de entrada.",
         "alreadyPlus": "Ya tienes Plus.",
-        "trialUsed": "Esta cuenta ya tuvo su prueba gratis. Puedes suscribirte sin ella.",
         "paused": "Plus aún no está disponible. Vuelve a intentarlo pronto.",
         "failed": "No se pudo abrir la página de pago ahora. Vuelve a intentarlo en un momento.",
         "pendingHint": "Tarda un momento después del pago. La página se actualiza sola cuando termina.",
@@ -3183,6 +3180,7 @@
             "noTakes": "Graba primero una voz: aún no hay nada que escuchar.",
             "mismatch": "La mezcla no coincidía con las grabaciones. Vuelve a intentarlo.",
             "paused": "Compartir está en pausa durante un rato. Tus enlaces anteriores siguen funcionando.",
+            "busy": "Tus últimos envíos aún se están mezclando. Vuelve a intentarlo en {wait}.",
             "limit": "Hoy has compartido mucho. Vuelve a intentarlo mañana.",
             "failed": "No se pudo procesar la mezcla. Vuelve a intentarlo.",
             "unavailable": "Esta armonía no se puede compartir.",

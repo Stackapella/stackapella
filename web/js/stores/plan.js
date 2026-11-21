@@ -53,8 +53,8 @@ export function guessCurrency(language = navigator.language, zone = Intl.DateTim
  * Starts Checkout from an upgrade `moment` (counted on the server, never in the browser) and opens
  * Stripe's page. Resolves with nothing (the page is left), or throws the refusal.
  */
-export async function checkout({ interval, currency, trial, moment }) {
-    const { data } = await api.billing.checkout({ interval, currency, trial: !!trial, moment });
+export async function checkout({ interval, currency, moment }) {
+    const { data } = await api.billing.checkout({ interval, currency, moment });
     openStripe(data.url);
 }
 

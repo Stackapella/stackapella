@@ -21,6 +21,10 @@ return [
 
     'alert_every_hours' => 6,
 
+    // Sign-in links and verification emails across everyone in an hour: past this, shield mode turns on by itself
+    // and the admins are told once (App\Support\Trust\AuthEmails). Real sign-ups are a few an hour.
+    'auth_emails_an_hour' => 300,
+
     // Slow queries are logged (docs/performance.md): one query at or over `query_ms`, and a
     // request's or a job's queries adding up to `total_ms`. Only the SQL is logged, never its values.
     'slow' => [

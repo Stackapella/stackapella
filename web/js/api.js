@@ -1160,7 +1160,8 @@ export const api = {
     billing: {
         prices: () => call('billing.prices'),
         show: () => call('billing.show'),
-        checkout: ({ interval, currency, trial = false, moment = 'settings' }) => call('billing.checkout', { body: { interval, currency, trial, moment } }),
+        // No free trial (Hillel, 2026-11-21): the body never asks for one, so every Checkout from this app starts paid.
+        checkout: ({ interval, currency, moment = 'settings' }) => call('billing.checkout', { body: { interval, currency, moment } }),
         portal: () => call('billing.portal'),
     },
     scores: {

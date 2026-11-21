@@ -46,6 +46,12 @@ return [
         ],
         'choose' => 'Choose a replacement: :url',
     ],
+    'auth_emails' => [
+        'subject' => 'Stackapella: shield mode turned on',
+        'title' => 'Shield mode is on',
+        'line' => ':count sign-in and verification emails in the last hour (the line is :limit), so shield mode turned on by itself: the sign-up and sign-in forms now need Turnstile. Turn it off in Admin, Switches, once it has passed.',
+    ],
+
     'alerts' => [
         'subject' => 'Stackapella: :count alerts',
         'title' => 'Over the line',

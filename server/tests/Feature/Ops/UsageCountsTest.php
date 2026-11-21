@@ -145,7 +145,8 @@ final class UsageCountsTest extends TestCase
         $this->assertSame('reddit-judaism', RecordCounts::source('reddit-judaism'));
         $this->assertSame('reddit-judaism', RecordCounts::source(' Reddit-Judaism '));
         $this->assertSame('reddit', RecordCounts::source('reddit'));
-        $this->assertSame('reddit-'.str_repeat('a', 24), RecordCounts::source('reddit-'.str_repeat('a', 24)));
+        // Well formed, but not a subreddit we post in (config counts.reddit): one bucket, so nobody mints sources.
+        $this->assertSame('reddit-other', RecordCounts::source('reddit-'.str_repeat('a', 24)));
         $this->assertSame('other', RecordCounts::source('reddit-'.str_repeat('a', 25)), 'too long');
         $this->assertSame('other', RecordCounts::source('reddit-'), 'no subreddit');
         $this->assertSame('other', RecordCounts::source('reddit-ju_daism'), 'a character outside the tag');

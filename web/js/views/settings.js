@@ -8,7 +8,7 @@ import { lazyComponent, setGlobal } from '../game/modules.js';
 import { api, ApiError } from '../api.js';
 import { langCookie } from '../public/lang-menu.js';
 import { loadCatalogue } from '../stores/catalogue.js';
-import { chooseLanguage, coverage, formatDate, locale, t, tk } from '../i18n.js';
+import { chooseLanguage, coverage, formatDate, formatWait, locale, t, tk } from '../i18n.js';
 import { chooseNaming, naming, NAMINGS, namingSample, noteNames } from '../note-names.js';
 import { navigate } from '../router.js';
 import { account, loadAccount, loadAuthConfig, providerSignIn, selfHosted, signOut } from '../stores/account.js';
@@ -73,7 +73,8 @@ function refusalText(error) {
     if (error.code === 'recent_sign_in_required') return t('settings.signInAgainFirst');
     if (error.code === 'last_method') return t('settings.methods.last');
     if (error.code === 'offline') return t('common.offline');
-    if (error.code === 'rate_limited') return t('auth.error.wait');
+    // A limit with its wait (a new name or a hidden profile: ten a day) says how long; else a moment.
+    if (error.code === 'rate_limited') return error.retryAfter ? t('auth.error.waitFor', { wait: formatWait(error.retryAfter) }) : t('auth.error.wait');
     return t('settings.failed');
 }
 

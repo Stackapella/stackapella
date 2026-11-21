@@ -51,7 +51,8 @@ final class SaveProject
 
                     // No plan limits projects since 2026-11-07 (storage is the free plan's limit),
                     // but an install may set one (config usage.plans.*.projects).
-                    if (! $this->plans->mayAddProject($user)) {
+                    // And a backstop for everyone (the CPU review): usage.max_projects, the bin included.
+                    if (! $this->plans->mayAddProject($user) || Project::query()->where('user_id', $user->id)->count() >= (int) config('usage.max_projects')) {
                         throw new Refusal(403, 'project_limit');
                     }
 

@@ -22,6 +22,7 @@ use App\Support\Moderation\TextFilter;
 use App\Support\Storage\Uploads;
 use App\Support\Templates\Imported;
 use App\Support\Trust\TrustLevel;
+use App\Support\Usage\InFlight;
 use App\Support\Usage\Plans;
 use App\Support\Usage\UploadBytes;
 use DateTimeInterface;
@@ -117,6 +118,7 @@ final class StartHarmony
 
         // Every presigned upload counts toward the day's bytes (the abuse review).
         $this->uploadBytes->count($user, $data['bytes']);
+        InFlight::ensure($user, Harmony::class);
 
         $version = $project->template_slug !== null
             ? TemplateVersion::query()->whereHas('template', fn ($query) => $query->where('slug', $project->template_slug))->where('version', $project->template_version)->first()

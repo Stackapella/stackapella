@@ -342,6 +342,8 @@ async function stateful(operation, params, body, cases, query = {}) {
             ? { ...shown, consent: null, voice: null, requests: [], quota: { ...shown.quota, freeLeft: 1, plus: false } }
             : { ...shown, requests: shown.requests.map((r) => ({ ...r, parts: r.parts.map(local) })) });
         const choir = state.ownChoir;
+        // Download is Plus's (the server decides; Hillel, 2026-11-21): here, the Plus account (`as=plus`) only.
+        for (const r of choir.requests) r.canDownload = as === 'plus';
         const save = (answer) => {
             tabStorage.set('stackapella.mockChoir', JSON.stringify(state.ownChoir));
             return answer;
@@ -374,7 +376,7 @@ async function stateful(operation, params, body, cases, query = {}) {
             if (!body?.sha256 && !choir.voice) return caseFor('voice_required');
             if (choir.requests.some((r) => ['uploading', 'queued', 'rendering'].includes(r.status))) return caseFor('request_open');
             const listed = (await example('templates.catalogue.200.json')).data.find((song) => song.id === body.templateId);
-            const request = { id: `Rq${choir.requests.length + 7}x`, templateId: body.templateId, title: listed?.title ?? body.templateId, version: listed?.version ?? 1, status: 'uploading', failure: null, createdAt: now, readyAt: null, seen: false, parts: [] };
+            const request = { id: `Rq${choir.requests.length + 7}x`, templateId: body.templateId, title: listed?.title ?? body.templateId, version: listed?.version ?? 1, status: 'uploading', failure: null, createdAt: now, readyAt: null, seen: false, canDownload: as === 'plus', parts: [] };
             choir.requests.unshift(request);
             globalThis.mockChoirClip = body; // what was sent, for the flows
             // From the saved voice ({ templateId } alone): queued at once, nothing to upload.

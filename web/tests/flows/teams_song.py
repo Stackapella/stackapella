@@ -77,17 +77,18 @@ def journey(f):
 
     # Switch on, a free account, nobody singing in it yet (Hillel, 2026-11-15: "in the studio if you click invite singers
     # you should need to start a trial to be able to add someone to a song"): Invite singers is the Plus sheet at once,
-    # with the price and the trial, no invite form behind it; Escape closes it; its trial leads to Plus and back here.
+    # with the price (never a free trial, Hillel 2026-11-21), no invite form behind it; Escape closes it; Get Plus leads
+    # to Plus and back here.
     open_studio(f, own, teams=True)
     f.run("const { api } = await import('/js/api.js'); api.projects.members.list = async () => ({ data: [{ id: 'me', name: 'Kim Ode', role: 'owner' }] });"
           " api.billing.show = async () => ({ data: { plan: 'free', trial: { days: 7, intervals: ['year'] } } }); (await import('/js/stores/plan.js')).plan.billing = null;")
     press_invite(f)
     f.wait(MOMENT, what="the Plus sheet, first")
-    f.wait(f"{MOMENT}.querySelector('[data-plus-price]') && {MOMENT}.querySelector('[data-plus-trial]')", what="the price and the trial")
+    f.wait(f"{MOMENT}.querySelector('[data-plus-price]')", what="the price")
     words = f.js(f"{MOMENT}.innerText")
     assert t(f, "together.invite.plusText") in words, f"not the invite sheet's words: {words}"
     assert "$39.99" in words and "$4.99" in words, f"no price: {words}"
-    assert t(f, "plus.startTrial", {"days": 7}) in words, f"no trial button: {words}"
+    assert t(f, "plus.subscribe") in words and "trial" not in words.lower(), f"not Get Plus, or a trial: {words}"
     assert f.js(f"{MOMENT}.querySelectorAll('.btn-primary').length") == 1, "one primary"
     assert not f.js("!!document.querySelector('[role=dialog] form')"), "the invite form behind the Plus sheet"
     assert f.js(f"!!{MOMENT}.closest('[role=dialog]')?.getAttribute('aria-labelledby') || !!{MOMENT}.closest('[role=dialog]')?.getAttribute('aria-label')"), "the sheet has no name"

@@ -10,6 +10,7 @@ use App\Models\EmailToken;
 use App\Models\User;
 use App\Support\Accounts\AddressLimits;
 use App\Support\Accounts\EmailTokens;
+use App\Support\Trust\AuthEmails;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
@@ -36,5 +37,6 @@ final class ResendVerification
         // holds, so a link asked for without it starts the account fresh. Never unbound.
         $bound = $browserHash ?? hash('sha256', Str::random(48));
         Mail::to((string) $user->email)->locale($user->preferredLocale())->send(new VerifyEmailAddress($this->tokens->issue($user, EmailToken::VERIFY, (string) $user->email, 24, browserHash: $bound), $user->name, $doneLessons));
+        AuthEmails::sent();
     }
 }

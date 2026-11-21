@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Users;
 
+use App\Exceptions\Refusal;
 use App\Jobs\RedrawPersonsCards;
 use App\Models\HandleHold;
 use App\Models\Harmony;
@@ -12,8 +13,10 @@ use App\Support\Accounts\Age;
 use App\Support\Gallery\Gallery;
 use App\Support\Push\AppPushes;
 use App\Support\Sharing\HarmonyFiles;
+use App\Support\Trust\Limits;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -37,6 +40,18 @@ final class UpdateProfile
                 $value = $changes[$from];
                 $fields[$to] = is_string($value) ? trim($value) : $value;
             }
+        }
+
+        // A new name, or the profile hidden or shown: each redraws every card that names them, so about ten a day
+        // (the CPU review, config limits profile-changes), counted once saved.
+        $redraws = (array_key_exists('name', $fields) && $fields['name'] !== $user->name)
+            || (array_key_exists('hide_profile', $fields) && (bool) $fields['hide_profile'] !== (bool) $user->hide_profile);
+        $limitKey = 'profile-changes:u'.$user->id;
+
+        if ($redraws && RateLimiter::tooManyAttempts($limitKey, app(Limits::class)->max('profile-changes', 'account'))) {
+            $wait = max(1, RateLimiter::availableIn($limitKey));
+
+            throw new Refusal(429, 'rate_limited', ['retryAfter' => $wait], ['Retry-After' => (string) $wait]);
         }
 
         // A public profile (the gallery, N1): 18 or over, with a handle (this change's or theirs).
@@ -135,6 +150,7 @@ final class UpdateProfile
 
         // Hidden, shown again or renamed: the share cards that name them are drawn again.
         if ($user->wasChanged(['hide_profile', 'name'])) {
+            RateLimiter::hit($limitKey, 86400);
             RedrawPersonsCards::dispatch($user->id);
         }
 
