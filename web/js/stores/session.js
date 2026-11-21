@@ -1773,6 +1773,27 @@ export async function renderMix({ chords = false, room = null, track = null, onl
     return clicked;
 }
 
+/**
+ * Renders with some guides' audio swapped in for one file, then puts what plays back: a choir's full-quality parts for
+ * its Download (Plus; the studio plays the lighter listening copy). `voices`: the template part key -> { samples,
+ * sampleRate }; only guides made from the singer's own voice are swapped.
+ */
+export async function withChoirAudio(voices, render) {
+    const swapped = [];
+    for (const part of session.parts) {
+        const voice = session.guideVoices[part.id]?.choir ? voices.get(part.templatePartKey) : null;
+        const entry = voice && engine.parts.get(`${part.id}:guide`);
+        if (!entry) continue;
+        swapped.push([entry, entry.buffer]);
+        entry.buffer = engine.toBuffer(voice.samples, voice.sampleRate);
+    }
+    try {
+        return await render();
+    } finally {
+        for (const [entry, buffer] of swapped) entry.buffer = buffer;
+    }
+}
+
 /** Just one part's take heard (Share just my part): every other voice silent. */
 function onlyTake(all, partId) {
     return new Map([...all].map(([id, level]) => [id, id === partId ? { ...level, audible: true } : { ...level, audible: false }]));

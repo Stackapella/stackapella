@@ -79,9 +79,14 @@
             "enum": [
                 "free",
                 "month",
-                "day"
+                "day",
+                "minutes"
             ],
-            "description": "quota_reached (ownChoir.requests.create): which limit was reached."
+            "description": "quota_reached (ownChoir.requests.create): which limit was reached; `minutes` when the song needs more part-minutes than are left this month (`needed`)."
+        },
+        "needed": {
+            "type": "number",
+            "description": "quota_reached with which `minutes`: the part-minutes this song needs (each part's last note's end, summed)."
         }
     }
 }

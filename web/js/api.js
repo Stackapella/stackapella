@@ -40,6 +40,7 @@ export const OPERATIONS = {
     'ownChoir.requests.create': ['POST', '/api/own-choir/requests'],
     'ownChoir.requests.complete': ['POST', '/api/own-choir/requests/{id}/complete'],
     'ownChoir.requests.seen': ['POST', '/api/own-choir/requests/{id}/seen'],
+    'ownChoir.requests.download': ['GET', '/api/own-choir/requests/{id}/download'],
     'ownChoir.requests.delete': ['DELETE', '/api/own-choir/requests/{id}'],
     'ownChoir.delete': ['DELETE', '/api/own-choir'],
     'ownChoir.voice.delete': ['DELETE', '/api/own-choir/voice'],
@@ -1190,6 +1191,8 @@ export const api = {
             create: (clip) => call('ownChoir.requests.create', { body: clip }),
             complete: (id) => call('ownChoir.requests.complete', { params: { id } }),
             seen: (id) => call('ownChoir.requests.seen', { params: { id } }),
+            // Download's full-quality parts (Plus): `403 plus_required` otherwise.
+            download: (id) => call('ownChoir.requests.download', { params: { id } }),
             delete: (id) => call('ownChoir.requests.delete', { params: { id } }),
         },
     },

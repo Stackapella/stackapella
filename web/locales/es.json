@@ -5689,7 +5689,10 @@
             "left": "{n, plural, one {Te queda # este mes} other {Te quedan # este mes}}",
             "month": "Ya hiciste los coros de este mes. Más el mes que viene, o con Plus.",
             "day": "Esos son los coros de hoy. Inténtalo mañana.",
-            "free_used": "Ya hiciste tu coro gratis. Más con Plus."
+            "free_used": "Ya hiciste tu coro gratis. Más con Plus.",
+            "minutesLeft": "Te quedan {minutes} minutos de canto este mes: {songs, plural, =0 {no llega para esta canción} one {más o menos 1 canción como esta} other {más o menos # canciones como esta}}.",
+            "minutesOnly": "Te quedan {minutes} minutos de canto este mes.",
+            "minutes": "Esta canción necesita unos {needed} minutos de canto, y te quedan {left} hasta el {date}."
         },
         "delete": {
             "button": "Borra este coro",
@@ -5738,6 +5741,22 @@
         "off": {
             "signedOut": "Inicia sesión para oírte como un coro.",
             "unavailable": "Óyete como un coro no está abierto para ti ahora."
+        },
+        "busy": {
+            "today": "Hoy tenemos mucho trabajo: lo que pidas ahora lo haremos mañana.",
+            "tomorrow": "Hoy tenemos mucho trabajo, así que lo haremos mañana."
+        },
+        "email": {
+            "title": "Primero confirma tu correo",
+            "body": "Tu coro gratis necesita un correo confirmado. Te enviaremos un enlace: ábrelo y vuelve aquí.",
+            "send": "Enviar el enlace",
+            "sent": "Enviamos un enlace a {email}. Ábrelo y vuelve aquí.",
+            "again": "Enviarlo otra vez",
+            "needed": "Primero confirma tu correo para hacer tu coro gratis.",
+            "lasting": "Esa dirección de correo es temporal. Cámbiala en Ajustes por una que vayas a conservar y vuelve a intentarlo."
+        },
+        "check": {
+            "failed": "La comprobación rápida no funcionó. Inténtalo otra vez."
         }
     },
     "aiVoice": {

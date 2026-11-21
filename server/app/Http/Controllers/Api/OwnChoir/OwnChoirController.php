@@ -42,9 +42,9 @@ final class OwnChoirController extends Controller
 
     public function store(StartOwnChoirRequest $request, OwnChoirRequests $choir, #[CurrentUser] User $user): JsonResponse
     {
-        /** @var array{templateId: string, partKey?: string|null, offsetFrames?: int|null, sampleRate?: int|null, frames?: int|null, bytes?: int|null, sha256?: string|null} $clip */
+        /** @var array{templateId: string, partKey?: string|null, offsetFrames?: int|null, sampleRate?: int|null, frames?: int|null, bytes?: int|null, sha256?: string|null, turnstileToken?: string|null} $clip */
         $clip = $request->validated();
-        ['request' => $song, 'put' => $put] = $choir->start($user, $clip);
+        ['request' => $song, 'put' => $put] = $choir->start($user, $clip, $request->ip());
 
         return response()->json([
             'data' => OwnChoir::request($song->load(['templateVersion.template', 'parts'])),
@@ -60,6 +60,11 @@ final class OwnChoirController extends Controller
     public function seen(OwnChoirRequest $song, OwnChoirRequests $choir, #[CurrentUser] User $user): JsonResponse
     {
         return response()->json(['data' => OwnChoir::request($choir->seen($user, $song)->load(['templateVersion.template', 'parts']))]);
+    }
+
+    public function download(OwnChoirRequest $song, OwnChoirRequests $choir, #[CurrentUser] User $user): JsonResponse
+    {
+        return response()->json(['data' => ['parts' => $choir->download($user, $song)]]);
     }
 
     public function destroy(OwnChoirRequest $song, OwnChoirRequests $choir, #[CurrentUser] User $user): Response

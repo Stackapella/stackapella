@@ -482,6 +482,7 @@ Route::middleware('auth')->prefix('own-choir')->name('ownChoir.')->group(functio
     Route::post('/requests', [OwnChoirApi::class, 'store'])->middleware(['age', 'throttle:take-uploads', 'paused:uploads'])->name('requests.create');
     Route::post('/requests/{song}/complete', [OwnChoirApi::class, 'complete'])->middleware('paused:uploads')->name('requests.complete');
     Route::post('/requests/{song}/seen', [OwnChoirApi::class, 'seen'])->name('requests.seen');
+    Route::get('/requests/{song}/download', [OwnChoirApi::class, 'download'])->middleware('throttle:take-links')->name('requests.download');
     Route::delete('/requests/{song}', [OwnChoirApi::class, 'destroy'])->name('requests.delete');
     Route::delete('/voice', [OwnChoirApi::class, 'deleteVoice'])->name('voice.delete');
 });

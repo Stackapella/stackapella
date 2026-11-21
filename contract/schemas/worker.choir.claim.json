@@ -24,7 +24,8 @@
                 "data",
                 "clip",
                 "reference",
-                "parts"
+                "parts",
+                "own"
             ],
             "properties": {
                 "id": {
@@ -42,6 +43,10 @@
                 },
                 "title": {
                     "type": "string"
+                },
+                "own": {
+                    "type": "boolean",
+                    "description": "The singer's own song from the creator, not a library one: a gates failure isn't rendered again (finish `gates_failed`, counted as the singer's)."
                 },
                 "data": {
                     "type": "object",

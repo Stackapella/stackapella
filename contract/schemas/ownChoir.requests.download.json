@@ -1,0 +1,53 @@
+{
+    "$id": "ownChoir.requests.download.json",
+    "title": "A made choir song's parts at full quality, for Download (Plus)",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "parts"
+            ],
+            "properties": {
+                "parts": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "partKey",
+                            "url",
+                            "sampleRate",
+                            "frames",
+                            "offsetFrames"
+                        ],
+                        "properties": {
+                            "partKey": {
+                                "type": "string"
+                            },
+                            "url": {
+                                "type": "string",
+                                "format": "uri",
+                                "description": "Full quality, private, for 5 minutes: fetch at once."
+                            },
+                            "sampleRate": {
+                                "type": "integer"
+                            },
+                            "frames": {
+                                "type": "integer"
+                            },
+                            "offsetFrames": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

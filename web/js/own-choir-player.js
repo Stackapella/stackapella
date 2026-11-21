@@ -3,7 +3,7 @@
 // audio clock (review-mix.js's way), and mixed on the device into one WAV to download, its name saying AI.
 
 import { engine, unlock } from './audio.js';
-import { guideKey, loadRecordedGuide } from './recorded-guides.js';
+import { guideKey, loadRecordedGuide, trimDecoded } from './recorded-guides.js';
 import { encodeWav } from './wav.js';
 
 const RATE = 48000; // every part decoded at one rate, so the download mixes them sample for sample
@@ -16,6 +16,19 @@ export async function loadChoir(request) {
     for (const part of request.parts) {
         const voice = await loadRecordedGuide({ ...part, choir: true }, { key: guideKey(request.templateId, request.version, part.partKey, part.id), sampleRate: RATE, decode: (bytes) => decoder.decodeAudioData(bytes) });
         voices.push({ partKey: part.partKey, ...voice });
+    }
+    return voices;
+}
+
+/** Download's full-quality parts, fetched for this one file and never kept (the device keeps the listening copy). */
+export async function loadChoirFull(request) {
+    const decoder = new OfflineAudioContext(1, 1, RATE);
+    const voices = [];
+    for (const part of request.parts) {
+        const response = await fetch(part.url, { mode: 'cors', credentials: 'omit' });
+        if (!response.ok) throw new Error(`The choir part answered ${response.status}`);
+        const buffer = await decoder.decodeAudioData(await response.arrayBuffer());
+        voices.push({ partKey: part.partKey, ...trimDecoded(buffer.getChannelData(0), part, RATE) });
     }
     return voices;
 }

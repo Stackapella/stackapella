@@ -22,3 +22,23 @@ test('own choir: a take that started after beat 0 has no beat 0 in it', () => {
     assert(late.offsetFrames === null, `${late.offsetFrames}`);
     assert(late.frames === 20 * RATE, 'all of it, from its start');
 });
+
+// Part-minutes as the server counts them (its `needed`): each part's last note end, in minutes at the tempo, summed.
+test('own choir: part-minutes sum each part’s own end, and songs left round down', async () => {
+    const { partMinutes, songsLeft } = await import('/js/own-choir.js');
+    const song = { tempo: 60, parts: [{ guide: { notes: [{ beat: 0, length: 30 }, { beat: 30, length: 30 }] } }, { guide: { notes: [{ beat: 0, length: 90 }] } }, { guide: { notes: [] } }] };
+    assert(Math.abs(partMinutes(song) - 2.5) < 1e-9, `1 + 1.5 minutes: ${partMinutes(song)}`);
+    assert(songsLeft({ unit: 'minutes', minutesLeft: 12 }, song) === 4, 'about 4 songs in 12 minutes');
+    assert(songsLeft({ unit: 'songs', monthLeft: 2 }, song) === null, 'not counted in minutes');
+    assert(partMinutes({ parts: [] }) === 0 && songsLeft({ unit: 'minutes', minutesLeft: 5 }, { tempo: 60, parts: [] }) === null, 'nothing to count');
+});
+
+test('own choir: each refusal from making a song has its own words', async () => {
+    const { choirRefusal } = await import('/js/own-choir.js');
+    const { t } = await import('/js/i18n.js');
+    assert(choirRefusal({ code: 'email_unverified' }) === t('ownChoir.email.needed'), 'unconfirmed email');
+    assert(choirRefusal({ code: 'validation_failed', errors: { email: ['A lasting address, please.'] } }) === t('ownChoir.email.lasting'), 'a throwaway address');
+    assert(choirRefusal({ code: 'turnstile_failed' }) === t('ownChoir.check.failed') && choirRefusal({ code: 'turnstile_required' }) === t('ownChoir.check.failed'), 'the check');
+    assert(choirRefusal({ code: 'validation_failed', errors: { frames: ['A clip is 5 to 30 seconds.'] } }) === t('ownChoir.record.failed'), 'anything else: it didn’t work');
+    assert(choirRefusal({ code: 'quota_reached', body: { which: 'day' } }) === t('ownChoir.limit.day'), 'today’s');
+});

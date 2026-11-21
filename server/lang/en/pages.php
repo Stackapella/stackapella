@@ -1030,6 +1030,8 @@ return [
         'private_row' => ['Sharing a private arrangement with other singers', 'No', 'Yes, with Plus for each singer'],
         // Hear yourself as a choir's download, while own_choir is on (Hillel, 2026-11-21: "if they want to download it they need to subscribe to plus").
         'choir_row' => ['Download a song in your own voice', 'No', 'Yes'],
+        // How many songs in your own voice (Hillel delegated, 2026-11-21: 60 minutes a month with Plus, one free song per email).
+        'choir_songs_row' => ['Songs in your own voice', 'Your first one', 'About 15 a month'],
         'faq_private' => ['Can I share a private arrangement?', 'Yes, with Plus. Once a private arrangement has a link or other singers on it, everyone in it needs their own Plus, you too. On your own, one private arrangement stays free. Choir groups are covered by their leader\'s Plus, and finished mixes and videos stay free to hear.'],
         // Once Stackapella is open source (the open_source flag).
         'faq_selfhost' => ['Can I run it myself?', 'Yes. Stackapella is open source, so you can run it on your own server with every Plus feature, free. Most singers don\'t need to: stackapella.com is free to start.'],

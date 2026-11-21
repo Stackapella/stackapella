@@ -1,0 +1,9 @@
+{
+    "message": "The paused field must be one of daily_ceiling, monthly_ceiling.",
+    "code": "validation_failed",
+    "errors": {
+        "paused": [
+            "The selected paused is invalid."
+        ]
+    }
+}

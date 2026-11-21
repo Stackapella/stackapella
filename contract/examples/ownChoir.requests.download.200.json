@@ -1,0 +1,13 @@
+{
+    "data": {
+        "parts": [
+            {
+                "partKey": "alto",
+                "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/choir/parts/aaaaaaaa.m4a?X-Amz-Expires=300",
+                "sampleRate": 48000,
+                "frames": 9600000,
+                "offsetFrames": 0
+            }
+        ]
+    }
+}

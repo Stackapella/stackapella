@@ -75,7 +75,7 @@ final class Ffmpeg
      * @param  list<array{0: float, 1: float}>  $mutes  spans of the guide's own seconds to silence (a
      *                                                  breath a later version added), each with 15 ms ramps
      */
-    public function encodeGuide(string $in, string $out, int $sampleRate, int $from, int $to, float $gainDb, int $fadeMs = 10, array $mutes = []): void
+    public function encodeGuide(string $in, string $out, int $sampleRate, int $from, int $to, float $gainDb, int $fadeMs = 10, array $mutes = [], ?int $kbps = null): void
     {
         $length = max(1, $to - $from);
         $fade = round(min($fadeMs / 1000, $length / $sampleRate / 4), 4);
@@ -92,7 +92,7 @@ final class Ffmpeg
             'volume='.round($gainDb, 2).'dB',
         ]);
 
-        $result = Process::timeout(200)->run(['ffmpeg', '-hide_banner', '-nostats', '-y', ...self::LOCAL_IN, '-i', $in, '-af', $filter, '-c:a', 'aac', '-b:a', ((int) config('beta.guide_kbps') ?: 128).'k', '-ar', (string) $sampleRate, '-ac', '1', '-movflags', '+faststart', '-f', 'mp4', $out]);
+        $result = Process::timeout(200)->run(['ffmpeg', '-hide_banner', '-nostats', '-y', ...self::LOCAL_IN, '-i', $in, '-af', $filter, '-c:a', 'aac', '-b:a', ($kbps ?? ((int) config('beta.guide_kbps') ?: 128)).'k', '-ar', (string) $sampleRate, '-ac', '1', '-movflags', '+faststart', '-f', 'mp4', $out]);
 
         if (! $result->successful() || ! is_file($out)) {
             throw new RuntimeException('ffmpeg could not make the guide: '.mb_strimwidth($result->errorOutput(), 0, 500, '...'));

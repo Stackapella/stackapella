@@ -38,6 +38,15 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $claimed_at
  * @property string|null $claim_token
  * @property int $tries
+ * @property float $part_minutes what it costs: each part's length in minutes, summed (OwnChoir::partMinutes)
+ * @property float $gpu_seconds GPU time its claims spent, summed (each claim's largest report)
+ * @property float $claim_gpu_seconds the current claim's largest report so far
+ * @property bool $own the singer's own song from the creator
+ * @property int $priority who's rendered first (1: paid Plus)
+ * @property Carbon|null $starts_after a busy day's song waits until then
+ * @property Carbon|null $claim_started_at when the current claim began (never kept past own_choir.claim_limit_minutes)
+ * @property Carbon|null $first_claimed_at when it first reached the renderer (the windows count from it)
+ * @property string|null $email_key the free song's email, as a keyed hash (OwnChoir::emailKey)
  * @property Carbon|null $ready_at
  * @property Carbon|null $seen_at
  * @property Carbon|null $created_at
@@ -69,6 +78,14 @@ final class OwnChoirRequest extends Model
             'frames' => 'integer',
             'bytes' => 'integer',
             'tries' => 'integer',
+            'part_minutes' => 'float',
+            'gpu_seconds' => 'float',
+            'claim_gpu_seconds' => 'float',
+            'own' => 'boolean',
+            'priority' => 'integer',
+            'starts_after' => 'datetime',
+            'claim_started_at' => 'datetime',
+            'first_claimed_at' => 'datetime',
             'clip_checked_at' => 'datetime',
             'claimed_at' => 'datetime',
             'ready_at' => 'datetime',

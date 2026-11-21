@@ -21,7 +21,7 @@ import * as sessionStore from '../stores/session.js';
 import { account } from '../stores/account.js';
 import { claimInvitation, countVoice, later, needsVoice, saidLater, usableTake, voiceAskOpen } from '../be-the-voice.js';
 import { aiCredit, aiCtaOpen } from '../ai-voices.js';
-import { ownChoirOn, sendClip } from '../own-choir.js';
+import { checkKey, choirRefusal, ownChoirOn, sendClip } from '../own-choir.js';
 import { aiPartsOf } from '../stores/catalogue.js';
 import { sendVoiceTake } from '../voice-take.js';
 import { signUpFor } from '../components/account-wall.js';
@@ -468,7 +468,7 @@ export const SingView = {
         choirTake() {
             const part = this.recorded?.part;
             if (!this.project?.choir || this.project.choir.requestId || !part?.templatePartKey || !ownChoirOn()) return null;
-            return { seconds: (part.frames || 0) / (part.sampleRate || 48000), busy: this.choirSending, error: this.choirError };
+            return { seconds: (part.frames || 0) / (part.sampleRate || 48000), busy: this.choirSending, error: this.choirError, siteKey: checkKey() };
         },
         /** The part Be the voice's sheet is for: the review's, or the one a sign-up came back to (?voice=<partId>). */
         voicePart() {
@@ -1044,14 +1044,14 @@ export const SingView = {
          * Make my choir: the take's first 30 seconds from the song's start go as this song's clip (js/own-choir.js); the
          * project remembers the request, and the choir page says what happens next. A refusal is said on the card.
          */
-        async makeChoir() {
+        async makeChoir(turnstileToken = null) {
             const part = this.recorded?.part;
             const samples = part && sessionStore.takeOf(part);
             if (!samples || this.choirSending) return;
             this.choirSending = true;
             this.choirError = '';
             try {
-                const request = await sendClip({ templateId: this.project.template.id, partKey: part.templatePartKey, samples, sampleRate: part.sampleRate, startSeconds: part.offsetSeconds + (part.nudgeSeconds || 0) });
+                const request = await sendClip({ templateId: this.project.template.id, partKey: part.templatePartKey, samples, sampleRate: part.sampleRate, startSeconds: part.offsetSeconds + (part.nudgeSeconds || 0), turnstileToken });
                 this.project.choir = { ...this.project.choir, requestId: request.id };
                 await sessionStore.persist(async () => {});
                 // The take was only for making the choir (the server keeps only the voice made from it): it isn't kept here
@@ -1061,10 +1061,8 @@ export const SingView = {
                 navigate(`/t/${encodeURIComponent(this.project.template.id)}/choir`);
             } catch (error) {
                 console.warn('The choir clip did not send', error);
-                const which = error?.body?.which;
-                const quota = which === 'day' ? t('ownChoir.limit.day') : which === 'free' ? t('ownChoir.limit.free_used') : t('ownChoir.limit.month');
                 // One of their own songs not in the account yet answers not_found: it's still saving.
-                this.choirError = error?.code === 'quota_reached' ? quota : error?.code === 'request_open' ? t('ownChoir.open') : error?.code === 'not_found' ? t('ownChoir.songs.notSaved') : error?.code === 'song_too_long' ? t('ownChoir.songs.tooLong') : t('ownChoir.record.failed');
+                this.choirError = choirRefusal(error, { own: true });
             } finally {
                 this.choirSending = false;
             }

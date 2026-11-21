@@ -1600,5 +1600,8 @@
     "Until a real singer records a part, it may have an AI voice for now, always marked as AI. [About AI voices](/about/ai-voices)": "Hasta que una persona real grabe una parte, puede tener una voz de IA por ahora, siempre marcada como IA. [Sobre las voces de IA](/about/ai-voices)",
     ":part: AI voice based on :name's singing": ":part: voz de IA basada en el canto de :name",
     ":part: AI voice, made from :name's singing": ":part: voz de IA, hecha con el canto de :name",
-    "Download a song in your own voice": "Descargar una canción con tu propia voz"
+    "Download a song in your own voice": "Descargar una canción con tu propia voz",
+    "Songs in your own voice": "Canciones con tu propia voz",
+    "Your first one": "Tu primera",
+    "About 15 a month": "Unas 15 al mes"
 }

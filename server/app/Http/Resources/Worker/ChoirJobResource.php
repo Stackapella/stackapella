@@ -34,6 +34,8 @@ final class ChoirJobResource extends JsonResource
             'template' => (string) $version->template->slug,
             'version' => $version->version,
             'title' => (string) $version->template->title,
+            // The singer's own song: no gates re-render (the GPU review).
+            'own' => $this->resource->own,
             'data' => (object) (array) $version->data,
             'clip' => $job->from_voice ? null : [
                 'url' => Storage::disk('private')->temporaryUrl((string) $job->clip_key, now()->addMinutes(30)),

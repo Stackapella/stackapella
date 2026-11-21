@@ -46,6 +46,8 @@ final class StartOwnChoirRequest extends FormRequest
                 }
             }],
             'sha256' => ['required_with:sampleRate', 'string', 'regex:/^[0-9a-fA-F]{64}$/'],
+            // Turnstile before a person's first song (OwnChoir::checkNeeded): optional, sent only then.
+            'turnstileToken' => ['sometimes', 'nullable', 'string', 'max:4096'],
         ];
     }
 }

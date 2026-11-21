@@ -234,6 +234,7 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `ownChoir.requests.create` | `POST /api/own-choir/requests` | Anyone signed in | Own choir |
 | `ownChoir.requests.complete` | `POST /api/own-choir/requests/{id}/complete` | Anyone signed in, their own | Own choir |
 | `ownChoir.requests.seen` | `POST /api/own-choir/requests/{id}/seen` | Anyone signed in, their own | Own choir |
+| `ownChoir.requests.download` | `GET /api/own-choir/requests/{id}/download` | Anyone signed in, their own, with Plus | Own choir |
 | `ownChoir.requests.delete` | `DELETE /api/own-choir/requests/{id}` | Anyone signed in, their own | Own choir |
 | `ownChoir.delete` | `DELETE /api/own-choir` | Anyone signed in | Own choir |
 | `ownChoir.voice.delete` | `DELETE /api/own-choir/voice` | Anyone signed in | Own choir |
@@ -7518,10 +7519,26 @@ they sang along to; `offsetFrames` the clip frame where the song's beat 0 falls 
 consent_required`; `403 quota_reached` with `which` (`free`, `month` or `day`); `403 account_required` for a song they
 can't start; `409 request_open`: one song at a time; `404 not_found`: no such song or part.
 
+**What it costs (the GPU review, 2026-11-21):** a song costs its part-minutes (each part's last note's end, beat 0 to
+it, at the song's tempo, summed over its parts), counted once it reaches the renderer, whatever happens after. Paid
+Plus (Stripe, the stores, an invoice) has `own_choir.plus_minutes` part-minutes per 30 days (60 until Hillel sets it):
+`403 quota_reached` with `which: "minutes"` and `needed` when the song needs more than is left. Plus not paid for (a
+trial, a school code, a coach, a grant) has `own_choir.comped_songs` songs per 30 days (3), `which: "month"`; everyone
+else the one free song, `which: "free"`, counted per email address (dots and `+tags` don't make a new one). An own song
+is at most `own_choir.max_total_seconds` of singing across its parts (1200, `409 song_too_long`). **The free song needs a
+confirmed email** (`403 email_unverified`) from a lasting address (a throwaway one is `422 validation_failed` on
+`email`, Settings changes it), and Turnstile before a person's first song when the state's `checkNeeded` is true
+(`turnstileToken`, optional otherwise; `403 turnstile_required`, `403 turnstile_failed`). **On a busy day** (renders
+across everyone at `own_choir.daily_part_minutes`) the request is still made, `queued`, with `startsAfter` tomorrow, and
+the state's `busyToday` says so first; paid Plus is rendered first.
+
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 201 |  | `ownChoir.requests.create.json` | `ownChoir.requests.create.201.json` |
 | 403 | `consent_required` | `error.json` | `ownChoir.requests.create.consent_required.json` |
+| 403 | `email_unverified` | `error.json` | `ownChoir.requests.create.email_unverified.json` |
+| 403 | `turnstile_required` | `error.json` | `ownChoir.requests.create.turnstile_required.json` |
+| 403 | `turnstile_failed` | `error.json` | `ownChoir.requests.create.turnstile_failed.json` |
 | 403 | `quota_reached` | `error.json` | `ownChoir.requests.create.quota_reached.json` |
 | 403 | `account_required` | `error.json` | `ownChoir.requests.create.account_required.json` |
 | 404 | `not_found` | `error.json` | `ownChoir.requests.create.not_found.json` |
@@ -7551,6 +7568,19 @@ They opened a ready song: the notice goes. **Request:** none.
 |---|---|---|---|
 | 200 |  | `ownChoir.request.json` | `ownChoir.requests.seen.200.json` |
 | 404 | `not_found` | `error.json` | `ownChoir.requests.seen.not_found.json` |
+
+#### `ownChoir.requests.download`
+
+A made song's parts at full quality, for Download (the app mixes the WAV from them): Plus only, as `canDownload` says
+(`403 plus_required`). The parts the state lists (`parts[].url`) are a listening copy since 2026-11-21 (the billing
+review: 64 kbps mono AAC), so Download is a lock on bytes, not only a button. Each link lasts 5 minutes: fetch at once.
+**Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `ownChoir.requests.download.json` | `ownChoir.requests.download.200.json` |
+| 403 | `plus_required` | `error.json` | `ownChoir.requests.download.plus_required.json` |
+| 404 | `not_found` | `error.json` | `ownChoir.requests.download.not_found.json` |
 
 #### `ownChoir.requests.delete`
 
@@ -7593,6 +7623,8 @@ How the voices lane's batch renderer reaches the server (docs/ai-voices-build-pl
 | `worker.choir.parts.create` | `POST /api/worker/choir/jobs/{id}/parts` | The AI voices worker | Own choir |
 | `worker.choir.parts.complete` | `POST /api/worker/choir/parts/{id}/complete` | The AI voices worker | Own choir |
 | `worker.choir.jobs.finish` | `POST /api/worker/choir/jobs/{id}/finish` | The AI voices worker | Own choir |
+| `worker.choir.jobs.extend` | `POST /api/worker/choir/jobs/{id}/extend` | The AI voices worker | Own choir |
+| `worker.choir.status` | `POST /api/worker/choir/status` | The AI voices worker | Own choir |
 | `worker.choir.references.create` | `POST /api/worker/choir/jobs/{id}/reference` | The AI voices worker | Own choir |
 | `worker.choir.references.complete` | `POST /api/worker/choir/references/{id}/complete` | The AI voices worker | Own choir |
 | `worker.ai.uploads.create` | `POST /api/worker/ai/uploads` | The AI voices worker | AI voices |
@@ -7646,7 +7678,9 @@ clip: prepare a reference from it and send it with `worker.choir.references.crea
 prepared before, with your own `meta`). `claim` is this claim's token: every call on the job sends it (`"claim":
 "<token>"`), and one with a missing or stale token is `409 job_not_claimed` (another worker may have it now). A claim lasts 20 minutes; a job not
 finished by then goes back to the queue, at most twice, then fails (`render_failed`). The clip's link lasts 30 minutes;
-delete everything you held once you post `finish`. **Request:** none.
+delete everything you held once you post `finish`. `own`: the singer's own song (no gates re-render: finish
+`gates_failed`). Paid Plus is claimed first; past the day's renders across everyone (`own_choir.daily_part_minutes`)
+nothing more is claimed until tomorrow (`204`). **Request:** none.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -7680,7 +7714,9 @@ The PUT is done: checked and encoded as a private part for that singer only. **R
 #### `worker.choir.jobs.finish`
 
 The job is done (with the job's `claim`): `{ "failed": null }` once every part is in (`409 parts_missing` otherwise), or `{ "failed":
-"clip_unusable" }`, `gates_failed`, `render_failed` or `reference_gone`. The server deletes the clip at once either way
+"clip_unusable" }`, `gates_failed`, `render_failed` or `reference_gone`. With `gpuSeconds` (optional, 0 or more): this
+claim's GPU time so far, every render counted whatever its outcome (the largest sent for a claim is kept; a job's
+claims are summed). The server deletes the clip at once either way
 (a reference sent with the job stays as their saved voice).
 
 | Status | Code | Schema | Example |
@@ -7691,6 +7727,31 @@ The job is done (with the job's `claim`): `{ "failed": null }` once every part i
 | 409 | `parts_missing` | `error.json` | `worker.choir.jobs.finish.parts_missing.json` |
 | 422 | `validation_failed` | `error.json` | `worker.choir.jobs.finish.validation_failed.json` |
 
+
+#### `worker.choir.jobs.extend`
+
+Keep the claim while its renders run: every 5 minutes or so, `{ "claim": "<token>", "gpuSeconds": 123.4 }`. The claim's
+20 minutes start again from now (`claimSeconds`). `409 job_not_claimed`: stop and cancel the renders; `409
+claim_limit`: a claim never lasts past 60 minutes from when it was claimed (finish it, or let it go).
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `worker.choir.jobs.extend.json` | `worker.choir.jobs.extend.200.json` |
+| 404 | `not_found` | `error.json` | `worker.choir.jobs.extend.not_found.json` |
+| 409 | `job_not_claimed` | `error.json` | `worker.choir.jobs.extend.job_not_claimed.json` |
+| 409 | `claim_limit` | `error.json` | `worker.choir.jobs.extend.claim_limit.json` |
+| 422 | `validation_failed` | `error.json` | `worker.choir.jobs.extend.validation_failed.json` |
+
+#### `worker.choir.status`
+
+The worker paused at its own spending ceiling, or free again: `{ "paused": "daily_ceiling" | "monthly_ceiling" | null,
+"spentTodayUsd": 5.02, "spentMonthUsd": 41.7, "limitDayUsd": 5, "limitMonthUsd": 100 }`, once when it pauses and once
+when it's free. Admin shows the last, and is told once when it pauses.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 204 | | | |
+| 422 | `validation_failed` | `error.json` | `worker.choir.status.validation_failed.json` |
 
 #### `worker.choir.references.create`
 

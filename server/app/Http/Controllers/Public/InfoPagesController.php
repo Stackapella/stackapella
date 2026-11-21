@@ -104,8 +104,9 @@ final class InfoPagesController extends Controller
         }
         // A song in your own voice downloads with Plus, while own_choir is on (Hillel, 2026-11-21).
         if (SongParts::switchedOn('own_choir')) {
+            $rows['choir_songs'] = (array) Lang::get('pages.pricing.choir_songs_row');
             $rows['choir_download'] = (array) Lang::get('pages.pricing.choir_row');
-            $groups['share'] = [...$groups['share'], 'choir_download'];
+            $groups['share'] = [...$groups['share'], 'choir_songs', 'choir_download'];
         }
 
         return response()->view('pages.pricing', [

@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 return [
+    // Hear yourself as a choir's free song needs a lasting address (the GPU review, 2026-11-21).
+    'own_choir_lasting_email' => 'Use an email address you keep (change it in Settings) to make your free song.',
 
     /*
     |--------------------------------------------------------------------------

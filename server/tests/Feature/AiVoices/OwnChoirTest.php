@@ -151,6 +151,12 @@ final class OwnChoirTest extends TestCase
         $media = OwnChoirPart::query()->first()?->media_key;
         $probe = app(Ffmpeg::class)->probe(Storage::disk('private')->path((string) $media), upload: false);
         $this->assertSame('aac', $probe['codec'] ?? null);
+        // And a listening copy beside it, the one the app plays (full quality is Download's, with Plus).
+        $listen = OwnChoirPart::query()->first()?->listen_key;
+        $this->assertNotNull($listen);
+        $this->assertSame('aac', app(Ffmpeg::class)->probe(Storage::disk('private')->path((string) $listen), upload: false)['codec'] ?? null);
+        $this->assertNotSame($media, $listen);
+        $this->assertStringContainsString(basename((string) $listen), (string) collect($show->json('data.requests.0.parts'))->pluck('url')->implode(' '));
 
         $this->assertMatchesContract($this->postJson("/api/own-choir/requests/{$request->sqid()}/seen"), 'ownChoir.requests.seen', 200);
         $this->assertNotNull($show->json('data.voice.savedAt'));

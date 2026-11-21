@@ -1,5 +1,6 @@
 import { toRaw, toRefs } from 'vue';
-import { ownChoir } from '../own-choir.js';
+import { downloadParts, ownChoir } from '../own-choir.js';
+import { loadChoirFull } from '../own-choir-player.js';
 import { styleOf } from '../band-style.js';
 import { audio, closeMic, engine, unlock } from '../audio.js';
 import { midiName } from '../dsp.js';
@@ -613,9 +614,14 @@ export const StudioView = {
         /** A choir of your own: while a part made from your voice is in it, exporting audio is Plus's unless the server
          * says this song may be downloaded (`canDownload`; Hillel, 2026-11-21). Unknown (offline) counts as not. */
         choirLocked() {
-            if (!this.project?.choir) return false;
-            if (!this.parts.some((p) => !hasTake(p) && this.guideVoices[p.id]?.kind === 'real' && this.guideVoices[p.id].choir)) return false;
-            return ownChoir.data?.requests?.find((r) => r.id === this.project.choir.requestId)?.canDownload !== true;
+            if (!this.choirRequest) return false;
+            return this.choirRequest.canDownload !== true;
+        },
+        /** This choir project's song while a part made from the singer's voice is in the mix; else null. */
+        choirRequest() {
+            if (!this.project?.choir) return null;
+            if (!this.parts.some((p) => !hasTake(p) && this.guideVoices[p.id]?.kind === 'real' && this.guideVoices[p.id].choir)) return null;
+            return ownChoir.data?.requests?.find((r) => r.id === this.project.choir.requestId) ?? { id: this.project.choir.requestId, canDownload: false };
         },
         /** An AI voice sings in the mix as heard (js/ai-voices.js): its credits and its file's name say so. */
         aiInMix() {
@@ -816,6 +822,11 @@ export const StudioView = {
         closeMic(); // opened for this session's recordings; the mic light goes out on leaving
     },
     methods: {
+        /** The choir's full-quality parts by part key, for one export (Download's links; never kept on the device). */
+        async choirFull() {
+            const voices = await loadChoirFull(await downloadParts(this.choirRequest));
+            return new Map(voices.map((v) => [v.partKey, v]));
+        },
         joinEnded(id) {
             const { [id]: _, ...rest } = this.joining;
             this.joining = rest;
@@ -1470,7 +1481,10 @@ export const StudioView = {
                     if (comment) stems.push({ name: fileNames([`${name} - ${t('export.creditsFile')}.txt`])[0], bytes: new TextEncoder().encode(`${comment}\n`) });
                     file = zip(stems);
                 } else {
-                    const rendered = await sessionStore.renderMix({ chords, room, track });
+                    // A choir of your own exports its full-quality parts (the server's download, Plus), not the listening copy.
+                    const full = this.choirRequest && !this.choirLocked ? await this.choirFull() : null;
+                    const render = () => sessionStore.renderMix({ chords, room, track });
+                    const rendered = full ? await sessionStore.withChoirAudio(full, render) : await render();
                     file = format === 'mp3' ? await encodeMp3(rendered.channels, rendered.sampleRate, { comment }) : encodeWav(rendered.channels, rendered.sampleRate, { comment });
                 }
                 const url = URL.createObjectURL(file);

@@ -11,10 +11,15 @@ use App\Jobs\EncodeChoirPart;
 use App\Models\OwnChoirPart;
 use App\Models\OwnChoirRequest;
 use App\Models\OwnChoirVoice;
+use App\Notifications\Admin\OpsAlert;
 use App\Services\Audio\Ffmpeg;
+use App\Support\Admin\Admins;
+use App\Support\OwnChoir\OwnChoir;
 use App\Support\Storage\ReceivedUploads;
 use App\Support\Storage\Uploads;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -36,6 +41,13 @@ final class ChoirJobs
     {
         $this->expireStale();
 
+        // Today's renders across everyone at the ceiling (the GPU review): nothing more until tomorrow, the admins told once.
+        if (OwnChoir::busyToday()) {
+            self::tellBusy();
+
+            return null;
+        }
+
         for ($tried = 0; $tried < 20; $tried++) {
             $claimed = DB::transaction(function (): OwnChoirRequest|false|null {
                 $stale = now()->subMinutes((int) config('own_choir.claim_minutes'));
@@ -43,7 +55,9 @@ final class ChoirJobs
                     ->where(fn ($query) => $query->where('status', OwnChoirStatus::Queued->value)->where(fn ($ready) => $ready->whereNotNull('clip_checked_at')->orWhere('from_voice', true))
                         ->orWhere(fn ($again) => $again->where('status', OwnChoirStatus::Rendering->value)->where('claimed_at', '<', $stale)))
                     ->where('tries', '<', (int) config('own_choir.max_tries'))->whereNotNull('template_version_id')
-                    ->orderBy('id')->lockForUpdate()->first();
+                    ->where(fn ($query) => $query->whereNull('starts_after')->orWhere('starts_after', '<=', now()))
+                    // Paid Plus first, then in turn.
+                    ->orderByDesc('priority')->orderBy('id')->lockForUpdate()->first();
 
                 if ($request === null) {
                     return null;
@@ -56,7 +70,8 @@ final class ChoirJobs
                     return false;
                 }
 
-                $request->forceFill(['status' => OwnChoirStatus::Rendering, 'claimed_at' => now(), 'claim_token' => Str::random(32), 'tries' => $request->tries + 1])->save();
+                $request->forceFill(['status' => OwnChoirStatus::Rendering, 'claimed_at' => now(), 'claim_started_at' => now(), 'claim_token' => Str::random(32), 'claim_gpu_seconds' => 0,
+                    'first_claimed_at' => $request->first_claimed_at ?? now(), 'tries' => $request->tries + 1])->save();
 
                 if ($request->from_voice && $request->own_choir_voice_id !== null) {
                     OwnChoirVoice::query()->whereKey($request->own_choir_voice_id)->update(['last_used_at' => now()]);
@@ -244,8 +259,12 @@ final class ChoirJobs
     /**
      * Done: ready once every part is in, or failed with the renderer's reason. The clip goes either way.
      */
-    public function finish(OwnChoirRequest $request, string $claim, ?string $failed): OwnChoirRequest
+    public function finish(OwnChoirRequest $request, string $claim, ?string $failed, ?float $gpuSeconds = null): OwnChoirRequest
     {
+        if ($gpuSeconds !== null) {
+            DB::transaction(static fn () => self::spend(self::lockHeld($request->id, $claim), $gpuSeconds));
+        }
+
         if ($failed !== null) {
             // The claim checked in the same transaction, under the same lock, as the failure.
             return self::failAndClean($request, $failed, $claim);
@@ -275,6 +294,42 @@ final class ChoirJobs
         app(RecordCounts::class)->server('own_choir_ready', true, null);
 
         return $request->refresh();
+    }
+
+    /**
+     * The claim kept alive while its renders run (worker.choir.jobs.extend): its time starts again, never past
+     * own_choir.claim_limit_minutes from when it was claimed (`409 claim_limit`), and its GPU time recorded.
+     */
+    public function extend(OwnChoirRequest $request, string $claim, float $gpuSeconds): int
+    {
+        return DB::transaction(static function () use ($request, $claim, $gpuSeconds): int {
+            $locked = self::lockHeld($request->id, $claim);
+            self::spend($locked, $gpuSeconds);
+
+            if (($locked->claim_started_at ?? $locked->claimed_at)?->lt(now()->subMinutes((int) config('own_choir.claim_limit_minutes'))) === true) {
+                throw new Refusal(409, 'claim_limit');
+            }
+
+            $locked->forceFill(['claimed_at' => now()])->save();
+
+            return (int) config('own_choir.claim_minutes') * 60;
+        });
+    }
+
+    /** A claim's GPU time so far: the largest it reported is kept, and the job's claims are summed. Locked already. */
+    private static function spend(OwnChoirRequest $locked, float $gpuSeconds): void
+    {
+        if ($gpuSeconds > $locked->claim_gpu_seconds) {
+            $locked->forceFill(['gpu_seconds' => $locked->gpu_seconds + ($gpuSeconds - $locked->claim_gpu_seconds), 'claim_gpu_seconds' => $gpuSeconds])->save();
+        }
+    }
+
+    /** Today's ceiling reached: the admins are told once a day. */
+    private static function tellBusy(): void
+    {
+        if (Cache::add('own-choir:busy:'.now()->toDateString(), true, 86400) && ($admins = app(Admins::class)->all())->isNotEmpty()) {
+            Notification::send($admins, new OpsAlert(__('ops.own_choir_busy.subject'), __('ops.own_choir_busy.title'), [__('ops.own_choir_busy.line', ['minutes' => (int) config('own_choir.daily_part_minutes')])]));
+        }
     }
 
     /**
@@ -353,6 +408,6 @@ final class ChoirJobs
      */
     public static function partFiles(OwnChoirPart $part): array
     {
-        return array_values(array_filter([$part->upload_key, $part->master_key, $part->media_key], static fn (?string $k): bool => $k !== null && $k !== ''));
+        return array_values(array_filter([$part->upload_key, $part->master_key, $part->media_key, $part->listen_key], static fn (?string $k): bool => $k !== null && $k !== ''));
     }
 }

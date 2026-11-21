@@ -15,6 +15,8 @@ use App\Support\Flags;
 use App\Support\Legal\LegalText;
 use App\Support\Usage\Plans;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -62,19 +64,105 @@ final class OwnChoir
     }
 
     /**
-     * @return array{freeLeft: int, monthLeft: int, todayLeft: int, plus: bool}
+     * Who pays (the GPU review, 2026-11-21): `paid` Plus (Stripe past any trial, the stores, an invoice), `comped` Plus
+     * not paid for (a trial, a school code, a coach, a grant), or `free`.
+     *
+     * @return 'paid'|'comped'|'free'
+     */
+    public static function tier(User $user): string
+    {
+        if (! app(Plans::class)->isPlus($user)) {
+            return 'free';
+        }
+
+        $now = now()->toDateTimeString();
+        $store = $user->getAttributes()['store_plus_until'] ?? null;
+        $invoice = $user->getAttributes()['plus_paid_until'] ?? null;
+        $stripe = $user->subscription('default');
+
+        return ($stripe !== null && $stripe->valid() && ! $stripe->onTrial()) || (is_string($store) && $store > $now) || (is_string($invoice) && $invoice > $now) ? 'paid' : 'comped';
+    }
+
+    /**
+     * A song's part-minutes: each part's last note's end (beat 0 to it) at the song's tempo, summed over its parts.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public static function partMinutes(array $data): float
+    {
+        $tempo = max(1.0, (float) ($data['tempo'] ?? 0));
+        $beats = 0.0;
+
+        foreach (array_filter((array) ($data['parts'] ?? []), 'is_array') as $part) {
+            $end = 0.0;
+
+            foreach ((array) ($part['guide']['notes'] ?? []) as $note) {
+                if (is_array($note)) {
+                    $end = max($end, (float) ($note['beat'] ?? 0) + (float) ($note['length'] ?? 0));
+                }
+            }
+
+            $beats += $end;
+        }
+
+        return round($beats / $tempo, 2);
+    }
+
+    /** The email a free song is counted against, as a keyed hash: dots and +tags never make a new address. */
+    public static function emailKey(User $user): ?string
+    {
+        $email = strtolower(trim((string) $user->email));
+
+        if (! str_contains($email, '@')) {
+            return null;
+        }
+
+        [$local, $domain] = explode('@', $email, 2);
+        $local = explode('+', $local, 2)[0];
+
+        $dotless = array_values((array) config('own_choir.dotless_domains'));
+
+        if (in_array($domain, $dotless, true)) {
+            [$local, $domain] = [str_replace('.', '', $local), (string) $dotless[0]];
+        }
+
+        return hash_hmac('sha256', $local.'@'.$domain, (string) config('app.key'));
+    }
+
+    /**
+     * @return array{freeLeft: int, monthLeft: int, todayLeft: int, plus: bool, unit: 'songs'|'minutes', minutesLeft: float|null, minutesPerMonth: float|null, resetsAt: string|null}
      */
     public static function quota(User $user): array
     {
-        $counted = self::counted($user);
-        $plus = app(Plans::class)->isPlus($user);
+        $tier = self::tier($user);
+        $since = now()->subDays((int) config('own_choir.window_days'));
+        $when = DB::raw('coalesce(first_claimed_at, created_at)');
+        $window = $tier === 'paid' ? self::attempted($user) : self::counted($user);
+        $window->where($when, '>=', $since);
+        $oldest = (clone $window)->min($when);
 
         return [
-            'freeLeft' => max(0, (int) config('own_choir.free_songs') - (clone $counted)->count()),
-            'monthLeft' => $plus ? max(0, (int) config('own_choir.plus_month') - (clone $counted)->where('created_at', '>=', now()->startOfMonth())->count()) : 0,
+            'freeLeft' => max(0, (int) config('own_choir.free_songs') - self::counted($user, byEmail: true)->count()),
+            'monthLeft' => $tier === 'comped' ? max(0, (int) config('own_choir.comped_songs') - (clone $window)->count()) : 0,
             'todayLeft' => max(0, (int) config('own_choir.daily') - self::attempted($user)->where('created_at', '>=', now()->subDay())->count()),
-            'plus' => $plus,
+            'plus' => $tier !== 'free',
+            'unit' => $tier === 'paid' ? 'minutes' : 'songs',
+            'minutesLeft' => $tier === 'paid' ? max(0.0, round((float) config('own_choir.plus_minutes') - (float) (clone $window)->sum('part_minutes'), 1)) : null,
+            'minutesPerMonth' => $tier === 'paid' ? (float) config('own_choir.plus_minutes') : null,
+            'resetsAt' => $tier !== 'free' && is_string($oldest) ? Carbon::parse($oldest)->addDays((int) config('own_choir.window_days'))->utc()->toIso8601ZuluString() : null,
         ];
+    }
+
+    /** Today's renders across everyone are at the ceiling: new songs wait for tomorrow. */
+    public static function busyToday(): bool
+    {
+        return (float) OwnChoirRequest::query()->where('first_claimed_at', '>=', now()->startOfDay())->sum('part_minutes') >= (float) config('own_choir.daily_part_minutes');
+    }
+
+    /** Turnstile before a person's first song, where it's set up. */
+    public static function checkNeeded(User $user): bool
+    {
+        return (string) config('services.turnstile.site_key') !== '' && ! OwnChoirRequest::query()->where('user_id', $user->id)->exists();
     }
 
     /**
@@ -86,13 +174,16 @@ final class OwnChoir
      *
      * @return Builder<OwnChoirRequest>
      */
-    public static function counted(User $user): Builder
+    public static function counted(User $user, bool $byEmail = false): Builder
     {
-        return OwnChoirRequest::query()->where('user_id', $user->id)->where(fn (Builder $query) => $query
+        $key = $byEmail ? self::emailKey($user) : null;
+
+        return OwnChoirRequest::query()->where(fn (Builder $whose) => $whose->where('user_id', $user->id)->when($key !== null, fn (Builder $q) => $q->orWhere('email_key', $key)))->where(fn (Builder $query) => $query
             ->whereIn('status', [OwnChoirStatus::Queued->value, OwnChoirStatus::Rendering->value, OwnChoirStatus::Ready->value])
             ->orWhere(fn (Builder $tried) => $tried->where('tries', '>', 0)->where(fn (Builder $why) => $why
                 ->where('status', OwnChoirStatus::Deleted->value)
-                ->orWhere(fn (Builder $failed) => $failed->where('status', OwnChoirStatus::Failed->value)->whereNotIn('failure', self::OURS)))));
+                // A gates failure on the singer's own song is theirs (the GPU review): never given back.
+                ->orWhere(fn (Builder $failed) => $failed->where('status', OwnChoirStatus::Failed->value)->where(fn (Builder $why) => $why->whereNotIn('failure', self::OURS)->orWhere(fn (Builder $own) => $own->where('own', true)->where('failure', 'gates_failed')))))));
     }
 
     /**
@@ -115,14 +206,15 @@ final class OwnChoir
     /**
      * The limit a new song would pass, or null.
      *
-     * @return 'free'|'month'|'day'|null
+     * @return 'free'|'month'|'day'|'minutes'|null
      */
-    public static function limitReached(User $user): ?string
+    public static function limitReached(User $user, float $needed = 0.0): ?string
     {
         $quota = self::quota($user);
 
         return match (true) {
             $quota['todayLeft'] === 0 => 'day',
+            $quota['unit'] === 'minutes' => ($quota['minutesLeft'] ?? 0.0) <= 0.0 || ($quota['minutesLeft'] ?? 0.0) < $needed ? 'minutes' : null,
             $quota['plus'] && $quota['monthLeft'] === 0 => 'month',
             ! $quota['plus'] && $quota['freeLeft'] === 0 => 'free',
             default => null,
@@ -148,6 +240,8 @@ final class OwnChoir
             ],
             'termsVersion' => self::termsVersion(),
             'quota' => $quota = self::quota($user),
+            'busyToday' => self::busyToday(),
+            'checkNeeded' => self::checkNeeded($user),
             'requests' => array_values(OwnChoirRequest::query()->with(['templateVersion.template', 'parts'])->where('user_id', $user->id)->where('status', '!=', OwnChoirStatus::Deleted->value)->orderByDesc('id')->get()
                 ->map(static fn (OwnChoirRequest $r): array => self::request($r, $quota['plus']))->all()),
         ];
@@ -188,6 +282,7 @@ final class OwnChoir
             'failure' => $request->failure,
             'createdAt' => $request->created_at?->utc()->toIso8601ZuluString(),
             'readyAt' => $request->ready_at?->utc()->toIso8601ZuluString(),
+            'startsAfter' => $request->starts_after?->utc()->toIso8601ZuluString(),
             'seen' => $request->seen_at !== null,
             'canDownload' => $plus,
             'parts' => $ready ? array_values($request->parts->where('status', 'ready')->whereNotNull('media_key')->map(static fn (OwnChoirPart $p): array => self::recording($p))->all()) : [],
@@ -204,7 +299,8 @@ final class OwnChoir
         return [
             'id' => $part->sqid(),
             'partKey' => $part->part_key,
-            'url' => Storage::disk('private')->temporaryUrl((string) $part->media_key, now()->addMinutes((int) config('own_choir.link_minutes'))),
+            // The listening copy (the billing review): full quality is ownChoir.requests.download's, with Plus.
+            'url' => Storage::disk('private')->temporaryUrl((string) ($part->listen_key ?? $part->media_key), now()->addMinutes((int) config('own_choir.link_minutes'))),
             'sampleRate' => $part->sample_rate,
             'frames' => $part->frames,
             'offsetFrames' => 0,

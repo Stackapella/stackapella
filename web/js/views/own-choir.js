@@ -16,18 +16,19 @@ import { deleteProject, loadProjects, projects, startFromTemplate } from '../sto
 import { loadTemplate, partsFor, templatePartName } from '../templates.js';
 import { songTitle } from '../song-titles.js';
 import { Agreement } from './beta.js';
-import { choirOf, countChoir, deleteEverything, deleteSong, dropHum, hasWords, humFor, isOpen, loadOwnChoir, makeFromVoice, markSeen, ownChoir, ownChoirOn, ownChoirSongsOn, requestFor, savedVoice, sendClip, termsNeeded, tunePart } from '../own-choir.js';
+import { TurnstileBox } from '../turnstile.js';
+import { checkKey, choirOf, choirRefusal, countChoir, downloadParts, emailNeeded, songsLeft, deleteEverything, deleteSong, dropHum, hasWords, humFor, isOpen, loadOwnChoir, makeFromVoice, markSeen, ownChoir, ownChoirOn, ownChoirSongsOn, requestFor, savedVoice, sendClip, termsNeeded, tunePart } from '../own-choir.js';
 import { catalogue, loadCatalogue } from '../stores/catalogue.js';
 import { saveProject } from '../stores/projects.js';
-import { choirPosition, loadChoir, mixChoir, playChoir, stopChoir } from '../own-choir-player.js';
+import { choirPosition, loadChoir, loadChoirFull, mixChoir, playChoir, stopChoir } from '../own-choir-player.js';
 
 const FAILURES = { clip_unusable: tk('ownChoir.failed.clip_unusable'), bad_clip: tk('ownChoir.failed.bad_clip'), gates_failed: tk('ownChoir.failed.gates_failed'), render_failed: tk('ownChoir.failed.render_failed'), expired: tk('ownChoir.failed.expired'), reference_gone: tk('ownChoir.failed.reference_gone') };
 
 export const OwnChoirView = {
-    components: { Agreement, AppScreen, Notice, PlusMoment },
+    components: { Agreement, AppScreen, Notice, PlusMoment, TurnstileBox },
     props: { id: { type: String, required: true } },
-    data: () => ({ plusFor: false, state: 'loading', offReason: 'unavailable', canStart: false, template: null, terms: null, busy: false, playing: false, loadingTrack: false, hum: null, own: false }),
-    setup: () => ({ ownChoir, isOpen, templatePartName, savedVoice, formatNumber, navigate }),
+    data: () => ({ plusFor: false, emailSent: false, sending: false, checkToken: null, checkRound: 0, state: 'loading', offReason: 'unavailable', canStart: false, template: null, terms: null, busy: false, playing: false, loadingTrack: false, hum: null, own: false }),
+    setup: () => ({ ownChoir, account, isOpen, templatePartName, savedVoice, formatNumber, navigate }),
     computed: {
         /** Back here from the Plus page, once Plus is on. */
         here: () => location.pathname,
@@ -60,9 +61,19 @@ export const OwnChoirView = {
             const q = ownChoir.data?.quota;
             if (!q) return '';
             if (!q.plus && q.freeLeft > 0) return t('ownChoir.limit.free');
+            // Plus counts singing minutes (part-minutes); the songs are an estimate for this song, so "about".
+            if (q.unit === 'minutes' && q.minutesLeft != null) {
+                const songs = songsLeft(q, this.template);
+                const minutes = formatNumber(Math.max(0, Math.floor(q.minutesLeft)));
+                return songs == null ? t('ownChoir.limit.minutesOnly', { minutes }) : t('ownChoir.limit.minutesLeft', { minutes, songs });
+            }
             if (q.plus && q.monthLeft > 0 && q.monthLeft <= 3) return t('ownChoir.limit.left', { n: q.monthLeft });
             return '';
         },
+        /** The free song waits for a confirmed email (asked before singing). */
+        needEmail: () => emailNeeded(ownChoir.data?.quota),
+        /** The check before the account's first song, when the server asks for it and a site key is set. */
+        siteKey: () => checkKey(),
         /** Their saved voice came from humming and this song has words: singing one line with words would make it clearer. */
         wordlessNote() {
             return !!savedVoice()?.wordless && hasWords(this.template);
@@ -122,6 +133,8 @@ export const OwnChoirView = {
                 <div v-else-if="isOpen(request)" class="card space-y-2 p-5" role="status" data-choir-wait>
                     <h1 class="text-2xl font-bold text-cream">{{ t('ownChoir.wait.title') }}</h1>
                     <p class="text-cream">{{ t('ownChoir.wait.body', { song }) }}</p>
+                    <!-- Today's making is full (the server's daily ceiling): it's queued for tomorrow, said plainly. -->
+                    <p v-if="request.startsAfter" class="text-cream" data-choir-tomorrow>{{ t('ownChoir.busy.tomorrow') }}</p>
                     <p class="text-sm text-muted">{{ t('ownChoir.wait.kept') }}</p>
                 </div>
                 <!-- Nothing yet, or it failed: what happens, Start singing. -->
@@ -137,10 +150,17 @@ export const OwnChoirView = {
                     </ol>
                     <p class="text-sm text-muted">{{ t('ownChoir.record.headphones') }}</p>
                     <p v-if="quotaLine" class="text-sm text-cream" data-choir-quota>{{ quotaLine }}</p>
+                    <p v-if="ownChoir.data?.busyToday && canStart" class="text-sm text-cream" data-choir-busy>{{ t('ownChoir.busy.today') }}</p>
                     <!-- A voice kept from before (Hillel: "store a model to make it easier"): the next song is one tap; singing again
                          is a quiet option that replaces it. Without one, Start singing. -->
                     <p v-if="notEnglish" class="text-sm text-muted" data-choir-english>{{ t('ownChoir.songs.notEnglish') }}</p>
                     <template v-if="!canStart"></template>
+                    <!-- The free song needs a confirmed email: asked here, before any singing; it clears once they come back. -->
+                    <div v-else-if="needEmail" class="card space-y-3 p-5" data-choir-email>
+                        <h2 class="text-lg font-bold text-cream">{{ t('ownChoir.email.title') }}</h2>
+                        <p class="text-cream" role="status">{{ emailSent ? t('ownChoir.email.sent', { email: account.me.email }) : t('ownChoir.email.body') }}</p>
+                        <button type="button" :class="emailSent ? 'btn-secondary' : 'btn-primary'" class="self-start" :disabled="sending" :aria-busy="sending ? 'true' : null" data-choir-email-send @click="sendEmail">{{ emailSent ? t('ownChoir.email.again') : t('ownChoir.email.send') }}</button>
+                    </div>
                     <template v-else-if="savedVoice()">
                         <p class="text-sm text-cream">{{ t('ownChoir.voice.againLine') }}</p>
                         <p v-if="wordlessNote" class="text-sm text-muted" data-choir-wordless>{{ t('ownChoir.songs.wordless') }}</p>
@@ -151,7 +171,8 @@ export const OwnChoirView = {
                          replace their humming"); singing it is the quiet other way. -->
                     <template v-else-if="hum">
                         <p class="text-sm text-cream">{{ t('ownChoir.songs.fromHumLine') }}</p>
-                        <button type="button" class="btn-primary btn-lg" :disabled="busy" :aria-busy="busy ? 'true' : null" data-choir-hum @click="fromHum">{{ t('ownChoir.songs.fromHum') }}</button>
+                        <TurnstileBox v-if="siteKey" :key="checkRound" :site-key="siteKey" @token="checkToken = $event" @failed="checkToken = null" data-choir-check />
+                        <button type="button" class="btn-primary btn-lg" :disabled="busy || (!!siteKey && !checkToken)" :aria-busy="busy ? 'true' : null" data-choir-hum @click="fromHum">{{ t('ownChoir.songs.fromHum') }}</button>
                         <button type="button" class="link tap-44 self-start text-sm" :disabled="busy" data-choir-start @click="start">{{ t('ownChoir.songs.singInstead') }}</button>
                     </template>
                     <button v-else-if="canStart" type="button" class="btn-primary btn-lg" :disabled="busy" data-choir-start @click="start">{{ request?.status === 'failed' ? t('ownChoir.record.again') : t('ownChoir.record.start') }}</button>
@@ -177,7 +198,10 @@ export const OwnChoirView = {
         // The song on its way updates by itself: when the singer comes back to the page, and every so often while it's
         // being made (a network check on a timer, never audio).
         this.refresh = () => {
-            if (document.visibilityState === 'visible' && this.state === 'ready') loadOwnChoir({ force: true });
+            if (document.visibilityState !== 'visible' || this.state !== 'ready') return;
+            loadOwnChoir({ force: true });
+            // Confirmed in another tab: the email step clears by itself.
+            if (this.needEmail) loadAccount({ fresh: true }).catch((error) => console.warn('The account was not checked', error));
         };
         document.addEventListener('visibilitychange', this.refresh);
         window.addEventListener('focus', this.refresh);
@@ -257,31 +281,46 @@ export const OwnChoirView = {
             if (this.busy || !this.hum) return;
             this.busy = true;
             try {
-                await sendClip({ templateId: this.id, partKey: tunePart(this.template), samples: this.hum.samples, sampleRate: this.hum.sampleRate, startSeconds: 0, hum: true });
+                await sendClip({ templateId: this.id, partKey: tunePart(this.template), samples: this.hum.samples, sampleRate: this.hum.sampleRate, startSeconds: 0, hum: true, turnstileToken: this.checkToken });
                 await dropHum(this.id);
                 this.hum = null;
             } catch (error) {
                 console.warn('The hum was not sent', error);
                 toast(this.refusal(error), { tone: 'error' });
+                this.freshCheck();
             } finally {
                 this.busy = false;
             }
         },
         /** A refusal in the singer's words (the quota, one song at a time, a song of theirs not in the account yet). */
         refusal(error) {
-            const which = error?.body?.which;
-            if (error?.code === 'quota_reached') return which === 'day' ? t('ownChoir.limit.day') : which === 'free' ? t('ownChoir.limit.free_used') : t('ownChoir.limit.month');
-            if (error?.code === 'request_open') return t('ownChoir.open');
-            if (error?.code === 'not_found' && this.own) return t('ownChoir.songs.notSaved');
-            if (error?.code === 'song_too_long') return t('ownChoir.songs.tooLong');
-            return t('ownChoir.record.failed');
+            return choirRefusal(error, { own: this.own });
+        },
+        /** A token works once: after a refused or spent one, a fresh check. */
+        freshCheck() {
+            this.checkToken = null;
+            this.checkRound += 1;
+        },
+        /** The free song's email step: the confirmation link, sent again to their address. */
+        async sendEmail() {
+            if (this.sending) return;
+            this.sending = true;
+            try {
+                await api.auth.verification.resend({ email: account.me.email });
+                this.emailSent = true;
+            } catch (error) {
+                console.warn('The confirmation email was not sent', error);
+                toast(error?.code === 'rate_limited' ? t('auth.error.wait') : t('common.didntWork'), { tone: 'error' });
+            } finally {
+                this.sending = false;
+            }
         },
         /** The song from the saved voice: one tap, then the page says it's on its way. */
         async again() {
             if (this.busy) return;
             this.busy = true;
             try {
-                await makeFromVoice(this.id);
+                await makeFromVoice(this.id, { turnstileToken: this.checkToken });
             } catch (error) {
                 console.warn('The choir was not asked for', error);
                 toast(this.refusal(error), { tone: 'error' });
@@ -365,7 +404,8 @@ export const OwnChoirView = {
             }
             this.loadingTrack = true;
             try {
-                const wav = mixChoir(await this.voices());
+                // The full-quality parts (the page plays the lighter listening copy).
+                const wav = mixChoir(await loadChoirFull(await downloadParts(this.request)));
                 const url = URL.createObjectURL(wav);
                 const link = Object.assign(document.createElement('a'), { href: url, download: `${t('ownChoir.ready.fileName', { song: this.song })}.wav` });
                 document.body.append(link);
@@ -374,8 +414,12 @@ export const OwnChoirView = {
                 setTimeout(() => URL.revokeObjectURL(url), 60000); // the file's link only, never audio
                 countChoir('own_choir_download');
             } catch (error) {
+                // Not theirs to download after all (the server's word, e.g. Plus ended meanwhile): the Plus sheet.
+                if (error?.code === 'plus_required') {
+                    this.plusFor = true;
+                    return;
+                }
                 console.warn('The choir did not download', error);
-                this.loaded = null;
                 toast(t('common.didntWork'), { tone: 'error' });
             } finally {
                 this.loadingTrack = false;

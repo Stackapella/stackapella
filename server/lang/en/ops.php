@@ -46,6 +46,17 @@ return [
         ],
         'choose' => 'Choose a replacement: :url',
     ],
+    'own_choir_busy' => [
+        'subject' => 'Stackapella: the choir renders are full today',
+        'title' => 'Hear yourself as a choir is full today',
+        'line' => 'Today\'s renders reached :minutes part-minutes across everyone (own_choir.daily_part_minutes): new songs wait for tomorrow, and the singers are told. Raise it if the budget allows.',
+    ],
+    'choir_worker_paused' => [
+        'subject' => 'Stackapella: the choir worker paused at its ceiling',
+        'title' => 'The choir worker paused',
+        'line' => 'It reached its :which (:spent of :limit USD) and stops claiming until the next day or month.',
+    ],
+
     'auth_emails' => [
         'subject' => 'Stackapella: shield mode turned on',
         'title' => 'Shield mode is on',

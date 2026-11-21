@@ -1,0 +1,9 @@
+{
+    "message": "The gpu seconds field is required.",
+    "code": "validation_failed",
+    "errors": {
+        "gpuSeconds": [
+            "The gpu seconds field is required."
+        ]
+    }
+}

@@ -8,6 +8,7 @@
         "failure": null,
         "createdAt": "2026-11-21T10:00:00Z",
         "readyAt": null,
+        "startsAfter": null,
         "seen": false,
         "canDownload": false,
         "parts": []

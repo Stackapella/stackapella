@@ -1414,6 +1414,9 @@ return [
             'own_songs' => ['Can it sing my own songs, or other words?', 'It sings the songs in our library, with their own words.'],
             // Hillel, 2026-11-21: "if they want to download it they need to subscribe to plus".
             'download' => ['Can I download it?', 'Yes, with Plus. Listening to it and sharing it are free.'],
+            // Hillel delegated, 2026-11-21: 60 minutes of AI singing in any 30 days with Plus (backend's rolling window), never
+            // unlimited; the free song once per email.
+            'how_many' => ['How many songs can I make?', 'Your first song is free, once per email address. Plus includes 60 minutes of AI singing in any 30 days, about 15 songs.'],
             'delete' => ['Can I delete it?', 'Yes, in the app at any time: any choir, every one at once, or your saved voice. Once deleted, it\'s gone.'],
         ],
         'faq_hum' => ['Does my humming need to be in tune?', 'No. The app writes down what you hum, and you can fix any note before the parts are made.'],

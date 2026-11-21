@@ -5,6 +5,7 @@
         "template": "silent-night",
         "version": 8,
         "title": "Silent Night",
+        "own": false,
         "data": {
             "id": "silent-night",
             "...": "the version's template.json, exactly as stored"

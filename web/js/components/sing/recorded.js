@@ -199,7 +199,7 @@ export const JustRecorded = {
                 </div>
                 <!-- Be the voice (Hillel, 2026-11-12): a usable take of a part no one has given a real voice, one calm card after the take's own checks. -->
                 <BeTheVoice v-if="voice" :part="voice.part" :guest="voice.guest" @share="$emit('voice-share')" @later="$emit('voice-later')" />
-                <ChoirCard v-else-if="choir" :seconds="choir.seconds" :busy="choir.busy" :error="choir.error" @make="$emit('choir-make')" @again="$emit('again')" />
+                <ChoirCard v-else-if="choir" :seconds="choir.seconds" :busy="choir.busy" :error="choir.error" :site-key="choir.siteKey" @make="$emit('choir-make', $event)" @again="$emit('again')" />
             </div>
             <!-- One clear decision, always in view. -->
             <div class="sticky bottom-0 z-10 border-t border-edge bg-ink/95 px-4 py-3 backdrop-blur md:px-8">

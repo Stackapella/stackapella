@@ -20,7 +20,9 @@
                 "voice",
                 "termsVersion",
                 "quota",
-                "requests"
+                "requests",
+                "busyToday",
+                "checkNeeded"
             ],
             "properties": {
                 "consent": {
@@ -86,7 +88,11 @@
                         "freeLeft",
                         "monthLeft",
                         "todayLeft",
-                        "plus"
+                        "plus",
+                        "unit",
+                        "minutesLeft",
+                        "minutesPerMonth",
+                        "resetsAt"
                     ],
                     "properties": {
                         "freeLeft": {
@@ -100,9 +106,47 @@
                         },
                         "plus": {
                             "type": "boolean"
+                        },
+                        "unit": {
+                            "type": "string",
+                            "enum": [
+                                "songs",
+                                "minutes"
+                            ],
+                            "description": "How the allowance is counted for this person: `minutes` (part-minutes a month, paid Plus) or `songs` (the free song, or the small monthly allowance of Plus not paid for: a trial, a school code, a coach, a grant)."
+                        },
+                        "minutesLeft": {
+                            "type": [
+                                "number",
+                                "null"
+                            ],
+                            "description": "Part-minutes left in the last 30 days (unit `minutes`), else null."
+                        },
+                        "minutesPerMonth": {
+                            "type": [
+                                "number",
+                                "null"
+                            ],
+                            "description": "The allowance in part-minutes per 30 days (unit `minutes`), else null."
+                        },
+                        "resetsAt": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time",
+                            "description": "When the oldest song counted in the 30-day window stops counting, or null."
                         }
                     },
-                    "description": "Songs left: the free one (ever), this month's with Plus, and today's (everyone)."
+                    "description": "What's left: the free song (ever), this 30 days' songs (Plus not paid for, `monthLeft`) or part-minutes (paid Plus, `minutesLeft`), and today's (everyone)."
+                },
+                "busyToday": {
+                    "type": "boolean",
+                    "description": "Today's renders are full across everyone: a song asked for now is made tomorrow (`startsAfter`)."
+                },
+                "checkNeeded": {
+                    "type": "boolean",
+                    "description": "Turnstile before this person's first song: send `turnstileToken` with requests.create (only when auth.config has a `turnstileSiteKey`)."
                 },
                 "requests": {
                     "type": "array",
@@ -126,7 +170,8 @@
                 "readyAt",
                 "seen",
                 "canDownload",
-                "parts"
+                "parts",
+                "startsAfter"
             ],
             "properties": {
                 "id": {
@@ -168,6 +213,14 @@
                         "null"
                     ],
                     "format": "date-time"
+                },
+                "startsAfter": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time",
+                    "description": "Queued while today's renders are full: it starts no earlier than this."
                 },
                 "seen": {
                     "type": "boolean",

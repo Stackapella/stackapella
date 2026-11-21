@@ -219,6 +219,7 @@
         '/js/pitch-skills.js',
         '/js/just.js',
         '/js/hosts.js',
+        '/js/turnstile.js',
     ];
     // preload_list.py: lesson end
     // Home's own view on a first visit that opens the app at "/" (written by tool/preload_list.py: views/projects.js and what
@@ -251,6 +252,7 @@
         '/js/components/library-filters.js',
         '/js/library-filter.js',
         '/js/be-the-voice.js',
+        '/js/turnstile.js',
         '/js/soften-breaths.js',
         '/js/workout.js',
         '/js/reading-lines.js',

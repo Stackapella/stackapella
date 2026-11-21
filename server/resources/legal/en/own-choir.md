@@ -3,7 +3,7 @@ title: Hear yourself as a choir
 version: 2
 reviewed: false
 drafted: 2026-11-20
-changed: 2026-11-20 (2: a short voice reference is kept privately for the singer's own songs; songs a singer makes, with their typed words; Hillel's decisions)
+changed: 2026-11-21 (2, unaccepted: 60 minutes in any 30 days with Plus, one free song per email; 2026-11-20: a short voice reference is kept privately for the singer's own songs; songs a singer makes, with their typed words; Hillel's decisions)
 ---
 
 # Hear yourself as a choir
@@ -42,14 +42,18 @@ and on anything you share, and you won't present it as a real recording of you o
 reported, and we take it down if it breaks these terms or the guidelines. You can delete a song, or every song and
 your voice reference, at any time in the app.
 
-6. **Limits.** Your first song is free. With Plus you can make 20 a month, and anyone can make at most 5 a day.
-Hearing a song you've already made, and sharing it, are always free; downloading a song needs Plus. Unused songs don't
-carry over.
+6. **Limits.** Your first song is free, once per email address. Plus includes 60 minutes of AI singing in any 30 days
+(about 15 songs; every part counts, so four one-minute parts are four minutes). Plus given to you free, through a
+school, a partner or a coach, includes 3 songs in any 30 days. A seat in a choir group covers singing with the group,
+not songs in your own voice. There is also a daily limit for everyone. Hearing a song you've already made, and sharing
+it, are always free; downloading a song needs Plus.
 
 7. **Your data.** Parts are made on the servers of our GPU provider, Modal, in the United States, which keep what they
 process (your voice reference and the parts made from it) encrypted for at most 7 days, then delete it. We keep your
 voice reference, your songs, how many you've made, and which version of these terms you accepted and when; your data
-download says when your reference was saved and last used. We never use them to identify you.
+download says when your reference was saved and last used. We never use them to identify you. To keep the free song to
+one per person, we keep a one-way code made from your email address (and any Apple or Google account you sign in
+with), even after you delete your account; it can't be turned back into your address.
 
 8. **Your promise.** The recording is your own singing, and you're 18 or over.
 

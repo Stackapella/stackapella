@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\Worker;
 
 use App\Actions\OwnChoir\ChoirJobs;
+use App\Actions\OwnChoir\RecordChoirWorkerStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Worker\ChoirStatusRequest;
 use App\Http\Requests\Worker\CreateChoirPartRequest;
 use App\Http\Requests\Worker\CreateChoirReferenceRequest;
+use App\Http\Requests\Worker\ExtendChoirJobRequest;
 use App\Http\Requests\Worker\FinishChoirJobRequest;
 use App\Http\Resources\Worker\ChoirJobResource;
 use App\Models\OwnChoirPart;
@@ -68,9 +71,24 @@ final class ChoirController extends Controller
     public function finish(FinishChoirJobRequest $request, OwnChoirRequest $job, ChoirJobs $jobs): JsonResponse
     {
         $failed = $request->validated('failed');
-        $done = $jobs->finish($job->load('templateVersion'), (string) $request->validated('claim'), is_string($failed) ? $failed : null);
+        $gpu = $request->validated('gpuSeconds');
+        $done = $jobs->finish($job->load('templateVersion'), (string) $request->validated('claim'), is_string($failed) ? $failed : null, is_numeric($gpu) ? (float) $gpu : null);
 
         return response()->json(['data' => ['id' => $done->sqid(), 'status' => $done->status->value, 'failure' => $done->failure]]);
+    }
+
+    public function extend(ExtendChoirJobRequest $request, OwnChoirRequest $job, ChoirJobs $jobs): JsonResponse
+    {
+        return response()->json(['data' => ['claimSeconds' => $jobs->extend($job, (string) $request->validated('claim'), (float) $request->validated('gpuSeconds'))]]);
+    }
+
+    public function status(ChoirStatusRequest $request, RecordChoirWorkerStatus $record): Response
+    {
+        /** @var array{paused: string|null, spentTodayUsd: float|int, spentMonthUsd: float|int, limitDayUsd: float|int, limitMonthUsd: float|int} $status */
+        $status = $request->validated();
+        $record->handle($status);
+
+        return response()->noContent();
     }
 
     /**

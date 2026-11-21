@@ -80,6 +80,7 @@ def journey(f):
     f.run(COUNT_FILES)
     f.run("document.querySelector('[data-choir-download]').click()")
     f.wait("window.__files === 1", timeout=30, what="the file, with Plus")
+    assert f.js("globalThis.mockChoirDownloads ?? 0") >= 1, "the file wasn't made from Download's full-quality parts"
     assert not f.js("document.querySelector('[data-plus-moment]')"), "a Plus sheet for a Plus member"
     clear_projects(f)
 

@@ -16,14 +16,19 @@ use App\Models\OwnChoirRequest;
 use App\Models\OwnChoirVoice;
 use App\Models\Template;
 use App\Models\User;
+use App\Services\Cloudflare\Turnstile;
 use App\Support\OwnChoir\OwnChoir;
 use App\Support\Storage\ReceivedUploads;
 use App\Support\Storage\Uploads;
 use App\Support\Templates\Catalogue;
+use App\Support\Trust\TrustLevel;
+use App\Support\Trust\WordLists;
+use App\Support\Usage\Plans;
 use App\Support\Usage\UploadBytes;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 /**
  * The singer's side of Hear yourself as a choir (ownChoir.*, track B phase 3): consenting, asking for a song with a clip
@@ -55,15 +60,37 @@ final class OwnChoirRequests
      * A song in their voice: from a new clip (the voice prepared from it replaces their kept one), or with `templateId`
      * alone from their kept voice (queued at once: a singer back for more).
      *
-     * @param  array{templateId: string, partKey?: string|null, offsetFrames?: int|null, sampleRate?: int|null, frames?: int|null, bytes?: int|null, sha256?: string|null}  $clip
+     * @param  array{templateId: string, partKey?: string|null, offsetFrames?: int|null, sampleRate?: int|null, frames?: int|null, bytes?: int|null, sha256?: string|null, turnstileToken?: string|null}  $clip
      * @return array{request: OwnChoirRequest, put: array{url: string, method: string, headers: array<string, string>, expiresAt: \DateTimeInterface}|null}
      */
-    public function start(User $user, array $clip): array
+    public function start(User $user, array $clip, ?string $ip = null): array
     {
         OwnChoir::ensureOn($user);
 
         if (! OwnChoir::consented($user)) {
             throw new Refusal(403, 'consent_required');
+        }
+
+        // A confirmed, lasting address before anything is rendered (the GPU review: no farming the free song).
+        if (app(TrustLevel::class)->of($user->fresh() ?? $user) < TrustLevel::VERIFIED) {
+            if ($user->email !== null && WordLists::isDisposableEmail($user->email)) {
+                throw ValidationException::withMessages(['email' => __('validation.own_choir_lasting_email')]);
+            }
+
+            throw new Refusal(403, 'email_unverified');
+        }
+
+        // And Turnstile before their first song, where it's set up.
+        if (OwnChoir::checkNeeded($user)) {
+            $token = $clip['turnstileToken'] ?? null;
+
+            if (! is_string($token) || $token === '') {
+                throw new Refusal(403, 'turnstile_required');
+            }
+
+            if (! app(Turnstile::class)->passes($token, $ip)) {
+                throw new Refusal(403, 'turnstile_failed');
+            }
         }
 
         // A song from the library, or (own_choir_songs) one of their own from the creator, hummed or with words they typed;
@@ -88,15 +115,24 @@ final class OwnChoirRequests
             throw new Refusal(409, 'song_too_long');
         }
 
-        return DB::transaction(function () use ($user, $clip, $version, $withClip): array {
+        // What it costs, and how it's queued: paid Plus first, and on a busy day it waits for tomorrow.
+        $cost = [
+            'part_minutes' => OwnChoir::partMinutes((array) $version->data),
+            'own' => ! $template->isOfficial(),
+            'priority' => OwnChoir::tier($user) === 'paid' ? 1 : 0,
+            'starts_after' => OwnChoir::busyToday() ? now()->addDay()->startOfDay() : null,
+            'email_key' => OwnChoir::emailKey($user),
+        ];
+
+        return DB::transaction(function () use ($user, $clip, $version, $withClip, $cost): array {
             Owned::lockAccount($user);
 
             if (OwnChoirRequest::query()->where('user_id', $user->id)->whereIn('status', [OwnChoirStatus::Uploading->value, OwnChoirStatus::Queued->value, OwnChoirStatus::Rendering->value])->exists()) {
                 throw new Refusal(409, 'request_open');
             }
 
-            if (($which = OwnChoir::limitReached($user)) !== null) {
-                throw new Refusal(403, 'quota_reached', ['which' => $which]);
+            if (($which = OwnChoir::limitReached($user, $cost['part_minutes'])) !== null) {
+                throw new Refusal(403, 'quota_reached', ['which' => $which, ...($which === 'minutes' ? ['needed' => $cost['part_minutes']] : [])]);
             }
 
             if (! $withClip) {
@@ -107,7 +143,7 @@ final class OwnChoirRequests
                 }
 
                 $request = new OwnChoirRequest;
-                $request->forceFill(['user_id' => $user->id, 'template_version_id' => $version->id, 'own_choir_voice_id' => $voice->id, 'from_voice' => true, 'status' => OwnChoirStatus::Queued])->save();
+                $request->forceFill(['user_id' => $user->id, 'template_version_id' => $version->id, 'own_choir_voice_id' => $voice->id, 'from_voice' => true, 'status' => OwnChoirStatus::Queued, ...$cost])->save();
                 app(RecordCounts::class)->server('own_choir_requested', true, null);
                 app(RecordCounts::class)->server('own_choir_again', true, null);
                 $this->countOwn($version->id);
@@ -128,6 +164,7 @@ final class OwnChoirRequests
                 'frames' => $clip['frames'],
                 'bytes' => $clip['bytes'],
                 'sha256' => strtolower((string) $clip['sha256']),
+                ...$cost,
             ])->save();
 
             return ['request' => $request, 'put' => $this->uploads->presign((string) $request->upload_key, 'audio/wav', (int) $request->bytes)];
@@ -250,6 +287,11 @@ final class OwnChoirRequests
             return true;
         }
 
+        // All its singing together, at most own_choir.max_total_seconds, so one song fits one claim (the GPU review).
+        if (OwnChoir::partMinutes($data) * 60 > (float) config('own_choir.max_total_seconds')) {
+            return true;
+        }
+
         foreach ($parts as $part) {
             foreach ((array) ($part['guide']['notes'] ?? []) as $note) {
                 if (is_array($note) && ((float) ($note['beat'] ?? 0) + (float) ($note['length'] ?? 0)) * $beat > (float) config('own_choir.max_part_seconds')) {
@@ -313,6 +355,30 @@ final class OwnChoirRequests
         if (Template::query()->whereNotNull('owner_id')->whereHas('versions', fn ($query) => $query->whereKey($versionId))->exists()) {
             app(RecordCounts::class)->server('own_choir_own', true, null);
         }
+    }
+
+    /**
+     * A made song's parts at full quality, for Download: Plus only (the billing review; the state's parts are the
+     * listening copy), each link for own_choir.download_minutes.
+     *
+     * @return list<array{partKey: string, url: string, sampleRate: int, frames: int, offsetFrames: int}>
+     */
+    public function download(User $user, OwnChoirRequest $request): array
+    {
+        $this->ensureMine($user, $request);
+
+        if ($request->status !== OwnChoirStatus::Ready) {
+            throw new Refusal(404, 'not_found');
+        }
+
+        if (! app(Plans::class)->isPlus($user)) {
+            throw new Refusal(403, 'plus_required');
+        }
+
+        $until = now()->addMinutes((int) config('own_choir.download_minutes'));
+
+        return array_values($request->parts()->where('status', 'ready')->whereNotNull('media_key')->orderBy('part_key')->get()
+            ->map(static fn (OwnChoirPart $part): array => ['partKey' => $part->part_key, 'url' => Storage::disk('private')->temporaryUrl((string) $part->media_key, $until), 'sampleRate' => $part->sample_rate, 'frames' => $part->frames, 'offsetFrames' => 0])->all());
     }
 
     private function ensureMine(User $user, OwnChoirRequest $request): void

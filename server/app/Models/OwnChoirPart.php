@@ -24,6 +24,7 @@ use Illuminate\Support\Carbon;
  * @property string $upload_key
  * @property string|null $master_key
  * @property string|null $media_key
+ * @property string|null $listen_key the listening copy the app plays (64 kbps mono); media_key is full quality, for Download
  * @property int $sample_rate
  * @property int $frames
  * @property int $bytes

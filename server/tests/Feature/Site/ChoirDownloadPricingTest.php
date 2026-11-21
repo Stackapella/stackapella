@@ -22,6 +22,9 @@ final class ChoirDownloadPricingTest extends TestCase
         $this->assertStringNotContainsString($label, (string) $this->get('/pricing')->assertOk()->getContent());
 
         app(Flags::class)->set('own_choir', 'on', null, 'Own choir live');
-        $this->assertStringContainsString($label, (string) $this->get('/pricing')->assertOk()->getContent());
+        $html = (string) $this->get('/pricing')->assertOk()->getContent();
+        $this->assertStringContainsString($label, $html);
+        // How many: about 15 a month with Plus, never unlimited (60 minutes of AI singing).
+        $this->assertStringContainsString(e((string) __('pages.pricing.choir_songs_row.2')), $html);
     }
 }

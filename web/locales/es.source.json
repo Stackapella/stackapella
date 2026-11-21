@@ -5689,7 +5689,10 @@
             "left": "{n, plural, one {# left this month} other {# left this month}}",
             "month": "You've made this month's choirs. More next month, or with Plus.",
             "day": "That's today's choirs. Try again tomorrow.",
-            "free_used": "You've made your free choir. More with Plus."
+            "free_used": "You've made your free choir. More with Plus.",
+            "minutesLeft": "{minutes} minutes of singing left this month: {songs, plural, =0 {not quite enough for this song} one {about 1 song like this one} other {about # songs like this one}}.",
+            "minutesOnly": "{minutes} minutes of singing left this month.",
+            "minutes": "This song needs about {needed} minutes of singing, and you have {left} left until {date}."
         },
         "delete": {
             "button": "Delete this choir",
@@ -5738,6 +5741,22 @@
         "off": {
             "signedOut": "Sign in to hear yourself as a choir.",
             "unavailable": "Hear yourself as a choir isn't open to you just now."
+        },
+        "busy": {
+            "today": "We're busy today: what you ask for now, we'll make tomorrow.",
+            "tomorrow": "We're busy today, so we'll make it tomorrow."
+        },
+        "email": {
+            "title": "Confirm your email first",
+            "body": "Your free choir needs a confirmed email. We'll send you a link: open it, then come back here.",
+            "send": "Send the link",
+            "sent": "We sent a link to {email}. Open it, then come back here.",
+            "again": "Send it again",
+            "needed": "Confirm your email first to make your free choir.",
+            "lasting": "That email address won't last. Change it to one you keep in Settings, then try again."
+        },
+        "check": {
+            "failed": "The quick check didn't go through. Try it again."
         }
     },
     "aiVoice": {

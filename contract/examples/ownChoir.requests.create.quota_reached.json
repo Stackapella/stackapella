@@ -1,5 +1,6 @@
 {
     "message": "Forbidden.",
     "code": "quota_reached",
-    "which": "month"
+    "which": "minutes",
+    "needed": 12.4
 }

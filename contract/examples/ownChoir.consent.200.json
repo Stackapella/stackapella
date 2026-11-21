@@ -15,8 +15,14 @@
             "freeLeft": 0,
             "monthLeft": 19,
             "todayLeft": 4,
-            "plus": true
+            "plus": true,
+            "unit": "minutes",
+            "minutesLeft": 48.5,
+            "minutesPerMonth": 60,
+            "resetsAt": "2026-12-19T18:00:00Z"
         },
+        "busyToday": false,
+        "checkNeeded": false,
         "requests": [
             {
                 "id": "Rq5Sn1",
@@ -27,6 +33,7 @@
                 "failure": null,
                 "createdAt": "2026-11-21T09:00:00Z",
                 "readyAt": "2026-11-21T09:04:00Z",
+                "startsAfter": null,
                 "seen": false,
                 "canDownload": true,
                 "parts": [
@@ -89,6 +96,7 @@
                 "failure": "clip_unusable",
                 "createdAt": "2026-11-20T18:00:00Z",
                 "readyAt": null,
+                "startsAfter": null,
                 "seen": true,
                 "canDownload": true,
                 "parts": []

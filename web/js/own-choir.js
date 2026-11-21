@@ -12,10 +12,11 @@ import { account, loadAccount, loadAuthConfig } from './stores/account.js';
 import { guideKey } from './recorded-guides.js';
 import { encodeWav } from './wav.js';
 import { count } from './usage.js';
-import { formatDate, t } from './i18n.js';
+import { formatDate, formatNumber, t } from './i18n.js';
 import { confirmAction } from './components/confirm.js';
 import { toast } from './components/ui.js';
 import { Icon } from './components/icon.js';
+import { TurnstileBox } from './turnstile.js';
 
 export const MIN_SECONDS = 15; // shorter, the card asks for a little longer (ownChoir.record.short)
 export const MAX_SECONDS = 30; // the contract's most (and at least 5)
@@ -122,6 +123,64 @@ export function requestFor(templateId) {
     return ownChoir.data?.requests?.find((r) => r.templateId === templateId) ?? null;
 }
 
+/**
+ * A song's part-minutes as the server counts them (its `needed`): each part's last note end, in minutes at the song's
+ * tempo, summed over the parts.
+ */
+export function partMinutes(template) {
+    const tempo = template?.tempo || 0;
+    if (!tempo) return 0;
+    return (template.parts ?? []).reduce((sum, part) => {
+        const notes = part.guide?.notes ?? [];
+        return sum + (notes.length ? Math.max(...notes.map((n) => n.beat + n.length)) / tempo : 0);
+    }, 0);
+}
+
+/** About how many songs like this one the minutes left make (rounded down); null when the allowance isn't in minutes. */
+export function songsLeft(quota, template) {
+    if (quota?.unit !== 'minutes' || quota.minutesLeft == null) return null;
+    const need = partMinutes(template);
+    return need > 0 ? Math.floor(quota.minutesLeft / need) : null;
+}
+
+/** The free song waits for a confirmed email (the server refuses it otherwise): asked before singing, never after. */
+export function emailNeeded(quota) {
+    return !!account.me && account.me.emailVerified === false && !quota?.plus && (quota?.freeLeft ?? 0) > 0;
+}
+
+/** The check before the account's first song: the site key, when the server asks for it (`checkNeeded`); else null. */
+export function checkKey() {
+    return ownChoir.data?.checkNeeded ? account.config?.turnstileSiteKey ?? null : null;
+}
+
+/** A refusal in the singer's words (Sing's card and the choir page say the same). */
+export function choirRefusal(error, { own = false } = {}) {
+    const code = error?.code;
+    const which = error?.body?.which;
+    if (code === 'quota_reached') {
+        if (which === 'minutes') {
+            const q = ownChoir.data?.quota;
+            const minutes = (n) => formatNumber(Math.max(0, Math.round(n ?? 0)));
+            return t('ownChoir.limit.minutes', { needed: minutes(error.body.needed), left: minutes(q?.minutesLeft), date: q?.resetsAt ? formatDate(q.resetsAt, { day: 'numeric', month: 'long' }) : '' });
+        }
+        return which === 'day' ? t('ownChoir.limit.day') : which === 'free' ? t('ownChoir.limit.free_used') : t('ownChoir.limit.month');
+    }
+    if (code === 'request_open') return t('ownChoir.open');
+    if (code === 'not_found' && own) return t('ownChoir.songs.notSaved');
+    if (code === 'song_too_long') return t('ownChoir.songs.tooLong');
+    if (code === 'email_unverified') return t('ownChoir.email.needed');
+    // A throwaway address can't take the free song: a lasting one, changed in Settings.
+    if (code === 'validation_failed' && error?.errors?.email) return t('ownChoir.email.lasting');
+    if (code === 'turnstile_required' || code === 'turnstile_failed') return t('ownChoir.check.failed');
+    return t('ownChoir.record.failed');
+}
+
+/** Download's full-quality parts (Plus; the server refuses `plus_required` otherwise): the request with them in place. */
+export async function downloadParts(request) {
+    const { data } = await api.ownChoir.requests.download(request.id);
+    return { ...request, parts: data.parts };
+}
+
 /** Whether a request is still being made. */
 export const isOpen = (request) => !!request && OPEN.includes(request.status);
 
@@ -165,12 +224,12 @@ const hex = (buffer) => [...new Uint8Array(buffer)].map((b) => b.toString(16).pa
  * Sends a take as a song's clip: the request, the upload, then complete. Resolves the request (queued); refusals are the
  * contract's ApiErrors (consent_required, quota_reached with `which`, request_open, account_required).
  */
-export async function sendClip({ templateId, partKey, samples, sampleRate, startSeconds, hum = false }) {
+export async function sendClip({ templateId, partKey, samples, sampleRate, startSeconds, hum = false, turnstileToken = null }) {
     const clip = clipFrom(samples, sampleRate, startSeconds);
     if (hum) clip.offsetFrames = null; // a hum sets its own tempo: where the song's beat 0 falls in it isn't known
     const bytes = await clip.wav.arrayBuffer();
     const sha256 = hex(await crypto.subtle.digest('SHA-256', bytes));
-    const { data: request, upload } = await api.ownChoir.requests.create({ templateId, partKey, offsetFrames: clip.offsetFrames, sampleRate, frames: clip.frames, bytes: bytes.byteLength, sha256 });
+    const { data: request, upload } = await api.ownChoir.requests.create({ templateId, partKey, offsetFrames: clip.offsetFrames, sampleRate, frames: clip.frames, bytes: bytes.byteLength, sha256, ...(turnstileToken ? { turnstileToken } : {}) });
     // The upload and complete, once more if the first try fails (the contract: send it again after a mismatch); if it still
     // fails, the request goes, so it never sits "on its way" and a new try isn't refused as one song at a time.
     const finish = async () => {
@@ -200,8 +259,8 @@ export function savedVoice() {
 }
 
 /** A song from the saved voice: one tap, no recording (the request comes back queued). */
-export async function makeFromVoice(templateId) {
-    const { data: queued } = await api.ownChoir.requests.create({ templateId });
+export async function makeFromVoice(templateId, { turnstileToken = null } = {}) {
+    const { data: queued } = await api.ownChoir.requests.create({ templateId, ...(turnstileToken ? { turnstileToken } : {}) });
     await loadOwnChoir();
     return queued;
 }
@@ -248,17 +307,30 @@ export function countChoir(kind) {
  * 15 seconds, why not yet and Sing again. `seconds`: the take's length; `busy` while it sends; `error`: words to show.
  */
 export const ChoirCard = {
-    props: { seconds: { type: Number, required: true }, busy: Boolean, error: { type: String, default: '' } },
+    components: { TurnstileBox },
+    // siteKey: the check before the account's first song (the server's `checkNeeded`, only with a site key set).
+    props: { seconds: { type: Number, required: true }, busy: Boolean, error: { type: String, default: '' }, siteKey: { type: String, default: null } },
     emits: ['make', 'again'],
+    data: () => ({ token: null, checkKey: 0 }),
     setup: () => ({ MIN_SECONDS }),
+    watch: {
+        // A refused check (a token works once): a fresh one.
+        error() {
+            if (this.siteKey) {
+                this.token = null;
+                this.checkKey += 1;
+            }
+        },
+    },
     template: `
-        <div class="card flex flex-col gap-3 p-4 sm:flex-row sm:items-center" data-choir-card>
+        <div class="card flex flex-col gap-3 p-4 sm:flex-row sm:flex-wrap sm:items-center" data-choir-card>
             <div class="min-w-0 flex-1">
                 <p class="font-bold text-cream">{{ t('ownChoir.title') }}</p>
                 <p class="text-sm text-muted" :role="error ? 'alert' : null">{{ error || (seconds < MIN_SECONDS ? t('ownChoir.record.short') : t('ownChoir.wait.kept')) }}</p>
             </div>
+            <TurnstileBox v-if="siteKey && seconds >= MIN_SECONDS" :key="checkKey" class="sm:basis-full" :site-key="siteKey" @token="token = $event" @failed="token = null" data-choir-check />
             <div class="flex shrink-0 flex-wrap gap-2">
-                <button v-if="seconds >= MIN_SECONDS" type="button" class="btn-secondary" :disabled="busy" :aria-busy="busy ? 'true' : null" data-choir-make @click="$emit('make')"><span v-if="busy" class="spinner" aria-hidden="true"></span>{{ busy ? t('ownChoir.record.sending') : t('ownChoir.record.use') }}</button>
+                <button v-if="seconds >= MIN_SECONDS" type="button" class="btn-secondary" :disabled="busy || (!!siteKey && !token)" :aria-busy="busy ? 'true' : null" data-choir-make @click="$emit('make', token)"><span v-if="busy" class="spinner" aria-hidden="true"></span>{{ busy ? t('ownChoir.record.sending') : t('ownChoir.record.use') }}</button>
                 <button v-else type="button" class="btn-secondary" data-choir-again @click="$emit('again')">{{ t('ownChoir.record.again') }}</button>
             </div>
         </div>`,

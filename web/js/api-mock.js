@@ -232,7 +232,9 @@ async function stateful(operation, params, body, cases, query = {}) {
         // Hear yourself as a choir, on for the tab (stackapella.mockOwnChoir): its own state below.
         const ownChoir = tabStorage.get('stackapella.mockOwnChoir') === '1' || !!data.ownChoir;
         const ownChoirSongs = tabStorage.get('stackapella.mockOwnChoirSongs') === '1' || !!data.ownChoirSongs; // their own songs too
-        return respond(200, { data: { ...data, ideas: !scenarios().includes('ideas.list:not_found'), experiments, lendVoice, selfHosted, withheldSongs, aiVoices, ownChoir, ownChoirSongs } });
+        // Shield mode's site key, for a flow (stackapella.mockTurnstile, this tab): the flow stands in for Cloudflare's script.
+        const turnstileSiteKey = tabStorage.get('stackapella.mockTurnstile') === '1' ? '1x00000000000000000000AA' : data.turnstileSiteKey ?? null;
+        return respond(200, { data: { ...data, ideas: !scenarios().includes('ideas.list:not_found'), experiments, lendVoice, selfHosted, withheldSongs, aiVoices, ownChoir, ownChoirSongs, turnstileSiteKey } });
     }
     // Who's signed in, and what that allows.
     const as = tabStorage.get('stackapella.mockAs') || 'member';
@@ -274,7 +276,13 @@ async function stateful(operation, params, body, cases, query = {}) {
         const json = await example('beta.invite.show.200.json');
         return respond(200, { data: { ...json.data, status: 'accepted' } });
     }
-    if (operation === 'account.show') return as === 'signedOut' ? signedOut() : respond(200, await accountAs(as));
+    if (operation === 'account.show') {
+        if (as === 'signedOut') return signedOut();
+        // An email not confirmed yet, for a flow (stackapella.mockUnverified, this tab).
+        const me = await accountAs(as);
+        if (tabStorage.get('stackapella.mockUnverified') === '1') me.data = { ...me.data, emailVerified: false };
+        return respond(200, me);
+    }
     if (operation === 'account.update' && typeof body?.hideProfile === 'boolean' && as !== 'signedOut') {
         tabStorage.set('stackapella.mockHideProfile', body.hideProfile ? '1' : '0');
         return respond(200, await accountAs(as));
@@ -344,13 +352,21 @@ async function stateful(operation, params, body, cases, query = {}) {
         const choir = state.ownChoir;
         // Download is Plus's (the server decides; Hillel, 2026-11-21): here, the Plus account (`as=plus`) only.
         for (const r of choir.requests) r.canDownload = as === 'plus';
+        // Plus counts singing minutes (60 part-minutes a month here, 47 left); today's ceiling and the first song's check
+        // are a flow's to turn on (stackapella.mockChoirBusy, stackapella.mockChoirCheck).
+        const monthEnd = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth() + 1, 1)).toISOString().replace(/\.\d+Z$/, 'Z');
+        if (as === 'plus') choir.quota = { ...choir.quota, plus: true, freeLeft: 0, unit: 'minutes', minutesLeft: 47, minutesPerMonth: 60, resetsAt: monthEnd };
+        else choir.quota = { ...choir.quota, unit: 'songs', minutesLeft: null, minutesPerMonth: null, resetsAt: monthEnd };
+        choir.busyToday = tabStorage.get('stackapella.mockChoirBusy') === '1';
+        choir.checkNeeded = tabStorage.get('stackapella.mockChoirCheck') === '1' && !choir.requests.length;
+        const unverified = tabStorage.get('stackapella.mockUnverified') === '1';
         const save = (answer) => {
             tabStorage.set('stackapella.mockChoir', JSON.stringify(state.ownChoir));
             return answer;
         };
         if (operation === 'ownChoir.show') {
             for (const r of choir.requests) {
-                if (r.status !== 'queued') continue;
+                if (r.status !== 'queued' || r.startsAfter) continue; // tomorrow's (today's ceiling) stays queued
                 Object.assign(r, { status: 'ready', readyAt: now, parts: shown.requests[0].parts.map((p) => local({ ...p, id: `${p.id}-${r.id}` })) });
                 // The first song made from a clip leaves its voice kept for the next ones (the contract's `voice`).
                 choir.voice ??= { savedAt: now, lastUsedAt: now, expiresAt: now };
@@ -375,8 +391,10 @@ async function stateful(operation, params, body, cases, query = {}) {
             if (!choir.consent) return caseFor('consent_required');
             if (!body?.sha256 && !choir.voice) return caseFor('voice_required');
             if (choir.requests.some((r) => ['uploading', 'queued', 'rendering'].includes(r.status))) return caseFor('request_open');
+            if (unverified && !choir.quota.plus && choir.quota.freeLeft > 0) return respond(403, { message: 'email_unverified', code: 'email_unverified' });
+            if (choir.checkNeeded && !body?.turnstileToken) return respond(403, { message: 'turnstile_required', code: 'turnstile_required' });
             const listed = (await example('templates.catalogue.200.json')).data.find((song) => song.id === body.templateId);
-            const request = { id: `Rq${choir.requests.length + 7}x`, templateId: body.templateId, title: listed?.title ?? body.templateId, version: listed?.version ?? 1, status: 'uploading', failure: null, createdAt: now, readyAt: null, seen: false, canDownload: as === 'plus', parts: [] };
+            const request = { id: `Rq${choir.requests.length + 7}x`, templateId: body.templateId, title: listed?.title ?? body.templateId, version: listed?.version ?? 1, status: 'uploading', failure: null, createdAt: now, readyAt: null, seen: false, canDownload: as === 'plus', startsAfter: choir.busyToday ? new Date(Date.now() + 864e5).toISOString().replace(/\.\d+Z$/, 'Z') : null, parts: [] };
             choir.requests.unshift(request);
             globalThis.mockChoirClip = body; // what was sent, for the flows
             // From the saved voice ({ templateId } alone): queued at once, nothing to upload.
@@ -391,6 +409,11 @@ async function stateful(operation, params, body, cases, query = {}) {
         if (operation === 'ownChoir.requests.complete') {
             if (request.status === 'uploading') request.status = 'queued';
             return save(respond(200, { data: request }));
+        }
+        if (operation === 'ownChoir.requests.download') {
+            if (!request.canDownload) return respond(403, { message: 'plus_required', code: 'plus_required' });
+            globalThis.mockChoirDownloads = (globalThis.mockChoirDownloads ?? 0) + 1; // what the flows count
+            return respond(200, { data: { parts: request.parts.map((p) => ({ partKey: p.partKey, url: p.url, sampleRate: p.sampleRate, frames: p.frames, offsetFrames: p.offsetFrames })) } });
         }
         if (operation === 'ownChoir.requests.seen') {
             request.seen = true;

@@ -14,5 +14,7 @@ Route::post('/claim', [ChoirController::class, 'claim'])->name('claim');
 Route::post('/jobs/{job}/parts', [ChoirController::class, 'startPart'])->name('parts.create');
 Route::post('/parts/{part}/complete', [ChoirController::class, 'completePart'])->name('parts.complete');
 Route::post('/jobs/{job}/finish', [ChoirController::class, 'finish'])->name('jobs.finish');
+Route::post('/jobs/{job}/extend', [ChoirController::class, 'extend'])->name('jobs.extend');
+Route::post('/status', [ChoirController::class, 'status'])->name('status');
 Route::post('/jobs/{job}/reference', [ChoirController::class, 'startReference'])->name('references.create');
 Route::post('/references/{reference}/complete', [ChoirController::class, 'completeReference'])->name('references.complete');

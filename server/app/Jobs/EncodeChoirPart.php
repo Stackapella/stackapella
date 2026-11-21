@@ -42,6 +42,7 @@ final class EncodeChoirPart implements ShouldQueue
 
         $in = (string) tempnam(sys_get_temp_dir(), 'choirpart');
         $out = sys_get_temp_dir().'/choir-'.Str::lower(Str::random(16)).'.m4a';
+        $listen = sys_get_temp_dir().'/choir-listen-'.Str::lower(Str::random(16)).'.m4a';
         file_put_contents($in, Storage::disk('private')->readStream($part->master_key));
 
         try {
@@ -58,22 +59,33 @@ final class EncodeChoirPart implements ShouldQueue
             $gain = $volume['mean'] !== null ? (float) config('beta.guide_rms_dbfs') - $volume['mean'] : 0.0;
             $gain = max(-24.0, min(24.0, $volume['peak'] !== null ? min($gain, -2.0 - $volume['peak']) : $gain));
             $ffmpeg->encodeGuide($in, $out, $part->sample_rate, 0, $part->frames, $gain);
+            // And the listening copy the app plays (the billing review): full quality is only for Download, with Plus.
+            $ffmpeg->encodeGuide($in, $listen, $part->sample_rate, 0, $part->frames, $gain, kbps: 64);
 
-            $key = 'choir/parts/'.Str::lower(Str::random(32)).'.m4a';
-            $stream = fopen($out, 'rb');
-            Storage::disk('private')->writeStream($key, $stream === false ? throw new \RuntimeException("Couldn't open {$out}.") : $stream, ['ContentType' => 'audio/mp4']);
-            is_resource($stream) && fclose($stream);
+            $key = self::store($out);
+            $listenKey = self::store($listen);
 
             $master = $part->master_key;
             // Deleted meanwhile (the singer deleted the song, or everything): nothing kept.
-            if (OwnChoirPart::query()->whereKey($part->id)->update(['status' => 'ready', 'media_key' => $key, 'master_key' => null]) === 0) {
-                Storage::disk('private')->delete($key);
+            if (OwnChoirPart::query()->whereKey($part->id)->update(['status' => 'ready', 'media_key' => $key, 'listen_key' => $listenKey, 'master_key' => null]) === 0) {
+                Storage::disk('private')->delete([$key, $listenKey]);
             }
             Storage::disk('private')->delete($master);
         } finally {
             @unlink($in);
             @unlink($out);
+            @unlink($listen);
         }
+    }
+
+    private static function store(string $file): string
+    {
+        $key = 'choir/parts/'.Str::lower(Str::random(32)).'.m4a';
+        $stream = fopen($file, 'rb');
+        Storage::disk('private')->writeStream($key, $stream === false ? throw new \RuntimeException("Couldn't open {$file}.") : $stream, ['ContentType' => 'audio/mp4']);
+        is_resource($stream) && fclose($stream);
+
+        return $key;
     }
 
     public function failed(): void

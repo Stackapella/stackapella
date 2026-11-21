@@ -1,0 +1,24 @@
+{
+    "$id": "worker.choir.jobs.extend.json",
+    "title": "A claim kept alive while its renders run",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "claimSeconds"
+            ],
+            "properties": {
+                "claimSeconds": {
+                    "type": "integer",
+                    "description": "The claim lasts this long from now."
+                }
+            }
+        }
+    }
+}
