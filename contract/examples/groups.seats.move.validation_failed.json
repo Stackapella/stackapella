@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "to": [
+            "That person already has a seat, or isn't a singer in this group."
+        ]
+    }
+}

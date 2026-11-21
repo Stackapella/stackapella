@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Services\Billing;
 
 use App\Models\User;
+use Carbon\CarbonInterface;
 use Laravel\Cashier\Cashier;
+use Laravel\Cashier\Subscription;
 
 /**
  * Stripe, through Cashier (docs/backend-plan.md D8, after Event Schedule's SubscriptionController).
@@ -44,6 +46,35 @@ final class StripeGateway implements BillingGateway
         $session = $checkout->asStripeCheckoutSession();
 
         return ['id' => (string) $session->id, 'url' => (string) $session->url];
+    }
+
+    public function seatsCheckout(User $user, string $type, string $price, int $seats, string $currency, ?CarbonInterface $trialEnd, string $successUrl, string $cancelUrl, array $metadata, string $terms): array
+    {
+        $builder = $user->newSubscription($type, $price)->quantity($seats, $price)->withMetadata($metadata);
+
+        if ($trialEnd !== null) {
+            $builder->trialUntil($trialEnd);
+        }
+
+        $checkout = $builder->checkout(array_filter([
+            'success_url' => $successUrl,
+            'cancel_url' => $cancelUrl,
+            'currency' => $currency,
+            'metadata' => $metadata,
+            'payment_method_collection' => 'always',
+            // That it renews, at what, and how to cancel (and the trial's end), above the button.
+            'custom_text' => ['submit' => ['message' => mb_substr($terms, 0, 1200)]],
+            'consent_collection' => config('billing.terms_checkbox') === true ? ['terms_of_service' => 'required'] : null,
+        ]));
+
+        $session = $checkout->asStripeCheckoutSession();
+
+        return ['id' => (string) $session->id, 'url' => (string) $session->url];
+    }
+
+    public function updateSeats(Subscription $subscription, int $seats): void
+    {
+        $subscription->updateQuantity($seats);
     }
 
     public function portalUrl(User $user, string $returnUrl): string

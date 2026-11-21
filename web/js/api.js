@@ -148,6 +148,10 @@ export const OPERATIONS = {
     'groups.join.show': ['GET', '/api/choir/{token}'],
     'groups.join': ['POST', '/api/choir/{token}'],
     'groups.members.delete': ['DELETE', '/api/groups/{id}/members/{memberId}'],
+    // Choir seats (docs/choir-seats-plan.md, behind choir_seats): the director buys, resizes and moves them.
+    'groups.seats.checkout': ['POST', '/api/groups/{id}/seats/checkout'],
+    'groups.seats.update': ['PUT', '/api/groups/{id}/seats'],
+    'groups.seats.move': ['POST', '/api/groups/{id}/seats/move'],
     'groups.songs.create': ['POST', '/api/groups/{id}/songs'],
     'groups.tracks.create': ['POST', '/api/groups/{id}/tracks'],
     'groups.tracks.list': ['GET', '/api/groups/{id}/tracks'],
@@ -1076,6 +1080,13 @@ export const api = {
         create: (fields) => call('groups.create', { body: fields }),
         show: (id) => call('groups.show', { params: { id } }),
         update: (id, fields) => call('groups.update', { params: { id }, body: fields }),
+        seats: {
+            // Stripe Checkout for the pack (yearly, from 10): answers { url }, as billing.checkout does.
+            checkout: (id, { seats, currency, startNowConsent = false }) => call('groups.seats.checkout', { params: { id }, body: { seats, currency, startNowConsent } }),
+            update: (id, { seats }) => call('groups.seats.update', { params: { id }, body: { seats } }),
+            // At most 3 moves a group in 30 days (429 rate_limited with retryAfter).
+            move: (id, { from, to }) => call('groups.seats.move', { params: { id }, body: { from, to } }),
+        },
         delete: (id) => call('groups.delete', { params: { id } }),
         link: {
             create: (id) => call('groups.link.create', { params: { id } }),

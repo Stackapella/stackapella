@@ -87,6 +87,7 @@ use App\Http\Controllers\Api\Gallery\GalleryController as GalleryApi;
 use App\Http\Controllers\Api\Gallery\OpenPartsController as OpenPartsApi;
 use App\Http\Controllers\Api\Groups\GroupsController;
 use App\Http\Controllers\Api\Groups\RehearsalsController;
+use App\Http\Controllers\Api\Groups\SeatsController;
 use App\Http\Controllers\Api\Ideas\IdeasController as IdeasApi;
 use App\Http\Controllers\Api\Leagues\LeaguesController as LeaguesApi;
 use App\Http\Controllers\Api\Library\LibraryController as LibraryApi;
@@ -301,6 +302,10 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/groups/{group}/tracks/scores', [GroupsController::class, 'startScore'])->middleware(['throttle:track-scores', 'paused:uploads'])->name('groups.tracks.scores.create');
     Route::post('/groups/{group}/tracks/scores/{score}/complete', [GroupsController::class, 'completeScore'])->middleware('paused:uploads')->name('groups.tracks.scores.complete');
     Route::put('/groups/{group}/songs/{template}/assignments', [GroupsController::class, 'assign'])->name('groups.assignments.update');
+    // Choir seats (docs/choir-seats-plan.md): the leader buys, changes and moves the group's seats.
+    Route::post('/groups/{group}/seats/checkout', [SeatsController::class, 'checkout'])->middleware(['throttle:checkout', 'paused:checkout'])->name('groups.seats.checkout');
+    Route::put('/groups/{group}/seats', [SeatsController::class, 'update'])->middleware('throttle:seats')->name('groups.seats.update');
+    Route::post('/groups/{group}/seats/move', [SeatsController::class, 'move'])->name('groups.seats.move');
     Route::post('/choir/{token}', [GroupsController::class, 'join'])->middleware(['age', 'throttle:invite-links'])->name('groups.join');
 });
 Route::get('/choir/{token}', [GroupsController::class, 'joinShow'])->middleware('throttle:invite-links')->name('groups.join.show');

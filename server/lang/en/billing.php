@@ -24,4 +24,10 @@ return [
     // On every Stripe receipt and invoice once agreed (a durable copy of the consent; Stripe allows 40 and 140 characters).
     'start_now_receipt_name' => 'Plus started at once',
     'start_now_receipt' => 'On :date you asked for Plus to start at once and agreed that you lose the 14-day right to cancel for the time used.',
+
+    // A choir's seats on Stripe's Checkout page (docs/choir-seats-plan.md), above the button.
+    'seats_terms' => [
+        'renews' => ':seats seats for your choir, at :seat a seat: :price a year, renewing until you cancel. Change the seats or cancel online any time in Settings.',
+        'trial' => 'Your choir sings free until :date. Then :seats seats, at :seat a seat: :price a year, renewing until you cancel. Change the seats or cancel online any time in Settings, before :date to pay nothing.',
+    ],
 ];

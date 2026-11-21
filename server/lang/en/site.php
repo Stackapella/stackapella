@@ -1348,15 +1348,26 @@ return [
     // singing, learning your part, the ethics up front. AI said plainly, never first. No prices until Hillel sets them.
     'your_choir' => [
         'title' => 'Hear yourself as a choir',
-        'description' => 'Sing for 30 seconds, then hear any song in our library with every part of a real choir arrangement sung in a voice like yours: a finished choir track to play and share, and to download with Plus.',
+        'description' => 'Sing for 30 seconds, then hear a real choir arrangement with every part sung by AI in a voice like yours. Free to hear and share; download with Plus.',
         'eyebrow' => 'Hear yourself as a choir',
         // The headline in two, its key phrase in the warm accent (design rules, the five pages' headline).
         'headline_before' => 'You, as a',
         'headline_em' => 'whole choir',
         // `lead` without own_choir_hum, `lead_hum` with it (the hummed-song path's own switch).
-        'lead' => 'Sing for 30 seconds, then pick any song from our library. Hear every part, soprano to bass, sung by AI in a voice like yours: a finished choir track to play and share, and to download with Plus.',
-        'lead_hum' => 'Sing for 30 seconds, then pick any song from our library, or hum one of your own. Hear every part, soprano to bass, sung by AI in a voice like yours: a finished choir track to play and share, and to download with Plus.',
+        'lead' => 'Sing for 30 seconds, then pick a song from our library. Every part is sung by AI in a voice like yours: a finished choir track to play and share, and to download with Plus.',
+        'lead_hum' => 'Sing for 30 seconds, then pick a song from our library, or hum one of your own. Every part is sung by AI in a voice like yours: a finished choir track to play and share, and to download with Plus.',
         'start' => 'Try it with Silent Night',
+        // The hero's main button on the page without the audio demo (Hillel: "support starting track B without A"); the
+        // same link as `start`.
+        'start_voice' => 'Try it with your voice',
+        // The picture stage when there's no audio demo (ai-choir-page): Silent Night's real notes as gems, never a recording.
+        'picture' => [
+            'label' => 'One voice becoming a choir',
+            'you' => 'Your voice',
+            'you_chip' => '30 seconds',
+            // No eyebrow ("Every part" would echo the heading); AI is named by the hero and the lanes' AI chips.
+            'two' => ['kick' => '', 'title_before' => 'One voice in.', 'title_em' => 'Every part out.', 'body' => 'Soprano, alto, tenor and bass, from one 30-second take.'],
+        ],
         'hum' => 'Hum your own tune',
         'start_note' => 'In your browser. You choose when it records, and your voice stays private to you.',
         // The pinned stage (ai-choir-page): one real voice, then AI in two parts, then four.
@@ -1376,23 +1387,23 @@ return [
         's1' => ['kick' => 'One real voice', 'title' => ':name, really singing', 'body' => ':song, as :name recorded it for our library.'],
         's2' => ['kick' => 'Then AI', 'title_before' => 'One voice,', 'title_em' => 'two parts', 'body' => ':song\'s tune and harmony, sung by an AI voice based on :name\'s singing, with permission. :name never sang it.'],
         's3' => ['kick' => 'Then the whole choir', 'title_before' => 'Four parts,', 'title_em' => 'one voice', 'body' => 'Soprano, alto, tenor and bass, the arrangement a real choir sings, all made from :name\'s singing.'],
-        's4' => ['kick' => 'Now yours', 'title' => 'Now, you as a whole choir'],
+        's4' => ['kick' => 'How it works', 'title' => 'Three steps, then it\'s yours'],
         'now' => ['real' => ':name, really singing :song', 'two' => 'AI: :song\'s tune and harmony', 'four' => 'AI: all four parts'],
         'live' => ['playing' => 'Playing: one voice becoming a choir', 'stopped' => 'Stopped'],
         'ways' => [
-            'title' => 'Every song in our library',
+            'title' => 'The songs you can choose',
             'title_hum' => 'A song from our library, or one you make',
             'library' => ['kick' => 'From our library', 'heading' => 'Real arrangements', 'body' => 'Not harmonies made up around a tune: the soprano, alto, tenor and bass a choir actually sings, words and all, arranged from songs in the public domain.', 'all' => 'See every song'],
             // A song you make sings the words you give it, else "oo" (Hillel, 2026-11-20: "definiety allow typed words").
             'own' => ['kick' => 'Made by you', 'heading' => 'A song of your own', 'body' => 'Hum a tune and give it your own words, if you like. The app writes it down and arranges the harmony, then every part, your tune included, is sung in a voice like yours: with your words, or on "oo".', 'cta' => 'Make your own'],
         ],
         'steps' => [
-            ['title' => 'Sing for 30 seconds', 'body' => 'Just once. It needn\'t be perfect: we only need to hear your voice, and it\'s kept privately for every next song.'],
-            ['title' => 'Choose a song', 'body' => 'Any song in our library.'],
-            ['title' => 'Hear your choir', 'body' => 'A few minutes later, every part is sung by AI in a voice like yours. Play it and share it, or download it with Plus.'],
+            ['title' => 'Sing once', 'body' => 'Any part, for 30 seconds. It needn\'t be good singing: we only listen for what your voice sounds like, and keep it privately for your next songs.'],
+            ['title' => 'Pick a song', 'body' => 'Any song in our library. Its notes come from the arrangement, not from your singing.'],
+            ['title' => 'Hear your choir', 'body' => 'A few minutes later, your choir is ready, in tune and in time with the arrangement: play it and share it, or download it with Plus.'],
         ],
         // Step 2's body while own_choir_hum is on.
-        'step_choose_hum' => 'Any song in our library, or a tune you hum yourself.',
+        'step_choose_hum' => 'Any song in our library, or a tune you hum yourself. The notes come from the song, not from your 30 seconds.',
         'learn' => 'Want to sing it yourself too? Learn any part, and your own takes replace the AI ones.',
         'voice' => [
             'title' => 'What happens to your voice',
@@ -1402,14 +1413,16 @@ return [
                 'Delete it any time, and it\'s gone. Unused for 12 months, it goes by itself.',
                 'It\'s never used for anything else, or by anyone else.',
                 'What the AI sings is always marked as AI, in the app and on anything you share.',
-                'Your songs are made on our GPU provider\'s servers, which keep what they process encrypted for at most 7 days, then delete it.',
+                'Your clip, the voice made from it and the parts made in it are kept encrypted by our GPU provider for up to 7 days, then deleted.',
             ],
         ],
         'faq_title' => 'Questions',
         // Without own_choir_hum. With it, `faq_hum` joins after the second, and own_songs takes `own_songs_hum`.
         'faq' => [
             'mine' => ['Is it really my voice?', 'It\'s an AI voice made from your singing: close to yours, but not a recording of you.'],
-            'sing_well' => ['Do I need to sing well?', 'No. The AI sings the notes; your 30 seconds only tell it what your voice sounds like.'],
+            // The expert's call (Hillel: "may we mention [sound like you can sing] but not make it the lead"): "in tune" only where
+            // the doubt arises.
+            'sing_well' => ['Can it make me sound like a good singer?', 'It lets you hear a voice like yours singing in tune. The pitch and timing come from the song, so every note lands where it should, however you sing. The tone is yours, breathiness and all, and it\'s always marked as AI. If you\'d like to sing it yourself one day, the courses are free.'],
             'who' => ['Who hears it?', 'Only you, unless you choose to share it.'],
             'own_songs' => ['Can it sing my own songs, or other words?', 'It sings the songs in our library, with their own words.'],
             // Hillel, 2026-11-21: "if they want to download it they need to subscribe to plus".

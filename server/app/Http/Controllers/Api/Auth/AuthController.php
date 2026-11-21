@@ -133,6 +133,9 @@ final class AuthController extends Controller
             // Shared private arrangements need everyone's own Plus (the plus_private switch, Hillel 2026-11-17): the app
             // shows the Plus sheet on opening one without Plus, and says so on the Plus page, only while it's on.
             'plusPrivate' => $flags->on('plus_private'),
+            // Choir seats (the choir_seats switch, docs/choir-seats-plan.md): the app shows the director's seat panel, the
+            // seats moment before Start a group and an unseated member's "Ask your director", only while it's on.
+            'choirSeats' => $flags->on('choir_seats'),
             // The browser error reporter's DSN (public by design: its envelopes come to /log/errors).
             'sentryDsn' => is_string($dsn = config('sentry.browser_dsn')) && $dsn !== '' ? $dsn : null,
         ]]);

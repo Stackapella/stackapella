@@ -361,6 +361,9 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `groups.tracks.scores.complete` | `POST /api/groups/{id}/tracks/scores/{scoreId}/complete` | The director | L |
 | `groups.songs.delete` | `DELETE /api/groups/{id}/songs/{templateId}` | The director | M7 |
 | `groups.assignments.update` | `PUT /api/groups/{id}/songs/{templateId}/assignments` | The director | M7 |
+| `groups.seats.checkout` | `POST /api/groups/{id}/seats/checkout` | The director | L |
+| `groups.seats.update` | `PUT /api/groups/{id}/seats` | The director | L |
+| `groups.seats.move` | `POST /api/groups/{id}/seats/move` | The director | L |
 | `coach.application.show` | `GET /api/coach/application` | Anyone signed in | M8 |
 | `coach.application.create` | `POST /api/coach/application` | Anyone signed in, verified | M8 |
 | `coach.profile.show` | `GET /api/coach/profile` | An approved coach | M8 |
@@ -2784,6 +2787,12 @@ person needs their own Plus, the creator too, and nobody's covers anyone else's.
 Nothing is deleted: the song stays listed with every take, and it opens again the moment Plus is back (or,
 for its creator, once it's theirs alone). Finished mixes and videos (`/h/` links) stay free to hear.
 
+**A choir's own song needs a seat** (Hillel, 2026-11-18; behind the `choir_seats` switch; "Choir groups",
+"Choir seats" below): `templates.show` of a group's own song through the group (`grant` `group`, or
+`project` for one reached only through it), `projects.save` naming it and `takes.create` on a project from
+it answer `403 plus_required` with `reason: "seat_needed"` for a member without a seat in the group. Our
+library songs never need one.
+
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 |  | `templates.show.json` | `templates.show.200.json` |
@@ -2795,7 +2804,8 @@ for its creator, once it's theirs alone). Finished mixes and videos (`/h/` links
 
 #### `billing.prices`
 
-Plus's prices and the trial, for anyone (the pricing page, signed out). `startNowConsent` is true
+Plus's prices and the trial, for anyone (the pricing page, signed out). `seats` is a choir's seat price
+(docs/choir-seats-plan.md): each currency's amount a seat a year, `min` seats a pack, and `trialDays`. `startNowConsent` is true
 for a visitor in the EU, EEA or UK: the upgrade sheet then asks, before Checkout, for consent to
 start Plus at once, which affects their 14-day right of withdrawal (the words are the app's, at
 the version the server records; the lawyer confirms them). **Request:** none.
@@ -3668,6 +3678,33 @@ Plus, and everyone invited joins free): members join by the group's link, the di
   from this. For the director, each song's `sinceRehearsal` counts the assigned members who began it
   and who recorded their part since the previous rehearsal's day began (UTC): numbers only, null
   for a member or before a first rehearsal.
+- **Choir seats** (Hillel, 2026-11-18; behind the `choir_seats` switch, `auth.config`'s `choirSeats`;
+  docs/choir-seats-plan.md). Every member of a choir group needs a seat for what the group does: the
+  group's own songs (a person's template shared with it), practice and takes on them, and the director's
+  view of their progress. The director buys the seats for the choir (`groups.seats.checkout`: yearly, per
+  seat, from 10; `billing.prices`' `seats`), paid from the start (no choir trial since 2026-11-21: `trialDays`
+  is 0 and `seats.status` is never `free_trial`). Seats fill in join order up to the number bought;
+  the director moves one (`groups.seats.move`) and buys more or fewer (`groups.seats.update`, or the
+  billing portal). A seat covers singing with the group, not Hear yourself as a choir's AI songs (those need the
+  singer's own Plus, or their one free song). A seat is Plus: a member with their own Plus (or a class or organization code's) is
+  seated without using one, and a seated singer has every Plus extra (`billing.show`'s `source:
+  "choir"`). The director is seated while the seats are paid for, without using one.
+  - While it's on: anyone may start a group (`groups.create` asks for no Plus), a group never pauses for
+    its director's Plus (`readOnly` stays false; `groups.join` never answers `shared_paused`), and the
+    director's own Plus covers nobody else.
+  - `seat` (`seated` or `needed`) on `groups.list`, `groups.show` and each of its songs says whether the
+    caller may practise and record in the group. Unseated, a member still sees the group, its songs and
+    their part, but `templates.show` of the group's own song, `projects.save` naming it and
+    `takes.create` on a project from it answer `403 plus_required` with `reason: "seat_needed"`: the
+    app shows "Ask your director to add your seat", with nothing to buy, never an error. Our library
+    songs stay free to learn alone, the group's too.
+  - The director sees each member's `seat` (`own`, `seated`, `needed`) and the seat panel (`seats`:
+    `status`, `bought`, `used`, `min`, `trialEndsAt`, `endsAt`). An unseated member's assignments show
+    the director no progress (`status: "none"`), and the since-rehearsal counts leave them out.
+  - When the seats lapse, the unseated can't practise or record in the group, and nothing is deleted:
+    every take is kept, and the same singers are seated again when the seats return.
+  - With the switch off, nothing changes: `seat` follows the director's Plus as `readOnly` does, and
+    `seats` is null.
 
 #### `groups.list`
 
@@ -3876,6 +3913,64 @@ one part of a song.
 | 422 | `validation_failed` | `error.json` | `groups.assignments.update.validation_failed.json` |
 | 404 | `not_found` | `error.json` | `groups.assignments.update.not_found.json` |
 | 403 | `plus_required` | `error.json` | `groups.assignments.update.plus_required.json` |
+
+#### `groups.seats.checkout`
+
+The director buys the group's seats (choir seats, docs/choir-seats-plan.md): Stripe Checkout for the
+"Choir seats" price, yearly, `seats` of it, on the director's account, with Stripe Tax as Plus. A group's
+first pack is paid from the start since 2026-11-21 (no choir trial, `billing.choir.trial_days` 0; set above 0, a first
+pack's days free for the whole choir come back, a group that had seats before getting no second trial). Stripe's page says the seats, what they renew
+at each year and how to cancel. Back from Checkout, the app opens `/groups/<id>?seats=bought` (or
+`?seats=cancelled`); the seats appear when Stripe's webhook arrives. **Request:** `{ "seats": 12,
+"currency": "usd", "startNowConsent": true }`: `seats` from 10 to a group's most members (60);
+`currency` `usd`, `eur` or `gbp` (a returning customer keeps their first currency); `startNowConsent` as
+`billing.checkout`'s. Off (`423 paused`) while the `choir_seats` switch is off or before the price is set
+up; `409 seats_active` while the group's seats are paid for (`groups.seats.update` instead). Limited
+(`checkout`).
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 201 |  | `billing.redirect.json` | `groups.seats.checkout.201.json` |
+| 403 | `director_only` | `error.json` | `groups.seats.checkout.director_only.json` |
+| 404 | `not_found` | `error.json` | `groups.seats.checkout.not_found.json` |
+| 403 | `email_unverified` | `error.json` | `groups.seats.checkout.email_unverified.json` |
+| 409 | `seats_active` | `error.json` | `groups.seats.checkout.seats_active.json` |
+| 422 | `validation_failed` | `error.json` | `groups.seats.checkout.validation_failed.json` |
+| 423 | `paused` | `error.json` | `groups.seats.checkout.paused.json` |
+| 429 | `rate_limited` | `error.json` | `groups.seats.checkout.rate_limited.json` |
+
+#### `groups.seats.update`
+
+More or fewer seats on a pack that's paid for (Stripe prorates); the billing portal can do the same.
+Fewer than are taken drops the seats given last; more fill in join order. **Request:** `{ "seats": 20 }`
+(10 to 60). `409 no_subscription` without paid seats (`groups.seats.checkout` first). Limited (`seats`, 20
+an hour).
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `groups.show.json` | `groups.seats.update.200.json` |
+| 403 | `director_only` | `error.json` | `groups.seats.update.director_only.json` |
+| 404 | `not_found` | `error.json` | `groups.seats.update.not_found.json` |
+| 409 | `no_subscription` | `error.json` | `groups.seats.update.no_subscription.json` |
+| 422 | `validation_failed` | `error.json` | `groups.seats.update.validation_failed.json` |
+| 429 | `rate_limited` | `error.json` | `groups.seats.update.rate_limited.json` |
+
+#### `groups.seats.move`
+
+The director moves a seat from one member to another. **Request:** `{ "from": "<memberId>", "to":
+"<memberId>" }`: `from` holds one of the group's seats (else `422` on `from`); `to` is a member with no
+seat and no Plus of their own (else `422` on `to`). `409 no_subscription` without paid seats (in the free
+days everyone is seated already). At most 3 moves a group in 30 days, each logged (`429 rate_limited`, `retryAfter`
+until the oldest move is 30 days old).
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `groups.show.json` | `groups.seats.move.200.json` |
+| 403 | `director_only` | `error.json` | `groups.seats.move.director_only.json` |
+| 404 | `not_found` | `error.json` | `groups.seats.move.not_found.json` |
+| 409 | `no_subscription` | `error.json` | `groups.seats.move.no_subscription.json` |
+| 422 | `validation_failed` | `error.json` | `groups.seats.move.validation_failed.json` |
+| 429 | `rate_limited` | `error.json` | `groups.seats.move.rate_limited.json` |
 
 ### Coaching, without the directory (M8)
 

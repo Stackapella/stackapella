@@ -18,7 +18,9 @@
                 "songs",
                 "members",
                 "link",
-                "rehearsal"
+                "rehearsal",
+                "seat",
+                "seats"
             ],
             "properties": {
                 "id": {
@@ -67,7 +69,8 @@
                             "access",
                             "own",
                             "sharedAt",
-                            "sinceRehearsal"
+                            "sinceRehearsal",
+                            "seat"
                         ],
                         "properties": {
                             "templateId": {
@@ -113,6 +116,14 @@
                                     }
                                 },
                                 "description": "The director's counts since the last rehearsal, numbers only; null for a member, or before a first rehearsal."
+                            },
+                            "seat": {
+                                "type": "string",
+                                "enum": [
+                                    "seated",
+                                    "needed"
+                                ],
+                                "description": "The caller's seat for this song: as `seat` for the choir's own songs; always `seated` for a library song, one open by its link, or the caller's own, which stay free to learn alone."
                             }
                         }
                     }
@@ -128,7 +139,8 @@
                             "avatarUrl",
                             "role",
                             "joinedAt",
-                            "assignments"
+                            "assignments",
+                            "seat"
                         ],
                         "properties": {
                             "id": {
@@ -191,6 +203,15 @@
                                     "null"
                                 ],
                                 "format": "uri"
+                            },
+                            "seat": {
+                                "type": "string",
+                                "enum": [
+                                    "own",
+                                    "seated",
+                                    "needed"
+                                ],
+                                "description": "Each shown member's seat: own (their own Plus, no seat used), seated, or needed. With the switch on, a member whose seat is needed shows the director no progress (each assignment's status stays none). With it off, seated or needed as the leader's Plus decides."
                             }
                         }
                     },
@@ -257,6 +278,73 @@
                         }
                     },
                     "description": "The group's next rehearsal as its director set it (null when none is). Members see it too."
+                },
+                "seat": {
+                    "type": "string",
+                    "enum": [
+                        "seated",
+                        "needed"
+                    ],
+                    "description": "The viewer's own seat (choir seats, docs/choir-seats-plan.md): `seated` may practise and record in the group; `needed` may not (the app shows \"Ask your director to add your seat\", nothing to buy). With the choir_seats switch off, the leader's Plus decides, as readOnly does."
+                },
+                "seats": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "status",
+                        "bought",
+                        "used",
+                        "min",
+                        "trialEndsAt",
+                        "endsAt"
+                    ],
+                    "properties": {
+                        "status": {
+                            "type": "string",
+                            "enum": [
+                                "none",
+                                "free_trial",
+                                "trialing",
+                                "active",
+                                "past_due",
+                                "canceled",
+                                "lapsed"
+                            ],
+                            "description": "none: never bought; free_trial: a group made before the choir_seats switch went on, in its 14 free days from that day (every member seated, nothing bought); trialing: a pack in its trial; active; past_due: Stripe retrying a payment (still seated); canceled: paid up to endsAt, not renewing; lapsed: ended (the unseated read-only, nothing deleted)."
+                        },
+                        "bought": {
+                            "type": "integer",
+                            "description": "Seats paid for now (0 unless trialing, active, past_due or canceled)."
+                        },
+                        "used": {
+                            "type": "integer",
+                            "description": "Seats held by members. Members on their own Plus, and the director, never take one."
+                        },
+                        "min": {
+                            "type": "integer",
+                            "description": "The fewest seats a pack has (10)."
+                        },
+                        "trialEndsAt": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time",
+                            "description": "When the free days end (trialing or free_trial)."
+                        },
+                        "endsAt": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "format": "date-time",
+                            "description": "When a canceled pack ends."
+                        }
+                    },
+                    "description": "The director's seat panel while the choir_seats switch is on; null for a member, or while it's off."
                 }
             }
         }

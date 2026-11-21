@@ -8,6 +8,7 @@ use App\Exceptions\Refusal;
 use App\Models\Project;
 use App\Models\Template;
 use App\Models\User;
+use App\Support\Groups\ChoirSeats;
 use App\Support\Sync\SyncSeq;
 use App\Support\Templates\Catalogue;
 use App\Support\Usage\Plans;
@@ -126,7 +127,14 @@ final class SaveProject
 
         $template = Template::query()->where('slug', $slug)->whereNotNull('owner_id')->first();
 
-        if ($template === null || $template->owner_id === $user->id || $this->catalogue->inGroup($template, $user)) {
+        if ($template === null || $template->owner_id === $user->id) {
+            return;
+        }
+
+        if ($this->catalogue->inGroup($template, $user)) {
+            // A choir's own song needs a seat to practise (choir_seats, Hillel 2026-11-18).
+            app(ChoirSeats::class)->ensureSeatFor($user, $template);
+
             return;
         }
 

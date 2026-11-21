@@ -237,6 +237,8 @@ return [
     'template_declaration' => 'A template in the library is saved with who wrote the song, each time.',
     'group_member' => 'That person isn\'t in this group.',
     'group_one_part' => 'Each person sings one part of a song.',
+    'seat_from' => 'That person doesn\'t hold one of this group\'s seats.',
+    'seat_to' => 'That person already has a seat, or isn\'t a singer in this group.',
     'coaching_adult' => 'Coaching is for people 18 and over.',
     'review_take' => 'Choose one of your own recordings, once it has finished uploading.',
     'review_length' => 'This is for up to :seconds seconds.',

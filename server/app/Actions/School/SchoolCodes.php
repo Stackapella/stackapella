@@ -233,7 +233,8 @@ final class SchoolCodes
                 throw new Refusal(409, 'school_already_redeemed');
             }
 
-            if ($this->plans->isPlus($student)) {
+            // Their own Plus (a choir seat is the choir's: a code's year frees it for the next singer).
+            if ($this->plans->ownPlan($student) === 'plus') {
                 throw new Refusal(409, 'school_already_plus');
             }
 

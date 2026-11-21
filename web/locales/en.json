@@ -1270,6 +1270,7 @@
             "own_choir_teaser": "Own choir teaser",
             "own_choir": "Your own choir",
             "own_choir_songs": "Your own choir on your own songs",
+            "choir_seats": "Choir seats",
             "schools": "Schools",
             "compare_pages": "Comparison pages",
             "open_source": "Open source",
@@ -1314,6 +1315,7 @@
             "own_choir_teaser": "The song pages' \"Hear yourself as a choir, coming soon\" button.",
             "own_choir": "Hear yourself as a whole choir: record, wait and listen. Invited accounts first.",
             "own_choir_songs": "Singers hear their own songs from the creator in a voice like theirs too, a hummed one from the humming itself. Needs Your own choir on.",
+            "choir_seats": "Each member of a choir group needs a seat the director buys (from 10, yearly, paid from the start). A seat covers group singing, not AI choir songs; seats move at most 3 times a month.",
             "schools": "Teachers make class codes that give students a free year of Plus. Off until its terms and privacy lines are read.",
             "compare_pages": "/compare pages in search, the sitemap and the footer. They answer either way; this only lets them be found.",
             "open_source": "/open-source, /selfhost, the self-hosting terms and every mention of it on the site. Only true once the repos are public.",
@@ -8513,7 +8515,7 @@
         },
         "title": "Hear yourself as a choir",
         "intro": {
-            "one": "Sing along with {song} for 30 seconds, any part, in your own voice.",
+            "one": "Sing along with {song} for 30 seconds: any part, just once. It needn't be good singing: we only listen for what your voice sounds like, and keep it privately for your next songs.",
             "two": "We make every part of it in a voice like yours, labelled as AI.",
             "three": "Then learn your part: each one you record takes the place of its AI version."
         },

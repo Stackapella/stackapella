@@ -234,7 +234,9 @@
     opacity: 0;
     transition: transform 200ms ease-in, opacity 120ms linear;
 }
-[dir="rtl"] .gt-stack i { transform-origin: 100% 50%; }
+/* The logo's bars always share a left edge (Hillel, 2026-11-21: "always keep our logo bars left aligned"), right to
+   left too: each bar starts in from the lane's start by what it's shorter than the longest. */
+[dir="rtl"] .gt-stack i { transform-origin: 100% 50%; margin-inline-start: calc((1 - var(--ow)) * var(--gt-f)); }
 .gt[aria-checked="true"] .gt-stack i {
     transform: translateY(calc(var(--oy) * var(--gt-h))) scaleX(1); opacity: 1;
     transition: transform 320ms var(--gt-ease-out) calc(200ms + var(--n) * 45ms), opacity 60ms linear calc(200ms + var(--n) * 45ms);

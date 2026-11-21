@@ -26,6 +26,7 @@ use App\Models\Comment;
 use App\Models\DataExport;
 use App\Models\Engagement;
 use App\Models\ExercisePack;
+use App\Models\Group;
 use App\Models\HandleHold;
 use App\Models\Harmony;
 use App\Models\HarmonyLike;
@@ -48,6 +49,7 @@ use App\Models\User;
 use App\Services\Auth\ProviderTokens;
 use App\Services\Billing\BillingGateway;
 use App\Support\Accounts\Sessions;
+use App\Support\Groups\ChoirSeats;
 use App\Support\Sync\SyncSeq;
 use App\Support\Trust\SecurityLog;
 use Illuminate\Support\Facades\DB;
@@ -122,6 +124,15 @@ final class DeleteAccount
 
         if ($subscription !== null && $subscription->valid()) {
             $this->gateway->cancelNow($subscription->stripe_id);
+        }
+
+        // The seats of the choirs they lead stop billing too (their groups go with the account).
+        foreach (Group::query()->where('director_id', $user->id)->get() as $group) {
+            $seats = app(ChoirSeats::class)->cancellable($group);
+
+            if ($seats !== null) {
+                $this->gateway->cancelNow($seats->stripe_id);
+            }
         }
 
         $this->avatar->remove($user);

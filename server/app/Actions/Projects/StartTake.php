@@ -6,11 +6,14 @@ namespace App\Actions\Projects;
 
 use App\Exceptions\Refusal;
 use App\Models\Part;
+use App\Models\Project;
 use App\Models\ProjectMember;
 use App\Models\Score;
 use App\Models\SyncTombstone;
 use App\Models\Take;
+use App\Models\Template;
 use App\Models\User;
+use App\Support\Groups\ChoirSeats;
 use App\Support\Storage\Uploads;
 use App\Support\Sync\SyncSeq;
 use App\Support\Trust\TrustLevel;
@@ -30,7 +33,7 @@ use Illuminate\Validation\ValidationException;
  */
 final class StartTake
 {
-    public function __construct(private readonly Plans $plans, private readonly TrustLevel $trust, private readonly SyncSeq $seq, private readonly Uploads $uploads, private readonly UploadBytes $bytes, private readonly PrivateSongs $private) {}
+    public function __construct(private readonly Plans $plans, private readonly TrustLevel $trust, private readonly SyncSeq $seq, private readonly Uploads $uploads, private readonly UploadBytes $bytes, private readonly PrivateSongs $private, private readonly ChoirSeats $seats) {}
 
     /**
      * @param  array{id: string, partId: string, sampleRate: int, frames: int, offsetFrames: int, bytes: int, sha256: string, scores?: array<string, mixed>|null}  $data
@@ -94,6 +97,12 @@ final class StartTake
 
         $this->plans->ensureEditable($owner, $part->project);
 
+        // A choir's own song, sung through the group: a seat (choir_seats, Hillel 2026-11-18). Before the private
+        // arrangements' rule, which leaves choir groups to this one.
+        if (($template = $this->seats->on() ? $this->groupSong($part->project) : null) !== null) {
+            $this->seats->ensureSeatFor($user, $template);
+        }
+
         // A shared private arrangement: every person's own Plus, the owner's too, and nobody's covers anyone else's
         // (the plus_private switch, Hillel 2026-11-17: "They keep singing" when the creator's Plus ends).
         if ($this->private->needsPlusFor($user, $part->project)) {
@@ -154,5 +163,11 @@ final class StartTake
         }
 
         return $take->setRelation('part', $part);
+    }
+
+    /** The person's template the project is made from, when it's one (a choir's own song may be). */
+    private function groupSong(Project $project): ?Template
+    {
+        return $project->template_slug === null ? null : Template::query()->where('slug', $project->template_slug)->whereNotNull('owner_id')->whereNull('deleted_at')->first();
     }
 }

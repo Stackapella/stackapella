@@ -455,6 +455,27 @@ function setUp() {
     // A line above the page (an outreach partner's, a mudeo arrival's): the top line sits under it while it's in view.
     const note = document.querySelector('[data-lnf-note]');
 
+    // The first scene on a phone: the lanes start just under the heading, the lede, Play and the line under it, however
+    // they wrap (css/landing.css, data-cap0), so there's no empty band under the top bar and nothing runs into the lanes
+    // (Hillel, 2026-11-21: "the main landing home needs work on mobile"). Without this, the stylesheet's own split stands.
+    const cap0 = root.querySelector('.lnf-stage [data-s="0"] .lnf-cap');
+    if (cap0 && 'ResizeObserver' in window) {
+        const fitCap = () => {
+            const shown = [...cap0.children].filter((child) => child.getClientRects().length);
+            if (!shown.length) return;
+            const height = Math.ceil(shown.at(-1).getBoundingClientRect().bottom - shown[0].getBoundingClientRect().top);
+            root.style.setProperty('--lnf-cap0', `${height}px`);
+            // The first fit takes its place at once (no slide on arrival); later ones move as the scenes do.
+            if (!root.hasAttribute('data-cap0')) {
+                root.setAttribute('data-cap0', 'first');
+                requestAnimationFrame(() => requestAnimationFrame(() => root.setAttribute('data-cap0', '')));
+            }
+        };
+        fitCap();
+        const watch = new ResizeObserver(() => requestAnimationFrame(fitCap));
+        for (const child of cap0.children) watch.observe(child);
+    }
+
     function onScroll() {
         queued = false;
         const y = window.scrollY;

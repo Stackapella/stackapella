@@ -36,7 +36,8 @@
                 "languages",
                 "withheldSongs",
                 "plusTeams",
-                "plusPrivate"
+                "plusPrivate",
+                "choirSeats"
             ],
             "properties": {
                 "methods": {
@@ -286,6 +287,10 @@
                 "plusPrivate": {
                     "type": "boolean",
                     "description": "Shared private arrangements need everyone's own Plus (the plus_private switch, docs/pricing-plan.md, top): while true, opening one without Plus shows the Plus sheet (templates.show's plus_required, a project's readOnly plus_needed, templates.mine's plusNeeded, invites.show's plusNeeded). False: as before."
+                },
+                "choirSeats": {
+                    "type": "boolean",
+                    "description": "Choir seats (the choir_seats switch, docs/choir-seats-plan.md): while true, every member of a choir group needs a seat (the director's seat panel, the seats moment before Start a group, an unseated member's \"Ask your director\"; groups.show's seat and seats). False: as before."
                 }
             }
         }

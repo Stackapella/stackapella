@@ -275,8 +275,9 @@
                             <h2 id="lnf-h6" class="lnf-h2">{{ __('landing.choir.before') }} <em>{{ __('landing.choir.em') }}</em></h2>
                             <p class="lnf-say">{{ __('landing.choir.body') }}</p>
                             {{-- Starting a group takes Plus while that switch is on (Hillel, 2026-11-12); the page says so. --}}
-                            @if ($teams)
-                                <p class="lnf-plusline"><span class="lnf-soon">{{ __('pages.landing.plans_plus') }}</span><span>{{ __('landing.choir.plus') }}</span></p>
+                            {{-- With choir seats on (Hillel, 2026-11-18), a seat for each singer instead (lang/en/seats.php). --}}
+                            @if ($teams || \App\Support\Site\Teams::seats())
+                                <p class="lnf-plusline"><span class="lnf-soon">{{ __('pages.landing.plans_plus') }}</span><span>{{ \App\Support\Site\Teams::text('landing.choir.plus') }}</span></p>
                             @endif
                             <div class="lnf-go">
                                 <a href="{{ \App\Support\Http\Hosts::app('/groups?start=1&ref=landing') }}" class="lnf-quiet">{{ __('pages.site.group_start') }}</a>

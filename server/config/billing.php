@@ -56,4 +56,25 @@ return [
     // Stripe's settings (Stripe refuses it before).
     'terms_checkbox' => (bool) env('STRIPE_TERMS_CHECKBOX', false),
 
+    // Choir seats (docs/choir-seats-plan.md; Hillel, 2026-11-18): every member of a choir group needs a seat, bought
+    // by the group's leader, yearly, per seat, from 10 seats. A third Stripe price, "Choir seats" (per unit, yearly,
+    // with the same currency options as Plus), made in Stripe by Hillel: unset, the seats Checkout is simply off.
+    // The amounts are what the app shows before Checkout, and must match Stripe's.
+    'choir' => [
+        'price' => env('STRIPE_PRICE_CHOIR'),
+        'amounts' => [
+            'usd' => ['seat' => 1500, 'tax_inclusive' => false],
+            'eur' => ['seat' => 1500, 'tax_inclusive' => true],
+            'gbp' => ['seat' => 1300, 'tax_inclusive' => true],
+        ],
+        // A pack is at least this many seats, and at most a group's members (config usage.group_members).
+        'min_seats' => 10,
+        // No choir trial (the coordinator for Hillel, 2026-11-21, matching "charged from the start"): 0 turns it off.
+        // Above 0, the whole choir's days once a group: its first seats' trial, or from the day the switch went on for
+        // a group made before it.
+        'trial_days' => 0,
+        // A group's seats move from one member to another at most this many times in 30 days, each move logged.
+        'moves_a_month' => 3,
+    ],
+
 ];

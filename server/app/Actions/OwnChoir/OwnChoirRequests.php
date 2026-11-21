@@ -23,7 +23,6 @@ use App\Support\Storage\Uploads;
 use App\Support\Templates\Catalogue;
 use App\Support\Trust\TrustLevel;
 use App\Support\Trust\WordLists;
-use App\Support\Usage\Plans;
 use App\Support\Usage\UploadBytes;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -374,7 +373,8 @@ final class OwnChoirRequests
             throw new Refusal(404, 'not_found');
         }
 
-        if (! app(Plans::class)->isPlus($user)) {
+        // Their own Plus: a choir seat doesn't cover AI songs.
+        if (OwnChoir::tier($user) === 'free') {
             throw new Refusal(403, 'plus_required');
         }
 

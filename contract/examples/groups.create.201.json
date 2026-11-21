@@ -9,6 +9,8 @@
         },
         "readOnly": false,
         "memberCount": 1,
+        "seat": "seated",
+        "seats": null,
         "songs": [],
         "members": [
             {
@@ -17,6 +19,7 @@
                 "avatarUrl": null,
                 "role": "director",
                 "joinedAt": "2026-10-27T12:00:00Z",
+                "seat": "seated",
                 "assignments": []
             }
         ],

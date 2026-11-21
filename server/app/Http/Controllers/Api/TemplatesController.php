@@ -20,6 +20,7 @@ use App\Models\TemplateRecording;
 use App\Models\TemplateVersion;
 use App\Models\User;
 use App\Support\AiVoices\AiGuides;
+use App\Support\Groups\ChoirSeats;
 use App\Support\Rights\RightsHere;
 use App\Support\Templates\Catalogue;
 use App\Support\Templates\FirstPhrase;
@@ -198,6 +199,12 @@ final class TemplatesController extends Controller
         // reading it (their devices sync it; the app shows them the sheet), and a choir group stays covered by its leader.
         if (in_array($grant, ['link', 'project'], true) && app(PrivateSongs::class)->needsPlus($user, $song)) {
             throw $user === null ? new Refusal(403, 'account_required') : PrivateSongs::refusal();
+        }
+
+        // A choir's own song, reached through the group: every member needs a seat (choir_seats, Hillel 2026-11-18).
+        // Unseated, the app shows "Ask your director to add your seat", with nothing to buy.
+        if ($user !== null && in_array($grant, ['group', 'project'], true)) {
+            app(ChoirSeats::class)->ensureSeatFor($user, $song);
         }
 
         $number = $request->validated('version');

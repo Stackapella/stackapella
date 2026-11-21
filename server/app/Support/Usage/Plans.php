@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Usage;
 
 use App\Exceptions\Refusal;
+use App\Models\Group;
 use App\Models\Harmony;
 use App\Models\Project;
 use App\Models\Take;
@@ -12,6 +13,7 @@ use App\Models\Template;
 use App\Models\TemplateRecording;
 use App\Models\User;
 use App\Support\Flags;
+use App\Support\Groups\ChoirSeats;
 use App\Support\Sync\SyncSeq;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -29,9 +31,48 @@ final class Plans
     private array $readOnly = [];
 
     /**
+     * Their own Plus, or a choir seat (docs/choir-seats-plan.md: a seat is Plus, the singer gets every Plus extra too,
+     * while the choir_seats switch is on).
+     *
      * @return 'free'|'plus'
      */
     public function plan(User $user): string
+    {
+        return $this->ownPlan($user) === 'plus' || $this->fromSeat($user) ? 'plus' : 'free';
+    }
+
+    /** Plus from a choir seat alone (their own Plus aside): the choir_seats switch on and a seat held now. */
+    public function fromSeat(User $user): bool
+    {
+        $seats = app(ChoirSeats::class);
+
+        return $user->exists && $seats->on() && $seats->holdsAny($user);
+    }
+
+    /**
+     * Whether the person may practise and record in the group: with the choir_seats switch on, their own Plus or a seat
+     * (ChoirSeats::seated; the leader's own Plus no longer covers anyone); off, today's rule, the leader's Plus
+     * (sharedOpen, plus_teams).
+     */
+    public function seatedIn(User $user, Group $group): bool
+    {
+        $seats = app(ChoirSeats::class);
+
+        if ($seats->on()) {
+            return $seats->seated($user, $group);
+        }
+
+        $director = $group->relationLoaded('director') ? $group->director : $group->director()->first();
+
+        return $director === null || $this->sharedOpen($director);
+    }
+
+    /**
+     * The person's own Plan, a choir seat aside (a member with their own Plus never takes a seat).
+     *
+     * @return 'free'|'plus'
+     */
+    public function ownPlan(User $user): string
     {
         // A self-hosted install has every Plus feature for every account (config/selfhost.php).
         if (config('selfhost.enabled') === true) {

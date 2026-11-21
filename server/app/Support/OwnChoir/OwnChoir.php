@@ -73,7 +73,8 @@ final class OwnChoir
      */
     public static function tier(User $user): string
     {
-        if (! app(Plans::class)->isPlus($user)) {
+        // Their own Plus only: a choir seat covers singing with the group, not AI songs (the coordinator for Hillel).
+        if (app(Plans::class)->ownPlan($user) !== 'plus') {
             return 'free';
         }
 

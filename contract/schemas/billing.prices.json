@@ -12,7 +12,8 @@
             "required": [
                 "prices",
                 "trial",
-                "startNowConsent"
+                "startNowConsent",
+                "seats"
             ],
             "properties": {
                 "prices": {
@@ -83,6 +84,56 @@
                 "startNowConsent": {
                     "type": "boolean",
                     "description": "True for a visitor in the EU, EEA or UK (Cloudflare's country): the app asks for consent to start Plus at once, and billing.checkout needs startNowConsent: true. False when the country isn't known."
+                },
+                "seats": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "min",
+                        "trialDays",
+                        "prices"
+                    ],
+                    "properties": {
+                        "min": {
+                            "type": "integer",
+                            "description": "The fewest seats a pack has."
+                        },
+                        "trialDays": {
+                            "type": "integer",
+                            "description": "The whole choir's free days on a group's first pack."
+                        },
+                        "prices": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "currency",
+                                    "amountCents",
+                                    "taxInclusive"
+                                ],
+                                "properties": {
+                                    "currency": {
+                                        "type": "string",
+                                        "enum": [
+                                            "usd",
+                                            "eur",
+                                            "gbp"
+                                        ]
+                                    },
+                                    "amountCents": {
+                                        "type": "integer",
+                                        "description": "A seat, a year."
+                                    },
+                                    "taxInclusive": {
+                                        "type": "boolean",
+                                        "description": "The amount includes tax (EUR, GBP), or tax is added at Checkout (USD)."
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "description": "A choir's seats (docs/choir-seats-plan.md): yearly, per singer, from `min` seats."
                 }
             }
         }

@@ -20,6 +20,7 @@ use App\Models\TrackScore;
 use App\Models\User;
 use App\Support\Groups\GroupView;
 use App\Support\Sharing\SharedPage;
+use App\Support\Usage\Plans;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -33,7 +34,7 @@ final class GroupsController extends Controller
 {
     public function __construct(private readonly ManageGroups $groups, private readonly GroupView $view) {}
 
-    public function index(#[CurrentUser] User $user): JsonResponse
+    public function index(Plans $plans, #[CurrentUser] User $user): JsonResponse
     {
         $groups = Group::query()->with('director.subscriptions')->withCount(['members', 'songs'])->whereHas('members', fn ($query) => $query->where('user_id', $user->id))->orderBy('name')->get();
 
@@ -45,6 +46,8 @@ final class GroupsController extends Controller
             'members' => (int) $group->getAttribute('members_count'),
             'songs' => (int) $group->getAttribute('songs_count'),
             'readOnly' => $this->groups->readOnly($group),
+            // May the person practise and record in it (choir seats; with the switch off, the leader's Plus decides).
+            'seat' => $plans->seatedIn($user, $group) ? 'seated' : 'needed',
         ])->all()]);
     }
 

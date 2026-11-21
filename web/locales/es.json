@@ -5642,7 +5642,7 @@
         },
         "title": "Óyete como un coro",
         "intro": {
-            "one": "Canta con {song} durante 30 segundos, cualquier parte, con tu propia voz.",
+            "one": "Canta con {song} durante 30 segundos: cualquier parte, solo una vez. No hace falta cantar bien: solo escuchamos cómo suena tu voz, y la guardamos en privado para tus próximas canciones.",
             "two": "Hacemos cada parte con una voz como la tuya, marcada como IA.",
             "three": "Luego aprende tu parte: cada una que grabas ocupa el lugar de su versión de IA."
         },

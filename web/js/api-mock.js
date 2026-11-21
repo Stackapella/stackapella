@@ -187,9 +187,10 @@ async function stateful(operation, params, body, cases, query = {}) {
             const as = tabStorage.get('stackapella.mockAs') || 'member';
             return respond(200, { data: { ...data, grant: as === 'signedOut' ? 'open' : 'account', template: { ...data.template, id: params.id, reviewed: true } } });
         }
-        // With AI voices on for the tab (stackapella.mockAiVoices): the example song (Silent Night) at the catalogue's
-        // version, as the server answers it, so its AI guides apply (a guide plays only on its own version).
-        if (tabStorage.get('stackapella.mockAiVoices') === '1' && !query?.version && (tabStorage.get('stackapella.mockAs') || 'member') !== 'signedOut' && !scenarios().some((s) => s.startsWith('templates.show:'))) {
+        // With AI voices or Hear yourself as a choir on for the tab: the example song (Silent Night) at the catalogue's
+        // version, as the server answers it, so its AI guides and the example choir's parts apply (each plays only on its
+        // own version). Either switch alone (Track B may launch first).
+        if ((tabStorage.get('stackapella.mockAiVoices') === '1' || tabStorage.get('stackapella.mockOwnChoir') === '1') && !query?.version && (tabStorage.get('stackapella.mockAs') || 'member') !== 'signedOut' && !scenarios().some((s) => s.startsWith('templates.show:'))) {
             const { data } = await example('templates.show.200.json');
             const listed = (await example('templates.catalogue.200.json')).data.find((song) => song.id === data.template.id);
             if (params.id === data.template.id && listed) return respond(200, { data: { ...data, template: { ...data.template, version: listed.version } } });

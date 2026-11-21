@@ -119,6 +119,9 @@ return [
         // (js/boot-watch.js) and its Reset tapped, a cached file the service worker found broken and fetched again
         // (sw.js), and a song's render that wouldn't play so the voices played instead (js/public/mixer.js).
         'boot_failed', 'boot_reset', 'sw_cache_broken', 'render_fallback',
+        // Choir seats (docs/choir-seats-plan.md, the choir_seats switch): the director's seats offer shown and tapped, and
+        // an unseated member shown "Ask your director to add your seat". A pack bought is the server's (seats_bought_*).
+        'seats_offer_shown', 'seats_offer_tap', 'seat_ask_shown',
     ],
 
     // Kinds with a detail, "<prefix>:<id>", counted only when the id is a real one (a course in
@@ -198,7 +201,10 @@ return [
         // Hear yourself as a choir: a song asked for (its clip in), and one ready.
         'own_choir_requested', 'own_choir_ready', 'own_choir_again', 'own_choir_own',
         // An app start (auth.config) with a country and without one (XX, T1): geo_rights' unknown-country share.
-        'cfg_country', 'cfg_no_country'],
+        'cfg_country', 'cfg_no_country',
+        // A choir's seat pack bought (its first subscription started, trial or paid), by size only: 10 to 19, 20 to 49,
+        // 50 and up (App\Support\Groups\ChoirSeats::band). Never the group or who bought it.
+        'seats_bought_10', 'seats_bought_20', 'seats_bought_50'],
 
     // A shared link's page opened, counted by the server as so:<surface> (docs/retention-plan.md, sharing): a shared
     // song's page, an invite to sing a part, Hillel's invite link, a choir group's join link, a challenge. By surface

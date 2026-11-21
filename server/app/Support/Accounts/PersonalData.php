@@ -106,6 +106,7 @@ final class PersonalData
         'ghosts.user_id' => ['records/ghosts.json', null],
         'group_assignments.user_id' => ['records/choir-parts.json', null],
         'group_members.user_id' => ['choir-groups.json', null],
+        'group_seats.user_id' => [null, "Which choir seat they hold: the choir's own billing, shown in the group's view (seat), and gone with the account."],
         'groups.director_id' => ['choir-groups.json', null],
         'handle_holds.user_id' => [null, 'A handle they gave up, held from reuse for a while.'],
         'harmonies.user_id' => ['shared-harmonies.json', null],

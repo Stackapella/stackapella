@@ -62,6 +62,7 @@ use App\Support\Admin\AdminGate;
 use App\Support\Cache\RetryingDatabaseStore;
 use App\Support\Flags;
 use App\Support\Gallery\Gallery;
+use App\Support\Groups\ChoirSeats;
 use App\Support\Languages\TranslationMaps;
 use App\Support\Ops\TempFiles;
 use App\Support\Pages\Carols;
@@ -128,6 +129,7 @@ final class AppServiceProvider extends ServiceProvider
         // One per request: it works out which projects are read-only once.
         $this->app->scoped(Plans::class);
         $this->app->scoped(PrivateSongs::class);
+        $this->app->scoped(ChoirSeats::class);
         $this->app->scoped(Gallery::class);
         $this->app->scoped(Catalogue::class);
         $this->app->scoped(LessonPagesBuilt::class);

@@ -28,6 +28,8 @@ final class BillingController extends Controller
         return response()->json(['data' => [
             'prices' => BillingState::prices(),
             'trial' => $state->trial($user instanceof User ? $user : null),
+            // A choir's seats: the price a seat a year, from how many, and the whole choir's free days.
+            'seats' => BillingState::seats(),
             // Ask for the consent to start at once (the EU, EEA and UK withdrawal right).
             // By the visitor's network, or the account's latest country (a VPN or travel), the same rule Checkout uses.
             'startNowConsent' => Withdrawal::needsConsent(Withdrawal::country($request)) || ($user instanceof User && Withdrawal::needsConsent($user->country)),

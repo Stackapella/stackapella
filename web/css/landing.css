@@ -836,6 +836,13 @@ body { margin: 0; background: var(--ground); }
 }
 @media (max-width: 899px) and (prefers-reduced-motion: no-preference) and (scripting: enabled) {
     .lnf-stage .lnf-cap, .lnf-stage [data-s="0"] .lnf-cap { top: calc(var(--top) + 8px); height: calc(var(--split) - var(--top) - 16px); }
+    /* The first scene, its heading's height measured (js/public/landing.js, --lnf-cap0): the lanes start 14 px under it,
+       with no empty band above the heading and nothing over the lanes, between the top bar's 150 px and 62% of the screen. */
+    .lnf[data-cap0][data-scene="0"] { --split: clamp(calc(var(--top) + 150px), calc(var(--top) + 22px + var(--lnf-cap0)), 62svh); }
+    .lnf[data-cap0="first"] .lnf-world { transition: none; }
+    /* A lane too short for its label row and its notes (a small phone's first scene): the notes step aside, so I sing this
+       never sits over them. */
+    @container (max-height: 52px) { .lnf[data-scene="0"] .lnf-tr { display: none; } }
     /* The lanes end above the dock, whatever the scene (the still page's fixed height is not for here). */
     .lnf-world { height: auto; }
     .lnf[data-scene="0"] { --foot: 26px; } .lnf-foot { height: 26px; }

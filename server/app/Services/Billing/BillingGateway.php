@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services\Billing;
 
 use App\Models\User;
+use Carbon\CarbonInterface;
+use Laravel\Cashier\Subscription;
 
 /**
  * What the server asks of Stripe, in one place: the real one (StripeGateway, through Cashier) and
@@ -28,6 +30,18 @@ interface BillingGateway
 
     /** Refunds what a subscription's latest paid invoice charged, in full. */
     public function refundSubscription(User $user, string $subscriptionId, string $idempotencyKey): void;
+
+    /**
+     * A Checkout session for a choir's seats (docs/choir-seats-plan.md): the "Choir seats" price, `$seats` of it, as the
+     * subscription `$type` on the leader's account, its trial (if any) ending at `$trialEnd`.
+     *
+     * @param  array<string, string>  $metadata
+     * @return array{id: string, url: string}
+     */
+    public function seatsCheckout(User $user, string $type, string $price, int $seats, string $currency, ?CarbonInterface $trialEnd, string $successUrl, string $cancelUrl, array $metadata, string $terms): array;
+
+    /** A choir's seats made more or fewer (Stripe prorates), kept on the subscription's row too. */
+    public function updateSeats(Subscription $subscription, int $seats): void;
 
     public function portalUrl(User $user, string $returnUrl): string;
 

@@ -44,6 +44,27 @@
                 "year"
             ]
         },
-        "startNowConsent": false
+        "startNowConsent": false,
+        "seats": {
+            "min": 10,
+            "trialDays": 14,
+            "prices": [
+                {
+                    "currency": "usd",
+                    "amountCents": 1500,
+                    "taxInclusive": false
+                },
+                {
+                    "currency": "eur",
+                    "amountCents": 1500,
+                    "taxInclusive": true
+                },
+                {
+                    "currency": "gbp",
+                    "amountCents": 1300,
+                    "taxInclusive": true
+                }
+            ]
+        }
     }
 }

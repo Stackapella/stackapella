@@ -58,9 +58,10 @@
                         "invoice",
                         "school",
                         "demo",
+                        "choir",
                         null
                     ],
-                    "description": "Where Plus comes from now (null without Plus). With apple or google, the web points to the store's settings, not the portal, and the apps don't offer Checkout."
+                    "description": "Where Plus comes from now (null without Plus). With apple or google, the web points to the store's settings, not the portal, and the apps don't offer Checkout. `choir`: a seat in a choir group (choir_seats: a seat is Plus)."
                 },
                 "store": {
                     "type": [

@@ -31,8 +31,8 @@ def menu(f, key):
 def journey(f):
     # The example's choir: Silent Night ready, made from this singer's voice (own_choir on for the tab).
     f.go("/?api=mock&scenario=&as=member", "document.querySelector('h1')")
-    # mockAiVoices: the mock's Silent Night at the example choir's version, so its parts play in the studio.
-    f.run("sessionStorage.setItem('stackapella.mockOwnChoir', '1'); sessionStorage.setItem('stackapella.mockAiVoices', '1'); sessionStorage.removeItem('stackapella.mockChoirState'); sessionStorage.removeItem('stackapella.mockChoir');")
+    # With own_choir on, the mock's Silent Night is at the example choir's version, so its parts play in the studio.
+    f.run("sessionStorage.setItem('stackapella.mockOwnChoir', '1'); sessionStorage.removeItem('stackapella.mockAiVoices'); sessionStorage.removeItem('stackapella.mockChoirState'); sessionStorage.removeItem('stackapella.mockChoir');")
     clear_projects(f)
 
     # Free: Download is there, and opens the Plus sheet; no file is made.

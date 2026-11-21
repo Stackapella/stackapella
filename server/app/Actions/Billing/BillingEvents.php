@@ -134,7 +134,8 @@ final class BillingEvents
         // A trial cancelled for its card isn't an ending: they never had Plus.
         $refused = $user->billing_notice === 'card_had_trial' && $user->billing_notice_at?->gt(now()->subMinutes(10));
 
-        if (! $refused && ! $this->plans->isPlus($user)) {
+        // Their own Plus ended (a choir seat, if they hold one, is the choir's and doesn't keep theirs going).
+        if (! $refused && $this->plans->ownPlan($user) === 'free') {
             $user->forceFill(['plus_ended_at' => now(), 'plus_ended_reason' => $reason, 'past_due_until' => null])->save();
             // Which projects stay editable is settled now, the most recently edited (the person
             // can choose others), so editing one later doesn't move the line.

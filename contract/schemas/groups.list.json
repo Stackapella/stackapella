@@ -17,7 +17,8 @@
                     "director",
                     "members",
                     "songs",
-                    "readOnly"
+                    "readOnly",
+                    "seat"
                 ],
                 "properties": {
                     "id": {
@@ -58,6 +59,14 @@
                     "readOnly": {
                         "type": "boolean",
                         "description": "The director's Plus has ended: no new songs, members or assignments."
+                    },
+                    "seat": {
+                        "type": "string",
+                        "enum": [
+                            "seated",
+                            "needed"
+                        ],
+                        "description": "The viewer's own seat (choir seats, docs/choir-seats-plan.md): `seated` may practise and record in the group; `needed` may not (the app shows \"Ask your director to add your seat\", nothing to buy). With the choir_seats switch off, the leader's Plus decides, as readOnly does."
                     }
                 }
             }

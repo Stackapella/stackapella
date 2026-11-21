@@ -45,7 +45,9 @@ final class StartCheckout
             throw new Refusal(403, 'email_unverified');
         }
 
-        if ($this->plans->isPlus($user)) {
+        // Their own Plus: a choir seat (docs/choir-seats-plan.md) is the choir's, so a seated singer may still buy theirs,
+        // and their seat goes to the next singer waiting.
+        if ($this->plans->ownPlan($user) === 'plus') {
             throw new Refusal(409, 'already_plus');
         }
 

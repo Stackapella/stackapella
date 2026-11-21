@@ -10,5 +10,7 @@
     ":price plus tax": ":price más impuestos",
     "month": "mes",
     "year": "año",
-    "Please confirm that Plus should start now.": "Confirma que quieres que Plus empiece ya."
+    "Please confirm that Plus should start now.": "Confirma que quieres que Plus empiece ya.",
+    ":seats seats for your choir, at :seat a seat: :price a year, renewing until you cancel. Change the seats or cancel online any time in Settings.": ":seats plazas para tu coro, a :seat por plaza: :price al año, que se renueva hasta que lo canceles. Cambia las plazas o cancela en línea cuando quieras, en Ajustes.",
+    "Your choir sings free until :date. Then :seats seats, at :seat a seat: :price a year, renewing until you cancel. Change the seats or cancel online any time in Settings, before :date to pay nothing.": "Tu coro canta gratis hasta el :date. Después, :seats plazas, a :seat por plaza: :price al año, que se renueva hasta que lo canceles. Cambia las plazas o cancela en línea cuando quieras, en Ajustes; si lo haces antes del :date, no pagas nada."
 }

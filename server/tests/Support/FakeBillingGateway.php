@@ -6,6 +6,8 @@ namespace Tests\Support;
 
 use App\Models\User;
 use App\Services\Billing\BillingGateway;
+use Carbon\CarbonInterface;
+use Laravel\Cashier\Subscription;
 
 /**
  * Stripe, faked: nothing in the tests ever reaches it.
@@ -53,6 +55,29 @@ final class FakeBillingGateway implements BillingGateway
         if (! in_array($idempotencyKey, array_column($this->subscriptionRefunds, 1), true)) {
             $this->subscriptionRefunds[] = [$subscriptionId, $idempotencyKey];
         }
+    }
+
+    /** @var list<array<string, mixed>> */
+    public array $seatCheckouts = [];
+
+    /** @var list<array{0: string, 1: int}> */
+    public array $seatUpdates = [];
+
+    public function seatsCheckout(User $user, string $type, string $price, int $seats, string $currency, ?CarbonInterface $trialEnd, string $successUrl, string $cancelUrl, array $metadata, string $terms): array
+    {
+        $id = 'cs_seats_'.(count($this->seatCheckouts) + 1);
+        $this->seatCheckouts[] = compact('type', 'price', 'seats', 'currency', 'trialEnd', 'successUrl', 'cancelUrl', 'metadata', 'terms') + ['id' => $id];
+        $user->forceFill(['stripe_id' => $user->stripe_id ?? 'cus_test_'.$user->id])->save();
+
+        return ['id' => $id, 'url' => 'https://checkout.stripe.com/c/pay/'.$id];
+    }
+
+    public function updateSeats(Subscription $subscription, int $seats): void
+    {
+        $this->seatUpdates[] = [$subscription->stripe_id, $seats];
+        // As Cashier does after Stripe answers: the row keeps the new quantity.
+        $subscription->forceFill(['quantity' => $seats])->save();
+        $subscription->items()->update(['quantity' => $seats]);
     }
 
     public function portalUrl(User $user, string $returnUrl): string

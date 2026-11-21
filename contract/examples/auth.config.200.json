@@ -54,6 +54,7 @@
         ],
         "withheldSongs": [],
         "plusTeams": false,
-        "plusPrivate": false
+        "plusPrivate": false,
+        "choirSeats": false
     }
 }

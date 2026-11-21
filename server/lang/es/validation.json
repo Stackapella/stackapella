@@ -151,6 +151,8 @@
     "A template in the library is saved with who wrote the song, each time.": "Una plantilla de la biblioteca se guarda siempre indicando quién escribió la canción.",
     "That person isn't in this group.": "Esa persona no está en este grupo.",
     "Each person sings one part of a song.": "Cada persona canta una sola voz de una canción.",
+    "That person doesn't hold one of this group's seats.": "Esa persona no tiene ninguna de las plazas de este grupo.",
+    "That person already has a seat, or isn't a singer in this group.": "Esa persona ya tiene plaza, o no canta en este grupo.",
     "Coaching is for people 18 and over.": "El coaching es para mayores de 18 años.",
     "Choose one of your own recordings, once it has finished uploading.": "Elige una de tus grabaciones, cuando haya terminado de subirse.",
     "This is for up to :seconds seconds.": "Esto es para un máximo de :seconds segundos.",

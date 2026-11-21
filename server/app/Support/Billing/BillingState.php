@@ -36,6 +36,23 @@ final class BillingState
     }
 
     /**
+     * A choir's seats (docs/choir-seats-plan.md): each currency's price a seat a year, the fewest a pack has, and the
+     * whole choir's free days on a group's first pack.
+     *
+     * @return array{min: int, trialDays: int, prices: list<array{currency: string, amountCents: int, taxInclusive: bool}>}
+     */
+    public static function seats(): array
+    {
+        $prices = [];
+
+        foreach ((array) config('billing.choir.amounts') as $currency => $amounts) {
+            $prices[] = ['currency' => (string) $currency, 'amountCents' => (int) $amounts['seat'], 'taxInclusive' => (bool) $amounts['tax_inclusive']];
+        }
+
+        return ['min' => (int) config('billing.choir.min_seats'), 'trialDays' => (int) config('billing.choir.trial_days'), 'prices' => $prices];
+    }
+
+    /**
      * The trial this account could have, or null.
      *
      * @return array{days: int, intervals: list<string>}|null
@@ -47,7 +64,8 @@ final class BillingState
             return null;
         }
 
-        if ($user !== null && ($user->trial_used_at !== null || $this->plans->isPlus($user))) {
+        // Their own Plus: a choir seat is the choir's, so a seated singer may still try their own.
+        if ($user !== null && ($user->trial_used_at !== null || $this->plans->ownPlan($user) === 'plus')) {
             return null;
         }
 
@@ -98,6 +116,8 @@ final class BillingState
             ($user->getAttributes()['coach_active_at'] ?? null) !== null => 'coach',
             is_string($paidUntil) && $paidUntil > now()->toDateTimeString() => 'invoice',
             $school => 'school',
+            // A choir seat (docs/choir-seats-plan.md): a seat is Plus.
+            $this->plans->ownPlan($user) === 'free' && $this->plans->fromSeat($user) => 'choir',
             default => 'demo',
         };
 

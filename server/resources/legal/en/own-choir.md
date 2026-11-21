@@ -49,8 +49,8 @@ includes 3 songs in any 30 days. A seat in a choir group covers singing with the
 There is also a daily limit for everyone. Hearing a song you've already made, and sharing it, are always free;
 downloading a song needs Plus.
 
-7. **Your data.** Parts are made on the servers of our GPU provider, Modal, in the United States, which keep what they
-process (your voice reference and the parts made from it) encrypted for at most 7 days, then delete it. We keep your
+7. **Your data.** Your songs are made on the servers of our GPU provider, Modal, in the United States: your clip, the
+voice made from it and the parts made in it are kept encrypted there for up to 7 days, then deleted. We keep your
 voice reference, your songs, how many you've made, and which version of these terms you accepted and when; your data
 download says when your reference was saved and last used. We never use them to identify you. To keep the free song to
 one per person, once you've made it we keep a one-way code made from your email address (and any Apple or Google

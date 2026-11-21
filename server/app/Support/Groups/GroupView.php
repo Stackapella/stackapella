@@ -13,6 +13,7 @@ use App\Models\Part;
 use App\Models\Project;
 use App\Models\Take;
 use App\Models\User;
+use App\Support\Usage\Plans;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 
@@ -21,10 +22,15 @@ use Illuminate\Support\Facades\Storage;
  * director sees every member's assignments and how far they've got (`started`: a project from
  * the song; `recorded`: that project's part for the assigned key has a ready take), never their
  * recordings. A member sees only themselves.
+ *
+ * Choir seats (docs/choir-seats-plan.md): `seat` says whether the viewer may practise and record in the group, on the
+ * group and each of its songs; the director sees each member's (`own` Plus, `seated`, `needed`) and the seat panel
+ * (`seats`). With the choir_seats switch on, an unseated member's progress isn't shown to the director: seeing who
+ * practised is part of what the seats pay for.
  */
 final class GroupView
 {
-    public function __construct(private readonly ManageGroups $groups) {}
+    public function __construct(private readonly ManageGroups $groups, private readonly Plans $plans) {}
 
     /**
      * @return array<string, mixed>
@@ -33,10 +39,15 @@ final class GroupView
     {
         $directing = $group->director_id === $viewer->id;
         $songs = GroupSong::query()->with('template')->where('group_id', $group->id)->orderBy('id')->get();
-        $members = GroupMember::query()->with('user')->where('group_id', $group->id)->orderByRaw("role = 'director' desc")->orderBy('id')->get();
+        // Each member's seat is worked out first: a free seat may go to someone now.
+        $seated = $this->plans->seatedIn($viewer, $group);
+        $members = GroupMember::query()->with('user.subscriptions')->where('group_id', $group->id)->orderByRaw("role = 'director' desc")->orderBy('id')->get();
         $shown = $directing ? $members : $members->where('user_id', $viewer->id)->values();
+        $states = $this->seats()->on() ? $this->seats()->states($group, $shown) : $shown->mapWithKeys(fn (GroupMember $member): array => [$member->user_id => $this->plans->seatedIn($member->user, $group) ? 'seated' : 'needed'])->all();
         $assignments = GroupAssignment::query()->whereIn('group_song_id', $songs->pluck('id'))->whereIn('user_id', $shown->pluck('user_id'))->get();
-        $progress = $this->progress($assignments, $songs);
+        // Seats on, the director doesn't see an unseated member's progress (their assignment stays, as `none`).
+        $counted = $this->seats()->on() ? $assignments->filter(fn (GroupAssignment $a): bool => ($states[$a->user_id] ?? 'needed') !== 'needed') : $assignments;
+        $progress = $this->progress($counted, $songs);
         $rehearsal = RehearsalDates::of($group->rehearsal_on, $group->rehearsal_weekly, now());
         // The director's count since the last rehearsal (from the start of that day, UTC): numbers only.
         $since = $directing && $rehearsal !== null && $rehearsal['previous'] !== null ? $rehearsal['previous'].'T00:00:00Z' : null;
@@ -48,13 +59,19 @@ final class GroupView
             'director' => ['id' => $group->director->sqid(), 'name' => $group->director->name],
             'readOnly' => $this->groups->readOnly($group),
             'memberCount' => $members->count(),
+            // The viewer's own: may they practise and record in the group (choir seats; off, the leader's Plus decides).
+            'seat' => $seated ? 'seated' : 'needed',
+            // The director's seat panel while choir seats are on; null for a member, or while the switch is off.
+            'seats' => $directing && $this->seats()->on() ? $this->seats()->panel($group) : null,
             'songs' => $songs->map(fn (GroupSong $song): array => [
                 'templateId' => $song->template->slug,
                 'title' => $song->template->title,
                 'access' => $song->template->owner_id !== null ? 'own' : $song->template->access->api(),
                 'own' => $song->template->owner_id !== null,
                 'sharedAt' => $song->created_at?->utc()->toIso8601ZuluString(),
-                'sinceRehearsal' => $since !== null ? self::since($assignments->where('group_song_id', $song->id), $progress, $since) : null,
+                'sinceRehearsal' => $since !== null ? self::since($counted->where('group_song_id', $song->id), $progress, $since) : null,
+                // A library song (or one open by its link) stays free to learn alone: only the choir's own songs need a seat.
+                'seat' => $seated || ! self::needsSeat($song, $viewer) ? 'seated' : 'needed',
             ])->all(),
             'members' => $shown->map(fn (GroupMember $member): array => [
                 'id' => $member->user->sqid(),
@@ -62,6 +79,7 @@ final class GroupView
                 'avatarUrl' => $member->user->avatar_key !== null ? Storage::disk('media')->url($member->user->avatar_key) : null,
                 'role' => $member->role,
                 'joinedAt' => $member->created_at?->utc()->toIso8601ZuluString(),
+                'seat' => $states[$member->user_id] ?? 'needed',
                 'assignments' => $assignments->where('user_id', $member->user_id)->map(fn (GroupAssignment $a): array => [
                     'templateId' => $songs->firstWhere('id', $a->group_song_id)?->template->slug,
                     'partKey' => $a->part_key,
@@ -130,5 +148,19 @@ final class GroupView
         }
 
         return $result;
+    }
+
+    /** Choir seats, as this request works them out (scoped: this class may outlive a request in its controller). */
+    private function seats(): ChoirSeats
+    {
+        return app(ChoirSeats::class);
+    }
+
+    /** Whether the song is one of the choir's own (a person's template not public, not on a link, not the viewer's). */
+    private static function needsSeat(GroupSong $song, User $viewer): bool
+    {
+        $template = $song->template;
+
+        return $template->owner_id !== null && $template->owner_id !== $viewer->id && ! $template->isPublic() && $template->visibility !== 'unlisted';
     }
 }

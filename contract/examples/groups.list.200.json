@@ -10,7 +10,8 @@
             },
             "members": 3,
             "songs": 2,
-            "readOnly": false
+            "readOnly": false,
+            "seat": "seated"
         },
         {
             "id": "Gz7xWv",
@@ -22,7 +23,8 @@
             },
             "members": 24,
             "songs": 5,
-            "readOnly": false
+            "readOnly": false,
+            "seat": "seated"
         }
     ]
 }

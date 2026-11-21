@@ -13,6 +13,7 @@ use App\Models\Engagement;
 use App\Models\StripeEvent;
 use App\Models\User;
 use App\Services\Billing\BillingGateway;
+use App\Support\Groups\ChoirSeats;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Laravel\Cashier\Http\Controllers\WebhookController;
@@ -21,7 +22,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Stripe's webhook for Plus (/webhooks/stripe; its own secret, apart from Connect's later): Cashier
- * keeps its subscription records (and checks the signature), then BillingEvents does the rest.
+ * keeps its subscription records (and checks the signature), then BillingEvents does the rest. A choir's seats
+ * (docs/choir-seats-plan.md: the subscription type `choir_<group id>`) are not Plus: Cashier keeps their records, their
+ * quantity too, and ChoirSeats fills the seats; nothing of Plus's (its trial rules, notices, emails) touches them.
  */
 final class StripeWebhookController extends WebhookController
 {
@@ -116,6 +119,12 @@ final class StripeWebhookController extends WebhookController
         $new = $user !== null && ! $user->subscriptions()->where('stripe_id', (string) ($payload['data']['object']['id'] ?? ''))->exists();
         $response = parent::handleCustomerSubscriptionCreated($payload) ?? $this->successMethod();
 
+        if (($group = self::choirGroup($payload)) !== null) {
+            app(ChoirSeats::class)->subscriptionChanged($group, $new, self::status($payload), self::quantity($payload));
+
+            return $response;
+        }
+
         if ($new && in_array($payload['data']['object']['status'] ?? null, ['active', 'trialing'], true)) {
             app(RecordCounts::class)->server('plus_started', true, null);
         }
@@ -141,6 +150,13 @@ final class StripeWebhookController extends WebhookController
         }
 
         $response = parent::handleCustomerSubscriptionUpdated($payload) ?? $this->successMethod();
+
+        if (($group = self::choirGroup($payload)) !== null) {
+            app(ChoirSeats::class)->subscriptionChanged($group, false, self::status($payload), self::quantity($payload));
+
+            return $response;
+        }
+
         $user = $this->owner($payload);
 
         if ($user !== null) {
@@ -162,6 +178,12 @@ final class StripeWebhookController extends WebhookController
         }
 
         $response = parent::handleCustomerSubscriptionDeleted($payload) ?? $this->successMethod();
+
+        // A choir's seats ended: its rows stay, so the same singers are seated when seats return.
+        if (self::choirGroup($payload) !== null) {
+            return $response;
+        }
+
         $user = $this->owner($payload);
 
         if ($user !== null) {
@@ -176,6 +198,11 @@ final class StripeWebhookController extends WebhookController
      */
     protected function handleCustomerSubscriptionTrialWillEnd(array $payload): Response
     {
+        // A choir's seats: Plus's trial email isn't theirs (Stripe's own reminder, if set up, says it).
+        if (self::choirGroup($payload) !== null) {
+            return $this->successMethod();
+        }
+
         $user = $this->owner($payload);
         $trialEnd = $payload['data']['object']['trial_end'] ?? null;
 
@@ -192,7 +219,7 @@ final class StripeWebhookController extends WebhookController
     protected function handleInvoicePaymentFailed(array $payload): Response
     {
         // A package's failed month: Stripe retries, and ends the subscription if it never pays.
-        if (self::coachingInvoice($payload) || Engagement::query()->where('stripe_subscription', self::invoiceSubscription($payload))->exists()) {
+        if (self::coachingInvoice($payload) || self::choirInvoice($payload) || Engagement::query()->where('stripe_subscription', self::invoiceSubscription($payload))->exists()) {
             return $this->successMethod();
         }
 
@@ -224,7 +251,11 @@ final class StripeWebhookController extends WebhookController
 
         if ($user !== null) {
             $invoice = (array) $payload['data']['object'];
-            app(BillingEvents::class)->paid($user, $invoice);
+
+            // A choir's seats: never Plus's first payment.
+            if (! self::choirInvoice($payload)) {
+                app(BillingEvents::class)->paid($user, $invoice);
+            }
 
             // Stackapella's own books (when Hillel has connected Invoice Ninja).
             app(Books::class)->plusPaid($user, $invoice);
@@ -359,6 +390,56 @@ final class StripeWebhookController extends WebhookController
         }
 
         return false;
+    }
+
+    /**
+     * The group a choir's seats subscription is for, by its type (Cashier's metadata), or null for any other.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    private static function choirGroup(array $payload): ?int
+    {
+        $metadata = (array) ($payload['data']['object']['metadata'] ?? []);
+
+        return ChoirSeats::groupIdOf(is_string($metadata['type'] ?? null) ? $metadata['type'] : (is_string($metadata['name'] ?? null) ? $metadata['name'] : null));
+    }
+
+    /**
+     * An invoice for a choir's seats, by its subscription's metadata (in Stripe's older and newer shapes, or on its lines).
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    private static function choirInvoice(array $payload): bool
+    {
+        $invoice = (array) ($payload['data']['object'] ?? []);
+
+        foreach ([$invoice['subscription_details']['metadata'] ?? null, $invoice['parent']['subscription_details']['metadata'] ?? null, $invoice['lines']['data'][0]['metadata'] ?? null] as $found) {
+            if (is_array($found) && ChoirSeats::groupIdOf(is_string($found['type'] ?? null) ? $found['type'] : null) !== null) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    private static function status(array $payload): ?string
+    {
+        $status = $payload['data']['object']['status'] ?? null;
+
+        return is_string($status) ? $status : null;
+    }
+
+    /**
+     * The subscription's seats: its one item's quantity.
+     *
+     * @param  array<string, mixed>  $payload
+     */
+    private static function quantity(array $payload): int
+    {
+        return (int) ($payload['data']['object']['items']['data'][0]['quantity'] ?? $payload['data']['object']['quantity'] ?? 0);
     }
 
     /**

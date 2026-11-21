@@ -142,6 +142,11 @@ return [
         'account' => ['max' => 5, 'per' => 'hour', 'by' => 'account'],
     ],
 
+    // A choir's seats made more or fewer (groups.seats.update): each one a change on Stripe.
+    'seats' => [
+        'account' => ['max' => 20, 'per' => 'hour', 'by' => 'account'],
+    ],
+
     // Event Schedule (M9): starting a connection, and a lesson's free times (each asks ES at most
     // every 30 seconds, but someone paging through days still makes calls).
     'event-schedule-connect' => [

@@ -12,7 +12,9 @@ use App\Models\GroupMember;
 use App\Models\GroupSong;
 use App\Models\Template;
 use App\Models\User;
+use App\Services\Billing\BillingGateway;
 use App\Support\Accounts\Age;
+use App\Support\Groups\ChoirSeats;
 use App\Support\Ids;
 use App\Support\Usage\Plans;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +27,10 @@ use Illuminate\Validation\ValidationException;
  * alone for free but to team up becomes more serious"; whoever starts the group needs Plus, everyone invited joins
  * free). When the director's Plus ends the group pauses: everyone keeps what they have, nobody new joins and nothing
  * new is shared or assigned, until it's back.
+ *
+ * With the choir_seats switch on (docs/choir-seats-plan.md, Hillel 2026-11-18) the leader's Plus no longer covers the
+ * members: anyone may start a group, every member needs a seat (ChoirSeats), and a group never pauses for its leader's
+ * Plus; the seats decide, member by member.
  */
 final class ManageGroups
 {
@@ -36,7 +42,8 @@ final class ManageGroups
             Owned::lockAccount($user);
             $this->ensureAdult($user, $adult);
 
-            if (! $this->plans->mayStartShared($user)) {
+            // With choir seats the choir pays by the seat, so starting the group itself asks for nothing.
+            if (! $this->seats()->on() && ! $this->plans->mayStartShared($user)) {
                 throw new Refusal(403, 'plus_required');
             }
 
@@ -81,6 +88,11 @@ final class ManageGroups
      */
     public function readOnly(Group $group): bool
     {
+        // With choir seats a group never pauses for its leader's Plus: each member's seat decides (`seat`).
+        if ($this->seats()->on()) {
+            return false;
+        }
+
         $director = $group->relationLoaded('director') ? $group->director : $group->director()->first();
 
         return $director !== null && ! $this->plans->sharedOpen($director);
@@ -126,6 +138,14 @@ final class ManageGroups
     public function delete(User $user, string $sqid): void
     {
         $group = $this->directed($user, $sqid);
+        // The group's seats stop billing with it (no refund made here; Hillel refunds by hand if asked).
+        $subscription = $this->seats()->cancellable($group);
+
+        if ($subscription !== null) {
+            app(BillingGateway::class)->cancelNow($subscription->stripe_id);
+            $subscription->markAsCanceled();
+        }
+
         $group->delete();
     }
 
@@ -154,7 +174,7 @@ final class ManageGroups
 
     public function join(User $user, string $token, bool $adult = false): Group
     {
-        return DB::transaction(function () use ($user, $token, $adult): Group {
+        $joined = DB::transaction(function () use ($user, $token, $adult): Group {
             $found = $this->byLink($token);
             $group = Group::query()->whereKey($found->id)->lockForUpdate()->firstOrFail()->setRelation('director', $found->director);
 
@@ -178,6 +198,11 @@ final class ManageGroups
 
             return $group;
         });
+
+        // A free seat goes to the newest member (join order).
+        $this->seats()->sync($joined);
+
+        return $joined;
     }
 
     /**
@@ -202,6 +227,9 @@ final class ManageGroups
                 $this->rotateLink($group);
             }
         });
+
+        // Their seat, if they held one, goes to the next member waiting for one.
+        $this->seats()->sync($group);
 
     }
 
@@ -284,5 +312,11 @@ final class ManageGroups
         }
 
         $user->forceFill(['adult_confirmed_at' => now()])->save();
+    }
+
+    /** Choir seats, as this request works them out (scoped: this class may outlive a request in its controller). */
+    private function seats(): ChoirSeats
+    {
+        return app(ChoirSeats::class);
     }
 }
