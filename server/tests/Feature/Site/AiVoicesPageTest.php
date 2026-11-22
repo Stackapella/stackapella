@@ -97,7 +97,10 @@ final class AiVoicesPageTest extends TestCase
         config(['flags.own_choir' => ['kind' => 'feature', 'values' => ['off', 'on']]]);
         app(Flags::class)->set('own_choir', 'on', null, 'Own choir live');
 
+        // The choir alone says it for the choir alone (the marketing review, 2026-11-22); with AI guides too, both ways.
         $this->get('/about/ai-voices')->assertOk()->assertHeaderMissing('X-Robots-Tag')
-            ->assertSee(__('site.ai_voices.sections.yours.choir'));
+            ->assertSee(__('site.ai_voices.choir_only.yours'));
+        app(Flags::class)->set('ai_voices', 'on', null, 'AI guides live');
+        $this->get('/about/ai-voices')->assertOk()->assertSee(__('site.ai_voices.sections.yours.choir'));
     }
 }

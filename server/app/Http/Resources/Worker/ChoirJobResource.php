@@ -53,7 +53,8 @@ final class ChoirJobResource extends JsonResource
                 'sha256' => $job->voice->sha256,
                 'meta' => (object) $job->voice->meta,
             ] : null,
-            'parts' => array_values(array_column(array_filter((array) ($version->data['parts'] ?? []), 'is_array'), 'key')),
+            // Every part, or a friend's only (choir together): the worker renders exactly these.
+            'parts' => array_values($this->resource->only_parts ?? array_column(array_filter((array) ($version->data['parts'] ?? []), 'is_array'), 'key')),
         ];
     }
 }

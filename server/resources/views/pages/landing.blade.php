@@ -200,6 +200,10 @@
                                     @endif
                                     {{-- The claim, in one press: hear a voice alone, then learn it. Both name the voice last
                                          heard alone (the script renames them; the melody's until one is). --}}
+                                    {{-- Hear yourself as a choir, from the scene that says the whole song is you (own_choir). --}}
+                                    @if ($n === 4 && \App\Support\Pages\SongParts::switchedOn('own_choir'))
+                                        <div class="lnf-go"><a href="/your-choir?ref=choir-home" class="lnf-arrow"><span>{{ __('landing.share.choir') }}</span></a></div>
+                                    @endif
                                     @if ($first !== null && ($n === 1 || $n === 2))
                                         <div class="lnf-go">
                                             @if ($n === 1)

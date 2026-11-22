@@ -41,6 +41,13 @@ export const OPERATIONS = {
     'ownChoir.requests.complete': ['POST', '/api/own-choir/requests/{id}/complete'],
     'ownChoir.requests.seen': ['POST', '/api/own-choir/requests/{id}/seen'],
     'ownChoir.requests.download': ['GET', '/api/own-choir/requests/{id}/download'],
+    // A choir with friends (docs/choir-together-plan.md, behind own_choir_together).
+    'ownChoir.invites.create': ['POST', '/api/own-choir/requests/{id}/invites'],
+    'ownChoir.invites.delete': ['DELETE', '/api/own-choir/invites/{id}'],
+    'ownChoir.invites.show': ['GET', '/api/own-choir/join/{token}'],
+    'ownChoir.invites.accept': ['POST', '/api/own-choir/join/{token}'],
+    'ownChoir.members.complete': ['POST', '/api/own-choir/members/{id}/complete'],
+    'ownChoir.members.delete': ['DELETE', '/api/own-choir/members/{id}'],
     'ownChoir.requests.delete': ['DELETE', '/api/own-choir/requests/{id}'],
     'ownChoir.delete': ['DELETE', '/api/own-choir'],
     'ownChoir.voice.delete': ['DELETE', '/api/own-choir/voice'],
@@ -1205,6 +1212,19 @@ export const api = {
             // Download's full-quality parts (Plus): `403 plus_required` otherwise.
             download: (id) => call('ownChoir.requests.download', { params: { id } }),
             delete: (id) => call('ownChoir.requests.delete', { params: { id } }),
+        },
+        // A choir with friends: the owner invites (a link shown once), a friend joins by it, either one ends it.
+        invites: {
+            create: (requestId) => call('ownChoir.invites.create', { params: { id: requestId } }),
+            delete: (id) => call('ownChoir.invites.delete', { params: { id } }),
+            // `{ useSavedVoice: 1 }` or `{ partKey }`: the answer's `yourParts`, exactly what this person's voice would sing.
+            show: (token, query = {}) => call('ownChoir.invites.show', { params: { token }, query }),
+            // { showName, wordsSha?, useSavedVoice } or a clip's fields (partKey, offsetFrames, sampleRate, frames, bytes, sha256).
+            accept: (token, body) => call('ownChoir.invites.accept', { params: { token }, body }),
+        },
+        members: {
+            complete: (id) => call('ownChoir.members.complete', { params: { id } }),
+            delete: (id) => call('ownChoir.members.delete', { params: { id } }),
         },
     },
     beta: {

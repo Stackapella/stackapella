@@ -14,7 +14,8 @@ import { navigate } from '../router.js';
 import { betaWaiting, homeBands, sangThisWeek } from '../home.js';
 import { aiPartsOf, creditsFor, loadCatalogue, recordingFor } from '../stores/catalogue.js';
 import { AiVoiceLabel } from '../ai-voices.js';
-import { loadOwnChoir, ownChoirOn, readyUnseen } from '../own-choir.js';
+import { loadOwnChoir, ownChoir, ownChoirOn, readyUnseen, togetherOn } from '../own-choir.js';
+import { JoinedChoirs } from '../components/joined-choirs.js';
 import { guideKey, keepAhead } from '../recorded-guides.js';
 import { defineAsyncComponent, markRaw, toRaw } from 'vue';
 import { createProject, deleteProject, loadProjects, projects, saveProject, shownTitle, startFromTemplate } from '../stores/projects.js';
@@ -92,7 +93,7 @@ const dialogLoader = lazyView(() => import('../components/dialogs.js').then((m) 
 const TemplateDialog = defineAsyncComponent(dialogLoader);
 
 export const ProjectsView = {
-    components: { AiVoiceLabel, LibraryFilters, StorageMeter, CreditLine, PlayerChip, DailyTag, CardMenu, HomeCourses, ThemeSwitch, Icon, Logo, TemplateDialog, HomeLead, HomeBand, SongCover, InstallCard, WeekCard, WorkoutStrip, StatusChip, Modal, Notice, RemindAsk, FirstWeek },
+    components: { AiVoiceLabel, LibraryFilters, StorageMeter, CreditLine, PlayerChip, DailyTag, CardMenu, HomeCourses, ThemeSwitch, Icon, Logo, TemplateDialog, HomeLead, HomeBand, SongCover, InstallCard, WeekCard, WorkoutStrip, StatusChip, Modal, Notice, RemindAsk, FirstWeek, JoinedChoirs },
     setup: () => ({ sungYet, GROUP_WORDS, templatePartName, ideas, mine, canStart, projects, account, learning, shownTitle, songTitle, formatTime, timeAgo, PART_COLORS, lengthBeats, partsFor, keyLabel, DIFFICULTY, creditsFor, aiPartsOf, navigate, BAND_COLORS, BETA_STATUS, publicSiteUrl, effect, dailyState }),
     data: () => ({ storageUsage: null, locked: false, taste: false, clip: null, templates: [], openTemplate: null, singers: 4, previewing: false, preparingPreview: false, starting: false, groups: null, choirParts: [], startingChoir: null, betaParts: null, avatarFailed: false, making: false, importProblems: null, sheetScore: null, sheetSaving: false, sheetView: null, sessionStore: null, songsOpen: tabStorage.get('stackapella.songsOpen') === '1', libraryFilters: keptFilters(), lookedAt: lastLooked(), newsCounted: null, yoursOpen: false, songColumns: songColumns(), newing: false, showInfo: false, songLoad: null, songNotHere: null, previewOf: null, playingSong: null, renaming: null, newName: '' }),
     template: `
@@ -129,16 +130,22 @@ export const ProjectsView = {
             <div class="mt-2 space-y-5">
                 <!-- Hear yourself as a choir (js/own-choir.js): a song made in a voice like theirs and not yet heard is one quiet
                      card until it's opened, the in-app notice (never email, a pop-up or a badge). -->
-                <div v-for="r in choirReady" :key="r.id" class="card flex flex-wrap items-center gap-3 p-4" role="status" data-choir-notice>
-                    <p class="min-w-0 flex-1 text-cream">{{ t('ownChoir.ready.notice', { song: r.title }) }}</p>
-                    <button type="button" class="btn-secondary btn-sm" @click="navigate('/t/' + encodeURIComponent(r.templateId) + '/choir')">{{ t('ownChoir.ready.button') }}</button>
-                </div>
+                <!-- One quiet card, a row a ready song (a friend's parts just made in it say so by name). A song they sing in
+                     isn't here twice: its own row below says Ready. -->
+                <section v-if="choirReady.length" class="card divide-y divide-line px-4" role="status" :aria-label="together ? t('ownChoir.together.home.readyTitle') : null" data-choir-ready>
+                    <h2 v-if="together" class="py-3 text-sm font-semibold text-muted">{{ t('ownChoir.together.home.readyTitle') }}</h2>
+                    <div v-for="r in choirReady" :key="r.id" class="flex flex-wrap items-center gap-3 py-3" data-choir-notice>
+                        <p class="min-w-0 flex-1 text-cream">{{ friendReady(r) ? t('ownChoir.together.home.owner', { name: friendReady(r).name, song: r.title }) : together ? t('ownChoir.together.joined.mine', { song: r.title }) : t('ownChoir.ready.notice', { song: r.title }) }}</p>
+                        <button type="button" class="btn-secondary btn-sm" @click="navigate('/t/' + encodeURIComponent(r.templateId) + '/choir')">{{ t('ownChoir.ready.button') }}</button>
+                    </div>
+                </section>
                 <HomeLead :compact="order.compactCourse">
                     <template #week><WeekCard v-if="learning.loaded && courseStarted" bare /></template>
                 </HomeLead>
                 <InstallCard :songs="songsOnlyHere" :here="songsHere" />
                 <RemindAsk />
                 <FirstWeek :songs="songsOnlyHere" />
+                <JoinedChoirs />
             </div>
             <div class="mt-10 space-y-10">
                 <div class="min-w-0 space-y-10">
@@ -344,6 +351,7 @@ export const ProjectsView = {
         </div>`,
     computed: {
         /** Songs made in a voice like theirs, ready and not yet heard (Hear yourself as a choir): Home's notice. */
+        together: () => togetherOn(),
         choirReady() {
             return ownChoirOn() ? readyUnseen() : [];
         },
@@ -628,6 +636,10 @@ export const ProjectsView = {
         },
     },
     methods: {
+        /** The friend whose parts just came into this ready song, if any (a choir with friends). */
+        friendReady(request) {
+            return togetherOn() ? (request.members ?? []).find((m) => m.status === 'ready' && !m.seen) ?? null : null;
+        },
         /**
          * A link to a song (a shared harmony's "Learn this harmony", a song page's Start, What's next) opens it here, once.
          * A song part page's link names the part too (&part=alto): Start then gives you that part.

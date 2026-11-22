@@ -42,7 +42,7 @@ import { prefs } from './prefs.js';
 import { local, session as tabStorage } from '../storage.js';
 import { count, tried } from '../usage.js';
 import { countAiHeard, isAi } from '../ai-voices.js';
-import { choirVoices, countChoir, loadOwnChoir } from '../own-choir.js';
+import { choirVoices, countChoir, joinFor, loadOwnChoir } from '../own-choir.js';
 import { keptIn } from '../unit-song.js';
 import { chipCountIn } from '../game/modules.js';
 
@@ -443,7 +443,7 @@ export function chosenVoices(practice, partKey) {
 function voiceChoice(slot, speed = session.practice?.speed ?? 1) {
     const template = session.project.template;
     // A choir project (js/own-choir.js) plays the parts made from the singer's own singing, once they're ready.
-    const found = session.project.beta ? betaVoice(slot) : session.project.choir ? choirVoices(session.project, slot.templatePartKey) : versionsFor(template.id, slot.templatePartKey);
+    const found = session.project.beta ? betaVoice(slot) : session.project.choir && !joinFor(session.project.id) ? choirVoices(session.project, slot.templatePartKey) : versionsFor(template.id, slot.templatePartKey);
     if (!found) return { recordings: [], why: null, credit: null, ai: false, aiBasedOn: null, choir: false, versions: [], chosen: [] };
     const transpose = session.project.transpose || 0;
     const chosen = chosenVoices(session.practice, slot.templatePartKey);

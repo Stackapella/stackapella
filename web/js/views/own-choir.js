@@ -18,17 +18,22 @@ import { loadTemplate, partsFor, templatePartName } from '../templates.js';
 import { songTitle } from '../song-titles.js';
 import { Agreement } from './beta.js';
 import { TurnstileBox } from '../turnstile.js';
+import { tooLong } from '../own-choir.js';
+import { inviteLine, inviteText, nameList, partList, togetherOn, whoSings, whoseList } from '../own-choir.js';
+import { Icon } from '../components/icon.js';
+import { game as gameSkin } from '../stores/appearance.js';
 import { checkKey, choirOf, choirRefusal, countChoir, downloadParts, emailNeeded, songsLeft, deleteEverything, deleteSong, dropHum, hasWords, humFor, isOpen, loadOwnChoir, makeFromVoice, markSeen, ownChoir, ownChoirOn, ownChoirSongsOn, requestFor, savedVoice, sendClip, termsNeeded, tunePart } from '../own-choir.js';
 import { catalogue, loadCatalogue } from '../stores/catalogue.js';
+import { loadMine, mine, ownTemplate } from '../stores/templates.js';
 import { saveProject } from '../stores/projects.js';
 import { choirPosition, loadChoir, loadChoirFull, mixChoir, playChoir, stopChoir } from '../own-choir-player.js';
 
 const FAILURES = { clip_unusable: tk('ownChoir.failed.clip_unusable'), bad_clip: tk('ownChoir.failed.bad_clip'), gates_failed: tk('ownChoir.failed.gates_failed'), render_failed: tk('ownChoir.failed.render_failed'), expired: tk('ownChoir.failed.expired'), reference_gone: tk('ownChoir.failed.reference_gone') };
 
 export const OwnChoirView = {
-    components: { Agreement, AppScreen, Notice, PlusMoment, TurnstileBox },
+    components: { Agreement, AppScreen, Icon, Notice, PlusMoment, TurnstileBox },
     props: { id: { type: String, required: true } },
-    data: () => ({ plusFor: false, emailSent: false, sending: false, checkToken: null, checkRound: 0, state: 'loading', offReason: 'unavailable', canStart: false, template: null, terms: null, busy: false, playing: false, loadingTrack: false, hum: null, own: false }),
+    data: () => ({ plusFriends: false, sentInvite: null, copied: false, plusFor: false, emailSent: false, sending: false, checkToken: null, checkRound: 0, state: 'loading', offReason: 'unavailable', canStart: false, template: null, terms: null, busy: false, playing: false, loadingTrack: false, hum: null, own: false }),
     setup: () => ({ ownChoir, account, isOpen, templatePartName, savedVoice, formatNumber, navigate }),
     computed: {
         /** Back here from the Plus page, once Plus is on. */
@@ -55,7 +60,10 @@ export const OwnChoirView = {
         /** The part to learn next: the first not yet really theirs. */
         nextPart() {
             const sung = new Set(this.project?.yourParts ?? []);
-            return this.parts.find((p) => !sung.has(p.key)) ?? null;
+            const open = this.parts.filter((p) => !sung.has(p.key));
+            // With friends: the owner's best fit first (a part that's theirs and sits neither high nor low for them).
+            const voice = (p) => (this.request?.voices ?? []).find((v) => v.partKey === p.key);
+            return (this.together && open.find((p) => voice(p)?.whose !== 'friend' && !voice(p)?.fit)) || open[0] || null;
         },
         /** The quota, said only when it matters (marketing's rule): the free one, a few left, or none. */
         quotaLine() {
@@ -75,6 +83,50 @@ export const OwnChoirView = {
             }
             if (q.plus && q.monthLeft > 0 && q.monthLeft <= 3) return t('ownChoir.limit.left', { n: q.monthLeft });
             return '';
+        },
+        /** A song the server won't make (more than 8 parts, or a part over 5 minutes). */
+        songTooLong() {
+            return tooLong(this.template);
+        },
+        /** A choir with friends is on for this account. */
+        together: () => togetherOn(),
+        game: () => gameSkin(),
+        /** Who sings each part (the owner's view), their real takes from the choir project. */
+        who() {
+            return whoSings(this.request, this.parts, this.project?.yourParts ?? []);
+        },
+        /** The panel's label: the full AI label once, with the friends whose parts are in ("...your singing and Ben's"). */
+        panelLabel() {
+            const named = this.together ? this.friends.filter((m) => m.status === 'ready').map((m) => m.name) : [];
+            return named.length ? t('ownChoir.together.listen.withFriends', { names: whoseList(named) }) : t('ownChoir.listen.label');
+        },
+        inviteWhy() {
+            const keys = this.request?.invite?.parts ?? [];
+            return t('ownChoir.together.invite.why', { parts: partList(keys, this.template), partCount: keys.length });
+        },
+        /** The Plus sheet past the free song's one friend: who's in it already. */
+        plusFriendsText() {
+            const friend = this.friends[0];
+            return friend ? t('plus.moment.choirFriendsUsed', { name: friend.name }) : t('plus.moment.choirFriends');
+        },
+        friends() {
+            return this.request?.members ?? [];
+        },
+        /** The invite line: while there's a part to give (or Plus would allow one); never when every part fits or it's full. */
+        inviteShown() {
+            const invite = this.request?.invite;
+            return !!invite && (invite.canInvite || invite.reason === 'plus_required');
+        },
+        inviteLabel() {
+            return inviteLine(this.request, this.template);
+        },
+        /** A friend's parts waiting for the owner's minutes: how many more, and when they come back. */
+        minutesLine() {
+            const waiting = this.friends.find((m) => m.status === 'waiting_minutes');
+            const resets = ownChoir.data?.quota?.resetsAt;
+            if (!waiting || waiting.minutesShort == null || !resets) return '';
+            const keys = waiting.parts ?? [];
+            return t('ownChoir.together.who.minutesNote', { name: waiting.name, parts: partList(keys, this.template), partCount: keys.length, count: Math.max(1, Math.ceil(waiting.minutesShort)), date: formatDate(resets, { day: 'numeric', month: 'long' }) });
         },
         /** Their free song is used (once per email, ever) and no Plus: said before any singing, with Get Plus. */
         freeHad() {
@@ -117,8 +169,8 @@ export const OwnChoirView = {
             <!-- The terms, once: the short version, the terms, one button (English only, as the AI licence). -->
             <section v-else-if="state === 'terms' && terms" class="space-y-5" data-choir-terms>
                 <h1 class="text-2xl font-bold text-cream" translate="no">{{ terms.title }}</h1>
-                <Notice v-if="!terms.reviewed" tone="warn">{{ t('beta.consent.draft') }}</Notice>
-                <div class="card max-h-[50dvh] overflow-y-auto p-5" tabindex="0" role="region" :aria-label="terms.title"><Agreement :agreement="terms" :level="2" /></div>
+                <Notice v-if="terms.draft" tone="warn">{{ t('beta.consent.draft') }}</Notice>
+                <div class="card p-5" :class="game ? '' : 'max-h-[50dvh] overflow-y-auto'" tabindex="0" role="region" :aria-label="terms.title"><Agreement :agreement="terms" :level="2" /></div>
                 <button type="button" class="btn-primary" :disabled="busy" data-choir-agree @click="agree">{{ t('ownChoir.terms.agree') }}</button>
             </section>
 
@@ -129,7 +181,7 @@ export const OwnChoirView = {
                 <template v-if="request?.status === 'ready'">
                     <h1 class="text-3xl font-extrabold tracking-tight text-cream">{{ t('ownChoir.listen.title', { song }) }}</h1>
                     <div class="card space-y-4 p-5" data-choir-track>
-                        <p class="text-sm text-muted" data-choir-label>{{ t('ownChoir.listen.label') }}</p>
+                        <p class="text-sm text-muted" data-choir-label>{{ panelLabel }}</p>
                         <div class="grid gap-2.5 sm:grid-cols-2">
                             <button type="button" class="btn-primary btn-lg justify-center" :aria-busy="loadingTrack ? 'true' : null" data-choir-play @click="togglePlay"><span v-if="loadingTrack" class="spinner" aria-hidden="true"></span>{{ playing ? t('studio.stop') : t('ownChoir.ready.button') }}</button>
                             <button type="button" class="btn-secondary btn-lg justify-center" :disabled="loadingTrack" data-choir-download @click="download">{{ t('ownChoir.ready.download') }}</button>
@@ -139,8 +191,44 @@ export const OwnChoirView = {
                     </div>
                     <!-- Downloading is Plus's (Hillel, 2026-11-21); listening and sharing stay free. The server says who may. -->
                     <PlusMoment v-if="plusFor" :title="t('ownChoir.ready.download')" :text="t('plus.moment.choirDownload')" from="choir_download" :next="here" price @close="plusFor = false" />
-                    <p class="text-sm text-muted" data-choir-learn><span data-choir-progress>{{ t('ownChoir.learn.progress', { n: realCount, total: parts.length }) }}</span><template v-if="nextPart"> · <button type="button" class="link inline-flex min-h-11 items-center font-semibold" :disabled="busy" data-choir-learn-part @click="learn(nextPart)">{{ t('ownChoir.learn.button', { part: templatePartName(nextPart) }) }}</button></template></p>
-                    <button type="button" class="btn-ghost btn-sm text-bad" data-choir-delete @click="remove">{{ t('ownChoir.delete.button') }}</button>
+                    <!-- A choir with friends (behind own_choir_together): the "really you" line becomes Who sings, one row a part, each
+                         with its AI label (or their real take's), the parts that sit high or low for them, and one invite line. -->
+                    <section v-if="together" class="space-y-2" data-choir-who aria-labelledby="choir-who-h">
+                        <h2 id="choir-who-h" class="text-sm font-semibold text-muted">{{ t('ownChoir.together.who.title') }}</h2>
+                        <ul class="card divide-y divide-line px-4" data-ui="who-sings">
+                            <li v-for="row in who" :key="row.part.key" class="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 py-2" :data-who-part="row.part.key" :data-who-friend="row.friend ? row.friend.id : null">
+                                <span :class="game ? 'chip w-28 shrink-0 justify-center' : 'w-28 shrink-0 font-semibold text-cream'" data-ui="part-chip">{{ templatePartName(row.part) }}</span>
+                                <!-- The name and its AI chip never part (a narrow row moves Remove under them instead). -->
+                                <span class="flex-1 text-sm" :class="game && row.friend ? 'text-part-2' : 'text-cream'">
+                                    <span class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                                        <span class="inline-flex items-center gap-2 whitespace-nowrap"><span>{{ row.label }}</span><span v-if="row.ai" class="chip" data-ai-voice="tag">{{ t('ownChoir.together.who.ai') }}</span></span>
+                                        <span v-if="row.note" class="text-muted" data-who-fit>{{ row.note }}</span>
+                                    </span>
+                                    <span v-if="row.sub" class="block text-xs text-muted" data-who-until>{{ row.sub }}</span>
+                                </span>
+                                <button v-if="row.friend" type="button" class="ms-auto" :class="game ? 'inline-flex min-h-11 items-center rounded-full border border-line px-4 text-sm text-cream' : 'btn-secondary btn-sm min-h-11'" :aria-label="t('ownChoir.together.remove.button', { name: row.friend.name })" data-who-remove @click="removeFriend(row.friend)">{{ t('ownChoir.together.remove.short') }}</button>
+                            </li>
+                        </ul>
+                        <p v-if="minutesLine" class="mt-4 text-sm text-cream" role="status" data-choir-minutes>{{ minutesLine }}</p>
+                        <template v-if="inviteShown && !sentInvite">
+                            <button type="button" class="link inline-flex min-h-11 items-center gap-1.5 font-semibold" :disabled="busy" data-choir-invite @click="invite">{{ inviteLabel }}</button>
+                            <p class="text-sm text-muted" data-choir-invite-why>{{ inviteWhy }}</p>
+                        </template>
+                        <!-- The link, once (it works once, for 14 days): read-only with its lock, Copy link, or cancel. -->
+                        <div v-if="sentInvite" class="space-y-2" data-choir-invite-sent>
+                            <p class="flex min-h-11 items-center text-sm text-cream" role="status">{{ t('ownChoir.together.invite.sent') }}</p>
+                            <div class="flex gap-2">
+                                <div class="relative min-w-0 flex-1"><input ref="inviteLink" :value="sentInvite.url" readonly class="input truncate pe-[46px] text-start" :aria-label="inviteLabel" @focus="$event.target.select()" /><Icon name="lock" :size="18" class="input-icon end-4" /></div>
+                                <button type="button" class="btn-secondary" data-choir-invite-copy @click="copyInvite">{{ t('ownChoir.together.invite.copy') }}</button>
+                            </div>
+                            <!-- Said here, by the link (a toast would sit over the song's heading). -->
+                            <p v-if="copied" class="text-sm text-muted" data-choir-invite-copied>{{ t('ownChoir.together.invite.copied') }}</p>
+                            <button type="button" class="link inline-flex min-h-11 items-center text-sm" data-choir-invite-cancel @click="cancelInvite">{{ t('ownChoir.together.invite.cancel') }}</button>
+                        </div>
+                        <PlusMoment v-if="plusFriends" :title="inviteLabel" :text="plusFriendsText" from="choir_friends" :next="here" price @close="plusFriends = false" />
+                    </section>
+                    <p class="text-sm text-muted" data-choir-learn><span v-if="!together" data-choir-progress>{{ t('ownChoir.learn.progress', { n: realCount, total: parts.length }) }}</span><template v-if="nextPart"><template v-if="!together"> · </template><button type="button" class="link inline-flex min-h-11 items-center font-semibold" :disabled="busy" data-choir-learn-part @click="learn(nextPart)">{{ t('ownChoir.learn.button', { part: lower(templatePartName(nextPart)) }) }}</button></template></p>
+                    <button type="button" class="link-quiet inline-flex min-h-11 items-center self-start text-sm text-bad" data-choir-delete @click="remove">{{ t('ownChoir.delete.button') }}</button>
                 </template>
                 <!-- On its way: in-app only, never email. -->
                 <div v-else-if="isOpen(request)" class="card space-y-2 p-5" role="status" data-choir-wait>
@@ -168,6 +256,8 @@ export const OwnChoirView = {
                          is a quiet option that replaces it. Without one, Start singing. -->
                     <p v-if="notEnglish" class="text-sm text-muted" data-choir-english>{{ t('ownChoir.songs.notEnglish') }}</p>
                     <template v-if="!canStart"></template>
+                    <!-- More parts, or a longer part, than a song may have: said here, before any singing. -->
+                    <p v-else-if="songTooLong" class="card p-5 text-cream" data-choir-too-long>{{ t('ownChoir.songs.tooLong') }}</p>
                     <!-- The free song needs a confirmed email: asked here, before any singing; it clears once they come back. -->
                     <div v-else-if="needEmail" class="card space-y-3 p-5" data-choir-email>
                         <h2 class="text-lg font-bold text-cream">{{ t('ownChoir.email.title') }}</h2>
@@ -242,6 +332,10 @@ export const OwnChoirView = {
         clearInterval(this.poll);
     },
     methods: {
+        /** A part's name mid-sentence: lower case ("Learn the soprano part"). */
+        lower(name) {
+            return (name ?? '').toLocaleLowerCase(document.documentElement.lang || undefined);
+        },
         /** Where things stand, and which page to show: the terms, the song, or why it can't open (each in its own words). */
         async load() {
             this.state = 'loading';
@@ -256,7 +350,16 @@ export const OwnChoirView = {
             }
             await loadCatalogue().catch((error) => console.warn('The catalogue did not load', error));
             // One of their own songs (not the catalogue's) needs own_choir_songs as well.
-            this.own = !catalogue.list.some((entry) => entry.id === this.id);
+            // Theirs only when it's one of their own saved songs; a song neither in the library nor theirs (a hidden or
+            // withdrawn library song, a link that reached it anyway) never opens here.
+            const listed = catalogue.list.some((entry) => entry.id === this.id);
+            if (!listed) await loadMine().catch((error) => console.warn('Their songs did not load', error)); // one from another device too
+            this.own = !listed && (mine.list.some((song) => song.id === this.id) || !!(await ownTemplate(this.id).catch(() => null)));
+            if (!listed && !this.own) {
+                this.state = 'off';
+                this.offReason = 'unavailable';
+                return;
+            }
             const open = ownChoirOn() && (!this.own || ownChoirSongsOn());
             try {
                 [this.template] = await Promise.all([loadTemplate(this.id), loadOwnChoir({ force: true }), loadProjects()]);
@@ -327,6 +430,85 @@ export const OwnChoirView = {
         freshCheck() {
             this.checkToken = null;
             this.checkRound += 1;
+        },
+        /** Invites a friend: a link shown once, through the device's share sheet, else copied. */
+        async invite() {
+            if (this.busy) return;
+            if (this.request?.invite?.reason === 'plus_required') {
+                this.plusFriends = true;
+                return;
+            }
+            this.busy = true;
+            try {
+                const { data } = await api.ownChoir.invites.create(this.request.id);
+                const text = inviteText(this.request, this.template, this.song);
+                let shared = false;
+                if (navigator.share) {
+                    try {
+                        await navigator.share({ title: this.song, text, url: data.url });
+                        shared = true;
+                    } catch (error) {
+                        if (error?.name !== 'AbortError') console.info('The share sheet did not open', error?.message ?? error);
+                    }
+                }
+                if (!shared) {
+                    try {
+                        await navigator.clipboard.writeText(`${text} ${data.url}`);
+                        this.copied = true;
+                    } catch (error) {
+                        console.info('The link was not copied; it shows here to copy', error?.message ?? error); // the sent line shows it
+                    }
+                }
+                this.sentInvite = data;
+            } catch (error) {
+                if (error?.code === 'plus_required') this.plusFriends = true;
+                else if (error?.code === 'choir_full') toast(t('ownChoir.together.invite.cap'));
+                else {
+                    console.warn('The invite was not made', error);
+                    toast(t('common.didntWork'), { tone: 'error' });
+                }
+            } finally {
+                this.busy = false;
+            }
+        },
+        async copyInvite() {
+            try {
+                await navigator.clipboard.writeText(this.sentInvite.url);
+                this.copied = true;
+            } catch (error) {
+                console.info('The link was not copied', error?.message ?? error);
+            }
+        },
+        async cancelInvite() {
+            if (!this.sentInvite) return;
+            try {
+                await api.ownChoir.invites.delete(this.sentInvite.id);
+                this.sentInvite = null;
+                this.copied = false;
+                toast(t('ownChoir.together.invite.cancelled'));
+            } catch (error) {
+                console.warn('The invite was not cancelled', error);
+                toast(t('common.didntWork'), { tone: 'error' });
+            }
+        },
+        /** Takes a friend out of this choir, in a styled confirmation naming exactly what goes and what comes back. */
+        async removeFriend(friend) {
+            const member = this.friends.find((m) => m.id === friend.id);
+            const keys = member?.parts ?? [];
+            const yes = await confirmAction({
+                title: t('ownChoir.together.remove.title', { name: friend.name, song: this.song }),
+                body: t('ownChoir.together.remove.body', { count: keys.length, name: friend.name, parts: partList(keys, this.template) }),
+                action: t('ownChoir.together.remove.action', { name: friend.name }),
+            });
+            if (!yes) return;
+            try {
+                await api.ownChoir.members.delete(friend.id);
+                await loadOwnChoir({ force: true });
+                toast(t('ownChoir.together.remove.done', { name: friend.name }));
+            } catch (error) {
+                console.warn('The friend was not removed', error);
+                toast(t('common.didntWork'), { tone: 'error' });
+            }
         },
         /** More songs are Plus's: the Plus page, which leads back here once Plus is on. */
         getPlus() {
@@ -477,7 +659,10 @@ export const OwnChoirView = {
             }
         },
         async remove() {
-            const yes = await confirmAction({ title: t('ownChoir.delete.title', { song: this.song }), body: t('ownChoir.delete.body'), action: t('ownChoir.delete.action') });
+            // With friends in it: their parts go too, and the confirmation says so by name.
+            const names = this.together ? this.friends.map((m) => m.name) : [];
+            const friendsGo = names.length ? ' ' + t('ownChoir.together.delete.friends', { people: nameList(names) }) : '';
+            const yes = await confirmAction({ title: t('ownChoir.delete.title', { song: this.song }), body: t('ownChoir.delete.body') + friendsGo, action: t('ownChoir.delete.action') });
             if (!yes) return;
             try {
                 const project = projects.all.find((p) => p.choir?.requestId === this.request.id);

@@ -11,6 +11,9 @@
         "startsAfter": null,
         "seen": false,
         "canDownload": false,
-        "parts": []
+        "parts": [],
+        "voices": [],
+        "members": [],
+        "invite": null
     }
 }

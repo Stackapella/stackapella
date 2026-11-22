@@ -36,6 +36,33 @@ use Illuminate\Support\Facades\Lang;
  */
 final class InfoPagesController extends Controller
 {
+    /**
+     * /pricing's own questions; while own_choir is on, "Can I share what I make?" adds that a song sung by AI says so
+     * wherever it's shared, and with choir seats, the choir question that a seat doesn't cover songs sung by AI (the
+     * marketing review, 2026-11-22).
+     *
+     * @return array<array-key, mixed>
+     */
+    private static function pricingFaq(): array
+    {
+        $faq = (array) Teams::words('pages.pricing.faq');
+        if (SongParts::switchedOn('own_choir')) {
+            $share = (string) __('pages.pricing.faq.1.0');
+            $choir = SongParts::switchedOn('choir_seats') ? (string) __('pages.pricing.faq.2.0') : null;
+            foreach ($faq as $i => $qa) {
+                if (is_array($qa) && ($qa[0] ?? null) === $share) {
+                    $faq[$i][1] = $qa[1].' '.__('pages.pricing.faq_share_choir');
+                }
+                // A seat covers the group, not songs sung by AI (those follow the singer's own plan).
+                if (is_array($qa) && $choir !== null && ($qa[0] ?? null) === $choir) {
+                    $faq[$i][1] = $qa[1].' '.__('pages.pricing.faq_seat_choir');
+                }
+            }
+        }
+
+        return $faq;
+    }
+
     /** The pricing comparison's groups and the rows (pages.pricing.rows) in each. */
     private const PRICING_GROUPS = [
         'learn' => ['songs', 'preview', 'course', 'workout', 'report', 'guides'],
@@ -124,7 +151,7 @@ final class InfoPagesController extends Controller
             'plans' => Landing::plans(),
             'smallPrint' => (array) Lang::get('pages.pricing.small_print'),
             'faq' => array_map(static fn (array $qa): array => [$qa[0], str_replace(':days', (string) config('billing.trial_days'), (string) $qa[1])], [
-                ...(array) Teams::words('pages.pricing.faq'),
+                ...self::pricingFaq(),
                 ...($private ? [(array) Lang::get('pages.pricing.faq_private')] : []),
                 ...(OpenSource::on() ? [(array) Lang::get('pages.pricing.faq_selfhost')] : []),
             ]),

@@ -200,6 +200,10 @@ return [
         'ai_replaced',
         // Hear yourself as a choir: a song asked for (its clip in), and one ready.
         'own_choir_requested', 'own_choir_ready', 'own_choir_again', 'own_choir_own',
+        // A choir with friends (docs/choir-together-plan.md): invites made and opened, friends joined and their parts
+        // ready, a song's voices once a friend's are in (2, 3, or 4 and more), and a joiner's own first song later.
+        'own_choir_invite_made', 'own_choir_invite_opened', 'own_choir_joined', 'own_choir_friend_ready',
+        'own_choir_voices_2', 'own_choir_voices_3', 'own_choir_voices_4', 'own_choir_friend_own',
         // An app start (auth.config) with a country and without one (XX, T1): geo_rights' unknown-country share.
         'cfg_country', 'cfg_no_country',
         // A choir's seat pack bought (its first subscription started, trial or paid), by size only: 10 to 19, 20 to 49,
@@ -221,7 +225,7 @@ return [
     // New embedding sites a day kept by name before the rest are counted as embed-other.
     'new_embed_hosts_a_day' => 5,
 
-    'sources' => ['choir-share', 'hn', 'mudeo', 'songs', 'song-page', 'part-page', 'carols', 'lesson-page', 'course-page', 'courses-hub', 'features-course', 'lesson-try', 'warmups', 'intervals', 'chords', 'voice-types', 'tools', 'tools-embed', 'share-range', 'share-pitch-matching', 'share-interval-ear-training', 'share-chord-ear-training', 'share-lesson', 'for-choir-directors', 'for-choirs-footer', 'for-choirs-songs', 'for-choirs-collection', 'for-choirs-carols', 'for-choirs-pricing', 'for-choirs-landing', 'for-choirs-course', 'for-choirs-help', 'features-choirs', 'social', 'reddit', 'producthunt', 'newsletter', 'press',
+    'sources' => ['choir-share', 'choir-song', 'choir-home', 'choir-about', 'choir-footer', 'your-choir', 'hn', 'mudeo', 'songs', 'song-page', 'part-page', 'carols', 'lesson-page', 'course-page', 'courses-hub', 'features-course', 'lesson-try', 'warmups', 'intervals', 'chords', 'voice-types', 'tools', 'tools-embed', 'share-range', 'share-pitch-matching', 'share-interval-ear-training', 'share-chord-ear-training', 'share-lesson', 'for-choir-directors', 'for-choirs-footer', 'for-choirs-songs', 'for-choirs-collection', 'for-choirs-carols', 'for-choirs-pricing', 'for-choirs-landing', 'for-choirs-course', 'for-choirs-help', 'features-choirs', 'social', 'reddit', 'producthunt', 'newsletter', 'press',
         // The improvement loop: the verify email's next lesson, the day's part (/today), and the thread back.
         'welcome', 'today', 'back-link', 'back-calendar',
         // Each share surface's tag (share-lesson was already one; never folded, as every share- tag).

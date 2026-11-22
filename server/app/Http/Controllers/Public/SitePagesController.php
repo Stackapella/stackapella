@@ -89,7 +89,9 @@ final class SitePagesController extends Controller
         return response()->view('site.ai-voices', [
             ...$this->frame('ai_voices', '/about/ai-voices', Landing::ref($request->query('ref'))),
             'indexed' => $on,
-            'ownChoir' => self::switchedOn($flags, 'own_choir'),
+            'ownChoir' => $ownChoir = self::switchedOn($flags, 'own_choir'),
+            // Only the choir is live (no AI guides yet): the page explains it alone (site.ai_voices.choir_only).
+            'choirOnly' => $ownChoir && ! self::switchedOn($flags, 'ai_voices'),
             'remove' => self::email((string) __('site.ai_voices.remove.body')),
         ], 200, [...SongPagesController::headers(), ...($on ? [] : ['X-Robots-Tag' => 'noindex', 'Cache-Control' => 'no-store'])]);
     }
@@ -131,7 +133,11 @@ final class SitePagesController extends Controller
             // The library card's songs, each with its story's picture, as the songs hub shows them.
             'songs' => self::choirSongs(),
             'toolsUrl' => SitePages::toolsHome(),
-        ], 200, [...SongPagesController::headers(), ...($on ? [] : ['X-Robots-Tag' => 'noindex', 'Cache-Control' => 'no-store'])]);
+            // A choir with friends, once its switch is on (docs/choir-together-plan.md): one line under the steps.
+            'together' => self::switchedOn($flags, 'own_choir_together'),
+            // Plus's prices in the visitor's currency, for the questions that name them (the marketing review, 2026-11-22).
+            'price' => Prices::of(Prices::currency($request)),
+        ], 200, [...SongPagesController::headers(), 'Vary' => 'CF-IPCountry, Accept-Language', ...($on ? [] : ['X-Robots-Tag' => 'noindex', 'Cache-Control' => 'no-store'])]);
     }
 
     /**

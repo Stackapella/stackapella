@@ -85,7 +85,50 @@
                         "source": "ai",
                         "aiBasedOn": null
                     }
-                ]
+                ],
+                "voices": [
+                    {
+                        "partKey": "soprano",
+                        "whose": "you",
+                        "name": null,
+                        "memberId": null,
+                        "status": "ready",
+                        "fit": "high"
+                    },
+                    {
+                        "partKey": "alto",
+                        "whose": "you",
+                        "name": null,
+                        "memberId": null,
+                        "status": "ready",
+                        "fit": null
+                    },
+                    {
+                        "partKey": "tenor",
+                        "whose": "you",
+                        "name": null,
+                        "memberId": null,
+                        "status": "ready",
+                        "fit": null
+                    },
+                    {
+                        "partKey": "bass",
+                        "whose": "you",
+                        "name": null,
+                        "memberId": null,
+                        "status": "ready",
+                        "fit": null
+                    }
+                ],
+                "members": [],
+                "invite": {
+                    "canInvite": true,
+                    "parts": [
+                        "soprano"
+                    ],
+                    "left": 1,
+                    "reason": null
+                }
             },
             {
                 "id": "Rq4Ag2",
@@ -99,8 +142,12 @@
                 "startsAfter": null,
                 "seen": true,
                 "canDownload": true,
-                "parts": []
+                "parts": [],
+                "voices": [],
+                "members": [],
+                "invite": null
             }
-        ]
+        ],
+        "joined": []
     }
 }

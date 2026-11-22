@@ -44,6 +44,8 @@ return [
     // The shared page (/h/<id>), its embed, and their Report form.
     'page' => [
         'eyebrow' => 'A harmony on Stackapella',
+        // Under the voices of a song sung in a voice like its singer's (own_choir).
+        'choir' => 'Hear yourself as a choir: your first song is free',
         'play' => 'Play',
         'pause' => 'Pause',
         'listen' => 'Listen',

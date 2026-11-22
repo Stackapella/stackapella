@@ -1270,6 +1270,7 @@
             "own_choir_teaser": "Own choir teaser",
             "own_choir": "Your own choir",
             "own_choir_songs": "Your own choir on your own songs",
+            "own_choir_together": "A choir with friends",
             "choir_seats": "Choir seats",
             "schools": "Schools",
             "compare_pages": "Comparison pages",
@@ -1315,6 +1316,7 @@
             "own_choir_teaser": "The song pages' \"Hear yourself as a choir, coming soon\" button.",
             "own_choir": "Hear yourself as a whole choir: record, wait and listen. Invited accounts first.",
             "own_choir_songs": "Singers hear their own songs from the creator in a voice like theirs too, a hummed one from the humming itself. Needs Your own choir on.",
+            "own_choir_together": "Invite friends to sing the parts that suit their voice in your choir song. Per account while it's tested.",
             "choir_seats": "Each member of a choir group needs a seat the director buys (from 10, yearly, paid from the start). A seat covers group singing, not AI choir songs; seats move at most 3 times a month.",
             "schools": "Teachers make class codes that give students a free year of Plus. Off until its terms and privacy lines are read.",
             "compare_pages": "/compare pages in search, the sitemap and the footer. They answer either way; this only lets them be found.",
@@ -5854,6 +5856,8 @@
         "title": "Stackapella Plus",
         "story": "Learning to sing is free. Plus is for teaming up and for working at it: start a choir group or invite friends onto your song (everyone you invite joins free), more room for your recordings, and MP3 and each part on its own.",
         "moment": {
+            "choirFriendsUsed": "Your free choir includes one friend, and {name} is in it. More friends come with Plus.",
+            "choirFriends": "More friends in your choirs come with Plus, and so do about 15 songs a month in a voice like yours.",
             "choirSong": "More songs in a voice like yours come with Plus.",
             "inviteFriend": "Singing your song with friends comes with Plus. Everyone you invite joins free.",
             "groupStart": "Choir groups come with Plus. Everyone you invite joins free.",
@@ -8642,6 +8646,103 @@
         },
         "check": {
             "failed": "The quick check didn't go through. Try it again."
+        },
+        "together": {
+            "who": {
+                "title": "Who sings",
+                "real": "Your real voice",
+                "high": "sits high for you",
+                "low": "sits low for you",
+                "you": "Your voice",
+                "friendVoice": "{name}'s voice",
+                "ai": "AI",
+                "making": "{name}'s voice · on its way",
+                "minutesNote": "{name}'s {parts} {partCount, plural, one {needs} other {need}} {count, plural, one {1 more minute} other {# more minutes}} of AI singing than you have left this month. {partCount, plural, one {It'll be made} other {They'll be made}} on {date}, when your minutes renew.",
+                "until": "waiting until {date}"
+            },
+            "invite": {
+                "high": "Invite a friend to sing the high parts",
+                "low": "Invite a friend to sing the low parts",
+                "parts": "{count, plural, one {Invite a friend to sing the {parts} part} other {Invite a friend to sing the {parts} parts}}",
+                "why": "Parts sound best in a voice that suits them. A friend sings 30 seconds, and AI sings the {parts} {partCount, plural, one {part} other {parts}} in a voice like theirs. You keep the rest.",
+                "shareHigh": "Sing the high parts of {song} with me: we each sing for 30 seconds, and AI sings the whole choir in voices like ours.",
+                "shareLow": "Sing the low parts of {song} with me: we each sing for 30 seconds, and AI sings the whole choir in voices like ours.",
+                "shareParts": "{count, plural, one {Sing the {parts} part of {song} with me} other {Sing the {parts} parts of {song} with me}}: we each sing for 30 seconds, and AI sings the whole choir in voices like ours.",
+                "copy": "Copy link",
+                "copied": "Link copied",
+                "sent": "Your invite link is ready. Send it to one friend. It works once, for 14 days.",
+                "cancel": "Cancel invite",
+                "cancelled": "Invite cancelled. The link no longer works.",
+                "cap": "You've invited as many friends as this song has room for."
+            },
+            "remove": {
+                "button": "Remove {name} from this choir",
+                "title": "Remove {name} from {song}?",
+                "body": "{count, plural, one {{name}'s {parts} part stops playing and is deleted. Yours plays again.} other {{name}'s {parts} parts stop playing and are deleted. Yours play again.}}",
+                "action": "Remove {name}",
+                "done": "{name} is no longer in this choir.",
+                "short": "Remove"
+            },
+            "join": {
+                "title": "{count, plural, one {{owner} invited you to sing the {parts} part of {song}} other {{owner} invited you to sing the {parts} parts of {song}}}",
+                "how": "You sing along for 30 seconds. AI sings your parts in a voice like yours, and {owner}'s parts in a voice like {owner}'s.",
+                "listen": "Hear {owner}'s choir",
+                "signedOut": "Make a free account to join. Your invite waits for you.",
+                "expired": "This invite has expired or been used. Ask for a new link.",
+                "own": "This is your own choir.",
+                "header": "Sing in {owner}'s choir",
+                "done": "You're in {owner}'s choir"
+            },
+            "agree": {
+                "title": "A voice like yours in {owner}'s song",
+                "one": "{count, plural, one {In {owner}'s {song}, a voice like yours sings only the {parts} part. {owner} never gets the voice itself.} other {In {owner}'s {song}, a voice like yours sings only the {parts} parts. {owner} never gets the voice itself.}}",
+                "two": "{owner} can play, share and download this song. {owner} never gets your voice to use anywhere else.",
+                "three": "Leave any time: your parts are deleted and {owner}'s own parts play again. Copies already downloaded can't be taken back.",
+                "words": "The words a voice like yours will sing",
+                "showName": "Show my name if {owner} shares it",
+                "showNameOff": "Off: it says “a friend”.",
+                "sing": "Agree and sing 30 seconds",
+                "saved": "Agree and use my saved voice",
+                "part": "Sing along with the {part} part for 30 seconds.",
+                "free": "Free for you. We keep the voice made from your singing privately, for your own songs; delete it any time.",
+                "no": "No thanks"
+            },
+            "joined": {
+                "title": "Songs you sing in",
+                "row": "{owner}'s {song}",
+                "yours": "{count, plural, one {You sing the {parts} part} other {You sing the {parts} parts}}",
+                "making": "We'll show them in Songs you sing in when they're ready.",
+                "ready": "Ready",
+                "mine": "Your {song}"
+            },
+            "leave": {
+                "button": "Leave this choir",
+                "title": "Leave {owner}'s {song}?",
+                "body": "Your parts stop playing and are deleted, and {owner}'s play again. Your saved voice stays yours.",
+                "action": "Leave",
+                "done": "You've left {owner}'s choir."
+            },
+            "own": {
+                "next": "Hear a song of your own: your saved voice is ready."
+            },
+            "home": {
+                "owner": "{name}'s parts are in your choir: {song}",
+                "listen": "Listen",
+                "readyTitle": "Ready for you"
+            },
+            "words": {
+                "changed": "The words changed since you opened this. Here they are again."
+            },
+            "whose": "{name}'s",
+            "listen": {
+                "withFriends": "AI voices made from your singing and {names}"
+            },
+            "delete": {
+                "friends": "{people}'s parts are deleted too."
+            },
+            "parts": {
+                "changed": "The parts changed since you opened this. Here's what a voice like yours will sing now."
+            }
         }
     },
     "aiVoice": {

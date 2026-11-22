@@ -73,11 +73,13 @@ final class Flags
             return false;
         }
 
-        // Read once a request (Flags is scoped): a page asks about one account's switches many times.
-        return $this->forAccount[$name.':'.$user->getKey()] ??= FlagUser::query()->where('flag', $name)->where('user_id', $user->getKey())->exists();
+        // An account's own switches read once a request, all together (Flags is scoped): a page asks about several.
+        $mine = $this->forAccount[(int) $user->getKey()] ??= array_values(array_map('strval', FlagUser::query()->where('user_id', $user->getKey())->pluck('flag')->all()));
+
+        return in_array($name, $mine, true);
     }
 
-    /** @var array<string, bool> an account's own switches, read this request */
+    /** @var array<int, list<string>> each account's own switches, read this request */
     private array $forAccount = [];
 
     /** An account's own switches changed (FlagUser): read them afresh. */

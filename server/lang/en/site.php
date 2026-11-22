@@ -1426,16 +1426,17 @@ return [
             'who' => ['Who hears it?', 'Only you, unless you choose to share it.'],
             'own_songs' => ['Can it sing my own songs, or other words?', 'It sings the songs in our library, with their own words.'],
             // Hillel, 2026-11-21: "if they want to download it they need to subscribe to plus".
-            'download' => ['Can I download it?', 'Yes, with Plus. Listening to it and sharing it are free.'],
+            'download' => ['Can I download it?', 'Yes, with Plus (:price_month a month or :price_year a year). Listening to it and sharing it are free.'],
             // Hillel delegated, 2026-11-21: 60 minutes of AI singing a month of Plus (each month of the subscription, from its
             // renewal day: backend), never unlimited; the free song once per email.
-            'how_many' => ['How many songs can I make?', 'Your first song is free, once per email address. Plus includes 60 minutes of AI singing a month, about 15 songs.'],
+            'how_many' => ['How many songs can I make?', 'Your first song is free, once per email address. Plus, :price_month a month or :price_year a year, includes 60 minutes of AI singing a month, about 15 songs.'],
             'delete' => ['Can I delete it?', 'Yes, in the app at any time: any choir, every one at once, or your saved voice. Once deleted, it\'s gone.'],
         ],
         'faq_hum' => ['Does my humming need to be in tune?', 'No. The app writes down what you hum, and you can fix any note before the parts are made.'],
         'own_songs_hum' => 'Yes. Hum a tune and type its words, and every part sings them; without words it sings "oo". A song from our library keeps its own words. Songs you make are private to you unless you share them, and anything shared says it was made with AI.',
         'more' => 'About AI voices',
-        'end' => ['title' => 'Hear yourself as a choir', 'body' => 'Thirty seconds of singing, then every part in a voice like yours.', 'hum' => 'or hum your own tune'],
+        // Under the steps while own_choir_together is on: friends with other ranges sing the parts that suit them.
+        'together' => 'Better with friends: a high voice and a low voice, each singing the parts that suit it.',
     ],
 
     // About AI voices (/about/ai-voices; docs/ai-voices-build-plan.md, marketing item 2): unlisted and noindex until the
@@ -1452,6 +1453,18 @@ return [
             'part' => 'Alto',
             'role' => 'Harmony',
             'caption' => 'On song pages, part pages and in the app, an AI part says so in words, with the way to replace it beside it.',
+        ],
+        // While only own_choir is on (ai_voices off: no AI guides on the songs yet), the page explains the choir alone
+        // (the marketing review, 2026-11-22): its own headline, lead and end, no sample part, no checked or replaced
+        // sections, and the rest said for a song in a voice like yours.
+        'choir_only' => [
+            'headline' => 'How we use AI, and how it\'s labelled',
+            'lead' => 'Hear yourself as a choir sings a song\'s other parts in a voice like yours, using AI. It\'s always marked as AI, and your voice is only ever used for your own songs.',
+            'what' => 'A singing voice made by a computer model, from about 30 seconds of your singing. It sings the song\'s own notes and words, from our arrangement. Nobody recorded it singing that song.',
+            'whose' => 'Only yours. It\'s made from your own recording, sung in the app, and never used to make a voice for anyone else, or for anything else. Your songs are made on our GPU provider\'s servers, which keep what they process encrypted for at most 7 days, then delete it.',
+            'yours' => 'Nothing you sing becomes an AI voice unless you choose to hear yourself as a choir. Then a short reference of your voice is kept privately in your account, only for your own songs, until you delete it, and at most 12 months after you last use it.',
+            'label' => 'Everything made this way is marked as AI, in the app and on anything you share: each part says it\'s an AI voice made from your singing. It\'s never presented as a real recording of you or anyone else.',
+            'end' => ['title' => 'Hear yourself as a choir', 'body' => 'Sing about 30 seconds, and hear the other parts in a voice like yours. Your first song is free.', 'cta' => 'Hear yourself as a choir'],
         ],
         'sections' => [
             'what' => ['heading' => 'What an AI voice is', 'body' => 'A singing voice made by a computer model. It sings the part\'s own notes and words, from our arrangement, at the written pitch. Nobody recorded it singing that song.'],
@@ -7093,6 +7106,8 @@ return [
             'This site. You may run the Stackapella web app under the Attribution Assurance License, but our marketing site (its pages, words, images and the Stackapella brand) isn\'t part of what\'s licensed for you to serve. On your install it\'s switched off (IS_NEXUS off): your address opens the app, and Help, the legal pages and shared harmonies stay.',
             'If your install may not use the songs, the course and the guides, delete those folders: it runs without them, with no songs until you add your own, no guides and no what\'s new.',
         ],
+        // Joined to What isn't included while own_choir is on (OpenSourcePagesController::selfhostLists).
+        'missing_choir' => 'Hear yourself as a choir and the AI voices, switched on. They sing on a GPU: the worker is in voices/, built for Modal, and runs only on a GPU account of your own with its tokens set. Our AI guides and anyone\'s voice reference stay with stackapella.com.',
         'connects_title' => 'What a fresh install connects to',
         'connects' => [
             'Nothing reported to us, no third-party analytics and no licence check.',

@@ -121,5 +121,8 @@ return [
     // Hear yourself as a choir on a singer's own songs from the creator (hummed, or with words they typed; Hillel,
     // 2026-11-20: "they could hum it and have their voice replace their humming", "definiety allow typed words").
     'own_choir_songs' => ['kind' => 'feature', 'values' => ['off', 'on']],
+    // A choir with friends (docs/choir-together-plan.md): invite a friend whose voice suits the parts that don't suit
+    // yours. Per account while it's tested.
+    'own_choir_together' => ['kind' => 'feature', 'values' => ['off', 'on']],
 
 ];

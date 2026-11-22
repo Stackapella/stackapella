@@ -10,6 +10,7 @@ use App\Enums\OwnChoirStatus;
 use App\Exceptions\Refusal;
 use App\Models\Harmony;
 use App\Models\OwnChoirPart;
+use App\Models\OwnChoirRequest;
 use App\Models\Part;
 use App\Models\Project;
 use App\Models\Take;
@@ -160,6 +161,7 @@ final class StartHarmony
             // mix still holds the AI singing, and its page must still say so.
             'ai_parts' => $this->aiParts([...$guideIds, ...$this->untakenAiGuides($project, $version, $user)]),
             'own_voice_parts' => $choir['parts'] === [] ? null : $choir['parts'],
+            'own_voice_friends' => $choir['friends'] === [] ? null : $choir['friends'],
             'template_version_id' => $version?->id,
             'words_part_key' => $version !== null ? ($part->template_part_key ?? $this->melodyKey($version)) : null,
             'bpm' => $project->bpm,
@@ -232,7 +234,7 @@ final class StartHarmony
      *
      * @param  list<string>  $sqids
      * @param  list<string>  $requestSqids  songs whose every ready part counts (the project's settings.choir.requestId)
-     * @return array{parts: list<string>, seconds: float}
+     * @return array{parts: list<string>, friends: list<array{part: string, name: string|null}>, seconds: float}
      */
     private function ownVoice(array $sqids, User $user, array $requestSqids = []): array
     {
@@ -240,18 +242,27 @@ final class StartHarmony
         $requests = array_values(array_filter(array_map(static fn (string $sqid): ?int => Ids::decode($sqid), $requestSqids)));
 
         if ($ids === [] && $requests === []) {
-            return ['parts' => [], 'seconds' => 0.0];
+            return ['parts' => [], 'friends' => [], 'seconds' => 0.0];
         }
 
-        $parts = OwnChoirPart::query()->with('request.templateVersion')->where(fn ($query) => $query->whereKey($ids)->orWhereIn('own_choir_request_id', $requests))->where('status', 'ready')
-            ->whereHas('request', fn ($query) => $query->where('user_id', $user->id)->where('status', OwnChoirStatus::Ready->value))->orderBy('id')->get();
-        $names = array_values($parts->map(static function (OwnChoirPart $part): string {
+        // Their own song's parts, and a friend's on it (choir together: the friend's job on the sharer's song).
+        $friendJobs = OwnChoirRequest::query()->whereIn('parent_request_id', $requests)->pluck('id')->all();
+        $parts = OwnChoirPart::query()->with(['request.templateVersion', 'request.parent', 'request.member'])->where(fn ($query) => $query->whereKey($ids)->orWhereIn('own_choir_request_id', [...$requests, ...$friendJobs]))->where('status', 'ready')
+            ->whereHas('request', fn ($query) => $query->where('status', OwnChoirStatus::Ready->value)->where(fn ($whose) => $whose->where(fn ($own) => $own->where('user_id', $user->id)->whereNull('parent_request_id'))
+                ->orWhereHas('parent', fn ($parent) => $parent->where('user_id', $user->id))))->orderBy('id')->get();
+        $name = static function (OwnChoirPart $part): string {
             $named = collect((array) ($part->request->templateVersion->data['parts'] ?? []))->first(static fn (mixed $p): bool => is_array($p) && ($p['key'] ?? null) === $part->part_key);
 
             return is_array($named) && is_string($named['name'] ?? null) ? $named['name'] : $part->part_key;
-        })->unique()->all());
+        };
+        $theirs = $parts->filter(static fn (OwnChoirPart $p): bool => $p->request->parent_request_id !== null);
+        $mine = $parts->filter(static fn (OwnChoirPart $p): bool => $p->request->parent_request_id === null);
+        $friendParts = $theirs->pluck('part_key')->all();
+        $names = array_values($mine->reject(static fn (OwnChoirPart $p): bool => in_array($p->part_key, $friendParts, true))->map($name)->unique()->all());
+        // A friend's first name only when they chose to show it (off by default).
+        $friends = array_values($theirs->map(static fn (OwnChoirPart $p): array => ['part' => $name($p), 'name' => $p->request->member?->show_name === true ? trim(explode(' ', trim((string) $p->request->user?->name))[0] ?? '') : null])->unique('part')->all());
 
-        return ['parts' => $names, 'seconds' => (float) $parts->max(static fn (OwnChoirPart $p): float => $p->frames / max(1, $p->sample_rate))];
+        return ['parts' => $names, 'friends' => $friends, 'seconds' => (float) $parts->max(static fn (OwnChoirPart $p): float => $p->frames / max(1, $p->sample_rate))];
     }
 
     /**

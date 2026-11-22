@@ -56,6 +56,8 @@ final class ChoirJobs
                         ->orWhere(fn ($again) => $again->where('status', OwnChoirStatus::Rendering->value)->where('claimed_at', '<', $stale)))
                     ->where('tries', '<', (int) config('own_choir.max_tries'))->whereNotNull('template_version_id')
                     ->where(fn ($query) => $query->whereNull('starts_after')->orWhere('starts_after', '<=', now()))
+                    // A friend's parts wait for the owner's part-minutes (ChoirTogether::release).
+                    ->where('held_for_minutes', false)
                     // Paid Plus first, then in turn.
                     ->orderByDesc('priority')->orderBy('id')->lockForUpdate()->first();
 
@@ -94,7 +96,8 @@ final class ChoirJobs
      */
     public function startPart(OwnChoirRequest $request, string $claim, array $master): array
     {
-        $parts = array_column(array_filter((array) ($request->templateVersion->data['parts'] ?? []), 'is_array'), 'key');
+        // A friend's job renders only their parts (choir together).
+        $parts = $request->only_parts ?? array_column(array_filter((array) ($request->templateVersion->data['parts'] ?? []), 'is_array'), 'key');
 
         if (! in_array($master['part'], $parts, true)) {
             throw ValidationException::withMessages(['part' => __('validation.choir_part')]);
@@ -270,7 +273,7 @@ final class ChoirJobs
             return self::failAndClean($request, $failed, $claim);
         }
 
-        $wanted = array_column(array_filter((array) ($request->templateVersion->data['parts'] ?? []), 'is_array'), 'key');
+        $wanted = $request->only_parts ?? array_column(array_filter((array) ($request->templateVersion->data['parts'] ?? []), 'is_array'), 'key');
 
         // Read again under its lock: a song deleted (or claimed by another worker) meanwhile is never made ready.
         $clip = DB::transaction(function () use ($request, $claim, $wanted): ?string {
@@ -292,6 +295,14 @@ final class ChoirJobs
         }
 
         app(RecordCounts::class)->server('own_choir_ready', true, null);
+
+        // A friend's parts are in the owner's song: the owner's quiet card shows again, and the song's voices counted.
+        if ($request->parent_request_id !== null) {
+            OwnChoirRequest::query()->whereKey($request->parent_request_id)->update(['seen_at' => null]);
+            $voices = 1 + OwnChoirRequest::query()->where('parent_request_id', $request->parent_request_id)->where('status', OwnChoirStatus::Ready->value)->count();
+            app(RecordCounts::class)->server('own_choir_friend_ready', true, null);
+            app(RecordCounts::class)->server('own_choir_voices_'.min(4, $voices), true, null);
+        }
 
         return $request->refresh();
     }

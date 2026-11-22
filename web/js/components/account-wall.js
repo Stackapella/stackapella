@@ -9,6 +9,7 @@ import { navigate } from '../router.js';
 /** Why each place needs an account. */
 const WHY = {
     boards: tk('wall.boards'),
+    choirJoin: tk('ownChoir.together.join.signedOut'), // a choir with friends: the invite waits through sign-up
     daily: tk('wall.daily'),
     reminders: tk('wall.reminders'),
     friends: tk('wall.friends'),
@@ -36,7 +37,7 @@ export const AccountWall = {
     setup: () => ({ WHY }),
     template: `
         <div class="space-y-3" :class="bare ? '' : 'card p-5'" data-account-wall :data-reason="reason">
-            <p class="text-cream">{{ t(WHY[reason]) }} <span class="text-muted">{{ t('wall.comes') }}</span></p>
+            <p class="text-cream">{{ t(WHY[reason]) }}<template v-if="reason !== 'choirJoin'"> <span class="text-muted">{{ t('wall.comes') }}</span></template></p>
             <div class="flex flex-wrap items-center gap-x-5 gap-y-3">
                 <a :href="signUp" class="btn-primary" data-wall-sign-up @click.prevent="navigate(signUp)">{{ t('wrap.makeAccount') }}</a>
                 <a :href="signIn" class="link tap-44 text-sm" data-wall-sign-in @click.prevent="navigate(signIn)">{{ t('wall.haveAccount') }}</a>

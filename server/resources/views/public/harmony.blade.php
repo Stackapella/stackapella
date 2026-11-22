@@ -102,9 +102,16 @@
                  (design rules, "AI: plain about it, never loud"), with one link to About AI voices. --}}
             @if (count($harmony['guides']))
                 {{-- An own-voice part (Hear yourself as a choir: `ownVoice`) is "made from" its singer's singing, a catalogue AI
-                     part "based on" a consenting singer's; either says only "AI voice" without a name. --}}
-                @php($credit = static fn (array $g): string => ($g['ai'] ?? false) ? (string) (($g['aiBasedOn'] ?? null) !== null ? __(($g['ownVoice'] ?? false) ? 'pages.song.ai.mix_own' : 'pages.song.ai.mix_based_on', ['part' => $g['part'], 'name' => $g['aiBasedOn']]) : __('pages.song.ai.mix', ['part' => $g['part']])) : $g['name'].' ('.$g['part'].')')
+                     part "based on" a consenting singer's; either says only "AI voice" without a name, except a friend's
+                     part in a choir with friends (`friend`), which says "made from a friend's singing" unless they chose to
+                     show their name. --}}
+                @php($credit = static fn (array $g): string => ($g['ai'] ?? false) ? (string) (($g['aiBasedOn'] ?? null) !== null ? __(($g['ownVoice'] ?? false) ? 'pages.song.ai.mix_own' : 'pages.song.ai.mix_based_on', ['part' => $g['part'], 'name' => $g['aiBasedOn']]) : (($g['friend'] ?? false) ? __('pages.song.ai.mix_own', ['part' => $g['part'], 'name' => __('pages.song.ai.a_friend')]) : __('pages.song.ai.mix', ['part' => $g['part']]))) : $g['name'].' ('.$g['part'].')')
                 <p>{{ __('sharing.page.voices', ['names' => collect($harmony['guides'])->map($credit)->join(', ')]) }}@if (collect($harmony['guides'])->contains('ai', true)) <a href="/about/ai-voices" class="s-lk">{{ __('pages.song.ai.about') }}</a>@endif</p>
+                {{-- A song sung in a voice like its singer's: one quiet way for a listener to make their own (own_choir;
+                     ai-frontend's ask, the marketing review, 2026-11-22). --}}
+                @if (collect($harmony['guides'])->contains('ownVoice', true) && \App\Support\Pages\SongParts::switchedOn('own_choir'))
+                    <p><a href="/your-choir?ref=choir-share" class="s-lk" data-choir-share>{{ __('sharing.page.choir') }}</a></p>
+                @endif
             @endif
             <button type="button" class="hidden btn-ghost s-report" data-report-open>{{ __('sharing.page.report') }}</button>
         </section>

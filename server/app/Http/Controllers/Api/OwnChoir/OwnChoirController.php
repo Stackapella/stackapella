@@ -47,19 +47,19 @@ final class OwnChoirController extends Controller
         ['request' => $song, 'put' => $put] = $choir->start($user, $clip, $request->ip());
 
         return response()->json([
-            'data' => OwnChoir::request($song->load(['templateVersion.template', 'parts'])),
+            'data' => OwnChoir::request($song->load(['templateVersion.template', 'parts']), null, $user),
             'upload' => $put === null ? null : [...$put, 'expiresAt' => Carbon::instance($put['expiresAt'])->utc()->toIso8601ZuluString()],
         ], 201);
     }
 
     public function complete(OwnChoirRequest $song, OwnChoirRequests $choir, #[CurrentUser] User $user): JsonResponse
     {
-        return response()->json(['data' => OwnChoir::request($choir->complete($user, $song)->load(['templateVersion.template', 'parts']))]);
+        return response()->json(['data' => OwnChoir::request($choir->complete($user, $song)->load(['templateVersion.template', 'parts']), null, $user)]);
     }
 
     public function seen(OwnChoirRequest $song, OwnChoirRequests $choir, #[CurrentUser] User $user): JsonResponse
     {
-        return response()->json(['data' => OwnChoir::request($choir->seen($user, $song)->load(['templateVersion.template', 'parts']))]);
+        return response()->json(['data' => OwnChoir::request($choir->seen($user, $song)->load(['templateVersion.template', 'parts']), null, $user)]);
     }
 
     public function download(OwnChoirRequest $song, OwnChoirRequests $choir, #[CurrentUser] User $user): JsonResponse

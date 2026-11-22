@@ -46,7 +46,12 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $starts_after a busy day's song waits until then
  * @property Carbon|null $claim_started_at when the current claim began (never kept past own_choir.claim_limit_minutes)
  * @property Carbon|null $first_claimed_at when it first reached the renderer (the windows count from it)
- * @property string|null $email_key the free song's email, as a keyed hash (OwnChoir::emailKey)
+ * @property string|null $email_key
+ * @property int|null $parent_request_id a friend's render of their parts on this owner's song (choir together)
+ * @property int|null $own_choir_member_id the friend it's for
+ * @property int|null $bill_to_user_id whose part-minutes it costs (the song's owner)
+ * @property list<string>|null $only_parts the parts it renders (a friend's); null for every part
+ * @property bool $held_for_minutes waiting for the owner's part-minutes the free song's email, as a keyed hash (OwnChoir::emailKey)
  * @property Carbon|null $ready_at
  * @property Carbon|null $seen_at
  * @property Carbon|null $created_at
@@ -86,6 +91,8 @@ final class OwnChoirRequest extends Model
             'starts_after' => 'datetime',
             'claim_started_at' => 'datetime',
             'first_claimed_at' => 'datetime',
+            'only_parts' => 'array',
+            'held_for_minutes' => 'boolean',
             'clip_checked_at' => 'datetime',
             'claimed_at' => 'datetime',
             'ready_at' => 'datetime',
@@ -115,6 +122,42 @@ final class OwnChoirRequest extends Model
     public function voice(): BelongsTo
     {
         return $this->belongsTo(OwnChoirVoice::class, 'own_choir_voice_id');
+    }
+
+    /**
+     * Friends' renders of their parts on this song.
+     *
+     * @return HasMany<OwnChoirRequest, $this>
+     */
+    public function friendJobs(): HasMany
+    {
+        return $this->hasMany(OwnChoirRequest::class, 'parent_request_id');
+    }
+
+    /**
+     * @return HasMany<OwnChoirMember, $this>
+     */
+    public function members(): HasMany
+    {
+        return $this->hasMany(OwnChoirMember::class);
+    }
+
+    /**
+     * The friend a friend's job is for.
+     *
+     * @return BelongsTo<OwnChoirMember, $this>
+     */
+    public function member(): BelongsTo
+    {
+        return $this->belongsTo(OwnChoirMember::class, 'own_choir_member_id');
+    }
+
+    /**
+     * @return BelongsTo<OwnChoirRequest, $this>
+     */
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(OwnChoirRequest::class, 'parent_request_id');
     }
 
     /**

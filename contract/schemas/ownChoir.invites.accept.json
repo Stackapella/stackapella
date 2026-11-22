@@ -1,0 +1,18 @@
+{
+    "$id": "ownChoir.invites.accept.json",
+    "title": "Joined: the member, and the clip's upload when one is sent",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data",
+        "upload"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "ownChoir.json#/$defs/member"
+        },
+        "upload": {
+            "$ref": "upload.json#/$defs/nullable"
+        }
+    }
+}

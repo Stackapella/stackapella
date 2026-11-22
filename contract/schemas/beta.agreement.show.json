@@ -14,7 +14,8 @@
                 "reviewed",
                 "language",
                 "title",
-                "blocks"
+                "blocks",
+                "draft"
             ],
             "properties": {
                 "version": {
@@ -22,7 +23,11 @@
                 },
                 "reviewed": {
                     "type": "boolean",
-                    "description": "False until the lawyer has checked it: the app shows a draft notice."
+                    "description": "False until the lawyer has checked it. The app shows the draft notice by `draft`, never by this."
+                },
+                "draft": {
+                    "type": "boolean",
+                    "description": "Show \"a draft a lawyer hasn't checked\": only to staff (an admin or editor), and only while `reviewed` is false (2026-11-22). Members never see the notice."
                 },
                 "language": {
                     "type": "string"

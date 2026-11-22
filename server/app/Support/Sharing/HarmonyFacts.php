@@ -99,7 +99,9 @@ final class HarmonyFacts
      * singer chose a credit. A part that's an AI voice in the sharer's own voice (Hear yourself as a choir) comes with
      * `ownVoice` too, and `aiBasedOn` the sharer's name as the page shows it.
      *
-     * @return list<array{name: string|null, part: string, ai: bool, aiBasedOn: string|null, ownVoice: bool}>
+     * A friend's part in it (choir together) has `friend` too, its `aiBasedOn` their first name only if they chose to show it.
+     *
+     * @return list<array{name: string|null, part: string, ai: bool, aiBasedOn: string|null, ownVoice: bool, friend?: bool}>
      */
     public function guides(Harmony $harmony): array
     {
@@ -108,6 +110,8 @@ final class HarmonyFacts
         $sharer = $harmony->user;
         $named = $sharer instanceof User && ! Gallery::hidden($sharer) && ! TextFilter::hasLink($sharer->name) && ! TextFilter::holds($sharer->name) ? $sharer->name : null;
         $own = array_map(static fn (string $part): array => ['name' => null, 'part' => $part, 'ai' => true, 'aiBasedOn' => $named, 'ownVoice' => true], array_values(array_filter((array) $harmony->own_voice_parts, 'is_string')));
+        // A friend's parts (choir together): their first name only if they chose to show it, else the page's "a friend".
+        $own = [...$own, ...array_map(static fn (array $f): array => ['name' => null, 'part' => (string) ($f['part'] ?? ''), 'ai' => true, 'aiBasedOn' => is_string($f['name'] ?? null) && $f['name'] !== '' ? $f['name'] : null, 'ownVoice' => true, 'friend' => true], array_values(array_filter((array) $harmony->own_voice_friends, 'is_array')))];
 
         if ($harmony->template_version_id === null) {
             return $own;

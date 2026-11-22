@@ -1,0 +1,41 @@
+{
+    "$id": "ownChoir.invites.create.json",
+    "title": "An invite to sing in a choir song",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "url",
+                "parts",
+                "expiresAt"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "/choir/join/<token>: used once, for 14 days, revocable. Shown only now: the server keeps its hash."
+                },
+                "parts": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "expiresAt": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
+        }
+    }
+}

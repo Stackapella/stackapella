@@ -1,9 +1,9 @@
 ---
 title: Hear yourself as a choir
-version: 2
+version: 3
 reviewed: false
 drafted: 2026-11-20
-changed: 2026-11-21 (2, unaccepted: 60 minutes a month of Plus, one free song per email; 2026-11-20: a short voice reference is kept privately for the singer's own songs; songs a singer makes, with their typed words; Hillel's decisions)
+changed: 2026-11-22 (3, unaccepted: term 6, your voice in songs you join, for a choir with friends behind own_choir_together; 2026-11-21, 2: 60 minutes a month of Plus, one free song per email; 2026-11-20: a short voice reference is kept privately for the singer's own songs; songs a singer makes, with their typed words; Hillel's decisions)
 ---
 
 # Hear yourself as a choir
@@ -16,6 +16,9 @@ changed: 2026-11-21 (2, unaccepted: 60 minutes a month of Plus, one free song pe
 - Delete it any time in the app. Unused for 12 months, it goes by itself.
 - It sings our library's songs, and songs you make, with your own words.
 - The songs are private to you and always marked as AI. Delete one, or everything, at any time in the app.
+- A friend can invite you to sing in their song, free. An AI voice like yours then sings only the parts named in the
+  invite, in that one song; they can play, share and download it, never use your voice anywhere else, and you can leave
+  any time (copies already downloaded can't be taken back).
 - You must be 18 or over.
 
 ## The terms
@@ -42,23 +45,33 @@ and on anything you share, and you won't present it as a real recording of you o
 reported, and we take it down if it breaks these terms or the guidelines. You can delete a song, or every song and
 your voice reference, at any time in the app.
 
-6. **Limits.** Your first song is free, once per email address. Plus includes 60 minutes of AI singing in each month
+6. **Your voice in songs you join.** Someone can invite you to sing in a song they made this way. If you agree, your
+30 seconds of singing make an AI voice like yours, which sings only the parts named in your invite, only in that one
+song. The song's owner can play, share and download it with your parts in it, but never gets your recording or your
+voice to use anywhere else, and nobody else can use a voice like yours. Joining is free for you: it counts against the
+owner's limits, never yours. We keep the voice made from your singing privately, for your own songs, as in term 3;
+delete it any time. You see the song's words before you agree, and a song's words never change once it's made. You can
+leave the song at any time: your parts are deleted from it, and the owner's own parts play again. Copies already
+downloaded can't be taken back. When the owner shares the song, your name shows only if you chose to show it;
+otherwise it says a friend sang. Your clip, and the parts made from it, are handled as in term 8.
+
+7. **Limits.** Your first song is free, once per email address. Plus includes 60 minutes of AI singing in each month
 of your subscription, counted from your renewal day (about 15 songs; every part counts, so four one-minute parts are
 four minutes); unused minutes don't carry over. Plus given to you free, through a school, a partner or a coach,
 includes 3 songs in any 30 days. A seat in a choir group covers singing with the group, not songs in your own voice.
 There is also a daily limit for everyone. Hearing a song you've already made, and sharing it, are always free;
 downloading a song needs Plus.
 
-7. **Your data.** Your songs are made on the servers of our GPU provider, Modal, in the United States: your clip, the
-voice made from it and the parts made in it are kept encrypted there for up to 7 days, then deleted. We keep your
+8. **Your data.** Your songs are made on the servers of our GPU provider, Modal, in the United States: your clip, the
+voice made from it and the parts made in it are kept encrypted there for up to 7 days, then deleted; the same for a clip you sing to join someone's song. We keep your
 voice reference, your songs, how many you've made, and which version of these terms you accepted and when; your data
 download says when your reference was saved and last used. We never use them to identify you. To keep the free song to
 one per person, once you've made it we keep a one-way code made from your email address (and any Apple or Google
 account you sign in with), even after you delete your account; it can't be turned back into your address, and it's
 used for nothing else.
 
-8. **Your promise.** The recording is your own singing, and you're 18 or over.
+9. **Your promise.** The recording is your own singing, and you're 18 or over.
 
-9. **Changes.** If we change these terms, we'll ask you to accept them again before your next song.
+10. **Changes.** If we change these terms, we'll ask you to accept them again before your next song.
 
 **[Governing law: for the lawyer.]** Questions: **[contact address]**.

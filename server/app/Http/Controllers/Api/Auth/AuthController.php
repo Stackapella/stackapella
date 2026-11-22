@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\Auth;
 use App\Actions\Beta\AcceptInvite;
 use App\Actions\Counts\Funnel;
 use App\Actions\Counts\RecordCounts;
+use App\Actions\OwnChoir\ChoirTogether;
 use App\Actions\Users\RegisterWithPassword;
 use App\Actions\Users\ResendVerification;
 use App\Actions\Users\ResetPassword;
@@ -124,6 +125,7 @@ final class AuthController extends Controller
             'ownChoir' => OwnChoir::on($request->user() instanceof User ? $request->user() : null),
             // On their own songs from the creator too (own_choir_songs).
             'ownChoirSongs' => OwnChoir::songsOn($request->user() instanceof User ? $request->user() : null),
+            'ownChoirTogether' => ChoirTogether::on($request->user() instanceof User ? $request->user() : null),
             // Song requests (the song_requests switch); staff see them before (account.songRequests).
             'songRequests' => $flags->on('song_requests'),
             'schools' => $flags->on('schools'),

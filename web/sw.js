@@ -168,6 +168,7 @@ const SHELL = [
     '/js/views/requests.js',
     '/js/views/voices.js',
     '/js/views/own-choir.js',
+    '/js/views/choir-together.js',
     '/js/stores/ideas.js',
     '/js/views/reset.js',
     '/js/voice-day.js',
@@ -220,6 +221,7 @@ const SHELL = [
     '/js/be-the-voice.js',
     '/js/own-choir.js',
     '/js/own-choir-player.js',
+    '/js/components/joined-choirs.js',
     '/js/ai-voices.js',
     '/js/voice-take.js',
     '/js/components/share-voice.js',
@@ -418,7 +420,7 @@ const SHELL = [
 
 // The app's own addresses (every route in router.js; tests/sw-routes.test.js keeps them in step);
 // every other page is the server's.
-const APP_ROUTE = /^\/(?:$|index\.html$|p\/[\w-]+(?:\/(?:sing|print))?\/?$|styleguide(?:\/game)?\/?$|beta(?:\/[\w-]*)?\/?$|signin(?:\/link)?\/?$|settings(?:\/(?:reminders|classes))?\/?$|class(?:\/[\w-]+)?\/?$|storage\/?$|voice\/?$|workout\/?$|plus\/?$|learn(?:\/[cs])?(?:\/[\w-]+)?(?:\/lines)?\/?$|verify\/?$|reset\/?$|email\/(?:confirm|revert)\/?$|create(?:\/[\w-]+)?\/?$|t\/[\w-]+(?:\/(?:sheet|choir))?\/?$|(?:join|early|invite|choir|challenge)\/[\w-]+\/?$|groups(?:\/[\w-]+)?\/?$|ideas(?:\/[\w-]+)?\/?$|requests\/?$|voices\/?$|start-fresh\/?$|cooldown\/?$|warmup\/?$|moved\/?$|contact\/?$|notices?\/?$|admin(?:\/(?!sign-in|sign-out|second-factor)[\w-]+(?:\/[\w-]+)?)?\/?$)/;
+const APP_ROUTE = /^\/(?:$|index\.html$|p\/[\w-]+(?:\/(?:sing|print))?\/?$|styleguide(?:\/game)?\/?$|beta(?:\/[\w-]*)?\/?$|signin(?:\/link)?\/?$|settings(?:\/(?:reminders|classes))?\/?$|class(?:\/[\w-]+)?\/?$|storage\/?$|voice\/?$|workout\/?$|plus\/?$|learn(?:\/[cs])?(?:\/[\w-]+)?(?:\/lines)?\/?$|verify\/?$|reset\/?$|email\/(?:confirm|revert)\/?$|create(?:\/[\w-]+)?\/?$|t\/[\w-]+(?:\/(?:sheet|choir))?\/?$|(?:join|early|invite|choir|challenge)\/[\w-]+\/?$|choir\/join\/[\w-]+\/?$|groups(?:\/[\w-]+)?\/?$|ideas(?:\/[\w-]+)?\/?$|requests\/?$|voices\/?$|start-fresh\/?$|cooldown\/?$|warmup\/?$|moved\/?$|contact\/?$|notices?\/?$|admin(?:\/(?!sign-in|sign-out|second-factor)[\w-]+(?:\/[\w-]+)?)?\/?$)/;
 
 /**
  * Caches every file of the app, or none: a file that fails (a folder the server doesn't serve, say)

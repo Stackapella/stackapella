@@ -20,7 +20,8 @@
                 "quota",
                 "requests",
                 "busyToday",
-                "checkNeeded"
+                "checkNeeded",
+                "joined"
             ],
             "properties": {
                 "consent": {
@@ -151,6 +152,27 @@
                     "items": {
                         "$ref": "ownChoir.json#/$defs/request"
                     }
+                },
+                "joined": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "member",
+                            "song"
+                        ],
+                        "properties": {
+                            "member": {
+                                "$ref": "ownChoir.json#/$defs/member"
+                            },
+                            "song": {
+                                "$ref": "ownChoir.json#/$defs/request",
+                                "description": "The owner's song as a member sees it: its parts (the whole choir), `voices` with `whose`, no members or invite."
+                            }
+                        }
+                    },
+                    "description": "Choirs you sing in (another singer's song you joined), newest first."
                 }
             },
             "description": "ownChoir.json's state, or null: nothing of theirs kept while own_choir is off for them (Settings asks for everyone)."

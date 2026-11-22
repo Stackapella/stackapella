@@ -235,7 +235,9 @@ async function stateful(operation, params, body, cases, query = {}) {
         const ownChoirSongs = tabStorage.get('stackapella.mockOwnChoirSongs') === '1' || !!data.ownChoirSongs; // their own songs too
         // Shield mode's site key, for a flow (stackapella.mockTurnstile, this tab): the flow stands in for Cloudflare's script.
         const turnstileSiteKey = tabStorage.get('stackapella.mockTurnstile') === '1' ? '1x00000000000000000000AA' : data.turnstileSiteKey ?? null;
-        return respond(200, { data: { ...data, ideas: !scenarios().includes('ideas.list:not_found'), experiments, lendVoice, selfHosted, withheldSongs, aiVoices, ownChoir, ownChoirSongs, turnstileSiteKey } });
+        // A choir with friends, for a flow (stackapella.mockTogether, this tab).
+        const ownChoirTogether = tabStorage.get('stackapella.mockTogether') === '1' || !!data.ownChoirTogether;
+        return respond(200, { data: { ...data, ideas: !scenarios().includes('ideas.list:not_found'), experiments, lendVoice, selfHosted, withheldSongs, aiVoices, ownChoir, ownChoirSongs, turnstileSiteKey, ownChoirTogether } });
     }
     // Who's signed in, and what that allows.
     const as = tabStorage.get('stackapella.mockAs') || 'member';
@@ -338,9 +340,11 @@ async function stateful(operation, params, body, cases, query = {}) {
     // turns it on; `stackapella.mockChoirState` `fresh` starts with no consent and no songs, else the example's. A new song
     // goes uploading, queued on complete, then ready at the next look (as if the render ran in between).
     if (operation === 'beta.agreement.show' && query.for === 'own_choir') {
-        const terms = await fetch('/tests/fixtures/ai-voice-licence.json').then((r) => r.json());
-        const { termsVersion } = (await example('ownChoir.show.200.json')).data; // the version the choir's state names
-        return respond(200, { data: { ...terms.data, version: termsVersion, title: 'Hear yourself as a choir: the terms' } }); // i18n-ignore: a fixture's title
+        // The own-choir terms themselves (server/resources/legal/en/own-choir.md, its friend clause too), as the server
+        // serves them; at the version the choir's state names.
+        const terms = await fetch('/tests/fixtures/own-choir-terms.json').then((r) => r.json());
+        const { termsVersion } = (await example('ownChoir.show.200.json')).data;
+        return respond(200, { data: { ...terms.data, version: termsVersion } });
     }
     if (operation.startsWith('ownChoir.') && !scenarios().some((s) => s.startsWith(operation + ':'))) {
         if (tabStorage.get('stackapella.mockOwnChoir') !== '1') return respond(404, { message: 'not_found', code: 'not_found' });
@@ -367,13 +371,104 @@ async function stateful(operation, params, body, cases, query = {}) {
             tabStorage.set('stackapella.mockChoir', JSON.stringify(state.ownChoir));
             return answer;
         };
+        // A choir with friends (behind mockTogether): who sings each part, the owner's friends, the invite, and the songs this
+        // person sings in. stackapella.mockChoirFriend seeds a friend (Ben) on the soprano of a ready song (the part that sat high for the owner): `ready`,
+        // `making` or `minutes`; stackapella.mockChoirJoined seeds a song this person sings in (Ann's), `ready` or `making`.
+        const together = tabStorage.get('stackapella.mockTogether') === '1';
+        choir.members ??= [];
+        choir.joined ??= [];
+        choir.invites ??= [];
+        const seedFriend = tabStorage.get('stackapella.mockChoirFriend');
+        const ready = choir.requests.find((r) => r.status === 'ready');
+        if (together && seedFriend && ready && !choir.members.some((m) => m.requestId === ready.id) && !choir.friendSeeded) {
+            choir.friendSeeded = true;
+            choir.members.push({ id: 'Mb7Ben', requestId: ready.id, name: 'Ben', parts: ['soprano'], status: { ready: 'ready', making: 'on_its_way', minutes: 'waiting_minutes' }[seedFriend] ?? 'ready', showName: false, joinedAt: now, seen: false, minutesShort: seedFriend === 'minutes' ? 3 : null }); // i18n-ignore: the mock's names
+        }
+        const seedJoined = tabStorage.get('stackapella.mockChoirJoined');
+        if (together && seedJoined && !choir.joined.length && !choir.joinedSeeded) {
+            choir.joinedSeeded = true;
+            const owners = shown.requests[0];
+            choir.joined.push({ member: { id: 'Mb3You', requestId: 'RqAnn1', name: null, parts: ['soprano', 'alto'], status: seedJoined === 'making' ? 'on_its_way' : 'ready', showName: false, joinedAt: now, seen: false }, song: { ...owners, id: 'RqAnn1', owner: 'Ann', canDownload: as === 'plus', parts: owners.parts.map((p) => local({ ...p, id: `${p.id}-ann` })), voices: owners.parts.map((p) => ({ partKey: p.partKey, whose: ['soprano', 'alto'].includes(p.partKey) ? 'you' : 'owner', name: ['soprano', 'alto'].includes(p.partKey) ? null : 'Ann', memberId: null, status: ['soprano', 'alto'].includes(p.partKey) && seedJoined === 'making' ? 'on_its_way' : 'ready', fit: null })) } }); // i18n-ignore: the mock's names
+        }
+        // Each request's voices, friends and invite, as the server reckons them (the soprano sits high for this mock owner).
+        const dress = (r) => {
+            if (!together) return Object.assign(r, { voices: [], members: [], invite: null });
+            const friends = choir.members.filter((m) => m.requestId === r.id);
+            const keys = (r.parts ?? []).map((p) => p.partKey);
+            r.members = friends;
+            r.voices = keys.map((partKey) => {
+                const friend = friends.find((m) => m.parts.includes(partKey));
+                return friend ? { partKey, whose: 'friend', name: friend.name, memberId: friend.id, status: friend.status === 'ready' ? 'ready' : friend.status === 'waiting_minutes' ? 'waiting_minutes' : 'on_its_way', fit: null } : { partKey, whose: 'you', name: null, memberId: null, status: 'ready', fit: partKey === 'soprano' || (partKey === 'alto' && tabStorage.get('stackapella.mockChoirFit') === 'two') ? 'high' : null };
+            });
+            const free = as !== 'plus'; // the mock's free account: the free song's one friend
+            const cap = Math.min(free ? 1 : 7, Math.max(0, keys.length - 1));
+            const highs = r.voices.filter((v) => v.fit === 'high' && v.whose === 'you').map((v) => v.partKey);
+            const reason = r.status !== 'ready' ? null : friends.length >= keys.length - 1 ? 'full' : free && friends.length >= 1 ? 'plus_required' : !highs.length ? 'all_fit' : null;
+            r.invite = r.status === 'ready' ? { canInvite: !reason, parts: highs, left: Math.max(0, cap - friends.length), reason } : null;
+            return r;
+        };
+        if (operation === 'ownChoir.invites.create') {
+            const r = choir.requests.find((x) => x.id === params.id);
+            if (!r) return caseFor('not_found');
+            dress(r);
+            if (r.status !== 'ready') return caseFor('not_ready');
+            if (r.invite.reason === 'plus_required') return respond(403, { message: 'plus_required', code: 'plus_required', reason: 'choir_friends' });
+            if (r.invite.reason === 'full') return caseFor('choir_full');
+            const invite = { id: `Iv${choir.invites.length + 4}k`, requestId: r.id, url: `${location.origin}/choir/join/tok-${choir.invites.length + 4}`, parts: r.invite.parts, expiresAt: now };
+            choir.invites.push(invite);
+            globalThis.mockChoirInvite = invite; // what the flows read
+            return save(respond(201, { data: invite }));
+        }
+        if (operation === 'ownChoir.invites.delete') {
+            choir.invites = choir.invites.filter((i) => i.id !== params.id);
+            return save(respond(204, null));
+        }
+        if (operation === 'ownChoir.invites.show' || operation === 'ownChoir.invites.accept') {
+            const token = params.token;
+            const status = token === 'tok-used' ? 'used' : token === 'tok-expired' ? 'expired' : token === 'tok-revoked' ? 'revoked' : 'open';
+            const owners = shown.requests[0];
+            // yourParts: exactly what this person's voice would sing among the named parts (a saved voice, or the part sung along to).
+            const yourParts = query?.useSavedVoice || query?.partKey ? ['soprano', 'alto'] : null;
+            const invite = { status, title: owners.title, templateId: owners.templateId, owner: 'Ann', parts: ['soprano', 'alto'], yourParts, listen: owners.parts.map((p) => local({ ...p, id: `${p.id}-listen` })), words: null, wordsSha: null, expiresAt: now }; // i18n-ignore: the mock's names
+            if (operation === 'ownChoir.invites.show') return respond(200, { data: invite });
+            if (status !== 'open') return caseFor('invite_closed');
+            if (!choir.consent) return caseFor('consent_required');
+            if (body?.useSavedVoice && !choir.voice) return caseFor('voice_required');
+            if (choir.joined.some((j) => j.song.id === 'RqAnn1')) return caseFor('already_member');
+            if (JSON.stringify(body?.parts ?? null) !== JSON.stringify(invite.parts)) return respond(409, { message: 'parts_changed', code: 'parts_changed' });
+            const member = { id: `Mb${choir.joined.length + 5}J`, requestId: 'RqAnn1', name: null, parts: invite.parts, status: body?.useSavedVoice ? 'on_its_way' : 'uploading', showName: !!body?.showName, joinedAt: now, seen: false };
+            globalThis.mockChoirJoin = body; // what was sent, for the flows
+            choir.joined.push({ member, song: { ...owners, id: 'RqAnn1', owner: 'Ann', canDownload: as === 'plus', parts: owners.parts.map((p) => local({ ...p, id: `${p.id}-ann` })), voices: owners.parts.map((p) => ({ partKey: p.partKey, whose: invite.parts.includes(p.partKey) ? 'you' : 'owner', name: invite.parts.includes(p.partKey) ? null : 'Ann', memberId: null, status: invite.parts.includes(p.partKey) ? 'on_its_way' : 'ready', fit: null })) } }); // i18n-ignore: the mock's names
+            const upload = body?.useSavedVoice ? null : { url: `${location.origin}/dev/upload/choir`, method: 'PUT', headers: { 'Content-Type': 'audio/wav' }, expiresAt: now };
+            return save(respond(201, { data: member, upload }));
+        }
+        if (operation === 'ownChoir.members.complete' || operation === 'ownChoir.members.delete') {
+            const mine = choir.members.find((m) => m.id === params.id);
+            const joined = choir.joined.find((j) => j.member.id === params.id);
+            if (!mine && !joined) return caseFor('not_found');
+            if (operation === 'ownChoir.members.complete') {
+                if (joined) joined.member.status = 'on_its_way';
+                return save(respond(200, { data: joined?.member ?? mine }));
+            }
+            choir.members = choir.members.filter((m) => m !== mine);
+            choir.joined = choir.joined.filter((j) => j !== joined);
+            return save(respond(204, null));
+        }
         if (operation === 'ownChoir.show') {
+            // A friend's parts on their way are made by the next look, as a song is.
+            for (const m of choir.members) if (m.status === 'on_its_way') m.status = 'ready';
+            for (const j of choir.joined) {
+                if (j.member.status !== 'on_its_way' || tabStorage.get('stackapella.mockChoirJoined') === 'making') continue;
+                j.member.status = 'ready';
+                for (const v of j.song.voices) if (v.whose === 'you') v.status = 'ready';
+            }
             for (const r of choir.requests) {
                 if (r.status !== 'queued' || r.startsAfter) continue; // tomorrow's (today's ceiling) stays queued
                 Object.assign(r, { status: 'ready', readyAt: now, parts: shown.requests[0].parts.map((p) => local({ ...p, id: `${p.id}-${r.id}` })) });
                 // The first song made from a clip leaves its voice kept for the next ones (the contract's `voice`).
                 choir.voice ??= { savedAt: now, lastUsedAt: now, expiresAt: now };
             }
+            for (const r of choir.requests) dress(r);
             return save(respond(200, { data: choir }));
         }
         if (operation === 'ownChoir.consent') {

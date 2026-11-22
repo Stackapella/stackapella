@@ -1,0 +1,9 @@
+{
+    "message": "The selected parts is invalid.",
+    "code": "validation_failed",
+    "errors": {
+        "parts.0": [
+            "The selected parts.0 is invalid."
+        ]
+    }
+}

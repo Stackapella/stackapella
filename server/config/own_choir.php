@@ -31,6 +31,16 @@ return [
     'claim_limit_minutes' => 60,
     // A made song's full-quality links for Download (ownChoir.requests.download).
     'download_minutes' => 5,
+    // A choir with friends (docs/choir-together-plan.md): the coordinator's defaults until Hillel confirms them
+    // (2026-11-22). Friends a song can have (never more than its parts minus one), an invite's days, invites an
+    // account makes a day, and choirs one person joins a day.
+    'together' => [
+        'free_friends' => 1,
+        'plus_friends' => 7,
+        'invite_days' => 14,
+        'invites_a_day' => 30,
+        'joins_a_day' => 5,
+    ],
     'clip_min_seconds' => 5,
     'clip_max_seconds' => 30,
     'claim_minutes' => 20,

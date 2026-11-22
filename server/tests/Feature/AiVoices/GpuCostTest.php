@@ -251,7 +251,11 @@ final class GpuCostTest extends TestCase
         $this->assertSame(0, OwnChoirVoice::query()->count());
         $this->assertSame(0, OwnChoirConsent::query()->count());
         $this->assertSame([null, null], OwnChoirFreeSong::query()->pluck('own_choir_request_id')->all());
-        $this->assertFalse(OwnChoirFreeSong::query()->pluck('key_hash')->contains(fn (string $hash): bool => str_contains($hash, 'ada') || str_contains($hash, 'g-ada')));
+        // One-way hashes only: 64 hex digits, never the address or the sign-in id.
+        foreach (OwnChoirFreeSong::query()->pluck('key_hash') as $hash) {
+            $this->assertMatchesRegularExpression('/^[0-9a-f]{64}$/', (string) $hash);
+            $this->assertStringNotContainsString((string) $ada->email, (string) $hash);
+        }
 
         // Signed up again with the same address, or the same Google account under another: no second free song.
         $this->singer(['email' => (string) $ada->email, 'google_id' => null]);

@@ -60,6 +60,49 @@
                 "source": "ai",
                 "aiBasedOn": null
             }
-        ]
+        ],
+        "voices": [
+            {
+                "partKey": "soprano",
+                "whose": "you",
+                "name": null,
+                "memberId": null,
+                "status": "ready",
+                "fit": "high"
+            },
+            {
+                "partKey": "alto",
+                "whose": "you",
+                "name": null,
+                "memberId": null,
+                "status": "ready",
+                "fit": null
+            },
+            {
+                "partKey": "tenor",
+                "whose": "you",
+                "name": null,
+                "memberId": null,
+                "status": "ready",
+                "fit": null
+            },
+            {
+                "partKey": "bass",
+                "whose": "you",
+                "name": null,
+                "memberId": null,
+                "status": "ready",
+                "fit": null
+            }
+        ],
+        "members": [],
+        "invite": {
+            "canInvite": true,
+            "parts": [
+                "soprano"
+            ],
+            "left": 1,
+            "reason": null
+        }
     }
 }

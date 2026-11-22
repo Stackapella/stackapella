@@ -1,0 +1,24 @@
+{
+    "data": {
+        "id": "Mb7Qx2",
+        "requestId": "qLvYdG",
+        "name": "Ben",
+        "parts": [
+            "soprano",
+            "alto"
+        ],
+        "status": "uploading",
+        "showName": false,
+        "joinedAt": "2026-11-22T20:10:00Z",
+        "seen": false,
+        "minutesShort": null
+    },
+    "upload": {
+        "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/uploads/choir/abc.wav?X-Amz-Expires=180",
+        "method": "PUT",
+        "headers": {
+            "Content-Type": "audio/wav"
+        },
+        "expiresAt": "2026-11-22T20:13:00Z"
+    }
+}

@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Support\Http\Hosts;
 use App\Support\Pages\Landing;
+use App\Support\Pages\SongParts;
 use App\Support\Site\OpenSource;
 use App\Support\Site\SitePages;
 use Illuminate\Http\Request;
@@ -40,7 +41,7 @@ final class OpenSourcePagesController extends Controller
 
         return response()->view('site.selfhost', [
             ...self::frame('selfhost', '/selfhost', $request),
-            'lists' => self::lists('selfhost', ['need', 'install', 'unlocked', 'missing', 'connects', 'yours']),
+            'lists' => self::selfhostLists(),
         ], 200, SongPagesController::headers());
     }
 
@@ -78,5 +79,21 @@ final class OpenSourcePagesController extends Controller
             'links' => Landing::links(Landing::ref($request->query('ref'))),
             'repo' => OpenSource::repo(),
         ];
+    }
+
+    /**
+     * Run it yourself's lists; while own_choir is on, What isn't included says how Hear yourself as a choir runs (the
+     * marketing review, 2026-11-22): its worker is in the repo, but nothing turns it on without a GPU account.
+     *
+     * @return array<string, list<mixed>>
+     */
+    private static function selfhostLists(): array
+    {
+        $lists = self::lists('selfhost', ['need', 'install', 'unlocked', 'missing', 'connects', 'yours']);
+        if (SongParts::switchedOn('own_choir')) {
+            $lists['missing'][] = (string) __('site.selfhost.missing_choir');
+        }
+
+        return $lists;
     }
 }

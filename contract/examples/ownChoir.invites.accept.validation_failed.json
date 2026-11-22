@@ -1,0 +1,9 @@
+{
+    "message": "The show name field is required.",
+    "code": "validation_failed",
+    "errors": {
+        "showName": [
+            "The show name field is required."
+        ]
+    }
+}

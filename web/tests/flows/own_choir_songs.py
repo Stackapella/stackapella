@@ -46,6 +46,9 @@ def journey(f):
     assert clip["templateId"] == SONG and clip["offsetFrames"] is None and clip["frames"] == 48000 * 12, clip
     assert f.js(f"(async () => !(await (await import('/js/own-choir.js')).humFor({json.dumps(SONG)})))()"), "the humming is deleted from the device once sent"
     f.run(f"const s = await import('/js/stores/templates.js'); await s.deleteTemplate({json.dumps(SONG)});")
+    # A song neither in the library nor theirs (a hidden library song a link reached anyway): never opens here.
+    f.go("/t/a-hidden-song/choir?api=mock&scenario=&as=member", "document.querySelector('[data-choir-off]')")
+    assert f.js("document.querySelector('[data-choir-off]').dataset.choirOff") == "unavailable", "a song that isn't theirs or the library's opened"
 
 
 if __name__ == "__main__":

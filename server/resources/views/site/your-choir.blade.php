@@ -169,6 +169,9 @@
                                         <li class="yc-v{{ $loop->iteration }}"><span class="yc-n" aria-hidden="true">{{ $loop->iteration }}</span><div><h3>{{ $step['title'] }}</h3><p>{{ $own !== null && $loop->iteration === 2 ? __('site.your_choir.step_choose_hum') : $step['body'] }}</p></div></li>
                                     @endforeach
                                 </ol>
+                                @if ($together ?? false)
+                                    <p class="yc-say" data-yc-together>{{ __('site.your_choir.together') }}</p>
+                                @endif
                                 {{-- No second try block: the hero's is the page's one (Hillel, 2026-11-21: "the 'try it' block is
                                      also repeated"). --}}
                             </div>
@@ -331,7 +334,7 @@
                             @foreach ($faq as $qa)
                                 <details class="yc-glass" name="yc-faq" @if ($loop->first) open @endif>
                                     <summary>{{ $qa[0] }}<span class="yc-orb bubble" aria-hidden="true"><span class="yc-plus-i"><x-site.icon name="plus" size="16" /></span><span class="yc-minus-i"><x-site.icon name="minus" size="16" /></span></span></summary>
-                                    <p>{{ $qa[1] }}</p>
+                                    <p>{{ strtr((string) $qa[1], [':price_month' => $price['month'], ':price_year' => $price['year']]) }}</p>
                                 </details>
                             @endforeach
                         </div>

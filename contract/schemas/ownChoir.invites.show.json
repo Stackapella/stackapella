@@ -1,0 +1,90 @@
+{
+    "$id": "ownChoir.invites.show.json",
+    "title": "An invite, as the friend opening it sees it",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "status",
+                "title",
+                "templateId",
+                "owner",
+                "parts",
+                "listen",
+                "words",
+                "wordsSha",
+                "expiresAt",
+                "yourParts"
+            ],
+            "properties": {
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "open",
+                        "used",
+                        "expired",
+                        "revoked"
+                    ]
+                },
+                "title": {
+                    "type": "string"
+                },
+                "templateId": {
+                    "type": "string"
+                },
+                "owner": {
+                    "type": "string",
+                    "description": "The owner's first name."
+                },
+                "parts": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "The parts the invite names: a friend only ever sings some of these, never another."
+                },
+                "yourParts": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Exactly the parts your voice would sing, among those named (ChoirAssign), for you as you are signed in: from your measured range, your saved voice (`?useSavedVoice=1`), or the part you'll sing along to (`?partKey=soprano`); null while it can't be told (signed out, or no range yet). Send these back as accept's `parts`: your yes is to these."
+                },
+                "listen": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "guide.recording.json"
+                    },
+                    "description": "The song as it is, its listening copy, for 2 hours; [] unless open."
+                },
+                "words": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "The words of the owner's own song, to read before agreeing; null for a library song."
+                },
+                "wordsSha": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "Send it back with accept: your yes is to these words."
+                },
+                "expiresAt": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
+        }
+    }
+}

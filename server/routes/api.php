@@ -92,6 +92,7 @@ use App\Http\Controllers\Api\Ideas\IdeasController as IdeasApi;
 use App\Http\Controllers\Api\Leagues\LeaguesController as LeaguesApi;
 use App\Http\Controllers\Api\Library\LibraryController as LibraryApi;
 use App\Http\Controllers\Api\Live\BeatController;
+use App\Http\Controllers\Api\OwnChoir\ChoirTogetherController as ChoirTogetherApi;
 use App\Http\Controllers\Api\OwnChoir\OwnChoirController as OwnChoirApi;
 use App\Http\Controllers\Api\Projects\EditableController;
 use App\Http\Controllers\Api\Projects\PartsController as ProjectParts;
@@ -480,7 +481,15 @@ Route::middleware('auth')->prefix('school')->name('school.')->group(function ():
 
 // The beta singers: an invite attaches the singer to their own account; then their parts and takes.
 // Hear yourself as a choir (docs/ai-voices-build-plan.md, track B phase 3), behind own_choir (OwnChoir::ensureOn).
+// A choir with friends' invite, opened signed in or not (choir together).
+Route::get('/own-choir/join/{token}', [ChoirTogetherApi::class, 'show'])->middleware('throttle:public-pages')->where('token', '[A-Za-z0-9]{24}')->name('ownChoir.invites.show');
+
 Route::middleware('auth')->prefix('own-choir')->name('ownChoir.')->group(function (): void {
+    Route::post('/requests/{song}/invites', [ChoirTogetherApi::class, 'invite'])->name('invites.create');
+    Route::delete('/invites/{invite}', [ChoirTogetherApi::class, 'revoke'])->name('invites.delete');
+    Route::post('/join/{token}', [ChoirTogetherApi::class, 'accept'])->middleware(['age', 'throttle:take-uploads', 'paused:uploads'])->where('token', '[A-Za-z0-9]{24}')->name('invites.accept');
+    Route::post('/members/{member}/complete', [ChoirTogetherApi::class, 'complete'])->middleware('paused:uploads')->name('members.complete');
+    Route::delete('/members/{member}', [ChoirTogetherApi::class, 'leave'])->name('members.delete');
     Route::get('/', [OwnChoirApi::class, 'show'])->name('show');
     Route::delete('/', [OwnChoirApi::class, 'forget'])->name('delete');
     Route::post('/consent', [OwnChoirApi::class, 'consent'])->name('consent');

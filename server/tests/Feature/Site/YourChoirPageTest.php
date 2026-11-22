@@ -67,9 +67,11 @@ final class YourChoirPageTest extends TestCase
         // No stage without the demo's voices: the page still reads, and plays nothing.
         $this->assertStringNotContainsString('data-yc-play', $html);
         $this->assertStringNotContainsString('data-stage', $html);
-        foreach (['/', '/songs', '/about', '/sitemap.xml'] as $path) {
+        foreach (['/songs', '/about', '/sitemap.xml'] as $path) {
             $this->assertStringNotContainsString('/your-choir', (string) $this->get($path)->getContent(), $path);
         }
+        // The home's "The whole song is you" is its one way in (the marketing review, 2026-11-22).
+        $this->assertSame(1, substr_count((string) $this->get('/')->getContent(), 'href="/your-choir'));
     }
 
     public function test_it_answers_in_spanish(): void
@@ -203,5 +205,16 @@ final class YourChoirPageTest extends TestCase
         $this->assertNotSame('', $found, 'the page gives its player its data');
 
         return (array) json_decode($found, true, 512, JSON_THROW_ON_ERROR);
+    }
+
+    public function test_a_choir_with_friends_adds_one_line_only_once_its_switch_is_on(): void
+    {
+        app(Flags::class)->set('own_choir', 'on', null, 'Own choir live');
+        $line = e(__('site.your_choir.together'));
+
+        $this->assertStringNotContainsString($line, (string) $this->get('/your-choir')->assertOk()->getContent());
+        config(['flags.own_choir_together' => ['kind' => 'feature', 'values' => ['off', 'on']]]);
+        app(Flags::class)->set('own_choir_together', 'on', null, 'Together live');
+        $this->assertStringContainsString($line, (string) $this->get('/your-choir')->assertOk()->getContent());
     }
 }

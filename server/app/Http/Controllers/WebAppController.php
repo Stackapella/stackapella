@@ -31,7 +31,7 @@ use Symfony\Component\HttpFoundation\Response;
 final class WebAppController extends Controller
 {
     /** The app's pages whose address carries a token: an invite, and the links in our emails. */
-    private const TOKEN_PAGES = ['beta/*', 'early/*', 'invite/*', 'join/*', 'verify', 'reset', 'email/confirm', 'email/revert', 'notice'];
+    private const TOKEN_PAGES = ['beta/*', 'early/*', 'invite/*', 'join/*', 'choir/join/*', 'verify', 'reset', 'email/confirm', 'email/revert', 'notice'];
 
     /** The folders and files of /web the app is made of. Tests, tools and the spike are not served. */
     private const SERVED = ['js/', 'engine/', 'css/', 'icons/', 'sounds/', 'fonts/', 'templates/', 'locales/', 'course/', 'sw.js', 'tools-sw.js', 'manifest.webmanifest', 'favicon.ico'];
@@ -118,12 +118,13 @@ final class WebAppController extends Controller
         $response = response($this->shell->html($this->meta->for($request)), 200, array_filter([
             'Content-Type' => 'text/html; charset=utf-8',
             // Always asked again, and never kept at Cloudflare's edge (it names this version's files).
-            'Cache-Control' => 'no-cache, max-age=0, must-revalidate',
+            // A choir invite's page is the friend's alone (choir together): never kept anywhere.
+            'Cache-Control' => $request->is('choir/join/*') ? 'no-store' : 'no-cache, max-age=0, must-revalidate',
             'Cloudflare-CDN-Cache-Control' => 'no-store',
             // A token in the address (an invite, the emails' links): never send it on to another site.
             'Referrer-Policy' => $request->is(...self::TOKEN_PAGES) ? 'no-referrer' : null,
             // The early-access and invite links are only ever handed out: never in a search engine.
-            'X-Robots-Tag' => $request->is('early/*', 'invite/*') ? 'noindex, nofollow' : null,
+            'X-Robots-Tag' => $request->is('early/*', 'invite/*', 'choir/join/*') ? 'noindex, nofollow' : null,
         ]));
 
         // An open beta invite or early-access link lets its holder into the app from then on, and

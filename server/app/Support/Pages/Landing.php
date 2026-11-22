@@ -300,6 +300,9 @@ final class Landing
     public static function faq(int $freeSongs, array $price, bool $openSource = false): array
     {
         $faq = (array) Teams::words('pages.landing.faq');
+        if (isset($faq['free'][1]) && SongParts::switchedOn('own_choir')) {
+            $faq['free'][1] .= ' '.__('pages.landing.faq_free_choir');
+        }
         if ($openSource) {
             $faq['privacy'][1] .= ' '.__('pages.landing.faq_privacy_check');
             $faq['open_source'] = (array) Lang::get('pages.landing.faq_open_source');
@@ -320,6 +323,15 @@ final class Landing
     public static function list(string $key, array $replace = []): array
     {
         $lines = array_values((array) Teams::words('pages.landing.'.$key));
+        // Songs sung by AI in a voice like yours, while own_choir is on (the marketing review, 2026-11-22): the free song
+        // after Free's lines, Plus's songs first on Plus.
+        if (SongParts::switchedOn('own_choir')) {
+            $lines = match ($key) {
+                'plans_free_list' => [...$lines, (string) __('pages.landing.plans_free_choir')],
+                'plans_plus_list' => [(array) Lang::get('pages.landing.plans_plus_choir'), ...$lines],
+                default => $lines,
+            };
+        }
 
         return array_map(static fn (mixed $line): mixed => is_string($line) ? strtr($line, $replace) : $line, $lines);
     }

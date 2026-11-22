@@ -39,6 +39,7 @@ const routes = [
     { name: 'invite', pattern: /^\/invite\/([\w-]+)\/?$/, keys: ['code'] },
     { name: 'groups', pattern: /^\/groups\/?$/, keys: [] },
     { name: 'group', pattern: /^\/groups\/([\w-]+)\/?$/, keys: ['id'] },
+    { name: 'choirTogether', pattern: /^\/choir\/join\/([\w-]+)\/?$/, keys: ['token'] }, // a choir with friends: the join (views/choir-together.js)
     { name: 'choir', pattern: /^\/choir\/([\w-]+)\/?$/, keys: ['token'] },
     { name: 'challenge', pattern: /^\/challenge\/([\w-]+)\/?$/, keys: ['token'] },
     { name: 'moved', pattern: /^\/moved\/?$/, keys: [] },

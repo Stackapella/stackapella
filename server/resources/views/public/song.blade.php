@@ -277,7 +277,7 @@
         <script type="module" src="/js/public/mixer.js"></script>
     @endif
     <script type="module" src="/js/public/song-page.js"></script>
-    @if ($choirTeaser ?? false)
+    @if (($choirTeaser ?? false) && ($choirLive ?? null) === null)
         <script type="module" src="/js/public/choir-teaser.js"></script>
     @endif
     @if (($song['versions'] ?? []) !== [])

@@ -6,13 +6,15 @@
 // signing out, or when the server no longer has their song.
 
 import { reactive } from 'vue';
+import { local } from './storage.js';
 import { api, uploadTo } from './api.js';
 import * as db from './db.js';
 import { account, loadAccount, loadAuthConfig } from './stores/account.js';
 import { guideKey } from './recorded-guides.js';
 import { encodeWav } from './wav.js';
 import { count } from './usage.js';
-import { formatDate, formatNumber, t } from './i18n.js';
+import { formatDate, formatNumber, locale, t } from './i18n.js';
+import { templatePartName } from './templates.js';
 import { confirmAction } from './components/confirm.js';
 import { toast } from './components/ui.js';
 import { Icon } from './components/icon.js';
@@ -136,6 +138,17 @@ export function partMinutes(template) {
     }, 0);
 }
 
+/** A song the server won't make (own_choir.max_parts 8, max_part_seconds 300; `409 song_too_long`): said before singing. */
+export function tooLong(template) {
+    const tempo = template?.tempo || 0;
+    const parts = template?.parts ?? [];
+    if (parts.length > 8) return true;
+    return !!tempo && parts.some((part) => {
+        const notes = part.guide?.notes ?? [];
+        return notes.length && (Math.max(...notes.map((n) => n.beat + n.length)) / tempo) * 60 > 300;
+    });
+}
+
 /** About how many songs like this one the minutes left make (rounded down); null when the allowance isn't in minutes. */
 export function songsLeft(quota, template) {
     if (quota?.unit !== 'minutes' || quota.minutesLeft == null) return null;
@@ -185,6 +198,131 @@ export function choirRefusal(error, { own = false } = {}) {
 export async function downloadParts(request) {
     const { data } = await api.ownChoir.requests.download(request.id);
     return { ...request, parts: data.parts };
+}
+
+// ---- A choir with friends (docs/choir-together-plan.md, behind own_choir_together) ---------------------------------
+
+/** Whether a choir with friends is on for this account (auth.config `ownChoirTogether`, only when known to be true). */
+export function togetherOn() {
+    return account.config?.ownChoirTogether === true;
+}
+
+/** Part keys as the page's language lists them, lower case: "soprano and alto", "soprano y contralto". */
+export function partList(keys, template = null) {
+    const names = (keys ?? []).map((key) => {
+        const part = template?.parts?.find((p) => p.key === key) ?? { key, name: key };
+        return templatePartName(part).toLocaleLowerCase(locale.lang);
+    });
+    try {
+        return new Intl.ListFormat(locale.lang, { style: 'long', type: 'conjunction' }).format(names);
+    } catch {
+        return names.join(', ');
+    }
+}
+
+/** Whether every one of these voices sits `fit` ('high' or 'low') for the owner. */
+function allFit(request, keys, fit) {
+    const voices = request?.voices ?? [];
+    // "The high parts" only for two or more: one part is named ("the soprano part").
+    return keys.length > 1 && keys.every((key) => voices.find((v) => v.partKey === key)?.fit === fit);
+}
+
+/** The invite line: "Invite a friend to sing the high parts", the low ones, or the parts named. */
+export function inviteLine(request, template) {
+    const keys = request?.invite?.parts ?? [];
+    if (allFit(request, keys, 'high')) return t('ownChoir.together.invite.high');
+    if (allFit(request, keys, 'low')) return t('ownChoir.together.invite.low');
+    return t('ownChoir.together.invite.parts', { count: keys.length, parts: partList(keys, template) });
+}
+
+/** What the share sheet says with the link. */
+export function inviteText(request, template, song) {
+    const keys = request?.invite?.parts ?? [];
+    if (allFit(request, keys, 'high')) return t('ownChoir.together.invite.shareHigh', { song });
+    if (allFit(request, keys, 'low')) return t('ownChoir.together.invite.shareLow', { song });
+    return t('ownChoir.together.invite.shareParts', { count: keys.length, parts: partList(keys, template), song });
+}
+
+/**
+ * Who sings each part, for the owner's Who sings list (the visual review: "Your voice" / "Ben's voice", each with one small
+ * AI chip, the panel line carrying the full label once): `{ part, label, ai, note, friend }`. A real take of theirs is
+ * "Your real voice", without the chip.
+ */
+export function whoSings(request, parts, realKeys = []) {
+    const real = new Set(realKeys);
+    const resets = ownChoir.data?.quota?.resetsAt;
+    return parts.map((part) => {
+        const voice = (request?.voices ?? []).find((v) => v.partKey === part.key);
+        if (real.has(part.key)) return { part, label: t('ownChoir.together.who.real'), ai: false, note: '', sub: '', friend: null };
+        if (voice?.whose === 'friend') {
+            const name = voice.name ?? '';
+            // Waiting for the owner's minutes: the name and its chip on one line, when it's made on a muted line under it.
+            const waiting = voice.status === 'waiting_minutes' && resets;
+            const label = voice.status === 'ready' || waiting ? t('ownChoir.together.who.friendVoice', { name }) : t('ownChoir.together.who.making', { name });
+            const sub = waiting ? t('ownChoir.together.who.until', { date: formatDate(resets, { day: 'numeric', month: 'long' }) }) : '';
+            return { part, label, ai: true, note: '', sub, friend: { id: voice.memberId, name } };
+        }
+        const note = voice?.fit === 'high' ? t('ownChoir.together.who.high') : voice?.fit === 'low' ? t('ownChoir.together.who.low') : '';
+        return { part, label: t('ownChoir.together.who.you'), ai: true, note, sub: '', friend: null };
+    });
+}
+
+/** The friends' names as the page's language lists whose singing it is: "Ben's", "Ben's and Cara's" ("el de Ben y el de Cara"). */
+export function whoseList(names) {
+    const each = names.map((name) => t('ownChoir.together.whose', { name }));
+    try {
+        return new Intl.ListFormat(locale.lang, { style: 'long', type: 'conjunction' }).format(each);
+    } catch {
+        return each.join(', ');
+    }
+}
+
+/** Plain names as a list: "Ben and Cara". */
+export function nameList(names) {
+    try {
+        return new Intl.ListFormat(locale.lang, { style: 'long', type: 'conjunction' }).format(names);
+    } catch {
+        return names.join(', ');
+    }
+}
+
+// A join's project (the friend singing their 30 seconds for an invite) keeps the invite on this device, by project, never
+// in the project itself: the account's copy of a project keeps only the choir fields it knows, so a sync would drop it.
+const JOINS = 'stackapella.choirJoins';
+const joins = () => {
+    try {
+        return JSON.parse(local.get(JOINS) || '{}');
+    } catch (error) {
+        console.info('The joins kept here were unreadable', error?.message ?? error);
+        return {};
+    }
+};
+
+/** The invite a project was started for ({ token, showName, wordsSha, partKey, owner }), or null. */
+export function joinFor(projectId) {
+    return (projectId && joins()[projectId]) || null;
+}
+
+/** Keeps (or, with null, forgets) the invite a project was started for. */
+export function keepJoin(projectId, join) {
+    const all = joins();
+    if (join) all[projectId] = join;
+    else delete all[projectId];
+    local.set(JOINS, JSON.stringify(all));
+}
+
+/** A friend joining by an invite: the clip sent as `sendClip` sends it, to `invites.accept`; answers the member. */
+export async function joinWithClip(token, { partKey, parts = null, samples, sampleRate, startSeconds, showName = false, wordsSha = null }) {
+    const clip = clipFrom(samples, sampleRate, startSeconds);
+    const bytes = await clip.wav.arrayBuffer();
+    const sha256 = hex(await crypto.subtle.digest('SHA-256', bytes));
+    const { data: member, upload } = await api.ownChoir.invites.accept(token, { showName, wordsSha, useSavedVoice: false, parts, partKey, offsetFrames: clip.offsetFrames, sampleRate, frames: clip.frames, bytes: bytes.byteLength, sha256 });
+    if (upload) {
+        await uploadTo(upload, clip.wav);
+        await api.ownChoir.members.complete(member.id);
+    }
+    await loadOwnChoir({ force: true });
+    return member;
 }
 
 /** Whether a request is still being made. */

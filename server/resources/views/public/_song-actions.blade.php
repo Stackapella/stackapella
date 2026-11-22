@@ -14,7 +14,10 @@
 {{-- Behind own_choir_teaser (docs/ai-voices-build-plan.md, phase 2, finding out cheaply): one quiet button, Coming soon
      beside it; a tap says what it will be, leading with the angle (this real arrangement, from 30 seconds of singing) and
      naming AI once, and counts choir_teaser once (js/public/choir-teaser.js). Nothing is recorded or kept. --}}
-@if ($choirTeaser ?? false)
+@if (($choirLive ?? null) !== null)
+    {{-- Live (own_choir): one quiet link into the app with this song, and the free first song said once. --}}
+    <p class="s-sg-note"><a href="{{ $choirLive }}" class="s-lk" data-choir-live>{{ __('pages.song.choir.button') }}</a> {{ __('pages.song.choir.free') }}</p>
+@elseif ($choirTeaser ?? false)
     <p class="s-sg-note" data-choir-teaser><button type="button" class="s-lk" aria-expanded="false" aria-controls="choir-soon">{{ __('pages.song.choir.button') }}</button> <x-site.soon /></p>
     <p class="s-sg-note" id="choir-soon" hidden>{{ __('pages.song.choir.soon') }}</p>
 @endif

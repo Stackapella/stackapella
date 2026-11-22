@@ -17,7 +17,7 @@ return [
     'pages.landing.plans_plus_list' => [3 => ['Sing together.', 'Invite friends to sing on your songs, and they join free. Plus is also your seat in any choir group.']],
     'pages.landing.plans_choirs_link' => 'a seat for each singer, and learning tracks for your choir',
     // The landing's questions.
-    'pages.landing.faq' => ['free' => [1 => 'Yes. Learning is free, with no card and no time limit: every course, every song with a free account, unlimited workouts, your history, recording every part, and joining any song you\'re invited to. You can start without an account. Plus, from :price a month, lets you invite friends to sing, is your seat in any choir group, and adds more storage, MP3 and stems, and unlimited private arrangements. A choir\'s director can buy a seat for each singer instead.']],
+    'pages.landing.faq' => ['free' => [1 => 'Yes. Learning is free, with no card and no time limit: every course, every song with a free account, unlimited workouts, your history, recording every part, and joining any song you\'re invited to. You can start without an account. Plus, :price_month a month or :price_year a year, lets you invite friends to sing, is your seat in any choir group, and adds more storage, MP3 and stems, and unlimited private arrangements. A choir\'s director can buy a seat for each singer instead.']],
     // /pricing.
     'pages.pricing.rows' => [
         'groups' => ['Choir groups (18 and over)', 'A seat from your director', 'A seat in any group'],
@@ -36,7 +36,7 @@ return [
     // The carols page.
     'site.carols.choirs_body' => 'Start a choir group with a seat for each singer: one link brings them in, you give each their part, and you see who has started and recorded it before rehearsal.',
     // For choir directors.
-    'site.for.pages.choir-directors' => ['faq' => [0 => [1 => 'Your first song\'s learning tracks are free. Each singer in your group needs a seat, which you buy for the choir from 10 seats; a singer with Plus already has one.']]],
+    'site.for.pages.choir-directors' => ['faq' => [0 => [1 => 'Your first song\'s learning tracks are free. Each singer in your group needs a seat, which you buy for the choir from 10 seats; a singer with Plus already has one. When a singer leaves, move their seat to someone new, up to 3 times in any 30 days.']]],
     // The compare pages' "Is Stackapella free?" (each page's third question), the same answer on every page.
     'site.compare.pages.howli' => ['faq' => [2 => [1 => 'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, and joining any song you\'re invited to. Plus, for :price_month a month or :price_year a year, lets you invite friends to sing, is your seat in any choir group, and adds more storage, MP3 and stems, and unlimited private arrangements.']]],
     'site.compare.pages.harmony-helper' => ['faq' => [2 => [1 => 'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, and joining any song you\'re invited to. Plus, for :price_month a month or :price_year a year, lets you invite friends to sing, is your seat in any choir group, and adds more storage, MP3 and stems, and unlimited private arrangements.']]],

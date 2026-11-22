@@ -11,6 +11,7 @@ use App\Exceptions\Refusal;
 use App\Jobs\CheckChoirClip;
 use App\Models\AuditLog;
 use App\Models\OwnChoirConsent;
+use App\Models\OwnChoirMember;
 use App\Models\OwnChoirPart;
 use App\Models\OwnChoirRequest;
 use App\Models\OwnChoirVoice;
@@ -127,7 +128,7 @@ final class OwnChoirRequests
         return DB::transaction(function () use ($user, $clip, $version, $withClip, $cost): array {
             Owned::lockAccount($user);
 
-            if (OwnChoirRequest::query()->where('user_id', $user->id)->whereIn('status', [OwnChoirStatus::Uploading->value, OwnChoirStatus::Queued->value, OwnChoirStatus::Rendering->value])->exists()) {
+            if (OwnChoirRequest::query()->where('user_id', $user->id)->whereNull('parent_request_id')->whereIn('status', [OwnChoirStatus::Uploading->value, OwnChoirStatus::Queued->value, OwnChoirStatus::Rendering->value])->exists()) {
                 throw new Refusal(409, 'request_open');
             }
 
@@ -145,6 +146,7 @@ final class OwnChoirRequests
                 $request = new OwnChoirRequest;
                 $request->forceFill(['user_id' => $user->id, 'template_version_id' => $version->id, 'own_choir_voice_id' => $voice->id, 'from_voice' => true, 'status' => OwnChoirStatus::Queued, ...$cost])->save();
                 $this->ensureFree($user, $request);
+                $this->countFriendOwn($user, $request->id);
                 app(RecordCounts::class)->server('own_choir_requested', true, null);
                 app(RecordCounts::class)->server('own_choir_again', true, null);
                 $this->countOwn($version->id);
@@ -168,6 +170,7 @@ final class OwnChoirRequests
                 ...$cost,
             ])->save();
             $this->ensureFree($user, $request);
+            $this->countFriendOwn($user, $request->id);
 
             return ['request' => $request, 'put' => $this->uploads->presign((string) $request->upload_key, 'audio/wav', (int) $request->bytes)];
         });
@@ -206,6 +209,16 @@ final class OwnChoirRequests
 
     public function seen(User $user, OwnChoirRequest $request): OwnChoirRequest
     {
+        // A song they joined (choir together): their parts in it are seen.
+        $member = OwnChoirMember::query()->where('own_choir_request_id', $request->id)->where('user_id', $user->id)->first();
+
+        if ($member !== null) {
+            $member->seen_at ??= now();
+            $member->save();
+
+            return $request;
+        }
+
         // Whatever the switch: a singer can always see and delete what's theirs.
         $this->ensureMine($user, $request);
 
@@ -242,6 +255,9 @@ final class OwnChoirRequests
      */
     public static function dropVoices(User $user): void
     {
+        // Their voice gone: their parts in every choir they joined go with it (the owners' play again).
+        ChoirTogether::leaveAll($user);
+
         [$files, $waiting] = DB::transaction(function () use ($user): array {
             $voices = OwnChoirVoice::query()->where('user_id', $user->id)->lockForUpdate()->get();
             $waiting = OwnChoirRequest::query()->whereIn('own_choir_voice_id', $voices->modelKeys())->whereIn('status', [OwnChoirStatus::Queued->value, OwnChoirStatus::Rendering->value])->pluck('id')->all();
@@ -326,8 +342,20 @@ final class OwnChoirRequests
      * commit, so an encode finishing meanwhile keeps nothing). The row stays, emptied, so it still counts toward the
      * quota; the account's deletion takes it.
      */
+    /** A friend's render on another's song, gone for good: its files, then its row. */
+    public static function purgeJob(OwnChoirRequest $job): void
+    {
+        self::purge($job);
+        OwnChoirRequest::query()->whereKey($job->id)->delete();
+    }
+
     private static function purge(OwnChoirRequest $request): void
     {
+        // The owner's song going: everyone's part in it goes too.
+        if ($request->parent_request_id === null) {
+            ChoirTogether::songGone($request);
+        }
+
         $files = DB::transaction(function () use ($request): array {
             $locked = OwnChoirRequest::query()->whereKey($request->id)->lockForUpdate()->first();
 
@@ -353,6 +381,14 @@ final class OwnChoirRequests
     }
 
     /** A song of their own from the creator (own_choir_own), counted beside the library's. */
+    /** A joiner's own first song later (choir together's loop): counted once. */
+    private function countFriendOwn(User $user, int $requestId): void
+    {
+        if (OwnChoirMember::query()->where('user_id', $user->id)->exists() && ! OwnChoirRequest::query()->where('user_id', $user->id)->whereNull('parent_request_id')->whereKeyNot($requestId)->exists()) {
+            app(RecordCounts::class)->server('own_choir_friend_own', true, null);
+        }
+    }
+
     private function countOwn(int $versionId): void
     {
         if (Template::query()->whereNotNull('owner_id')->whereHas('versions', fn ($query) => $query->whereKey($versionId))->exists()) {

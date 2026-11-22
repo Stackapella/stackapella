@@ -142,6 +142,8 @@ final class PersonalData
         'own_choir_consents.user_id' => ['records/own-choir-consent.json', null],
         'own_choir_requests.user_id' => ['records/own-choir.json', null],
         'own_choir_voices.user_id' => ['records/own-choir-voice.json', null],
+        'own_choir_members.user_id' => ['records/own-choir-choirs-you-joined.json', null],
+        'own_choir_requests.bill_to_user_id' => [null, 'A friend\'s parts on your choir song, charged to you: listed with your songs in own-choir.json (who sang them stays theirs).'],
         'school_redemptions.user_id' => ['records/school-year.json', null],
         'school_teachers.approved_by' => [null, "Staff's own actions."],
         'school_teachers.user_id' => ['records/school-classes.json', null],

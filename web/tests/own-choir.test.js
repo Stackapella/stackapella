@@ -42,3 +42,12 @@ test('own choir: each refusal from making a song has its own words', async () =>
     assert(choirRefusal({ code: 'validation_failed', errors: { frames: ['A clip is 5 to 30 seconds.'] } }) === t('ownChoir.record.failed'), 'anything else: it didn’t work');
     assert(choirRefusal({ code: 'quota_reached', body: { which: 'day' } }) === t('ownChoir.limit.day'), 'today’s');
 });
+
+test('own choir: a song with more than 8 parts, or a part over 5 minutes, is too long to make', async () => {
+    const { tooLong } = await import('/js/own-choir.js');
+    const part = (beats) => ({ guide: { notes: [{ beat: 0, length: beats }] } });
+    assert(!tooLong({ tempo: 60, parts: [part(120), part(120)] }), 'two parts of 2 minutes');
+    assert(!tooLong({ tempo: 60, parts: Array.from({ length: 8 }, () => part(60)) }), 'eight parts');
+    assert(tooLong({ tempo: 60, parts: Array.from({ length: 9 }, () => part(60)) }), 'nine parts');
+    assert(tooLong({ tempo: 60, parts: [part(301)] }) && !tooLong({ tempo: 60, parts: [part(300)] }), 'over 5 minutes, at 60 bpm');
+});

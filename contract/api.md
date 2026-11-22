@@ -235,6 +235,12 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `ownChoir.requests.complete` | `POST /api/own-choir/requests/{id}/complete` | Anyone signed in, their own | Own choir |
 | `ownChoir.requests.seen` | `POST /api/own-choir/requests/{id}/seen` | Anyone signed in, their own | Own choir |
 | `ownChoir.requests.download` | `GET /api/own-choir/requests/{id}/download` | Anyone signed in, their own, with Plus | Own choir |
+| `ownChoir.invites.create` | `POST /api/own-choir/requests/{id}/invites` | Anyone signed in, their own ready song | Own choir |
+| `ownChoir.invites.delete` | `DELETE /api/own-choir/invites/{id}` | The song's owner | Own choir |
+| `ownChoir.invites.show` | `GET /api/own-choir/join/{token}` | Anyone with the link | Own choir |
+| `ownChoir.invites.accept` | `POST /api/own-choir/join/{token}` | Anyone signed in | Own choir |
+| `ownChoir.members.complete` | `POST /api/own-choir/members/{id}/complete` | The member | Own choir |
+| `ownChoir.members.delete` | `DELETE /api/own-choir/members/{id}` | The member, or the song's owner | Own choir |
 | `ownChoir.requests.delete` | `DELETE /api/own-choir/requests/{id}` | Anyone signed in, their own | Own choir |
 | `ownChoir.delete` | `DELETE /api/own-choir` | Anyone signed in | Own choir |
 | `ownChoir.voice.delete` | `DELETE /api/own-choir/voice` | Anyone signed in | Own choir |
@@ -1231,7 +1237,10 @@ The signed-in singer: the welcome, consent and My parts read it. **Request:** no
 #### `beta.agreement.show`
 
 The beta agreement, current version, as text blocks the app shows with `{{ }}` (never HTML).
-`reviewed: false` means the lawyer hasn't checked it yet: the app says it's a draft. **Request:**
+`reviewed: false` means the lawyer hasn't checked it yet; `draft` (true only for staff, and only while unreviewed)
+is when the app says it's a draft, so members never see that notice. `?for=own_choir` is Hear yourself as a choir's
+terms (`OwnChoir::TERMS`, the version `ownChoir.show`'s `termsVersion` names), the ones a friend accepts before
+joining a choir (`ownChoir.consent`), never the AI voice licence. **Request:**
 `?lang=` (optional; English, the only language at launch, otherwise), and `?for=volunteer` for
 the volunteers' agreement (Lend your voice) instead, or `?for=ai_voice` for the AI voice licence ("The AI voice
 licence", below), always in English (Hillel: "just need english for accepting AI terms").
@@ -7662,6 +7671,8 @@ The PUT is done: size and SHA-256 checked (`409 upload_incomplete`, `409 upload_
 
 They opened a ready song: the notice goes. **Request:** none.
 
+For a song you joined (choir together), it marks your parts seen (the member's `seen`).
+
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 |  | `ownChoir.request.json` | `ownChoir.requests.seen.200.json` |
@@ -7679,6 +7690,116 @@ review: 64 kbps mono AAC), so Download is a lock on bytes, not only a button. Ea
 | 200 |  | `ownChoir.requests.download.json` | `ownChoir.requests.download.200.json` |
 | 403 | `plus_required` | `error.json` | `ownChoir.requests.download.plus_required.json` |
 | 404 | `not_found` | `error.json` | `ownChoir.requests.download.not_found.json` |
+
+### A choir with friends (behind `own_choir_together`, per account)
+
+docs/choir-together-plan.md: a ready choir song's owner invites friends by link; a friend agrees and records 30
+seconds (or uses their saved voice); the parts their voice suits better are made again in it (`ChoirAssign`: each
+part's sung time inside each voice's range, the measured range from the range check or the part they sang along to
+widened two semitones; the highest wins, a tie stays with the owner). The owner's own render of every part is kept and
+plays again whenever a friend's goes. **The owner pays**: a friend's parts cost the owner's part-minutes once their job
+reaches the renderer (`waiting_minutes` until there are enough); the free song includes one friend; with Plus up to
+7, never more than the song's parts minus one (config `own_choir.together`). A friend spends nothing and keeps their
+own free song. A friend's voice sings only their parts in that one song; the owner never gets it; the clip makes the
+friend's own saved voice. While the switch is off for the person, every operation here answers `404 not_found` and
+`ownChoir.show`'s `voices`, `members` and `joined` are empty, `invite` null. Leaving, being removed, deleting their
+voice or account removes a friend's renders (files gone, the owner's play again); the owner deleting the song deletes
+it for everyone. Exports already made can't be recalled.
+
+#### `ownChoir.invites.create`
+
+The owner of a ready song invites a friend: a link used once, for 14 days, revocable (`ownChoir.invites.delete`), its
+token kept only as a hash and shown only now. **Request:** `{ "parts": ["soprano", "alto"] }` (optional): the parts
+the invite names, the song's own (`422` otherwise), by default `invite.parts` (those that sit high or low for the
+owner). **A friend only ever sings some of the named parts, never another** (the UX review, 2026-11-22).
+`403 plus_required` past the free song's one friend; `409 not_ready` before the song is ready; `409 choir_full` at
+the cap (parts minus one, or 7); `429 rate_limited` (30 invites a day an account).
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 201 |  | `ownChoir.invites.create.json` | `ownChoir.invites.create.201.json` |
+| 403 | `plus_required` | `error.json` | `ownChoir.invites.create.plus_required.json` |
+| 404 | `not_found` | `error.json` | `ownChoir.invites.create.not_found.json` |
+| 409 | `not_ready` | `error.json` | `ownChoir.invites.create.not_ready.json` |
+| 409 | `choir_full` | `error.json` | `ownChoir.invites.create.choir_full.json` |
+| 422 | `validation_failed` | `error.json` | `ownChoir.invites.create.validation_failed.json` |
+| 429 | `rate_limited` | `error.json` | `ownChoir.invites.create.rate_limited.json` |
+
+#### `ownChoir.invites.delete`
+
+The owner takes back an invite not yet used. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 204 | | | |
+| 404 | `not_found` | `error.json` | `ownChoir.invites.delete.not_found.json` |
+
+#### `ownChoir.invites.show`
+
+The invite as the friend opening it sees it, signed in or not: the song, the owner's first name, the parts it names
+and `yourParts`, exactly the ones your voice would sing (`?useSavedVoice=1`, or `?partKey=` for the part you'll sing
+along to, when your range isn't measured),
+the song as it is (its listening copy, 2 hours) and, for the owner's own song, its words with `wordsSha`. A used,
+expired or revoked link answers its `status` with nothing else to hear. `404 not_found`: no such link (or the switch is
+off for its owner). Counts `own_choir_invite_opened`. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `ownChoir.invites.show.json` | `ownChoir.invites.show.200.json` |
+| 404 | `not_found` | `error.json` | `ownChoir.invites.show.not_found.json` |
+
+#### `ownChoir.invites.accept`
+
+The friend joins, signed in, with the own-choir terms accepted (`403 consent_required`; `ownChoir.consent` first) and
+18 or over (`403 adult_required`), a confirmed email (`403 email_unverified`). **Request:** `{ "parts": ["soprano",
+"alto"], "showName": false, "wordsSha": "<from show, for an own song>", "useSavedVoice": true }`, `parts` the exact
+`yourParts` the friend saw and agreed to (`409 parts_changed` when they're no longer what their voice would sing:
+show again), or a new clip's fields as `requests.create` takes
+them (`partKey`, the part they sang along to; `offsetFrames`, `sampleRate`, `frames`, `bytes`, `sha256`), answering the
+member and a presigned upload ("Uploads"), then `ownChoir.members.complete`. `409 invite_closed` (used, expired or
+revoked); `409 own_song` (the owner's own link); `409 already_member`; `409 voice_required` (`useSavedVoice` with no
+saved voice); `409 words_changed` (an own song whose words are no longer those agreed: show again); `429 rate_limited`
+(joining 5 choirs a day at most). A friend's parts are some of the invite's named parts, never another: those their voice
+suits better than the owner's, among those no other friend has (`yourParts`). They're fixed when they join and only
+ever shrink (a friend leaving or a part going), never grow, without a new yes.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 201 |  | `ownChoir.invites.accept.json` | `ownChoir.invites.accept.201.json` |
+| 403 | `consent_required` | `error.json` | `ownChoir.invites.accept.consent_required.json` |
+| 403 | `adult_required` | `error.json` | `ownChoir.invites.accept.adult_required.json` |
+| 403 | `email_unverified` | `error.json` | `ownChoir.invites.accept.email_unverified.json` |
+| 404 | `not_found` | `error.json` | `ownChoir.invites.accept.not_found.json` |
+| 409 | `invite_closed` | `error.json` | `ownChoir.invites.accept.invite_closed.json` |
+| 409 | `own_song` | `error.json` | `ownChoir.invites.accept.own_song.json` |
+| 409 | `already_member` | `error.json` | `ownChoir.invites.accept.already_member.json` |
+| 409 | `voice_required` | `error.json` | `ownChoir.invites.accept.voice_required.json` |
+| 409 | `words_changed` | `error.json` | `ownChoir.invites.accept.words_changed.json` |
+| 409 | `parts_changed` | `error.json` | `ownChoir.invites.accept.parts_changed.json` |
+| 422 | `validation_failed` | `error.json` | `ownChoir.invites.accept.validation_failed.json` |
+| 429 | `rate_limited` | `error.json` | `ownChoir.invites.accept.rate_limited.json` |
+
+#### `ownChoir.members.complete`
+
+The friend's clip is uploaded: checked as a song's clip is, then their parts are queued (`on_its_way`, or
+`waiting_minutes`). **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `ownChoir.member.json` | `ownChoir.members.complete.200.json` |
+| 404 | `not_found` | `error.json` | `ownChoir.members.complete.not_found.json` |
+| 409 | `upload_incomplete` | `error.json` | `ownChoir.members.complete.upload_incomplete.json` |
+| 409 | `upload_mismatch` | `error.json` | `ownChoir.members.complete.upload_mismatch.json` |
+
+#### `ownChoir.members.delete`
+
+A friend leaves, or the owner removes them: their renders in this song are deleted and the owner's play again (no
+render). Their saved voice stays theirs. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 204 | | | |
+| 404 | `not_found` | `error.json` | `ownChoir.members.delete.not_found.json` |
 
 #### `ownChoir.requests.delete`
 

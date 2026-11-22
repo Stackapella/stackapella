@@ -22,7 +22,8 @@
                 "quota",
                 "requests",
                 "busyToday",
-                "checkNeeded"
+                "checkNeeded",
+                "joined"
             ],
             "properties": {
                 "consent": {
@@ -153,6 +154,27 @@
                     "items": {
                         "$ref": "#/$defs/request"
                     }
+                },
+                "joined": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "member",
+                            "song"
+                        ],
+                        "properties": {
+                            "member": {
+                                "$ref": "#/$defs/member"
+                            },
+                            "song": {
+                                "$ref": "#/$defs/request",
+                                "description": "The owner's song as a member sees it: its parts (the whole choir), `voices` with `whose`, no members or invite."
+                            }
+                        }
+                    },
+                    "description": "Choirs you sing in (another singer's song you joined), newest first."
                 }
             }
         },
@@ -171,7 +193,10 @@
                 "seen",
                 "canDownload",
                 "parts",
-                "startsAfter"
+                "startsAfter",
+                "voices",
+                "members",
+                "invite"
             ],
             "properties": {
                 "id": {
@@ -236,6 +261,189 @@
                         "$ref": "guide.recording.json"
                     },
                     "description": "Each part in their own voice once ready (source ai, credit null, a private signed URL for 2 hours); [] until then."
+                },
+                "voices": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/voice"
+                    },
+                    "description": "Who sings each part now, once ready (with own_choir_together on; [] otherwise). `parts` holds the active render of each part."
+                },
+                "members": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/member"
+                    },
+                    "description": "The song's friends (the owner's view); [] on a song you joined, or with the switch off."
+                },
+                "invite": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "canInvite",
+                        "parts",
+                        "left",
+                        "reason"
+                    ],
+                    "properties": {
+                        "canInvite": {
+                            "type": "boolean"
+                        },
+                        "parts": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "description": "The parts a friend would suit best (those that sit high or low for the owner), for the invite's words; [] when every part fits."
+                        },
+                        "left": {
+                            "type": "integer",
+                            "description": "Friends that can still join: the cap (1 on the free song, 7 with Plus, never more than the parts minus one) less those in it."
+                        },
+                        "reason": {
+                            "type": [
+                                "string",
+                                "null"
+                            ],
+                            "enum": [
+                                "plus_required",
+                                "full",
+                                "all_fit",
+                                null
+                            ],
+                            "description": "Why not, when canInvite is false."
+                        }
+                    },
+                    "description": "The owner's invite line on a ready song while own_choir_together is on; null otherwise."
+                }
+            }
+        },
+        "voice": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "partKey",
+                "whose",
+                "name",
+                "memberId",
+                "status",
+                "fit"
+            ],
+            "properties": {
+                "partKey": {
+                    "type": "string"
+                },
+                "whose": {
+                    "type": "string",
+                    "enum": [
+                        "you",
+                        "friend",
+                        "owner"
+                    ],
+                    "description": "Whose AI voice sings this part now: `you` (yours), `friend` (a friend's, on your song), `owner` (the song's owner's, on a song you joined)."
+                },
+                "name": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "That person's first name (null for `you`); inside the choir only."
+                },
+                "memberId": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "The member whose voice it is (null for the owner's)."
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "ready",
+                        "on_its_way",
+                        "waiting_minutes"
+                    ],
+                    "description": "`ready`; `on_its_way` (the friend's render is being made: the owner's plays meanwhile); `waiting_minutes` (the owner hasn't the part-minutes left for it yet: the owner's plays)."
+                },
+                "fit": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "enum": [
+                        "high",
+                        "low",
+                        null
+                    ],
+                    "description": "For the owner only: the part sits mostly above (`high`) or below (`low`) their range (under half its sung time inside it); null when it fits, or on a song you joined."
+                }
+            }
+        },
+        "member": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "requestId",
+                "name",
+                "parts",
+                "status",
+                "showName",
+                "joinedAt",
+                "seen",
+                "minutesShort"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "requestId": {
+                    "type": "string",
+                    "description": "The owner's song."
+                },
+                "name": {
+                    "type": "string",
+                    "description": "First name, as members see each other."
+                },
+                "parts": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "The parts their voice sings in this song (ChoirAssign)."
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "uploading",
+                        "on_its_way",
+                        "waiting_minutes",
+                        "ready",
+                        "failed"
+                    ],
+                    "description": "Their part of the song: the clip on its way (`uploading`), being made, waiting for the owner's minutes, made, or failed (the owner's parts play)."
+                },
+                "showName": {
+                    "type": "boolean",
+                    "description": "Their first name on shared pages (off by default)."
+                },
+                "joinedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "seen": {
+                    "type": "boolean",
+                    "description": "The friend has seen their parts ready (ownChoir.requests.seen on the song they joined); Home's quiet card while false."
+                },
+                "minutesShort": {
+                    "type": [
+                        "number",
+                        "null"
+                    ],
+                    "description": "While `waiting_minutes`: the part-minutes the owner lacks for these parts (made once the owner's `quota.resetsAt` passes); else null."
                 }
             }
         }

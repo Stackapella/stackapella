@@ -1,0 +1,14 @@
+{
+    "$id": "ownChoir.member.json",
+    "title": "A member of a choir with friends",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "ownChoir.json#/$defs/member"
+        }
+    }
+}

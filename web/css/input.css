@@ -1658,7 +1658,7 @@ select:disabled {
 
 .s-final { margin-top: 64px; text-align: center; padding: 44px 20px; border-radius: 32px; background: var(--color-panel); border: 1px solid var(--color-line); }
 .s-final .s-stackbig { display: grid; gap: 8px; width: 140px; margin: 0 auto 22px; }
-.s-final .s-stackbig b { height: 14px; border-radius: 9px; background: var(--c); }
+.s-final .s-stackbig b { height: 14px; border-radius: 9px; background: var(--c); justify-self: left; }
 .s-final h2 { font-size: clamp(28px, 7vw, 44px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.08; text-wrap: balance; }
 .s-final p { color: var(--color-muted); margin-top: 10px; font-size: 16px; }
 .s-final .btn-primary { margin-top: 22px; }
@@ -2248,7 +2248,7 @@ select:disabled {
 .s-end p { color: var(--color-muted); margin-top: 8px; font-size: 16px; }
 .s-end .btn-primary { justify-self: start; white-space: normal; text-align: center; }
 .s-stackbig { display: grid; gap: 6px; width: 96px; }
-.s-stackbig b { height: 10px; border-radius: 9px; background: var(--c); }
+.s-stackbig b { height: 10px; border-radius: 9px; background: var(--c); justify-self: left; }
 @media (min-width: 900px) {
     .s-head { padding-top: 40px; }
     .s-head-grid { grid-template-columns: 6fr 5fr; gap: 56px; }
@@ -4096,7 +4096,7 @@ main:has(> .s-close) .s-ink:not(.s-close) { padding-block: var(--k-sec); margin-
 .s-iconhero { display: grid; justify-items: center; align-content: center; gap: 28px; min-height: 240px; }
 .s-iconhero .gem { width: 104px; height: 104px; border-radius: 99px; display: grid; place-items: center; }
 .s-iconhero .s-stackbig { display: grid; gap: 8px; width: 160px; }
-.s-iconhero .s-stackbig b { height: 14px; border-radius: 9px; background: var(--c); }
+.s-iconhero .s-stackbig b { height: 14px; border-radius: 9px; background: var(--c); justify-self: left; }
 .s-rowtitle { font-size: clamp(28px, 7vw, 44px); line-height: 1.06; font-weight: 800; letter-spacing: -0.025em; text-wrap: balance; max-width: 18ch; }
 .s-rowtitle + .s-lede { margin-top: 16px; }
 .s-details { display: grid; gap: 28px; }

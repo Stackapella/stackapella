@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Public;
 
+use App\Actions\OwnChoir\OwnChoirRequests;
 use App\Enums\TemplateAccess;
 use App\Http\Controllers\Controller;
 use App\Models\Template;
@@ -238,6 +239,9 @@ final class SongPagesController extends Controller
             'lendVoice' => SongParts::lendVoice(),
             // "Hear yourself as a choir, coming soon" (docs/ai-voices-build-plan.md, phase 2): its taps counted, nothing more.
             'choirTeaser' => SongParts::switchedOn('own_choir_teaser'),
+            // Once own_choir is on, the teaser is the real thing: this song in the app, ready to hear yourself as a choir
+            // (the app's `choir` link, agreed with the frontend; the marketing review, 2026-11-22), where the choir can sing it.
+            'choirLive' => self::choirLink($sung, $withheld === null),
             'learn' => array_combine(array_column($partCards, 'key'), array_map(static fn (array $card): string => Hosts::app('/?'.http_build_query(['song' => $sung->slug, 'part' => $card['key'], 'ref' => 'song-page'])), $partCards)),
             // The page that collects it gives the hero its palette (its link card's and band's); a song no page collects, the songs' own.
             'tone' => $home['key'] ?? 'song',
@@ -270,5 +274,23 @@ final class SongPagesController extends Controller
                 'imageAlt' => __('site.meta.app.join.image_alt', ['song' => SongWords::title((string) $template->title, (string) $template->slug)]),
             ],
         ], 200, self::headersFor($template, count($versions) > 1));
+    }
+
+    /**
+     * The song in the app, ready to hear yourself as a choir: only while own_choir is on, for a listed, unhidden library
+     * song playing here, within the choir's own limits (own_choir.max_parts, max_part_seconds, max_total_seconds, as
+     * OwnChoirRequests refuses `song_too_long`), so the link never leads to a refusal (the coordinator, 2026-11-22).
+     */
+    private static function choirLink(Template $sung, bool $playable): ?string
+    {
+        if (! $playable || ! SongParts::switchedOn('own_choir') || $sung->owner_id !== null || $sung->withdrawn_at !== null || $sung->hidden_at !== null) {
+            return null;
+        }
+
+        if ($sung->currentVersion === null || OwnChoirRequests::tooLong((array) $sung->currentVersion->data)) {
+            return null;
+        }
+
+        return Hosts::app('/?'.http_build_query(['song' => $sung->slug, 'choir' => 1, 'ref' => 'choir-song']));
     }
 }

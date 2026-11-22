@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support\OwnChoir;
 
+use App\Actions\OwnChoir\ChoirTogether;
 use App\Enums\OwnChoirStatus;
 use App\Exceptions\Refusal;
 use App\Models\OwnChoirConsent;
@@ -245,7 +246,7 @@ final class OwnChoir
     /** Turnstile before a person's first song, where it's set up. */
     public static function checkNeeded(User $user): bool
     {
-        return (string) config('services.turnstile.site_key') !== '' && ! OwnChoirRequest::query()->where('user_id', $user->id)->exists();
+        return (string) config('services.turnstile.site_key') !== '' && ! OwnChoirRequest::query()->where('user_id', $user->id)->whereNull('parent_request_id')->exists();
     }
 
     /**
@@ -261,7 +262,7 @@ final class OwnChoir
     {
         $key = $byEmail ? self::emailKey($user) : null;
 
-        return OwnChoirRequest::query()->where(fn (Builder $whose) => $whose->where('user_id', $user->id)->when($key !== null, fn (Builder $q) => $q->orWhere('email_key', $key)))->where(fn (Builder $query) => $query
+        return OwnChoirRequest::query()->whereNull('parent_request_id')->where(fn (Builder $whose) => $whose->where('user_id', $user->id)->when($key !== null, fn (Builder $q) => $q->orWhere('email_key', $key)))->where(fn (Builder $query) => $query
             ->whereIn('status', [OwnChoirStatus::Queued->value, OwnChoirStatus::Rendering->value, OwnChoirStatus::Ready->value])
             ->orWhere(fn (Builder $tried) => $tried->where('tries', '>', 0)->where(fn (Builder $why) => $why
                 ->where('status', OwnChoirStatus::Deleted->value)
@@ -278,7 +279,8 @@ final class OwnChoir
      */
     public static function attempted(User $user): Builder
     {
-        return OwnChoirRequest::query()->where('user_id', $user->id)->where(fn (Builder $query) => $query
+        // Their own songs, and friends' parts on their songs (charged to them: choir together).
+        return OwnChoirRequest::query()->where(fn (Builder $whose) => $whose->where(fn (Builder $own) => $own->where('user_id', $user->id)->whereNull('parent_request_id'))->orWhere('bill_to_user_id', $user->id))->where(fn (Builder $query) => $query
             ->whereIn('status', [OwnChoirStatus::Queued->value, OwnChoirStatus::Rendering->value, OwnChoirStatus::Ready->value])
             ->orWhere('tries', '>', 0));
     }
@@ -325,8 +327,10 @@ final class OwnChoir
             'quota' => $quota = self::quota($user),
             'busyToday' => self::busyToday(),
             'checkNeeded' => self::checkNeeded($user),
-            'requests' => array_values(OwnChoirRequest::query()->with(['templateVersion.template', 'parts'])->where('user_id', $user->id)->where('status', '!=', OwnChoirStatus::Deleted->value)->orderByDesc('id')->get()
-                ->map(static fn (OwnChoirRequest $r): array => self::request($r, $quota['plus']))->all()),
+            'requests' => array_values(OwnChoirRequest::query()->with(['templateVersion.template', 'parts'])->where('user_id', $user->id)->whereNull('parent_request_id')->where('status', '!=', OwnChoirStatus::Deleted->value)->orderByDesc('id')->get()
+                ->map(static fn (OwnChoirRequest $r): array => self::request($r, $quota['plus'], $user))->all()),
+            // Choirs they sing in (another singer's song they joined).
+            'joined' => ChoirTogether::joined($user),
         ];
     }
 
@@ -348,8 +352,9 @@ final class OwnChoir
      * @param  bool|null  $plus  whether the singer has Plus, when the caller knows already
      * @return array<string, mixed>
      */
-    public static function request(OwnChoirRequest $request, ?bool $plus = null): array
+    public static function request(OwnChoirRequest $request, ?bool $plus = null, ?User $viewer = null): array
     {
+        $viewer ??= $request->loadMissing('user')->user;
         // Downloading a song is Plus's (Hillel, 2026-11-21), decided per song so a later rule needs no contract change.
         $plus ??= app(Plans::class)->isPlus($request->loadMissing('user')->user);
         $ready = $request->status === OwnChoirStatus::Ready;
@@ -368,7 +373,11 @@ final class OwnChoir
             'startsAfter' => $request->starts_after?->utc()->toIso8601ZuluString(),
             'seen' => $request->seen_at !== null,
             'canDownload' => $plus,
-            'parts' => $ready ? array_values($request->parts->where('status', 'ready')->whereNotNull('media_key')->map(static fn (OwnChoirPart $p): array => self::recording($p))->all()) : [],
+            // Each part's active render: the owner's, or a friend's once theirs is in (choir together).
+            'parts' => $ready ? array_values(ChoirTogether::activeParts($request)->map(static fn (OwnChoirPart $p): array => self::recording($p))->all()) : [],
+            'voices' => ChoirTogether::voices($request, $viewer),
+            'members' => ChoirTogether::members($request, $viewer),
+            'invite' => ChoirTogether::inviteHint($request, $viewer),
         ];
     }
 

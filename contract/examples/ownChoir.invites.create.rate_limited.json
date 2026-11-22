@@ -1,0 +1,5 @@
+{
+    "message": "Too Many Requests.",
+    "code": "rate_limited",
+    "retryAfter": 3600
+}

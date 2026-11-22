@@ -183,7 +183,7 @@ export const HomeLead = {
                 <p v-if="effect('arcade')" class="gs-hi hidden"><span class="gs-hi-stage" aria-hidden="true">{{ t('game.arcade.stage', { number: '01' }) }}</span><span class="gs-hi-score" aria-hidden="true">{{ t('game.arcade.hi', { score: String(learning.progress.xp.total).padStart(6, '0') }) }}</span><span class="sr-only">{{ t('game.arcade.hiLabel', { stage: 1, xp: learning.progress.xp.total }) }}</span></p>
                 <ul class="mt-5 space-y-2" aria-hidden="true" data-lead-lanes>
                     <li v-for="lane in LANES" :key="lane.part" class="flex items-center gap-3">
-                        <span class="w-20 shrink-0 text-xs font-bold" :class="lane.you ? 'text-cream' : 'text-muted'" :data-you="lane.you ? '' : null">{{ lane.you ? t('home.lead.you', { part: t(lane.part) }) : t(lane.part) }}</span>
+                        <span class="w-28 shrink-0 whitespace-nowrap text-xs font-bold" :class="lane.you ? 'text-cream' : 'text-muted'" :data-you="lane.you ? '' : null">{{ lane.you ? t('home.lead.you', { part: t(lane.part) }) : t(lane.part) }}</span>
                         <svg :viewBox="'0 0 ' + BARS * 4 + ' 24'" preserveAspectRatio="none" class="h-6 flex-1 rounded-lg bg-ink" :style="lane.you ? { boxShadow: 'inset 0 0 0 1.5px ' + paint(PART_COLORS[lane.color]) } : null">
                             <rect v-for="(h, i) in laneBars(lane.seed)" :key="i" :x="i * 4 + 1" :y="12 - h * 9" width="2" :height="h * 18" rx="1" :fill="paint(PART_COLORS[lane.color])" :opacity="lane.you ? 1 : 0.7" />
                         </svg>

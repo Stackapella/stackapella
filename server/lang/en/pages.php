@@ -103,6 +103,8 @@ return [
         'choir' => [
             'button' => 'Hear yourself as a choir',
             'soon' => 'Sing for 30 seconds, and hear every part of this arrangement in a voice like yours, made by AI.',
+            // Beside the live link (own_choir).
+            'free' => 'Your first one is free.',
         ],
         // An AI part (docs/ai-voices-build-plan.md, behind ai_voices): the same words as the app's label (agreed with
         // the frontend, docs/decisions.md). `wanted` is the site's call to record it; `mix` is a part in the mix's credit.
@@ -115,6 +117,8 @@ return [
             'mix_based_on' => ':part: AI voice based on :name\'s singing',
             // A part of a song in a singer's own voice (Hear yourself as a choir), on what they share.
             'mix_own' => ':part: AI voice, made from :name\'s singing',
+            // A friend's part in a choir with friends whose name isn't shown (they left Show my name off).
+            'a_friend' => 'a friend',
             'about' => 'About AI voices',
             // The ask under a song's parts when one is sung by AI (be_voice_note says "the app's own voice").
             'note' => 'Some parts are still waiting for a real singer. Sing one, make your harmony public and say yes to featuring it, and we may choose your part as the voice others learn from, credited to you by your profile name. For singers 18 and over.',
@@ -865,6 +869,9 @@ return [
         'plans_free_includes' => 'What you get',
         'plans_free_for' => 'For every singer.',
         'plans_free_list' => ['Every course, from your first note to barbershop', 'Every song in the library, with a free account', 'Unlimited workouts, and your history', 'Sing with friends, and choir groups', ':free_storage for your recordings'],
+        // With own_choir (the marketing review, 2026-11-22): the free song on Free, and Plus's songs first on Plus.
+        'plans_free_choir' => 'Your first song sung by AI in a voice like yours, to play and share',
+        'plans_plus_choir' => ['More songs in a voice like yours.', 'About 15 songs a month (60 minutes of AI singing), each one yours to download.'],
         'plans_plus' => 'Plus',
         'plans_month' => 'a month',
         'plans_plus_for' => 'For what you make.',
@@ -939,6 +946,8 @@ return [
         // Once Stackapella is open source (the open_source flag): one more question, and a line after
         // the privacy answer.
         'faq_open_source' => ['Is Stackapella open source?', 'Yes. Its code is open source under the Attribution Assurance License: read it, run it on your own server or build on it. The songs and the course are shared too, under CC BY-SA 4.0; only the singers\' recorded voices aren\'t.'],
+        // Joined to "Is it really free?" while own_choir is on.
+        'faq_free_choir' => 'Your first song sung by AI in a voice like yours is free too; Plus adds about 15 songs a month, each yours to download.',
         'faq_privacy_check' => 'The code is open source, so you can check this yourself.',
         // Shown only to people who came from mudeo (App\Support\Pages\MudeoArrival): a line at the
         // top, and a short letter after the hero.
@@ -1031,9 +1040,13 @@ return [
         // With others and a question, shown only while it's on. The same words as the app's Plus sheet.
         'private_row' => ['Sharing a private arrangement with other singers', 'No', 'Yes, with Plus for each singer'],
         // Hear yourself as a choir's download, while own_choir is on (Hillel, 2026-11-21: "if they want to download it they need to subscribe to plus").
-        'choir_row' => ['Download a song in your own voice', 'No', 'Yes'],
+        // Joined to the choir question while own_choir and choir_seats are both on (decisions, 2026-11-21).
+        'faq_seat_choir' => 'A seat covers singing with the group, not songs sung by AI.',
+        // Joined to "Can I share what I make?" while own_choir is on.
+        'faq_share_choir' => 'A song sung by AI says so wherever you share it.',
+        'choir_row' => ['Download a song in a voice like yours', 'No', 'Yes'],
         // How many songs in your own voice (Hillel delegated, 2026-11-21: 60 minutes a month with Plus, one free song per email).
-        'choir_songs_row' => ['Songs in your own voice', 'Your first one', 'About 15 a month'],
+        'choir_songs_row' => ['Songs sung by AI in a voice like yours', 'Your first one', 'About 15 a month'],
         'faq_private' => ['Can I share a private arrangement?', 'Yes, with Plus. Once a private arrangement has a link or other singers on it, everyone in it needs their own Plus, you too. On your own, one private arrangement stays free. Choir groups are covered by their leader\'s Plus, and finished mixes and videos stay free to hear.'],
         // Once Stackapella is open source (the open_source flag).
         'faq_selfhost' => ['Can I run it myself?', 'Yes. Stackapella is open source, so you can run it on your own server with every Plus feature, free. Most singers don\'t need to: stackapella.com is free to start.'],

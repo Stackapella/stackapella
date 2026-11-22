@@ -87,6 +87,8 @@ return [
         'em' => 'is you.',
         'after' => '',
         'card' => 'Four voices, every one yours.',
+        // With own_choir: the scene's one way on to /your-choir.
+        'choir' => 'Hear yourself as a choir: your first song is free',
     ],
     'free' => [
         'before' => 'Every course',

@@ -24,6 +24,7 @@
         "aiVoices": false,
         "ownChoir": false,
         "ownChoirSongs": false,
+        "ownChoirTogether": false,
         "experiment": null,
         "experiments": [
             {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Actions\OwnChoir\ChoirJobs;
+use App\Actions\OwnChoir\ChoirTogether;
 use App\Enums\OwnChoirStatus;
 use App\Models\OwnChoirRequest;
 use App\Models\OwnChoirVoice;
@@ -24,6 +25,9 @@ final class PruneOwnChoir extends Command
 
     public function handle(ChoirJobs $jobs): int
     {
+        // Friends' parts whose owner has the part-minutes again (a new month of billing).
+        ChoirTogether::release();
+
         $expired = 0;
         OwnChoirRequest::query()->where('status', OwnChoirStatus::Uploading->value)->where('created_at', '<', now()->subHour())
             ->chunkById(200, function ($requests) use (&$expired): void {

@@ -2981,6 +2981,8 @@
         "title": "Stackapella Plus",
         "story": "Aprender a cantar es gratis. Plus es para formar equipo y para trabajarlo a fondo: crea un grupo de coro o invita a amigos a tu canción (todas las personas que invites se unen gratis), más espacio para tus grabaciones, y MP3 y cada voz por separado.",
         "moment": {
+            "choirFriendsUsed": "Tu coro gratis incluye a una persona, y {name} ya está en él. Más personas vienen con Plus.",
+            "choirFriends": "Más personas en tus coros vienen con Plus, igual que unas 15 canciones al mes con una voz como la tuya.",
             "choirSong": "Más canciones con una voz como la tuya vienen con Plus.",
             "choirDownload": "Descargar tu coro viene con Plus, y también unas 15 canciones más al mes con una voz como la tuya. Escucharlo y compartirlo siguen siendo gratis.",
             "groupStart": "Los grupos de coro vienen con Plus. Todas las personas que invites se unen gratis.",
@@ -5769,6 +5771,103 @@
         },
         "check": {
             "failed": "La comprobación rápida no funcionó. Inténtalo otra vez."
+        },
+        "together": {
+            "who": {
+                "title": "Quién canta",
+                "real": "Tu voz real",
+                "high": "te queda aguda",
+                "low": "te queda grave",
+                "you": "Tu voz",
+                "friendVoice": "La voz de {name}",
+                "ai": "IA",
+                "making": "La voz de {name} · en camino",
+                "minutesNote": "{partCount, plural, one {La parte de {parts} de {name} necesita} other {Las partes de {parts} de {name} necesitan}} {count, plural, one {1 minuto más} other {# minutos más}} de canto con IA de los que te quedan este mes. {partCount, plural, one {Se hará} other {Se harán}} el {date}, cuando se renueven tus minutos.",
+                "until": "en espera hasta el {date}"
+            },
+            "invite": {
+                "high": "Invita a alguien a cantar las partes agudas",
+                "low": "Invita a alguien a cantar las partes graves",
+                "parts": "{count, plural, one {Invita a alguien a cantar la parte de {parts}} other {Invita a alguien a cantar las partes de {parts}}}",
+                "why": "Cada parte suena mejor con una voz a la que le queda. Otra persona canta 30 segundos, y la IA canta {partCount, plural, one {la parte de {parts}} other {las partes de {parts}}} con una voz como la suya. Tú te quedas el resto.",
+                "shareHigh": "Canta conmigo las partes agudas de {song}: cada persona canta 30 segundos y la IA canta el coro entero con voces como las nuestras.",
+                "shareLow": "Canta conmigo las partes graves de {song}: cada persona canta 30 segundos y la IA canta el coro entero con voces como las nuestras.",
+                "shareParts": "{count, plural, one {Canta conmigo la parte de {parts} de {song}} other {Canta conmigo las partes de {parts} de {song}}}: cada persona canta 30 segundos y la IA canta el coro entero con voces como las nuestras.",
+                "copy": "Copiar enlace",
+                "copied": "Enlace copiado",
+                "sent": "Tu enlace de invitación está listo. Envíalo a una persona. Sirve una vez, durante 14 días.",
+                "cancel": "Cancelar invitación",
+                "cancelled": "Invitación cancelada. El enlace ya no sirve.",
+                "cap": "Ya invitaste a tantas personas como caben en esta canción."
+            },
+            "remove": {
+                "button": "Quitar a {name} de este coro",
+                "title": "¿Quitar a {name} de {song}?",
+                "body": "{count, plural, one {La parte de {parts} de {name} deja de sonar y se borra. Vuelve a sonar la tuya.} other {Las partes de {parts} de {name} dejan de sonar y se borran. Vuelven a sonar las tuyas.}}",
+                "action": "Quitar a {name}",
+                "done": "{name} ya no está en este coro.",
+                "short": "Quitar"
+            },
+            "join": {
+                "title": "{count, plural, one {{owner} te invitó a cantar la parte de {parts} en {song}} other {{owner} te invitó a cantar las partes de {parts} en {song}}}",
+                "how": "Cantas 30 segundos. La IA canta tus partes con una voz como la tuya, y las de {owner} con una voz como la de {owner}.",
+                "listen": "Escucha el coro de {owner}",
+                "signedOut": "Crea una cuenta gratis para unirte. Tu invitación te espera.",
+                "expired": "Esta invitación caducó o ya se usó. Pide un enlace nuevo.",
+                "own": "Este coro es tuyo.",
+                "header": "Canta en el coro de {owner}",
+                "done": "Ya estás en el coro de {owner}"
+            },
+            "agree": {
+                "title": "Una voz como la tuya en la canción de {owner}",
+                "one": "{count, plural, one {En {song}, de {owner}, una voz como la tuya solo canta la parte de {parts}. {owner} nunca recibe la voz en sí.} other {En {song}, de {owner}, una voz como la tuya solo canta las partes de {parts}. {owner} nunca recibe la voz en sí.}}",
+                "two": "{owner} puede escuchar, compartir y descargar esta canción. {owner} nunca recibe tu voz para usarla en otro lugar.",
+                "three": "Sal cuando quieras: tus partes se borran y vuelven a sonar las partes de {owner}. Las copias ya descargadas no se pueden recuperar.",
+                "words": "La letra que cantará una voz como la tuya",
+                "showName": "Mostrar mi nombre si {owner} comparte la canción",
+                "showNameOff": "Desactivado: dice “una persona amiga”.",
+                "sing": "Acepto y canto 30 segundos",
+                "saved": "Acepto y uso mi voz guardada",
+                "part": "Canta 30 segundos con la parte de {part}.",
+                "free": "Gratis para ti. Guardamos en privado la voz hecha con tu canto, para tus propias canciones; bórrala cuando quieras.",
+                "no": "No, gracias"
+            },
+            "joined": {
+                "title": "Canciones en las que cantas",
+                "row": "{song}, de {owner}",
+                "yours": "{count, plural, one {Cantas la parte de {parts}} other {Cantas las partes de {parts}}}",
+                "making": "Las verás en Canciones en las que cantas cuando estén listas.",
+                "ready": "Listo",
+                "mine": "Tu {song}"
+            },
+            "leave": {
+                "button": "Salir de este coro",
+                "title": "¿Salir de {song}, de {owner}?",
+                "body": "Tus partes dejan de sonar y se borran, y vuelven a sonar las de {owner}. Tu voz guardada sigue siendo tuya.",
+                "action": "Salir",
+                "done": "Saliste del coro de {owner}."
+            },
+            "own": {
+                "next": "Oye una canción tuya: tu voz guardada ya está lista."
+            },
+            "home": {
+                "owner": "Las partes de {name} ya están en tu coro: {song}",
+                "listen": "Escuchar",
+                "readyTitle": "Listo para ti"
+            },
+            "words": {
+                "changed": "La letra cambió desde que abriste esto. Aquí está de nuevo."
+            },
+            "whose": "el de {name}",
+            "listen": {
+                "withFriends": "Voces de IA hechas con tu canto y {names}"
+            },
+            "delete": {
+                "friends": "También se borran las partes de {people}."
+            },
+            "parts": {
+                "changed": "Las partes cambiaron desde que abriste esto. Esto es lo que cantará ahora una voz como la tuya."
+            }
         }
     },
     "aiVoice": {

@@ -21,7 +21,7 @@ import * as sessionStore from '../stores/session.js';
 import { account } from '../stores/account.js';
 import { claimInvitation, countVoice, later, needsVoice, saidLater, usableTake, voiceAskOpen } from '../be-the-voice.js';
 import { aiCredit, aiCtaOpen } from '../ai-voices.js';
-import { checkKey, choirRefusal, ownChoirOn, sendClip } from '../own-choir.js';
+import { checkKey, choirRefusal, joinFor, joinWithClip, keepJoin, ownChoirOn, sendClip } from '../own-choir.js';
 import { aiPartsOf } from '../stores/catalogue.js';
 import { sendVoiceTake } from '../voice-take.js';
 import { signUpFor } from '../components/account-wall.js';
@@ -1051,6 +1051,19 @@ export const SingView = {
             this.choirSending = true;
             this.choirError = '';
             try {
+                // Joining a friend's choir (views/choir-together.js): the 30 seconds go to the invite, and the join page says
+                // what happens next; the take isn't kept, as for their own song.
+                const join = joinFor(this.project.id);
+                if (join) {
+                    await joinWithClip(join.token, { partKey: part.templatePartKey, parts: join.parts ?? null, samples, sampleRate: part.sampleRate, startSeconds: part.offsetSeconds + (part.nudgeSeconds || 0), showName: join.showName, wordsSha: join.wordsSha });
+                    // The project was only for the 30 seconds: it goes (the friend's parts live in the owner's song).
+                    const projectId = this.project.id;
+                    keepJoin(projectId, null);
+                    navigate(`/choir/join/${encodeURIComponent(join.token)}`);
+                    const { deleteProject } = await import('../stores/projects.js');
+                    await deleteProject(projectId).catch((error) => console.warn('The joining project was not removed', error));
+                    return;
+                }
                 const request = await sendClip({ templateId: this.project.template.id, partKey: part.templatePartKey, samples, sampleRate: part.sampleRate, startSeconds: part.offsetSeconds + (part.nudgeSeconds || 0), turnstileToken });
                 this.project.choir = { ...this.project.choir, requestId: request.id };
                 await sessionStore.persist(async () => {});

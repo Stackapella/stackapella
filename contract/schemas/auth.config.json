@@ -37,7 +37,8 @@
                 "withheldSongs",
                 "plusTeams",
                 "plusPrivate",
-                "choirSeats"
+                "choirSeats",
+                "ownChoirTogether"
             ],
             "properties": {
                 "methods": {
@@ -142,6 +143,10 @@
                 "ownChoirSongs": {
                     "type": "boolean",
                     "description": "Hear yourself as a choir on their own songs from the creator too (the own_choir_songs switch, read for their account)."
+                },
+                "ownChoirTogether": {
+                    "type": "boolean",
+                    "description": "A choir with friends (the own_choir_together switch, per account): invite a friend to sing the parts their voice suits. Off, every invite and member operation answers 404."
                 },
                 "experiment": {
                     "type": [

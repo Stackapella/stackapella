@@ -72,6 +72,7 @@ const SingView = screen(() => import('./views/sing.js').then((m) => m.SingView))
 const PrintView = screen(() => import('./views/print.js').then((m) => m.PrintView));
 const ScoreSheetView = screen(() => import('./views/score-sheet.js').then((m) => m.ScoreSheetView));
 const OwnChoirView = screen(() => import('./views/own-choir.js').then((m) => m.OwnChoirView));
+const ChoirTogetherJoinView = screen(() => import('./views/choir-together.js').then((m) => m.ChoirTogetherJoinView));
 const SettingsView = screen(() => import('./views/settings.js').then((m) => m.SettingsView), { title: tk('settings.title') });
 const StorageView = screen(() => import('./views/storage.js').then((m) => m.StorageView), { title: tk('cloud.storage.title') });
 const VoiceView = screen(() => import('./views/voice.js').then((m) => m.VoiceView), { title: tk('voice.title') });
@@ -110,7 +111,7 @@ const IdeaView = screen(() => import('./views/ideas.js').then((m) => m.IdeaView)
 const FIRST_INSTALL_WAIT_MS = 15000; // a timer for when to install, never for audio
 
 const App = {
-    components: { LaunchCredit, RequestsView, ReadLinesView, ProjectsView, StudioView, SingView, PrintView, ScoreSheetView, OwnChoirView, AuthView, SettingsView, StorageView, VoiceView, WorkoutView, PlusView, RemindersView, ClassesView, ClassJoinView, CloudConflicts, LearnView, CourseView, PlusCourseView, BirthHost, NewVersion, AdminView, StyleguideView, StyleguideGameView, BetaView, CreateView, TemplateView, JoinView, EarlyView, GroupsView, GroupView, ChoirJoinView, MovedView, ContactView, NoticesView, NoticeView, WarmupView, IdeasView, IdeaView, VoicesView, ResetView, Toasts, ConfirmHost, MicHelpHost, MicCheckHost, ChallengeView },
+    components: { LaunchCredit, RequestsView, ReadLinesView, ProjectsView, StudioView, SingView, PrintView, ScoreSheetView, OwnChoirView, ChoirTogetherJoinView, AuthView, SettingsView, StorageView, VoiceView, WorkoutView, PlusView, RemindersView, ClassesView, ClassJoinView, CloudConflicts, LearnView, CourseView, PlusCourseView, BirthHost, NewVersion, AdminView, StyleguideView, StyleguideGameView, BetaView, CreateView, TemplateView, JoinView, EarlyView, GroupsView, GroupView, ChoirJoinView, MovedView, ContactView, NoticesView, NoticeView, WarmupView, IdeasView, IdeaView, VoicesView, ResetView, Toasts, ConfirmHost, MicHelpHost, MicCheckHost, ChallengeView },
     setup: () => ({ route, COOL_DOWN }),
     template: `
         <!-- A self-hosted install's credit, as the licence asks, on whichever screen the app opens (components/credit.js). -->
@@ -134,6 +135,7 @@ const App = {
         <EarlyView v-else-if="route.name === 'invite'" :key="'i-' + route.params.code" :code="route.params.code" kind="invite" />
         <GroupsView v-else-if="route.name === 'groups'" />
         <GroupView v-else-if="route.name === 'group'" :key="'g-' + route.params.id" :id="route.params.id" />
+        <ChoirTogetherJoinView v-else-if="route.name === 'choirTogether'" :key="'ct-' + route.params.token" :token="route.params.token" />
         <ChoirJoinView v-else-if="route.name === 'choir'" :key="'c-' + route.params.token" :token="route.params.token" />
         <MovedView v-else-if="route.name === 'moved'" />
         <ContactView v-else-if="route.name === 'contact'" />
@@ -274,7 +276,7 @@ watch(() => account.me?.id, (id) => id && signedInSync().catch((error) => consol
 // Before launch (coming soon), someone the server hasn't let in (no beta pass, not signed in) sees
 // only signing in, the admin and the invite pages; anything else goes to sign-in. The server's gate
 // covers full page loads; this covers moving around inside the app. Asked again after a sign-in.
-const OPEN_BEFORE_LAUNCH = new Set(['auth', 'admin', 'early', 'invite', 'join', 'choir', 'teacher', 'moved', 'contact', 'notice', 'notices']);
+const OPEN_BEFORE_LAUNCH = new Set(['auth', 'admin', 'early', 'invite', 'join', 'choir', 'choirTogether', 'teacher', 'moved', 'contact', 'notice', 'notices']);
 const gate = reactive({ comingSoon: false });
 async function readGate({ fresh = false } = {}) {
     try {
