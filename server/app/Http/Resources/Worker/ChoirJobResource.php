@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Resources\Worker;
 
 use App\Models\OwnChoirRequest;
+use App\Support\OwnChoir\ClipTune;
+use App\Support\OwnChoir\VoicingTransform;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
@@ -26,6 +28,7 @@ final class ChoirJobResource extends JsonResource
     {
         $job = $this->resource;
         $version = $job->templateVersion ?? throw new LogicException('A claimed job has its song.');
+        $voiced = $job->voicing === 'low' ? VoicingTransform::low((array) $version->data) : ['data' => (array) $version->data, 'shifts' => array_fill_keys(array_column(array_filter((array) ($version->data['parts'] ?? []), 'is_array'), 'key'), 0)];
 
         return [
             'id' => $job->sqid(),
@@ -36,7 +39,10 @@ final class ChoirJobResource extends JsonResource
             'title' => (string) $version->template->title,
             // The singer's own song: no gates re-render (the GPU review).
             'own' => $this->resource->own,
-            'data' => (object) (array) $version->data,
+            // The low-voice version (2026-11-23): the transformed song, rendered as given.
+            'data' => (object) $voiced['data'],
+            'voicing' => $job->voicing,
+            'shifts' => array_map(static fn (string $key, int $shift): array => ['partKey' => $key, 'shift' => $shift], array_keys($voiced['shifts']), array_values($voiced['shifts'])),
             'clip' => $job->from_voice ? null : [
                 'url' => Storage::disk('private')->temporaryUrl((string) $job->clip_key, now()->addMinutes(30)),
                 'sampleRate' => $job->sample_rate,
@@ -44,6 +50,11 @@ final class ChoirJobResource extends JsonResource
                 'sha256' => $job->sha256,
                 'part' => $job->part_key,
                 'offsetFrames' => $job->offset_frames,
+                // The tune the clip sang (voice-capture by default, 2026-11-23): prepare the voice against it.
+                'template' => (string) ($job->clipVersion() ?? $version)->template->slug,
+                'version' => ($job->clipVersion() ?? $version)->version,
+                'data' => (object) ClipTune::sung($job->clipVersion() ?? $version, $job->clip_transpose),
+                'transpose' => $job->clip_transpose,
             ],
             'reference' => $job->from_voice && $job->voice !== null ? [
                 'id' => $job->voice->sqid(),

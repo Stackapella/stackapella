@@ -8,7 +8,8 @@
             "savedAt": "2026-11-21T09:04:00Z",
             "lastUsedAt": "2026-11-21T09:04:00Z",
             "expiresAt": "2027-11-21T09:04:00Z",
-            "wordless": false
+            "wordless": false,
+            "clipListen": null
         },
         "termsVersion": 2,
         "quota": {
@@ -130,7 +131,8 @@
                     ],
                     "left": 1,
                     "reason": null
-                }
+                },
+                "voicing": "written"
             },
             {
                 "id": "Rq4Ag2",
@@ -149,9 +151,28 @@
                 "voices": [],
                 "members": [],
                 "left": [],
-                "invite": null
+                "invite": null,
+                "voicing": "written"
             }
         ],
-        "joined": []
+        "joined": [],
+        "clipSongs": [
+            {
+                "templateId": "voice-capture",
+                "stopBeat": null
+            },
+            {
+                "templateId": "silent-night",
+                "stopBeat": 36
+            },
+            {
+                "templateId": "amazing-grace",
+                "stopBeat": 36
+            },
+            {
+                "templateId": "joy-to-the-world",
+                "stopBeat": 63
+            }
+        ]
     }
 }

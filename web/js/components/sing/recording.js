@@ -46,7 +46,7 @@ export const RecordingStage = {
                     <p class="truncate text-sm font-bold md:text-base" :class="named ? 'text-cream' : 'italic text-muted'" :translate="named ? 'no' : null">{{ title }}</p>
                     <p data-ui="facts" class="flex items-center justify-center gap-1.5 text-xs text-muted md:text-sm">
                         <span class="size-2 shrink-0 rounded-full" :style="{ background: color }" aria-hidden="true"></span>
-                        <span class="truncate"><span translate="no">{{ partName }}</span> · {{ t('sing.recordingStage.take', { number: take }) }}</span>
+                        <span class="truncate"><template v-if="partName"><span translate="no" data-sing-part-name>{{ partName }}</span> · </template>{{ t('sing.recordingStage.take', { number: take }) }}</span>
                     </p>
                 </div>
                 <span class="justify-self-end"><slot name="hearing" /></span>

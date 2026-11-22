@@ -310,13 +310,14 @@ export function mergeBosses(mine = {}, theirs = {}) {
  * voice; otherwise the newer. Two from before ranges were dated (no `rangeAt`) widen to both, as before.
  */
 export function mergeRange(mine, theirs) {
-    const rank = (p) => (!p?.range ? -1 : p.rangeSource === 'picked' ? 0 : 1);
+    // A range cleared on purpose (Settings' Clear my range) is dated, and counts as one sung: the newer wins.
+    const rank = (p) => (!p?.range ? (p?.rangeSource === 'cleared' && p.rangeAt ? 1 : -1) : p.rangeSource === 'picked' ? 0 : 1);
     const a = rank(mine);
     const b = rank(theirs);
     const keep = (p) => ({ range: p.range, rangeSource: p.rangeSource ?? null, rangeAt: p.rangeAt ?? null });
     if (a < 0 && b < 0) return { range: null, rangeSource: null, rangeAt: null };
     if (a !== b) return keep(a > b ? mine : theirs);
-    if (!mine.rangeAt && !theirs.rangeAt) {
+    if (!mine.rangeAt && !theirs.rangeAt && mine.range && theirs.range) {
         return { range: { low: Math.min(mine.range.low, theirs.range.low), high: Math.max(mine.range.high, theirs.range.high) }, rangeSource: mine.rangeSource ?? theirs.rangeSource ?? null, rangeAt: null };
     }
     return keep((mine.rangeAt ?? 0) >= (theirs.rangeAt ?? 0) ? mine : theirs);

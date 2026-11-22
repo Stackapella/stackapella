@@ -29,6 +29,9 @@ final class AcceptChoirInviteRequest extends FormRequest
             'showName' => ['required', 'boolean'],
             'wordsSha' => ['sometimes', 'nullable', 'string', 'size:64'],
             'useSavedVoice' => ['sometimes', 'boolean'],
+            'clipTemplateId' => ['sometimes', 'nullable', 'string', 'regex:/^[a-z0-9-]{1,80}$/'],
+            // The tune transposed to the singer's comfortable first note (2026-11-23).
+            'clipTranspose' => ['sometimes', 'nullable', 'integer', 'between:-12,12'],
             'partKey' => ['required_with:sampleRate', 'nullable', 'string', 'max:40'],
             // The octave the app measured the tune sung in, on the take still on the device (2026-11-23).
             'octave' => ['sometimes', 'nullable', 'integer', 'in:-12,0,12'],

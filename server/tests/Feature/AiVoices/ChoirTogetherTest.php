@@ -453,6 +453,7 @@ final class ChoirTogetherTest extends TestCase
         $this->postJson("/api/own-choir/join/{$token}", ['parts' => array_values($low), 'showName' => false, 'partKey' => 'soprano', 'octave' => -12, 'offsetFrames' => 24000, 'sampleRate' => 48000, 'frames' => intdiv(strlen($wav) - 44, 2), 'bytes' => strlen($wav), 'sha256' => hash('sha256', $wav)])->assertCreated();
         $job = OwnChoirRequest::query()->where('user_id', $dan->id)->sole();
         $this->assertSame(['soprano', -12], [$job->part_key, $job->octave]);
+        $this->assertSame('voice-capture', $job->clipTemplateVersion?->template?->slug, 'A friend sings the voice-capture tune too.');
         $this->assertEqualsCanonicalizing($low, (array) OwnChoirMember::query()->sole()->parts);
     }
 

@@ -23,6 +23,14 @@ return [
     'dotless_domains' => ['gmail.com', 'googlemail.com'],
     'window_days' => 30,
     'daily' => 5,
+
+    // The tune every choir clip sings, whatever song is being made (Hillel, 2026-11-23: "let's go with Happy Birthday"):
+    // voice-capture, a hidden one-part template (Happy Birthday once, then For He's a Jolly Good Fellow once, about 30
+    // seconds), listed nowhere; a singer may sing the song's own tune instead.
+    'clip_template' => 'voice-capture',
+    // The tunes a singer may choose for their clip (Hillel, 2026-11-23), in the order shown, voice-capture (shown as Happy
+    // Birthday) first, each with the beat it stops on (a phrase start, about 30 seconds in; null: the whole tune).
+    'clip_templates' => ['voice-capture' => null, 'silent-night' => 36, 'amazing-grace' => 36, 'joy-to-the-world' => 63],
     // Across everyone, part-minutes rendered a day: past it, new songs wait for tomorrow and the admins are told once.
     'daily_part_minutes' => 600,
     // An own song's singing across all its parts, at most (so one song fits one claim).
@@ -42,7 +50,8 @@ return [
         'joins_a_day' => 5,
     ],
     'clip_min_seconds' => 5,
-    'clip_max_seconds' => 30,
+    // The voice-capture tune is about 31 seconds, with a lead-in and a tail about 32.5 (2026-11-23).
+    'clip_max_seconds' => 35,
     'claim_minutes' => 20,
     'max_tries' => 3,
     // How long a ready part's private link lasts (the app keeps the part to play offline).

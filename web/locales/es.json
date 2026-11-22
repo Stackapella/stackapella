@@ -1833,6 +1833,17 @@
             "notBackup": "Ese archivo no es una copia de seguridad de Stackapella.",
             "newerBackup": "Esa copia es de una versión más nueva de Stackapella. Actualiza la app y vuelve a intentarlo.",
             "restoreFailed": "No se pudo restaurar la copia. Vuelve a intentarlo."
+        },
+        "range": {
+            "title": "Tu extensión",
+            "value": "De {low} a {high}",
+            "none": "Aún sin medir. Cuando la midas, te sugerimos partes con ella.",
+            "again": "Volver a medir mi extensión",
+            "check": "Medir mi extensión",
+            "clear": "Borrar mi extensión",
+            "confirmTitle": "¿Borrar tu extensión?",
+            "confirmBody": "Las sugerencias de partes y cómo te encajan las partes de un coro dejan de usarla hasta que vuelvas a medirla. Tus canciones y grabaciones se quedan.",
+            "cleared": "Borramos tu extensión."
         }
     },
     "version": {
@@ -5648,9 +5659,12 @@
         },
         "title": "Óyete como un coro",
         "intro": {
-            "one": "Canta la melodía de {song} durante 30 segundos, en la octava que te resulte cómoda.",
+            "one": "Canta {song} y “For He's a Jolly Good Fellow”, en la octava que te resulte cómoda.",
+            "oneSong": "Canta {song} durante 30 segundos, en la octava que te resulte cómoda.",
             "oneBody": "No hace falta cantar bien: solo escuchamos cómo suena tu voz, y la guardamos en privado para tus próximas canciones.",
-            "two": "Hacemos cada parte con una voz como la tuya, marcada como IA.",
+            "choose": "Canción para cantar",
+            "thenJolly": "y después “For He's a Jolly Good Fellow”",
+            "two": "Hacemos cada parte de {song} con una voz como la tuya, marcada como IA.",
             "three": "Luego aprende tu parte: cada una que grabas ocupa el lugar de su versión de IA."
         },
         "record": {
@@ -5678,12 +5692,18 @@
             "download": "Descarga mi coro",
             "fileName": "{song} (con voces de IA)",
             "notice": "Tu coro está listo: {song}, cantada con una voz como la tuya",
-            "button": "Escuchar"
+            "button": "Escuchar",
+            "lowVoice": "Arreglada para una voz grave: la melodía y la contralto suenan una octava más abajo.",
+            "clip": {
+                "title": "Tu grabación",
+                "hint": "Los 30 segundos con los que se hizo tu coro, para comparar.",
+                "play": "Escuchar tu grabación"
+            }
         },
         "failed": {
             "title": "Esta vez no pudimos hacer tu coro",
             "body": "Tu grabación se ha borrado. Inténtalo de nuevo con una nueva, en un sitio tranquilo y cantando un poco más fuerte.",
-            "clip_unusable": "No pudimos oír suficiente canto para hacer una voz. Vuelve a intentarlo cantando la melodía y su letra con claridad.",
+            "clip_unusable": "No pudimos oír suficiente canto para hacer una voz. Vuelve a intentarlo cantando las dos canciones con claridad.",
             "bad_clip": "Tu grabación no llegó como debía. Inténtalo de nuevo.",
             "gates_failed": "Algunas partes no salieron afinadas. Inténtalo de nuevo con una grabación nueva.",
             "render_failed": "Algo falló por nuestra parte. Inténtalo de nuevo.",
@@ -5840,7 +5860,6 @@
                 "saved": "Acepto y uso mi voz guardada",
                 "free": "Gratis para ti. Guardamos en privado la voz hecha con tu canto, para tus propias canciones; bórrala cuando quieras.",
                 "no": "No, gracias",
-                "tune": "Canta la melodía de {song} durante 30 segundos, en la octava que te resulte cómoda.",
                 "local": "Tu toma se queda en este dispositivo hasta que aceptes.",
                 "send": "Acepto y envío",
                 "again": "Cantar de nuevo",
@@ -5883,6 +5902,15 @@
                 "changed": "Las partes cambiaron desde que abriste esto. Esto es lo que cantará ahora una voz como la tuya."
             },
             "friendLeft": "{name} salió de {song}. Sus enlaces compartidos dejaron de funcionar: vuelve a compartirla cuando quieras."
+        },
+        "firstNote": {
+            "title": "Canta tu primera nota, donde te resulte cómodo",
+            "hint": "Sostén una nota fácil un momento. Moveremos {song} para que empiece ahí.",
+            "heard": "Cantaste {note}. {song} empezará ahí.",
+            "use": "Cantarla desde {note}",
+            "again": "Probar otra nota",
+            "usual": "Usar la tonalidad habitual",
+            "noMic": "No pudimos oír una nota. Vuelve a intentarlo un poco más fuerte, o usa la tonalidad habitual."
         }
     },
     "aiVoice": {

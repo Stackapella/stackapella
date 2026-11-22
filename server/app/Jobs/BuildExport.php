@@ -15,6 +15,7 @@ use App\Models\DataExport;
 use App\Models\Engagement;
 use App\Models\GroupMember;
 use App\Models\Harmony;
+use App\Models\OwnChoirVoice;
 use App\Models\Part;
 use App\Models\Project;
 use App\Models\ProjectMember;
@@ -202,6 +203,9 @@ final class BuildExport implements ShouldQueue
                 'aac' => Storage::disk('private')->temporaryUrl((string) $recording->file_key, $linksUntil),
             ])->values()->all(),
         ])->all();
+        // Their original choir clip, kept with their voice (2026-11-23).
+        $kept = OwnChoirVoice::query()->where('user_id', $user->id)->where('status', 'ready')->whereNotNull('clip_key')->latest('id')->first();
+        $zip->addFromString('own-choir-recording.json', (string) json_encode($kept === null ? null : ['aac' => Storage::disk('private')->temporaryUrl((string) $kept->clip_key, $linksUntil), 'savedAt' => $kept->saved_at?->utc()->toIso8601ZuluString()], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
         $zip->addFromString('my-templates.json', (string) json_encode($templates, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
         // What they sang on other people's projects is theirs too, and where they sing.
         $sung = Take::query()->select($takeColumns)->with(['project:id,title', 'part:id,name'])->where('recorded_by', $user->id)->where('user_id', '!=', $user->id)->where('status', Take::READY)->orderBy('id')->get()->map(static fn (Take $take): array => [

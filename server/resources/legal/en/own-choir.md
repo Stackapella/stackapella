@@ -1,9 +1,9 @@
 ---
 title: Hear yourself as a choir
-version: 3
+version: 4
 reviewed: false
 drafted: 2026-11-20
-changed: 2026-11-22 (3, unaccepted: term 6, your voice in songs you join, for a choir with friends behind own_choir_together; 2026-11-21, 2: 60 minutes a month of Plus, one free song per email; 2026-11-20: a short voice reference is kept privately for the singer's own songs; songs a singer makes, with their typed words; Hillel's decisions)
+changed: 2026-11-22 (4, unaccepted: the singer's own recording is kept privately with their saved voice, to compare, and goes with it; the recording is a song they choose; 3: term 6, your voice in songs you join, for a choir with friends behind own_choir_together; 2026-11-21, 2: 60 minutes a month of Plus, one free song per email; 2026-11-20: a short voice reference is kept privately for the singer's own songs; songs a singer makes, with their typed words; Hillel's decisions)
 ---
 
 # Hear yourself as a choir
@@ -11,9 +11,9 @@ changed: 2026-11-22 (3, unaccepted: term 6, your voice in songs you join, for a 
 ## The short version
 
 - You sing about 30 seconds in the app, and we make a song's parts in a voice like yours, using AI.
-- We keep a short voice reference from it privately, so your next songs need no new recording. Only you can use it,
-  only for your own songs.
-- Delete it any time in the app. Unused for 12 months, it goes by itself.
+- We keep your recording and a short voice reference made from it privately, so your next songs need no new recording
+  and you can compare your own singing with the choir. Only you can use them, only for your own songs.
+- Delete them any time in the app. Unused for 12 months, they go by themselves.
 - It sings our library's songs, and songs you make, with your own words.
 - The songs are private to you and always marked as AI. Delete one, or everything, at any time in the app.
 - A friend can invite you to sing in their song, free. An AI voice like yours then sings only the parts named in the
@@ -28,14 +28,14 @@ changed: 2026-11-22 (3, unaccepted: term 6, your voice in songs you join, for a 
 in a voice like yours, using AI; to keep a short voice reference made from it for your next songs; and to keep the
 songs it makes for you to hear.
 
-2. **Your recording.** You record about 30 seconds, singing along with the song, and the app records it live. Record
-only your own voice. We make a short voice reference from it, and delete the recording itself once your first song is
-made, or if making it fails.
+2. **Your recording.** You record about 30 seconds of a song you choose, and the app records it live. Record only your
+own voice. We make a short voice reference from it, and keep the recording privately with it, so you can hear your own
+singing beside the choir. If making the voice fails, we delete the recording.
 
-3. **Your voice reference.** We keep it privately in your account so your next songs need no new recording. Only you
-can use it, and only for your own songs: we never use it, or your songs, to make a voice for anyone else, or for
-anything else. We delete it promptly when you delete it in the app or delete your account, and after 12 months in
-which you make no song with it.
+3. **Your voice reference and recording.** We keep them privately in your account so your next songs need no new
+recording. Only you can use them, and only for your own songs: we never use them, or your songs, to make a voice for
+anyone else, or for anything else. We delete both promptly when you delete your voice or your account in the app,
+and after 12 months in which you make no song with them.
 
 4. **What it sings.** Songs in our library, with their own words, and songs you make in the app, with the words you
 give them (a hummed tune without words is sung on "oo"). Your words follow our community guidelines: nothing that

@@ -157,7 +157,9 @@ final class SitePagesController extends Controller
                 'slug' => $slug,
                 'title' => SongWords::title((string) $song->title, $slug),
                 'tune' => YourChoirStage::tune($song),
-                'url' => '/songs/'.$slug,
+                // Straight into the app's choir for this song (Hillel, 2026-11-22: "go right into their choice"), where the
+                // choir can sing it; otherwise, or while the switch is off (an admin's preview), the song's page.
+                'url' => SongPagesController::choirLink($song, true, 'your-choir') ?? '/songs/'.$slug,
             ];
         }, self::CHOIR_SONGS)));
     }

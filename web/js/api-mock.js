@@ -180,6 +180,12 @@ async function stateful(operation, params, body, cases, query = {}) {
             const { data } = await example('templates.show.200.json');
             return respond(200, { data: { ...data, template } });
         }
+        // A choir clip's tune not on disk here (the hidden voice-capture song, Joy to the World): the example's notes under
+        // the id asked for, so the take's project is that tune's.
+        if (['voice-capture', 'joy-to-the-world'].includes(params.id)) {
+            const { data } = await example('templates.show.200.json');
+            return respond(200, { data: { ...data, template: { ...data.template, id: params.id } } });
+        }
         // An open library song as the server sends it (stackapella.mockOpenSong, this tab): reviewed, to a guest as well
         // (`grant: "open"`: a guest sings its first line, the app's cut, before the account's invitation).
         if (tabStorage.get('stackapella.mockOpenSong') === params.id) {
@@ -396,6 +402,8 @@ async function stateful(operation, params, body, cases, query = {}) {
         }
         // Each request's voices, friends and invite, as the server reckons them (the soprano sits high for this mock owner).
         const dress = (r) => {
+            // A low voice's arrangement (mockChoirLow, this tab), else as written: the server's call, from the range.
+            r.voicing = tabStorage.get('stackapella.mockChoirLow') ? 'low' : 'written';
             const friends = choir.members.filter((m) => m.requestId === r.id);
             r.left ??= [];
             // Off: no invites, but memberships still show (leaving and removing always work).
@@ -486,6 +494,8 @@ async function stateful(operation, params, body, cases, query = {}) {
                 choir.voice ??= { savedAt: now, lastUsedAt: now, expiresAt: now };
             }
             for (const r of choir.requests) dress(r);
+            // Their own 30 seconds, kept with the saved voice once a song made from it is ready (a short-lived link).
+            if (choir.voice) choir.voice.clipListen = choir.requests.some((r) => r.status === 'ready') ? { url: `${location.origin}/tests/fixtures/guide-48000.m4a?clip=1`, expiresAt: new Date(Date.now() + 36e5).toISOString().replace(/\.\d+Z$/, 'Z') } : null;
             return save(respond(200, { data: choir }));
         }
         if (operation === 'ownChoir.consent') {

@@ -9,7 +9,8 @@ import { api, ApiError } from '../api.js';
 import { langCookie } from '../public/lang-menu.js';
 import { loadCatalogue } from '../stores/catalogue.js';
 import { chooseLanguage, coverage, formatDate, formatWait, locale, t, tk } from '../i18n.js';
-import { chooseNaming, naming, NAMINGS, namingSample, noteNames } from '../note-names.js';
+import { chooseNaming, naming, NAMINGS, namingSample, nameNote, noteNames } from '../note-names.js';
+import { RangeDialog } from '../components/dialogs.js';
 import { navigate } from '../router.js';
 import { account, loadAccount, loadAuthConfig, providerSignIn, selfHosted, signOut } from '../stores/account.js';
 import { Field, Notice, StatusChip } from '../components/form.js';
@@ -19,7 +20,7 @@ import { InstallRow } from '../components/install.js';
 import { Modal, toast } from '../components/ui.js';
 import { anySkipped, askAgain, confirmAction } from '../components/confirm.js';
 import { SavedVoiceRow } from '../own-choir.js';
-import { learning, loadLearning, restartCourse, undoRestart } from '../stores/learning.js';
+import { clearRange, learning, loadLearning, restartCourse, undoRestart } from '../stores/learning.js';
 import { formatBytes, SyncStatus } from '../components/cloud.js';
 import { appearanceSummary } from '../components/appearance.js';
 import { Switch } from '../components/controls.js';
@@ -87,8 +88,9 @@ const SECTIONS = ['profile', 'account', 'game', 'practice', 'plan', 'data', 'dev
 const SECTION_WORDS = { profile: tk('settings.nav.profile'), account: tk('settings.nav.account'), game: tk('settings.nav.game'), practice: tk('settings.nav.practice'), plan: tk('settings.nav.plan'), data: tk('settings.nav.data'), device: tk('settings.nav.device') };
 
 export const SettingsView = {
-    components: { SavedVoiceRow, InstallRow, GameElements, GameModeSwitch, AppScreen, ThemeSwitch, Field, Notice, StatusChip, Icon, Logo, Modal, SyncStatus, Switch },
+    components: { RangeDialog, SavedVoiceRow, InstallRow, GameElements, GameModeSwitch, AppScreen, ThemeSwitch, Field, Notice, StatusChip, Icon, Logo, Modal, SyncStatus, Switch },
     data: () => ({
+        checkingRange: false, // the range check, open from Your range
         notices: 0, // statements of reasons about this account (views/notices.js): a row only when there are any
         hereSongs: null, // a guest's songs on this device (the Settings card's tally)
         backup: null, // 'making' or 'restoring' a backup file, while it runs
@@ -279,6 +281,16 @@ export const SettingsView = {
                         <!-- Class codes for teachers (docs/school-offer-plan.md): Plus for a year for their students; adults only. -->
                         <a v-if="config?.schools && account.me && account.me.isAdult !== false" href="/settings/classes" class="flex items-center justify-between gap-4 p-5 hover:bg-raised/50" data-class-codes @click.prevent="navigate('/settings/classes')"><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('school.classes.title') }}</span><span class="block text-sm text-muted">{{ t('school.settings.teacherHint') }}</span></span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" /></a>
                         <div class="py-3 pe-3 ps-5" data-sounds><Switch :on="prefs.sounds" :label="t('settings.device.sounds')" :hint="sk('settings.device.soundsHintSerious', 'settings.device.soundsHint')" @change="(on) => (prefs.sounds = on)" /></div>
+                        <!-- Your range (Hillel, 2026-11-22: "when my range is set I don't see an option to reset it"): what's kept,
+                             Check my range again (the range check; its answer replaces the old), and a quiet Clear my range. -->
+                        <div class="flex flex-wrap items-center justify-between gap-4 p-5" data-settings-range>
+                            <div class="min-w-0 flex-1">
+                                <p class="font-semibold text-cream">{{ t('settings.range.title') }}</p>
+                                <p class="text-sm text-muted" data-settings-range-value>{{ rangeLine }}</p>
+                                <button v-if="learning.progress.range" type="button" class="link-quiet inline-flex min-h-11 items-center text-sm" data-settings-range-clear @click="clearMyRange">{{ t('settings.range.clear') }}</button>
+                            </div>
+                            <button type="button" class="btn-secondary btn-sm shrink-0 rounded-full" data-settings-range-check @click="checkingRange = true">{{ learning.progress.range ? t('settings.range.again') : t('settings.range.check') }}</button>
+                        </div>
                         <!-- Voice care (docs/voice-care-plan.md): the 20 and 40 minute notes, on by default; the cool-down stays either way. -->
                         <div class="py-3 pe-3 ps-5" data-voice-notes><Switch :on="voiceCare.notesOn" :label="t('voiceCare.settingsTitle')" :hint="t('voiceCare.settingsHint')" @change="setNotes" /></div>
                         <div class="flex flex-wrap items-center justify-between gap-4 p-5" data-restart>
@@ -395,8 +407,14 @@ export const SettingsView = {
                     </div>
                 </form>
             </Modal>
+            <RangeDialog v-if="checkingRange" :template="{ key: 'C', parts: [] }" :parts="[]" @close="checkingRange = false" />
         </AppScreen>`,
     computed: {
+        /** The range kept, in the naming in use, or that none is. */
+        rangeLine() {
+            const range = learning.progress.range;
+            return range ? t('settings.range.value', { low: nameNote(range.low), high: nameNote(range.high) }) : t('settings.range.none');
+        },
         /** The tools' hub on the public site (its own host, or this one's /tools). */
         toolsUrl() {
             return this.siteUrl('/tools');
@@ -473,6 +491,12 @@ export const SettingsView = {
         this.sections?.disconnect();
     },
     methods: {
+        async clearMyRange() {
+            const sure = await confirmAction({ title: t('settings.range.confirmTitle'), body: t('settings.range.confirmBody'), action: t('settings.range.clear') });
+            if (!sure) return;
+            await clearRange();
+            toast(t('settings.range.cleared'));
+        },
         /** The tools opened from here: counted once a week a device (use_tools, read against app_week). */
         /** A page of the public site: its own host, or this one's. */
         siteUrl(path) {

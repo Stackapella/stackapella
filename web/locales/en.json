@@ -4708,6 +4708,17 @@
             "notBackup": "That file isn't a Stackapella backup.",
             "newerBackup": "That backup is from a newer Stackapella. Refresh the app, then try again.",
             "restoreFailed": "The backup couldn't be restored. Try again."
+        },
+        "range": {
+            "title": "Your range",
+            "value": "{low} to {high}",
+            "none": "Not checked yet. Parts are suggested from it once you do.",
+            "again": "Check my range again",
+            "check": "Check my range",
+            "clear": "Clear my range",
+            "confirmTitle": "Clear your range?",
+            "confirmBody": "Part suggestions and how a choir's parts fit you stop using it until you check your range again. Your songs and recordings stay.",
+            "cleared": "Your range is cleared."
         }
     },
     "version": {
@@ -8523,9 +8534,12 @@
         },
         "title": "Hear yourself as a choir",
         "intro": {
-            "one": "Sing the tune of {song} for 30 seconds, in whatever octave feels comfortable.",
+            "one": "Sing {song} and For He's a Jolly Good Fellow, in whatever octave feels comfortable.",
+            "oneSong": "Sing {song} for 30 seconds, in whatever octave feels comfortable.",
             "oneBody": "It needn't be good singing: we only listen for what your voice sounds like, and keep it privately for your next songs.",
-            "two": "We make every part of it in a voice like yours, labelled as AI.",
+            "choose": "Song to sing",
+            "thenJolly": "then For He's a Jolly Good Fellow",
+            "two": "We make every part of {song} in a voice like yours, labelled as AI.",
             "three": "Then learn your part: each one you record takes the place of its AI version."
         },
         "record": {
@@ -8553,12 +8567,18 @@
             "download": "Download my choir",
             "fileName": "{song} (with AI voices)",
             "notice": "Your choir is ready: {song}, sung in a voice like yours",
-            "button": "Listen"
+            "button": "Listen",
+            "lowVoice": "Arranged for a low voice: the tune and alto sit an octave down.",
+            "clip": {
+                "title": "Your recording",
+                "hint": "The 30 seconds your choir was made from, to compare.",
+                "play": "Hear your recording"
+            }
         },
         "failed": {
             "title": "We couldn't make your choir this time",
             "body": "Your recording has been deleted. Try again with a new one, somewhere quiet, singing a little louder.",
-            "clip_unusable": "We couldn't hear enough singing to make a voice. Try again, singing the tune and its words clearly.",
+            "clip_unusable": "We couldn't hear enough singing to make a voice. Try again, singing both songs clearly.",
             "bad_clip": "Your recording didn't arrive as it should. Try again.",
             "gates_failed": "Some parts didn't come out in tune. Try again with a new recording.",
             "render_failed": "Something went wrong on our side. Try again.",
@@ -8715,7 +8735,6 @@
                 "saved": "Agree and use my saved voice",
                 "free": "Free for you. We keep the voice made from your singing privately, for your own songs; delete it any time.",
                 "no": "No thanks",
-                "tune": "Sing the tune of {song} for 30 seconds, in whatever octave feels comfortable.",
                 "local": "Your take stays on this device until you agree.",
                 "send": "Agree and send",
                 "again": "Sing it again",
@@ -8758,6 +8777,15 @@
                 "changed": "The parts changed since you opened this. Here's what a voice like yours will sing now."
             },
             "friendLeft": "{name} left {song}. Its shared links stopped working: share it again when you like."
+        },
+        "firstNote": {
+            "title": "Sing your first note, wherever feels comfortable",
+            "hint": "Hold an easy note for a moment. We'll move {song} so it starts there.",
+            "heard": "You sang {note}. {song} will start there.",
+            "use": "Sing it from {note}",
+            "again": "Try another note",
+            "usual": "Use the usual key",
+            "noMic": "We couldn't hear a note. Try again, a little louder, or use the usual key."
         }
     },
     "aiVoice": {

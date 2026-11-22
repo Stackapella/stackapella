@@ -16,16 +16,17 @@ import { account, loadAccount, loadAuthConfig } from '../stores/account.js';
 import { startFromTemplate } from '../stores/projects.js';
 import { loadTemplate, templatePartName } from '../templates.js';
 import { Agreement } from './beta.js';
-import { dropJoinClip, joinClipFor, joinWithClip, tunePart } from '../own-choir.js';
+import { FirstNoteStep } from '../components/first-note.js';
+import { ClipChoice, clipLine, clipPick, clipTemplate, dropJoinClip, joinClipFor, joinWithClip, pickedClip, tunePart } from '../own-choir.js';
 import { choirRefusal, keepJoin, loadOwnChoir, ownChoir, partList, savedVoice, termsNeeded, togetherOn } from '../own-choir.js';
 import { loadChoir, playChoir, stopChoir } from '../own-choir-player.js';
 import { game as gameSkin } from '../stores/appearance.js';
 
 export const ChoirTogetherJoinView = {
-    components: { AccountWall, Agreement, AppScreen, Switch },
+    components: { AccountWall, Agreement, AppScreen, ClipChoice, FirstNoteStep, Switch },
     props: { token: { type: String, required: true } },
-    data: () => ({ withClip: false, singInstead: false, clipLost: false, sent: false, partsChanged: false, wordsChanged: false, state: 'loading', invite: null, terms: null, showName: false, busy: false, playing: false, loadingTrack: false, template: null }),
-    setup: () => ({ account, savedVoice, navigate }),
+    data: () => ({ firstNote: null, withClip: false, singInstead: false, clipLost: false, sent: false, partsChanged: false, wordsChanged: false, state: 'loading', invite: null, terms: null, showName: false, busy: false, playing: false, loadingTrack: false, template: null }),
+    setup: () => ({ account, savedVoice, navigate, clipLine }),
     computed: {
         here() {
             return `/choir/join/${encodeURIComponent(this.token)}`;
@@ -122,7 +123,7 @@ export const ChoirTogetherJoinView = {
             const clip = joinClipFor(this.token);
             this.withClip = !!clip;
             if (clip) {
-                await this.readYourParts({ partKey: clip.partKey, octave: clip.octave });
+                await this.readYourParts({ partKey: clip.partKey, octave: clip.octave, clipTemplateId: clip.clipTemplateId, ...(clip.clipTranspose ? { clipTranspose: clip.clipTranspose } : {}) });
                 this.state = 'agree';
                 return;
             }
@@ -192,17 +193,32 @@ export const ChoirTogetherJoinView = {
             }
         },
         /** "Agree and start singing": the usual 30 seconds, on the invite's first part, in a choir project that knows it's a join. */
+        /** Start singing (or Sing it again): first, the note they'd like to start on (Hillel), for the tune they chose. */
         async sing() {
             if (this.busy) return;
             this.busy = true;
             try {
+                const clip = await clipTemplate();
+                const notes = clip.parts.find((p) => p.key === tunePart(clip))?.guide?.notes ?? [];
+                this.firstNote = { pitch: notes[0]?.pitch ?? null, song: clipPick.titles[pickedClip().templateId] ?? '' };
+                this.state = 'sing';
+            } finally {
+                this.busy = false;
+            }
+        },
+        /** The note chosen (or the usual key): the take's project in that key, then Sing. */
+        async record(shift = 0) {
+            if (this.busy) return;
+            this.busy = true;
+            try {
                 await dropJoinClip(this.token); // singing it again replaces the take kept here
-                const template = this.template ?? (await loadTemplate(this.invite.templateId));
+                // The tune they chose to sing, as for an own choir (the contract's clipTemplateId).
+                const template = await clipTemplate();
                 // Always the tune, with its words, in whatever octave (never the invite's part: a low "oo" part gives too
                 // little to hear, as Hillel's own bass clip showed).
                 const partKey = tunePart(template) ?? this.parts[0];
                 const join = { token: this.token, showName: this.showName, wordsSha: this.invite.wordsSha ?? null, partKey, parts: this.yourParts, owner: this.invite.owner };
-                const project = await startFromTemplate(template, { keyChosen: true, focusKey: partKey, choir: { requestId: null } });
+                const project = await startFromTemplate(template, { transpose: shift, keyChosen: true, focusKey: partKey, choir: { requestId: null } });
                 keepJoin(project.id, join);
                 navigate(`/p/${project.id}/sing?part=${encodeURIComponent(partKey)}`);
             } catch (error) {
@@ -330,9 +346,11 @@ export const ChoirTogetherJoinView = {
                 </section>
 
                 <!-- Tune first: they sing the tune (kept on this device), then see the yes with exactly their parts. -->
+                <FirstNoteStep v-else-if="state === 'sing' && firstNote" :first="firstNote.pitch" :song="firstNote.song" @go="record" />
                 <section v-else-if="state === 'sing'" class="card space-y-4 p-5" data-join-sing-step>
                     <p v-if="clipLost" class="text-sm text-cream" role="status" data-join-clip-lost>{{ t('ownChoir.together.join.clipLost') }}</p>
-                    <p class="text-cream" data-join-tune>{{ t('ownChoir.together.agree.tune', { song: invite.title }) }}</p>
+                    <p class="text-cream" data-join-tune>{{ clipLine() }}</p>
+                    <ClipChoice />
                     <button type="button" class="btn-primary w-full sm:w-auto" :disabled="busy" data-join-sing @click="sing">{{ t('ownChoir.record.start') }}</button>
                     <button type="button" class="link-quiet inline-flex min-h-11 items-center text-sm" data-join-no @click="decline">{{ t('ownChoir.together.agree.no') }}</button>
                 </section>

@@ -21,7 +21,8 @@
                 "requests",
                 "busyToday",
                 "checkNeeded",
-                "joined"
+                "joined",
+                "clipSongs"
             ],
             "properties": {
                 "consent": {
@@ -54,7 +55,8 @@
                         "savedAt",
                         "lastUsedAt",
                         "expiresAt",
-                        "wordless"
+                        "wordless",
+                        "clipListen"
                     ],
                     "properties": {
                         "savedAt": {
@@ -73,6 +75,28 @@
                         "wordless": {
                             "type": "boolean",
                             "description": "Prepared from a clip of a part with no words (a hum): for a song with words the app may suggest one sung line; never required."
+                        },
+                        "clipListen": {
+                            "type": [
+                                "object",
+                                "null"
+                            ],
+                            "additionalProperties": false,
+                            "required": [
+                                "url",
+                                "expiresAt"
+                            ],
+                            "description": "The singer's original clip, an AAC copy kept with their voice to compare before and after: theirs alone, a link for an hour; null until the song that made the voice is ready.",
+                            "properties": {
+                                "url": {
+                                    "type": "string",
+                                    "format": "uri"
+                                },
+                                "expiresAt": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                }
+                            }
                         }
                     },
                     "description": "Their voice, kept privately for their next songs (prepared from their first clip); null until then, or once deleted."
@@ -173,6 +197,29 @@
                         }
                     },
                     "description": "Choirs you sing in (another singer's song you joined), newest first."
+                },
+                "clipSongs": {
+                    "type": "array",
+                    "description": "The tunes a clip may sing, in the order shown, the first the default; stopBeat where the clip stops (null: the whole tune).",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "templateId",
+                            "stopBeat"
+                        ],
+                        "properties": {
+                            "templateId": {
+                                "type": "string"
+                            },
+                            "stopBeat": {
+                                "type": [
+                                    "number",
+                                    "null"
+                                ]
+                            }
+                        }
+                    }
                 }
             },
             "description": "ownChoir.json's state, or null: nothing of theirs kept while own_choir is off for them (Settings asks for everyone)."

@@ -328,6 +328,8 @@ final class OwnChoir
                 'lastUsedAt' => ($voice->last_used_at ?? $voice->saved_at)?->utc()->toIso8601ZuluString(),
                 'expiresAt' => $voice->expiresAt()->utc()->toIso8601ZuluString(),
                 'wordless' => $voice->wordless,
+                // Their original clip, to compare before and after (2026-11-23): theirs alone, a short-lived link.
+                'clipListen' => $voice->clip_key === null ? null : ['url' => Storage::disk('private')->temporaryUrl($voice->clip_key, now()->addHour()), 'expiresAt' => now()->addHour()->utc()->toIso8601ZuluString()],
             ],
             'termsVersion' => self::termsVersion(),
             'quota' => $quota = self::quota($user),
@@ -337,6 +339,8 @@ final class OwnChoir
                 ->map(static fn (OwnChoirRequest $r): array => self::request($r, $quota['plus'], $user))->all()),
             // Choirs they sing in (another singer's song they joined).
             'joined' => ChoirTogether::joined($user),
+            // The tunes they may sing their clip to, the first the default (Hillel, 2026-11-23).
+            'clipSongs' => ClipTune::songs(),
         ];
     }
 
@@ -383,6 +387,8 @@ final class OwnChoir
             // Each part's active render: the owner's, or a friend's once theirs is in (choir together).
             'parts' => $ready ? array_values(ChoirTogether::activeParts($request)->map(static fn (OwnChoirPart $p): array => self::recording($p))->all()) : [],
             'progress' => self::progress($request),
+            // "Arranged for a low voice" (2026-11-23).
+            'voicing' => $request->voicing,
             'voices' => ChoirTogether::voices($request, $viewer),
             'members' => ChoirTogether::members($request, $viewer),
             'left' => ChoirTogether::left($request, $viewer),

@@ -7586,7 +7586,13 @@ its check, deleted before its turn) or failed through ours (`render_failed`, `ga
 #### `ownChoir.show`
 
 The singer's consent, quota and songs, newest first. A ready song not yet `seen` is the app's in-app notice (never
-email). Each song's `progress` (since 2026-11-23) gives each of its parts' real state while it's `queued` or `rendering`: `[{ "partKey": "alto", "status": "ready" | "making" | "waiting" }]`, all `waiting` before the renderer claims it, then `making` until that part's render is in; `[]` otherwise (a friend's job lists only their parts). Each song's `canDownload` says whether the app offers Download (Plus, Hillel 2026-11-21); without it, Download
+email). The voice's `clipListen` (since 2026-11-23, Hillel: "useful for people to compare the before/after"): the
+singer's original clip, an AAC copy kept with their saved voice, `{ "url", "expiresAt" }` (an hour), or null until the
+song that made the voice is ready; theirs alone (a friend's clip is kept with the friend's voice and shown only to
+them), deleted with the voice (stop making songs, deleting the voice or the account, a voice unused for months), and in
+Download my data. `clipSongs` (since 2026-11-23) lists the tunes a clip may sing, in the order shown, the first the default
+(voice-capture, shown as Happy Birthday): `[{ "templateId", "stopBeat" }]`. The clip stops at `stopBeat` (null: the
+whole tune): the app sings, and the worker's `clip.data` holds, only the notes starting before it, each unchanged. Each song's `progress` (since 2026-11-23) gives each of its parts' real state while it's `queued` or `rendering`: `[{ "partKey": "alto", "status": "ready" | "making" | "waiting" }]`, all `waiting` before the renderer claims it, then `making` until that part's render is in; `[]` otherwise (a friend's job lists only their parts). Each song's `canDownload` says whether the app offers Download (Plus, Hillel 2026-11-21); without it, Download
 opens the Plus sheet (`billing.checkout`'s `moment` `choir_download`), and listening and sharing stay free. It's a gate
 in the app, as MP3 export is, not a lock on bytes: the app mixes the WAV from the parts' private playback links, which
 are unchanged, so there's no download endpoint to refuse. **Request:** none. `data` is `null` while `own_choir` is off for this person and they have nothing kept (no
@@ -7618,9 +7624,22 @@ when beat 0 isn't known). With their saved voice, `{ "templateId": "silent-night
 prepared from it replaces their saved one. `409 voice_required`: no saved voice and no clip. `409 song_too_long`: a song with more parts, or a longer part, than
 one song may cost to render (config `own_choir.max_parts`, 8, and `max_part_seconds`, 300). **Request** with a clip: `{ "templateId":
 "silent-night", "partKey": "alto", "offsetFrames": 24000, "sampleRate": 48000, "frames": 1440000, "bytes": 2880044,
-"sha256": "<64 hex>" }`: a 16-bit mono WAV recorded in the app (no file uploads), 5 to 30 seconds; `partKey` the part
+"sha256": "<64 hex>" }`: a 16-bit mono WAV recorded in the app (no file uploads), 5 to 35 seconds (Happy Birthday twice through, with a lead-in and a tail); `partKey` the part
 they sang along to (since 2026-11-23 always the tune: the server records the song's melody part, `melody: true` or
-else the first, whatever is sent, and the renderer finds the octave they sang it in); `offsetFrames` the clip frame where the song's beat 0 falls (latency removed), or null. `403
+else the first, whatever is sent, and the renderer finds the octave they sang it in); `offsetFrames` the clip frame where the song's beat 0 falls (latency removed), or null.
+Since 2026-11-23 the clip sings **the voice-capture tune** whatever song is being made (Hillel: "let's go with Happy
+Birthday"): a hidden one-part template, Happy Birthday once then For He's a Jolly Good Fellow once, about 30 seconds,
+listed nowhere but served by `templates.show`. Optional `clipTemplateId`, the template whose tune the clip sings:
+one the singer chose from config `own_choir.clip_templates` (Hillel, 2026-11-23): `"voice-capture"` (the default, shown
+as Happy Birthday), `"silent-night"`, `"amazing-grace"` or `"joy-to-the-world"`; any other is `422`. Its current
+version is recorded. `partKey` and `offsetFrames` then refer to the clip's template (its melody, its beat 0). The words
+shown are the words sung ("dear friend" on Happy Birthday's name line). Optional `clipTranspose` (−12 to 12): the semitones
+the app moved the tune to the singer's comfortable first note before they sang it (Hillel, 2026-11-23; kept with the
+request, and the worker gets the tune transposed). Optional `octave` (−12, 0 or 12): the octave the app measured the
+clip sung in, against the tune as played. **The low-voice version** (Hillel, 2026-11-23): when the
+singer's range (measured, else the clip's tune in that octave, else their saved voice's) suits the song's tune an
+octave down better than as written, the song is arranged for a low voice: its treble parts an octave down, tenor and
+bass as written (each song's `voicing`, `written` or `low`, in `ownChoir.show`: "Arranged for a low voice"). `403
 consent_required`; `403 quota_reached` with `which` (`free`, `month` or `day`); `403 account_required` for a song they
 can't start; `409 request_open`: one song at a time; `404 not_found`: no such song or part.
 
@@ -7740,7 +7759,9 @@ The owner takes back an invite not yet used. **Request:** none.
 The invite as the friend opening it sees it, signed in or not: the song, the owner's first name, the parts it names
 and `yourParts`, exactly the ones your voice would sing: from your measured range, else (`?useSavedVoice=1`) the range
 your saved voice actually sang, else (since 2026-11-23, a friend sings the tune too) the tune's range in the octave the
-app measured on the take still on the device (`?partKey=<the melody>&octave=-12`, `0` or `12`),
+app measured on the take still on the device (`?partKey=<the melody>&octave=-12`, `0` or `12`, and `&clipTemplateId=`
+as in `ownChoir.requests.create`, voice-capture by default, with `&clipTranspose=`: the tune's range is the clip
+template's melody, transposed),
 the song as it is (its listening copy, 2 hours) and, for the owner's own song, its words with `wordsSha`. A used,
 expired or revoked link answers only its `status` and `expiresAt` (`title`, `templateId` and `owner` null, nothing
 else), so a link that went round tells nobody whose song it was. `404 not_found`: no such link (or the switch is
@@ -7756,7 +7777,7 @@ off for its owner). Counts `own_choir_invite_opened`. **Request:** none.
 The friend joins, signed in, with the own-choir terms accepted (`403 consent_required`; `ownChoir.consent` first) and
 18 or over (`403 adult_required`), a confirmed email (`403 email_unverified`). **Request:** `{ "parts": ["soprano",
 "alto"], "showName": false, "wordsSha": "<from show, for an own song>", "useSavedVoice": true }`, `parts` the exact
-`yourParts` the friend saw and agreed to, with a new clip its `octave` as in `invites.show` and `partKey` the melody
+`yourParts` the friend saw and agreed to, with a new clip its `octave`, `clipTemplateId` and `clipTranspose` as in `invites.show` and `partKey` the melody
 (the take is uploaded only after the yes) (`409 parts_changed` when they're no longer what their voice would sing:
 show again; `403 plus_required` or `409 choir_full` when the song's friends are full by then, checked under the owner's
 lock), or a new clip's fields as `requests.create` takes
@@ -7907,7 +7928,13 @@ prepared before, with your own `meta`). `claim` is this claim's token: every cal
 "<token>"`), and one with a missing or stale token is `409 job_not_claimed` (another worker may have it now). A claim lasts 20 minutes; a job not
 finished by then goes back to the queue, at most twice, then fails (`render_failed`). The clip's link lasts 30 minutes;
 delete everything you held once you post `finish`. `own`: the singer's own song (no gates re-render: finish
-`gates_failed`). Paid Plus is claimed first; past the day's renders across everyone (`own_choir.daily_part_minutes`)
+`gates_failed`). `voicing` (`written` or `low`) and `shifts` (`[{ "partKey", "shift" }]`, each part's octave shift, −12 or 0): a low-voice song's
+`data` is already transformed (treble parts an octave down, octaves only so every chord tone is kept, a moved note that
+would fall below the bass sounding with it kept at pitch); render `data` as given, and the gates check it as given. A `clip` names the template its singer sang (since 2026-11-23 voice-capture by default, whatever song
+is being made): `template`, `version` and `data`, that template.json as sung (each part's notes starting before its
+`stopBeat` in `ownChoir.show`'s `clipSongs`, each moved by `transpose` semitones, the singer's first note, and otherwise
+unchanged), `part` its melody. Prepare the
+reference against the clip's `data`, and render the song's `data` as always. The singer sings the words shown. Paid Plus is claimed first; past the day's renders across everyone (`own_choir.daily_part_minutes`)
 nothing more is claimed until tomorrow (`204`). **Request:** none.
 
 | Status | Code | Schema | Example |

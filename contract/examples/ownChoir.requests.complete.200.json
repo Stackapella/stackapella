@@ -33,6 +33,7 @@
         "voices": [],
         "members": [],
         "left": [],
-        "invite": null
+        "invite": null,
+        "voicing": "written"
     }
 }

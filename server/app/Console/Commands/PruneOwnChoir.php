@@ -60,7 +60,7 @@ final class PruneOwnChoir extends Command
             ->chunkById(200, function ($old) use (&$voices): void {
                 foreach ($old as $voice) {
                     /** @var OwnChoirVoice $voice */
-                    Storage::disk('private')->delete(array_values(array_filter([$voice->upload_key, (string) $voice->reference_key])));
+                    Storage::disk('private')->delete($voice->files());
                     $voice->delete();
                     $voices++;
                 }

@@ -8,6 +8,7 @@ use App\Actions\Counts\RecordCounts;
 use App\Enums\OwnChoirStatus;
 use App\Exceptions\Refusal;
 use App\Jobs\EncodeChoirPart;
+use App\Jobs\KeepVoiceClip;
 use App\Models\AuditLog;
 use App\Models\OwnChoirPart;
 use App\Models\OwnChoirRequest;
@@ -167,7 +168,7 @@ final class ChoirJobs
             'bytes' => $reference['bytes'],
             'sha256' => strtolower($reference['sha256']),
             'meta' => $reference['meta'],
-            'wordless' => self::wordless((array) ($request->templateVersion->data ?? []), (string) $request->part_key),
+            'wordless' => self::wordless((array) ($request->clipVersion()->data ?? []), (string) $request->part_key),
         ]);
         // The octave the tune was sung in and the notes actually sung (the worker's report): the voice's range later.
         $range = array_values((array) ($reference['sungRange'] ?? []));
@@ -231,7 +232,7 @@ final class ChoirJobs
             OwnChoirVoice::query()->whereKey($old->modelKeys())->delete();
             $locked->forceFill(['status' => 'ready', 'reference_key' => $received, 'saved_at' => now(), 'last_used_at' => now()])->save();
 
-            return array_values(array_filter($old->flatMap(static fn (OwnChoirVoice $v): array => [$v->upload_key, (string) $v->reference_key])->all()));
+            return array_values($old->flatMap(static fn (OwnChoirVoice $v): array => $v->files())->all());
         });
         Storage::disk('private')->delete($drop);
 
@@ -305,7 +306,12 @@ final class ChoirJobs
             return $clip;
         });
 
-        if ($clip !== null) {
+        // The clip that made their voice is kept with it, as AAC, for them to compare (Hillel, 2026-11-23); else it goes.
+        $voice = $request->from_voice ? null : OwnChoirVoice::query()->whereKey($request->own_choir_voice_id ?? 0)->where('user_id', $request->user_id)->where('status', 'ready')->value('id');
+
+        if ($clip !== null && $voice !== null) {
+            KeepVoiceClip::dispatch((int) $voice, $clip);
+        } elseif ($clip !== null) {
             Storage::disk('private')->delete($clip);
         }
 

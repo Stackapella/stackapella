@@ -18,7 +18,9 @@ use App\Models\OwnChoirVoice;
 use App\Models\Template;
 use App\Models\User;
 use App\Services\Cloudflare\Turnstile;
+use App\Support\OwnChoir\ClipTune;
 use App\Support\OwnChoir\OwnChoir;
+use App\Support\OwnChoir\VoicingTransform;
 use App\Support\Storage\ReceivedUploads;
 use App\Support\Storage\Uploads;
 use App\Support\Templates\Catalogue;
@@ -60,7 +62,7 @@ final class OwnChoirRequests
      * A song in their voice: from a new clip (the voice prepared from it replaces their kept one), or with `templateId`
      * alone from their kept voice (queued at once: a singer back for more).
      *
-     * @param  array{templateId: string, partKey?: string|null, offsetFrames?: int|null, sampleRate?: int|null, frames?: int|null, bytes?: int|null, sha256?: string|null, turnstileToken?: string|null}  $clip
+     * @param  array{templateId: string, clipTemplateId?: string|null, clipTranspose?: int|null, octave?: int|null, partKey?: string|null, offsetFrames?: int|null, sampleRate?: int|null, frames?: int|null, bytes?: int|null, sha256?: string|null, turnstileToken?: string|null}  $clip
      * @return array{request: OwnChoirRequest, put: array{url: string, method: string, headers: array<string, string>, expiresAt: \DateTimeInterface}|null}
      */
     public function start(User $user, array $clip, ?string $ip = null, bool $staffTest = false): array
@@ -99,13 +101,17 @@ final class OwnChoirRequests
         $template = Template::query()->with('currentVersion')->where('slug', $clip['templateId'])->whereNull('deleted_at')
             ->where(fn ($query) => $query->whereNull('owner_id')->when(OwnChoir::songsOn($user), fn ($own) => $own->orWhere('owner_id', $user->id)))->first();
         $version = $template?->currentVersion;
-        $parts = array_column(array_filter((array) ($version->data['parts'] ?? []), 'is_array'), 'key');
 
         $withClip = isset($clip['sampleRate'], $clip['frames'], $clip['bytes'], $clip['sha256'], $clip['partKey']);
 
-        if ($template === null || $version === null || ($withClip && ! in_array($clip['partKey'], $parts, true))) {
+        if ($template === null || $version === null) {
             throw new Refusal(404, 'not_found');
         }
+
+        // The tune the clip sang: Happy Birthday by default, or the song's own (2026-11-23).
+        $tune = $withClip ? ClipTune::version($clip['clipTemplateId'] ?? null, $version) : null;
+
+        // (partKey isn't checked: the clip is recorded as its tune's melody, whatever part the app named.)
 
         if ($template->isOfficial() && $this->catalogue->grant($template, $user) === null) {
             throw new Refusal(403, 'account_required');
@@ -125,7 +131,15 @@ final class OwnChoirRequests
             'email_key' => OwnChoir::emailKey($user),
         ];
 
-        return DB::transaction(function () use ($user, $clip, $version, $withClip, $cost): array {
+        // The low-voice version (2026-11-23): their range (measured, else the tune they just sang in the octave the app
+        // heard, else their saved voice's) suits the song's tune an octave down better than as written.
+        $octave = $withClip ? (int) ($clip['octave'] ?? 0) : 0;
+        $transpose = $withClip ? (int) ($clip['clipTranspose'] ?? 0) : 0;
+        $range = $tune !== null ? ChoirTogether::range($user, ClipTune::melody($tune), ChoirTogether::versionNotes($tune), $octave + $transpose) : ChoirTogether::range($user, null, [], 0);
+        $melody = ChoirTogether::versionNotes($version)[self::melody((array) $version->data) ?? ''] ?? [];
+        $voicing = $range !== null && $melody !== [] && VoicingTransform::isLow($melody, $range) ? 'low' : 'written';
+
+        return DB::transaction(function () use ($user, $clip, $version, $withClip, $cost, $tune, $octave, $transpose, $voicing): array {
             Owned::lockAccount($user);
 
             if (OwnChoirRequest::query()->where('user_id', $user->id)->whereNull('parent_request_id')->whereIn('status', [OwnChoirStatus::Uploading->value, OwnChoirStatus::Queued->value, OwnChoirStatus::Rendering->value])->exists()) {
@@ -144,7 +158,7 @@ final class OwnChoirRequests
                 }
 
                 $request = new OwnChoirRequest;
-                $request->forceFill(['user_id' => $user->id, 'template_version_id' => $version->id, 'own_choir_voice_id' => $voice->id, 'from_voice' => true, 'status' => OwnChoirStatus::Queued, ...$cost])->save();
+                $request->forceFill(['user_id' => $user->id, 'template_version_id' => $version->id, 'own_choir_voice_id' => $voice->id, 'from_voice' => true, 'status' => OwnChoirStatus::Queued, 'voicing' => $voicing, ...$cost])->save();
                 $this->ensureFree($user, $request);
                 $this->countFriendOwn($user, $request->id);
                 app(RecordCounts::class)->server('own_choir_requested', true, null);
@@ -154,14 +168,18 @@ final class OwnChoirRequests
                 return ['request' => $request, 'put' => null];
             }
 
-            // The clip is always the tune (Hillel, 2026-11-23: a bass part of "oo"s gives a voice no words): the song's
-            // melody, sung in any octave the singer likes, whatever part the app named.
-            $request = new OwnChoirRequest(['part_key' => self::melody((array) $version->data) ?? $clip['partKey']]);
+            // The clip is always a tune with words (Hillel, 2026-11-23: a bass part of "oo"s gives a voice none), Happy
+            // Birthday by default: its melody, sung in any octave the singer likes, whatever part the app named.
+            $request = new OwnChoirRequest(['part_key' => ($tune !== null ? ClipTune::melody($tune) : null) ?? $clip['partKey']]);
             $this->uploadBytes->count($user, (int) $clip['bytes']);
             $request->forceFill([
                 'user_id' => $user->id,
                 'template_version_id' => $version->id,
+                'clip_template_version_id' => $tune->id,
                 'offset_frames' => $clip['offsetFrames'] ?? null,
+                'octave' => $octave,
+                'clip_transpose' => $transpose,
+                'voicing' => $voicing,
                 'status' => OwnChoirStatus::Uploading,
                 // Under uploads/, which the private bucket's lifecycle expires after a day.
                 'upload_key' => 'uploads/choir/'.Str::lower(Str::random(32)).'.wav',
@@ -270,7 +288,7 @@ final class OwnChoirRequests
             $waiting = OwnChoirRequest::query()->whereIn('own_choir_voice_id', $voices->modelKeys())->whereIn('status', [OwnChoirStatus::Queued->value, OwnChoirStatus::Rendering->value])->pluck('id')->all();
             OwnChoirVoice::query()->whereKey($voices->modelKeys())->delete();
 
-            return [array_values(array_filter($voices->flatMap(static fn (OwnChoirVoice $v): array => [$v->upload_key, (string) $v->reference_key])->all())), $waiting];
+            return [array_values($voices->flatMap(static fn (OwnChoirVoice $v): array => $v->files())->all()), $waiting];
         });
         Storage::disk('private')->delete($files);
 
@@ -377,7 +395,7 @@ final class OwnChoirRequests
             $files = [
                 ...array_filter([$locked->upload_key, $locked->clip_key]),
                 ...$parts->flatMap(static fn (OwnChoirPart $p): array => ChoirJobs::partFiles($p))->all(),
-                ...$preparing->flatMap(static fn (OwnChoirVoice $v): array => array_filter([$v->upload_key, $v->reference_key]))->all(),
+                ...$preparing->flatMap(static fn (OwnChoirVoice $v): array => $v->files())->all(),
             ];
             OwnChoirPart::query()->whereKey($parts->modelKeys())->delete();
             OwnChoirVoice::query()->whereKey($preparing->modelKeys())->delete();

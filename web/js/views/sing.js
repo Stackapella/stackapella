@@ -124,7 +124,7 @@ export const SingView = {
                 :title="shownTitle(project)" :focus="focusPart ? { slot: focusPart, name: partName, range: templatePart(focusPart)?.range ?? null } : null" :bpm="project.bpm" :phrases="phraseRows.length" :length="lengthSeconds" :auto="!choosing" :no-voice="noVoiceSlots" :ai-voice="aiVoiceSlots"
                 @choose="choose" @range="dialog = 'range'" @back="leave" @studio="openStudio" />
             <!-- Recording strips everything else away (113.png): the lane, the words, Stop -->
-            <RecordingStage v-else-if="recording" :title="shownTitle(project)" :named="!!project.title?.trim()" :part-name="partName" :color="paint(focusPart.color)" :take="takeNumbers[rerecordId] ?? 1" :hearing="hearLine"
+            <RecordingStage v-else-if="recording" :title="shownTitle(project)" :named="!!project.title?.trim()" :part-name="clipTake ? '' : partName" :color="paint(focusPart.color)" :take="takeNumbers[rerecordId] ?? 1" :hearing="hearLine"
                 :count-in="countIn" :position="position" :length="lengthSeconds" :busy="busy" :on-pitch="onPitch" :line="hasWords ? currentLine : null" :next="hasWords ? nextLine : null" @stop="recordOrStop" @again="startOver">
                 <template #hearing><span class="relative block"><button type="button" class="relative grid size-11 shrink-0 place-items-center rounded-full glass-bubble text-cream" :aria-label="t('sing.settings.open')" data-settings-open @click="dialog = 'settings'"><Icon name="sliders" :size="20" /><span v-if="hearingChanged" class="absolute end-0 top-0 size-3 rounded-full bg-accent ring-2 ring-ink" data-hearing-changed aria-hidden="true"></span></button>
                     <!-- Game mode's bonus pop-ups (docs/game-elements-plan.md): under the header's end, never on the lane -->
@@ -137,7 +137,7 @@ export const SingView = {
                 <TurnBand v-if="bandShown" :color="paint(focusPart.color)" :others="otherNames" :marked="hearingChanged" @settings="dialog = 'settings'" />
                 <SingHeader v-else :title="shownTitle(project)" :named="!!project.title?.trim()" :info="songInfo" :part-name="partName" :color="paint(focusPart.color)" :chip="chip"
                     :recording="recording" :recorded-seconds="recordedSeconds" :count-in="countIn" :about="about" :badge="settingsBadge"
-                    @back="leave" @part="dialog = 'part'" @settings="dialog = 'settings'" :marked="hearingChanged" :view="view" @view="setView" />
+                    @back="leave" @part="dialog = 'part'" @settings="dialog = 'settings'" :marked="hearingChanged" :view="view" @view="setView" :any-part="clipTake" />
                 <LockedBanner v-if="locked" :reason="locked" :owner="project?.shared?.owner?.name ?? ''" class="mx-4 mt-2 md:mx-6" />
                 <PrivatePlus v-if="plusSheet" :kind="project?.shared ? 'other' : 'own'" :name="project?.shared?.owner?.name ?? ''" @close="plusSheet = false" />
                 <!-- A lesson's step done here (sung long enough, or recorded): the way back, where its Finish now waits. Secondary: the coach keeps the one primary. -->
@@ -231,6 +231,10 @@ export const SingView = {
             <RangeDialog v-if="dialog === 'range' && project" :template="project.template" :transpose="project.transpose || 0" @close="dialog = null" @use="useRange" />
         </div>`,
     computed: {
+        /** Recording the choir's 30 seconds (an own choir's or a join's take, any octave): no voice type to show or pick. */
+        clipTake() {
+            return !!this.project?.choir && !this.project.choir.requestId;
+        },
         /** Build up to speed applies: on your own, on a looped phrase, playing (not recording). */
         onLadder() {
             return !!this.practice?.ladder && this.way === 'parts' && this.coach.step === 'own' && this.practice.phrase !== null && this.playing && !this.recording;
@@ -1065,22 +1069,36 @@ export const SingView = {
                 // Joining a friend's choir (views/choir-together.js): the 30 seconds go to the invite, and the join page says
                 // what happens next; the take isn't kept, as for their own song.
                 const join = joinFor(this.project.id);
+                // The octave they sang in against the tune as played here (-12, 0 or +12; the server reckons their range and,
+                // for an own song, a low voice's arrangement from it), and the semitones the tune was moved to start on
+                // their note (the first-note step).
+                const clipTranspose = this.project.choir && !this.project.choir.requestId ? this.project.transpose || 0 : 0;
+                let octave = 0;
+                try {
+                    const notes = sessionStore.templatePart(part)?.guide.notes;
+                    const track = notes && (await trackInWorker(samples, part.sampleRate));
+                    if (track) octave = 12 * (scoreTake(track, notes, { beatSeconds: this.fullBeatSeconds, startSeconds: part.offsetSeconds, transpose: this.project.transpose || 0 }).octave || 0);
+                } catch (error) {
+                    console.warn('The octave sung was not read; the written one stands', error);
+                }
                 if (join) {
-                    // Tune first (the coordinator, 2026-11-22): the take stays on this device, its octave read here against the
-                    // tune as written (-12, 0 or +12), and the yes comes next with exactly the parts a voice like theirs sings.
-                    let octave = 0;
-                    try {
-                        const notes = sessionStore.templatePart(part)?.guide.notes;
-                        const track = notes && (await trackInWorker(samples, part.sampleRate));
-                        if (track) octave = 12 * (scoreTake(track, notes, { beatSeconds: this.fullBeatSeconds, startSeconds: part.offsetSeconds, transpose: this.project.transpose || 0 }).octave || 0);
-                    } catch (error) {
-                        console.warn('The octave sung was not read; the written one stands', error);
-                    }
-                    keepJoinClip(join.token, { samples: samples.slice(), sampleRate: part.sampleRate, startSeconds: part.offsetSeconds + (part.nudgeSeconds || 0), partKey: part.templatePartKey, octave, projectId: this.project.id });
+                    // Tune first (the coordinator, 2026-11-22): the take stays on this device, and the yes comes next with
+                    // exactly the parts a voice like theirs sings.
+                    keepJoinClip(join.token, { samples: samples.slice(), sampleRate: part.sampleRate, startSeconds: part.offsetSeconds + (part.nudgeSeconds || 0), partKey: part.templatePartKey, clipTemplateId: this.project.template.id, clipTranspose, octave, projectId: this.project.id });
                     navigate(`/choir/join/${encodeURIComponent(join.token)}?sung=1`);
                     return;
                 }
-                const request = await sendClip({ templateId: this.project.template.id, partKey: part.templatePartKey, samples, sampleRate: part.sampleRate, startSeconds: part.offsetSeconds + (part.nudgeSeconds || 0), turnstileToken });
+                // The voice-capture take for another song's choir (`forTemplateId`): the clip names its template; the
+                // project was only for the take, so it goes once sent (the server keeps only the voice made from it).
+                const forId = this.project.choir?.forTemplateId ?? null;
+                const request = await sendClip({ templateId: forId ?? this.project.template.id, clipTemplateId: forId ? this.project.template.id : null, clipTranspose: forId ? clipTranspose : 0, octave: forId ? octave : null, partKey: part.templatePartKey, samples, sampleRate: part.sampleRate, startSeconds: part.offsetSeconds + (part.nudgeSeconds || 0), turnstileToken });
+                if (forId) {
+                    const projectId = this.project.id;
+                    navigate(`/t/${encodeURIComponent(forId)}/choir`);
+                    const { deleteProject } = await import('../stores/projects.js');
+                    await deleteProject(projectId).catch((error) => console.warn('The take was not removed', error));
+                    return;
+                }
                 this.project.choir = { ...this.project.choir, requestId: request.id };
                 await sessionStore.persist(async () => {});
                 // The take was only for making the choir (the server keeps only the voice made from it): it isn't kept here

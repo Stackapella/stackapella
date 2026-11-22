@@ -94,6 +94,9 @@ def journey(f):
         f.run("document.querySelector('[data-choir-agree]').click()")
     f.wait("document.querySelector('[data-choir-start]')", what="Start singing")
     f.run("document.querySelector('[data-choir-start]').click()")
+    # Hillel: first, the note they'd like to start on (the app's find-your-note), with Use the usual key.
+    f.wait("document.querySelector('[data-first-note] [data-first-note-usual]')", what="the first-note step")
+    f.run("document.querySelector('[data-first-note-usual]').click()")
     f.wait("/^\\/p\\/[\\w-]+\\/sing$/.test(location.pathname)", what="Sing on a choir project")
     f.run("""const { sendClip } = await import('/js/own-choir.js');
         const samples = new Float32Array(48000 * 12).map((_, i) => 0.3 * Math.sin(i / 20));

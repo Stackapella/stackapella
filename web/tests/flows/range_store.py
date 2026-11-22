@@ -70,6 +70,30 @@ def journey(f):
         return [mergeRange(measured, picked).rangeSource, mergeRange(picked, measured).rangeSource, mergeRange(measured, chosen).rangeSource]; })()""")
     assert merged == ["measured", "measured", "chosen"], f"merges: {merged}"
 
+    # Settings' Your range (Hillel: "when my range is set I don't see an option to reset it"): what's kept, Check my range
+    # again (the range check), and Clear my range in a styled confirmation; cleared stays cleared over an older range.
+    f.go("/settings", "document.querySelector('[data-settings-range]')")
+    assert f.js("document.querySelector('[data-settings-range-value]').textContent.trim()") != t(f, "settings.range.none"), "the range kept isn't shown"
+    f.no_sideways("Settings' Your range")
+    f.run("document.querySelector('[data-settings-range]').scrollIntoView({ block: 'center' })")
+    f.shot("settings-range")
+    f.run("document.querySelector('[data-settings-range-check]').click()")
+    f.wait("document.querySelector('[role=dialog]')", what="the range check")
+    f.press("Escape")
+    f.wait("!document.querySelector('[role=dialog]')", what="the range check closed")
+    f.run("document.querySelector('[data-settings-range-clear]').click()")
+    f.wait("document.querySelector('[role=dialog] form .btn-danger') || document.querySelector('[role=dialog] form button[type=submit]')", what="the clear confirmation")
+    assert t(f, "settings.range.confirmTitle") in f.js("document.querySelector('[role=dialog] h2').textContent")
+    f.run("document.querySelector('[role=dialog] form').requestSubmit()")
+    f.wait(f"(async () => (await {PROGRESS}).range === null)()", what="the range cleared")
+    assert f.js("document.querySelector('[data-settings-range-value]').textContent.trim()") == t(f, "settings.range.none")
+    cleared = f.js("""(async () => { const { mergeRange } = await import('/js/course.js');
+        const gone = { range: null, rangeSource: 'cleared', rangeAt: 5 };
+        const older = { range: { low: 48, high: 67 }, rangeSource: 'measured', rangeAt: 4 };
+        const newer = { range: { low: 50, high: 69 }, rangeSource: 'measured', rangeAt: 6 };
+        return [mergeRange(gone, older).range, mergeRange(older, gone).range, mergeRange(gone, newer).range?.low ?? null]; })()""")
+    assert cleared == [None, None, 50], f"cleared merges: {cleared}"
+
 
 if __name__ == "__main__":
     run("range_store", journey)

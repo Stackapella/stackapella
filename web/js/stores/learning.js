@@ -571,6 +571,12 @@ export async function setRange(low, high, { source = 'measured' } = {}) {
     await save({ ...learning.progress, range: { low: Math.round(low), high: Math.round(high) }, rangeSource: source, rangeAt: Date.now() });
 }
 
+/** Settings' Clear my range: no range until they check it again (dated, so another device's older one never wins back). */
+export async function clearRange() {
+    await loadLearning();
+    await save({ ...learning.progress, range: null, rangeSource: 'cleared', rangeAt: Date.now() });
+}
+
 /** A part picked while no range is known: its range is kept as the singer's ('picked'). Never over a known one. */
 export async function pickRange(low, high) {
     await loadLearning();

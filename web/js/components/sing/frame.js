@@ -52,6 +52,8 @@ export const SingHeader = {
         named: { type: Boolean, default: true }, // the song has a title (else a placeholder, in italics)
         info: { type: String, default: '' },
         partName: { type: String, required: true },
+        // The choir's 30 seconds (any octave, the tune): no voice type shown or offered (Hillel, 2026-11-22).
+        anyPart: Boolean,
         color: { type: String, required: true },
         chip: { type: String, default: '' },
         recording: Boolean,
@@ -77,7 +79,7 @@ export const SingHeader = {
                 <button type="button" class="grid size-11 shrink-0 place-items-center rounded-full text-cream hover:bg-raised" :aria-label="t('common.back')" @click="$emit('back')"><Icon name="back" :size="22" /></button>
                 <div class="min-w-0 flex-1">
                     <p class="line-clamp-2 font-bold leading-snug md:text-lg" :class="named ? 'text-cream' : 'italic text-muted'" :translate="named ? 'no' : null">{{ title }}</p>
-                    <p class="line-clamp-2 text-xs text-muted md:text-sm">{{ info }}<template v-if="about"> · <span class="text-cream" translate="no">{{ partName }}</span> {{ about }}</template></p>
+                    <p class="line-clamp-2 text-xs text-muted md:text-sm">{{ info }}<template v-if="about && !anyPart"> · <span class="text-cream" translate="no" data-sing-part-name>{{ partName }}</span> {{ about }}</template></p>
                 </div>
                 <button type="button" class="relative grid size-11 shrink-0 place-items-center rounded-full glass-bubble text-cream sm:order-last" :aria-label="t('sing.settings.open')" data-settings-open @click="$emit('settings')">
                     <span v-if="marked && !badge" class="absolute end-0 top-0 size-3 rounded-full bg-accent ring-2 ring-ink" data-hearing-changed aria-hidden="true"></span>
@@ -88,7 +90,7 @@ export const SingHeader = {
                 <div v-if="view" class="grid shrink-0 grid-cols-3 rounded-full glass-bubble bg-raised/60 p-1 max-sm:order-last max-sm:w-full sm:inline-grid" role="group" :aria-label="t('sing.settings.show')" data-ui="view-switch">
                     <button v-for="v in VIEWS" :key="v.value" type="button" class="min-h-9 rounded-full px-3 text-sm font-semibold" :class="view === v.value ? 'glass-bubble-solid' : 'text-muted hover:text-cream'" :aria-pressed="view === v.value ? 'true' : 'false'" :data-sing-view="v.value" @click="$emit('view', v.value)">{{ t(v.label) }}</button>
                 </div>
-                <div class="flex shrink-0 items-center max-sm:hidden">
+                <div v-if="!anyPart" class="flex shrink-0 items-center max-sm:hidden" data-sing-part-picker>
                     <button type="button" class="flex min-h-11 shrink-0 items-center gap-2 rounded-full glass-bubble bg-raised/60 py-1.5 pe-2.5 ps-3 text-sm font-semibold text-cream hover:bg-raised" :aria-label="t('sing.yourPart.open', { part: partName })" @click="$emit('part')">
                         <span class="size-2.5 rounded-full" :style="{ background: color }" aria-hidden="true"></span>
                         <span translate="no">{{ partName }}</span>

@@ -21,7 +21,7 @@ import { Icon } from './components/icon.js';
 import { TurnstileBox } from './turnstile.js';
 
 export const MIN_SECONDS = 15; // shorter, the card asks for a little longer (ownChoir.record.short)
-export const MAX_SECONDS = 30; // the contract's most (and at least 5)
+export const MAX_SECONDS = 35; // the contract's most (and at least 5): the voice-capture song runs about 30 s
 const OPEN = ['uploading', 'queued', 'rendering'];
 
 /** Whether it's on for this account: auth.config `ownChoir`, known to be true. */
@@ -42,6 +42,123 @@ export function hasWords(template) {
 /** The part a hum or a song's own tune is (the melody, else the first part). */
 export function tunePart(template) {
     return (template?.parts?.find((p) => p.melody) ?? template?.parts?.[0])?.key ?? null;
+}
+
+// The choir's 30 seconds: a tune the singer chooses (Hillel, 2026-11-22: "make it easy for the user to choose between
+// Silent Night, Amazing Grace, Happy Birthday or Joy to the World"), whatever song the choir is for. Happy Birthday is
+// the hidden `voice-capture` song (Happy Birthday, then For He's a Jolly Good Fellow). The server lists them, in order,
+// the first the default, each with where the take stops (`stopBeat`, a phrase start; null for the whole tune).
+export const CLIP_TEMPLATE = 'voice-capture';
+const CLIP_CHOICE = 'stackapella.clipSong';
+
+/** The tunes a clip may sing, as the server lists them (the default alone until it has said). */
+export function clipSongs() {
+    const listed = ownChoir.data?.clipSongs;
+    return listed?.length ? listed : [{ templateId: CLIP_TEMPLATE, stopBeat: null }];
+}
+
+/** The tune chosen (remembered on this device), else the default. */
+export function chosenClip() {
+    const songs = clipSongs();
+    let kept = null;
+    try {
+        kept = localStorage.getItem(CLIP_CHOICE);
+    } catch {
+        kept = null; // storage blocked: the default
+    }
+    return songs.find((song) => song.templateId === kept) ?? songs[0];
+}
+
+export function chooseClip(templateId) {
+    clipPick.chosen = templateId;
+    try {
+        localStorage.setItem(CLIP_CHOICE, templateId);
+    } catch (error) {
+        console.info('The tune chosen was not kept', error?.message ?? error);
+    }
+}
+
+/** The song a clip tune is titled as: Happy Birthday for voice-capture (its own title isn't for people). */
+export const clipTitleId = (templateId) => (templateId === CLIP_TEMPLATE ? 'happy-birthday' : templateId);
+
+/**
+ * A tune cut where its take stops, as the server cuts what it sends the worker: in every part only the notes that start
+ * before `stopBeat`, each unchanged (the last one holds its full length); sections, phrases and chords end there too.
+ */
+export function cutAt(template, stopBeat) {
+    if (stopBeat == null) return template;
+    const copy = structuredClone(template);
+    let end = 0;
+    for (const part of copy.parts) {
+        if (!part.guide?.notes) continue;
+        part.guide.notes = part.guide.notes.filter((n) => n.beat < stopBeat);
+        for (const n of part.guide.notes) end = Math.max(end, n.beat + n.length);
+    }
+    if (Array.isArray(copy.chords)) copy.chords = copy.chords.filter((c) => c.beat < stopBeat);
+    if (Array.isArray(copy.sections)) {
+        copy.sections = copy.sections
+            .filter((section) => section.startBeat < stopBeat)
+            .map((section) => ({ ...section, endBeat: Math.min(section.endBeat, end), phrases: (section.phrases ?? []).filter(([from]) => from < stopBeat).map(([from, to]) => [from, Math.min(to, end)]) }));
+    }
+    return copy;
+}
+
+// The choice as the screens show it: the tune picked, and each tune's title in the app's language.
+export const clipPick = reactive({ chosen: null, titles: {} });
+
+export function pickedClip() {
+    return clipSongs().find((song) => song.templateId === clipPick.chosen) ?? chosenClip();
+}
+
+export async function loadClipTitles() {
+    const { loadTemplate } = await import('./templates.js');
+    const { songTitle } = await import('./song-titles.js');
+    await Promise.all(clipSongs().map(async ({ templateId }) => {
+        if (clipPick.titles[templateId]) return;
+        try {
+            clipPick.titles[templateId] = songTitle(await loadTemplate(clipTitleId(templateId)));
+        } catch (error) {
+            console.warn('A tune\'s title did not load', error);
+        }
+    }));
+}
+
+/** Step 1's title for the tune picked: Happy Birthday's names its second song too. */
+export function clipLine() {
+    const choice = pickedClip();
+    const song = clipPick.titles[choice.templateId] ?? '';
+    return choice.templateId === CLIP_TEMPLATE ? t('ownChoir.intro.one', { song }) : t('ownChoir.intro.oneSong', { song });
+}
+
+/** The four tunes to sing for the 30 seconds, as one quiet row of choices (the choice is remembered). */
+export const ClipChoice = {
+    setup: () => ({ clipPick, CLIP_TEMPLATE }),
+    computed: {
+        songs: () => clipSongs(),
+        picked: () => pickedClip().templateId,
+    },
+    mounted() {
+        loadClipTitles();
+    },
+    template: `
+        <div v-if="songs.length > 1" class="space-y-2" data-clip-choice>
+            <p class="text-xs font-bold uppercase tracking-[0.14em] text-muted">{{ t('ownChoir.intro.choose') }}</p>
+            <div class="grid grid-cols-2 gap-2" role="group" :aria-label="t('ownChoir.intro.choose')">
+                <button v-for="song in songs" :key="song.templateId" type="button" class="min-h-11 rounded-2xl border px-4 py-2.5 text-start"
+                    :class="picked === song.templateId ? 'border-accent bg-raised' : 'border-line hover:border-muted'" :aria-pressed="picked === song.templateId ? 'true' : 'false'"
+                    :data-clip-song="song.templateId" @click="chooseClip(song.templateId)">
+                    <span class="block text-[15px] font-semibold text-cream">{{ clipPick.titles[song.templateId] ?? '' }}</span>
+                    <span v-if="song.templateId === CLIP_TEMPLATE" class="block text-xs text-muted">{{ t('ownChoir.intro.thenJolly') }}</span>
+                </button>
+            </div>
+        </div>`,
+    methods: { chooseClip },
+};
+
+/** The chosen tune as Sing plays it for the choir's 30 seconds (and a friend's join): cut at its stop. */
+export async function clipTemplate(choice = pickedClip()) {
+    const { loadTemplate } = await import('./templates.js');
+    return cutAt(await loadTemplate(choice.templateId), choice.stopBeat);
 }
 
 // A hummed tune's humming, kept on this device only while own songs are on, so "Hear it in your voice" can use it as the
@@ -363,11 +480,11 @@ export async function dropJoinClip(token) {
 }
 
 /** A friend joining by an invite: the clip sent as `sendClip` sends it, to `invites.accept`; answers the member. */
-export async function joinWithClip(token, { partKey, parts = null, octave = 0, samples, sampleRate, startSeconds, showName = false, wordsSha = null }) {
+export async function joinWithClip(token, { partKey, clipTemplateId = null, clipTranspose = 0, parts = null, octave = 0, samples, sampleRate, startSeconds, showName = false, wordsSha = null }) {
     const clip = clipFrom(samples, sampleRate, startSeconds);
     const bytes = await clip.wav.arrayBuffer();
     const sha256 = hex(await crypto.subtle.digest('SHA-256', bytes));
-    const { data: member, upload } = await api.ownChoir.invites.accept(token, { showName, wordsSha, useSavedVoice: false, parts, octave, partKey, offsetFrames: clip.offsetFrames, sampleRate, frames: clip.frames, bytes: bytes.byteLength, sha256 });
+    const { data: member, upload } = await api.ownChoir.invites.accept(token, { showName, wordsSha, useSavedVoice: false, parts, octave, ...(clipTemplateId ? { clipTemplateId } : {}), ...(clipTranspose ? { clipTranspose } : {}), partKey, offsetFrames: clip.offsetFrames, sampleRate, frames: clip.frames, bytes: bytes.byteLength, sha256 });
     if (upload) {
         await uploadTo(upload, clip.wav);
         await api.ownChoir.members.complete(member.id);
@@ -419,12 +536,12 @@ const hex = (buffer) => [...new Uint8Array(buffer)].map((b) => b.toString(16).pa
  * Sends a take as a song's clip: the request, the upload, then complete. Resolves the request (queued); refusals are the
  * contract's ApiErrors (consent_required, quota_reached with `which`, request_open, account_required).
  */
-export async function sendClip({ templateId, partKey, samples, sampleRate, startSeconds, hum = false, turnstileToken = null }) {
+export async function sendClip({ templateId, clipTemplateId = null, clipTranspose = 0, octave = null, partKey, samples, sampleRate, startSeconds, hum = false, turnstileToken = null }) {
     const clip = clipFrom(samples, sampleRate, startSeconds);
     if (hum) clip.offsetFrames = null; // a hum sets its own tempo: where the song's beat 0 falls in it isn't known
     const bytes = await clip.wav.arrayBuffer();
     const sha256 = hex(await crypto.subtle.digest('SHA-256', bytes));
-    const { data: request, upload } = await api.ownChoir.requests.create({ templateId, partKey, offsetFrames: clip.offsetFrames, sampleRate, frames: clip.frames, bytes: bytes.byteLength, sha256, ...(turnstileToken ? { turnstileToken } : {}) });
+    const { data: request, upload } = await api.ownChoir.requests.create({ templateId, ...(clipTemplateId ? { clipTemplateId } : {}), ...(clipTranspose ? { clipTranspose } : {}), ...(octave != null ? { octave } : {}), partKey, offsetFrames: clip.offsetFrames, sampleRate, frames: clip.frames, bytes: bytes.byteLength, sha256, ...(turnstileToken ? { turnstileToken } : {}) });
     // The upload and complete, once more if the first try fails (the contract: send it again after a mismatch); if it still
     // fails, the request goes, so it never sits "on its way" and a new try isn't refused as one song at a time.
     const finish = async () => {

@@ -6,7 +6,9 @@ namespace Tests\Feature\AiVoices;
 
 use App\Actions\OwnChoir\OwnChoirRequests;
 use App\Enums\OwnChoirStatus;
+use App\Http\Resources\Worker\ChoirJobResource;
 use App\Jobs\CheckChoirClip;
+use App\Jobs\KeepVoiceClip;
 use App\Models\OwnChoirConsent;
 use App\Models\OwnChoirPart;
 use App\Models\OwnChoirRequest;
@@ -16,7 +18,9 @@ use App\Models\TemplateVersion;
 use App\Models\User;
 use App\Services\Audio\Ffmpeg;
 use App\Support\Flags;
+use App\Support\OwnChoir\ClipTune;
 use App\Support\OwnChoir\OwnChoir;
+use App\Support\OwnChoir\VoicingTransform;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -145,6 +149,12 @@ final class OwnChoirTest extends TestCase
         $this->assertMatchesContract($this->worker('POST', "/api/worker/choir/jobs/{$request->sqid()}/finish", ['failed' => null, 'claim' => $token]), 'worker.choir.jobs.finish', 200);
         Storage::disk('private')->assertMissing($clipKey);
         $this->assertNull($request->refresh()->clip_key);
+
+        // The original clip is kept with their voice as AAC, for them to compare (Hillel, 2026-11-23).
+        $kept = (string) $voice->refresh()->clip_key;
+        $this->assertStringEndsWith('.m4a', $kept);
+        Storage::disk('private')->assertExists($kept);
+        $this->assertNotNull($this->getJson('/api/own-choir')->json('data.voice.clipListen.url'));
 
         $show = $this->getJson('/api/own-choir');
         $this->assertMatchesContract($show, 'ownChoir.show', 200);
@@ -361,5 +371,181 @@ final class OwnChoirTest extends TestCase
         $song->forceFill(['status' => OwnChoirStatus::Ready])->save();
         $this->assertSame([], OwnChoir::progress($song));
         $this->getJson('/api/own-choir')->assertOk()->assertJsonPath('data.requests.0.progress', []);
+    }
+
+    public function test_the_clip_sings_the_hidden_voice_capture_tune_whatever_the_song(): void
+    {
+        $this->singer();
+        OwnChoirConsent::factory()->create(['user_id' => auth()->id()]);
+        $wav = Wav::tone(8.0);
+
+        // Only a tune from the allow-list (Hillel, 2026-11-23).
+        $this->postJson('/api/own-choir/requests', $this->clip($wav, 'silent-night') + ['clipTemplateId' => 'happy-birthday'])->assertStatus(422)->assertJsonValidationErrors('clipTemplateId');
+
+        $this->postJson('/api/own-choir/requests', $this->clip($wav, 'silent-night') + ['partKey' => 'bass'])->assertCreated();
+        $song = OwnChoirRequest::query()->sole();
+        $tune = $song->clipTemplateVersion ?? throw new \LogicException('The clip has its tune.');
+        $this->assertSame('voice-capture', $tune->template?->slug);
+        $this->assertSame(ClipTune::melody($tune), $song->part_key, 'Its melody, whatever part was named.');
+        $this->assertSame('silent-night', $song->templateVersion?->template?->slug, 'The song made is still Silent Night.');
+
+        // The worker gets the tune as written, apart from the song it renders.
+        $song->forceFill(['status' => OwnChoirStatus::Queued, 'clip_key' => 'choir/clips/x.wav'])->save();
+        $job = (new ChoirJobResource($song->fresh()))->resolve();
+        $this->assertSame(['voice-capture', $tune->version], [$job['clip']['template'], $job['clip']['version']]);
+        $this->assertSame((array) $tune->data, (array) $job['clip']['data']);
+        $this->assertSame('silent-night', $job['template']);
+
+        // Hidden: listed nowhere.
+        $this->assertFalse(Template::query()->listed()->where('slug', 'voice-capture')->exists());
+        $this->assertStringNotContainsString('voice-capture', (string) $this->getJson('/api/templates')->getContent());
+    }
+
+    public function test_a_singer_may_choose_another_tune_from_the_list(): void
+    {
+        $this->singer();
+        OwnChoirConsent::factory()->create(['user_id' => auth()->id()]);
+        $wav = Wav::tone(8.0);
+
+        $this->postJson('/api/own-choir/requests', $this->clip($wav, 'silent-night') + ['clipTemplateId' => 'joy-to-the-world'])->assertCreated();
+        $song = OwnChoirRequest::query()->sole();
+        $this->assertSame('joy-to-the-world', $song->clipTemplateVersion?->template?->slug);
+        $this->assertSame(ClipTune::melody($song->clipTemplateVersion), $song->part_key);
+
+        // The list, in order, with where each stops; the worker gets only the notes sung, each unchanged.
+        $this->getJson('/api/own-choir')->assertJsonPath('data.clipSongs.0', ['templateId' => 'voice-capture', 'stopBeat' => null])->assertJsonPath('data.clipSongs.3.templateId', 'joy-to-the-world');
+        $song->forceFill(['status' => OwnChoirStatus::Queued, 'clip_key' => 'choir/clips/x.wav'])->save();
+        $data = (new ChoirJobResource($song->fresh()))->resolve()['clip']['data'];
+        $sung = collect((array) $data->parts)->firstWhere('key', $song->part_key)['guide']['notes'];
+        $all = collect((array) $song->clipTemplateVersion?->data['parts'])->firstWhere('key', $song->part_key)['guide']['notes'];
+        $this->assertNotEmpty($sung);
+        $this->assertLessThan(count($all), count($sung));
+        $this->assertSame(array_values(array_filter($all, static fn (array $n): bool => $n['beat'] < 63)), $sung);
+    }
+
+    public function test_a_singer_may_sing_the_songs_own_tune_once_through(): void
+    {
+        $this->singer();
+        OwnChoirConsent::factory()->create(['user_id' => auth()->id()]);
+        $wav = Wav::tone(8.0);
+
+        $this->postJson('/api/own-choir/requests', $this->clip($wav, 'silent-night') + ['clipTemplateId' => 'silent-night'])->assertCreated();
+        $song = OwnChoirRequest::query()->sole();
+        $this->assertSame($song->template_version_id, $song->clip_template_version_id);
+        $song->forceFill(['status' => OwnChoirStatus::Queued, 'clip_key' => 'choir/clips/x.wav'])->save();
+        $clip = (new ChoirJobResource($song->fresh()))->resolve()['clip'];
+        $this->assertSame('silent-night', $clip['template']);
+        $this->assertEquals(ClipTune::sung($song->templateVersion ?? throw new \LogicException), (array) $clip['data'], 'Its own tune, to its stop beat.');
+    }
+
+    public function test_a_low_voice_gets_the_low_voice_version(): void
+    {
+        // Hillel's first song: he sang the tune an octave down, his voice about 52 to 62.
+        $this->singer();
+        OwnChoirConsent::factory()->create(['user_id' => auth()->id()]);
+        $wav = Wav::tone(8.0);
+
+        $this->postJson('/api/own-choir/requests', $this->clip($wav, 'silent-night') + ['clipTemplateId' => 'silent-night', 'octave' => -12])->assertCreated();
+        $song = OwnChoirRequest::query()->sole();
+        $this->assertSame(['low', -12], [$song->voicing, $song->octave]);
+        $this->getJson('/api/own-choir')->assertJsonPath('data.requests.0.voicing', 'low');
+
+        $song->forceFill(['status' => OwnChoirStatus::Queued, 'clip_key' => 'choir/clips/x.wav'])->save();
+        $job = (new ChoirJobResource($song->fresh()))->resolve();
+        $this->assertSame('low', $job['voicing']);
+        $shifts = array_column($job['shifts'], 'shift', 'partKey');
+        $this->assertSame([-12, 0], [$shifts['soprano'], $shifts['bass']]);
+        $written = collect((array) $song->templateVersion?->data['parts'])->firstWhere('key', 'soprano')['guide']['notes'][0]['pitch'];
+        $this->assertSame($written - 12, collect((array) $job['data']->parts)->firstWhere('key', 'soprano')['guide']['notes'][0]['pitch']);
+    }
+
+    public function test_a_voice_that_suits_the_tune_as_written_keeps_it(): void
+    {
+        $this->singer();
+        OwnChoirConsent::factory()->create(['user_id' => auth()->id()]);
+        $wav = Wav::tone(8.0);
+
+        $this->postJson('/api/own-choir/requests', $this->clip($wav, 'silent-night') + ['clipTemplateId' => 'silent-night', 'octave' => 0])->assertCreated();
+        $song = OwnChoirRequest::query()->sole();
+        $this->assertSame('written', $song->voicing);
+        $song->forceFill(['status' => OwnChoirStatus::Queued, 'clip_key' => 'choir/clips/x.wav'])->save();
+        $job = (new ChoirJobResource($song->fresh()))->resolve();
+        $this->assertSame((array) $song->templateVersion?->data, (array) $job['data']);
+        $this->assertSame([0], array_values(array_unique(array_column($job['shifts'], 'shift'))));
+    }
+
+    public function test_the_tune_is_moved_to_the_singers_first_note_and_the_worker_gets_it_moved(): void
+    {
+        $this->singer();
+        OwnChoirConsent::factory()->create(['user_id' => auth()->id()]);
+        $wav = Wav::tone(8.0);
+
+        $this->postJson('/api/own-choir/requests', $this->clip($wav, 'silent-night') + ['clipTranspose' => 13])->assertStatus(422)->assertJsonValidationErrors('clipTranspose');
+        $this->postJson('/api/own-choir/requests', $this->clip($wav, 'silent-night') + ['clipTranspose' => -3])->assertCreated();
+        $song = OwnChoirRequest::query()->sole();
+        $this->assertSame(-3, $song->clip_transpose);
+
+        $song->forceFill(['status' => OwnChoirStatus::Queued, 'clip_key' => 'choir/clips/x.wav'])->save();
+        $clip = (new ChoirJobResource($song->fresh()))->resolve()['clip'];
+        $this->assertSame(-3, $clip['transpose']);
+        $written = collect((array) $song->clipTemplateVersion?->data['parts'])->firstWhere('key', $song->part_key)['guide']['notes'];
+        $sung = collect((array) $clip['data']->parts)->firstWhere('key', $song->part_key)['guide']['notes'];
+        $this->assertSame(array_map(static fn (array $n): int => (int) $n['pitch'] - 3, array_filter($written, static fn (array $n): bool => isset($n['pitch']))), array_map(static fn (array $n): int => (int) $n['pitch'], array_filter($sung, static fn (array $n): bool => isset($n['pitch']))));
+    }
+
+    public function test_silent_nights_low_voice_version_keeps_every_treble_note_above_the_bass(): void
+    {
+        // The coordinator: Silent Night's "Ho-" of "Holy infant" read an octave high in a low render; the transform itself
+        // moves the whole soprano down and never puts a note under the bass (a gate/tracker question for voices).
+        $this->catalogue();
+        $data = (array) Template::query()->where('slug', 'silent-night')->firstOrFail()->currentVersion?->data;
+        $low = VoicingTransform::low($data);
+        $notes = static fn (array $d, string $key): array => array_values(array_filter(collect((array) $d['parts'])->firstWhere('key', $key)['guide']['notes'], static fn (array $n): bool => isset($n['pitch'])));
+        $bass = $notes($low['data'], 'bass');
+
+        foreach (['soprano', 'alto'] as $key) {
+            foreach ($notes($low['data'], $key) as $i => $n) {
+                $written = $notes($data, $key)[$i]['pitch'];
+                $this->assertContains($n['pitch'], [$written, $written - 12]);
+                $this->assertSame($written % 12, $n['pitch'] % 12);
+                $under = array_filter($bass, static fn (array $b): bool => $b['beat'] < $n['beat'] + max((float) $n['length'], 0.001) && $n['beat'] < $b['beat'] + $b['length']);
+                foreach ($under as $b) {
+                    $this->assertGreaterThanOrEqual($b['pitch'], $n['pitch'], "{$key} note {$i} stays above the bass");
+                }
+            }
+        }
+
+        $soprano = $notes($low['data'], 'soprano');
+        $this->assertSame(array_map(static fn (array $n): int => $n['pitch'] - 12, $notes($data, 'soprano')), array_column($soprano, 'pitch'), 'The whole tune an octave down.');
+    }
+
+    public function test_the_kept_clip_goes_with_the_voice_and_is_never_anyone_elses(): void
+    {
+        $owner = $this->singer();
+        $voice = OwnChoirVoice::factory()->create(['user_id' => $owner->id, 'status' => 'ready', 'clip_key' => 'choir/voices/kept.m4a', 'saved_at' => now()]);
+        Storage::disk('private')->put('choir/voices/kept.m4a', 'aac');
+        $this->getJson('/api/own-choir')->assertJsonPath('data.voice.clipListen.expiresAt', fn (mixed $at): bool => is_string($at));
+
+        // Someone else never sees it.
+        $this->actingAs(User::factory()->create());
+        $this->assertNull($this->getJson('/api/own-choir')->json('data.voice'));
+
+        // Stopping (their voices dropped) deletes it.
+        OwnChoirRequests::dropVoices($owner);
+        Storage::disk('private')->assertMissing('choir/voices/kept.m4a');
+        $this->assertNull(OwnChoirVoice::query()->find($voice->id));
+    }
+
+    public function test_a_voice_deleted_before_its_clip_is_kept_keeps_nothing(): void
+    {
+        $owner = $this->singer();
+        $voice = OwnChoirVoice::factory()->create(['user_id' => $owner->id, 'status' => 'ready']);
+        Storage::disk('private')->put('choir/clips/late.wav', Wav::tone(6.0));
+        $voice->delete();
+
+        (new KeepVoiceClip($voice->id, 'choir/clips/late.wav'))->handle(app(Ffmpeg::class));
+
+        Storage::disk('private')->assertMissing('choir/clips/late.wav');
+        $this->assertSame([], array_values(array_filter(Storage::disk('private')->allFiles('choir/voices'))));
     }
 }

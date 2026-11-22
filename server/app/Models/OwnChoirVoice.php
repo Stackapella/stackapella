@@ -22,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property string $status
  * @property string $upload_key
  * @property string|null $reference_key
+ * @property string|null $clip_key the singer's original clip, an AAC copy kept for them to compare (2026-11-23)
  * @property int $sample_rate
  * @property int $frames
  * @property int $bytes
@@ -60,6 +61,16 @@ final class OwnChoirVoice extends Model
             'saved_at' => 'datetime',
             'last_used_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Every file it holds, to delete with it.
+     *
+     * @return list<string>
+     */
+    public function files(): array
+    {
+        return array_values(array_filter([$this->upload_key, (string) $this->reference_key, (string) $this->clip_key]));
     }
 
     /** When it's deleted if not used again. */

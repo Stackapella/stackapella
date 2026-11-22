@@ -278,10 +278,10 @@ final class SongPagesController extends Controller
 
     /**
      * The song in the app, ready to hear yourself as a choir: only while own_choir is on, for a listed, unhidden library
-     * song playing here, within the choir's own limits (own_choir.max_parts, max_part_seconds, max_total_seconds, as
+     * song playing here (also /your-choir's song cards, with their own ref), within the choir's own limits (own_choir.max_parts, max_part_seconds, max_total_seconds, as
      * OwnChoirRequests refuses `song_too_long`), so the link never leads to a refusal (the coordinator, 2026-11-22).
      */
-    private static function choirLink(Template $sung, bool $playable): ?string
+    public static function choirLink(Template $sung, bool $playable, string $ref = 'choir-song'): ?string
     {
         if (! $playable || ! SongParts::switchedOn('own_choir') || $sung->owner_id !== null || $sung->withdrawn_at !== null || $sung->hidden_at !== null) {
             return null;
@@ -291,6 +291,6 @@ final class SongPagesController extends Controller
             return null;
         }
 
-        return Hosts::app('/?'.http_build_query(['song' => $sung->slug, 'choir' => 1, 'ref' => 'choir-song']));
+        return Hosts::app('/?'.http_build_query(['song' => $sung->slug, 'choir' => 1, 'ref' => $ref]));
     }
 }

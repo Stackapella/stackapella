@@ -24,8 +24,11 @@ use Illuminate\Support\Carbon;
  * @property int|null $template_version_id null once its song is gone for good (the row kept, still counting)
  * @property int|null $own_choir_voice_id the kept voice it's made from (null once that voice is deleted)
  * @property bool $from_voice made from a kept voice rather than a new clip
- * @property string|null $part_key
+ * @property string|null $part_key the clip's part: its template's melody
+ * @property int|null $clip_template_version_id the template the clip sang (Happy Birthday by default); null: the song's own
  * @property int|null $offset_frames
+ * @property int $clip_transpose the clip's tune moved to the singer's first note, in semitones
+ * @property string $voicing written, or low: the treble parts an octave down (2026-11-23)
  * @property int|null $octave the octave the app measured the clip sung in (−12, 0 or 12; a friend's tune)
  * @property OwnChoirStatus $status
  * @property string|null $failure
@@ -94,6 +97,7 @@ final class OwnChoirRequest extends Model
             'first_claimed_at' => 'datetime',
             'only_parts' => 'array',
             'octave' => 'integer',
+            'clip_transpose' => 'integer',
             'held_for_minutes' => 'boolean',
             'clip_checked_at' => 'datetime',
             'claimed_at' => 'datetime',
@@ -116,6 +120,18 @@ final class OwnChoirRequest extends Model
     public function templateVersion(): BelongsTo
     {
         return $this->belongsTo(TemplateVersion::class);
+    }
+
+    /** @return BelongsTo<TemplateVersion, $this> */
+    public function clipTemplateVersion(): BelongsTo
+    {
+        return $this->belongsTo(TemplateVersion::class, 'clip_template_version_id');
+    }
+
+    /** The template the clip sang: Happy Birthday by default, or (older requests, or by choice) the song's own. */
+    public function clipVersion(): ?TemplateVersion
+    {
+        return $this->clipTemplateVersion ?? $this->templateVersion;
     }
 
     /**

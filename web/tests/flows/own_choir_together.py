@@ -186,6 +186,10 @@ def journey(f):
     assert how not in f.js("document.querySelector('main').innerText"), "the sing step's lead says it twice"
     shoot(f, "join-sing-first")
     f.run("document.querySelector('[data-join-sing]').click()")
+    # Hillel: first, the note they'd like to start on (the app's find-your-note), with Use the usual key.
+    f.wait("document.querySelector('[data-first-note] [data-first-note-usual]')", what="the first-note step")
+    f.shot("join-first-note")
+    f.run("document.querySelector('[data-first-note-usual]').click()")
     f.wait("/^\\/p\\/[\\w-]+\\/sing$/.test(location.pathname)", what="Sing on the tune")
     project = f.js("location.pathname.split('/')[2]")
     tune = f.js("(async () => (await import('/js/own-choir.js')).tunePart(await (await import('/js/templates.js')).loadTemplate('silent-night')))()")

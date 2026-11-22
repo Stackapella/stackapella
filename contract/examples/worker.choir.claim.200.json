@@ -15,8 +15,17 @@
             "sampleRate": 48000,
             "frames": 1440000,
             "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-            "part": "alto",
-            "offsetFrames": 24000
+            "part": "lead",
+            "offsetFrames": 24000,
+            "template": "voice-capture",
+            "version": 1,
+            "data": {
+                "id": "voice-capture",
+                "version": 1,
+                "title": "Voice capture",
+                "parts": []
+            },
+            "transpose": -3
         },
         "reference": null,
         "parts": [
@@ -24,6 +33,25 @@
             "alto",
             "tenor",
             "bass"
+        ],
+        "voicing": "low",
+        "shifts": [
+            {
+                "partKey": "soprano",
+                "shift": -12
+            },
+            {
+                "partKey": "alto",
+                "shift": -12
+            },
+            {
+                "partKey": "tenor",
+                "shift": 0
+            },
+            {
+                "partKey": "bass",
+                "shift": 0
+            }
         ]
     }
 }

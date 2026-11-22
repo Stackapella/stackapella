@@ -27,6 +27,11 @@ final class StartOwnChoirRequest extends FormRequest
         return [
             // A library song's slug, or (own_choir_songs) one of their own songs' id.
             'templateId' => ['required', 'string', 'regex:/^[a-z0-9-]{1,80}$/'],
+            'clipTemplateId' => ['sometimes', 'nullable', 'string', 'regex:/^[a-z0-9-]{1,80}$/'],
+            // The tune transposed to the singer's comfortable first note (2026-11-23).
+            'clipTranspose' => ['sometimes', 'nullable', 'integer', 'between:-12,12'],
+            // The octave the app measured the clip sung in, against the tune as written (2026-11-23).
+            'octave' => ['sometimes', 'nullable', 'integer', 'in:-12,0,12'],
             'partKey' => ['required_with:sampleRate', 'string', 'regex:/^[a-z0-9_-]{1,40}$/'],
             'offsetFrames' => ['nullable', 'integer', 'min:-480000', 'max:1440000'],
             'sampleRate' => ['required_with:partKey,frames,bytes,sha256', 'integer', 'min:16000', 'max:48000'],

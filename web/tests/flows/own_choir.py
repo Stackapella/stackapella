@@ -59,27 +59,51 @@ def journey(f):
     f.no_sideways("the choir page")
     # Hillel's intro design: a stepper of three, the first step split (title, then a muted body), the first dot filled.
     assert f.js("document.querySelectorAll('[data-choir-step]').length") == 3
-    assert f.js("document.querySelector('[data-choir-step=\"1\"] .text-sm')?.textContent.includes('good singing')"), "step 1 has no muted body"
+    assert f.js("document.querySelector('[data-choir-step=\"1\"] [data-step-body]')?.textContent.includes('good singing')"), "step 1 has no muted body"
     assert f.js("!!document.querySelector('[data-choir-start]') && document.querySelector('[data-choir-start]').compareDocumentPosition(document.querySelector('[data-choir-quota]')) & Node.DOCUMENT_POSITION_FOLLOWING"), "the free line isn't under Start singing"
     f.no_sideways("the choir's start")
     f.shot("start")
 
+    # Hillel: four tunes to choose from for the 30 seconds (Happy Birthday the default); step 1 names the one chosen, and
+    # the choice is remembered.
+    assert f.js("document.querySelectorAll('[data-clip-song]').length") == 4
+    assert f.js("document.querySelector('[data-clip-song=\"voice-capture\"]').getAttribute('aria-pressed')") == "true", "Happy Birthday isn't the default"
+    f.run("document.querySelector('[data-clip-song=\"amazing-grace\"]').click()")
+    f.wait("document.querySelector('[data-choir-step=\"1\"]').textContent.includes('Amazing Grace')", what="step 1 names the tune chosen")
+    f.shot("start-choice")
+    f.go("/t/amazing-grace/choir?api=mock&scenario=&as=member", "document.querySelector('[data-clip-song]')")
+    assert f.js("document.querySelector('[data-clip-song=\"amazing-grace\"]').getAttribute('aria-pressed')") == "true", "the choice wasn't remembered"
+    f.run("document.querySelector('[data-clip-song=\"voice-capture\"]').click()")
+
     # Start singing: Sing on a choir project. A take (a steady tone, 20 s, from beat 0) goes as the clip, as Make my choir sends it.
     f.run("document.querySelector('[data-choir-start]').click()")
+    # Hillel: first, the note they'd like to start on (the app's find-your-note), with Use the usual key.
+    f.wait("document.querySelector('[data-first-note] [data-first-note-usual]')", what="the first-note step")
+    f.shot("first-note")
+    f.run("document.querySelector('[data-first-note-usual]').click()")
     f.wait("/^\\/p\\/[\\w-]+\\/sing$/.test(location.pathname)", what="Sing on the choir project")
-    project = f.js("location.pathname.split('/')[2]")
-    assert f.js(f"(async () => {{ const s = await import('/js/stores/projects.js'); await s.loadProjects(); return !!s.projects.all.find((p) => p.id === {json.dumps(project)})?.choir; }})()"), "a choir project"
-    # Always the tune (Hillel, 2026-11-22): Sing opens on the melody, the whole song, with no part picker.
+    clip_project = f.js("location.pathname.split('/')[2]")
+    # The voice-capture song, whatever the song (Hillel, 2026-11-22): a project only for the take, for Amazing Grace.
+    made = f.js(f"""(async () => {{ const s = await import('/js/stores/projects.js'); await s.loadProjects(); const p = s.projects.all.find((x) => x.id === {json.dumps(clip_project)});
+        return {{ id: p.template.id, forId: p.choir?.forTemplateId }}; }})()""")
+    assert made == {"id": "voice-capture", "forId": "amazing-grace"}, made
+    # The melody, the whole song, with no part picker and no voice type shown (any octave).
     f.wait("""(async () => { const { session } = await import('/js/stores/session.js'); const { tunePart } = await import('/js/own-choir.js');
         const focus = session.parts.find((p) => p.id === session.practice?.focus);
         return focus && focus.templatePartKey === tunePart(session.project.template) && session.practice?.sing?.way === 'whole'; })()""", what="Sing on the tune")
+    f.wait("document.querySelector('[data-settings-open]')", what="Sing ready")
+    assert not f.js("document.querySelector('[data-sing-part-picker]') || document.querySelector('[data-sing-part-name]')"), "a voice type shown for the choir's take"
+    f.shot("clip-sing")
+    # As Make my choir sends it: the voice-capture melody for Amazing Grace; then the take's project goes.
+    tune = f.js("(async () => { const m = await import('/js/own-choir.js'); return m.tunePart(await m.clipTemplate()); })()")
     f.run("""const { sendClip } = await import('/js/own-choir.js');
         const samples = new Float32Array(48000 * 20).map((_, i) => 0.3 * Math.sin(i / 20));
-        window.choirRequest = await sendClip({ templateId: 'amazing-grace', partKey: (await import('/js/own-choir.js')).tunePart(await (await import('/js/templates.js')).loadTemplate('amazing-grace')), samples, sampleRate: 48000, startSeconds: -0.5 });""")
+        window.choirRequest = await sendClip({ templateId: 'amazing-grace', clipTemplateId: 'voice-capture', partKey: (await import('/js/own-choir.js')).tunePart(await (await import('/js/own-choir.js')).clipTemplate()), samples, sampleRate: 48000, startSeconds: -0.5 });""")
     clip = f.js("globalThis.mockChoirClip")
-    assert clip["partKey"] == f.js("(async () => (await import('/js/own-choir.js')).tunePart(await (await import('/js/templates.js')).loadTemplate('amazing-grace')))()") and clip["offsetFrames"] == 0 and clip["frames"] == 48000 * 20 - 24000 and len(clip["sha256"]) == 64, clip
-    # As Make my choir does: the project remembers its song's request.
-    f.run(f"const db = await import('/js/db.js'); const p = await db.get('projects', {json.dumps(project)}); await db.put('projects', {{ ...p, choir: {{ requestId: window.choirRequest.id }} }});")
+    assert clip["templateId"] == "amazing-grace" and clip["clipTemplateId"] == "voice-capture" and clip["partKey"] == tune and clip["offsetFrames"] == 0 and clip["frames"] == 48000 * 20 - 24000 and len(clip["sha256"]) == 64, clip
+    # The studio's project for the song, as the ready page makes one.
+    project = f.js("""(async () => { const { startFromTemplate } = await import('/js/stores/projects.js'); const { loadTemplate } = await import('/js/templates.js');
+        return (await startFromTemplate(await loadTemplate('amazing-grace'), { keyChosen: true, choir: { requestId: window.choirRequest.id } })).id; })()""")
 
     # Ready by the next look (the mock makes it at once): Home's notice first (opening the choir page would mark it heard),
     # then the page's Listen, the studio's parts made from their singing.
@@ -89,7 +113,19 @@ def journey(f):
     f.wait("document.querySelector('[data-choir-play]') && document.querySelector('[data-choir-progress]')", what="the ready song")
     assert "0 of 4" in f.js("document.querySelector('[data-choir-progress]').textContent")
     assert f.js("!document.querySelector('[data-choir-learn-part]').classList.contains('btn-primary')"), "learning is a quiet option"
+    # Before and after (Hillel): their own 30 seconds beside the choir, the owner's only; and no low-voice line here.
+    f.wait("document.querySelector('[data-choir-clip-play]')", what="Hear your recording")
+    assert not f.js("document.querySelector('[data-choir-low-voice]')"), "a low-voice line on a song as written"
     f.shot("ready")
+    f.run("document.querySelector('[data-choir-clip-play]').click()")
+    f.wait("document.querySelector('[data-choir-clip-play]').getAttribute('aria-pressed') === 'true'", what="their recording playing")
+    f.run("document.querySelector('[data-choir-clip-play]').click()")
+    f.wait("document.querySelector('[data-choir-clip-play]').getAttribute('aria-pressed') === 'false'", what="their recording stopped")
+    # A low voice's arrangement: one quiet line.
+    f.run("sessionStorage.setItem('stackapella.mockChoirLow', '1'); await (await import('/js/own-choir.js')).loadOwnChoir({ force: true })")
+    f.wait("document.querySelector('[data-choir-low-voice]')", what="the low-voice line")
+    f.shot("ready-low-voice")
+    f.run("sessionStorage.removeItem('stackapella.mockChoirLow'); await (await import('/js/own-choir.js')).loadOwnChoir({ force: true })")
     assert f.js("!!document.querySelector('[data-choir-share]')"), "Share beside Download"
     assert not f.js("document.querySelector('[data-choir-stop]')"), "no Stop on a ready song"
     # The finished track plays here, every part on the engine; a second press stops it.

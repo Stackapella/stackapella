@@ -326,6 +326,7 @@ const SHELL = [
     '/js/components/create/hum-tune.js',
     '/js/components/listening.js',
     '/js/components/voice-capture.js',
+    '/js/components/first-note.js',
     '/js/capture-scale.js',
     '/js/components/level-meter.js',
     '/js/components/mic-check.js',

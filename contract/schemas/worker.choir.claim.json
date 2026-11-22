@@ -25,7 +25,9 @@
                 "clip",
                 "reference",
                 "parts",
-                "own"
+                "own",
+                "voicing",
+                "shifts"
             ],
             "properties": {
                 "id": {
@@ -64,7 +66,11 @@
                         "frames",
                         "sha256",
                         "part",
-                        "offsetFrames"
+                        "offsetFrames",
+                        "template",
+                        "version",
+                        "data",
+                        "transpose"
                     ],
                     "properties": {
                         "url": {
@@ -91,6 +97,21 @@
                                 "null"
                             ],
                             "description": "The clip frame where the song's beat 0 falls (latency removed), or null if the app didn't know."
+                        },
+                        "template": {
+                            "type": "string",
+                            "description": "The template the clip sings (voice-capture by default), not the song being made."
+                        },
+                        "version": {
+                            "type": "integer"
+                        },
+                        "data": {
+                            "type": "object",
+                            "description": "The clip template's template.json as sung (notes before its stopBeat): prepare the reference against it."
+                        },
+                        "transpose": {
+                            "type": "integer",
+                            "description": "Semitones (−12 to 12) the tune was moved to the singer's first note; `data`'s notes already carry it."
                         }
                     },
                     "description": "A new clip to prepare (exactly one of clip and reference)."
@@ -140,6 +161,33 @@
                         "type": "string"
                     },
                     "description": "The parts to render, by key."
+                },
+                "voicing": {
+                    "enum": [
+                        "written",
+                        "low"
+                    ],
+                    "description": "low: `data` is the low-voice version (treble parts an octave down), rendered as given."
+                },
+                "shifts": {
+                    "type": "array",
+                    "description": "Each part's octave shift in `data` (−12 or 0), for logs and checks; `data` already carries it.",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "partKey",
+                            "shift"
+                        ],
+                        "properties": {
+                            "partKey": {
+                                "type": "string"
+                            },
+                            "shift": {
+                                "type": "integer"
+                            }
+                        }
+                    }
                 }
             }
         }

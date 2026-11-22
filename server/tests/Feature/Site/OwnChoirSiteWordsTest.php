@@ -151,4 +151,18 @@ final class OwnChoirSiteWordsTest extends TestCase
         $this->on('own_choir');
         $this->assertStringContainsString($line, (string) $this->get('/selfhost')->assertOk()->getContent());
     }
+
+    public function test_your_choirs_song_cards_go_straight_into_the_choir_for_that_song(): void
+    {
+        app(SyncOfficialTemplates::class)->handle();
+        $this->on('own_choir');
+
+        $html = (string) $this->get('/your-choir')->assertOk()->getContent();
+        $this->assertStringContainsString('song=amazing-grace&amp;choir=1&amp;ref=your-choir', $html);
+        $this->assertStringNotContainsString('href="/songs/amazing-grace"', $html);
+
+        // Past the choir's limits: the card falls back to the song's page.
+        config(['own_choir.max_parts' => 1]);
+        $this->assertStringContainsString('href="/songs/amazing-grace"', (string) $this->get('/your-choir')->assertOk()->getContent());
+    }
 }

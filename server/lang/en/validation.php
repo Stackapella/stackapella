@@ -252,7 +252,7 @@ return [
     'take_bytes' => 'The file\'s size doesn\'t match a 16-bit mono WAV of that many frames.',
     'choir_part' => 'That part isn\'t in this job.',
     'choir_meta' => 'The meta is at most 64 KB.',
-    'choir_clip' => 'A clip is 5 to 30 seconds, a 16-bit mono WAV of the frames sent.',
+    'choir_clip' => 'A clip is 5 to 35 seconds, a 16-bit mono WAV of the frames sent.',
     'ai_review_choose' => 'Choose the parts, or a song.',
     'ai_review_note' => 'Say why, so the next render can do better.',
     'ai_master_bytes' => 'The file must be a 16-bit mono WAV of the frames sent.',
