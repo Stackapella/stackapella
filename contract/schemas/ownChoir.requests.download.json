@@ -11,7 +11,8 @@
             "type": "object",
             "additionalProperties": false,
             "required": [
-                "parts"
+                "parts",
+                "leadTake"
             ],
             "properties": {
                 "parts": {
@@ -44,6 +45,43 @@
                             "offsetFrames": {
                                 "type": "integer"
                             }
+                        }
+                    }
+                },
+                "leadTake": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "id",
+                        "partKey",
+                        "url",
+                        "sampleRate",
+                        "frames",
+                        "offsetFrames"
+                    ],
+                    "description": "Their own recording of the tune as the lead (the whole song sung, or Happy Birthday's capture), levelled to the parts, in the song's key as rendered: theirs alone, a link for 2 hours; null when there's none.",
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "partKey": {
+                            "type": "string"
+                        },
+                        "url": {
+                            "type": "string",
+                            "format": "uri"
+                        },
+                        "sampleRate": {
+                            "type": "integer"
+                        },
+                        "frames": {
+                            "type": "integer"
+                        },
+                        "offsetFrames": {
+                            "type": "integer"
                         }
                     }
                 }

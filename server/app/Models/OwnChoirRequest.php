@@ -33,6 +33,10 @@ use Illuminate\Support\Carbon;
  * @property array<string, mixed>|null $sung how it's sung
  * @property bool $remake a remake: its parts replace its song's (parent_request_id) when made
  * @property string|null $failure_detail why its clip couldn't be used (length, quiet, loud, noisy, edge, short, notes)
+ * @property array<string, mixed>|null $lead the song's lead: the whole song sung (take), or a stretch of its clip (fromClip)
+ * @property string|null $lead_upload_key the whole song's WAV while it's on its way
+ * @property string|null $lead_key the lead, levelled, as AAC
+ * @property int $key_shift semitones the song is rendered moved, to the key its lead was sung in
  * @property string $voicing written, or low: the treble parts an octave down (2026-11-23)
  * @property int|null $octave the octave the app measured the clip sung in (−12, 0 or 12; a friend's tune)
  * @property OwnChoirStatus $status
@@ -107,6 +111,8 @@ final class OwnChoirRequest extends Model
             'sound' => 'array',
             'sung' => 'array',
             'remake' => 'boolean',
+            'lead' => 'array',
+            'key_shift' => 'integer',
             'held_for_minutes' => 'boolean',
             'clip_checked_at' => 'datetime',
             'claimed_at' => 'datetime',

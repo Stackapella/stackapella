@@ -43,6 +43,8 @@ export const ChoirSettings = {
         plus: Boolean, // without Plus, every control opens the Plus sheet
         busy: Boolean,
         minutesLeft: { type: Number, default: null }, // their AI-singing minutes left (ownChoir.show's quota)
+        hasLead: Boolean, // a whole-song take as the lead: the Lead blend
+        hasRecording: Boolean, // their clip was sung to this song: it can be mixed in
     },
     components: { Segmented },
     emits: ['sound', 'remake', 'plus'],
@@ -104,6 +106,23 @@ export const ChoirSettings = {
             this.$emit('plus');
             return false;
         },
+        /** Lead: 0 their take, 1 the AI's (both in between, the lead doubled). */
+        setBlend(event) {
+            if (!this.gate()) {
+                event.target.value = this.sound.leadBlend ?? 0;
+                return;
+            }
+            this.$emit('sound', { ...this.sound, leadBlend: Number(event.target.value) });
+        },
+        /** Their recording mixed under the choir: -24 to 0 dB, the left end off. */
+        setRecording(event) {
+            if (!this.gate()) {
+                event.target.value = this.sound.recordingLevel ?? -25;
+                return;
+            }
+            const db = Number(event.target.value);
+            this.$emit('sound', { ...this.sound, recordingLevel: db <= -25 ? null : db });
+        },
         setRoom(room) {
             if (!this.gate() || room === this.sound.room) return;
             this.$emit('sound', { ...this.sound, room });
@@ -157,6 +176,16 @@ export const ChoirSettings = {
                     <div class="space-y-2 py-4">
                         <div><p class="font-semibold text-cream">{{ t('ownChoir.settings.room') }}</p><p class="text-sm text-muted">{{ t('ownChoir.settings.roomHint') }}</p></div>
                         <Segmented :model-value="sound.room" :options="roomOptions" :label="t('ownChoir.settings.room')" full class="[&_.seg-option]:min-h-11" data-settings-room @update:model-value="setRoom" />
+                    </div>
+                    <div v-if="hasLead" class="space-y-1 py-4" data-settings-blend>
+                        <p class="font-semibold text-cream">{{ t('ownChoir.settings.leadBlend') }}</p>
+                        <input type="range" min="0" max="1" step="0.1" class="block min-h-11 w-full accent-[var(--color-accent)]" :value="sound.leadBlend ?? 0" :aria-label="t('ownChoir.settings.leadBlend')" @change="setBlend" />
+                        <div class="flex justify-between text-xs text-muted"><span>{{ t('ownChoir.settings.you') }}</span><span>{{ t('ownChoir.settings.ai') }}</span></div>
+                    </div>
+                    <div v-if="hasRecording" class="space-y-1 py-4" data-settings-recording>
+                        <p class="font-semibold text-cream">{{ t('ownChoir.settings.recordingLevel') }}</p>
+                        <input type="range" min="-25" max="0" step="1" class="block min-h-11 w-full accent-[var(--color-accent)]" :value="sound.recordingLevel ?? -25" :aria-label="t('ownChoir.settings.recordingLevel')" @change="setRecording" />
+                        <div class="flex justify-between text-xs text-muted"><span>{{ t('ownChoir.settings.off') }}</span><span>{{ t('ownChoir.settings.louder') }}</span></div>
                     </div>
                     <div class="space-y-2 py-4">
                         <div><p class="font-semibold text-cream">{{ t('ownChoir.settings.balance') }}</p><p class="text-sm text-muted">{{ t('ownChoir.settings.balanceHint') }}</p></div>

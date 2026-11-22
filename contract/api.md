@@ -3113,6 +3113,11 @@ Start sharing a mix. `partId` must be one of the project's parts (`409 part_miss
   one that doesn't fit answers `403 storage_limit`; limited like takes (`take-uploads`) and
   paused with uploads (`423 paused`), as well as by the share limit when it's unlisted. Waits while two of the account's shares are still being mixed (`429 rate_limited`, `retryAfter` 30).
 
+**Their real voice** (Hillel, 2026-11-23: a share follows the version chosen): optional `realVoice`, `["take"]`,
+`["clip"]` or both, when the mix holds their own lead take (You + choir, a lead blend under 1) or their original clip
+(Your recording, a recording level). The server keeps which, from the project's choir song, and takes the share down
+when that take or clip is deleted (the song or the voice gone), as for a friend's parts.
+
 **Update that link** (Hillel's share bug, 2026-11-23): optional `replaces`, the `id` of the sharer's own live share
 of this project. The new mix goes up as usual, but the answer is that share (its `id` and `pageUrl`, playing the old
 mix) with the new mix's `upload`; `harmonies.complete` on that share's `id` completes it. Once processed, the new mix,
@@ -7608,7 +7613,11 @@ free song. Each song's `failureDetail`: why its clip couldn't be used (with `cli
 `loud`, `noisy`, `notes`, `edge`, `short` (the most fixable first), for its singer alone; null otherwise. `voicing` may
 be `full`: both octaves, each treble part beside its `-low` twin ("Soprano (low)"), six parts, the pairs 3 dB down in
 `settings.sound.balance`; `remakeMinutes.fullStandard` and `fullFine` what a remake in both octaves would use. The clip stops at `stopBeat` (null: the
-whole tune): the app sings, and the worker's `clip.data` holds, only the notes starting before it, each unchanged. Each song's `progress` (since 2026-11-23) gives each of its parts' real state while it's `queued` or `rendering`: `[{ "partKey": "alto", "status": "ready" | "making" | "waiting" }]`, all `waiting` before the renderer claims it, then `making` until that part's render is in; `[]` otherwise (a friend's job lists only their parts). Each song's `canDownload` says whether the app offers Download (Plus, Hillel 2026-11-21); without it, Download
+whole tune): the app sings, and the worker's `clip.data` holds, only the notes starting before it, each unchanged.
+Each song's `leadTake` and `canUseRecordingAsLead`: their own recording of the tune as the lead, for the app's Your
+recording / You + choir / Full choir and Plus's lead blend (theirs alone; null and false when there's none). The voice's
+`clipListen` also gives `templateId`, `sampleRate`, `frames`, `offsetFrames` and `clipTranspose`, to place the clip
+under a song it was sung to (`recordingLevel`). Each song's `progress` (since 2026-11-23) gives each of its parts' real state while it's `queued` or `rendering`: `[{ "partKey": "alto", "status": "ready" | "making" | "waiting" }]`, all `waiting` before the renderer claims it, then `making` until that part's render is in; `[]` otherwise (a friend's job lists only their parts). Each song's `canDownload` says whether the app offers Download (Plus, Hillel 2026-11-21); without it, Download
 opens the Plus sheet (`billing.checkout`'s `moment` `choir_download`), and listening and sharing stay free. It's a gate
 in the app, as MP3 export is, not a lock on bytes: the app mixes the WAV from the parts' private playback links, which
 are unchanged, so there's no download endpoint to refuse. **Request:** none. `data` is `null` while `own_choir` is off for this person and they have nothing kept (no
@@ -7651,7 +7660,16 @@ the clip tune's song, `clipSongs[].songId`, Happy Birthday for voice-capture; el
 that `songId`; Plus makes any song) one the singer chose from config `own_choir.clip_templates` (Hillel, 2026-11-23): `"voice-capture"` (the default, shown
 as Happy Birthday), `"silent-night"`, `"amazing-grace"` or `"joy-to-the-world"`; any other is `422`. Its current
 version is recorded. `partKey` and `offsetFrames` then refer to the clip's template (its melody, its beat 0). The words
-shown are the words sung ("dear friend" on Happy Birthday's name line). Optional `guide`: `false` when the singer chose no headphones, so nothing played while they sang and they kept the tempo
+shown are the words sung ("dear friend" on Happy Birthday's name line). Optional `lead` (Hillel, 2026-11-23: "include your original recording in the final mix as the lead"; not with
+`guide: false`, whose tempo drifts against parts rendered on the beat): with a clip of the song's own tune sung right
+through ("Sing the whole song"), the whole take, `{ "sampleRate", "frames", "bytes", "sha256", "offsetFrames" }`, a
+16-bit mono WAV at most the song's length and 5 seconds; the answer's `leadUpload` is its PUT, and `requests.complete`
+waits for both. The clip is still only the first stretch, cut from it on the device: the voice is made from the clip
+alone. The take is kept privately with the song as the lead (`leadTake`, levelled to the parts, in the key it was sung
+in), deleted with the song or the voice. When a song has a lead (this, or Happy Birthday from the voice-capture clip,
+whose first section is the whole song) every part is rendered in the key they sang, so the lead lines up; all of them
+are still rendered, the tune too, so the AI lead and theirs can be compared (Hillel: "ALL users should be able to
+compare both mixes"). Optional `guide`: `false` when the singer chose no headphones, so nothing played while they sang and they kept the tempo
 by eye after a visual count-in (Hillel, 2026-11-23; absent is `true`); `offsetFrames` is still the tune's beat 0. Optional `clipTranspose` (−12 to 12): the semitones
 the app moved the tune to the singer's comfortable first note before they sang it (Hillel, 2026-11-23; kept with the
 request, and the worker gets the tune transposed). Optional `octave` (−12, 0 or 12): the octave the app measured the

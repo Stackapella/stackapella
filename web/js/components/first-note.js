@@ -7,7 +7,7 @@
 import { t } from '../i18n.js';
 import { nameNote } from '../note-names.js';
 import { VoiceCapture } from './voice-capture.js';
-import { levelVerdict, takeLevel } from '../own-choir.js';
+import { clipPick, levelVerdict, takeLevel } from '../own-choir.js';
 import { count } from '../usage.js';
 import { Segmented } from './controls.js';
 
@@ -60,6 +60,7 @@ export const HeadphonesPick = {
     methods: {
         pick(answer) {
             this.answer = answer;
+            clipPick.noHeadphones = answer === 'no';
             rememberHeadphones(answer);
         },
     },

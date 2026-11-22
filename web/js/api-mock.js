@@ -413,6 +413,9 @@ async function stateful(operation, params, body, cases, query = {}) {
             if (r.status === 'failed') r.failureDetail = tabStorage.get('stackapella.mockFailureDetail') || null;
             r.settings ??= { sound: { room: 'dry', balance: (r.parts ?? []).map((p) => ({ partKey: p.partKey, db: 0 })) }, sung: { humanize: 0, voicing: 'auto', breaths: 'legato', ensembleTiming: 'tight', pitchSpread: 'off', quality: 'standard' } };
             r.remakeMinutes ??= { standard: 2, fine: 4 };
+            // Their whole-song take as the lead (mockChoirLead this tab, or a song sung whole here), once it's ready.
+            r.leadTake = r.status === 'ready' && (r.wholeTake || tabStorage.get('stackapella.mockChoirLead')) && r.parts?.length ? { ...r.parts[0], id: `${r.parts[0].id}-lead`, url: `${location.origin}/tests/fixtures/guide-48000.m4a?lead=1` } : null;
+            r.canUseRecordingAsLead = !!r.leadTake;
             r.remake ??= null;
             const friends = choir.members.filter((m) => m.requestId === r.id);
             r.left ??= [];
@@ -538,7 +541,11 @@ async function stateful(operation, params, body, cases, query = {}) {
                 Object.assign(request, { status: 'queued', progress: shown.requests[0].parts.map((p) => ({ partKey: p.partKey, status: 'waiting' })) });
                 return save(respond(201, { data: request, upload: null }));
             }
-            return save(respond(201, { data: request, upload: { url: `${location.origin}/dev/upload/choir`, method: 'PUT', headers: { 'Content-Type': 'audio/wav' }, expiresAt: now } }));
+            // A whole-song take beside the clip (`lead`): a second upload, and the levelled take back once it's made.
+            const put = { url: `${location.origin}/dev/upload/choir`, method: 'PUT', headers: { 'Content-Type': 'audio/wav' }, expiresAt: now };
+            if (body?.lead) request.wholeTake = true;
+            globalThis.mockChoirLead = body?.lead ?? null; // what the flows read
+            return save(respond(201, { data: request, upload: put, leadUpload: body?.lead ? put : null }));
         }
         const request = choir.requests.find((r) => r.id === params.id);
         if (!request) return caseFor('not_found');

@@ -84,7 +84,12 @@
                             "additionalProperties": false,
                             "required": [
                                 "url",
-                                "expiresAt"
+                                "expiresAt",
+                                "templateId",
+                                "sampleRate",
+                                "frames",
+                                "offsetFrames",
+                                "clipTranspose"
                             ],
                             "description": "The singer's original clip, an AAC copy kept with their voice to compare before and after: theirs alone, a link for an hour; null until the song that made the voice is ready.",
                             "properties": {
@@ -95,6 +100,24 @@
                                 "expiresAt": {
                                     "type": "string",
                                     "format": "date-time"
+                                },
+                                "templateId": {
+                                    "type": "string"
+                                },
+                                "sampleRate": {
+                                    "type": "integer"
+                                },
+                                "frames": {
+                                    "type": "integer"
+                                },
+                                "offsetFrames": {
+                                    "type": [
+                                        "integer",
+                                        "null"
+                                    ]
+                                },
+                                "clipTranspose": {
+                                    "type": "integer"
                                 }
                             }
                         }

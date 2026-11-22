@@ -53,6 +53,9 @@ return [
         'make' => 'Make your own harmony',
         'tagline' => 'Stackapella: harmony, made by you.',
         'voices' => 'Guide voices: :names',
+        // Their own real voice in a shared choir song (marketing, 2026-11-23): in place of the AI line, never both.
+        'real_lead' => "The lead is :name's own voice; the other parts are AI voices made from their singing.",
+        'real_only' => "This is :name's own recording, with no AI.",
         'report' => 'Report',
         'report_title' => 'Report this harmony',
         'report_why' => 'What\'s wrong?',

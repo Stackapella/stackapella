@@ -603,4 +603,65 @@ final class OwnChoirTest extends TestCase
         $this->assertSame([1, 1, 1, 1], [$counts['choir_clip_fail_silent'] ?? 0, $counts['choir_clip_noisy'] ?? 0, $counts['choir_take_level_quiet'] ?? 0, $counts['choir_guide_on'] ?? 0]);
         $this->assertSame(0, DB::table('usage_counts')->where('kind', 'like', '%'.$user->id.'%')->count(), 'Nothing about who.');
     }
+
+    public function test_the_whole_song_sung_is_kept_as_its_lead_in_the_key_it_was_sung(): void
+    {
+        $user = $this->singer();
+        OwnChoirConsent::factory()->create(['user_id' => $user->id]);
+        $clipWav = Wav::tone(8.0);
+        $whole = Wav::tone(40.0);
+        $lead = ['sampleRate' => 48000, 'frames' => intdiv(strlen($whole) - 44, 2), 'bytes' => strlen($whole), 'sha256' => hash('sha256', $whole), 'offsetFrames' => 24000];
+
+        // Only with a clip of the song's own tune, never with no headphones.
+        $this->postJson('/api/own-choir/requests', array_replace($this->clip($clipWav, 'silent-night'), ['lead' => $lead, 'guide' => false]))->assertStatus(422);
+        $user->forceFill(['store_plus_until' => now()->addDays(10)])->save();
+        $this->postJson('/api/own-choir/requests', array_replace($this->clip($clipWav, 'silent-night'), ['lead' => $lead, 'clipTemplateId' => 'amazing-grace']))->assertStatus(422);
+
+        $made = $this->postJson('/api/own-choir/requests', array_replace($this->clip($clipWav, 'silent-night'), ['lead' => $lead, 'clipTranspose' => -2]));
+        $this->assertMatchesContract($made, 'ownChoir.requests.create', 201);
+        $made->assertJsonPath('leadUpload.method', 'PUT')->assertJsonPath('data.canUseRecordingAsLead', true)->assertJsonPath('data.leadTake', null);
+        $song = OwnChoirRequest::query()->sole();
+        $this->assertSame(-2, $song->key_shift);
+
+        // Both go up before it's queued; then the lead is made, levelled, as AAC.
+        Storage::disk('private')->put($song->upload_key, $clipWav);
+        $this->postJson("/api/own-choir/requests/{$song->sqid()}/complete")->assertStatus(409)->assertJsonPath('code', 'upload_missing');
+        Storage::disk('private')->put((string) $song->lead_upload_key, $whole);
+        $this->postJson("/api/own-choir/requests/{$song->sqid()}/complete")->assertOk();
+        $song->refresh();
+        $this->assertNotNull($song->lead_key);
+        $this->assertNull($song->lead_upload_key, 'The WAV goes once the lead is made.');
+        $this->assertSame('aac', app(Ffmpeg::class)->probe(Storage::disk('private')->path((string) $song->lead_key), upload: false)['codec'] ?? null);
+        $shown = $this->getJson('/api/own-choir');
+        $this->assertMatchesContract($shown, 'ownChoir.show', 200);
+        $shown->assertJsonPath('data.requests.0.leadTake.offsetFrames', 24000)->assertJsonPath('data.requests.0.leadTake.partKey', 'soprano');
+
+        // Every part is rendered in the key it was sung, the tune included.
+        $job = (new ChoirJobResource($song->fresh()))->resolve();
+        $written = collect((array) $song->templateVersion?->data['parts'])->firstWhere('key', 'bass')['guide']['notes'][0]['pitch'];
+        $this->assertSame($written - 2, collect((array) $job['data']->parts)->firstWhere('key', 'bass')['guide']['notes'][0]['pitch']);
+        $this->assertCount(4, $job['parts']);
+
+        // Their voice gone: the lead goes with it.
+        OwnChoirRequests::dropVoices($user);
+        Storage::disk('private')->assertMissing((string) $song->lead_key);
+        $this->assertNull($song->refresh()->lead_key);
+    }
+
+    public function test_happy_birthdays_lead_is_the_capture_clips_first_section(): void
+    {
+        $user = $this->singer();
+        OwnChoirConsent::factory()->create(['user_id' => $user->id]);
+        $wav = Wav::tone(30.0);
+
+        $this->postJson('/api/own-choir/requests', array_replace($this->clip($wav, 'happy-birthday'), ['clipTemplateId' => 'voice-capture', 'clipTranspose' => 1]))->assertCreated()->assertJsonPath('leadUpload', null)->assertJsonPath('data.canUseRecordingAsLead', true);
+        $song = OwnChoirRequest::query()->sole();
+        $this->assertSame(-1, $song->key_shift, 'Its section is in F, the song in G, and the tune moved up 1.');
+        Storage::disk('private')->put($song->upload_key, $wav);
+        $this->postJson("/api/own-choir/requests/{$song->sqid()}/complete")->assertOk();
+
+        $made = (array) $song->refresh()->lead['made'];
+        $this->assertSame(24000 + (int) round((25 * 0.6 + 1) * 48000), $made['frames'], 'To its last beat and a second.');
+        $this->getJson('/api/own-choir')->assertJsonPath('data.requests.0.leadTake.frames', $made['frames']);
+    }
 }

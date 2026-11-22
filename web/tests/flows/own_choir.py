@@ -78,6 +78,11 @@ def journey(f):
     f.wait("document.querySelector('[data-free-song]')?.textContent.includes('Happy Birthday')", what="the free choir named")
     f.run("document.querySelector('[data-clip-song=\"amazing-grace\"]').click()")
     f.wait("!document.querySelector('[data-free-song]')", what="this page's song, sung")
+    # Its own tune, with headphones: Sing the whole song (the take becomes the lead); not without headphones.
+    f.run("document.querySelector('[data-headphones-pick] [role=radio]:nth-child(1)').click()")
+    f.wait("document.querySelector('[data-clip-whole]')", what="Sing the whole song")
+    f.run("document.querySelector('[data-headphones-pick] [role=radio]:nth-child(2)').click()")
+    f.wait("!document.querySelector('[data-clip-whole]')", what="no whole song without headphones")
     # Headphones beside the tune (Hillel: "You make two choices and click sing to start"): without, nothing plays.
     assert not f.js("document.body.innerText.includes('Headphones on, so only your voice is recorded')"), "the old headphones line is back"
     f.run("document.querySelector('[data-headphones-pick] [role=radio]:nth-child(2)').click()")
@@ -155,14 +160,27 @@ def journey(f):
     f.wait("document.querySelector('[data-choir-play]') && document.querySelector('[data-choir-progress]')", what="the ready song")
     assert "0 of 4" in f.js("document.querySelector('[data-choir-progress]').textContent")
     assert f.js("!document.querySelector('[data-choir-learn-part]').classList.contains('btn-primary')"), "learning is a quiet option"
-    # Before and after (Hillel): their own 30 seconds beside the choir, the owner's only; and no low-voice line here.
-    f.wait("document.querySelector('[data-choir-clip-play]')", what="Hear your recording")
+    # Hillel: "compare your original, to you with choir around, or full choir": Listen to, for everyone, remembered.
+    f.wait("document.querySelector('[data-listen-to]')", what="Listen to")
     assert not f.js("document.querySelector('[data-choir-low-voice]')"), "a low-voice line on a song as written"
+    options = f.js("[...document.querySelectorAll('[data-listen-to] [role=radio]')].map((b) => b.textContent.trim())")
+    assert options == [t(f, "ownChoir.version.recording"), t(f, "ownChoir.version.fullChoir")], options  # no whole-song take: no You + choir
     f.shot("ready")
-    f.run("document.querySelector('[data-choir-clip-play]').click()")
-    f.wait("document.querySelector('[data-choir-clip-play]').getAttribute('aria-pressed') === 'true'", what="their recording playing")
-    f.run("document.querySelector('[data-choir-clip-play]').click()")
-    f.wait("document.querySelector('[data-choir-clip-play]').getAttribute('aria-pressed') === 'false'", what="their recording stopped")
+    f.run("document.querySelector('[data-listen-to] [role=radio]:nth-child(1)').click()")  # Your recording
+    f.run("document.querySelector('[data-choir-play]').click()")
+    f.wait("(document.querySelector('[data-choir-play]').textContent.trim() === " + json.dumps(t(f, "studio.stop")) + ")", what="their recording playing")
+    f.run("document.querySelector('[data-choir-play]').click()")
+    # With a whole-song take (mockChoirLead): You + choir, their take as the lead.
+    f.run("sessionStorage.setItem('stackapella.mockChoirLead', '1'); await (await import('/js/own-choir.js')).loadOwnChoir({ force: true })")
+    f.wait("document.querySelectorAll('[data-listen-to] [role=radio]').length === 3", what="You + choir offered")
+    f.run("document.querySelector('[data-listen-to] [role=radio]:nth-child(2)').click()")
+    f.run("(await import('/js/audio.js')).unlock(); document.querySelector('[data-choir-play]').click()")
+    f.wait("(async () => { const a = await import('/js/audio.js'); return a.engine.playing && [...a.engine.parts.keys()].some((k) => k === 'choir:lead-take'); })()", timeout=30, what="their take as the lead")
+    f.run("document.querySelector('[data-choir-play]').click()")
+    f.go("/t/amazing-grace/choir?api=mock&scenario=&as=member", "document.querySelector('[data-listen-to]')")
+    assert f.js("document.querySelector('[data-listen-to] [role=radio]:nth-child(2)').getAttribute('aria-checked')") == "true", "Listen to wasn't remembered"
+    f.shot("ready-you-choir")
+    f.run("sessionStorage.removeItem('stackapella.mockChoirLead'); await (await import('/js/own-choir.js')).loadOwnChoir({ force: true })")
     # A low voice's arrangement: one quiet line.
     f.run("sessionStorage.setItem('stackapella.mockChoirLow', '1'); await (await import('/js/own-choir.js')).loadOwnChoir({ force: true })")
     f.wait("document.querySelector('[data-choir-low-voice]')", what="the low-voice line")

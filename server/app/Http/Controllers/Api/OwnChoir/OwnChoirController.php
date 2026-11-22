@@ -46,11 +46,12 @@ final class OwnChoirController extends Controller
     {
         /** @var array{templateId: string, partKey?: string|null, offsetFrames?: int|null, sampleRate?: int|null, frames?: int|null, bytes?: int|null, sha256?: string|null, turnstileToken?: string|null} $clip */
         $clip = $request->validated();
-        ['request' => $song, 'put' => $put] = $choir->start($user, $clip, $request->ip());
+        ['request' => $song, 'put' => $put, 'leadPut' => $leadPut] = $choir->start($user, $clip, $request->ip());
 
         return response()->json([
             'data' => OwnChoir::request($song->load(['templateVersion.template', 'parts']), null, $user),
             'upload' => $put === null ? null : [...$put, 'expiresAt' => Carbon::instance($put['expiresAt'])->utc()->toIso8601ZuluString()],
+            'leadUpload' => $leadPut === null ? null : [...$leadPut, 'expiresAt' => Carbon::instance($leadPut['expiresAt'])->utc()->toIso8601ZuluString()],
         ], 201);
     }
 
@@ -83,7 +84,7 @@ final class OwnChoirController extends Controller
 
     public function download(OwnChoirRequest $song, OwnChoirRequests $choir, #[CurrentUser] User $user): JsonResponse
     {
-        return response()->json(['data' => ['parts' => $choir->download($user, $song)]]);
+        return response()->json(['data' => ['parts' => $choir->download($user, $song), 'leadTake' => OwnChoir::leadTake($song, $user)]]);
     }
 
     public function destroy(OwnChoirRequest $song, OwnChoirRequests $choir, #[CurrentUser] User $user): Response

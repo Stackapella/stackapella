@@ -23,6 +23,7 @@ use App\Support\AiVoices\AiGuides;
 use App\Support\Gallery\Gallery;
 use App\Support\Ids;
 use App\Support\Moderation\TextFilter;
+use App\Support\OwnChoir\OwnChoir;
 use App\Support\Storage\Uploads;
 use App\Support\Templates\Imported;
 use App\Support\Trust\TrustLevel;
@@ -195,6 +196,8 @@ final class StartHarmony
             'ai_parts' => $this->aiParts([...$guideIds, ...$this->untakenAiGuides($project, $version, $user)]),
             'own_voice_parts' => $choir['parts'] === [] ? null : $choir['parts'],
             'own_voice_friends' => $choir['friends'] === [] ? null : $choir['friends'],
+            // Their own real voice in the mix (2026-11-23), kept so the share comes down when it's deleted.
+            'real_voice' => $this->realVoice($user, (array) ($data['realVoice'] ?? []), is_string($choirSaved['requestId'] ?? null) ? $choirSaved['requestId'] : null),
             'template_version_id' => $version?->id,
             'words_part_key' => $version !== null ? ($part->template_part_key ?? $this->melodyKey($version)) : null,
             'bpm' => $project->bpm,
@@ -208,6 +211,29 @@ final class StartHarmony
         }
 
         return $harmony;
+    }
+
+    /**
+     * Which of their own recordings the mix holds, as the server knows them: the project's choir song's lead (`take`),
+     * their saved voice's clip (`clip`); null for none.
+     *
+     * @param  array<mixed>  $claimed
+     * @return array{take?: int, clip?: int}|null
+     */
+    private function realVoice(User $user, array $claimed, ?string $songSqid): ?array
+    {
+        $real = [];
+
+        if (in_array('take', $claimed, true) && $songSqid !== null) {
+            $song = OwnChoirRequest::query()->whereKey(Ids::decode($songSqid) ?? 0)->where('user_id', $user->id)->whereNotNull('lead_key')->first();
+            $real += $song === null ? [] : ['take' => $song->id];
+        }
+
+        if (in_array('clip', $claimed, true) && ($voice = OwnChoir::voice($user)) !== null && $voice->clip_key !== null) {
+            $real['clip'] = $voice->id;
+        }
+
+        return $real === [] ? null : $real;
     }
 
     /**

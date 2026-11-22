@@ -32,6 +32,13 @@ final class StartOwnChoirRequest extends FormRequest
             'clipTranspose' => ['sometimes', 'nullable', 'integer', 'between:-12,12'],
             // false: sung with no headphones, nothing playing (2026-11-23).
             'guide' => ['sometimes', 'nullable', 'boolean'],
+            // The whole song sung, as the lead (2026-11-23): with a clip of the song's own tune, never with no headphones.
+            'lead' => ['sometimes', 'nullable', 'array', 'required_array_keys:sampleRate,frames,bytes,sha256,offsetFrames', 'prohibited_if:guide,false'],
+            'lead.sampleRate' => ['integer', 'in:44100,48000'],
+            'lead.frames' => ['integer', 'min:1'],
+            'lead.bytes' => ['integer', 'min:45'],
+            'lead.sha256' => ['string', 'regex:/^[0-9a-fA-F]{64}$/'],
+            'lead.offsetFrames' => ['integer', 'min:0'],
             // The octave the app measured the clip sung in, against the tune as written (2026-11-23).
             'octave' => ['sometimes', 'nullable', 'integer', 'in:-12,0,12'],
             'partKey' => ['required_with:sampleRate', 'string', 'regex:/^[a-z0-9_-]{1,40}$/'],

@@ -66,7 +66,7 @@ final class ProcessHarmony implements ShouldQueue
             $share->forceFill([
                 ...$media,
                 // As values, not raw columns: a JSON column copied raw would be encoded twice.
-                ...collect(['tracks', 'guide_ids', 'ai_parts', 'own_voice_parts', 'own_voice_friends', 'sample_rate', 'channels', 'frames', 'take_ids', 'singer_ids', 'beat_zero_ms', 'template_version_id', 'words_part_key', 'bpm', 'part_id', 'part_name', 'sha256', 'upload_bytes'])->mapWithKeys(static fn (string $key): array => [$key => $still->getAttributeValue($key)])->all(),
+                ...collect(['tracks', 'guide_ids', 'ai_parts', 'own_voice_parts', 'own_voice_friends', 'real_voice', 'sample_rate', 'channels', 'frames', 'take_ids', 'singer_ids', 'beat_zero_ms', 'template_version_id', 'words_part_key', 'bpm', 'part_id', 'part_name', 'sha256', 'upload_bytes'])->mapWithKeys(static fn (string $key): array => [$key => $still->getAttributeValue($key)])->all(),
                 ...(($still->title ?? '') !== '' ? ['title' => $still->title, 'title_held_at' => $still->title_held_at] : []),
                 'ready_at' => now(),
             ])->save();

@@ -49,6 +49,7 @@ use Illuminate\Support\Str;
  * @property bool $open_parts_guide
  * @property Carbon|null $stems_ready_at
  * @property int|null $parent_id
+ * @property array<string, int>|null $real_voice their own recordings in the mix: take (a choir song's lead), clip (a voice's)
  * @property int|null $replaces_id a new mix waiting to replace this share's ("Update that link")
  * @property string|null $fill_part_key
  * @property Carbon|null $fill_told_at
@@ -143,6 +144,7 @@ final class Harmony extends Model
             'guide_ids' => 'array',
             'own_voice_parts' => 'array',
             'own_voice_friends' => 'array',
+            'real_voice' => 'array',
             'ai_parts' => 'array',
             'beat_zero_ms' => 'integer',
             'sign_ups' => 'integer',

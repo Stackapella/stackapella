@@ -4,7 +4,8 @@
     "additionalProperties": false,
     "required": [
         "data",
-        "upload"
+        "upload",
+        "leadUpload"
     ],
     "properties": {
         "data": {
@@ -16,6 +17,13 @@
                 "null"
             ],
             "description": "A presigned PUT for the clip (upload.json), or null when the song is made from their saved voice."
+        },
+        "leadUpload": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "description": "A presigned PUT for the whole song sung (upload.json), when the request sent `lead`; else null."
         }
     }
 }

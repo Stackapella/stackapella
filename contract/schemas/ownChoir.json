@@ -86,7 +86,12 @@
                             "additionalProperties": false,
                             "required": [
                                 "url",
-                                "expiresAt"
+                                "expiresAt",
+                                "templateId",
+                                "sampleRate",
+                                "frames",
+                                "offsetFrames",
+                                "clipTranspose"
                             ],
                             "description": "The singer's original clip, an AAC copy kept with their voice to compare before and after: theirs alone, a link for an hour; null until the song that made the voice is ready.",
                             "properties": {
@@ -97,6 +102,24 @@
                                 "expiresAt": {
                                     "type": "string",
                                     "format": "date-time"
+                                },
+                                "templateId": {
+                                    "type": "string"
+                                },
+                                "sampleRate": {
+                                    "type": "integer"
+                                },
+                                "frames": {
+                                    "type": "integer"
+                                },
+                                "offsetFrames": {
+                                    "type": [
+                                        "integer",
+                                        "null"
+                                    ]
+                                },
+                                "clipTranspose": {
+                                    "type": "integer"
                                 }
                             }
                         }
@@ -254,7 +277,9 @@
                 "settings",
                 "remakeMinutes",
                 "remake",
-                "failureDetail"
+                "failureDetail",
+                "leadTake",
+                "canUseRecordingAsLead"
             ],
             "properties": {
                 "id": {
@@ -536,6 +561,47 @@
                         null
                     ],
                     "description": "Why its clip couldn't be used (with failure clip_unusable), for its singer alone; null otherwise."
+                },
+                "leadTake": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "id",
+                        "partKey",
+                        "url",
+                        "sampleRate",
+                        "frames",
+                        "offsetFrames"
+                    ],
+                    "description": "Their own recording of the tune as the lead (the whole song sung, or Happy Birthday's capture), levelled to the parts, in the song's key as rendered: theirs alone, a link for 2 hours; null when there's none.",
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "partKey": {
+                            "type": "string"
+                        },
+                        "url": {
+                            "type": "string",
+                            "format": "uri"
+                        },
+                        "sampleRate": {
+                            "type": "integer"
+                        },
+                        "frames": {
+                            "type": "integer"
+                        },
+                        "offsetFrames": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "canUseRecordingAsLead": {
+                    "type": "boolean",
+                    "description": "Their recording covers this whole song, so it can be the lead (You + choir, the lead blend); else the app offers Record the lead."
                 }
             }
         },

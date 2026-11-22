@@ -147,6 +147,8 @@
             "fullStandard": 9.6,
             "fullFine": 19.2
         },
-        "remake": null
+        "remake": null,
+        "leadTake": null,
+        "canUseRecordingAsLead": false
     }
 }

@@ -21,7 +21,7 @@ import * as sessionStore from '../stores/session.js';
 import { account } from '../stores/account.js';
 import { claimInvitation, countVoice, later, needsVoice, saidLater, usableTake, voiceAskOpen } from '../be-the-voice.js';
 import { aiCredit, aiCtaOpen } from '../ai-voices.js';
-import { checkKey, choirRefusal, joinFor, keepJoinClip, loadOwnChoir, MIN_SECONDS, ownChoir, ownChoirOn, sendClip, takeLevel, tunePart } from '../own-choir.js';
+import { checkKey, choirRefusal, clipSecondsFor, clipSongs, joinFor, keepJoinClip, loadOwnChoir, MIN_SECONDS, ownChoir, ownChoirOn, sendClip, takeLevel, tunePart } from '../own-choir.js';
 import { session as tabStorage } from '../storage.js';
 import { aiPartsOf } from '../stores/catalogue.js';
 import { sendVoiceTake } from '../voice-take.js';
@@ -1078,6 +1078,12 @@ export const SingView = {
             const { deleteProject } = await import('../stores/projects.js');
             await deleteProject(projectId).catch((error) => console.warn('The take was not removed', error));
         },
+        /** A whole-song take's clip end (the tune's stop) and its lead flag, for sendClip; nothing for a 30 seconds' take. */
+        wholeTake() {
+            if (!this.project.choir?.whole) return {};
+            const stopBeat = clipSongs().find((song) => song.templateId === this.project.template.id)?.stopBeat ?? null;
+            return { whole: true, clipSeconds: clipSecondsFor(this.project.template, stopBeat, this.fullBeatSeconds) };
+        },
         async makeChoir(turnstileToken = null, { force = false } = {}) {
             const part = this.recorded?.part;
             const samples = part && sessionStore.takeOf(part);
@@ -1122,7 +1128,7 @@ export const SingView = {
                 // The voice-capture take for another song's choir (`forTemplateId`): the clip names its template; the
                 // project was only for the take, so it goes once sent (the server keeps only the voice made from it).
                 const forId = this.project.choir?.forTemplateId ?? null;
-                const request = await sendClip({ templateId: forId ?? this.project.template.id, clipTemplateId: forId ? this.project.template.id : null, clipTranspose: forId ? clipTranspose : 0, guide: !this.project.choir?.noHeadphones, octave: forId ? octave : null, partKey: part.templatePartKey, samples, sampleRate: part.sampleRate, startSeconds: part.offsetSeconds + (part.nudgeSeconds || 0), turnstileToken });
+                const request = await sendClip({ templateId: forId ?? this.project.template.id, clipTemplateId: forId ? this.project.template.id : null, clipTranspose: forId ? clipTranspose : 0, guide: !this.project.choir?.noHeadphones, octave: forId ? octave : null, ...this.wholeTake(), partKey: part.templatePartKey, samples, sampleRate: part.sampleRate, startSeconds: part.offsetSeconds + (part.nudgeSeconds || 0), turnstileToken });
                 // Sent by itself from /your-choir: they stay with their take while it's made (a look every 15 s), then Listen.
                 if (forId) count('choir_take_sent');
                 if (forId && this.project.choir?.auto) {

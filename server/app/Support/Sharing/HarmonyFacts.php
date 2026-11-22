@@ -140,6 +140,32 @@ final class HarmonyFacts
     }
 
     /**
+     * Their own real voice in it (2026-11-23): the lead ("The lead is {name}'s own voice…"), or the whole of it, their
+     * recording with no AI; null when it holds none, or their name can't be shown (the AI line says it then).
+     *
+     * @param  list<array{name: string|null, part: string, ai: bool, aiBasedOn: string|null, ownVoice: bool, friend?: bool}>  $guides
+     * @return array{kind: string, name: string}|null
+     */
+    public function realVoice(Harmony $harmony, array $guides): ?array
+    {
+        $real = (array) ($harmony->real_voice ?? []);
+        $sharer = $harmony->user;
+        $named = $sharer instanceof User && ! Gallery::hidden($sharer) && ! TextFilter::hasLink($sharer->name) && ! TextFilter::holds($sharer->name) ? $sharer->name : null;
+
+        if ($named === null || $real === []) {
+            return null;
+        }
+
+        $ai = collect($guides)->contains('ai', true);
+
+        return match (true) {
+            isset($real['take']) && $ai => ['kind' => 'lead', 'name' => $named],
+            ! $ai => ['kind' => 'only', 'name' => $named],
+            default => null,
+        };
+    }
+
+    /**
      * The song, for a project made from a template; null otherwise.
      *
      * @return array{slug: string, title: string, credits: string, arrangedBy: string}|null
@@ -238,7 +264,8 @@ final class HarmonyFacts
             'id' => $harmony->public_id,
             'title' => $this->title($harmony),
             'singers' => $this->singers($harmony),
-            'guides' => $this->guides($harmony),
+            'guides' => $guides = $this->guides($harmony),
+            'realVoice' => $this->realVoice($harmony, $guides),
             'song' => $this->song($harmony),
             'part' => $this->part($harmony),
             'durationSeconds' => $harmony->durationSeconds(),

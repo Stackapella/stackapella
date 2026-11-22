@@ -55,6 +55,9 @@ final class StartHarmonyRequest extends FormRequest
             'guides' => ['nullable', 'array', 'max:16'],
             // Hear yourself as a choir: the sharer's own AI parts in the mix (ownChoir.show's parts[].id), credited as AI.
             'choirParts' => ['nullable', 'array', 'max:16'],
+            // Their own real voice in the mix (2026-11-23): their lead take, their original clip.
+            'realVoice' => ['sometimes', 'nullable', 'array', 'max:2'],
+            'realVoice.*' => ['string', 'in:take,clip'],
             'choirParts.*' => ['string', 'max:32'],
             // Open parts (N5): a fill of someone's harmony, and the part it sings.
             'parentId' => ['nullable', 'string', 'size:12', 'required_with:fillPart'],

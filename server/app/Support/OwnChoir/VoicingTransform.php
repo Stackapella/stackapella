@@ -63,6 +63,29 @@ final class VoicingTransform
     }
 
     /**
+     * The song moved by some semitones, every part (the key its lead was sung in).
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    public static function transpose(array $data, int $semitones): array
+    {
+        if ($semitones === 0) {
+            return $data;
+        }
+
+        $data['parts'] = array_map(static function (mixed $part) use ($semitones): mixed {
+            if (is_array($part) && is_array($part['guide']['notes'] ?? null)) {
+                $part['guide']['notes'] = array_map(static fn (mixed $n): mixed => is_array($n) && is_numeric($n['pitch'] ?? null) ? array_replace($n, ['pitch' => (int) $n['pitch'] + $semitones]) : $n, $part['guide']['notes']);
+            }
+
+            return $part;
+        }, (array) ($data['parts'] ?? []));
+
+        return $data;
+    }
+
+    /**
      * Every part within what the renderer sings well and its gates can hear (MIDI 36 to 84; voices, 2026-11-23): a part
      * that would leave it moves a whole octave toward the middle, keeping its chord tones.
      *

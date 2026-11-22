@@ -50,5 +50,7 @@
     "It may have been made private, or deleted.": "Puede que se haya hecho privada o que se haya eliminado.",
     "This harmony was removed": "Esta armonía se retiró",
     "It was taken down and can't be played.": "Se retiró y no se puede reproducir.",
-    "Hear yourself as a choir: your first song is free": "Óyete como un coro: tu primera canción es gratis"
+    "Hear yourself as a choir: your first song is free": "Óyete como un coro: tu primera canción es gratis",
+    "The lead is :name's own voice; the other parts are AI voices made from their singing.": "La melodía principal es la propia voz de :name; las demás partes son voces de IA hechas con su canto.",
+    "This is :name's own recording, with no AI.": "Esta es la propia grabación de :name, sin IA."
 }

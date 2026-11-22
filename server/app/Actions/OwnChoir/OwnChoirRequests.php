@@ -6,9 +6,11 @@ namespace App\Actions\OwnChoir;
 
 use App\Actions\Counts\RecordCounts;
 use App\Actions\Projects\Owned;
+use App\Actions\Sharing\DeleteHarmony;
 use App\Enums\OwnChoirStatus;
 use App\Exceptions\Refusal;
 use App\Jobs\CheckChoirClip;
+use App\Jobs\MakeChoirLead;
 use App\Models\AuditLog;
 use App\Models\OwnChoirConsent;
 use App\Models\OwnChoirMember;
@@ -16,6 +18,7 @@ use App\Models\OwnChoirPart;
 use App\Models\OwnChoirRequest;
 use App\Models\OwnChoirVoice;
 use App\Models\Template;
+use App\Models\TemplateVersion;
 use App\Models\User;
 use App\Services\Cloudflare\Turnstile;
 use App\Support\OwnChoir\ChoirCounts;
@@ -65,7 +68,7 @@ final class OwnChoirRequests
      * alone from their kept voice (queued at once: a singer back for more).
      *
      * @param  array{templateId: string, clipTemplateId?: string|null, clipTranspose?: int|null, guide?: bool|null, octave?: int|null, partKey?: string|null, offsetFrames?: int|null, sampleRate?: int|null, frames?: int|null, bytes?: int|null, sha256?: string|null, turnstileToken?: string|null}  $clip
-     * @return array{request: OwnChoirRequest, put: array{url: string, method: string, headers: array<string, string>, expiresAt: \DateTimeInterface}|null}
+     * @return array{request: OwnChoirRequest, put: array{url: string, method: string, headers: array<string, string>, expiresAt: \DateTimeInterface}|null, leadPut: array{url: string, method: string, headers: array<string, string>, expiresAt: \DateTimeInterface}|null}
      */
     public function start(User $user, array $clip, ?string $ip = null, bool $staffTest = false): array
     {
@@ -144,6 +147,11 @@ final class OwnChoirRequests
             'email_key' => OwnChoir::emailKey($user),
         ];
 
+        // The lead (2026-11-23): the whole song sung (a clip of its own tune), or a clip tune whose first section is
+        // this whole song (Happy Birthday from voice-capture). Either way the song is rendered in the key they sang.
+        $lead = $withClip && $tune !== null ? self::lead($clip, $tune, $template, $version) : null;
+        $keyShift = $lead === null ? 0 : (int) $lead['keyShift'] + (int) ($clip['clipTranspose'] ?? 0);
+
         // The low-voice version (2026-11-23): their range (measured, else the tune they just sang in the octave the app
         // heard, else their saved voice's) suits the song's tune an octave down better than as written.
         $octave = $withClip ? (int) ($clip['octave'] ?? 0) : 0;
@@ -152,7 +160,7 @@ final class OwnChoirRequests
         $melody = ChoirTogether::versionNotes($version)[self::melody((array) $version->data) ?? ''] ?? [];
         $voicing = $range !== null && $melody !== [] && VoicingTransform::isLow($melody, $range) ? 'low' : 'written';
 
-        return DB::transaction(function () use ($user, $clip, $version, $withClip, $cost, $tune, $octave, $transpose, $voicing): array {
+        return DB::transaction(function () use ($user, $clip, $version, $withClip, $cost, $tune, $octave, $transpose, $voicing, $lead, $keyShift): array {
             Owned::lockAccount($user);
 
             if (OwnChoirRequest::query()->where('user_id', $user->id)->whereNull('parent_request_id')->whereIn('status', [OwnChoirStatus::Uploading->value, OwnChoirStatus::Queued->value, OwnChoirStatus::Rendering->value])->exists()) {
@@ -178,13 +186,13 @@ final class OwnChoirRequests
                 app(RecordCounts::class)->server('own_choir_again', true, null);
                 $this->countOwn($version->id);
 
-                return ['request' => $request, 'put' => null];
+                return ['request' => $request, 'put' => null, 'leadPut' => null];
             }
 
             // The clip is always a tune with words (Hillel, 2026-11-23: a bass part of "oo"s gives a voice none), Happy
             // Birthday by default: its melody, sung in any octave the singer likes, whatever part the app named.
             $request = new OwnChoirRequest(['part_key' => ($tune !== null ? ClipTune::melody($tune) : null) ?? $clip['partKey']]);
-            $this->uploadBytes->count($user, (int) $clip['bytes']);
+            $this->uploadBytes->count($user, (int) $clip['bytes'] + (int) ($lead['take']['bytes'] ?? 0));
             $request->forceFill([
                 'user_id' => $user->id,
                 'template_version_id' => $version->id,
@@ -194,6 +202,9 @@ final class OwnChoirRequests
                 'clip_transpose' => $transpose,
                 'guide' => ($clip['guide'] ?? true) !== false,
                 'voicing' => $voicing,
+                'lead' => $lead === null ? null : array_diff_key($lead, ['keyShift' => true]),
+                'lead_upload_key' => isset($lead['take']) ? 'uploads/choir/'.Str::lower(Str::random(32)).'.wav' : null,
+                'key_shift' => $keyShift,
                 'status' => OwnChoirStatus::Uploading,
                 // Under uploads/, which the private bucket's lifecycle expires after a day.
                 'upload_key' => 'uploads/choir/'.Str::lower(Str::random(32)).'.wav',
@@ -206,7 +217,11 @@ final class OwnChoirRequests
             $this->ensureFree($user, $request);
             $this->countFriendOwn($user, $request->id);
 
-            return ['request' => $request, 'put' => $this->uploads->presign((string) $request->upload_key, 'audio/wav', (int) $request->bytes)];
+            return [
+                'request' => $request,
+                'put' => $this->uploads->presign((string) $request->upload_key, 'audio/wav', (int) $request->bytes),
+                'leadPut' => $request->lead_upload_key === null ? null : $this->uploads->presign($request->lead_upload_key, 'audio/wav', (int) ($lead['take']['bytes'] ?? 0)),
+            ];
         });
     }
 
@@ -219,23 +234,37 @@ final class OwnChoirRequests
             return $request;
         }
 
+        // The whole song sung (the lead) goes up beside the clip: both are in before the song is queued.
+        $take = is_array($request->lead['take'] ?? null) ? $request->lead['take'] : null;
+
+        if ($take !== null && $request->lead_upload_key !== null && ! Storage::disk('private')->exists($request->lead_upload_key)) {
+            throw new Refusal(409, 'upload_missing');
+        }
+
         $received = app(ReceivedUploads::class)->receive((string) $request->upload_key, (int) $request->bytes, (string) $request->sha256, 'choir/clips');
 
         if ($received === null) {
             return $request->refresh();
         }
 
+        $leadReceived = $take !== null && $request->lead_upload_key !== null ? app(ReceivedUploads::class)->receive($request->lead_upload_key, (int) $take['bytes'], (string) $take['sha256'], 'choir/leads') : null;
+
         $claimed = OwnChoirRequest::query()->whereKey($request->id)->where('status', OwnChoirStatus::Uploading->value)
-            ->update(['status' => OwnChoirStatus::Queued->value, 'clip_key' => $received]);
+            ->update(['status' => OwnChoirStatus::Queued->value, 'clip_key' => $received, 'lead_upload_key' => $leadReceived]);
 
         if ($claimed === 1) {
             CheckChoirClip::dispatch($request->id);
+
+            // The lead, levelled to the parts and kept as AAC: the whole take, or the clip's first section.
+            if ($leadReceived !== null || isset($request->lead['fromClip'])) {
+                MakeChoirLead::dispatch($request->id);
+            }
             app(RecordCounts::class)->server('own_choir_requested', true, null);
             if ($request->template_version_id !== null) {
                 $this->countOwn($request->template_version_id);
             }
         } else {
-            Storage::disk('private')->delete($received);
+            Storage::disk('private')->delete(array_values(array_filter([$received, $leadReceived])));
         }
 
         return $request->refresh();
@@ -292,13 +321,26 @@ final class OwnChoirRequests
      * Every voice of theirs, files and all, read under their locks (completeReference takes them too, so a reference
      * arriving meanwhile is never kept); a song waiting on one fails `reference_gone`, its clip and parts gone.
      */
+    /** Their songs' leads (their own recordings of the tune), and the shares that carried them. */
+    public static function dropLeads(User $user): void
+    {
+        $songs = OwnChoirRequest::query()->where('user_id', $user->id)->where(fn ($q) => $q->whereNotNull('lead_key')->orWhereNotNull('lead_upload_key'))->get();
+        app(DeleteHarmony::class)->withRealVoice(takes: $songs->modelKeys());
+        Storage::disk('private')->delete(array_values(array_filter($songs->flatMap(static fn (OwnChoirRequest $s): array => [$s->lead_key, $s->lead_upload_key])->all())));
+        OwnChoirRequest::query()->whereKey($songs->modelKeys())->update(['lead' => null, 'lead_key' => null, 'lead_upload_key' => null]);
+    }
+
     public static function dropVoices(User $user): void
     {
         // Their voice gone: their parts in every choir they joined go with it (the owners' play again).
         ChoirTogether::leaveAll($user);
 
+        // Their own recordings go with it: each song's lead, and every share that carried their real voice.
+        self::dropLeads($user);
+
         [$files, $waiting] = DB::transaction(function () use ($user): array {
             $voices = OwnChoirVoice::query()->where('user_id', $user->id)->lockForUpdate()->get();
+            app(DeleteHarmony::class)->withRealVoice(clips: $voices->modelKeys());
             $waiting = OwnChoirRequest::query()->whereIn('own_choir_voice_id', $voices->modelKeys())->whereIn('status', [OwnChoirStatus::Queued->value, OwnChoirStatus::Rendering->value])->pluck('id')->all();
             OwnChoirVoice::query()->whereKey($voices->modelKeys())->delete();
 
@@ -392,9 +434,10 @@ final class OwnChoirRequests
 
     private static function purge(OwnChoirRequest $request): void
     {
-        // The owner's song going: everyone's part in it goes too.
+        // The owner's song going: everyone's part in it goes too, and any share that carried its lead.
         if ($request->parent_request_id === null) {
             ChoirTogether::songGone($request);
+            app(DeleteHarmony::class)->withRealVoice(takes: [$request->id]);
         }
 
         $files = DB::transaction(function () use ($request): array {
@@ -407,13 +450,13 @@ final class OwnChoirRequests
             $parts = OwnChoirPart::query()->where('own_choir_request_id', $locked->id)->lockForUpdate()->get();
             $preparing = OwnChoirVoice::query()->whereKey($locked->own_choir_voice_id ?? 0)->where('status', '!=', 'ready')->lockForUpdate()->get();
             $files = [
-                ...array_filter([$locked->upload_key, $locked->clip_key]),
+                ...array_filter([$locked->upload_key, $locked->clip_key, $locked->lead_key, $locked->lead_upload_key]),
                 ...$parts->flatMap(static fn (OwnChoirPart $p): array => ChoirJobs::partFiles($p))->all(),
                 ...$preparing->flatMap(static fn (OwnChoirVoice $v): array => $v->files())->all(),
             ];
             OwnChoirPart::query()->whereKey($parts->modelKeys())->delete();
             OwnChoirVoice::query()->whereKey($preparing->modelKeys())->delete();
-            $locked->forceFill(['status' => OwnChoirStatus::Deleted, 'upload_key' => null, 'clip_key' => null, 'claimed_at' => null, 'claim_token' => null, 'part_key' => null, 'offset_frames' => null, 'sha256' => null])->save();
+            $locked->forceFill(['status' => OwnChoirStatus::Deleted, 'upload_key' => null, 'clip_key' => null, 'lead' => null, 'lead_key' => null, 'lead_upload_key' => null, 'claimed_at' => null, 'claim_token' => null, 'part_key' => null, 'offset_frames' => null, 'sha256' => null])->save();
             OwnChoir::releaseFree($locked);
 
             return array_values($files);
@@ -505,6 +548,58 @@ final class OwnChoirRequests
         });
 
         return $song;
+    }
+
+    /**
+     * The song's lead, if it has one: the whole song they sang (`lead`, a clip of the song's own tune), or the clip tune's
+     * first section when it's this whole song. Its key shift moves the song to the key they sang.
+     *
+     * @param  array<string, mixed>  $clip
+     * @return array{keyShift: int, take?: array{sampleRate: int, frames: int, bytes: int, sha256: string, offsetFrames: int}, fromClip?: array{beats: float}}|null
+     */
+    private static function lead(array $clip, TemplateVersion $tune, Template $template, TemplateVersion $version): ?array
+    {
+        $fromClip = ((array) config('own_choir.clip_leads'))[(string) $tune->template?->slug] ?? null;
+
+        if (is_array($fromClip) && ($fromClip['song'] ?? null) === $template->slug) {
+            return ['keyShift' => (int) ($fromClip['keyShift'] ?? 0), 'fromClip' => ['beats' => (float) ($fromClip['beats'] ?? 0)]];
+        }
+
+        $take = $clip['lead'] ?? null;
+
+        if (! is_array($take)) {
+            return null;
+        }
+
+        // The whole song, sung to its own tune: no longer than it and a little, and the WAV the numbers describe.
+        $seconds = (int) $take['frames'] / (int) $take['sampleRate'];
+        $song = self::songSeconds((array) $version->data);
+
+        if ($tune->id !== $version->id || (int) $take['bytes'] !== 44 + 2 * (int) $take['frames'] || $seconds > min($song + 5, (int) config('usage.take_max_seconds'))) {
+            throw ValidationException::withMessages(['lead' => __('validation.choir_clip')]);
+        }
+
+        return ['keyShift' => 0, 'take' => ['sampleRate' => (int) $take['sampleRate'], 'frames' => (int) $take['frames'], 'bytes' => (int) $take['bytes'], 'sha256' => strtolower((string) $take['sha256']), 'offsetFrames' => (int) $take['offsetFrames']]];
+    }
+
+    /**
+     * How long a song runs: beat 0 to its last note's end, at its tempo.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public static function songSeconds(array $data): float
+    {
+        $end = 0.0;
+
+        foreach ((array) ($data['parts'] ?? []) as $part) {
+            foreach ((array) (is_array($part) ? ($part['guide']['notes'] ?? []) : []) as $n) {
+                if (is_array($n)) {
+                    $end = max($end, (float) ($n['beat'] ?? 0) + (float) ($n['length'] ?? 0));
+                }
+            }
+        }
+
+        return $end * 60 / max(1.0, (float) ($data['tempo'] ?? 0));
     }
 
     /** The tune their saved voice was sung to, if the voice remembers it. */

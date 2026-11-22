@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\OwnChoir;
 
 use App\Actions\OwnChoir\ChoirTogether;
+use App\Actions\OwnChoir\OwnChoirRequests;
 use App\Enums\OwnChoirStatus;
 use App\Exceptions\Refusal;
 use App\Models\OwnChoirConsent;
@@ -329,7 +330,12 @@ final class OwnChoir
                 'expiresAt' => $voice->expiresAt()->utc()->toIso8601ZuluString(),
                 'wordless' => $voice->wordless,
                 // Their original clip, to compare before and after (2026-11-23): theirs alone, a short-lived link.
-                'clipListen' => $voice->clip_key === null ? null : ['url' => Storage::disk('private')->temporaryUrl($voice->clip_key, now()->addHour()), 'expiresAt' => now()->addHour()->utc()->toIso8601ZuluString()],
+                'clipListen' => $voice->clip_key === null ? null : [
+                    'url' => Storage::disk('private')->temporaryUrl($voice->clip_key, now()->addHour()),
+                    'expiresAt' => now()->addHour()->utc()->toIso8601ZuluString(),
+                    // Where it sits, to place it under a song it was sung to (the recording level).
+                    ...self::clipPlace($voice),
+                ],
             ],
             'termsVersion' => self::termsVersion(),
             'quota' => $quota = self::quota($user),
@@ -353,6 +359,47 @@ final class OwnChoir
     }
 
     /** Their kept voice, ready to use; null without one. */
+    /**
+     * Where a voice's kept clip sits: the tune it sang, its numbers, beat 0 in it, the tune's move to their first note.
+     *
+     * @return array{templateId: string, sampleRate: int, frames: int, offsetFrames: int|null, clipTranspose: int}
+     */
+    private static function clipPlace(OwnChoirVoice $voice): array
+    {
+        $origin = self::voiceOrigin($voice);
+
+        return [
+            'templateId' => (string) $origin?->clipVersion()?->template?->slug,
+            'sampleRate' => (int) ($origin->sample_rate ?? 48000),
+            'frames' => (int) ($origin->frames ?? 0),
+            'offsetFrames' => $origin?->offset_frames,
+            'clipTranspose' => (int) ($origin->clip_transpose ?? 0),
+        ];
+    }
+
+    /**
+     * A song's lead as the app plays it (a part's shape): its singer's own, levelled, in the key it was rendered in.
+     *
+     * @return array{id: string, partKey: string, url: string, sampleRate: int, frames: int, offsetFrames: int}|null
+     */
+    public static function leadTake(OwnChoirRequest $request, User $viewer): ?array
+    {
+        $made = $request->lead['made'] ?? null;
+
+        if ($viewer->id !== $request->user_id || $request->lead_key === null || ! is_array($made)) {
+            return null;
+        }
+
+        return [
+            'id' => 'lead-'.$request->sqid(),
+            'partKey' => OwnChoirRequests::melody((array) $request->templateVersion?->data) ?? 'soprano',
+            'url' => Storage::disk('private')->temporaryUrl($request->lead_key, now()->addHours(2)),
+            'sampleRate' => (int) $made['sampleRate'],
+            'frames' => (int) $made['frames'],
+            'offsetFrames' => (int) $made['offsetFrames'],
+        ];
+    }
+
     /** The song a voice was made from (its clip, the tune it sang), read once a request. */
     public static function voiceOrigin(OwnChoirVoice $voice): ?OwnChoirRequest
     {
@@ -401,6 +448,9 @@ final class OwnChoir
             // Each part's active render: the owner's, or a friend's once theirs is in (choir together).
             'parts' => $ready ? array_values(ChoirTogether::activeParts($request)->map(static fn (OwnChoirPart $p): array => self::recording($p))->all()) : [],
             'progress' => self::progress($request),
+            // Their own recording as the lead (2026-11-23), theirs alone.
+            'leadTake' => self::leadTake($request, $viewer),
+            'canUseRecordingAsLead' => $viewer->id === $request->user_id && $request->lead !== null,
             // "Arranged for a low voice" (2026-11-23).
             'voicing' => $request->voicing,
             // Plus's choir settings (2026-11-23): the mix, how it's sung, what a remake would use, and one on its way.

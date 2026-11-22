@@ -8,6 +8,7 @@
                 "frames": 9600000,
                 "offsetFrames": 0
             }
-        ]
+        ],
+        "leadTake": null
     }
 }

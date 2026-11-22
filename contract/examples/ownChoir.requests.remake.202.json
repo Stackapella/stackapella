@@ -175,6 +175,8 @@
                 "ensembleTiming": "tight",
                 "pitchSpread": "off"
             }
-        }
+        },
+        "leadTake": null,
+        "canUseRecordingAsLead": false
     }
 }

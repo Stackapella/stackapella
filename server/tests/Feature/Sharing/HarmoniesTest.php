@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Sharing;
 
+use App\Actions\Sharing\DeleteHarmony;
 use App\Actions\Templates\SyncOfficialTemplates;
 use App\Jobs\ProcessHarmony;
 use App\Models\Harmony;
@@ -399,5 +400,29 @@ final class HarmoniesTest extends TestCase
         $migration->up();
 
         $this->assertEquals($tracks, $harmony->refresh()->tracks);
+    }
+
+    public function test_a_share_with_their_real_voice_says_so_and_goes_when_that_recording_does(): void
+    {
+        $this->owner();
+        [$project] = $this->recordedProject();
+        $facts = app(HarmonyFacts::class);
+        $harmony = $this->shareHarmony($project);
+        $name = (string) $harmony->user?->name;
+
+        // Their lead take with AI parts: "lead"; their recording alone: "only"; none: null.
+        $harmony->forceFill(['real_voice' => ['take' => 41], 'own_voice_parts' => ['alto']])->save();
+        $this->assertSame(['kind' => 'lead', 'name' => $name], $facts->realVoice($harmony, $facts->guides($harmony)));
+        $harmony->forceFill(['real_voice' => ['clip' => 7], 'own_voice_parts' => null])->save();
+        $this->assertSame('only', $facts->realVoice($harmony, $facts->guides($harmony))['kind'] ?? null);
+        $harmony->forceFill(['real_voice' => null])->save();
+        $this->assertNull($facts->realVoice($harmony, $facts->guides($harmony)));
+
+        // The recording deleted: the share comes down.
+        $harmony->forceFill(['real_voice' => ['take' => 41]])->save();
+        app(DeleteHarmony::class)->withRealVoice(clips: [7]);
+        $this->assertNull($harmony->refresh()->deleted_at, 'Another recording: stays.');
+        app(DeleteHarmony::class)->withRealVoice(takes: [41]);
+        $this->assertNotNull($harmony->refresh()->deleted_at);
     }
 }

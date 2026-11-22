@@ -29,10 +29,12 @@ final class ChoirJobResource extends JsonResource
     {
         $job = $this->resource;
         $version = $job->templateVersion ?? throw new LogicException('A claimed job has its song.');
+        // A song with its singer's own lead is rendered in the key they sang it (2026-11-23).
+        $song = VoicingTransform::transpose((array) $version->data, $job->parent_request_id !== null && $job->remake ? (int) ($job->parent->key_shift ?? 0) : $job->key_shift);
         $voiced = match ($job->voicing) {
-            'low' => VoicingTransform::low((array) $version->data),
-            'full' => VoicingTransform::full((array) $version->data),
-            default => ['data' => VoicingTransform::inRange((array) $version->data), 'shifts' => array_fill_keys(array_column(array_filter((array) ($version->data['parts'] ?? []), 'is_array'), 'key'), 0)],
+            'low' => VoicingTransform::low($song),
+            'full' => VoicingTransform::full($song),
+            default => ['data' => VoicingTransform::inRange($song), 'shifts' => array_fill_keys(array_column(array_filter((array) ($song['parts'] ?? []), 'is_array'), 'key'), 0)],
         };
 
         return [

@@ -8541,7 +8541,9 @@
             "choose": "Song to sing",
             "thenJolly": "then For He's a Jolly Good Fellow",
             "two": "We make every part of {song} in a voice like yours, labelled as AI.",
-            "three": "Then learn your part: each one you record takes the place of its AI version."
+            "three": "Then learn your part: each one you record takes the place of its AI version.",
+            "whole": "Sing the whole song",
+            "wholeHint": "Your take becomes the lead you can compare with the AI's; its first 30 seconds make your voice."
         },
         "record": {
             "title": "Sing for 30 seconds",
@@ -8571,11 +8573,6 @@
             "notice": "Your choir is ready: {song}, sung in a voice like yours",
             "button": "Listen",
             "lowVoice": "Arranged for a low voice: the tune and alto sit an octave down.",
-            "clip": {
-                "title": "Your recording",
-                "hint": "The 30 seconds your choir was made from, to compare.",
-                "play": "Hear your recording"
-            },
             "onOo": "Sung on “oo”: the AI voices can only sing English words for now."
         },
         "failed": {
@@ -8875,7 +8872,12 @@
             "pitchHint": "How exactly in tune.",
             "remakeOf": "{minutes, plural, one {Uses # of your {left} AI-singing minutes} other {Uses # of your {left} AI-singing minutes}}",
             "remakeNeedsChange": "Change a setting to remake.",
-            "lowTwin": "{part} (low)"
+            "lowTwin": "{part} (low)",
+            "leadBlend": "Lead",
+            "you": "You",
+            "ai": "AI",
+            "recordingLevel": "Your recording, mixed in",
+            "off": "Off"
         },
         "level": {
             "low": "A bit quiet. Move closer to the mic, or turn the mic up.",
@@ -8885,6 +8887,12 @@
         "free": {
             "yourSong": "Your free choir is the song you sing: {song}.",
             "refused": "Your free choir is the song you sing for your voice. Choose it there, or get Plus for any song."
+        },
+        "version": {
+            "label": "Listen to",
+            "recording": "Your recording",
+            "youChoir": "You + choir",
+            "fullChoir": "Full choir"
         }
     },
     "aiVoice": {

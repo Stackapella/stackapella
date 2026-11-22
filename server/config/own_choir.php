@@ -34,6 +34,9 @@ return [
     // The free song is the song they sang (Hillel, 2026-11-23: "more expected"): each clip tune's song, itself unless
     // named here.
     'clip_songs' => ['voice-capture' => 'happy-birthday'],
+    // A clip tune whose first section is a whole song: that stretch is the song's lead, the song moved by keyShift
+    // semitones to the key it's in there (voice-capture's Happy Birthday is in F, the song in G; 2026-11-23).
+    'clip_leads' => ['voice-capture' => ['song' => 'happy-birthday', 'beats' => 25, 'keyShift' => -2]],
     // Across everyone, part-minutes rendered a day: past it, new songs wait for tomorrow and the admins are told once.
     'daily_part_minutes' => 600,
     // A remake at fine quality (64 steps) costs its real GPU time: 1.92x measured, rounded (Hillel, 2026-11-23: "make

@@ -50,6 +50,25 @@ final class DeleteHarmony
         }
     }
 
+    /**
+     * A singer's own recording gone (a song's lead take, a voice's kept clip): every share that carried it comes down.
+     *
+     * @param  array<int|string>  $takes  choir songs whose lead went
+     * @param  array<int|string>  $clips  voices whose clip went
+     */
+    public function withRealVoice(array $takes = [], array $clips = []): void
+    {
+        if ($takes === [] && $clips === []) {
+            return;
+        }
+
+        $shares = Harmony::query()->whereNull('deleted_at')->whereNotNull('real_voice')->where(fn ($q) => $q->whereIn('real_voice->take', array_map('intval', $takes))->orWhereIn('real_voice->clip', array_map('intval', $clips)))->get();
+
+        foreach ($shares as $harmony) {
+            $this->handle($harmony);
+        }
+    }
+
     /** A choir song gone: every share of a friend's that held its owner's parts comes down too. */
     public function withOwnersParts(int $songId): void
     {

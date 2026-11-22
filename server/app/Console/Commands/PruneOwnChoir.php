@@ -6,9 +6,12 @@ namespace App\Console\Commands;
 
 use App\Actions\OwnChoir\ChoirJobs;
 use App\Actions\OwnChoir\ChoirTogether;
+use App\Actions\OwnChoir\OwnChoirRequests;
+use App\Actions\Sharing\DeleteHarmony;
 use App\Enums\OwnChoirStatus;
 use App\Models\OwnChoirRequest;
 use App\Models\OwnChoirVoice;
+use App\Models\User;
 use App\Support\OwnChoir\OwnChoir;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
@@ -61,7 +64,13 @@ final class PruneOwnChoir extends Command
                 foreach ($old as $voice) {
                     /** @var OwnChoirVoice $voice */
                     Storage::disk('private')->delete($voice->files());
+                    app(DeleteHarmony::class)->withRealVoice(clips: [$voice->id]);
                     $voice->delete();
+
+                    // Unused for months, their own recordings go with it (their songs' leads), as the terms say.
+                    if (($owner = User::query()->find($voice->user_id)) !== null && OwnChoir::voice($owner) === null) {
+                        OwnChoirRequests::dropLeads($owner);
+                    }
                     $voices++;
                 }
             });

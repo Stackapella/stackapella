@@ -58,7 +58,9 @@
             "fullStandard": 9.6,
             "fullFine": 19.2
         },
-        "remake": null
+        "remake": null,
+        "leadTake": null,
+        "canUseRecordingAsLead": false
     },
     "upload": {
         "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/uploads/choir/4d7e1a9f5b2d8e4c6a0f9b1d3e5a7c2f.wav?X-Amz-Expires=1800&X-Amz-Signature=abc",
@@ -68,5 +70,6 @@
             "Content-Length": "2880044"
         },
         "expiresAt": "2026-11-21T10:30:00Z"
-    }
+    },
+    "leadUpload": null
 }

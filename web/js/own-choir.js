@@ -19,6 +19,7 @@ import { confirmAction } from './components/confirm.js';
 import { toast } from './components/ui.js';
 import { Icon } from './components/icon.js';
 import { TurnstileBox } from './turnstile.js';
+import { Switch } from './components/controls.js';
 
 export const MIN_SECONDS = 15; // shorter, the card asks for a little longer (ownChoir.record.short)
 export const MAX_SECONDS = 35; // the contract's most (and at least 5): the voice-capture song runs about 30 s
@@ -104,7 +105,15 @@ export function cutAt(template, stopBeat) {
 }
 
 // The choice as the screens show it: the tune picked, and each tune's title in the app's language.
-export const clipPick = reactive({ chosen: null, titles: {} });
+// noHeadphones: the intro's Headphones pick (components/first-note.js keeps it remembered), read here so Sing the whole
+// song is offered only with headphones (a lead sung by eye would drift against the AI parts; ai-backend).
+export const clipPick = reactive({ chosen: null, titles: {}, whole: false, noHeadphones: (() => {
+    try {
+        return localStorage.getItem('stackapella.clipHeadphones') === 'no';
+    } catch {
+        return false; // storage blocked: headphones, the default
+    }
+})() });
 
 export function pickedClip() {
     return clipSongs().find((song) => song.templateId === clipPick.chosen) ?? chosenClip();
@@ -132,6 +141,9 @@ export function clipLine() {
 
 /** The four tunes to sing for the 30 seconds, as one quiet row of choices (the choice is remembered). */
 export const ClipChoice = {
+    // songId: the choir's own song; when it's the tune chosen, they may sing the whole of it (it becomes the lead).
+    props: { songId: { type: String, default: null } },
+    components: { Switch },
     setup: () => ({ clipPick, CLIP_TEMPLATE }),
     computed: {
         songs: () => clipSongs(),
@@ -151,14 +163,24 @@ export const ClipChoice = {
                     <span v-if="song.templateId === CLIP_TEMPLATE" class="block text-xs text-muted">{{ t('ownChoir.intro.thenJolly') }}</span>
                 </button>
             </div>
+            <Switch v-if="songId && picked === songId && !clipPick.noHeadphones" :on="clipPick.whole" :label="t('ownChoir.intro.whole')" :hint="t('ownChoir.intro.wholeHint')" class="pt-2" data-clip-whole @change="clipPick.whole = $event" />
         </div>`,
     methods: { chooseClip },
 };
 
-/** The chosen tune as Sing plays it for the choir's 30 seconds (and a friend's join): cut at its stop. */
-export async function clipTemplate(choice = pickedClip()) {
+/** The chosen tune as Sing plays it for the choir's 30 seconds (and a friend's join): cut at its stop, unless sung whole. */
+export async function clipTemplate(choice = pickedClip(), { whole = false } = {}) {
     const { loadTemplate } = await import('./templates.js');
-    return cutAt(await loadTemplate(choice.templateId), choice.stopBeat);
+    const template = await loadTemplate(choice.templateId);
+    return whole ? template : cutAt(template, choice.stopBeat);
+}
+
+/** Where the clip of a take ends, in seconds after beat 0: the last note before the tune's stop, held out (35 at most). */
+export function clipSecondsFor(template, stopBeat, beatSeconds) {
+    if (stopBeat == null) return MAX_SECONDS;
+    const notes = cutAt(template, stopBeat).parts.flatMap((p) => p.guide?.notes ?? []);
+    const end = Math.max(0, ...notes.map((n) => n.beat + n.length));
+    return Math.min(MAX_SECONDS, end * beatSeconds + 0.5);
 }
 
 // A hummed tune's humming, kept on this device only while own songs are on, so "Hear it in your voice" can use it as the
@@ -552,10 +574,10 @@ export function levelVerdict({ db, clipped }) {
     return 'ok';
 }
 
-export function clipFrom(samples, sampleRate, startSeconds) {
+export function clipFrom(samples, sampleRate, startSeconds, maxSeconds = MAX_SECONDS) {
     const beat0 = Math.round(-startSeconds * sampleRate); // the take's frame at the song's beat 0
     const start = Math.max(0, beat0);
-    const end = Math.min(samples.length, start + MAX_SECONDS * sampleRate);
+    const end = Math.min(samples.length, start + Math.min(maxSeconds, MAX_SECONDS) * sampleRate);
     const clip = samples.subarray(start, end);
     return { wav: encodeWav([clip], sampleRate), frames: clip.length, offsetFrames: beat0 >= 0 ? beat0 - start : null, seconds: clip.length / sampleRate };
 }
@@ -566,16 +588,23 @@ const hex = (buffer) => [...new Uint8Array(buffer)].map((b) => b.toString(16).pa
  * Sends a take as a song's clip: the request, the upload, then complete. Resolves the request (queued); refusals are the
  * contract's ApiErrors (consent_required, quota_reached with `which`, request_open, account_required).
  */
-export async function sendClip({ templateId, clipTemplateId = null, clipTranspose = 0, guide = true, octave = null, partKey, samples, sampleRate, startSeconds, hum = false, turnstileToken = null }) {
-    const clip = clipFrom(samples, sampleRate, startSeconds);
+export async function sendClip({ templateId, clipTemplateId = null, clipTranspose = 0, guide = true, octave = null, partKey, samples, sampleRate, startSeconds, hum = false, turnstileToken = null, clipSeconds = MAX_SECONDS, whole = false }) {
+    // A whole-song take (Hillel: compare you as the lead): its first stretch, to the tune's stop, is the voice's clip; the
+    // whole take goes beside it as the lead (owner-only, deleted with the voice), its beat 0 where the clip's is.
+    const clip = clipFrom(samples, sampleRate, startSeconds, clipSeconds);
+    const leadWav = whole ? encodeWav([samples], sampleRate) : null;
+    const leadBytes = leadWav ? await leadWav.arrayBuffer() : null;
+    const beat0 = Math.round(-startSeconds * sampleRate);
+    const leadBody = leadWav ? { lead: { sampleRate, frames: samples.length, bytes: leadBytes.byteLength, sha256: hex(await crypto.subtle.digest('SHA-256', leadBytes)), offsetFrames: beat0 >= 0 ? beat0 : 0 } } : {};
     if (hum) clip.offsetFrames = null; // a hum sets its own tempo: where the song's beat 0 falls in it isn't known
     const bytes = await clip.wav.arrayBuffer();
     const sha256 = hex(await crypto.subtle.digest('SHA-256', bytes));
-    const { data: request, upload } = await api.ownChoir.requests.create({ templateId, ...(clipTemplateId ? { clipTemplateId } : {}), ...(clipTranspose ? { clipTranspose } : {}), ...(guide ? {} : { guide: false }), ...(octave != null ? { octave } : {}), partKey, offsetFrames: clip.offsetFrames, sampleRate, frames: clip.frames, bytes: bytes.byteLength, sha256, ...(turnstileToken ? { turnstileToken } : {}) });
+    const { data: request, upload, leadUpload } = await api.ownChoir.requests.create({ templateId, ...(clipTemplateId ? { clipTemplateId } : {}), ...(clipTranspose ? { clipTranspose } : {}), ...(guide ? {} : { guide: false }), ...leadBody, ...(octave != null ? { octave } : {}), partKey, offsetFrames: clip.offsetFrames, sampleRate, frames: clip.frames, bytes: bytes.byteLength, sha256, ...(turnstileToken ? { turnstileToken } : {}) });
     // The upload and complete, once more if the first try fails (the contract: send it again after a mismatch); if it still
     // fails, the request goes, so it never sits "on its way" and a new try isn't refused as one song at a time.
     const finish = async () => {
         await uploadTo(upload, clip.wav);
+        if (leadWav && leadUpload) await uploadTo(leadUpload, leadWav);
         return (await api.ownChoir.requests.complete(request.id)).data;
     };
     let queued;
