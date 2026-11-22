@@ -382,11 +382,30 @@ final class OwnChoir
             'canDownload' => $plus,
             // Each part's active render: the owner's, or a friend's once theirs is in (choir together).
             'parts' => $ready ? array_values(ChoirTogether::activeParts($request)->map(static fn (OwnChoirPart $p): array => self::recording($p))->all()) : [],
+            'progress' => self::progress($request),
             'voices' => ChoirTogether::voices($request, $viewer),
             'members' => ChoirTogether::members($request, $viewer),
             'left' => ChoirTogether::left($request, $viewer),
             'invite' => ChoirTogether::inviteHint($request, $viewer),
         ];
+    }
+
+    /**
+     * Each part's real state while a song is being made (the waiting card): all waiting before the renderer claims it,
+     * then making until that part's render is in; [] otherwise. A friend's job lists only their parts.
+     *
+     * @return list<array{partKey: string, status: string}>
+     */
+    public static function progress(OwnChoirRequest $request): array
+    {
+        if (! in_array($request->status, [OwnChoirStatus::Queued, OwnChoirStatus::Rendering], true)) {
+            return [];
+        }
+
+        $keys = $request->only_parts ?? array_column(array_filter((array) ($request->templateVersion->data['parts'] ?? []), 'is_array'), 'key');
+        $ready = $request->status === OwnChoirStatus::Rendering ? OwnChoirPart::query()->where('own_choir_request_id', $request->id)->where('status', 'ready')->pluck('part_key')->all() : [];
+
+        return array_values(array_map(static fn (mixed $key): array => ['partKey' => (string) $key, 'status' => $request->status === OwnChoirStatus::Queued ? 'waiting' : (in_array($key, $ready, true) ? 'ready' : 'making')], $keys));
     }
 
     /**

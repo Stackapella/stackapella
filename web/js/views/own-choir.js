@@ -43,6 +43,15 @@ export const OwnChoirView = {
         request() {
             return requestFor(this.id);
         },
+        /** While it's being made: each part's real state from the server (ready, making, waiting); never an estimate. */
+        progress() {
+            const keys = partsFor(this.template ?? {}).map((p) => p.key);
+            const rows = this.request?.progress ?? [];
+            return [...rows].sort((a, b) => keys.indexOf(a.partKey) - keys.indexOf(b.partKey));
+        },
+        progressReady() {
+            return this.progress.filter((p) => p.status === 'ready').length;
+        },
         /** The choir project for this song's request, else one still waiting for its take, if this device has it. */
         project() {
             const mine = projects.all.filter((p) => p.choir && p.template?.id === this.id && !p.deleted);
@@ -236,6 +245,20 @@ export const OwnChoirView = {
                 <div v-else-if="isOpen(request)" class="card space-y-2 p-5" role="status" data-choir-wait>
                     <h1 class="text-2xl font-bold text-cream">{{ t('ownChoir.wait.title') }}</h1>
                     <p class="text-cream">{{ t('ownChoir.wait.body', { song }) }}</p>
+                    <!-- Hillel's 1b: each part's real state, and how many are ready (game: the rows as part chips). -->
+                    <div v-if="progress.length" class="space-y-2 pt-1" data-choir-parts>
+                        <ul :class="game ? 'flex flex-wrap gap-2' : 'divide-y divide-line'" class="pb-1">
+                            <li v-for="p in progress" :key="p.partKey" :class="game ? 'chip gap-2' : 'flex min-h-11 items-center justify-between gap-3 py-1'" :data-choir-part="p.partKey" :data-choir-part-status="p.status">
+                                <span :class="game ? '' : 'font-semibold text-cream'">{{ partLabel(p.partKey) }}</span>
+                                <span class="inline-flex items-center gap-2" :class="game ? '' : 'text-sm'">
+                                    <span class="size-2.5 shrink-0 rounded-full" :class="dot(p.status)" aria-hidden="true"></span>
+                                    <span :class="p.status === 'waiting' ? 'text-muted' : 'text-cream'">{{ statusWord(p.status) }}</span>
+                                </span>
+                            </li>
+                        </ul>
+                        <!-- The take review's quiet footer (docs/design-rules.md, Reference layout): the count under a thin line. -->
+                        <p class="border-t border-line pt-3 text-sm text-muted tabular-nums" data-choir-parts-count>{{ t('ownChoir.wait.partsReady', { n: progressReady, count: progress.length }) }}</p>
+                    </div>
                     <!-- Today's making is full (the server's daily ceiling): it's queued for tomorrow, said plainly. -->
                     <p v-if="request.startsAfter" class="text-cream" data-choir-tomorrow>{{ t('ownChoir.busy.tomorrow') }}</p>
                     <p class="text-sm text-muted">{{ t('ownChoir.wait.kept') }}</p>
@@ -334,6 +357,19 @@ export const OwnChoirView = {
         clearInterval(this.poll);
     },
     methods: {
+        statusWord(status) {
+            return status === 'ready' ? t('ownChoir.wait.part.ready') : status === 'making' ? t('ownChoir.wait.part.making') : t('ownChoir.wait.part.waiting');
+        },
+        partLabel(key) {
+            const part = partsFor(this.template ?? {}).find((p) => p.key === key);
+            return templatePartName(part ?? { key, name: key });
+        },
+        /** The dot: green when ready, pulsing while it's being made (still with reduced motion), plain while it waits. */
+        dot(status) {
+            if (status === 'ready') return 'bg-good';
+            if (status === 'making') return matchMedia('(prefers-reduced-motion: reduce)').matches ? 'bg-accent' : 'bg-accent animate-pulse';
+            return 'border border-muted';
+        },
         /** A part's name mid-sentence: lower case ("Learn the soprano part"). */
         lower(name) {
             return (name ?? '').toLocaleLowerCase(document.documentElement.lang || undefined);

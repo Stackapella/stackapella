@@ -86,6 +86,7 @@
                         "aiBasedOn": null
                     }
                 ],
+                "progress": [],
                 "voices": [
                     {
                         "partKey": "soprano",
@@ -144,6 +145,7 @@
                 "seen": true,
                 "canDownload": true,
                 "parts": [],
+                "progress": [],
                 "voices": [],
                 "members": [],
                 "left": [],

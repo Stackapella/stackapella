@@ -12,6 +12,24 @@
         "seen": false,
         "canDownload": false,
         "parts": [],
+        "progress": [
+            {
+                "partKey": "soprano",
+                "status": "waiting"
+            },
+            {
+                "partKey": "alto",
+                "status": "waiting"
+            },
+            {
+                "partKey": "tenor",
+                "status": "waiting"
+            },
+            {
+                "partKey": "bass",
+                "status": "waiting"
+            }
+        ],
         "voices": [],
         "members": [],
         "left": [],

@@ -7586,7 +7586,7 @@ its check, deleted before its turn) or failed through ours (`render_failed`, `ga
 #### `ownChoir.show`
 
 The singer's consent, quota and songs, newest first. A ready song not yet `seen` is the app's in-app notice (never
-email). Each song's `canDownload` says whether the app offers Download (Plus, Hillel 2026-11-21); without it, Download
+email). Each song's `progress` (since 2026-11-23) gives each of its parts' real state while it's `queued` or `rendering`: `[{ "partKey": "alto", "status": "ready" | "making" | "waiting" }]`, all `waiting` before the renderer claims it, then `making` until that part's render is in; `[]` otherwise (a friend's job lists only their parts). Each song's `canDownload` says whether the app offers Download (Plus, Hillel 2026-11-21); without it, Download
 opens the Plus sheet (`billing.checkout`'s `moment` `choir_download`), and listening and sharing stay free. It's a gate
 in the app, as MP3 export is, not a lock on bytes: the app mixes the WAV from the parts' private playback links, which
 are unchanged, so there's no download endpoint to refuse. **Request:** none. `data` is `null` while `own_choir` is off for this person and they have nothing kept (no

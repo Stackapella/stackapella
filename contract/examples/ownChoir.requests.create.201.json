@@ -12,6 +12,7 @@
         "seen": false,
         "canDownload": false,
         "parts": [],
+        "progress": [],
         "voices": [],
         "members": [],
         "left": [],

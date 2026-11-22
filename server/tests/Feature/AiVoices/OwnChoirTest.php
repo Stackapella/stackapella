@@ -342,4 +342,24 @@ final class OwnChoirTest extends TestCase
         $this->assertSame('soprano', OwnChoirRequests::melody(['parts' => [['key' => 'alto'], ['key' => 'soprano', 'melody' => true]]]));
         $this->assertSame('alto', OwnChoirRequests::melody(['parts' => [['key' => 'alto'], ['key' => 'tenor']]]), 'Unmarked: the first.');
     }
+
+    public function test_a_song_in_the_making_says_where_each_part_is(): void
+    {
+        $user = $this->singer();
+        $song = OwnChoirRequest::factory()->create(['user_id' => $user->id, 'template_version_id' => (int) Template::query()->where('slug', 'amazing-grace')->value('current_version_id'), 'status' => OwnChoirStatus::Queued]);
+        $this->assertSame(['waiting'], array_values(array_unique(array_column(OwnChoir::progress($song), 'status'))));
+        $this->assertSame(['soprano', 'alto', 'tenor', 'bass'], array_column(OwnChoir::progress($song), 'partKey'));
+
+        $song->forceFill(['status' => OwnChoirStatus::Rendering])->save();
+        OwnChoirPart::factory()->create(['own_choir_request_id' => $song->id, 'part_key' => 'alto', 'status' => 'ready']);
+        OwnChoirPart::factory()->create(['own_choir_request_id' => $song->id, 'part_key' => 'tenor', 'status' => 'uploading']);
+        $this->assertSame([['partKey' => 'soprano', 'status' => 'making'], ['partKey' => 'alto', 'status' => 'ready'], ['partKey' => 'tenor', 'status' => 'making'], ['partKey' => 'bass', 'status' => 'making']], OwnChoir::progress($song));
+
+        // A friend's job: only their parts. Made: nothing.
+        $song->forceFill(['only_parts' => ['alto', 'bass']])->save();
+        $this->assertSame(['alto', 'bass'], array_column(OwnChoir::progress($song->fresh() ?? $song), 'partKey'));
+        $song->forceFill(['status' => OwnChoirStatus::Ready])->save();
+        $this->assertSame([], OwnChoir::progress($song));
+        $this->getJson('/api/own-choir')->assertOk()->assertJsonPath('data.requests.0.progress', []);
+    }
 }

@@ -475,7 +475,13 @@ async function stateful(operation, params, body, cases, query = {}) {
             }
             for (const r of choir.requests) {
                 if (r.status !== 'queued' || r.startsAfter) continue; // tomorrow's (today's ceiling) stays queued
-                Object.assign(r, { status: 'ready', readyAt: now, parts: shown.requests[0].parts.map((p) => local({ ...p, id: `${p.id}-${r.id}` })) });
+                // mockChoirMaking: it stays being made, one part ready, one making, the rest waiting (the contract's `progress`).
+                if (tabStorage.get('stackapella.mockChoirMaking')) {
+                    r.status = 'rendering';
+                    r.progress = ['soprano', 'alto', 'tenor', 'bass'].map((partKey, i) => ({ partKey, status: i === 0 ? 'ready' : i === 1 ? 'making' : 'waiting' }));
+                    continue;
+                }
+                Object.assign(r, { status: 'ready', progress: [], readyAt: now, parts: shown.requests[0].parts.map((p) => local({ ...p, id: `${p.id}-${r.id}` })) });
                 // The first song made from a clip leaves its voice kept for the next ones (the contract's `voice`).
                 choir.voice ??= { savedAt: now, lastUsedAt: now, expiresAt: now };
             }
@@ -503,12 +509,12 @@ async function stateful(operation, params, body, cases, query = {}) {
             if (unverified && !choir.quota.plus && choir.quota.freeLeft > 0) return respond(403, { message: 'email_unverified', code: 'email_unverified' });
             if (choir.checkNeeded && !body?.turnstileToken) return respond(403, { message: 'turnstile_required', code: 'turnstile_required' });
             const listed = (await example('templates.catalogue.200.json')).data.find((song) => song.id === body.templateId);
-            const request = { id: `Rq${choir.requests.length + 7}x`, templateId: body.templateId, title: listed?.title ?? body.templateId, version: listed?.version ?? 1, status: 'uploading', failure: null, createdAt: now, readyAt: null, seen: false, canDownload: as === 'plus', startsAfter: choir.busyToday ? new Date(Date.now() + 864e5).toISOString().replace(/\.\d+Z$/, 'Z') : null, parts: [] };
+            const request = { id: `Rq${choir.requests.length + 7}x`, templateId: body.templateId, title: listed?.title ?? body.templateId, version: listed?.version ?? 1, status: 'uploading', progress: [], failure: null, createdAt: now, readyAt: null, seen: false, canDownload: as === 'plus', startsAfter: choir.busyToday ? new Date(Date.now() + 864e5).toISOString().replace(/\.\d+Z$/, 'Z') : null, parts: [] };
             choir.requests.unshift(request);
             globalThis.mockChoirClip = body; // what was sent, for the flows
             // From the saved voice ({ templateId } alone): queued at once, nothing to upload.
             if (!body?.sha256) {
-                request.status = 'queued';
+                Object.assign(request, { status: 'queued', progress: shown.requests[0].parts.map((p) => ({ partKey: p.partKey, status: 'waiting' })) });
                 return save(respond(201, { data: request, upload: null }));
             }
             return save(respond(201, { data: request, upload: { url: `${location.origin}/dev/upload/choir`, method: 'PUT', headers: { 'Content-Type': 'audio/wav' }, expiresAt: now } }));
@@ -516,7 +522,7 @@ async function stateful(operation, params, body, cases, query = {}) {
         const request = choir.requests.find((r) => r.id === params.id);
         if (!request) return caseFor('not_found');
         if (operation === 'ownChoir.requests.complete') {
-            if (request.status === 'uploading') request.status = 'queued';
+            if (request.status === 'uploading') Object.assign(request, { status: 'queued', progress: shown.requests[0].parts.map((p) => ({ partKey: p.partKey, status: 'waiting' })) });
             return save(respond(200, { data: request }));
         }
         if (operation === 'ownChoir.requests.download') {

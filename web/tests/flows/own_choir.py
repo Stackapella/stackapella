@@ -110,7 +110,18 @@ def journey(f):
     # The voice is kept (Hillel: "store a model to make it easier"): the next song is one tap, no singing.
     f.wait("document.querySelector('[data-choir-again]') && document.querySelector('[data-choir-start]')", what="Make my choir from the saved voice")
     f.shot("again")
+    # Hillel's 1b: while it's made, each part's real state and how many are ready (the mock holds it being made here).
+    f.run("sessionStorage.setItem('stackapella.mockChoirMaking', '1')")
     f.run("document.querySelector('[data-choir-again]').click()")
+    f.run("await (await import('/js/own-choir.js')).loadOwnChoir({ force: true })")
+    f.wait("document.querySelectorAll('[data-choir-wait] [data-choir-part]').length === 4", what="each part's state while it's made")
+    states = f.js("[...document.querySelectorAll('[data-choir-part]')].map((li) => li.dataset.choirPartStatus)")
+    assert states == ["ready", "making", "waiting", "waiting"], states
+    count = f.js("(await import('/js/i18n.js')).t('ownChoir.wait.partsReady', { n: 1, count: 4 })")
+    assert f.js("document.querySelector('[data-choir-parts-count]').textContent.trim()") == count, count
+    f.no_sideways("the parts while it's made")
+    f.shot("waiting-parts")
+    f.run("sessionStorage.removeItem('stackapella.mockChoirMaking')")
     # On its way (the mock makes it at the next look, so it may already be ready): either way it came from the saved voice.
     f.wait("document.querySelector('[data-choir-wait]') || document.querySelector('[data-choir-play]')", what="made from the saved voice")
     assert not f.js("globalThis.mockChoirClip?.sha256"), "no clip sent: the saved voice made it"

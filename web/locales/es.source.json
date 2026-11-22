@@ -5665,7 +5665,13 @@
         "wait": {
             "title": "Your choir is on its way",
             "body": "We're making every part of {song} in a voice like yours. It can take a few minutes; we'll tell you here when it's ready.",
-            "kept": "We keep your voice privately, so your next song needs no new recording."
+            "kept": "We keep your voice privately, so your next song needs no new recording.",
+            "part": {
+                "ready": "Ready",
+                "making": "Making",
+                "waiting": "Waiting"
+            },
+            "partsReady": "{count, plural, one {{n} of {count} part ready} other {{n} of {count} parts ready}}"
         },
         "ready": {
             "download": "Download my choir",

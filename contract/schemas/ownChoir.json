@@ -193,6 +193,7 @@
                 "seen",
                 "canDownload",
                 "parts",
+                "progress",
                 "startsAfter",
                 "voices",
                 "members",
@@ -262,6 +263,29 @@
                         "$ref": "guide.recording.json"
                     },
                     "description": "Each part in their own voice once ready (source ai, credit null, a private signed URL for 2 hours); [] until then."
+                },
+                "progress": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "partKey",
+                            "status"
+                        ],
+                        "properties": {
+                            "partKey": {
+                                "type": "string"
+                            },
+                            "status": {
+                                "enum": [
+                                    "ready",
+                                    "making",
+                                    "waiting"
+                                ]
+                            }
+                        }
+                    }
                 },
                 "voices": {
                     "type": "array",

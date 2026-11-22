@@ -5665,7 +5665,13 @@
         "wait": {
             "title": "Tu coro está en camino",
             "body": "Estamos haciendo cada parte de {song} con una voz como la tuya. Puede tardar unos minutos; te avisaremos aquí cuando esté listo.",
-            "kept": "Guardamos tu voz en privado, para que tu próxima canción no necesite una grabación nueva."
+            "kept": "Guardamos tu voz en privado, para que tu próxima canción no necesite una grabación nueva.",
+            "part": {
+                "ready": "Lista",
+                "making": "Creándose",
+                "waiting": "En espera"
+            },
+            "partsReady": "{count, plural, one {{n} de {count} parte lista} other {{n} de {count} partes listas}}"
         },
         "ready": {
             "download": "Descarga mi coro",
