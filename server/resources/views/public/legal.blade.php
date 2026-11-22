@@ -1,6 +1,6 @@
 {{-- A legal page at /legal/<page> (DocumentPagesController::legal): its words at a reading width
      beside a contents list of its headings (a fold on a phone, held at the side on a wider screen),
-     with its version, and plainly marked while it's still a draft with the lawyer. Words:
+     with its version (no draft notice: Hillel, 2026-11-22; the files' `reviewed` still tracks the lawyer's work). Words:
      resources/legal/en; the frame: lang/en/pages.php `legal`. --}}
 @extends('public.layout', ['title' => \App\Support\Site\SitePages::title($meta['title'])])
 
@@ -29,7 +29,7 @@
         <section class="s-wrap s-hero s-page s-doc-head" aria-labelledby="page-h">
             <p class="s-eyebrow">{{ __('pages.legal.eyebrow') }}</p>
             <h1 id="page-h">{{ $document['title'] }}</h1>
-            <p class="s-lead">{{ __('pages.legal.version', ['version' => $document['version']]) }}@unless ($document['reviewed']) · {{ __('pages.legal.draft') }}@endunless</p>
+            <p class="s-lead">{{ __('pages.legal.version', ['version' => $document['version']]) }}</p>
         </section>
         @php($headings = collect($document['blocks'])->filter(fn (array $b): bool => $b['type'] === 'heading' && ($b['level'] ?? 2) <= 2)->map(fn (array $b): string => str_replace('**', '', (string) $b['text']))->values())
         <section class="s-wrap s-sec s-doc s-doc-toc" aria-label="{{ $document['title'] }}">

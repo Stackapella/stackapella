@@ -48,7 +48,6 @@ def journey(f):
     f.shot("welcome")
     f.click_t("beta.welcome.continue")
     f.wait("document.querySelector('form [type=checkbox]')", what="consent")
-    f.wait_text(t(f, "beta.consent.draft"))
     f.wait_text(t(f, "beta.credit.fromProfile"))
     f.shot("consent")
     f.run("document.querySelector('form [type=checkbox]').click()")

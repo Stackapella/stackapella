@@ -210,7 +210,6 @@ export const BetaView = {
 
                 <section v-else-if="step === 'consent' && agreement" class="space-y-5">
                     <h1 class="text-2xl font-bold text-cream" translate="no">{{ agreement.title }}</h1>
-                    <Notice v-if="!agreement.reviewed" tone="warn">{{ t('beta.consent.draft') }}</Notice>
                     <div class="card max-h-[50dvh] overflow-y-auto p-5" tabindex="0" role="region" :aria-label="t('beta.consent.agreement')"><Agreement :agreement="agreement" :level="2" /></div>
                     <form class="card space-y-4 p-5" @submit.prevent="consent">
                         <fieldset class="space-y-2">

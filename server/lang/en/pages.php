@@ -102,7 +102,7 @@ return [
         // Hear yourself as a choir (docs/ai-voices-build-plan.md, phase 2, behind own_choir_teaser): its angle first, AI said once.
         'choir' => [
             'button' => 'Hear yourself as a choir',
-            'soon' => 'Sing for 30 seconds, and hear every part of this arrangement in a voice like yours, made by AI.',
+            'soon' => 'Sing its tune for 30 seconds, and hear every part of this arrangement in a voice like yours, made by AI.',
             // Beside the live link (own_choir).
             'free' => 'Your first one is free.',
         ],
@@ -302,7 +302,6 @@ return [
         'short' => 'The short version',
         'eyebrow' => 'The small print',
         'version' => 'Version :version',
-        'draft' => 'A draft our lawyer is still checking',
         // The other policies, listed at the foot of each one.
         'others' => 'Our other policies',
     ],
@@ -869,21 +868,12 @@ return [
         'plans_free_includes' => 'What you get',
         'plans_free_for' => 'For every singer.',
         'plans_free_list' => ['Every course, from your first note to barbershop', 'Every song in the library, with a free account', 'Unlimited workouts, and your history', 'Sing with friends, and choir groups', ':free_storage for your recordings'],
-        // With own_choir (the marketing review, 2026-11-22): the free song on Free, and Plus's songs first on Plus.
+        // With own_choir (the marketing review, 2026-11-22): the free song on Free. Plus's own list is lang/en/plus.php
+        // (App\Support\Site\PlusFeatures), every page's.
         'plans_free_choir' => 'Your first song sung by AI in a voice like yours, to play and share',
-        'plans_plus_choir' => ['More songs in a voice like yours.', 'About 15 songs a month (60 minutes of AI singing), each one yours to download.'],
         'plans_plus' => 'Plus',
         'plans_month' => 'a month',
         'plans_plus_for' => 'For what you make.',
-        // Each a benefit first, then the plain fact (Hillel, 2026-11-08: "rework the plus features"). Checked against the
-        // app: stems are a ZIP of WAVs and the mix exports as MP3 (a creator's own recorded guide left the list on 2026-11-12:
-        // Hillel made it free); private covers private, unlisted and
-        // shared with a choir group (usage.plans.*.templates: one on Free).
-        'plans_plus_list' => [
-            ['Room for every take.', ':storage for your recordings.'],
-            ['Every part as its own file.', 'Each part as a WAV for your DAW, the mix as MP3.'],
-            ['Private arrangements.', 'As many as you like, shared by link or with your choir.'],
-        ],
         // Plus isn't the choir offer: learning tracks are their own thing (docs/choir-tracks-plan.md).
         // Beside the plans (Hillel, 2026-11-12: For choirs is led to from the pages a director reads).
         'plans_choirs' => 'For choirs:',
@@ -947,7 +937,7 @@ return [
         // the privacy answer.
         'faq_open_source' => ['Is Stackapella open source?', 'Yes. Its code is open source under the Attribution Assurance License: read it, run it on your own server or build on it. The songs and the course are shared too, under CC BY-SA 4.0; only the singers\' recorded voices aren\'t.'],
         // Joined to "Is it really free?" while own_choir is on.
-        'faq_free_choir' => 'Your first song sung by AI in a voice like yours is free too; Plus adds about 15 songs a month, each yours to download.',
+        'faq_free_choir' => 'Your first song sung by AI in a voice like yours is free too; Plus adds about :plus_songs songs a month, each yours to download.',
         'faq_privacy_check' => 'The code is open source, so you can check this yourself.',
         // Shown only to people who came from mudeo (App\Support\Pages\MudeoArrival): a line at the
         // top, and a short letter after the hero.
@@ -979,7 +969,7 @@ return [
         // The hero's eyebrow (the five-pages direction: the page, then what it holds).
         'eyebrow' => 'Pricing · Free and Plus',
         'meta_title' => 'Stackapella pricing: free to learn, Plus for what you make',
-        'description' => 'Every course and song is free to learn. Plus adds singing together, more storage, stems and private arrangements.',
+        'description' => 'Every course and song is free to learn. :plus_sentence',
         'headline' => 'Free to learn. Plus for what you make.',
         'free' => 'Free',
         'free_story' => 'Learn to sing harmony: every course, every song with a free account, unlimited workouts, your history, recording, singing with friends and choir groups.',

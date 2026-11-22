@@ -64,11 +64,15 @@ def journey(f):
     f.wait("/^\\/p\\/[\\w-]+\\/sing$/.test(location.pathname)", what="Sing on the choir project")
     project = f.js("location.pathname.split('/')[2]")
     assert f.js(f"(async () => {{ const s = await import('/js/stores/projects.js'); await s.loadProjects(); return !!s.projects.all.find((p) => p.id === {json.dumps(project)})?.choir; }})()"), "a choir project"
+    # Always the tune (Hillel, 2026-11-22): Sing opens on the melody, the whole song, with no part picker.
+    f.wait("""(async () => { const { session } = await import('/js/stores/session.js'); const { tunePart } = await import('/js/own-choir.js');
+        const focus = session.parts.find((p) => p.id === session.practice?.focus);
+        return focus && focus.templatePartKey === tunePart(session.project.template) && session.practice?.sing?.way === 'whole'; })()""", what="Sing on the tune")
     f.run("""const { sendClip } = await import('/js/own-choir.js');
         const samples = new Float32Array(48000 * 20).map((_, i) => 0.3 * Math.sin(i / 20));
-        window.choirRequest = await sendClip({ templateId: 'amazing-grace', partKey: 'alto', samples, sampleRate: 48000, startSeconds: -0.5 });""")
+        window.choirRequest = await sendClip({ templateId: 'amazing-grace', partKey: (await import('/js/own-choir.js')).tunePart(await (await import('/js/templates.js')).loadTemplate('amazing-grace')), samples, sampleRate: 48000, startSeconds: -0.5 });""")
     clip = f.js("globalThis.mockChoirClip")
-    assert clip["partKey"] == "alto" and clip["offsetFrames"] == 0 and clip["frames"] == 48000 * 20 - 24000 and len(clip["sha256"]) == 64, clip
+    assert clip["partKey"] == f.js("(async () => (await import('/js/own-choir.js')).tunePart(await (await import('/js/templates.js')).loadTemplate('amazing-grace')))()") and clip["offsetFrames"] == 0 and clip["frames"] == 48000 * 20 - 24000 and len(clip["sha256"]) == 64, clip
     # As Make my choir does: the project remembers its song's request.
     f.run(f"const db = await import('/js/db.js'); const p = await db.get('projects', {json.dumps(project)}); await db.put('projects', {{ ...p, choir: {{ requestId: window.choirRequest.id }} }});")
 

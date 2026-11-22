@@ -76,4 +76,4 @@ used for nothing else.
 
 10. **Changes.** If we change these terms, we'll ask you to accept them again before your next song.
 
-**[Governing law: for the lawyer.]** Questions: **[contact address]**.
+Questions: legal@stackapella.com, or Contact us in the app.

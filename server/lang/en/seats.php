@@ -14,7 +14,6 @@ return [
     'landing.choir.plus' => 'Every singer in a choir group has a seat, bought for the choir by its director. Learning alone stays free.',
     // The plan cards (landing and /pricing).
     'pages.landing.plans_free_list' => [3 => 'Join any song you\'re invited to'],
-    'pages.landing.plans_plus_list' => [3 => ['Sing together.', 'Invite friends to sing on your songs, and they join free. Plus is also your seat in any choir group.']],
     'pages.landing.plans_choirs_link' => 'a seat for each singer, and learning tracks for your choir',
     // The landing's questions.
     'pages.landing.faq' => ['free' => [1 => 'Yes. Learning is free, with no card and no time limit: every course, every song with a free account, unlimited workouts, your history, recording every part, and joining any song you\'re invited to. You can start without an account. Plus, :price_month a month or :price_year a year, lets you invite friends to sing, is your seat in any choir group, and adds more storage, MP3 and stems, and unlimited private arrangements. A choir\'s director can buy a seat for each singer instead.']],

@@ -4,7 +4,6 @@
             "notFound": "No se encuentra este aviso. Revisa el enlace de tu correo.",
             "missing": "Este enlace ya se usó aquí o está incompleto. Vuelve a abrir el enlace de tu correo."
         },
-        "draft": "Este texto es un borrador que nuestro abogado aún está revisando.",
         "rights": "Si después de una revisión sigues sin estar de acuerdo, quizá puedas llevarlo a un órgano certificado de resolución extrajudicial de litigios, o a los tribunales.",
         "review": {
             "yourText": "Lo que escribiste",
@@ -815,7 +814,6 @@
             "continue": "Continuar"
         },
         "consent": {
-            "draft": "Esto es un borrador que aún no ha revisado un abogado.",
             "agreement": "El acuerdo",
             "creditAs": "Cómo apareces",
             "anonymous": "De forma anónima",
@@ -5650,7 +5648,7 @@
         },
         "title": "Óyete como un coro",
         "intro": {
-            "one": "Canta con {song} durante 30 segundos: cualquier parte, solo una vez. No hace falta cantar bien: solo escuchamos cómo suena tu voz, y la guardamos en privado para tus próximas canciones.",
+            "one": "Canta la melodía de {song} durante 30 segundos, en la octava que te resulte cómoda. No hace falta cantar bien: solo escuchamos cómo suena tu voz, y la guardamos en privado para tus próximas canciones.",
             "two": "Hacemos cada parte con una voz como la tuya, marcada como IA.",
             "three": "Luego aprende tu parte: cada una que grabas ocupa el lugar de su versión de IA."
         },
@@ -5678,7 +5676,7 @@
         "failed": {
             "title": "Esta vez no pudimos hacer tu coro",
             "body": "Tu grabación se ha borrado. Inténtalo de nuevo con una nueva, en un sitio tranquilo y cantando un poco más fuerte.",
-            "clip_unusable": "No oímos suficiente de la parte en tu grabación. Inténtalo de nuevo, cantando tu parte con claridad.",
+            "clip_unusable": "No pudimos oír suficiente canto para hacer una voz. Vuelve a intentarlo cantando la melodía y su letra con claridad.",
             "bad_clip": "Tu grabación no llegó como debía. Inténtalo de nuevo.",
             "gates_failed": "Algunas partes no salieron afinadas. Inténtalo de nuevo con una grabación nueva.",
             "render_failed": "Algo falló por nuestra parte. Inténtalo de nuevo.",

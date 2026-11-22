@@ -4,7 +4,6 @@
             "notFound": "This notice can't be found. Check the link in your email.",
             "missing": "This link has already been used here, or it's incomplete. Open the link in your email again."
         },
-        "draft": "These words are a draft our lawyer is still checking.",
         "rights": "If you still disagree after a review, you may be able to take it to a certified out-of-court dispute settlement body, or to court.",
         "review": {
             "yourText": "What you wrote",
@@ -3690,7 +3689,6 @@
             "continue": "Continue"
         },
         "consent": {
-            "draft": "This is a draft that a lawyer hasn't checked yet.",
             "agreement": "The agreement",
             "creditAs": "Credit me as",
             "anonymous": "Keep me anonymous",
@@ -8525,7 +8523,7 @@
         },
         "title": "Hear yourself as a choir",
         "intro": {
-            "one": "Sing along with {song} for 30 seconds: any part, just once. It needn't be good singing: we only listen for what your voice sounds like, and keep it privately for your next songs.",
+            "one": "Sing the tune of {song} for 30 seconds, in whatever octave feels comfortable. It needn't be good singing: we only listen for what your voice sounds like, and keep it privately for your next songs.",
             "two": "We make every part of it in a voice like yours, labelled as AI.",
             "three": "Then learn your part: each one you record takes the place of its AI version."
         },
@@ -8553,7 +8551,7 @@
         "failed": {
             "title": "We couldn't make your choir this time",
             "body": "Your recording has been deleted. Try again with a new one, somewhere quiet, singing a little louder.",
-            "clip_unusable": "We couldn't hear enough of the part in your recording. Try again, singing along clearly with your part.",
+            "clip_unusable": "We couldn't hear enough singing to make a voice. Try again, singing the tune and its words clearly.",
             "bad_clip": "Your recording didn't arrive as it should. Try again.",
             "gates_failed": "Some parts didn't come out in tune. Try again with a new recording.",
             "render_failed": "Something went wrong on our side. Try again.",

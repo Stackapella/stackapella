@@ -8,6 +8,7 @@ use App\Actions\OwnChoir\ChoirJobs;
 use App\Enums\OwnChoirStatus;
 use App\Jobs\CheckChoirClip;
 use App\Models\OwnChoirConsent;
+use App\Models\OwnChoirFreeSong;
 use App\Models\OwnChoirPart;
 use App\Models\OwnChoirRequest;
 use App\Models\OwnChoirVoice;
@@ -75,9 +76,9 @@ final class ReviewFixesTest extends TestCase
         $this->song($user, ['status' => OwnChoirStatus::Failed, 'failure' => 'render_failed', 'tries' => 3]);
         $this->assertSame(2, OwnChoir::quota($user)['freeLeft']);
 
-        // Forced by the singer after the renderer ran: counted.
-        $this->song($user, ['status' => OwnChoirStatus::Failed, 'failure' => 'reference_gone', 'tries' => 1]);
-        $this->song($user, ['status' => OwnChoirStatus::Failed, 'failure' => 'clip_unusable', 'tries' => 1]);
+        // Forced by the singer after the renderer ran and spent GPU time: counted.
+        $this->song($user, ['status' => OwnChoirStatus::Failed, 'failure' => 'reference_gone', 'tries' => 1, 'gpu_seconds' => 40]);
+        $this->song($user, ['status' => OwnChoirStatus::Failed, 'failure' => 'clip_unusable', 'tries' => 1, 'gpu_seconds' => 12]);
         $this->assertSame(0, OwnChoir::quota($user)['freeLeft']);
         $this->assertSame('free', OwnChoir::limitReached($user));
     }
@@ -209,8 +210,8 @@ final class ReviewFixesTest extends TestCase
 
         // Ours (the renderer's failure, its gates, a song at the limit expiring after its tries): given back to the free
         // allowance, never to the day.
-        $this->song($user, ['status' => OwnChoirStatus::Failed, 'failure' => 'render_failed', 'tries' => 3]);
-        $this->song($user, ['status' => OwnChoirStatus::Failed, 'failure' => 'gates_failed', 'tries' => 1]);
+        $this->song($user, ['status' => OwnChoirStatus::Failed, 'failure' => 'render_failed', 'tries' => 3, 'gpu_seconds' => 300]);
+        $this->song($user, ['status' => OwnChoirStatus::Failed, 'failure' => 'gates_failed', 'tries' => 1, 'gpu_seconds' => 90]);
         // Never reached it: neither.
         $this->song($user, ['status' => OwnChoirStatus::Failed, 'failure' => 'bad_clip', 'tries' => 0]);
 
@@ -304,5 +305,27 @@ final class ReviewFixesTest extends TestCase
         (require base_path('database/migrations/2026_11_20_180000_keep_own_choir_requests_past_their_song.php'))->up();
 
         $this->assertSame([], $ddl, 'Run again, it changes nothing.');
+    }
+
+    public function test_a_failure_before_any_gpu_work_never_counts_against_anything(): void
+    {
+        // Hillel's first song, 2026-11-23: his clip was unusable, nothing was rendered.
+        $user = $this->singer();
+        config(['own_choir.free_songs' => 1, 'own_choir.daily' => 1]);
+        $this->song($user, ['status' => OwnChoirStatus::Failed, 'failure' => 'clip_unusable', 'tries' => 1, 'gpu_seconds' => 0]);
+
+        $quota = OwnChoir::quota($user);
+        $this->assertSame([1, 1], [$quota['freeLeft'], $quota['todayLeft']]);
+        $this->assertNull(OwnChoir::limitReached($user));
+
+        // Paid Plus: no minutes spent either.
+        $user->forceFill(['store_plus_until' => now()->addDays(10)])->save();
+        $this->assertSame(60.0, OwnChoir::quota($user->fresh() ?? $user)['minutesLeft']);
+
+        // Its free-song record, if it took one, is given back.
+        $song = OwnChoirRequest::query()->sole();
+        OwnChoirFreeSong::query()->create(['key_hash' => str_repeat('a', 64)])->forceFill(['own_choir_request_id' => $song->id])->save();
+        OwnChoir::releaseFree($song);
+        $this->assertSame(0, OwnChoirFreeSong::query()->count());
     }
 }

@@ -21,7 +21,7 @@ import * as sessionStore from '../stores/session.js';
 import { account } from '../stores/account.js';
 import { claimInvitation, countVoice, later, needsVoice, saidLater, usableTake, voiceAskOpen } from '../be-the-voice.js';
 import { aiCredit, aiCtaOpen } from '../ai-voices.js';
-import { checkKey, choirRefusal, joinFor, joinWithClip, keepJoin, ownChoirOn, sendClip } from '../own-choir.js';
+import { checkKey, choirRefusal, joinFor, joinWithClip, keepJoin, ownChoirOn, sendClip, tunePart } from '../own-choir.js';
 import { aiPartsOf } from '../stores/catalogue.js';
 import { sendVoiceTake } from '../voice-take.js';
 import { signUpFor } from '../components/account-wall.js';
@@ -829,6 +829,17 @@ export const SingView = {
         if (session.openedId !== this.id || !session.project) await sessionStore.openSession(this.id);
         const wanted = wantedPart && session.parts.find((p) => p.templatePartKey === wantedPart);
         if (wanted && session.practice?.focus !== wanted.id) sessionStore.practise(wanted);
+        // Hear yourself as a choir's 30 seconds: always the tune, with its words, in whatever octave suits them (Hillel,
+        // 2026-11-22: a bass part all on "oo" left too little to hear). No chooser and no key fitting: the clip is sung
+        // against the tune as written, in their own octave.
+        const choirClip = session.project?.choir && !session.project.choir.requestId && !joinFor(this.id);
+        const tune = choirClip && session.parts.find((p) => p.templatePartKey === tunePart(session.project.template));
+        if (tune) {
+            this.sing({ way: 'whole' });
+            sessionStore.practise(tune);
+            if (this.practice?.mode === 'own' && !hasTake(tune)) sessionStore.setMode('singAlong');
+            this.choosing = false;
+        }
         // A beta take is recorded in the studio's beta mode (the sound check, Check and send).
         if (session.project?.beta) {
             navigate(`/p/${this.id}`, { replace: true });

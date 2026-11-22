@@ -11,7 +11,6 @@ declare(strict_types=1);
 return [
     // The plan cards (landing and /pricing).
     'pages.landing.plans_free_list' => [3 => 'Join any song or choir group you\'re invited to'],
-    'pages.landing.plans_plus_list' => [3 => ['Sing together.', 'Invite friends to sing on your songs and start choir groups. Everyone you invite joins free.']],
     'landing.plans.body' => 'Learning never needs a card. Plus is for what you make: singing together, your files and private arrangements.',
     'pages.landing.plans_choirs_link' => 'singers join free, and learning tracks for your choir',
     // The landing's questions.

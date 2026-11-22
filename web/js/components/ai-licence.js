@@ -170,7 +170,6 @@ export const AiLicenceTerms = {
     template: `
         <section class="space-y-5" data-ai-licence-terms>
             <h1 class="text-2xl font-bold text-cream" translate="no">{{ agreement.title }}</h1>
-            <Notice v-if="!agreement.reviewed" tone="warn">{{ t('beta.consent.draft') }}</Notice>
             <div v-if="split.short.length" class="card p-5" data-ai-licence-short><slot name="blocks" :blocks="split.short" /></div>
             <div class="card max-h-[50dvh] overflow-y-auto p-5" tabindex="0" role="region" :aria-label="t('beta.ai.fullTerms')" data-ai-licence-full><slot name="blocks" :blocks="split.full" /></div>
             <form class="card space-y-4 p-5" @submit.prevent="accept">

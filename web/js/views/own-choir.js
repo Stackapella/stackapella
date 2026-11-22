@@ -9,7 +9,6 @@ import { api } from '../api.js';
 import { formatDate, formatNumber, t, tk } from '../i18n.js';
 import { navigate } from '../router.js';
 import { AppScreen } from '../components/page.js';
-import { Notice } from '../components/form.js';
 import { confirmAction } from '../components/confirm.js';
 import { toast } from '../components/ui.js';
 import { account, loadAccount, loadAuthConfig } from '../stores/account.js';
@@ -31,7 +30,7 @@ import { choirPosition, loadChoir, loadChoirFull, mixChoir, playChoir, stopChoir
 const FAILURES = { clip_unusable: tk('ownChoir.failed.clip_unusable'), bad_clip: tk('ownChoir.failed.bad_clip'), gates_failed: tk('ownChoir.failed.gates_failed'), render_failed: tk('ownChoir.failed.render_failed'), expired: tk('ownChoir.failed.expired'), reference_gone: tk('ownChoir.failed.reference_gone') };
 
 export const OwnChoirView = {
-    components: { Agreement, AppScreen, Icon, Notice, PlusMoment, TurnstileBox },
+    components: { Agreement, AppScreen, Icon, PlusMoment, TurnstileBox },
     props: { id: { type: String, required: true } },
     data: () => ({ leftNames: [], plusFriends: false, sentInvite: null, copied: false, plusFor: false, emailSent: false, sending: false, checkToken: null, checkRound: 0, state: 'loading', offReason: 'unavailable', canStart: false, template: null, terms: null, busy: false, playing: false, loadingTrack: false, hum: null, own: false }),
     setup: () => ({ ownChoir, account, isOpen, templatePartName, savedVoice, formatNumber, navigate }),
@@ -172,7 +171,6 @@ export const OwnChoirView = {
             <!-- The terms, once: the short version, the terms, one button (English only, as the AI licence). -->
             <section v-else-if="state === 'terms' && terms" class="space-y-5" data-choir-terms>
                 <h1 class="text-2xl font-bold text-cream" translate="no">{{ terms.title }}</h1>
-                <Notice v-if="terms.draft" tone="warn">{{ t('beta.consent.draft') }}</Notice>
                 <div class="card p-5" :class="game ? '' : 'max-h-[50dvh] overflow-y-auto'" tabindex="0" role="region" :aria-label="terms.title"><Agreement :agreement="terms" :level="2" /></div>
                 <button type="button" class="btn-primary" :disabled="busy" data-choir-agree @click="agree">{{ t('ownChoir.terms.agree') }}</button>
             </section>
@@ -556,8 +554,10 @@ export const OwnChoirView = {
             this.busy = true;
             try {
                 let project = this.project && !this.project.choir?.requestId ? this.project : null;
-                project ??= await startFromTemplate(this.template, { keyChosen: true, choir: { requestId: null } });
-                navigate(`/p/${project.id}/sing`);
+                // Always the tune (the melody, with its words), in whatever octave suits them: never "any part".
+                const tune = tunePart(this.template);
+                project ??= await startFromTemplate(this.template, { keyChosen: true, focusKey: tune, choir: { requestId: null } });
+                navigate(`/p/${project.id}/sing${tune ? `?part=${encodeURIComponent(tune)}` : ''}`);
             } finally {
                 this.busy = false;
             }

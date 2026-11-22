@@ -27,7 +27,8 @@ def journey(f):
     card = f.js("document.querySelector('[data-notice]').innerText")
     for key in ("notices.kind.harmony_hidden", "notices.what.harmony_hidden", "notices.why.reports", "notices.automatic"):
         assert t(f, key) in card, f"{key} on the notice: {card}"
-    assert f.js("!!document.querySelector('[data-notices-draft]')"), "the draft line for the lawyer"
+    # No draft line for the lawyer (Hillel, 2026-11-22: "can we remove 'This is a draft that a lawyer hasn't checked yet.'").
+    assert not f.js("document.querySelector('[data-notices-draft]')"), "a draft line for the lawyer"
     f.no_sideways("Notices")
     f.shot("notices")
     # Ask for a review: the sheet, the text, sent as `text`.

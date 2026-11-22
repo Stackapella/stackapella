@@ -178,8 +178,10 @@ final class OwnChoir
     public static function releaseFree(OwnChoirRequest $request): void
     {
         $ours = $request->status === OwnChoirStatus::Failed && in_array($request->failure, self::OURS, true) && ! ($request->own && $request->failure === 'gates_failed');
+        // Failed before any GPU work (an unusable clip, a voice gone): never counted (Hillel, 2026-11-23).
+        $unspent = $request->status === OwnChoirStatus::Failed && $request->gpu_seconds <= 0;
 
-        if ($request->tries === 0 || $ours) {
+        if ($request->tries === 0 || $ours || $unspent) {
             OwnChoirFreeSong::query()->where('own_choir_request_id', $request->id)->delete();
         }
     }
@@ -255,7 +257,9 @@ final class OwnChoir
      * every song that reached the renderer (tries > 0), whether made, deleted after, or failed through anything the
      * singer could cause (an unusable clip, their voice deleted mid-render); and every song queued for it. A song gives
      * its place back only when it never reached the renderer (never sent, a clip that failed its check, deleted before its
-     * turn) or failed through ours (the renderer's own failure, its gates).
+     * turn), failed through ours (the renderer's own failure, its gates), or failed before any GPU work was spent on it
+     * (`gpu_seconds` 0: an unusable clip, a voice gone; Hillel, 2026-11-23: "it shouldn't count as my free song"). The
+     * daily cap and the minutes (attempted) give back the same failures that spent nothing.
      *
      * @return Builder<OwnChoirRequest>
      */
@@ -268,7 +272,7 @@ final class OwnChoir
             ->orWhere(fn (Builder $tried) => $tried->where('tries', '>', 0)->where(fn (Builder $why) => $why
                 ->where('status', OwnChoirStatus::Deleted->value)
                 // A gates failure on the singer's own song is theirs (the GPU review): never given back.
-                ->orWhere(fn (Builder $failed) => $failed->where('status', OwnChoirStatus::Failed->value)->where(fn (Builder $why) => $why->whereNotIn('failure', self::OURS)->orWhere(fn (Builder $own) => $own->where('own', true)->where('failure', 'gates_failed')))))));
+                ->orWhere(fn (Builder $failed) => $failed->where('status', OwnChoirStatus::Failed->value)->where('gpu_seconds', '>', 0)->where(fn (Builder $why) => $why->whereNotIn('failure', self::OURS)->orWhere(fn (Builder $own) => $own->where('own', true)->where('failure', 'gates_failed')))))));
     }
 
     /**
@@ -284,7 +288,7 @@ final class OwnChoir
         // (A friend's parts waiting for the minutes aren't spent yet: they count once released.)
         return OwnChoirRequest::query()->where('held_for_minutes', false)->where(fn (Builder $whose) => $whose->where(fn (Builder $own) => $own->where('user_id', $user->id)->whereNull('parent_request_id'))->orWhere('bill_to_user_id', $user->id))->where(fn (Builder $query) => $query
             ->whereIn('status', [OwnChoirStatus::Queued->value, OwnChoirStatus::Rendering->value, OwnChoirStatus::Ready->value])
-            ->orWhere('tries', '>', 0));
+            ->orWhere(fn (Builder $tried) => $tried->where('tries', '>', 0)->where(fn (Builder $spent) => $spent->where('status', '!=', OwnChoirStatus::Failed->value)->orWhere('gpu_seconds', '>', 0))));
     }
 
     /** Failures that are ours, not the singer's: their song is given back to the free and monthly allowances. */

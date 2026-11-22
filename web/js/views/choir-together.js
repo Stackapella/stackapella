@@ -10,7 +10,6 @@ import { t } from '../i18n.js';
 import { navigate } from '../router.js';
 import { AppScreen } from '../components/page.js';
 import { AccountWall } from '../components/account-wall.js';
-import { Notice } from '../components/form.js';
 import { Switch } from '../components/controls.js';
 import { toast } from '../components/ui.js';
 import { account, loadAccount, loadAuthConfig } from '../stores/account.js';
@@ -22,7 +21,7 @@ import { loadChoir, playChoir, stopChoir } from '../own-choir-player.js';
 import { game as gameSkin } from '../stores/appearance.js';
 
 export const ChoirTogetherJoinView = {
-    components: { AccountWall, Agreement, AppScreen, Notice, Switch },
+    components: { AccountWall, Agreement, AppScreen, Switch },
     props: { token: { type: String, required: true } },
     data: () => ({ partsChanged: false, wordsChanged: false, state: 'loading', invite: null, terms: null, showName: false, busy: false, playing: false, loadingTrack: false, template: null }),
     setup: () => ({ account, savedVoice, navigate }),
@@ -225,7 +224,6 @@ export const ChoirTogetherJoinView = {
             <!-- The own-choir terms, once (as the choir page has them). -->
             <section v-else-if="state === 'terms' && terms" class="space-y-5" data-join-terms>
                 <h1 class="text-2xl font-bold text-cream" translate="no">{{ terms.title }}</h1>
-                <Notice v-if="terms.draft" tone="warn">{{ t('beta.consent.draft') }}</Notice>
                 <div class="card p-5" :class="game ? '' : 'max-h-[50dvh] overflow-y-auto'" tabindex="0" role="region" :aria-label="terms.title"><Agreement :agreement="terms" :level="2" /></div>
                 <button type="button" class="btn-primary" :disabled="busy" data-choir-agree @click="agreeTerms">{{ t('ownChoir.terms.agree') }}</button>
             </section>

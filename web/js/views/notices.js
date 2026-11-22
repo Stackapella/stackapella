@@ -5,7 +5,7 @@
 // token is taken out of the address at once, as /verify's is, js/stores/account.js keepLinkToken).
 //
 // LAWYER TO REVIEW: the words under notices.* in locales/en.json are a draft until Hillel's lawyer gives the final ones
-// (docs/web-finish-audit-2026-11-13.md). Each screen says so in one quiet line (notices.draft) until DRAFT is false.
+// (docs/web-finish-audit-2026-11-13.md). No screen says so (Hillel, 2026-11-22: no draft notice for the lawyer anywhere).
 
 import { api, ApiError } from '../api.js';
 import { formatDate, t, tk } from '../i18n.js';
@@ -132,7 +132,6 @@ export const NoticesView = {
             <p v-else-if="notices === null" class="text-muted" role="status">{{ t('common.loading') }}</p>
             <EmptyState v-else-if="!notices.length" icon="check" :title="t('notices.noneTitle')" :body="t('notices.none')" />
             <NoticeCard v-for="(notice, i) in notices ?? []" :key="notice.id" :notice="notice" @changed="(n) => (notices[i] = n)" />
-            <p v-if="DRAFT" class="text-xs text-muted" data-notices-draft>{{ t('notices.draft') }}</p>
         </AppScreen>`,
     created() {
         if (!account.me) {
@@ -165,7 +164,6 @@ export const NoticeView = {
             <Notice v-else-if="missing" tone="bad">{{ t('notices.token.notFound') }}</Notice>
             <p v-else-if="!notice" class="text-muted" role="status">{{ t('common.loading') }}</p>
             <NoticeCard v-else :notice="notice" :token="token" @changed="(n) => (notice = n)" />
-            <p v-if="DRAFT" class="text-xs text-muted" data-notices-draft>{{ t('notices.draft') }}</p>
         </AppScreen>`,
     async created() {
         if (!this.token) return;

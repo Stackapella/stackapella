@@ -52,4 +52,4 @@ recordings and the part made from it) encrypted for at most 7 days, then delete 
 9. **Changes.** If we change these terms, we'll ask you to accept them again; until you do, we make no new parts with
 your AI voice.
 
-**[Governing law: for the lawyer.]** Questions: **[contact address]**.
+Questions: legal@stackapella.com, or Contact us in the app.

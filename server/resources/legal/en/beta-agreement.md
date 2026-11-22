@@ -109,6 +109,4 @@ you ask us to stop), 5 and 6 continue after it ends.
 the new version before you record again; recordings you already sent stay under the version you
 accepted.
 
-9.2 **[Governing law and courts: for the lawyer.]**
-
-9.3 Questions: **[contact address]**.
+9.2 Questions: legal@stackapella.com, or Contact us in the app.

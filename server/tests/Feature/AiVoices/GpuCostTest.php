@@ -183,7 +183,7 @@ final class GpuCostTest extends TestCase
     {
         $user = $this->singer();
         config(['own_choir.free_songs' => 1]);
-        $this->song($user, ['status' => OwnChoirStatus::Failed, 'failure' => 'gates_failed', 'own' => true]);
+        $this->song($user, ['status' => OwnChoirStatus::Failed, 'failure' => 'gates_failed', 'own' => true, 'gpu_seconds' => 120]);
         $this->assertSame(0, OwnChoir::quota($user)['freeLeft']);
 
         OwnChoirRequest::query()->update(['own' => false]);

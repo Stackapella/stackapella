@@ -35,6 +35,10 @@ def journey(f):
     f.run("sessionStorage.setItem('stackapella.mockOwnChoir', '1'); sessionStorage.removeItem('stackapella.mockAiVoices'); sessionStorage.removeItem('stackapella.mockChoirState'); sessionStorage.removeItem('stackapella.mockChoir');")
     clear_projects(f)
 
+    # A clip that couldn't make a voice (the example's Amazing Grace): the words ask for the tune and its words.
+    f.go("/t/amazing-grace/choir?api=mock&scenario=&as=member", "document.querySelector('[data-choir-failed]')")
+    assert t(f, "ownChoir.failed.clip_unusable") in f.js("document.querySelector('[data-choir-failed]').textContent"), f.js("document.querySelector('[data-choir-failed]').textContent")
+
     # Free: Download is there, and opens the Plus sheet; no file is made.
     f.go(PAGE.format(who="member"), "document.querySelector('[data-choir-download]')")
     assert f.js("!!document.querySelector('[data-choir-play]') && !document.querySelector('[data-choir-share]').disabled"), "Play and Share stay free"
