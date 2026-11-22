@@ -3000,7 +3000,8 @@
             "mp3": "La exportación en MP3 es de Plus. WAV es gratis.",
             "stems": "Cada voz por separado es de Plus.",
             "privateTemplate": "Tu primer arreglo privado es gratis. Plus guarda todos los que quieras.",
-            "privateShared": "Los arreglos privados que se comparten necesitan Plus para cada cantante."
+            "privateShared": "Los arreglos privados que se comparten necesitan Plus para cada cantante.",
+            "choirSettings": "Dale forma a tu coro con Plus: la sala, el equilibrio, cómo se canta."
         },
         "yours": "Tu plan",
         "manage": "Gestionar tu plan",
@@ -5698,7 +5699,8 @@
                 "title": "Tu grabación",
                 "hint": "Los 30 segundos con los que se hizo tu coro, para comparar.",
                 "play": "Escuchar tu grabación"
-            }
+            },
+            "onOo": "Cantada con “uu”: por ahora, las voces de IA solo cantan letras en inglés."
         },
         "failed": {
             "title": "Esta vez no pudimos hacer tu coro",
@@ -5911,6 +5913,78 @@
             "again": "Probar otra nota",
             "usual": "Usar la tonalidad habitual",
             "noMic": "No pudimos oír una nota. Vuelve a intentarlo un poco más fuerte, o usa la tonalidad habitual."
+        },
+        "headphones": {
+            "title": "¿Llevas auriculares?",
+            "yes": "Tengo auriculares",
+            "yesHint": "Oirás la melodía mientras cantas.",
+            "no": "Sin auriculares: canto por mi cuenta",
+            "noHint": "No suena nada mientras grabas. Mira la cuenta atrás y sigue la letra a medida que se ilumina."
+        },
+        "settings": {
+            "title": "Ajustes del coro",
+            "sound": "Sonido",
+            "sung": "Cómo se canta",
+            "soundHint": "Al momento. No usa minutos.",
+            "room": "Sala",
+            "rooms": {
+                "dry": "Sin sala",
+                "small": "Sala pequeña",
+                "hall": "Auditorio",
+                "chapel": "Capilla"
+            },
+            "balance": "Equilibrio",
+            "balanceHint": "Lo fuerte que suena cada parte.",
+            "humanize": "Carácter",
+            "clean": "Limpio de estudio",
+            "real": "Coro de verdad",
+            "voicing": "Qué octava",
+            "voicingOptions": {
+                "auto": "Automático",
+                "low": "Voz grave",
+                "high": "Voz aguda",
+                "written": "Como está escrito"
+            },
+            "breaths": "Respiraciones",
+            "breathsOptions": {
+                "smooth": "Suaves",
+                "natural": "Naturales"
+            },
+            "timing": "Sincronía entre cantantes",
+            "timingOptions": {
+                "tight": "Ajustada",
+                "natural": "Natural",
+                "loose": "Suelta"
+            },
+            "pitch": "Afinación entre cantantes",
+            "pitchOptions": {
+                "exact": "Exacta",
+                "subtle": "Sutil",
+                "wide": "Amplia"
+            },
+            "quality": "Calidad",
+            "qualityOptions": {
+                "standard": "Estándar",
+                "fine": "Alta"
+            },
+            "fineHint": "La calidad alta usa unas dos veces más minutos.",
+            "remake": "Rehacer mi coro",
+            "remakeCost": "{minutes, plural, one {Usa # minuto} other {Usa # minutos}}",
+            "remaking": "Rehaciendo tu coro. Esta versión sigue sonando hasta que la nueva esté lista.",
+            "reset": "Restablecer",
+            "sungHint": "Lo rehace la IA. Usa tus minutos de canto con IA.",
+            "plusBadge": "Plus",
+            "locked": "Los ajustes del coro vienen con Plus.",
+            "roomHint": "Dónde suena como si se cantara.",
+            "softer": "Más suave",
+            "louder": "Más fuerte",
+            "humanizeHint": "Lo humano que suena el canto.",
+            "voicingHint": "Automático se ajusta a tu voz.",
+            "breathsHint": "Cómo respiran las voces entre frases.",
+            "timingHint": "Cuánto coinciden las voces al empezar.",
+            "pitchHint": "Lo exacta que es la afinación entre las voces.",
+            "remakeOf": "{minutes, plural, one {Usa # de tus {left} minutos de canto con IA} other {Usa # de tus {left} minutos de canto con IA}}",
+            "remakeNeedsChange": "Cambia un ajuste para rehacerlo."
         }
     },
     "aiVoice": {

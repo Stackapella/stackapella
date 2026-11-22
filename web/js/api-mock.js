@@ -199,7 +199,9 @@ async function stateful(operation, params, body, cases, query = {}) {
         if ((tabStorage.get('stackapella.mockAiVoices') === '1' || tabStorage.get('stackapella.mockOwnChoir') === '1') && !query?.version && (tabStorage.get('stackapella.mockAs') || 'member') !== 'signedOut' && !scenarios().some((s) => s.startsWith('templates.show:'))) {
             const { data } = await example('templates.show.200.json');
             const listed = (await example('templates.catalogue.200.json')).data.find((song) => song.id === data.template.id);
-            if (params.id === data.template.id && listed) return respond(200, { data: { ...data, template: { ...data.template, version: listed.version } } });
+            // mockSongLanguage (this tab): the song's words in another language, as a non-English song's template says.
+            const language = tabStorage.get('stackapella.mockSongLanguage');
+            if (params.id === data.template.id && listed) return respond(200, { data: { ...data, template: { ...data.template, version: listed.version, ...(language ? { language } : {}) } } });
         }
         // Any other library song to a guest: its first phrase (`grant: "phrase"`, as the server cuts it: templates.firstPhrase),
         // no recorded voices; a scenario (templates.show:account_required) still answers as it says.
@@ -404,6 +406,9 @@ async function stateful(operation, params, body, cases, query = {}) {
         const dress = (r) => {
             // A low voice's arrangement (mockChoirLow, this tab), else as written: the server's call, from the range.
             r.voicing = tabStorage.get('stackapella.mockChoirLow') ? 'low' : 'written';
+            r.settings ??= { sound: { room: 'dry', balance: (r.parts ?? []).map((p) => ({ partKey: p.partKey, db: 0 })) }, sung: { humanize: 0, voicing: 'auto', breaths: 'legato', ensembleTiming: 'tight', pitchSpread: 'off', quality: 'standard' } };
+            r.remakeMinutes ??= { standard: 2, fine: 4 };
+            r.remake ??= null;
             const friends = choir.members.filter((m) => m.requestId === r.id);
             r.left ??= [];
             // Off: no invites, but memberships still show (leaving and removing always work).
@@ -534,6 +539,20 @@ async function stateful(operation, params, body, cases, query = {}) {
         if (operation === 'ownChoir.requests.complete') {
             if (request.status === 'uploading') Object.assign(request, { status: 'queued', progress: shown.requests[0].parts.map((p) => ({ partKey: p.partKey, status: 'waiting' })) });
             return save(respond(200, { data: request }));
+        }
+        // Choir settings (Plus): the mix's sound, kept; and a remake, made at the next look (the old version plays meanwhile).
+        if (operation === 'ownChoir.requests.sound' || operation === 'ownChoir.requests.remake') {
+            if (as !== 'plus') return respond(403, { message: 'plus_required', code: 'plus_required' });
+            request.settings = { ...(request.settings ?? {}) };
+            if (operation === 'ownChoir.requests.sound') {
+                request.settings.sound = body?.sound;
+                globalThis.mockChoirSound = body?.sound; // what the flows read
+                return save(respond(200, { data: request }));
+            }
+            if (request.remake && request.remake.status !== 'failed') return respond(409, { message: 'remake_running', code: 'remake_running' });
+            request.remake = { status: 'queued', progress: request.parts.map((p) => ({ partKey: p.partKey, status: 'waiting' })), settings: { sung: body?.sung } };
+            globalThis.mockChoirRemake = body?.sung;
+            return save(respond(202, { data: request }));
         }
         if (operation === 'ownChoir.requests.download') {
             if (!request.canDownload) return respond(403, { message: 'plus_required', code: 'plus_required' });

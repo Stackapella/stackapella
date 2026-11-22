@@ -25,7 +25,8 @@
                 "title": "Voice capture",
                 "parts": []
             },
-            "transpose": -3
+            "transpose": -3,
+            "guide": true
         },
         "reference": null,
         "parts": [
@@ -52,6 +53,13 @@
                 "partKey": "bass",
                 "shift": 0
             }
-        ]
+        ],
+        "settings": {
+            "humanize": 0,
+            "breaths": "legato",
+            "quality": "standard",
+            "ensembleTiming": "tight",
+            "pitchSpread": "off"
+        }
     }
 }

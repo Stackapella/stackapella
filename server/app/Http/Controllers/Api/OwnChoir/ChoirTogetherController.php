@@ -53,7 +53,7 @@ final class ChoirTogetherController extends Controller
 
     public function accept(AcceptChoirInviteRequest $request, string $token, ChoirTogether $together, #[CurrentUser] User $user): JsonResponse
     {
-        /** @var array{parts?: list<string>, octave?: int|null, clipTemplateId?: string|null, clipTranspose?: int|null, showName: bool, wordsSha?: string|null, useSavedVoice?: bool|null, partKey?: string|null, offsetFrames?: int|null, sampleRate?: int|null, frames?: int|null, bytes?: int|null, sha256?: string|null} $data */
+        /** @var array{parts?: list<string>, octave?: int|null, clipTemplateId?: string|null, clipTranspose?: int|null, guide?: bool|null, showName: bool, wordsSha?: string|null, useSavedVoice?: bool|null, partKey?: string|null, offsetFrames?: int|null, sampleRate?: int|null, frames?: int|null, bytes?: int|null, sha256?: string|null} $data */
         $data = $request->validated();
         ['member' => $member, 'put' => $put] = $together->accept($user, $token, $data);
 

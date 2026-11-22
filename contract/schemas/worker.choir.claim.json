@@ -27,7 +27,8 @@
                 "parts",
                 "own",
                 "voicing",
-                "shifts"
+                "shifts",
+                "settings"
             ],
             "properties": {
                 "id": {
@@ -70,7 +71,8 @@
                         "template",
                         "version",
                         "data",
-                        "transpose"
+                        "transpose",
+                        "guide"
                     ],
                     "properties": {
                         "url": {
@@ -112,6 +114,10 @@
                         "transpose": {
                             "type": "integer",
                             "description": "Semitones (−12 to 12) the tune was moved to the singer's first note; `data`'s notes already carry it."
+                        },
+                        "guide": {
+                            "type": "boolean",
+                            "description": "false: sung with no headphones, nothing playing, the tempo kept by eye; align phrase by phrase."
                         }
                     },
                     "description": "A new clip to prepare (exactly one of clip and reference)."
@@ -186,6 +192,50 @@
                             "shift": {
                                 "type": "integer"
                             }
+                        }
+                    }
+                },
+                "settings": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "humanize",
+                        "breaths",
+                        "quality",
+                        "ensembleTiming",
+                        "pitchSpread"
+                    ],
+                    "description": "How it's sung (Plus's choir settings; the defaults are today's sound). Voicing is already in `data`.",
+                    "properties": {
+                        "humanize": {
+                            "type": "integer",
+                            "description": "0 to 3: 0 the clean line, each step more vibrato and variation."
+                        },
+                        "breaths": {
+                            "enum": [
+                                "legato",
+                                "natural"
+                            ]
+                        },
+                        "quality": {
+                            "enum": [
+                                "standard",
+                                "fine"
+                            ]
+                        },
+                        "ensembleTiming": {
+                            "enum": [
+                                "tight",
+                                "natural",
+                                "loose"
+                            ]
+                        },
+                        "pitchSpread": {
+                            "enum": [
+                                "off",
+                                "subtle",
+                                "wide"
+                            ]
                         }
                     }
                 }

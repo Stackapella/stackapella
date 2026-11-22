@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Api\OwnChoir;
 
 use App\Actions\OwnChoir\OwnChoirRequests;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\OwnChoir\ChoirRemakeRequest;
+use App\Http\Requests\OwnChoir\ChoirSoundRequest;
 use App\Http\Requests\OwnChoir\OwnChoirConsentRequest;
 use App\Http\Requests\OwnChoir\StartOwnChoirRequest;
 use App\Models\OwnChoirRequest;
@@ -60,6 +62,23 @@ final class OwnChoirController extends Controller
     public function seen(OwnChoirRequest $song, OwnChoirRequests $choir, #[CurrentUser] User $user): JsonResponse
     {
         return response()->json(['data' => OwnChoir::request($choir->seen($user, $song)->load(['templateVersion.template', 'parts']), null, $user)]);
+    }
+
+    public function sound(OwnChoirRequest $song, ChoirSoundRequest $request, OwnChoirRequests $choir, #[CurrentUser] User $user): JsonResponse
+    {
+        /** @var array{sound: array{room: string, balance?: list<array{partKey: string, db: float|int}>, leadBlend?: float|int|null, recordingLevel?: float|int|null}} $data */
+        $data = $request->validated();
+
+        return response()->json(['data' => OwnChoir::request($choir->setSound($user, $song, $data['sound'])->load(['templateVersion.template', 'parts']), null, $user)]);
+    }
+
+    public function remake(OwnChoirRequest $song, ChoirRemakeRequest $request, OwnChoirRequests $choir, #[CurrentUser] User $user): JsonResponse
+    {
+        /** @var array{sung: array{humanize: int, voicing: string, breaths: string, quality: string, ensembleTiming: string, pitchSpread: string}} $data */
+        $data = $request->validated();
+        $data['sung']['humanize'] = (int) $data['sung']['humanize'];
+
+        return response()->json(['data' => OwnChoir::request($choir->remake($user, $song, $data['sung'])->load(['templateVersion.template', 'parts']), null, $user)], 202);
     }
 
     public function download(OwnChoirRequest $song, OwnChoirRequests $choir, #[CurrentUser] User $user): JsonResponse

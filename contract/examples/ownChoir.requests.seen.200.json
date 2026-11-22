@@ -106,6 +106,44 @@
             "left": 1,
             "reason": null
         },
-        "voicing": "written"
+        "voicing": "written",
+        "settings": {
+            "sound": {
+                "room": "hall",
+                "balance": [
+                    {
+                        "partKey": "soprano",
+                        "db": 0
+                    },
+                    {
+                        "partKey": "alto",
+                        "db": 0
+                    },
+                    {
+                        "partKey": "tenor",
+                        "db": 0
+                    },
+                    {
+                        "partKey": "bass",
+                        "db": 0
+                    }
+                ],
+                "leadBlend": null,
+                "recordingLevel": null
+            },
+            "sung": {
+                "humanize": 0,
+                "voicing": "auto",
+                "breaths": "legato",
+                "quality": "standard",
+                "ensembleTiming": "tight",
+                "pitchSpread": "off"
+            }
+        },
+        "remakeMinutes": {
+            "standard": 6.4,
+            "fine": 12.8
+        },
+        "remake": null
     }
 }

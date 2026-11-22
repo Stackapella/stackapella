@@ -33,6 +33,9 @@ return [
     'clip_templates' => ['voice-capture' => null, 'silent-night' => 36, 'amazing-grace' => 36, 'joy-to-the-world' => 63],
     // Across everyone, part-minutes rendered a day: past it, new songs wait for tomorrow and the admins are told once.
     'daily_part_minutes' => 600,
+    // A remake at fine quality (64 steps) costs its real GPU time: 1.92x measured, rounded (Hillel, 2026-11-23: "make
+    // sure limits align with our costs").
+    'fine_factor' => 2.0,
     // An own song's singing across all its parts, at most (so one song fits one claim).
     'max_total_seconds' => 1200,
     // A claim kept alive by the worker (worker.choir.jobs.extend) never lasts past this from when it was claimed.

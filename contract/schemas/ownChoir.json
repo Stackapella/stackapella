@@ -246,7 +246,10 @@
                 "members",
                 "invite",
                 "left",
-                "voicing"
+                "voicing",
+                "settings",
+                "remakeMinutes",
+                "remake"
             ],
             "properties": {
                 "id": {
@@ -424,6 +427,88 @@
                         "low"
                     ],
                     "description": "low: arranged for a low voice, the treble parts an octave down (\"Arranged for a low voice\")."
+                },
+                "settings": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "sound",
+                        "sung"
+                    ],
+                    "description": "Choir settings (Plus to change): the mix, applied at once, and how it is sung, applied by a remake.",
+                    "properties": {
+                        "sound": {
+                            "$ref": "#/$defs/sound"
+                        },
+                        "sung": {
+                            "$ref": "#/$defs/sung"
+                        }
+                    }
+                },
+                "remakeMinutes": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "standard",
+                        "fine"
+                    ],
+                    "description": "The minutes a remake would use, as charged.",
+                    "properties": {
+                        "standard": {
+                            "type": "number"
+                        },
+                        "fine": {
+                            "type": "number"
+                        }
+                    }
+                },
+                "remake": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "status",
+                        "progress",
+                        "settings"
+                    ],
+                    "description": "A remake on its way (the song plays as it is meanwhile); null when none.",
+                    "properties": {
+                        "status": {
+                            "enum": [
+                                "queued",
+                                "rendering",
+                                "failed"
+                            ]
+                        },
+                        "progress": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "partKey",
+                                    "status"
+                                ],
+                                "properties": {
+                                    "partKey": {
+                                        "type": "string"
+                                    },
+                                    "status": {
+                                        "enum": [
+                                            "ready",
+                                            "making",
+                                            "waiting"
+                                        ]
+                                    }
+                                }
+                            }
+                        },
+                        "settings": {
+                            "$ref": "#/$defs/sung"
+                        }
+                    }
                 }
             }
         },
@@ -550,6 +635,112 @@
                         "null"
                     ],
                     "description": "While `waiting_minutes`: the part-minutes the owner lacks for these parts (made once the owner's `quota.resetsAt` passes); else null."
+                }
+            }
+        },
+        "sound": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "room",
+                "balance",
+                "leadBlend",
+                "recordingLevel"
+            ],
+            "properties": {
+                "room": {
+                    "enum": [
+                        "dry",
+                        "small",
+                        "hall",
+                        "chapel"
+                    ]
+                },
+                "balance": {
+                    "type": "array",
+                    "description": "Each part's level in dB (−12 to 6), in the song's order.",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "partKey",
+                            "db"
+                        ],
+                        "properties": {
+                            "partKey": {
+                                "type": "string"
+                            },
+                            "db": {
+                                "type": "number"
+                            }
+                        }
+                    }
+                },
+                "leadBlend": {
+                    "type": [
+                        "number",
+                        "null"
+                    ],
+                    "description": "0 to 1 within You + choir: 0 their real take as the lead, 1 the AI tune; null as the view says."
+                },
+                "recordingLevel": {
+                    "type": [
+                        "number",
+                        "null"
+                    ],
+                    "description": "Their original clip mixed under the choir, in dB (−24 to 0); null off."
+                }
+            }
+        },
+        "sung": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "humanize",
+                "voicing",
+                "breaths",
+                "quality",
+                "ensembleTiming",
+                "pitchSpread"
+            ],
+            "properties": {
+                "humanize": {
+                    "type": "integer",
+                    "description": "0 to 3: 0 the clean line, each step more vibrato and variation."
+                },
+                "voicing": {
+                    "enum": [
+                        "auto",
+                        "low",
+                        "high",
+                        "written"
+                    ]
+                },
+                "breaths": {
+                    "enum": [
+                        "legato",
+                        "natural"
+                    ]
+                },
+                "quality": {
+                    "enum": [
+                        "standard",
+                        "fine"
+                    ]
+                },
+                "ensembleTiming": {
+                    "enum": [
+                        "tight",
+                        "natural",
+                        "loose"
+                    ]
+                },
+                "pitchSpread": {
+                    "enum": [
+                        "off",
+                        "subtle",
+                        "wide"
+                    ]
                 }
             }
         }

@@ -480,11 +480,11 @@ export async function dropJoinClip(token) {
 }
 
 /** A friend joining by an invite: the clip sent as `sendClip` sends it, to `invites.accept`; answers the member. */
-export async function joinWithClip(token, { partKey, clipTemplateId = null, clipTranspose = 0, parts = null, octave = 0, samples, sampleRate, startSeconds, showName = false, wordsSha = null }) {
+export async function joinWithClip(token, { partKey, clipTemplateId = null, clipTranspose = 0, guide = true, parts = null, octave = 0, samples, sampleRate, startSeconds, showName = false, wordsSha = null }) {
     const clip = clipFrom(samples, sampleRate, startSeconds);
     const bytes = await clip.wav.arrayBuffer();
     const sha256 = hex(await crypto.subtle.digest('SHA-256', bytes));
-    const { data: member, upload } = await api.ownChoir.invites.accept(token, { showName, wordsSha, useSavedVoice: false, parts, octave, ...(clipTemplateId ? { clipTemplateId } : {}), ...(clipTranspose ? { clipTranspose } : {}), partKey, offsetFrames: clip.offsetFrames, sampleRate, frames: clip.frames, bytes: bytes.byteLength, sha256 });
+    const { data: member, upload } = await api.ownChoir.invites.accept(token, { showName, wordsSha, useSavedVoice: false, parts, octave, ...(clipTemplateId ? { clipTemplateId } : {}), ...(clipTranspose ? { clipTranspose } : {}), ...(guide ? {} : { guide: false }), partKey, offsetFrames: clip.offsetFrames, sampleRate, frames: clip.frames, bytes: bytes.byteLength, sha256 });
     if (upload) {
         await uploadTo(upload, clip.wav);
         await api.ownChoir.members.complete(member.id);
@@ -536,12 +536,12 @@ const hex = (buffer) => [...new Uint8Array(buffer)].map((b) => b.toString(16).pa
  * Sends a take as a song's clip: the request, the upload, then complete. Resolves the request (queued); refusals are the
  * contract's ApiErrors (consent_required, quota_reached with `which`, request_open, account_required).
  */
-export async function sendClip({ templateId, clipTemplateId = null, clipTranspose = 0, octave = null, partKey, samples, sampleRate, startSeconds, hum = false, turnstileToken = null }) {
+export async function sendClip({ templateId, clipTemplateId = null, clipTranspose = 0, guide = true, octave = null, partKey, samples, sampleRate, startSeconds, hum = false, turnstileToken = null }) {
     const clip = clipFrom(samples, sampleRate, startSeconds);
     if (hum) clip.offsetFrames = null; // a hum sets its own tempo: where the song's beat 0 falls in it isn't known
     const bytes = await clip.wav.arrayBuffer();
     const sha256 = hex(await crypto.subtle.digest('SHA-256', bytes));
-    const { data: request, upload } = await api.ownChoir.requests.create({ templateId, ...(clipTemplateId ? { clipTemplateId } : {}), ...(clipTranspose ? { clipTranspose } : {}), ...(octave != null ? { octave } : {}), partKey, offsetFrames: clip.offsetFrames, sampleRate, frames: clip.frames, bytes: bytes.byteLength, sha256, ...(turnstileToken ? { turnstileToken } : {}) });
+    const { data: request, upload } = await api.ownChoir.requests.create({ templateId, ...(clipTemplateId ? { clipTemplateId } : {}), ...(clipTranspose ? { clipTranspose } : {}), ...(guide ? {} : { guide: false }), ...(octave != null ? { octave } : {}), partKey, offsetFrames: clip.offsetFrames, sampleRate, frames: clip.frames, bytes: bytes.byteLength, sha256, ...(turnstileToken ? { turnstileToken } : {}) });
     // The upload and complete, once more if the first try fails (the contract: send it again after a mismatch); if it still
     // fails, the request goes, so it never sits "on its way" and a new try isn't refused as one song at a time.
     const finish = async () => {

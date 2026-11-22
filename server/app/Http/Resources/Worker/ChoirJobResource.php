@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources\Worker;
 
 use App\Models\OwnChoirRequest;
+use App\Support\OwnChoir\ChoirSettings;
 use App\Support\OwnChoir\ClipTune;
 use App\Support\OwnChoir\VoicingTransform;
 use Illuminate\Http\Request;
@@ -42,6 +43,8 @@ final class ChoirJobResource extends JsonResource
             // The low-voice version (2026-11-23): the transformed song, rendered as given.
             'data' => (object) $voiced['data'],
             'voicing' => $job->voicing,
+            // Plus's choir settings (2026-11-23): how it's sung; today's sound unless set. Voicing is in data.
+            'settings' => (object) array_diff_key(ChoirSettings::sung($job), ['voicing' => true]),
             'shifts' => array_map(static fn (string $key, int $shift): array => ['partKey' => $key, 'shift' => $shift], array_keys($voiced['shifts']), array_values($voiced['shifts'])),
             'clip' => $job->from_voice ? null : [
                 'url' => Storage::disk('private')->temporaryUrl((string) $job->clip_key, now()->addMinutes(30)),
@@ -55,6 +58,8 @@ final class ChoirJobResource extends JsonResource
                 'version' => ($job->clipVersion() ?? $version)->version,
                 'data' => (object) ClipTune::sung($job->clipVersion() ?? $version, $job->clip_transpose),
                 'transpose' => $job->clip_transpose,
+                // false: sung with no headphones, the tempo kept by eye: align phrase by phrase.
+                'guide' => $job->guide,
             ],
             'reference' => $job->from_voice && $job->voice !== null ? [
                 'id' => $job->voice->sqid(),

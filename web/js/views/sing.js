@@ -1084,14 +1084,14 @@ export const SingView = {
                 if (join) {
                     // Tune first (the coordinator, 2026-11-22): the take stays on this device, and the yes comes next with
                     // exactly the parts a voice like theirs sings.
-                    keepJoinClip(join.token, { samples: samples.slice(), sampleRate: part.sampleRate, startSeconds: part.offsetSeconds + (part.nudgeSeconds || 0), partKey: part.templatePartKey, clipTemplateId: this.project.template.id, clipTranspose, octave, projectId: this.project.id });
+                    keepJoinClip(join.token, { samples: samples.slice(), sampleRate: part.sampleRate, startSeconds: part.offsetSeconds + (part.nudgeSeconds || 0), partKey: part.templatePartKey, clipTemplateId: this.project.template.id, clipTranspose, guide: !this.project.choir?.noHeadphones, octave, projectId: this.project.id });
                     navigate(`/choir/join/${encodeURIComponent(join.token)}?sung=1`);
                     return;
                 }
                 // The voice-capture take for another song's choir (`forTemplateId`): the clip names its template; the
                 // project was only for the take, so it goes once sent (the server keeps only the voice made from it).
                 const forId = this.project.choir?.forTemplateId ?? null;
-                const request = await sendClip({ templateId: forId ?? this.project.template.id, clipTemplateId: forId ? this.project.template.id : null, clipTranspose: forId ? clipTranspose : 0, octave: forId ? octave : null, partKey: part.templatePartKey, samples, sampleRate: part.sampleRate, startSeconds: part.offsetSeconds + (part.nudgeSeconds || 0), turnstileToken });
+                const request = await sendClip({ templateId: forId ?? this.project.template.id, clipTemplateId: forId ? this.project.template.id : null, clipTranspose: forId ? clipTranspose : 0, guide: !this.project.choir?.noHeadphones, octave: forId ? octave : null, partKey: part.templatePartKey, samples, sampleRate: part.sampleRate, startSeconds: part.offsetSeconds + (part.nudgeSeconds || 0), turnstileToken });
                 if (forId) {
                     const projectId = this.project.id;
                     navigate(`/t/${encodeURIComponent(forId)}/choir`);

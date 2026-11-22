@@ -20,6 +20,52 @@ export function shiftTo(sung, first) {
     return shift;
 }
 
+const HEADPHONES = 'stackapella.clipHeadphones';
+
+/** The headphones answer remembered on this device ('yes', 'no'), else null. */
+export function rememberedHeadphones() {
+    try {
+        return localStorage.getItem(HEADPHONES);
+    } catch {
+        return null; // storage blocked: asked each time
+    }
+}
+
+/**
+ * After the first note (Hillel: "a clear no headphone option where the user just sings and we don't play any sounds
+ * while recording"): I have headphones (the tune plays, as ever) or No headphones (nothing plays; a count-in to see,
+ * then the words lighting up in time). The answer is remembered and offered first. `choose` carries `silent`.
+ */
+export const HeadphonesChoice = {
+    emits: ['choose'],
+    computed: {
+        order() {
+            return rememberedHeadphones() === 'no' ? ['no', 'yes'] : ['yes', 'no'];
+        },
+    },
+    methods: {
+        choose(answer) {
+            try {
+                localStorage.setItem(HEADPHONES, answer);
+            } catch (error) {
+                console.info('The headphones answer was not kept', error?.message ?? error);
+            }
+            this.$emit('choose', answer === 'no');
+        },
+    },
+    template: `
+        <section class="space-y-4" data-headphones>
+            <h2 class="text-xl font-bold text-cream">{{ t('ownChoir.headphones.title') }}</h2>
+            <div class="grid gap-3">
+                <button v-for="(answer, i) in order" :key="answer" type="button" class="card flex min-h-11 flex-col items-start gap-1 p-5 text-start hover:bg-raised/60"
+                    :class="i === 0 ? 'border-accent' : ''" :data-headphones-answer="answer" @click="choose(answer)">
+                    <span class="font-semibold text-cream">{{ answer === 'yes' ? t('ownChoir.headphones.yes') : t('ownChoir.headphones.no') }}</span>
+                    <span class="text-sm text-muted">{{ answer === 'yes' ? t('ownChoir.headphones.yesHint') : t('ownChoir.headphones.noHint') }}</span>
+                </button>
+            </div>
+        </section>`,
+};
+
 export const FirstNoteStep = {
     components: { VoiceCapture },
     props: {

@@ -632,4 +632,61 @@ final class ChoirTogetherTest extends TestCase
         $this->assertArrayHasKey('name', $friends[0]);
         $this->assertNull($friends[0]['name'], 'A hidden profile is never named.');
     }
+
+    public function test_choir_settings_mix_is_plus_and_saved_at_once(): void
+    {
+        $this->as($this->ben);
+        $this->assertMatchesContract($this->patchJson("/api/own-choir/requests/{$this->song->sqid()}/sound", ['sound' => ['room' => 'chapel']]), 'ownChoir.requests.sound', 404);
+
+        $this->ann->forceFill(['store_plus_until' => null])->save();
+        $this->as($this->ann);
+        $this->assertMatchesContract($this->patchJson("/api/own-choir/requests/{$this->song->sqid()}/sound", ['sound' => ['room' => 'chapel']]), 'ownChoir.requests.sound', 403);
+
+        $this->ann->forceFill(['store_plus_until' => now()->addDays(10)])->save();
+        $this->as($this->ann);
+        $this->assertMatchesContract($this->patchJson("/api/own-choir/requests/{$this->song->sqid()}/sound", ['sound' => ['room' => 'cave']]), 'ownChoir.requests.sound', 422);
+        $saved = $this->patchJson("/api/own-choir/requests/{$this->song->sqid()}/sound", ['sound' => ['room' => 'chapel', 'balance' => [['partKey' => 'bass', 'db' => -3]], 'leadBlend' => 0.5, 'recordingLevel' => null]]);
+        $this->assertMatchesContract($saved, 'ownChoir.requests.sound', 200);
+        $saved->assertJsonPath('data.settings.sound.room', 'chapel')->assertJsonPath('data.settings.sound.balance.3', ['partKey' => 'bass', 'db' => -3])->assertJsonPath('data.settings.sound.balance.0.db', 0);
+        $this->assertSame(0, (int) OwnChoirRequest::query()->where('parent_request_id', $this->song->id)->count(), 'Free: nothing rendered.');
+    }
+
+    public function test_a_remake_makes_the_owners_parts_again_and_replaces_them_when_made(): void
+    {
+        OwnChoirVoice::factory()->create(['user_id' => $this->ann->id, 'status' => 'ready']);
+        $this->as($this->ann);
+        $sung = ['humanize' => 2, 'voicing' => 'written', 'breaths' => 'natural', 'quality' => 'fine', 'ensembleTiming' => 'loose', 'pitchSpread' => 'subtle'];
+        $old = OwnChoirPart::query()->where('own_choir_request_id', $this->song->id)->pluck('id')->all();
+
+        $made = $this->postJson("/api/own-choir/requests/{$this->song->sqid()}/remake", ['sung' => $sung]);
+        $this->assertMatchesContract($made, 'ownChoir.requests.remake', 202);
+        $made->assertJsonPath('data.remake.status', 'queued')->assertJsonPath('data.remake.settings.quality', 'fine');
+        $this->assertMatchesContract($this->postJson("/api/own-choir/requests/{$this->song->sqid()}/remake", ['sung' => $sung]), 'ownChoir.requests.remake', 409);
+        $remake = OwnChoirRequest::query()->where('parent_request_id', $this->song->id)->where('remake', true)->sole();
+        $this->assertSame(round((float) $made->json('data.remakeMinutes.fine'), 1), round($remake->part_minutes, 1), 'Charged as the app was told: fine at its real cost.');
+        $this->assertEqualsWithDelta($remake->part_minutes, 2 * (float) $made->json('data.remakeMinutes.standard'), 0.11);
+
+        // The worker gets the settings, and the song plays as it is meanwhile.
+        $claim = $this->worker('POST', '/api/worker/choir/claim')->assertOk();
+        $claim->assertJsonPath('data.settings.humanize', 2)->assertJsonPath('data.settings.pitchSpread', 'subtle');
+        $this->assertCount(4, OwnChoirPart::query()->where('own_choir_request_id', $this->song->id)->get());
+        $this->worker('POST', "/api/worker/choir/jobs/{$remake->sqid()}/finish", ['failed' => 'render_failed', 'claim' => (string) $claim->json('data.claim')])->assertOk();
+        $this->as($this->ann);
+        $this->getJson('/api/own-choir')->assertJsonPath('data.requests.0.remake.status', 'failed');
+
+        // Again, made this time: the new parts replace the old, and the song takes its settings.
+        $this->postJson("/api/own-choir/requests/{$this->song->sqid()}/remake", ['sung' => $sung])->assertStatus(202);
+        $this->render();
+        $song = $this->song->refresh();
+        $this->assertSame([], array_values(array_intersect($old, OwnChoirPart::query()->where('own_choir_request_id', $song->id)->pluck('id')->all())));
+        $this->assertCount(4, OwnChoirPart::query()->where('own_choir_request_id', $song->id)->where('status', 'ready')->get());
+        $this->assertSame('fine', $song->sung['quality'] ?? null);
+        $this->as($this->ann);
+        $this->getJson('/api/own-choir')->assertJsonPath('data.requests.0.remake', null)->assertJsonPath('data.requests.0.settings.sung.humanize', 2);
+
+        // Without Plus: refused.
+        $this->ann->forceFill(['store_plus_until' => null])->save();
+        $this->as($this->ann);
+        $this->assertMatchesContract($this->postJson("/api/own-choir/requests/{$this->song->sqid()}/remake", ['sung' => $sung]), 'ownChoir.requests.remake', 403);
+    }
 }

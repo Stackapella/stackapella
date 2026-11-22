@@ -159,7 +159,7 @@ final class ChoirTogether
     /**
      * ownChoir.invites.accept: the friend joins.
      *
-     * @param  array{parts?: list<string>, octave?: int|null, clipTemplateId?: string|null, clipTranspose?: int|null, showName: bool, wordsSha?: string|null, useSavedVoice?: bool|null, partKey?: string|null, offsetFrames?: int|null, sampleRate?: int|null, frames?: int|null, bytes?: int|null, sha256?: string|null}  $data
+     * @param  array{parts?: list<string>, octave?: int|null, clipTemplateId?: string|null, clipTranspose?: int|null, guide?: bool|null, showName: bool, wordsSha?: string|null, useSavedVoice?: bool|null, partKey?: string|null, offsetFrames?: int|null, sampleRate?: int|null, frames?: int|null, bytes?: int|null, sha256?: string|null}  $data
      * @return array{member: OwnChoirMember, put: array{url: string, method: string, headers: array<string, string>, expiresAt: \DateTimeInterface}|null}
      */
     public function accept(User $user, string $token, array $data): array
@@ -298,6 +298,7 @@ final class ChoirTogether
                 'part_key' => ($tune !== null ? ClipTune::melody($tune) : null) ?? (string) $clip['partKey'],
                 'clip_template_version_id' => $tune?->id,
                 'clip_transpose' => (int) ($clip['clipTranspose'] ?? 0),
+                'guide' => ($clip['guide'] ?? true) !== false,
                 'offset_frames' => $clip['offsetFrames'] ?? null,
                 'octave' => $octave,
                 'status' => OwnChoirStatus::Uploading,
@@ -394,6 +395,11 @@ final class ChoirTogether
 
         app(DeleteHarmony::class)->withOwnersParts($song->id);
         OwnChoirInvite::query()->where('own_choir_request_id', $song->id)->delete();
+
+        // Its remakes (choir settings) go with it.
+        foreach (OwnChoirRequest::query()->where('parent_request_id', $song->id)->where('remake', true)->get() as $remake) {
+            OwnChoirRequests::purgeJob($remake);
+        }
     }
 
     /** A singer's part in every song they joined (their voice deleted, everything forgotten, the account gone). */

@@ -548,4 +548,21 @@ final class OwnChoirTest extends TestCase
         Storage::disk('private')->assertMissing('choir/clips/late.wav');
         $this->assertSame([], array_values(array_filter(Storage::disk('private')->allFiles('choir/voices'))));
     }
+
+    public function test_a_clip_sung_with_no_headphones_says_so_to_the_worker(): void
+    {
+        $this->singer();
+        OwnChoirConsent::factory()->create(['user_id' => auth()->id()]);
+        $wav = Wav::tone(8.0);
+
+        $this->postJson('/api/own-choir/requests', $this->clip($wav, 'silent-night') + ['guide' => false])->assertCreated();
+        $song = OwnChoirRequest::query()->sole();
+        $this->assertFalse($song->guide);
+        $song->forceFill(['status' => OwnChoirStatus::Queued, 'clip_key' => 'choir/clips/x.wav'])->save();
+        $this->assertFalse((new ChoirJobResource($song->fresh()))->resolve()['clip']['guide']);
+
+        // Absent: with headphones, as before.
+        $song->forceFill(['guide' => true])->save();
+        $this->assertTrue((new ChoirJobResource($song->fresh()))->resolve()['clip']['guide']);
+    }
 }

@@ -3000,7 +3000,8 @@
             "mp3": "MP3 export is on Plus. WAV is free.",
             "stems": "Each part on its own is on Plus.",
             "privateTemplate": "Your first private arrangement is free. Plus keeps as many as you like.",
-            "privateShared": "Shared private arrangements need Plus for everyone in them."
+            "privateShared": "Shared private arrangements need Plus for everyone in them.",
+            "choirSettings": "Shape your choir with Plus: the room, the balance, how it's sung."
         },
         "yours": "Your plan",
         "manage": "Manage your plan",
@@ -5698,7 +5699,8 @@
                 "title": "Your recording",
                 "hint": "The 30 seconds your choir was made from, to compare.",
                 "play": "Hear your recording"
-            }
+            },
+            "onOo": "Sung on “oo”: the AI voices can only sing English words for now."
         },
         "failed": {
             "title": "We couldn't make your choir this time",
@@ -5911,6 +5913,78 @@
             "again": "Try another note",
             "usual": "Use the usual key",
             "noMic": "We couldn't hear a note. Try again, a little louder, or use the usual key."
+        },
+        "headphones": {
+            "title": "Are you wearing headphones?",
+            "yes": "I have headphones",
+            "yesHint": "You'll hear the tune as you sing.",
+            "no": "No headphones: I'll sing on my own",
+            "noHint": "Nothing plays while you record. Watch the count-in, then follow the words as they light up."
+        },
+        "settings": {
+            "title": "Choir settings",
+            "sound": "Sound",
+            "sung": "How it's sung",
+            "soundHint": "Instant. Uses no minutes.",
+            "room": "Room",
+            "rooms": {
+                "dry": "No room",
+                "small": "Small room",
+                "hall": "Hall",
+                "chapel": "Chapel"
+            },
+            "balance": "Balance",
+            "balanceHint": "How loud each part sits.",
+            "humanize": "Feel",
+            "clean": "Studio clean",
+            "real": "Real choir",
+            "voicing": "Which octave",
+            "voicingOptions": {
+                "auto": "Auto",
+                "low": "Low voice",
+                "high": "High voice",
+                "written": "As written"
+            },
+            "breaths": "Breaths",
+            "breathsOptions": {
+                "smooth": "Smooth",
+                "natural": "Natural"
+            },
+            "timing": "Timing between singers",
+            "timingOptions": {
+                "tight": "Tight",
+                "natural": "Natural",
+                "loose": "Loose"
+            },
+            "pitch": "Pitch between singers",
+            "pitchOptions": {
+                "exact": "Exact",
+                "subtle": "Subtle",
+                "wide": "Wide"
+            },
+            "quality": "Quality",
+            "qualityOptions": {
+                "standard": "Standard",
+                "fine": "Fine"
+            },
+            "fineHint": "Fine uses about twice the minutes.",
+            "remake": "Remake my choir",
+            "remakeCost": "{minutes, plural, one {Uses # minute} other {Uses # minutes}}",
+            "remaking": "Remaking your choir. This version keeps playing until the new one is ready.",
+            "reset": "Back to the defaults",
+            "sungHint": "Remade by AI. Uses your AI-singing minutes.",
+            "plusBadge": "Plus",
+            "locked": "Choir settings come with Plus.",
+            "roomHint": "Where it sounds like it's sung.",
+            "softer": "Softer",
+            "louder": "Louder",
+            "humanizeHint": "How human the singing sounds.",
+            "voicingHint": "Auto fits your voice.",
+            "breathsHint": "How the singers breathe between phrases.",
+            "timingHint": "How together they start.",
+            "pitchHint": "How exactly in tune.",
+            "remakeOf": "{minutes, plural, one {Uses # of your {left} AI-singing minutes} other {Uses # of your {left} AI-singing minutes}}",
+            "remakeNeedsChange": "Change a setting to remake."
         }
     },
     "aiVoice": {

@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "sound.room": [
+            "The selected sound.room is invalid."
+        ]
+    }
+}

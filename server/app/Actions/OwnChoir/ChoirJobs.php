@@ -278,6 +278,29 @@ final class ChoirJobs
     /**
      * Done: ready once every part is in, or failed with the renderer's reason. The clip goes either way.
      */
+    /** A made remake's parts replace its song's; the song takes how it was sung; the remake's row stays, emptied, for what it cost. */
+    private static function foldRemake(OwnChoirRequest $remake): void
+    {
+        $files = DB::transaction(function () use ($remake): array {
+            $song = OwnChoirRequest::query()->whereKey($remake->parent_request_id)->lockForUpdate()->first();
+            $new = OwnChoirPart::query()->where('own_choir_request_id', $remake->id)->where('status', 'ready')->lockForUpdate()->get();
+
+            if ($song === null || $song->status !== OwnChoirStatus::Ready) {
+                return [];
+            }
+
+            $old = OwnChoirPart::query()->where('own_choir_request_id', $song->id)->whereIn('part_key', $new->pluck('part_key')->all())->lockForUpdate()->get();
+            OwnChoirPart::query()->whereKey($old->modelKeys())->delete();
+            OwnChoirPart::query()->whereKey($new->modelKeys())->update(['own_choir_request_id' => $song->id]);
+            $song->forceFill(['sung' => $remake->sung, 'voicing' => $remake->voicing, 'seen_at' => null])->save();
+            $remake->forceFill(['status' => OwnChoirStatus::Deleted])->save();
+
+            return array_values($old->flatMap(static fn (OwnChoirPart $p): array => self::partFiles($p))->all());
+        });
+
+        Storage::disk('private')->delete($files);
+    }
+
     public function finish(OwnChoirRequest $request, string $claim, ?string $failed, ?float $gpuSeconds = null): OwnChoirRequest
     {
         if ($gpuSeconds !== null) {
@@ -313,6 +336,14 @@ final class ChoirJobs
             KeepVoiceClip::dispatch((int) $voice, $clip);
         } elseif ($clip !== null) {
             Storage::disk('private')->delete($clip);
+        }
+
+        // A remake made (choir settings): its parts replace the song's, and the song takes its settings.
+        if ($request->remake && $request->parent_request_id !== null) {
+            self::foldRemake($request);
+            app(RecordCounts::class)->server('own_choir_remade', true, null);
+
+            return $request->refresh();
         }
 
         app(RecordCounts::class)->server('own_choir_ready', true, null);

@@ -1380,13 +1380,17 @@ export async function startRecording({ fromStart = false } = {}) {
     const bar = barAt(metreSong(), fromBeat);
     const perBar = beatsPerBar(bar.timeSignature);
     const intoBar = fromBeat - bar.start;
+    // The choir's 30 seconds sung without headphones (Hillel): nothing plays, and at least a bar's count-in to see.
+    const silent = !!session.project.choir?.noHeadphones && !session.project.choir.requestId;
+    const countInBars = session.project.countInBars || (silent ? 1 : 0);
     engine.play({
+        silent,
         fromSeconds: session.recordFrom,
         bpm: session.project.bpm || 90,
         beatsPerBar: perBar,
         pickupBeats: session.pickup,
         ...songMetre(),
-        countInBeats: (session.countInBeats = session.project.countInBars ? session.project.countInBars * perBar + intoBar : 0),
+        countInBeats: (session.countInBeats = countInBars ? countInBars * perBar + intoBar : 0),
         countInSounds: chipCountIn(), // game mode with Game sounds on: chip blips (the take's own clicks stay)
         metronome: session.project.metronome && !!session.project.bpm,
         record: true,

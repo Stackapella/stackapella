@@ -18,7 +18,9 @@ import { songTitle } from '../song-titles.js';
 import { Agreement } from './beta.js';
 import { TurnstileBox } from '../turnstile.js';
 import { ClipChoice, clipLine, clipPick, clipTemplate, pickedClip, tooLong } from '../own-choir.js';
-import { FirstNoteStep } from '../components/first-note.js';
+import { FirstNoteStep, HeadphonesChoice } from '../components/first-note.js';
+import { ChoirSettings } from '../components/choir-settings.js';
+import { isPlus } from '../stores/plan.js';
 import { inviteLine, inviteText, nameList, partList, togetherOn, whoSings, whoseList } from '../own-choir.js';
 import { Icon } from '../components/icon.js';
 import { game as gameSkin } from '../stores/appearance.js';
@@ -26,15 +28,15 @@ import { checkKey, choirOf, choirRefusal, countChoir, downloadParts, emailNeeded
 import { catalogue, loadCatalogue } from '../stores/catalogue.js';
 import { loadMine, mine, ownTemplate } from '../stores/templates.js';
 import { saveProject } from '../stores/projects.js';
-import { choirPosition, loadChoir, loadChoirFull, mixChoir, playChoir, stopChoir } from '../own-choir-player.js';
+import { choirPosition, loadChoir, loadChoirFull, mixChoirShaped, playChoir, stopChoir } from '../own-choir-player.js';
 
 const FAILURES = { clip_unusable: tk('ownChoir.failed.clip_unusable'), bad_clip: tk('ownChoir.failed.bad_clip'), gates_failed: tk('ownChoir.failed.gates_failed'), render_failed: tk('ownChoir.failed.render_failed'), expired: tk('ownChoir.failed.expired'), reference_gone: tk('ownChoir.failed.reference_gone') };
 
 export const OwnChoirView = {
-    components: { Agreement, AppScreen, ClipChoice, FirstNoteStep, Icon, PlusMoment, TurnstileBox },
+    components: { Agreement, AppScreen, ChoirSettings, ClipChoice, FirstNoteStep, HeadphonesChoice, Icon, PlusMoment, TurnstileBox },
     props: { id: { type: String, required: true } },
-    data: () => ({ hearingClip: false, firstNote: null, leftNames: [], plusFriends: false, sentInvite: null, copied: false, plusFor: false, emailSent: false, sending: false, checkToken: null, checkRound: 0, state: 'loading', offReason: 'unavailable', canStart: false, template: null, terms: null, busy: false, playing: false, loadingTrack: false, hum: null, own: false }),
-    setup: () => ({ ownChoir, account, isOpen, templatePartName, savedVoice, formatNumber, navigate }),
+    data: () => ({ plusSettings: false, shift: null, hearingClip: false, firstNote: null, leftNames: [], plusFriends: false, sentInvite: null, copied: false, plusFor: false, emailSent: false, sending: false, checkToken: null, checkRound: 0, state: 'loading', offReason: 'unavailable', canStart: false, template: null, terms: null, busy: false, playing: false, loadingTrack: false, hum: null, own: false }),
+    setup: () => ({ isPlus, ownChoir, account, isOpen, templatePartName, savedVoice, formatNumber, navigate }),
     computed: {
         /** Back here from the Plus page, once Plus is on. */
         here: () => location.pathname,
@@ -216,6 +218,8 @@ export const OwnChoirView = {
                         <p class="text-sm text-muted" data-choir-label>{{ panelLabel }}</p>
                         <!-- A low voice's arrangement (the server's, from their range): said once, quietly. -->
                         <p v-if="request.voicing === 'low'" class="text-sm text-muted" data-choir-low-voice>{{ t('ownChoir.ready.lowVoice') }}</p>
+                        <!-- Words not in English: the AI parts are sung on "oo" (ai-modal, via Hillel), from the song's language. -->
+                        <p v-if="notEnglish" class="text-sm text-muted" data-choir-on-oo>{{ t('ownChoir.ready.onOo') }}</p>
                         <div class="grid gap-2.5 sm:grid-cols-2">
                             <button type="button" class="btn-primary btn-lg justify-center" :aria-busy="loadingTrack ? 'true' : null" data-choir-play @click="togglePlay"><span v-if="loadingTrack" class="spinner" aria-hidden="true"></span>{{ playing ? t('studio.stop') : t('ownChoir.ready.button') }}</button>
                             <button type="button" class="btn-secondary btn-lg justify-center" :disabled="loadingTrack" data-choir-download @click="download">{{ t('ownChoir.ready.download') }}</button>
@@ -231,6 +235,9 @@ export const OwnChoirView = {
                     </div>
                     <!-- Downloading is Plus's (Hillel, 2026-11-21); listening and sharing stay free. The server says who may. -->
                     <PlusMoment v-if="plusFor" :title="t('ownChoir.ready.download')" :text="t('plus.moment.choirDownload')" from="choir_download" :next="here" price @close="plusFor = false" />
+                    <!-- Choir settings (the coordinator for Hillel): Sound at once, How it's sung by a remake; Plus's, shown to all. -->
+                    <ChoirSettings :request="request" :template="template" :plus="isPlus()" :busy="busy" :minutes-left="ownChoir.data?.quota?.minutesLeft ?? null" @sound="saveSound" @remake="remake" @plus="plusSettings = true" />
+                    <PlusMoment v-if="plusSettings" :title="t('ownChoir.settings.title')" :text="t('plus.moment.choirSettings')" from="choir_settings" :next="here" price @close="plusSettings = false" />
                     <!-- A choir with friends (behind own_choir_together): the "really you" line becomes Who sings, one row a part, each
                          with its AI label (or their real take's), the parts that sit high or low for them, and one invite line. -->
                     <section v-if="together" class="space-y-2" data-choir-who aria-labelledby="choir-who-h">
@@ -302,7 +309,8 @@ export const OwnChoirView = {
                     <!-- Hillel's intro design: a vertical stepper. Numbered dots joined by a thin line (none after the last), the
                          first (where they are) filled with the accent, the others ringed; game mode's dots are its chips. -->
                     <!-- After Start singing: the first note they'd like (Hillel), in place of the steps; then Sing, in that key. -->
-                    <FirstNoteStep v-if="firstNote" class="mt-10" :first="firstNote.pitch" :song="firstNote.song" @go="record" />
+                    <HeadphonesChoice v-if="firstNote && shift !== null" class="mt-10" @choose="(silent) => record(shift, silent)" />
+                    <FirstNoteStep v-else-if="firstNote" class="mt-10" :first="firstNote.pitch" :song="firstNote.song" @go="shift = $event" />
                     <template v-else>
                     <ol class="mt-10" data-choir-steps>
                         <li v-for="(step, i) in steps" :key="i" class="grid grid-cols-[32px_1fr] gap-x-[18px]" :data-choir-step="i + 1">
@@ -649,13 +657,14 @@ export const OwnChoirView = {
             try {
                 const clip = await clipTemplate();
                 const notes = clip.parts.find((p) => p.key === tunePart(clip))?.guide?.notes ?? [];
+                this.shift = null;
                 this.firstNote = { pitch: notes[0]?.pitch ?? null, song: clipPick.titles[pickedClip().templateId] ?? '' };
             } finally {
                 this.busy = false;
             }
         },
         /** The note chosen (or the usual key): the take's project in that key, then Sing. */
-        async record(shift = 0) {
+        async record(shift = 0, silent = false) {
             this.busy = true;
             try {
                 // The tune they chose, whatever this song is (Hillel, 2026-11-22), on a project only for the take
@@ -663,13 +672,13 @@ export const OwnChoirView = {
                 const chosen = pickedClip().templateId;
                 let project = projects.all.find((p) => p.choir?.forTemplateId === this.id && !p.choir.requestId && !p.deleted) ?? null;
                 // A take's project for another tune or key than the one chosen now: it goes, and the tune starts afresh.
-                if (project && (project.template?.id !== chosen || (project.transpose || 0) !== shift)) {
+                if (project && (project.template?.id !== chosen || (project.transpose || 0) !== shift || !!project.choir.noHeadphones !== silent)) {
                     await deleteProject(project.id).catch((error) => console.warn('The earlier take was not removed', error));
                     project = null;
                 }
                 const clip = project?.template ?? (await clipTemplate());
                 const tune = tunePart(clip);
-                project ??= await startFromTemplate(clip, { transpose: shift, keyChosen: true, focusKey: tune, choir: { requestId: null, forTemplateId: this.id } });
+                project ??= await startFromTemplate(clip, { transpose: shift, keyChosen: true, focusKey: tune, choir: { requestId: null, forTemplateId: this.id, noHeadphones: silent } });
                 navigate(`/p/${project.id}/sing${tune ? `?part=${encodeURIComponent(tune)}` : ''}`);
             } finally {
                 this.busy = false;
@@ -693,6 +702,38 @@ export const OwnChoirView = {
             return this.loaded.voices;
         },
         /** Plays (or stops) the finished track here; the press answers at once, and it stops by itself at the end. */
+        /** Choir settings' Sound: kept with the song, and heard at once (playing, it carries on from where it was). */
+        async saveSound(sound) {
+            const request = this.request;
+            request.settings = { ...(request.settings ?? {}), sound };
+            if (this.playing) {
+                const at = choirPosition()?.seconds ?? 0;
+                await playChoir(await this.voices(), sound, at).catch((error) => console.warn('The choir did not play', error));
+            }
+            try {
+                const { data } = await api.ownChoir.requests.sound(request.id, sound);
+                Object.assign(request, data);
+            } catch (error) {
+                console.warn('The sound was not kept', error);
+                if (error?.code === 'plus_required') this.plusSettings = true;
+                else toast(t('common.didntWork'), { tone: 'error' });
+            }
+        },
+        /** How it's sung: a remake with these settings (the current version plays until the new one is ready). */
+        async remake(sung) {
+            if (this.busy) return;
+            this.busy = true;
+            try {
+                const { data } = await api.ownChoir.requests.remake(this.request.id, sung);
+                Object.assign(this.request, data);
+            } catch (error) {
+                console.warn('The remake did not start', error);
+                if (error?.code === 'plus_required') this.plusSettings = true;
+                else toast(choirRefusal(error) || t('common.didntWork'), { tone: 'error' });
+            } finally {
+                this.busy = false;
+            }
+        },
         /** Their own 30 seconds (the saved voice's clip), played as it is; the choir stops first. */
         hearClip() {
             if (this.hearingClip) {
@@ -724,7 +765,7 @@ export const OwnChoirView = {
             try {
                 const voices = await this.voices();
                 if (!this.loadingTrack) return; // stopped while it loaded
-                await playChoir(voices);
+                await playChoir(voices, this.request.settings?.sound ?? null);
                 this.playing = true;
                 countChoir('own_choir_heard');
                 this.watchEnd();
@@ -762,7 +803,7 @@ export const OwnChoirView = {
             this.loadingTrack = true;
             try {
                 // The full-quality parts (the page plays the lighter listening copy).
-                const wav = mixChoir(await loadChoirFull(await downloadParts(this.request)));
+                const wav = await mixChoirShaped(await loadChoirFull(await downloadParts(this.request)), this.request.settings?.sound ?? null);
                 const url = URL.createObjectURL(wav);
                 const link = Object.assign(document.createElement('a'), { href: url, download: `${t('ownChoir.ready.fileName', { song: this.song })}.wav` });
                 document.body.append(link);

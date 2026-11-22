@@ -16,16 +16,16 @@ import { account, loadAccount, loadAuthConfig } from '../stores/account.js';
 import { startFromTemplate } from '../stores/projects.js';
 import { loadTemplate, templatePartName } from '../templates.js';
 import { Agreement } from './beta.js';
-import { FirstNoteStep } from '../components/first-note.js';
+import { FirstNoteStep, HeadphonesChoice } from '../components/first-note.js';
 import { ClipChoice, clipLine, clipPick, clipTemplate, dropJoinClip, joinClipFor, joinWithClip, pickedClip, tunePart } from '../own-choir.js';
 import { choirRefusal, keepJoin, loadOwnChoir, ownChoir, partList, savedVoice, termsNeeded, togetherOn } from '../own-choir.js';
 import { loadChoir, playChoir, stopChoir } from '../own-choir-player.js';
 import { game as gameSkin } from '../stores/appearance.js';
 
 export const ChoirTogetherJoinView = {
-    components: { AccountWall, Agreement, AppScreen, ClipChoice, FirstNoteStep, Switch },
+    components: { AccountWall, Agreement, AppScreen, ClipChoice, FirstNoteStep, HeadphonesChoice, Switch },
     props: { token: { type: String, required: true } },
-    data: () => ({ firstNote: null, withClip: false, singInstead: false, clipLost: false, sent: false, partsChanged: false, wordsChanged: false, state: 'loading', invite: null, terms: null, showName: false, busy: false, playing: false, loadingTrack: false, template: null }),
+    data: () => ({ shift: null, firstNote: null, withClip: false, singInstead: false, clipLost: false, sent: false, partsChanged: false, wordsChanged: false, state: 'loading', invite: null, terms: null, showName: false, busy: false, playing: false, loadingTrack: false, template: null }),
     setup: () => ({ account, savedVoice, navigate, clipLine }),
     computed: {
         here() {
@@ -200,6 +200,7 @@ export const ChoirTogetherJoinView = {
             try {
                 const clip = await clipTemplate();
                 const notes = clip.parts.find((p) => p.key === tunePart(clip))?.guide?.notes ?? [];
+                this.shift = null;
                 this.firstNote = { pitch: notes[0]?.pitch ?? null, song: clipPick.titles[pickedClip().templateId] ?? '' };
                 this.state = 'sing';
             } finally {
@@ -207,7 +208,7 @@ export const ChoirTogetherJoinView = {
             }
         },
         /** The note chosen (or the usual key): the take's project in that key, then Sing. */
-        async record(shift = 0) {
+        async record(shift = 0, silent = false) {
             if (this.busy) return;
             this.busy = true;
             try {
@@ -218,7 +219,7 @@ export const ChoirTogetherJoinView = {
                 // little to hear, as Hillel's own bass clip showed).
                 const partKey = tunePart(template) ?? this.parts[0];
                 const join = { token: this.token, showName: this.showName, wordsSha: this.invite.wordsSha ?? null, partKey, parts: this.yourParts, owner: this.invite.owner };
-                const project = await startFromTemplate(template, { transpose: shift, keyChosen: true, focusKey: partKey, choir: { requestId: null } });
+                const project = await startFromTemplate(template, { transpose: shift, keyChosen: true, focusKey: partKey, choir: { requestId: null, noHeadphones: silent } });
                 keepJoin(project.id, join);
                 navigate(`/p/${project.id}/sing?part=${encodeURIComponent(partKey)}`);
             } catch (error) {
@@ -346,7 +347,8 @@ export const ChoirTogetherJoinView = {
                 </section>
 
                 <!-- Tune first: they sing the tune (kept on this device), then see the yes with exactly their parts. -->
-                <FirstNoteStep v-else-if="state === 'sing' && firstNote" :first="firstNote.pitch" :song="firstNote.song" @go="record" />
+                <HeadphonesChoice v-else-if="state === 'sing' && firstNote && shift !== null" @choose="(silent) => record(shift, silent)" />
+                <FirstNoteStep v-else-if="state === 'sing' && firstNote" :first="firstNote.pitch" :song="firstNote.song" @go="shift = $event" />
                 <section v-else-if="state === 'sing'" class="card space-y-4 p-5" data-join-sing-step>
                     <p v-if="clipLost" class="text-sm text-cream" role="status" data-join-clip-lost>{{ t('ownChoir.together.join.clipLost') }}</p>
                     <p class="text-cream" data-join-tune>{{ clipLine() }}</p>

@@ -17,7 +17,45 @@
         "members": [],
         "left": [],
         "invite": null,
-        "voicing": "written"
+        "voicing": "written",
+        "settings": {
+            "sound": {
+                "room": "hall",
+                "balance": [
+                    {
+                        "partKey": "soprano",
+                        "db": 0
+                    },
+                    {
+                        "partKey": "alto",
+                        "db": 0
+                    },
+                    {
+                        "partKey": "tenor",
+                        "db": 0
+                    },
+                    {
+                        "partKey": "bass",
+                        "db": 0
+                    }
+                ],
+                "leadBlend": null,
+                "recordingLevel": null
+            },
+            "sung": {
+                "humanize": 0,
+                "voicing": "auto",
+                "breaths": "legato",
+                "quality": "standard",
+                "ensembleTiming": "tight",
+                "pitchSpread": "off"
+            }
+        },
+        "remakeMinutes": {
+            "standard": 6.4,
+            "fine": 12.8
+        },
+        "remake": null
     },
     "upload": {
         "url": "https://stackapella-private.nyc3.digitaloceanspaces.com/uploads/choir/4d7e1a9f5b2d8e4c6a0f9b1d3e5a7c2f.wav?X-Amz-Expires=1800&X-Amz-Signature=abc",

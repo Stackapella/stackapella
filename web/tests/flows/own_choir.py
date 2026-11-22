@@ -81,8 +81,19 @@ def journey(f):
     f.wait("document.querySelector('[data-first-note] [data-first-note-usual]')", what="the first-note step")
     f.shot("first-note")
     f.run("document.querySelector('[data-first-note-usual]').click()")
+    # Hillel: headphones or not; without, nothing plays while recording (a count-in to see, the words lighting up).
+    f.wait("document.querySelector('[data-headphones-answer=no]')", what="the headphones choice")
+    f.shot("headphones")
+    f.run("document.querySelector('[data-headphones-answer=no]').click()")
     f.wait("/^\\/p\\/[\\w-]+\\/sing$/.test(location.pathname)", what="Sing on the choir project")
     clip_project = f.js("location.pathname.split('/')[2]")
+    assert f.js(f"""(async () => {{ const s = await import('/js/stores/projects.js'); await s.loadProjects(); return s.projects.all.find((x) => x.id === {json.dumps(clip_project)})?.choir?.noHeadphones; }})()""") is True, "the no-headphones take isn't marked"
+    # A silent run: nothing reaches the speakers (the play bus at 0 on the audio clock), and stopping puts it back.
+    silent = f.js("""(async () => { const { engine, unlock } = await import('/js/audio.js'); await unlock();
+        engine.play({ fromSeconds: 0, bpm: 90, silent: true }); await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+        const off = engine.playBus.gain.value; await engine.stop(); await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+        return [off, engine.playBus.gain.value]; })()""")
+    assert silent == [0, 1], f"silent run: {silent}"
     # The voice-capture song, whatever the song (Hillel, 2026-11-22): a project only for the take, for Amazing Grace.
     made = f.js(f"""(async () => {{ const s = await import('/js/stores/projects.js'); await s.loadProjects(); const p = s.projects.all.find((x) => x.id === {json.dumps(clip_project)});
         return {{ id: p.template.id, forId: p.choir?.forTemplateId }}; }})()""")
@@ -98,9 +109,9 @@ def journey(f):
     tune = f.js("(async () => { const m = await import('/js/own-choir.js'); return m.tunePart(await m.clipTemplate()); })()")
     f.run("""const { sendClip } = await import('/js/own-choir.js');
         const samples = new Float32Array(48000 * 20).map((_, i) => 0.3 * Math.sin(i / 20));
-        window.choirRequest = await sendClip({ templateId: 'amazing-grace', clipTemplateId: 'voice-capture', partKey: (await import('/js/own-choir.js')).tunePart(await (await import('/js/own-choir.js')).clipTemplate()), samples, sampleRate: 48000, startSeconds: -0.5 });""")
+        window.choirRequest = await sendClip({ templateId: 'amazing-grace', clipTemplateId: 'voice-capture', partKey: (await import('/js/own-choir.js')).tunePart(await (await import('/js/own-choir.js')).clipTemplate()), samples, sampleRate: 48000, startSeconds: -0.5, guide: false });""")
     clip = f.js("globalThis.mockChoirClip")
-    assert clip["templateId"] == "amazing-grace" and clip["clipTemplateId"] == "voice-capture" and clip["partKey"] == tune and clip["offsetFrames"] == 0 and clip["frames"] == 48000 * 20 - 24000 and len(clip["sha256"]) == 64, clip
+    assert clip.get("guide") is False and clip["templateId"] == "amazing-grace" and clip["clipTemplateId"] == "voice-capture" and clip["partKey"] == tune and clip["offsetFrames"] == 0 and clip["frames"] == 48000 * 20 - 24000 and len(clip["sha256"]) == 64, clip
     # The studio's project for the song, as the ready page makes one.
     project = f.js("""(async () => { const { startFromTemplate } = await import('/js/stores/projects.js'); const { loadTemplate } = await import('/js/templates.js');
         return (await startFromTemplate(await loadTemplate('amazing-grace'), { keyChosen: true, choir: { requestId: window.choirRequest.id } })).id; })()""")

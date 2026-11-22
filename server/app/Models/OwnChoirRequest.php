@@ -28,6 +28,10 @@ use Illuminate\Support\Carbon;
  * @property int|null $clip_template_version_id the template the clip sang (Happy Birthday by default); null: the song's own
  * @property int|null $offset_frames
  * @property int $clip_transpose the clip's tune moved to the singer's first note, in semitones
+ * @property bool $guide false: the clip was sung with no headphones (2026-11-23)
+ * @property array<string, mixed>|null $sound choir settings' mix (2026-11-23)
+ * @property array<string, mixed>|null $sung how it's sung
+ * @property bool $remake a remake: its parts replace its song's (parent_request_id) when made
  * @property string $voicing written, or low: the treble parts an octave down (2026-11-23)
  * @property int|null $octave the octave the app measured the clip sung in (−12, 0 or 12; a friend's tune)
  * @property OwnChoirStatus $status
@@ -98,6 +102,10 @@ final class OwnChoirRequest extends Model
             'only_parts' => 'array',
             'octave' => 'integer',
             'clip_transpose' => 'integer',
+            'guide' => 'boolean',
+            'sound' => 'array',
+            'sung' => 'array',
+            'remake' => 'boolean',
             'held_for_minutes' => 'boolean',
             'clip_checked_at' => 'datetime',
             'claimed_at' => 'datetime',

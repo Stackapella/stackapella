@@ -501,12 +501,16 @@ export class Engine {
      * has just opened, a longer lead lets iOS finish switching its audio session before the first
      * click, instead of on it.
      */
-    play({ fromSeconds = 0, toSeconds = null, bpm = null, beatsPerBar = 4, pickupBeats = 0, meters = null, timeSignature = null, countInBeats = 0, countInSounds = null, metronome = false, loop = null, repeat = null, record = false, latencyFrames = 0, onChunk = null, leadSeconds = LEAD_SECONDS, startFrame = null }) {
+    play({ fromSeconds = 0, toSeconds = null, bpm = null, beatsPerBar = 4, pickupBeats = 0, meters = null, timeSignature = null, countInBeats = 0, countInSounds = null, metronome = false, loop = null, repeat = null, record = false, latencyFrames = 0, onChunk = null, leadSeconds = LEAD_SECONDS, startFrame = null, silent = false }) {
         // `startFrame` (a context frame ahead of now, such as passEnd()): this run begins there,
         // seamlessly after what is playing, which carries on until then (the tempo ladder's next
         // speed at a loop's end). Only what was scheduled from that frame on is cancelled.
         if (startFrame === null) this.stopSources();
         else this.stopSourcesFrom(startFrame);
+        // `silent`: nothing reaches the speakers this run (a take sung without headphones: Hillel, 2026-11-22), on the
+        // context's clock; the recording itself is untouched. Stopping puts the sound back.
+        this.playBus.gain.cancelScheduledValues(0);
+        this.playBus.gain.value = silent ? 0 : 1;
         this.nowPlaying('playing');
         const sr = this.ctx.sampleRate;
         const first = startFrame ?? Math.ceil((this.ctx.currentTime + leadSeconds) * sr);
@@ -767,6 +771,10 @@ export class Engine {
     }
 
     stopSources() {
+        if (this.playBus) {
+            this.playBus.gain.cancelScheduledValues(0);
+            this.playBus.gain.value = 1;
+        }
         this.scheduled.forEach((source) => {
             try {
                 source.stop();

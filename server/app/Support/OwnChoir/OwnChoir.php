@@ -389,6 +389,18 @@ final class OwnChoir
             'progress' => self::progress($request),
             // "Arranged for a low voice" (2026-11-23).
             'voicing' => $request->voicing,
+            // Plus's choir settings (2026-11-23): the mix, how it's sung, what a remake would use, and one on its way.
+            'settings' => ['sound' => ChoirSettings::sound($request), 'sung' => ChoirSettings::sung($request)],
+            'remakeMinutes' => ['standard' => ChoirSettings::remakeMinutes($request, 'standard', $remakeParts = ChoirSettings::remakeParts($request)), 'fine' => ChoirSettings::remakeMinutes($request, 'fine', $remakeParts)],
+            'remake' => ($remake = ChoirSettings::remakeOf($request)) === null ? null : [
+                'status' => match ($remake->status) {
+                    OwnChoirStatus::Rendering => 'rendering',
+                    OwnChoirStatus::Failed => 'failed',
+                    default => 'queued',
+                },
+                'progress' => self::progress($remake),
+                'settings' => ChoirSettings::sung($remake),
+            ],
             'voices' => ChoirTogether::voices($request, $viewer),
             'members' => ChoirTogether::members($request, $viewer),
             'left' => ChoirTogether::left($request, $viewer),

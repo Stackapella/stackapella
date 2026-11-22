@@ -34,13 +34,34 @@ export async function loadChoirFull(request) {
 }
 
 /** Plays every part together from the start (after the tap: unlocks first); anything else in the engine is taken out. */
-export async function playChoir(voices) {
+export async function playChoir(voices, sound = null, fromSeconds = 0) {
     await unlock();
     [...engine.parts.keys()].forEach((id) => engine.removePart(id));
     engine.projectId = 'choir';
-    const level = 1 / Math.sqrt(Math.max(1, voices.length));
-    for (const v of voices) engine.addPart(PREFIX + v.partKey, engine.toBuffer(v.samples, v.sampleRate), { volume: level, pan: 0, audible: true }, v.offsetSeconds);
-    engine.play({ fromSeconds: 0, leadSeconds: 0.1 });
+    if (shaped(sound)) {
+        // Choir settings' Sound (Plus): the room and each part's balance, rendered by the app's own mix (polish.js), in stereo.
+        const { channels, sampleRate } = await renderChoir(voices, sound);
+        const buffer = new AudioBuffer({ length: Math.max(1, channels[0].length), numberOfChannels: 2, sampleRate });
+        channels.forEach((channel, i) => buffer.copyToChannel(channel, i));
+        engine.addPart(PREFIX + 'mix', buffer, { volume: 1, pan: 0, audible: true }, 0);
+    } else {
+        const level = 1 / Math.sqrt(Math.max(1, voices.length));
+        for (const v of voices) engine.addPart(PREFIX + v.partKey, engine.toBuffer(v.samples, v.sampleRate), { volume: level, pan: 0, audible: true }, v.offsetSeconds);
+    }
+    engine.play({ fromSeconds, leadSeconds: 0.1 });
+}
+
+/** Whether a sound setting changes anything (a room, or any part not at 0 dB); else the plain mix plays, as ever. */
+export function shaped(sound) {
+    return !!sound && ((sound.room && sound.room !== 'dry') || (sound.balance ?? []).some((b) => b.db));
+}
+
+/** The choir through the app's mix: each part at its balance (dB), then the room. `{ channels, sampleRate }`. */
+export async function renderChoir(voices, sound) {
+    const { polishRender } = await import('./polish.js');
+    const db = (key) => (sound?.balance ?? []).find((b) => b.partKey === key)?.db ?? 0;
+    const lengthSeconds = Math.max(0, ...voices.map((v) => v.offsetSeconds + v.samples.length / v.sampleRate));
+    return polishRender({ voices: voices.map((v) => ({ ...v, volume: 10 ** (db(v.partKey) / 20), pan: 0, audible: true })), lengthSeconds, sampleRate: RATE, room: sound?.room ?? 'dry' });
 }
 
 /** Stops it and leaves the engine empty for the studio to load its project again. */
@@ -57,6 +78,12 @@ export function choirPosition() {
 }
 
 /** The parts mixed into one mono WAV (each at the same level, never clipping), for the singer to keep. */
+export async function mixChoirShaped(voices, sound) {
+    if (!shaped(sound)) return mixChoir(voices);
+    const { channels, sampleRate } = await renderChoir(voices, sound);
+    return encodeWav(channels, sampleRate);
+}
+
 export function mixChoir(voices) {
     const length = Math.max(0, ...voices.map((v) => Math.round(v.offsetSeconds * RATE) + v.samples.length));
     const out = new Float32Array(length);

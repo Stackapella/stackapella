@@ -41,6 +41,8 @@ export const OPERATIONS = {
     'ownChoir.requests.complete': ['POST', '/api/own-choir/requests/{id}/complete'],
     'ownChoir.requests.seen': ['POST', '/api/own-choir/requests/{id}/seen'],
     'ownChoir.requests.download': ['GET', '/api/own-choir/requests/{id}/download'],
+    'ownChoir.requests.sound': ['PATCH', '/api/own-choir/requests/{id}/sound'],
+    'ownChoir.requests.remake': ['POST', '/api/own-choir/requests/{id}/remake'],
     // A choir with friends (docs/choir-together-plan.md, behind own_choir_together).
     'ownChoir.invites.create': ['POST', '/api/own-choir/requests/{id}/invites'],
     'ownChoir.invites.delete': ['DELETE', '/api/own-choir/invites/{id}'],
@@ -1211,6 +1213,8 @@ export const api = {
             seen: (id) => call('ownChoir.requests.seen', { params: { id } }),
             // Download's full-quality parts (Plus): `403 plus_required` otherwise.
             download: (id) => call('ownChoir.requests.download', { params: { id } }),
+            sound: (id, sound) => call('ownChoir.requests.sound', { params: { id }, body: { sound } }),
+            remake: (id, sung) => call('ownChoir.requests.remake', { params: { id }, body: { sung } }),
             delete: (id) => call('ownChoir.requests.delete', { params: { id } }),
         },
         // A choir with friends: the owner invites (a link shown once), a friend joins by it, either one ends it.

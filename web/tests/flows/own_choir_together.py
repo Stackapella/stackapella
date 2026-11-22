@@ -190,6 +190,8 @@ def journey(f):
     f.wait("document.querySelector('[data-first-note] [data-first-note-usual]')", what="the first-note step")
     f.shot("join-first-note")
     f.run("document.querySelector('[data-first-note-usual]').click()")
+    f.wait("document.querySelector('[data-headphones-answer=yes]')", what="the headphones choice")
+    f.run("document.querySelector('[data-headphones-answer=yes]').click()")
     f.wait("/^\\/p\\/[\\w-]+\\/sing$/.test(location.pathname)", what="Sing on the tune")
     project = f.js("location.pathname.split('/')[2]")
     tune = f.js("(async () => (await import('/js/own-choir.js')).tunePart(await (await import('/js/templates.js')).loadTemplate('silent-night')))()")

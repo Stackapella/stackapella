@@ -18,6 +18,7 @@ use App\Models\OwnChoirVoice;
 use App\Models\Template;
 use App\Models\User;
 use App\Services\Cloudflare\Turnstile;
+use App\Support\OwnChoir\ChoirSettings;
 use App\Support\OwnChoir\ClipTune;
 use App\Support\OwnChoir\OwnChoir;
 use App\Support\OwnChoir\VoicingTransform;
@@ -62,7 +63,7 @@ final class OwnChoirRequests
      * A song in their voice: from a new clip (the voice prepared from it replaces their kept one), or with `templateId`
      * alone from their kept voice (queued at once: a singer back for more).
      *
-     * @param  array{templateId: string, clipTemplateId?: string|null, clipTranspose?: int|null, octave?: int|null, partKey?: string|null, offsetFrames?: int|null, sampleRate?: int|null, frames?: int|null, bytes?: int|null, sha256?: string|null, turnstileToken?: string|null}  $clip
+     * @param  array{templateId: string, clipTemplateId?: string|null, clipTranspose?: int|null, guide?: bool|null, octave?: int|null, partKey?: string|null, offsetFrames?: int|null, sampleRate?: int|null, frames?: int|null, bytes?: int|null, sha256?: string|null, turnstileToken?: string|null}  $clip
      * @return array{request: OwnChoirRequest, put: array{url: string, method: string, headers: array<string, string>, expiresAt: \DateTimeInterface}|null}
      */
     public function start(User $user, array $clip, ?string $ip = null, bool $staffTest = false): array
@@ -179,6 +180,7 @@ final class OwnChoirRequests
                 'offset_frames' => $clip['offsetFrames'] ?? null,
                 'octave' => $octave,
                 'clip_transpose' => $transpose,
+                'guide' => ($clip['guide'] ?? true) !== false,
                 'voicing' => $voicing,
                 'status' => OwnChoirStatus::Uploading,
                 // Under uploads/, which the private bucket's lifecycle expires after a day.
@@ -408,6 +410,100 @@ final class OwnChoirRequests
     }
 
     /** A song of their own from the creator (own_choir_own), counted beside the library's. */
+    /**
+     * Choir settings' mix (Plus): saved at once, free.
+     *
+     * @param  array{room: string, balance?: list<array{partKey: string, db: float|int}>, leadBlend?: float|int|null, recordingLevel?: float|int|null}  $sound
+     */
+    public function setSound(User $user, OwnChoirRequest $song, array $sound): OwnChoirRequest
+    {
+        $this->ownSong($user, $song);
+        $song->forceFill(['sound' => [
+            'room' => $sound['room'],
+            'balance' => array_values(array_map(static fn (array $b): array => ['partKey' => (string) $b['partKey'], 'db' => (float) $b['db']], $sound['balance'] ?? [])),
+            'leadBlend' => isset($sound['leadBlend']) ? (float) $sound['leadBlend'] : null,
+            'recordingLevel' => isset($sound['recordingLevel']) ? (float) $sound['recordingLevel'] : null,
+        ]])->save();
+
+        return $song;
+    }
+
+    /**
+     * Choir settings' singing (Plus): the song made again in their saved voice, its owner's parts only, charged like a
+     * song (fine at its real GPU cost); the song plays as it is until the new parts replace the old.
+     *
+     * @param  array{humanize: int, voicing: string, breaths: string, quality: string, ensembleTiming: string, pitchSpread: string}  $sung
+     */
+    public function remake(User $user, OwnChoirRequest $song, array $sung): OwnChoirRequest
+    {
+        $this->ownSong($user, $song);
+
+        if ($song->status !== OwnChoirStatus::Ready) {
+            throw new Refusal(404, 'not_found');
+        }
+
+        $voice = OwnChoir::voice($user) ?? throw new Refusal(409, 'voice_required');
+        $parts = ChoirSettings::remakeParts($song);
+        $minutes = ChoirSettings::remakeMinutes($song, $sung['quality'], $parts);
+        // auto: the low-voice version when their range suits it; high renders as written (no higher version yet).
+        $range = ChoirTogether::range($user, null, [], 0);
+        $melody = ChoirTogether::partNotes($song)[self::melody((array) $song->templateVersion?->data) ?? ''] ?? [];
+        $voicing = match ($sung['voicing']) {
+            'low' => 'low',
+            'auto' => $range !== null && $melody !== [] && VoicingTransform::isLow($melody, $range) ? 'low' : 'written',
+            default => 'written',
+        };
+
+        DB::transaction(function () use ($user, $song, $sung, $voice, $minutes, $parts, $voicing): void {
+            Owned::lockAccount($user);
+
+            if (OwnChoirRequest::query()->where('parent_request_id', $song->id)->where('remake', true)->whereIn('status', [OwnChoirStatus::Queued->value, OwnChoirStatus::Rendering->value])->exists()) {
+                throw new Refusal(409, 'remake_running');
+            }
+
+            if ($parts === []) {
+                throw new Refusal(409, 'remake_running');
+            }
+
+            if (($which = OwnChoir::limitReached($user, $minutes)) !== null) {
+                throw new Refusal(403, 'quota_reached', ['which' => $which, ...($which === 'minutes' ? ['needed' => $minutes] : [])]);
+            }
+
+            $remake = new OwnChoirRequest;
+            $remake->forceFill([
+                'user_id' => $user->id,
+                'parent_request_id' => $song->id,
+                'bill_to_user_id' => $user->id,
+                'remake' => true,
+                'template_version_id' => $song->template_version_id,
+                'own_choir_voice_id' => $voice->id,
+                'from_voice' => true,
+                'status' => OwnChoirStatus::Queued,
+                'only_parts' => $parts,
+                'part_minutes' => $minutes,
+                'own' => $song->own,
+                'priority' => OwnChoir::tier($user) === 'paid' ? 1 : 0,
+                'starts_after' => OwnChoir::busyToday() ? now()->addDay()->startOfDay() : null,
+                'sung' => $sung,
+                'voicing' => $voicing,
+            ])->save();
+        });
+
+        return $song;
+    }
+
+    /** Their own song (not a friend's job, nor one they joined); Plus to change its settings. */
+    private function ownSong(User $user, OwnChoirRequest $song): void
+    {
+        if ($song->user_id !== $user->id || $song->parent_request_id !== null || $song->status === OwnChoirStatus::Deleted) {
+            throw new Refusal(404, 'not_found');
+        }
+
+        if (OwnChoir::tier($user) === 'free') {
+            throw new Refusal(403, 'plus_required');
+        }
+    }
+
     /**
      * A song's melody part: the one marked `melody` (the template schema allows one), else its first.
      *

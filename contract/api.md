@@ -234,6 +234,8 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `ownChoir.requests.create` | `POST /api/own-choir/requests` | Anyone signed in | Own choir |
 | `ownChoir.requests.complete` | `POST /api/own-choir/requests/{id}/complete` | Anyone signed in, their own | Own choir |
 | `ownChoir.requests.seen` | `POST /api/own-choir/requests/{id}/seen` | Anyone signed in, their own | Own choir |
+| `ownChoir.requests.sound` | `PATCH /api/own-choir/requests/{id}/sound` | Plus, their own song | Own choir |
+| `ownChoir.requests.remake` | `POST /api/own-choir/requests/{id}/remake` | Plus, their own song | Own choir |
 | `ownChoir.requests.download` | `GET /api/own-choir/requests/{id}/download` | Anyone signed in, their own, with Plus | Own choir |
 | `ownChoir.invites.create` | `POST /api/own-choir/requests/{id}/invites` | Anyone signed in, their own ready song | Own choir |
 | `ownChoir.invites.delete` | `DELETE /api/own-choir/invites/{id}` | The song's owner | Own choir |
@@ -7633,7 +7635,8 @@ listed nowhere but served by `templates.show`. Optional `clipTemplateId`, the te
 one the singer chose from config `own_choir.clip_templates` (Hillel, 2026-11-23): `"voice-capture"` (the default, shown
 as Happy Birthday), `"silent-night"`, `"amazing-grace"` or `"joy-to-the-world"`; any other is `422`. Its current
 version is recorded. `partKey` and `offsetFrames` then refer to the clip's template (its melody, its beat 0). The words
-shown are the words sung ("dear friend" on Happy Birthday's name line). Optional `clipTranspose` (−12 to 12): the semitones
+shown are the words sung ("dear friend" on Happy Birthday's name line). Optional `guide`: `false` when the singer chose no headphones, so nothing played while they sang and they kept the tempo
+by eye after a visual count-in (Hillel, 2026-11-23; absent is `true`); `offsetFrames` is still the tune's beat 0. Optional `clipTranspose` (−12 to 12): the semitones
 the app moved the tune to the singer's comfortable first note before they sang it (Hillel, 2026-11-23; kept with the
 request, and the worker gets the tune transposed). Optional `octave` (−12, 0 or 12): the octave the app measured the
 clip sung in, against the tune as played. **The low-voice version** (Hillel, 2026-11-23): when the
@@ -7697,6 +7700,44 @@ For a song you joined (choir together), it marks your parts seen (the member's `
 |---|---|---|---|
 | 200 |  | `ownChoir.request.json` | `ownChoir.requests.seen.200.json` |
 | 404 | `not_found` | `error.json` | `ownChoir.requests.seen.not_found.json` |
+
+#### `ownChoir.requests.sound`
+
+Choir settings' mix (Hillel, 2026-11-23: "visible to all but only paid users can use it"): saved at once, free (no
+minutes, no GPU), applied by the app when it plays and exports the song. **Request:** `{ "sound": { "room": "dry" |
+"small" | "hall" | "chapel", "balance": [{ "partKey", "db" }], "leadBlend": 0..1 | null, "recordingLevel": −24..0 | null
+} }`: `balance` one entry per part (−12 to 6 dB; a part left out is 0); `leadBlend` within You + choir, 0 their real
+take as the lead, 1 the AI tune, null as the view says; `recordingLevel` their original clip under the choir, null off.
+The song as it now is. `403 plus_required` without Plus; the owner's songs only (`404` otherwise).
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `ownChoir.request.json` | `ownChoir.requests.sound.200.json` |
+| 403 | `plus_required` | `error.json` | `ownChoir.requests.sound.plus_required.json` |
+| 404 | `not_found` | `error.json` | `ownChoir.requests.sound.not_found.json` |
+| 422 | `validation_failed` | `error.json` | `ownChoir.requests.sound.validation_failed.json` |
+
+#### `ownChoir.requests.remake`
+
+Choir settings' singing, applied by making the song again in the singer's saved voice. **Request:** `{ "sung": {
+"humanize": 0..3, "voicing": "auto" | "low" | "high" | "written", "breaths": "legato" | "natural", "quality": "standard"
+| "fine", "ensembleTiming": "tight" | "natural" | "loose", "pitchSpread": "off" | "subtle" | "wide" } }` (`auto` voicing:
+the low-voice version when their range suits it). It's charged like a new song, its part-minutes, and `fine` at its
+real GPU cost (config `own_choir.fine_factor`, 2; Hillel: "make sure limits align with our costs"): `remakeMinutes`
+says what each would use. The song keeps playing as it is, with `remake` showing its progress; when the remake is made
+its parts replace the old ones and `remake` goes back to null (a failed remake shows `failed` until the next, and
+charges nothing it didn't render). Only the owner's parts are made again: a friend's parts stay theirs. `202` with the
+song; `403 plus_required`; `403 quota_reached` as `ownChoir.requests.create`; `409 remake_running` while one is on its
+way; `409 voice_required` when their saved voice is gone.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 202 |  | `ownChoir.request.json` | `ownChoir.requests.remake.202.json` |
+| 403 | `plus_required` | `error.json` | `ownChoir.requests.remake.plus_required.json` |
+| 403 | `quota_reached` | `error.json` | `ownChoir.requests.remake.quota_reached.json` |
+| 404 | `not_found` | `error.json` | `ownChoir.requests.remake.not_found.json` |
+| 409 | `remake_running` | `error.json` | `ownChoir.requests.remake.remake_running.json` |
+| 409 | `voice_required` | `error.json` | `ownChoir.requests.remake.voice_required.json` |
 
 #### `ownChoir.requests.download`
 
@@ -7777,7 +7818,7 @@ off for its owner). Counts `own_choir_invite_opened`. **Request:** none.
 The friend joins, signed in, with the own-choir terms accepted (`403 consent_required`; `ownChoir.consent` first) and
 18 or over (`403 adult_required`), a confirmed email (`403 email_unverified`). **Request:** `{ "parts": ["soprano",
 "alto"], "showName": false, "wordsSha": "<from show, for an own song>", "useSavedVoice": true }`, `parts` the exact
-`yourParts` the friend saw and agreed to, with a new clip its `octave`, `clipTemplateId` and `clipTranspose` as in `invites.show` and `partKey` the melody
+`yourParts` the friend saw and agreed to, with a new clip its `octave`, `clipTemplateId`, `clipTranspose` and `guide` as in `invites.show` and `ownChoir.requests.create` and `partKey` the melody
 (the take is uploaded only after the yes) (`409 parts_changed` when they're no longer what their voice would sing:
 show again; `403 plus_required` or `409 choir_full` when the song's friends are full by then, checked under the owner's
 lock), or a new clip's fields as `requests.create` takes
@@ -7928,13 +7969,15 @@ prepared before, with your own `meta`). `claim` is this claim's token: every cal
 "<token>"`), and one with a missing or stale token is `409 job_not_claimed` (another worker may have it now). A claim lasts 20 minutes; a job not
 finished by then goes back to the queue, at most twice, then fails (`render_failed`). The clip's link lasts 30 minutes;
 delete everything you held once you post `finish`. `own`: the singer's own song (no gates re-render: finish
-`gates_failed`). `voicing` (`written` or `low`) and `shifts` (`[{ "partKey", "shift" }]`, each part's octave shift, −12 or 0): a low-voice song's
+`gates_failed`). `settings` (Plus's choir settings, the defaults today's sound): `humanize` 0 to 3, `breaths`, `quality`
+(`fine`: 64 steps), `ensembleTiming`, `pitchSpread`; seeded from the song and part, so a remake comes out the same. `voicing` (`written` or `low`) and `shifts` (`[{ "partKey", "shift" }]`, each part's octave shift, −12 or 0): a low-voice song's
 `data` is already transformed (treble parts an octave down, octaves only so every chord tone is kept, a moved note that
 would fall below the bass sounding with it kept at pitch); render `data` as given, and the gates check it as given. A `clip` names the template its singer sang (since 2026-11-23 voice-capture by default, whatever song
 is being made): `template`, `version` and `data`, that template.json as sung (each part's notes starting before its
 `stopBeat` in `ownChoir.show`'s `clipSongs`, each moved by `transpose` semitones, the singer's first note, and otherwise
 unchanged), `part` its melody. Prepare the
-reference against the clip's `data`, and render the song's `data` as always. The singer sings the words shown. Paid Plus is claimed first; past the day's renders across everyone (`own_choir.daily_part_minutes`)
+reference against the clip's `data`, and render the song's `data` as always. `guide`: `false` when it was sung with no
+headphones, the tempo kept by eye (align it phrase by phrase). The singer sings the words shown. Paid Plus is claimed first; past the day's renders across everyone (`own_choir.daily_part_minutes`)
 nothing more is claimed until tomorrow (`204`). **Request:** none.
 
 | Status | Code | Schema | Example |
