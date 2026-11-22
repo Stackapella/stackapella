@@ -106,15 +106,32 @@ async function keptChoirs() {
 
 /** Drops the parts of songs the server no longer has (deleted on another device, or with the account). */
 async function forgetGone() {
-    const live = new Set((ownChoir.data?.requests ?? []).map((r) => r.id));
+    // The songs this account may still hear: its own, and those it sings in (a friend's Learn copy plays the owner's).
+    const live = new Map((ownChoir.data?.requests ?? []).map((r) => [r.id, r]));
+    for (const entry of ownChoir.data?.joined ?? []) if (entry.song?.id) live.set(entry.song.id, entry.song);
     for (const { project, request } of await keptChoirs()) {
         // An older choir project kept no templateId of its own: its song's id is the project's template.
-        if (!live.has(request.requestId)) await forgetParts({ ...request, templateId: request.templateId ?? project.template?.id, id: request.requestId });
+        const kept = { ...request, templateId: request.templateId ?? project.template?.id, id: request.requestId };
+        const now = live.get(request.requestId);
+        if (!now) {
+            await forgetParts(kept);
+            continue;
+        }
+        // Parts no longer playing in it (a friend left or was removed): their audio goes from this device, and the
+        // project keeps only what plays now.
+        const active = new Set((now.parts ?? []).map((p) => p.id));
+        const stale = (request.parts ?? []).filter((p) => !active.has(p.id));
+        if (!stale.length) continue;
+        await forgetParts({ ...kept, parts: stale });
+        const stored = await db.get('projects', project.id).catch(() => null);
+        if (stored?.choir) await db.put('projects', { ...stored, choir: { ...stored.choir, parts: (now.parts ?? []).map((p) => ({ ...p })) } }).catch((error) => console.warn('The choir project was not updated', error));
     }
+    forgetStaleJoins();
 }
 
 /** Signing out: every choir part kept on this device goes (they're the singer's, not this device's). */
 export async function forgetAllHere() {
+    local.set(JOINS, '{}'); // the invites this device was joining by go with the person (sign-out, account deletion)
     for (const { project, request } of await keptChoirs()) await forgetParts({ ...request, templateId: request.templateId ?? project.template?.id, id: request.requestId });
     for (const request of ownChoir.data?.requests ?? []) await forgetParts(request);
     ownChoir.data = null;
@@ -306,9 +323,19 @@ export function joinFor(projectId) {
 /** Keeps (or, with null, forgets) the invite a project was started for. */
 export function keepJoin(projectId, join) {
     const all = joins();
-    if (join) all[projectId] = join;
+    if (join) all[projectId] = { ...join, at: Date.now() };
     else delete all[projectId];
     local.set(JOINS, JSON.stringify(all));
+}
+
+/** Invites kept past their 14 days (never sung for) go, with the project made only for them. */
+function forgetStaleJoins() {
+    const all = joins();
+    const old = Object.keys(all).filter((id) => !all[id]?.at || Date.now() - all[id].at > 14 * 864e5);
+    if (!old.length) return;
+    for (const id of old) delete all[id];
+    local.set(JOINS, JSON.stringify(all));
+    import('./stores/projects.js').then(({ deleteProject }) => Promise.all(old.map((id) => deleteProject(id).catch(() => null)))).catch((error) => console.warn('A joining project was not removed', error));
 }
 
 /** A friend joining by an invite: the clip sent as `sendClip` sends it, to `invites.accept`; answers the member. */
@@ -436,8 +463,10 @@ async function forgetParts(request) {
 
 /** A ready song opened: its notice goes (once). */
 export async function markSeen(request) {
-    if (!request || request.seen) return;
+    // Seen: the song ready, and any friend who left it since (a choir with friends: `left`).
+    if (!request || (request.seen && !(request.left ?? []).some((l) => !l.seen))) return;
     request.seen = true;
+    for (const gone of request.left ?? []) gone.seen = true;
     await api.ownChoir.requests.seen(request.id).catch((error) => console.warn('The choir notice was not marked seen', error));
 }
 

@@ -198,6 +198,8 @@ export const ChoirTogetherJoinView = {
             }
             if (code === 'invite_closed') this.state = 'closed';
             else if (code === 'own_song') this.state = 'own';
+            // The friends filled up meanwhile (or the owner's free song has its one): this choir has no room now.
+            else if (code === 'choir_full' || code === 'plus_required') this.state = 'full';
             else if (code === 'already_member') this.state = 'joined';
             else if (code === 'parts_changed') {
                 // Which parts are theirs changed: the yes again, with what a voice like theirs sings now.
@@ -215,8 +217,8 @@ export const ChoirTogetherJoinView = {
     template: `
         <AppScreen :title="header" back="/" measure="max-w-2xl">
             <p v-if="state === 'loading'" class="text-muted" role="status">{{ t('common.loading') }}</p>
-            <div v-else-if="state === 'closed' || state === 'offline' || state === 'unavailable' || state === 'own'" class="card space-y-3 p-5" :data-join-off="state">
-                <p class="text-cream">{{ state === 'offline' ? t('common.offline') : state === 'own' ? t('ownChoir.together.join.own') : state === 'unavailable' ? t('ownChoir.off.unavailable') : t('ownChoir.together.join.expired') }}</p>
+            <div v-else-if="state === 'closed' || state === 'offline' || state === 'unavailable' || state === 'own' || state === 'full'" class="card space-y-3 p-5" :data-join-off="state">
+                <p class="text-cream">{{ state === 'offline' ? t('common.offline') : state === 'own' ? t('ownChoir.together.join.own') : state === 'full' ? t('ownChoir.together.join.full') : state === 'unavailable' ? t('ownChoir.off.unavailable') : t('ownChoir.together.join.expired') }}</p>
                 <button v-if="state === 'offline'" type="button" class="btn-secondary self-start" @click="load">{{ t('common.tryAgain') }}</button>
             </div>
 

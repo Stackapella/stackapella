@@ -33,14 +33,25 @@
                     ]
                 },
                 "title": {
-                    "type": "string"
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": " Null unless the link is open."
                 },
                 "templateId": {
-                    "type": "string"
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": " Null unless the link is open."
                 },
                 "owner": {
-                    "type": "string",
-                    "description": "The owner's first name."
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "The owner's first name. Null unless the link is open."
                 },
                 "parts": {
                     "type": "array",

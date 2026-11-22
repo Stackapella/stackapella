@@ -12,6 +12,7 @@ use App\Support\Languages\SongWords;
 use App\Support\Outreach\Outreach;
 use App\Support\Site\ComingSoon;
 use App\Support\Site\Drawings;
+use App\Support\Site\PlusFeatures;
 use App\Support\Site\SitePages;
 use App\Support\Site\Teams;
 use App\Support\Templates\Catalogue;
@@ -301,7 +302,7 @@ final class Landing
     {
         $faq = (array) Teams::words('pages.landing.faq');
         if (isset($faq['free'][1]) && SongParts::switchedOn('own_choir')) {
-            $faq['free'][1] .= ' '.__('pages.landing.faq_free_choir');
+            $faq['free'][1] .= ' '.strtr((string) __('pages.landing.faq_free_choir'), PlusFeatures::replacements());
         }
         if ($openSource) {
             $faq['privacy'][1] .= ' '.__('pages.landing.faq_privacy_check');
@@ -322,13 +323,17 @@ final class Landing
      */
     public static function list(string $key, array $replace = []): array
     {
+        // Plus's features, from the one list every page reads (PlusFeatures: the switches' lines included).
+        if ($key === 'plans_plus_list') {
+            return PlusFeatures::items();
+        }
+
         $lines = array_values((array) Teams::words('pages.landing.'.$key));
         // Songs sung by AI in a voice like yours, while own_choir is on (the marketing review, 2026-11-22): the free song
         // after Free's lines, Plus's songs first on Plus.
         if (SongParts::switchedOn('own_choir')) {
             $lines = match ($key) {
                 'plans_free_list' => [...$lines, (string) __('pages.landing.plans_free_choir')],
-                'plans_plus_list' => [(array) Lang::get('pages.landing.plans_plus_choir'), ...$lines],
                 default => $lines,
             };
         }

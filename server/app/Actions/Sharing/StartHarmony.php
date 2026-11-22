@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Sharing;
 
 use App\Actions\Gallery\OpenParts;
+use App\Actions\OwnChoir\ChoirTogether;
 use App\Actions\Projects\Owned;
 use App\Enums\OwnChoirStatus;
 use App\Exceptions\Refusal;
@@ -18,6 +19,7 @@ use App\Models\TemplateGuide;
 use App\Models\TemplateVersion;
 use App\Models\User;
 use App\Support\AiVoices\AiGuides;
+use App\Support\Gallery\Gallery;
 use App\Support\Ids;
 use App\Support\Moderation\TextFilter;
 use App\Support\Storage\Uploads;
@@ -27,6 +29,7 @@ use App\Support\Usage\InFlight;
 use App\Support\Usage\Plans;
 use App\Support\Usage\UploadBytes;
 use DateTimeInterface;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -234,7 +237,7 @@ final class StartHarmony
      *
      * @param  list<string>  $sqids
      * @param  list<string>  $requestSqids  songs whose every ready part counts (the project's settings.choir.requestId)
-     * @return array{parts: list<string>, friends: list<array{part: string, name: string|null}>, seconds: float}
+     * @return array{parts: list<string>, friends: list<array{part: string, name: string|null, member?: int, song?: int}>, seconds: float}
      */
     private function ownVoice(array $sqids, User $user, array $requestSqids = []): array
     {
@@ -245,24 +248,52 @@ final class StartHarmony
             return ['parts' => [], 'friends' => [], 'seconds' => 0.0];
         }
 
-        // Their own song's parts, and a friend's on it (choir together: the friend's job on the sharer's song).
-        $friendJobs = OwnChoirRequest::query()->whereIn('parent_request_id', $requests)->pluck('id')->all();
-        $parts = OwnChoirPart::query()->with(['request.templateVersion', 'request.parent', 'request.member'])->where(fn ($query) => $query->whereKey($ids)->orWhereIn('own_choir_request_id', [...$requests, ...$friendJobs]))->where('status', 'ready')
-            ->whereHas('request', fn ($query) => $query->where('status', OwnChoirStatus::Ready->value)->where(fn ($whose) => $whose->where(fn ($own) => $own->where('user_id', $user->id)->whereNull('parent_request_id'))
-                ->orWhereHas('parent', fn ($parent) => $parent->where('user_id', $user->id))))->orderBy('id')->get();
-        $name = static function (OwnChoirPart $part): string {
-            $named = collect((array) ($part->request->templateVersion->data['parts'] ?? []))->first(static fn (mixed $p): bool => is_array($p) && ($p['key'] ?? null) === $part->part_key);
+        // The choir songs in the mix: their own, or one they sing in as a friend (choir together); never anyone else's.
+        $picked = OwnChoirPart::query()->with('request')->whereKey($ids)->get();
+        $songIds = array_values(array_unique([...$requests, ...$picked->map(static fn (OwnChoirPart $p): int => (int) ($p->request->parent_request_id ?? $p->own_choir_request_id))->all()]));
+        $songs = OwnChoirRequest::query()->with(['user', 'templateVersion'])->whereKey($songIds)->where('status', OwnChoirStatus::Ready->value)->whereNull('parent_request_id')->get()
+            ->filter(static fn (OwnChoirRequest $song): bool => $song->user_id === $user->id || ChoirTogether::activeMembers($song)->where('user_id', $user->id)->exists());
+        $names = [];
+        $friends = [];
+        $seconds = 0.0;
 
-            return is_array($named) && is_string($named['name'] ?? null) ? $named['name'] : $part->part_key;
-        };
-        $theirs = $parts->filter(static fn (OwnChoirPart $p): bool => $p->request->parent_request_id !== null);
-        $mine = $parts->filter(static fn (OwnChoirPart $p): bool => $p->request->parent_request_id === null);
-        $friendParts = $theirs->pluck('part_key')->all();
-        $names = array_values($mine->reject(static fn (OwnChoirPart $p): bool => in_array($p->part_key, $friendParts, true))->map($name)->unique()->all());
-        // A friend's first name only when they chose to show it (off by default).
-        $friends = array_values($theirs->map(static fn (OwnChoirPart $p): array => ['part' => $name($p), 'name' => $p->request->member?->show_name === true ? trim(explode(' ', trim((string) $p->request->user?->name))[0] ?? '') : null])->unique('part')->all());
+        foreach ($songs as $song) {
+            $byKey = collect((array) ($song->templateVersion->data['parts'] ?? []))->filter(static fn (mixed $p): bool => is_array($p))->keyBy('key');
+            // Every part as it plays (a whole song, settings.choir.requestId), or those the app named (choirParts).
+            $active = (new Collection(ChoirTogether::activeParts($song)->all()))->load('request.member.user')
+                ->filter(static fn (OwnChoirPart $p): bool => in_array((int) ($p->request->parent_request_id ?? $p->own_choir_request_id), $requests, true) || in_array($p->id, $ids, true));
 
-        return ['parts' => $names, 'friends' => $friends, 'seconds' => (float) $parts->max(static fn (OwnChoirPart $p): float => $p->frames / max(1, $p->sample_rate))];
+            foreach ($active as $part) {
+                $partName = is_string($byKey[$part->part_key]['name'] ?? null) ? $byKey[$part->part_key]['name'] : $part->part_key;
+                $member = $part->request->parent_request_id !== null ? $part->request->member : null;
+                $seconds = max($seconds, $part->frames / max(1, $part->sample_rate));
+
+                if (($member === null && $song->user_id === $user->id) || ($member !== null && $member->user_id === $user->id)) {
+                    // In the sharer's own voice.
+                    $names[] = $partName;
+                } elseif ($member !== null) {
+                    // A friend's: named only if they chose to show it, and only a name the page may show.
+                    $friends[] = ['part' => $partName, 'name' => $member->show_name ? self::shownName($member->user) : null, 'member' => $member->id];
+                } else {
+                    // The owner's, in a friend's share of the song they sing in: owners are named.
+                    $friends[] = ['part' => $partName, 'name' => self::shownName($song->user), 'song' => $song->id];
+                }
+            }
+        }
+
+        return ['parts' => array_values(array_unique($names)), 'friends' => array_values(collect($friends)->unique('part')->all()), 'seconds' => $seconds];
+    }
+
+    /** A first name as a shared page may show it: none for a hidden profile or a name the filters hold. */
+    private static function shownName(?User $person): ?string
+    {
+        if ($person === null || Gallery::hidden($person) || TextFilter::hasLink($person->name) || TextFilter::holds($person->name)) {
+            return null;
+        }
+
+        $first = trim(explode(' ', trim($person->name))[0] ?? '');
+
+        return $first === '' ? null : $first;
     }
 
     /**

@@ -5806,7 +5806,8 @@
                 "body": "{count, plural, one {La parte de {parts} de {name} deja de sonar y se borra. Vuelve a sonar la tuya.} other {Las partes de {parts} de {name} dejan de sonar y se borran. Vuelven a sonar las tuyas.}}",
                 "action": "Quitar a {name}",
                 "done": "{name} ya no está en este coro.",
-                "short": "Quitar"
+                "short": "Quitar",
+                "shares": "Cualquier enlace que compartiste de esta canción deja de funcionar. Vuelve a compartirla cuando quieras."
             },
             "join": {
                 "title": "{count, plural, one {{owner} te invitó a cantar la parte de {parts} en {song}} other {{owner} te invitó a cantar las partes de {parts} en {song}}}",
@@ -5816,13 +5817,14 @@
                 "expired": "Esta invitación caducó o ya se usó. Pide un enlace nuevo.",
                 "own": "Este coro es tuyo.",
                 "header": "Canta en el coro de {owner}",
-                "done": "Ya estás en el coro de {owner}"
+                "done": "Ya estás en el coro de {owner}",
+                "full": "Este coro ya tiene una voz para cada parte."
             },
             "agree": {
                 "title": "Una voz como la tuya en la canción de {owner}",
                 "one": "{count, plural, one {En {song}, de {owner}, una voz como la tuya solo canta la parte de {parts}. {owner} nunca recibe la voz en sí.} other {En {song}, de {owner}, una voz como la tuya solo canta las partes de {parts}. {owner} nunca recibe la voz en sí.}}",
                 "two": "{owner} puede escuchar, compartir y descargar esta canción. {owner} nunca recibe tu voz para usarla en otro lugar.",
-                "three": "Sal cuando quieras: tus partes se borran y vuelven a sonar las partes de {owner}. Las copias ya descargadas no se pueden recuperar.",
+                "three": "Sal cuando quieras: tus partes se borran de la canción y de cualquier página donde esté compartida, y vuelven a sonar las partes de {owner}. Las copias ya descargadas no se pueden recuperar.",
                 "words": "La letra que cantará una voz como la tuya",
                 "showName": "Mostrar mi nombre si {owner} comparte la canción",
                 "showNameOff": "Desactivado: dice “una persona amiga”.",
@@ -5843,7 +5845,7 @@
             "leave": {
                 "button": "Salir de este coro",
                 "title": "¿Salir de {song}, de {owner}?",
-                "body": "Tus partes dejan de sonar y se borran, y vuelven a sonar las de {owner}. Tu voz guardada sigue siendo tuya.",
+                "body": "Tus partes se borran de la canción y de cualquier página donde esté compartida, y vuelven a sonar las de {owner}. Tu voz guardada sigue siendo tuya.",
                 "action": "Salir",
                 "done": "Saliste del coro de {owner}."
             },
@@ -5867,7 +5869,8 @@
             },
             "parts": {
                 "changed": "Las partes cambiaron desde que abriste esto. Esto es lo que cantará ahora una voz como la tuya."
-            }
+            },
+            "friendLeft": "{name} salió de {song}. Sus enlaces compartidos dejaron de funcionar: vuelve a compartirla cuando quieras."
         }
     },
     "aiVoice": {

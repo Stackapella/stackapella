@@ -59,13 +59,14 @@ final class ScrubEvent
     }
 
     /**
-     * Addresses, bearer tokens, long secrets and IP addresses, masked.
+     * Addresses, bearer tokens, long secrets and IP addresses, masked; and whatever follows /join/ in a path (a choir
+     * invite's token, an early-access or beta link's), whatever its length.
      */
     public static function mask(string $text): string
     {
         return (string) preg_replace(
-            ['/[\w.+-]+@[\w-]+\.[\w.-]+/u', '/\b(Bearer|token|secret|password|key)([=: ]+)\S+/i', '/\b(?:\d{1,3}\.){3}\d{1,3}\b/', '/\b[0-9a-f]{0,4}(?::[0-9a-f]{0,4}){4,7}\b/i', '/\b[A-Za-z0-9_\-]{32,}\b/'],
-            ['[email]', '$1$2[secret]', '[ip]', '[ip]', '[token]'],
+            ['#/join/[A-Za-z0-9_\-]+#', '/[\w.+-]+@[\w-]+\.[\w.-]+/u', '/\b(Bearer|token|secret|password|key)([=: ]+)\S+/i', '/\b(?:\d{1,3}\.){3}\d{1,3}\b/', '/\b[0-9a-f]{0,4}(?::[0-9a-f]{0,4}){4,7}\b/i', '/\b[A-Za-z0-9_\-]{32,}\b/'],
+            ['/join/[token]', '[email]', '$1$2[secret]', '[ip]', '[ip]', '[token]'],
             $text,
         );
     }

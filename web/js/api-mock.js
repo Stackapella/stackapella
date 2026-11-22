@@ -347,7 +347,11 @@ async function stateful(operation, params, body, cases, query = {}) {
         return respond(200, { data: { ...terms.data, version: termsVersion } });
     }
     if (operation.startsWith('ownChoir.') && !scenarios().some((s) => s.startsWith(operation + ':'))) {
-        if (tabStorage.get('stackapella.mockOwnChoir') !== '1') return respond(404, { message: 'not_found', code: 'not_found' });
+        if (tabStorage.get('stackapella.mockOwnChoir') !== '1') {
+            // Off for this person, nothing kept: the server answers no choir (data null), as for every signed-in person.
+            if (operation === 'ownChoir.show') return respond(200, { data: null });
+            return respond(404, { message: 'not_found', code: 'not_found' });
+        }
         const shown = (await example('ownChoir.show.200.json')).data;
         const local = (p) => ({ ...p, url: `${location.origin}/tests/fixtures/guide-48000.m4a?choir=${p.id}`, sampleRate: 48000, frames: 144000, offsetFrames: 0 });
         // Kept in the tab (a page load keeps it), saved after each change.
@@ -380,20 +384,22 @@ async function stateful(operation, params, body, cases, query = {}) {
         choir.invites ??= [];
         const seedFriend = tabStorage.get('stackapella.mockChoirFriend');
         const ready = choir.requests.find((r) => r.status === 'ready');
-        if (together && seedFriend && ready && !choir.members.some((m) => m.requestId === ready.id) && !choir.friendSeeded) {
+        if (seedFriend && ready && !choir.members.some((m) => m.requestId === ready.id) && !choir.friendSeeded) {
             choir.friendSeeded = true;
             choir.members.push({ id: 'Mb7Ben', requestId: ready.id, name: 'Ben', parts: ['soprano'], status: { ready: 'ready', making: 'on_its_way', minutes: 'waiting_minutes' }[seedFriend] ?? 'ready', showName: false, joinedAt: now, seen: false, minutesShort: seedFriend === 'minutes' ? 3 : null }); // i18n-ignore: the mock's names
         }
         const seedJoined = tabStorage.get('stackapella.mockChoirJoined');
-        if (together && seedJoined && !choir.joined.length && !choir.joinedSeeded) {
+        if (seedJoined && !choir.joined.length && !choir.joinedSeeded) {
             choir.joinedSeeded = true;
             const owners = shown.requests[0];
             choir.joined.push({ member: { id: 'Mb3You', requestId: 'RqAnn1', name: null, parts: ['soprano', 'alto'], status: seedJoined === 'making' ? 'on_its_way' : 'ready', showName: false, joinedAt: now, seen: false }, song: { ...owners, id: 'RqAnn1', owner: 'Ann', canDownload: as === 'plus', parts: owners.parts.map((p) => local({ ...p, id: `${p.id}-ann` })), voices: owners.parts.map((p) => ({ partKey: p.partKey, whose: ['soprano', 'alto'].includes(p.partKey) ? 'you' : 'owner', name: ['soprano', 'alto'].includes(p.partKey) ? null : 'Ann', memberId: null, status: ['soprano', 'alto'].includes(p.partKey) && seedJoined === 'making' ? 'on_its_way' : 'ready', fit: null })) } }); // i18n-ignore: the mock's names
         }
         // Each request's voices, friends and invite, as the server reckons them (the soprano sits high for this mock owner).
         const dress = (r) => {
-            if (!together) return Object.assign(r, { voices: [], members: [], invite: null });
             const friends = choir.members.filter((m) => m.requestId === r.id);
+            r.left ??= [];
+            // Off: no invites, but memberships still show (leaving and removing always work).
+            if (!together && !friends.length) return Object.assign(r, { voices: [], members: [], invite: null });
             const keys = (r.parts ?? []).map((p) => p.partKey);
             r.members = friends;
             r.voices = keys.map((partKey) => {
@@ -404,7 +410,7 @@ async function stateful(operation, params, body, cases, query = {}) {
             const cap = Math.min(free ? 1 : 7, Math.max(0, keys.length - 1));
             const highs = r.voices.filter((v) => v.fit === 'high' && v.whose === 'you').map((v) => v.partKey);
             const reason = r.status !== 'ready' ? null : friends.length >= keys.length - 1 ? 'full' : free && friends.length >= 1 ? 'plus_required' : !highs.length ? 'all_fit' : null;
-            r.invite = r.status === 'ready' ? { canInvite: !reason, parts: highs, left: Math.max(0, cap - friends.length), reason } : null;
+            r.invite = together && r.status === 'ready' ? { canInvite: !reason, parts: highs, left: Math.max(0, cap - friends.length), reason } : null;
             return r;
         };
         if (operation === 'ownChoir.invites.create') {
@@ -450,6 +456,7 @@ async function stateful(operation, params, body, cases, query = {}) {
                 if (joined) joined.member.status = 'on_its_way';
                 return save(respond(200, { data: joined?.member ?? mine }));
             }
+            if (mine) choir.requests.find((r) => r.id === mine.requestId)?.left?.push({ name: mine.name, at: now, seen: false });
             choir.members = choir.members.filter((m) => m !== mine);
             choir.joined = choir.joined.filter((j) => j !== joined);
             return save(respond(204, null));
@@ -515,6 +522,7 @@ async function stateful(operation, params, body, cases, query = {}) {
         }
         if (operation === 'ownChoir.requests.seen') {
             request.seen = true;
+            for (const gone of request.left ?? []) gone.seen = true;
             return save(respond(200, { data: request }));
         }
         if (operation === 'ownChoir.requests.delete') {

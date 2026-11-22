@@ -18,7 +18,8 @@ changed: 2026-11-22 (3, unaccepted: term 6, your voice in songs you join, for a 
 - The songs are private to you and always marked as AI. Delete one, or everything, at any time in the app.
 - A friend can invite you to sing in their song, free. An AI voice like yours then sings only the parts named in the
   invite, in that one song; they can play, share and download it, never use your voice anywhere else, and you can leave
-  any time (copies already downloaded can't be taken back).
+  any time: your parts are deleted from the song and from any page it's shared on (copies already downloaded can't be
+  taken back).
 - You must be 18 or over.
 
 ## The terms
@@ -47,12 +48,13 @@ your voice reference, at any time in the app.
 
 6. **Your voice in songs you join.** Someone can invite you to sing in a song they made this way. If you agree, your
 30 seconds of singing make an AI voice like yours, which sings only the parts named in your invite, only in that one
-song. The song's owner can play, share and download it with your parts in it, but never gets your recording or your
-voice to use anywhere else, and nobody else can use a voice like yours. Joining is free for you: it counts against the
+song. The song's owner can play, share and download it with your parts in it (a download holds the parts as they are that
+day), but never gets your recording or your voice to use anywhere else, and nobody else can use a voice like yours. Joining is free for you: it counts against the
 owner's limits, never yours. We keep the voice made from your singing privately, for your own songs, as in term 3;
 delete it any time. You see the song's words before you agree, and a song's words never change once it's made. You can
-leave the song at any time: your parts are deleted from it, and the owner's own parts play again. Copies already
-downloaded can't be taken back. When the owner shares the song, your name shows only if you chose to show it;
+leave the song at any time: your parts are deleted from the song and from any page it's shared on (the owner can
+share it again, with their own parts), and the owner's own parts play again. Copies already downloaded can't be taken
+back. When the owner shares the song, your name shows only if you chose to show it;
 otherwise it says a friend sang. Your clip, and the parts made from it, are handled as in term 8.
 
 7. **Limits.** Your first song is free, once per email address. Plus includes 60 minutes of AI singing in each month

@@ -33,7 +33,7 @@ const FAILURES = { clip_unusable: tk('ownChoir.failed.clip_unusable'), bad_clip:
 export const OwnChoirView = {
     components: { Agreement, AppScreen, Icon, Notice, PlusMoment, TurnstileBox },
     props: { id: { type: String, required: true } },
-    data: () => ({ plusFriends: false, sentInvite: null, copied: false, plusFor: false, emailSent: false, sending: false, checkToken: null, checkRound: 0, state: 'loading', offReason: 'unavailable', canStart: false, template: null, terms: null, busy: false, playing: false, loadingTrack: false, hum: null, own: false }),
+    data: () => ({ leftNames: [], plusFriends: false, sentInvite: null, copied: false, plusFor: false, emailSent: false, sending: false, checkToken: null, checkRound: 0, state: 'loading', offReason: 'unavailable', canStart: false, template: null, terms: null, busy: false, playing: false, loadingTrack: false, hum: null, own: false }),
     setup: () => ({ ownChoir, account, isOpen, templatePartName, savedVoice, formatNumber, navigate }),
     computed: {
         /** Back here from the Plus page, once Plus is on. */
@@ -89,7 +89,10 @@ export const OwnChoirView = {
             return tooLong(this.template);
         },
         /** A choir with friends is on for this account. */
-        together: () => togetherOn(),
+        // On for the account, or friends already in this song: removing one must always work (the security review).
+        together() {
+            return togetherOn() || (this.request?.members ?? []).length > 0;
+        },
         game: () => gameSkin(),
         /** Who sings each part (the owner's view), their real takes from the choir project. */
         who() {
@@ -179,6 +182,7 @@ export const OwnChoirView = {
                 <!-- Ready: the finished track first (Hillel: "some people will just want a finished track"): play it here and
                      download it, labelled AI; learning a part is one quiet option, never the main button. -->
                 <template v-if="request?.status === 'ready'">
+                    <p v-for="name in leftNames" :key="name" class="card p-4 text-cream" role="status" data-choir-left>{{ t('ownChoir.together.friendLeft', { name, song }) }}</p>
                     <h1 class="text-3xl font-extrabold tracking-tight text-cream">{{ t('ownChoir.listen.title', { song }) }}</h1>
                     <div class="card space-y-4 p-5" data-choir-track>
                         <p class="text-sm text-muted" data-choir-label>{{ panelLabel }}</p>
@@ -391,6 +395,9 @@ export const OwnChoirView = {
                 return;
             }
             this.state = 'ready';
+            // A friend who left (or was removed) since: said once here, kept for this visit after it's marked seen.
+            this.leftNames = (this.request?.left ?? []).filter((l) => !l.seen).map((l) => l.name);
+            if (this.leftNames.length) markSeen(this.request);
             // Its notice goes once the ready song is here to hear (never a song still on its way).
             markSeen((ownChoir.data?.requests ?? []).find((r) => r.templateId === this.id && r.status === 'ready' && !r.seen));
         },
@@ -497,7 +504,8 @@ export const OwnChoirView = {
             const keys = member?.parts ?? [];
             const yes = await confirmAction({
                 title: t('ownChoir.together.remove.title', { name: friend.name, song: this.song }),
-                body: t('ownChoir.together.remove.body', { count: keys.length, name: friend.name, parts: partList(keys, this.template) }),
+                // Their parts go, and the owner's shares of the song come down with them (the security review).
+                body: t('ownChoir.together.remove.body', { count: keys.length, name: friend.name, parts: partList(keys, this.template) }) + ' ' + t('ownChoir.together.remove.shares'),
                 action: t('ownChoir.together.remove.action', { name: friend.name }),
             });
             if (!yes) return;

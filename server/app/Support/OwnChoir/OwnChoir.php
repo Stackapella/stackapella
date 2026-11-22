@@ -227,7 +227,8 @@ final class OwnChoir
 
         return [
             'freeLeft' => self::freeUsed($user) ? 0 : max(0, (int) config('own_choir.free_songs') - self::counted($user, byEmail: true)->count()),
-            'monthLeft' => $tier === 'comped' ? max(0, (int) config('own_choir.comped_songs') - (clone $window)->count()) : 0,
+            // Plus not paid for: a friend's parts on their song count as one of its songs too.
+            'monthLeft' => $tier === 'comped' ? max(0, (int) config('own_choir.comped_songs') - (clone $window)->count() - self::attempted($user)->where('bill_to_user_id', $user->id)->where($when, '>=', $since)->count()) : 0,
             'todayLeft' => max(0, (int) config('own_choir.daily') - self::attempted($user)->where('created_at', '>=', now()->subDay())->count()),
             'plus' => $tier !== 'free',
             'unit' => $tier === 'paid' ? 'minutes' : 'songs',
@@ -280,7 +281,8 @@ final class OwnChoir
     public static function attempted(User $user): Builder
     {
         // Their own songs, and friends' parts on their songs (charged to them: choir together).
-        return OwnChoirRequest::query()->where(fn (Builder $whose) => $whose->where(fn (Builder $own) => $own->where('user_id', $user->id)->whereNull('parent_request_id'))->orWhere('bill_to_user_id', $user->id))->where(fn (Builder $query) => $query
+        // (A friend's parts waiting for the minutes aren't spent yet: they count once released.)
+        return OwnChoirRequest::query()->where('held_for_minutes', false)->where(fn (Builder $whose) => $whose->where(fn (Builder $own) => $own->where('user_id', $user->id)->whereNull('parent_request_id'))->orWhere('bill_to_user_id', $user->id))->where(fn (Builder $query) => $query
             ->whereIn('status', [OwnChoirStatus::Queued->value, OwnChoirStatus::Rendering->value, OwnChoirStatus::Ready->value])
             ->orWhere('tries', '>', 0));
     }
@@ -355,8 +357,9 @@ final class OwnChoir
     public static function request(OwnChoirRequest $request, ?bool $plus = null, ?User $viewer = null): array
     {
         $viewer ??= $request->loadMissing('user')->user;
-        // Downloading a song is Plus's (Hillel, 2026-11-21), decided per song so a later rule needs no contract change.
-        $plus ??= app(Plans::class)->isPlus($request->loadMissing('user')->user);
+        // Downloading a song is Plus's (Hillel, 2026-11-21), decided per song so a later rule needs no contract change:
+        // the owner's, with their own Plus; never a friend's on a song they joined.
+        $plus = $viewer->id === $request->user_id && ($plus ?? self::tier($viewer) !== 'free');
         $ready = $request->status === OwnChoirStatus::Ready;
         // Only a deleted song outlives its version, and deleted songs are never shown.
         $version = $request->templateVersion ?? throw new \LogicException('A shown song has its version.');
@@ -377,6 +380,7 @@ final class OwnChoir
             'parts' => $ready ? array_values(ChoirTogether::activeParts($request)->map(static fn (OwnChoirPart $p): array => self::recording($p))->all()) : [],
             'voices' => ChoirTogether::voices($request, $viewer),
             'members' => ChoirTogether::members($request, $viewer),
+            'left' => ChoirTogether::left($request, $viewer),
             'invite' => ChoirTogether::inviteHint($request, $viewer),
         ];
     }

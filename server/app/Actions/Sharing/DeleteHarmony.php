@@ -39,6 +39,25 @@ final class DeleteHarmony
      * when they left it, or everywhere, when they deleted their account). The owner can share
      * again without them.
      */
+    /**
+     * A friend's parts left a choir song (choir together): every share of the owner's whose mix held them comes down,
+     * as a voice leaving a project takes its shares down. The owner can share again without them.
+     */
+    public function withFriend(int $memberId): void
+    {
+        foreach (Harmony::query()->whereNull('deleted_at')->whereJsonContains('own_voice_friends', ['member' => $memberId])->get() as $harmony) {
+            $this->handle($harmony);
+        }
+    }
+
+    /** A choir song gone: every share of a friend's that held its owner's parts comes down too. */
+    public function withOwnersParts(int $songId): void
+    {
+        foreach (Harmony::query()->whereNull('deleted_at')->whereJsonContains('own_voice_friends', ['song' => $songId])->get() as $harmony) {
+            $this->handle($harmony);
+        }
+    }
+
     public function withVoiceOf(int $singerId, ?int $projectId = null): void
     {
         $harmonies = Harmony::query()->whereNull('deleted_at')->whereJsonContains('singer_ids', $singerId)

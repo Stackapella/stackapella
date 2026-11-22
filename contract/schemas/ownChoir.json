@@ -196,7 +196,8 @@
                 "startsAfter",
                 "voices",
                 "members",
-                "invite"
+                "invite",
+                "left"
             ],
             "properties": {
                 "id": {
@@ -275,6 +276,32 @@
                         "$ref": "#/$defs/member"
                     },
                     "description": "The song's friends (the owner's view); [] on a song you joined, or with the switch off."
+                },
+                "left": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "name",
+                            "at",
+                            "seen"
+                        ],
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "at": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "seen": {
+                                "type": "boolean",
+                                "description": "Marked by the owner's requests.seen."
+                            }
+                        }
+                    },
+                    "description": "Friends who left this song (or were removed, or deleted their voice or account): their parts and the shares that held them are gone; the owner's notice until seen. The owner's view only; [] otherwise."
                 },
                 "invite": {
                     "type": [

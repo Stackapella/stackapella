@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Actions\OwnChoir;
 
 use App\Actions\Counts\RecordCounts;
+use App\Actions\Projects\Owned;
+use App\Actions\Sharing\DeleteHarmony;
 use App\Enums\OwnChoirStatus;
 use App\Exceptions\Refusal;
+use App\Models\AuditLog;
 use App\Models\OwnChoirInvite;
 use App\Models\OwnChoirMember;
 use App\Models\OwnChoirPart;
@@ -22,6 +25,7 @@ use App\Support\OwnChoir\OwnChoir;
 use App\Support\Storage\Uploads;
 use App\Support\Trust\TrustLevel;
 use App\Support\Usage\UploadBytes;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -92,7 +96,8 @@ final class ChoirTogether
             throw ValidationException::withMessages(['parts' => __('validation.choir_part')]);
         }
 
-        $token = Str::random(24);
+        // Long enough that error reports mask it (ScrubEvent masks 32 and up).
+        $token = Str::random(32);
         $invite = new OwnChoirInvite;
         $invite->forceFill(['own_choir_request_id' => $song->id, 'token_hash' => hash('sha256', $token), 'parts' => array_values(array_unique($named)), 'expires_at' => now()->addDays((int) config('own_choir.together.invite_days'))])->save();
         app(RecordCounts::class)->server('own_choir_invite_made', true, null);
@@ -129,6 +134,11 @@ final class ChoirTogether
         ['words' => $words, 'sha' => $sha] = self::words($song);
         app(RecordCounts::class)->server('own_choir_invite_opened', auth()->check(), null);
 
+        // A link that's no longer open names nothing: it may have gone round (the review).
+        if ($status !== 'open') {
+            return ['status' => $status, 'title' => null, 'templateId' => null, 'owner' => null, 'parts' => [], 'yourParts' => null, 'listen' => [], 'words' => null, 'wordsSha' => null, 'expiresAt' => $invite->expires_at->utc()->toIso8601ZuluString()];
+        }
+
         return [
             'status' => $status,
             'title' => (string) $song->templateVersion?->template?->title,
@@ -136,8 +146,8 @@ final class ChoirTogether
             'owner' => self::firstName($song->user),
             'parts' => array_values($invite->parts),
             // Exactly what this person's voice would sing, for their yes (null while it can't be told).
-            'yourParts' => $viewer === null || $status !== 'open' || $viewer->id === $song->user_id ? null : self::assignFor($invite, $viewer, $savedVoice ? null : $partKey),
-            'listen' => $status === 'open' ? array_values(self::activeParts($song)->map(static fn (OwnChoirPart $p): array => OwnChoir::recording($p))->all()) : [],
+            'yourParts' => $viewer === null || $viewer->id === $song->user_id ? null : self::assignFor($invite, $viewer, $savedVoice ? null : $partKey),
+            'listen' => array_values(self::activeParts($song)->map(static fn (OwnChoirPart $p): array => OwnChoir::recording($p))->all()),
             'words' => $words,
             'wordsSha' => $sha,
             'expiresAt' => $invite->expires_at->utc()->toIso8601ZuluString(),
@@ -165,7 +175,7 @@ final class ChoirTogether
             throw new Refusal(409, 'own_song');
         }
 
-        if (OwnChoirMember::query()->where('own_choir_request_id', $song->id)->where('user_id', $user->id)->exists()) {
+        if (OwnChoirMember::query()->where('own_choir_request_id', $song->id)->where('user_id', $user->id)->whereNull('left_at')->exists()) {
             throw new Refusal(409, 'already_member');
         }
 
@@ -214,12 +224,24 @@ final class ChoirTogether
         $clip = $data;
 
         return DB::transaction(function () use ($user, $song, $owner, $invite, $clip, $voice, $withClip, $sha, $ranges): array {
+            // The owner's account locked: their minutes and their friends are read and spent one join at a time.
+            Owned::lockAccount($owner);
             OwnChoirRequest::query()->whereKey($song->id)->lockForUpdate()->first();
             $locked = OwnChoirInvite::query()->whereKey($invite->id)->lockForUpdate()->first();
 
             if ($locked === null || $locked->status() !== 'open') {
                 throw new Refusal(409, 'invite_closed');
             }
+
+            // The cap, under the lock: a free song's one friend, Plus's 7, never more than the parts minus one.
+            ['limit' => $limit, 'withPlus' => $withPlus] = self::caps($song, $owner);
+
+            if (self::activeMembers($song)->count() >= $limit) {
+                throw $limit < $withPlus ? new Refusal(403, 'plus_required') : new Refusal(409, 'choir_full');
+            }
+
+            // Rejoining after leaving: the old row (kept as the record of their leaving) makes way.
+            OwnChoirMember::query()->where('own_choir_request_id', $song->id)->where('user_id', $user->id)->whereNotNull('left_at')->delete();
 
             // Read again under the song's lock: a friend who joined a moment ago took what they took.
             $parts = self::assignWith($locked, $user, $ranges);
@@ -230,9 +252,11 @@ final class ChoirTogether
             }
 
             $member = new OwnChoirMember;
-            $member->forceFill(['own_choir_request_id' => $song->id, 'user_id' => $user->id, 'parts' => $parts, 'consent_version' => OwnChoir::termsVersion(), 'words_sha' => $sha, 'show_name' => (bool) $clip['showName'], 'joined_at' => now()])->save();
+            $member->forceFill(['own_choir_request_id' => $song->id, 'user_id' => $user->id, 'name' => mb_substr(self::firstName($user), 0, 80), 'parts' => $parts, 'consent_version' => OwnChoir::termsVersion(), 'words_sha' => $sha, 'show_name' => (bool) $clip['showName'], 'joined_at' => now()])->save();
             $locked->forceFill(['used_at' => now(), 'used_by_member_id' => $member->id])->save();
             app(RecordCounts::class)->server('own_choir_joined', true, null);
+            // The record of their yes, kept after they leave: the terms' version, the words, the exact parts.
+            AuditLog::record('own_choir.member_joined', $user, null, after: ['song' => $song->sqid(), 'parts' => $parts, 'termsVersion' => OwnChoir::termsVersion(), 'wordsSha' => $sha, 'showName' => (bool) $clip['showName']]);
 
             if ($parts === []) {
                 return ['member' => $member, 'put' => null];
@@ -301,40 +325,72 @@ final class ChoirTogether
     /** ownChoir.members.delete: a friend leaves, or the owner removes them. */
     public function leave(User $user, OwnChoirMember $member): void
     {
-        self::ensureOn($user);
-
-        if ($member->user_id !== $user->id && $member->song->user_id !== $user->id) {
+        // Whatever the switch: a singer can always leave what they're in, and an owner remove them (the review).
+        if ($member->left_at !== null || ($member->user_id !== $user->id && $member->song->user_id !== $user->id)) {
             throw new Refusal(404, 'not_found');
         }
 
-        self::removeMember($member);
+        self::removeMember($member, $member->user_id === $user->id ? 'left' : 'removed', $user);
     }
 
-    /** Their renders in the song deleted (files and rows), the owner's playing again; the member gone. */
-    public static function removeMember(OwnChoirMember $member): void
+    /**
+     * Their part in the song ends: their renders' files go (the rows stay, emptied, still counting toward the owner's
+     * minutes), every share of the owner's that held their parts comes down, and they're kept as having left (the
+     * owner's notice, and the record of it). The owner's own render plays again.
+     */
+    public static function removeMember(OwnChoirMember $member, string $reason, ?User $by = null): void
     {
         foreach (OwnChoirRequest::query()->where('own_choir_member_id', $member->id)->get() as $job) {
             OwnChoirRequests::purgeJob($job);
         }
 
-        OwnChoirMember::query()->whereKey($member->id)->delete();
+        app(DeleteHarmony::class)->withFriend($member->id);
+        $member->forceFill(['left_at' => now(), 'left_reason' => $reason])->save();
+        AuditLog::record('own_choir.member_'.($reason === 'removed' ? 'removed' : 'left'), $by, null, after: ['song' => Ids::encode($member->own_choir_request_id), 'member' => $member->sqid(), 'parts' => $member->parts, 'reason' => $reason]);
     }
 
-    /** Everyone's part in a song that's going (the owner deleted it, or their account). */
+    /**
+     * A song's friends still in it.
+     *
+     * @return Builder<OwnChoirMember>
+     */
+    public static function activeMembers(OwnChoirRequest $song): Builder
+    {
+        return OwnChoirMember::query()->where('own_choir_request_id', $song->id)->whereNull('left_at');
+    }
+
+    /**
+     * How many friends a song may have: a free song's one, Plus's 7, never more than its parts minus one.
+     *
+     * @return array{limit: int, withPlus: int}
+     */
+    private static function caps(OwnChoirRequest $song, User $owner): array
+    {
+        $parts = count(self::partNotes($song)) - 1;
+        $free = OwnChoir::tier($owner) === 'free';
+
+        return ['limit' => min($parts, (int) config($free ? 'own_choir.together.free_friends' : 'own_choir.together.plus_friends')), 'withPlus' => min($parts, (int) config('own_choir.together.plus_friends'))];
+    }
+
+    /**
+     * Everyone's part in a song that's going (the owner deleted it, or their account): the friends' parts, and every
+     * share of a friend's that held the owner's parts (labelled as theirs).
+     */
     public static function songGone(OwnChoirRequest $song): void
     {
-        foreach (OwnChoirMember::query()->where('own_choir_request_id', $song->id)->get() as $member) {
-            self::removeMember($member);
+        foreach (self::activeMembers($song)->get() as $member) {
+            self::removeMember($member, 'song_deleted');
         }
 
+        app(DeleteHarmony::class)->withOwnersParts($song->id);
         OwnChoirInvite::query()->where('own_choir_request_id', $song->id)->delete();
     }
 
     /** A singer's part in every song they joined (their voice deleted, everything forgotten, the account gone). */
     public static function leaveAll(User $user): void
     {
-        foreach (OwnChoirMember::query()->where('user_id', $user->id)->get() as $member) {
-            self::removeMember($member);
+        foreach (OwnChoirMember::query()->where('user_id', $user->id)->whereNull('left_at')->get() as $member) {
+            self::removeMember($member, 'voice_deleted', $user);
         }
     }
 
@@ -355,12 +411,19 @@ final class ChoirTogether
         return $released;
     }
 
-    /** The owner has the part-minutes for a friend's parts: paid Plus by its minutes; the free song and Plus not paid for include them. */
+    /**
+     * The owner can pay for a friend's parts: paid Plus by its part-minutes, Plus not paid for by a song left this month
+     * (a friend's parts are one); the free song includes its one friend (the cap keeps it to one).
+     */
     public static function ownerCanPay(User $owner, float $minutes): bool
     {
         $quota = OwnChoir::quota($owner);
 
-        return $quota['unit'] !== 'minutes' || ($quota['minutesLeft'] ?? 0.0) >= $minutes;
+        return match (true) {
+            $quota['unit'] === 'minutes' => ($quota['minutesLeft'] ?? 0.0) >= $minutes,
+            $quota['plus'] => $quota['monthLeft'] > 0,
+            default => true,
+        };
     }
 
     /**
@@ -390,14 +453,15 @@ final class ChoirTogether
      */
     public static function voices(OwnChoirRequest $song, User $viewer): array
     {
-        if (! self::on($viewer) || $song->status !== OwnChoirStatus::Ready) {
+        // With the switch on, or whenever friends are in it (a singer can always see what they're in).
+        if ($song->status !== OwnChoirStatus::Ready || (! self::on($viewer) && ! self::activeMembers($song)->exists())) {
             return [];
         }
 
         $notes = self::partNotes($song);
         $owner = $song->user_id === $viewer->id;
         $ownerRange = $owner ? self::ownerRange($song, $notes) : null;
-        $members = OwnChoirMember::query()->with(['user', 'job.parts'])->where('own_choir_request_id', $song->id)->get();
+        $members = self::activeMembers($song)->with(['user', 'job.parts'])->get();
         $voices = [];
 
         foreach ($notes as $key => $partNotes) {
@@ -424,11 +488,26 @@ final class ChoirTogether
      */
     public static function members(OwnChoirRequest $song, User $viewer): array
     {
-        if (! self::on($viewer) || $song->user_id !== $viewer->id) {
+        if ($song->user_id !== $viewer->id) {
             return [];
         }
 
-        return array_values(OwnChoirMember::query()->with(['user', 'job'])->where('own_choir_request_id', $song->id)->orderBy('id')->get()->map(static fn (OwnChoirMember $m): array => self::member($m))->all());
+        return array_values(self::activeMembers($song)->with(['user', 'job', 'song.user'])->orderBy('id')->get()->map(static fn (OwnChoirMember $m): array => self::member($m))->all());
+    }
+
+    /**
+     * Friends who left (or were removed, or deleted their voice or account): the owner's notice until seen.
+     *
+     * @return list<array{name: string, at: string, seen: bool}>
+     */
+    public static function left(OwnChoirRequest $song, User $viewer): array
+    {
+        if ($song->user_id !== $viewer->id) {
+            return [];
+        }
+
+        return array_values(OwnChoirMember::query()->where('own_choir_request_id', $song->id)->whereNotNull('left_at')->orderBy('left_at')->get()
+            ->map(static fn (OwnChoirMember $m): array => ['name' => $m->name, 'at' => $m->left_at?->utc()->toIso8601ZuluString() ?? '', 'seen' => $m->owner_seen_at !== null])->all());
     }
 
     /**
@@ -441,7 +520,7 @@ final class ChoirTogether
         return [
             'id' => $member->sqid(),
             'requestId' => Ids::encode($member->own_choir_request_id),
-            'name' => self::firstName($member->user),
+            'name' => $member->name !== '' ? $member->name : self::firstName($member->user),
             'parts' => array_values($member->parts),
             'status' => match (true) {
                 $member->parts === [] => 'ready',
@@ -476,7 +555,8 @@ final class ChoirTogether
         $free = OwnChoir::tier($owner) === 'free';
         $limit = min(count($notes) - 1, (int) config($free ? 'own_choir.together.free_friends' : 'own_choir.together.plus_friends'));
         $withPlus = min(count($notes) - 1, (int) config('own_choir.together.plus_friends'));
-        $have = OwnChoirMember::query()->where('own_choir_request_id', $song->id)->count();
+        // Friends in it, and invites still open: each open link is a place a friend may take.
+        $have = self::activeMembers($song)->count() + OwnChoirInvite::query()->where('own_choir_request_id', $song->id)->whereNull('used_at')->whereNull('revoked_at')->where('expires_at', '>', now())->count();
         $left = max(0, $limit - $have);
         $reason = match (true) {
             $left > 0 && $leaning === [] => 'all_fit',
@@ -495,11 +575,8 @@ final class ChoirTogether
      */
     public static function joined(User $user): array
     {
-        if (! self::on($user)) {
-            return [];
-        }
-
-        return array_values(OwnChoirMember::query()->with(['user', 'job', 'song.templateVersion.template', 'song.user'])->where('user_id', $user->id)->latest('joined_at')->get()
+        // Whatever the switch: a singer can always see the choirs they're in.
+        return array_values(OwnChoirMember::query()->with(['user', 'job', 'song.templateVersion.template', 'song.user'])->where('user_id', $user->id)->whereNull('left_at')->latest('joined_at')->get()
             ->filter(static fn (OwnChoirMember $m): bool => $m->song->status !== OwnChoirStatus::Deleted)
             ->map(static fn (OwnChoirMember $m): array => ['member' => self::member($m), 'song' => OwnChoir::request($m->song, false, $user)])->all());
     }
@@ -587,7 +664,7 @@ final class ChoirTogether
         $notes = self::partNotes($song);
         [$range, $owner] = [$ranges['friend'], $ranges['owner']];
 
-        $taken = OwnChoirMember::query()->where('own_choir_request_id', $song->id)->where('user_id', '!=', $user->id)->pluck('parts')->flatten()->map(static fn (mixed $p): string => (string) $p)->all();
+        $taken = self::activeMembers($song)->where('user_id', '!=', $user->id)->pluck('parts')->flatten()->map(static fn (mixed $p): string => (string) $p)->all();
         $taken = array_values($taken);
         $named = array_intersect_key($notes, array_flip($invite->parts));
 

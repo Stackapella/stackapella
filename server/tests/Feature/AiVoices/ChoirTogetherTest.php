@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\AiVoices;
 
+use App\Actions\OwnChoir\ChoirTogether;
 use App\Actions\Users\DeleteAccount;
 use App\Enums\OwnChoirStatus;
+use App\Models\AuditLog;
 use App\Models\Harmony;
 use App\Models\OwnChoirConsent;
 use App\Models\OwnChoirInvite;
@@ -16,6 +18,7 @@ use App\Models\OwnChoirVoice;
 use App\Models\Template;
 use App\Models\User;
 use App\Models\UserLearning;
+use App\Support\Errors\ScrubEvent;
 use App\Support\Flags;
 use App\Support\Ids;
 use App\Support\Legal\LegalText;
@@ -182,12 +185,19 @@ final class ChoirTogetherTest extends TestCase
         $member = OwnChoirMember::query()->sole();
         $files = OwnChoirPart::query()->where('own_choir_request_id', $job->id)->pluck('media_key')->all();
         $this->assertMatchesContract($this->deleteJson("/api/own-choir/members/{$member->sqid()}"), 'ownChoir.members.delete', 204);
-        $this->assertSame(0, OwnChoirRequest::query()->where('parent_request_id', $this->song->id)->count());
+        // The job's row stays, emptied, still counting toward Ann's minutes; Ben stays on record as having left.
+        $this->assertSame(OwnChoirStatus::Deleted, $job->refresh()->status);
+        $this->assertNotNull($member->refresh()->left_at);
+        $this->assertTrue(AuditLog::query()->where('action', 'own_choir.member_left')->exists());
         foreach ($files as $file) {
             Storage::disk('private')->assertMissing((string) $file);
         }
         $this->as($this->ann);
-        $this->assertStringContainsString('ann-soprano-listen', (string) collect($this->getJson('/api/own-choir')->json('data.requests.0.parts'))->firstWhere('partKey', 'soprano')['url']);
+        $after = $this->getJson('/api/own-choir');
+        $this->assertStringContainsString('ann-soprano-listen', (string) collect($after->json('data.requests.0.parts'))->firstWhere('partKey', 'soprano')['url']);
+        $after->assertJsonPath('data.requests.0.left.0.name', 'Ben')->assertJsonPath('data.requests.0.left.0.seen', false)->assertJsonPath('data.requests.0.members', []);
+        $this->postJson("/api/own-choir/requests/{$this->song->sqid()}/seen")->assertOk();
+        $this->getJson('/api/own-choir')->assertJsonPath('data.requests.0.left.0.seen', true);
         $this->assertMatchesContract($this->deleteJson("/api/own-choir/members/{$member->sqid()}"), 'ownChoir.members.delete', 404);
     }
 
@@ -302,13 +312,14 @@ final class ChoirTogetherTest extends TestCase
         // Ben deletes his voice: his part in Ann's song goes.
         $join($this->ben);
         $this->deleteJson('/api/own-choir/voice')->assertNoContent();
-        $this->assertSame(0, OwnChoirMember::query()->count());
+        $this->assertSame(0, OwnChoirMember::query()->whereNull('left_at')->count());
 
         // Ben's account goes: the same; Ann's song stays.
         OwnChoirVoice::factory()->create(['user_id' => $this->ben->id]);
         $join($this->ben);
         app(DeleteAccount::class)->handle($this->ben->fresh() ?? $this->ben, '203.0.113.7');
-        $this->assertSame(0, OwnChoirMember::query()->count());
+        $this->assertSame(0, OwnChoirMember::query()->whereNull('left_at')->count());
+        $this->assertSame(0, OwnChoirMember::query()->whereNotNull('user_id')->count(), 'Nothing ties a row to his account now; Ann\'s notice keeps his first name.');
         $this->assertSame(OwnChoirStatus::Ready, $this->song->refresh()->status);
 
         // Ann deletes her song: every friend's part goes with it.
@@ -318,9 +329,9 @@ final class ChoirTogetherTest extends TestCase
         $join($cara);
         $this->as($this->ann);
         $this->deleteJson("/api/own-choir/requests/{$this->song->sqid()}")->assertNoContent();
-        $this->assertSame(0, OwnChoirMember::query()->count());
+        $this->assertSame(0, OwnChoirMember::query()->whereNull('left_at')->count());
         $this->assertSame(0, OwnChoirInvite::query()->count());
-        $this->assertSame(0, OwnChoirRequest::query()->whereNotNull('parent_request_id')->count());
+        $this->assertSame(0, OwnChoirRequest::query()->whereNotNull('parent_request_id')->where('status', '!=', OwnChoirStatus::Deleted->value)->count());
     }
 
     public function test_with_the_switch_off_nothing_changes(): void
@@ -435,5 +446,134 @@ final class ChoirTogetherTest extends TestCase
         $token = $this->invite();
         $this->as($this->ben);
         $this->join($token, ['showName' => false, 'useSavedVoice' => true])->assertForbidden()->assertJsonPath('code', 'consent_required');
+    }
+
+    /** Ann shares her song with Ben's parts in it. */
+    private function shareAnns(): Harmony
+    {
+        $this->as($this->ann);
+        $project = (string) Str::uuid();
+        $this->saveProject($project, 0, ['settings' => ['choir' => ['requestId' => $this->song->sqid()]]])->assertOk();
+        $shared = $this->startHarmony($project, Wav::stereo(2.0))->assertCreated();
+
+        return Harmony::query()->where('public_id', (string) $shared->json('data.id'))->firstOrFail();
+    }
+
+    public function test_a_friend_leaving_takes_down_the_shares_that_held_their_parts_and_the_owners_download_loses_them(): void
+    {
+        $token = $this->invite();
+        $this->as($this->ben);
+        $this->join($token, ['showName' => true, 'useSavedVoice' => true])->assertCreated();
+        $job = $this->render();
+        $share = $this->shareAnns();
+        $this->assertSame('Ben', $share->own_voice_friends[0]['name'] ?? null);
+
+        // Ann's download holds Ben's soprano while he's in it.
+        $this->ann->forceFill(['store_plus_until' => now()->addDays(10)])->save();
+        $this->as($this->ann);
+        $benSoprano = OwnChoirPart::query()->where('own_choir_request_id', $job->id)->where('part_key', 'soprano')->sole();
+        $this->assertStringContainsString(basename((string) $benSoprano->media_key), (string) collect($this->getJson("/api/own-choir/requests/{$this->song->sqid()}/download")->json('data.parts'))->firstWhere('partKey', 'soprano')['url']);
+        $spent = OwnChoir::quota($this->ann)['minutesLeft'];
+
+        $this->as($this->ben);
+        $this->deleteJson('/api/own-choir/members/'.OwnChoirMember::query()->sole()->sqid())->assertNoContent();
+
+        $this->assertNotNull($share->refresh()->deleted_at, 'The share that held his voice is down.');
+        $this->as($this->ann);
+        $this->assertStringNotContainsString(basename((string) $benSoprano->media_key), (string) json_encode($this->getJson("/api/own-choir/requests/{$this->song->sqid()}/download")->json('data.parts')));
+        $this->assertSame($spent, OwnChoir::quota($this->ann)['minutesLeft'], 'What his parts cost still counts.');
+    }
+
+    public function test_a_friends_share_of_the_song_labels_the_owners_parts_as_hers(): void
+    {
+        $token = $this->invite();
+        $this->as($this->ben);
+        $this->join($token, ['showName' => false, 'useSavedVoice' => true])->assertCreated();
+        $this->render();
+
+        // Ben's Learn copy names Ann's song.
+        $this->as($this->ben);
+        $project = (string) Str::uuid();
+        $this->saveProject($project, 0, ['settings' => ['choir' => ['requestId' => $this->song->sqid()]]])->assertOk();
+        $shared = $this->startHarmony($project, Wav::stereo(2.0))->assertCreated();
+        $harmony = Harmony::query()->where('public_id', (string) $shared->json('data.id'))->firstOrFail();
+
+        $this->assertContains('Soprano', (array) $harmony->own_voice_parts, 'His own parts are his voice.');
+        $anns = collect($harmony->own_voice_friends)->firstWhere('part', 'Bass');
+        $this->assertSame(['Ann', $this->song->id], [$anns['name'] ?? null, $anns['song'] ?? null]);
+
+        // Ann deletes her song: his share holding her voice comes down.
+        $this->as($this->ann);
+        $this->deleteJson("/api/own-choir/requests/{$this->song->sqid()}")->assertNoContent();
+        $this->assertNotNull($harmony->refresh()->deleted_at);
+    }
+
+    public function test_the_caps_hold_under_the_lock_and_count_open_invites(): void
+    {
+        $this->ann->forceFill(['store_plus_until' => null])->save();
+        $token = $this->invite();
+        // A free song's one place is that open invite: no second.
+        $this->as($this->ann);
+        $this->postJson("/api/own-choir/requests/{$this->song->sqid()}/invites")->assertForbidden()->assertJsonPath('code', 'plus_required');
+
+        // Someone took the place another way: the open link's accept is refused, not a second friend.
+        OwnChoirMember::factory()->create(['own_choir_request_id' => $this->song->id, 'user_id' => $this->singer('Cara')->id, 'parts' => []]);
+        $this->as($this->ben);
+        $this->assertMatchesContract($this->join($token, ['showName' => false, 'useSavedVoice' => true]), 'ownChoir.invites.accept', 403);
+    }
+
+    public function test_plus_not_paid_for_waits_without_a_song_left_and_held_parts_count_once(): void
+    {
+        $this->ann->forceFill(['store_plus_until' => null, 'plan' => 'plus'])->save();
+        config(['own_choir.comped_songs' => 1]);
+        $token = $this->invite();
+        $this->as($this->ben);
+        $this->join($token, ['showName' => false, 'useSavedVoice' => true])->assertCreated()->assertJsonPath('data.status', 'waiting_minutes');
+
+        // Paid Plus: a held job costs nothing until released, then once.
+        $this->ann->forceFill(['plan' => 'free', 'store_plus_until' => now()->addDays(10)])->save();
+        config(['own_choir.plus_minutes' => 60]);
+        $job = OwnChoirRequest::query()->whereNotNull('parent_request_id')->sole();
+        $before = OwnChoir::quota($this->ann->fresh() ?? $this->ann)['minutesLeft'];
+        $this->assertSame(60.0, $before, 'Held: not spent yet.');
+        ChoirTogether::release();
+        $this->assertEqualsWithDelta(60.0 - $job->part_minutes, OwnChoir::quota($this->ann->fresh() ?? $this->ann)['minutesLeft'], 0.05);
+    }
+
+    public function test_a_closed_link_names_nothing_and_the_way_out_works_with_the_switch_off(): void
+    {
+        $token = $this->invite();
+        $this->as($this->ben);
+        $this->join($token, ['showName' => false, 'useSavedVoice' => true])->assertCreated();
+        $closed = $this->getJson("/api/own-choir/join/{$token}")->assertOk();
+        $this->assertMatchesContract($closed, 'ownChoir.invites.show', 200);
+        $closed->assertJsonPath('data.status', 'used')->assertJsonPath('data.title', null)->assertJsonPath('data.owner', null)->assertJsonPath('data.parts', [])->assertJsonPath('data.words', null);
+
+        app(Flags::class)->set('own_choir_together', 'off', null, 'test');
+        $this->getJson('/api/own-choir')->assertJsonPath('data.joined.0.song.id', $this->song->sqid());
+        $this->as($this->ann);
+        $this->getJson('/api/own-choir')->assertJsonPath('data.requests.0.members.0.name', 'Ben')->assertJsonPath('data.requests.0.invite', null);
+        $this->as($this->ben);
+        $this->deleteJson('/api/own-choir/members/'.OwnChoirMember::query()->sole()->sqid())->assertNoContent();
+    }
+
+    public function test_an_invite_token_never_reaches_an_error_report(): void
+    {
+        $this->assertSame('GET /choir/join/[token] and /api/own-choir/join/[token]', ScrubEvent::mask('GET /choir/join/'.str_repeat('a', 24).' and /api/own-choir/join/'.str_repeat('B', 32)));
+        $token = $this->invite();
+        $this->assertSame(32, strlen($token));
+    }
+
+    public function test_a_friends_name_on_a_shared_page_passes_the_same_filters_as_anyones(): void
+    {
+        $token = $this->invite();
+        $this->ben->forceFill(['hide_profile' => true])->save();
+        $this->as($this->ben);
+        $this->join($token, ['showName' => true, 'useSavedVoice' => true])->assertCreated();
+        $this->render();
+
+        $friends = (array) $this->shareAnns()->own_voice_friends;
+        $this->assertArrayHasKey('name', $friends[0]);
+        $this->assertNull($friends[0]['name'], 'A hidden profile is never named.');
     }
 }

@@ -7740,7 +7740,8 @@ The invite as the friend opening it sees it, signed in or not: the song, the own
 and `yourParts`, exactly the ones your voice would sing (`?useSavedVoice=1`, or `?partKey=` for the part you'll sing
 along to, when your range isn't measured),
 the song as it is (its listening copy, 2 hours) and, for the owner's own song, its words with `wordsSha`. A used,
-expired or revoked link answers its `status` with nothing else to hear. `404 not_found`: no such link (or the switch is
+expired or revoked link answers only its `status` and `expiresAt` (`title`, `templateId` and `owner` null, nothing
+else), so a link that went round tells nobody whose song it was. `404 not_found`: no such link (or the switch is
 off for its owner). Counts `own_choir_invite_opened`. **Request:** none.
 
 | Status | Code | Schema | Example |
@@ -7754,7 +7755,8 @@ The friend joins, signed in, with the own-choir terms accepted (`403 consent_req
 18 or over (`403 adult_required`), a confirmed email (`403 email_unverified`). **Request:** `{ "parts": ["soprano",
 "alto"], "showName": false, "wordsSha": "<from show, for an own song>", "useSavedVoice": true }`, `parts` the exact
 `yourParts` the friend saw and agreed to (`409 parts_changed` when they're no longer what their voice would sing:
-show again), or a new clip's fields as `requests.create` takes
+show again; `403 plus_required` or `409 choir_full` when the song's friends are full by then, checked under the owner's
+lock), or a new clip's fields as `requests.create` takes
 them (`partKey`, the part they sang along to; `offsetFrames`, `sampleRate`, `frames`, `bytes`, `sha256`), answering the
 member and a presigned upload ("Uploads"), then `ownChoir.members.complete`. `409 invite_closed` (used, expired or
 revoked); `409 own_song` (the owner's own link); `409 already_member`; `409 voice_required` (`useSavedVoice` with no
@@ -7769,6 +7771,7 @@ ever shrink (a friend leaving or a part going), never grow, without a new yes.
 | 403 | `consent_required` | `error.json` | `ownChoir.invites.accept.consent_required.json` |
 | 403 | `adult_required` | `error.json` | `ownChoir.invites.accept.adult_required.json` |
 | 403 | `email_unverified` | `error.json` | `ownChoir.invites.accept.email_unverified.json` |
+| 403 | `plus_required` | `error.json` | `ownChoir.invites.accept.plus_required.json` |
 | 404 | `not_found` | `error.json` | `ownChoir.invites.accept.not_found.json` |
 | 409 | `invite_closed` | `error.json` | `ownChoir.invites.accept.invite_closed.json` |
 | 409 | `own_song` | `error.json` | `ownChoir.invites.accept.own_song.json` |
@@ -7776,6 +7779,7 @@ ever shrink (a friend leaving or a part going), never grow, without a new yes.
 | 409 | `voice_required` | `error.json` | `ownChoir.invites.accept.voice_required.json` |
 | 409 | `words_changed` | `error.json` | `ownChoir.invites.accept.words_changed.json` |
 | 409 | `parts_changed` | `error.json` | `ownChoir.invites.accept.parts_changed.json` |
+| 409 | `choir_full` | `error.json` | `ownChoir.invites.accept.choir_full.json` |
 | 422 | `validation_failed` | `error.json` | `ownChoir.invites.accept.validation_failed.json` |
 | 429 | `rate_limited` | `error.json` | `ownChoir.invites.accept.rate_limited.json` |
 
@@ -7794,7 +7798,9 @@ The friend's clip is uploaded: checked as a song's clip is, then their parts are
 #### `ownChoir.members.delete`
 
 A friend leaves, or the owner removes them: their renders in this song are deleted and the owner's play again (no
-render). Their saved voice stays theirs. **Request:** none.
+render), and every share of the owner's that held their parts is taken down (the owner's `left` notice says to share
+it again). Their saved voice stays theirs. Works whatever the switch, as does listing `joined` and `members`: a singer
+can always see and leave what they're in. **Request:** none.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|

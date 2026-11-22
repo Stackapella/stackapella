@@ -469,6 +469,11 @@ export const StudioView = {
             const heard = (p) => hasTake(p) || (this.project?.choir && this.guideVoices[p.id]?.kind === 'real' && this.guideVoices[p.id].choir);
             return this.parts.filter(heard).map((p) => ({ id: p.id, name: this.nameOf(p), color: paint(p.color) }));
         },
+        /** This project is a Learn copy of a song someone else owns (a song they sing in, not their own). */
+        choirOfSomeoneElse() {
+            const id = this.project?.choir?.requestId;
+            return !!id && (ownChoir.data?.joined ?? []).some((j) => j.song?.id === id) && !(ownChoir.data?.requests ?? []).some((r) => r.id === id);
+        },
         /** The parts a practice track can be made for. */
         exportParts() {
             return this.parts.map((p) => ({ id: p.id, name: this.nameOf(p), muted: !!p.muted, sampleRate: hasTake(p) ? p.sampleRate : null }));
@@ -601,8 +606,9 @@ export const StudioView = {
         },
         /** "Alto: Sarah K." for each real voice playing, and "Tenor: AI voice" for an AI one, for the export's credits. */
         voiceCredits() {
-            // Only voices in the mix: a muted (or not soloed) part isn't heard, so isn't credited.
-            const heard = this.parts.filter((p) => !hasTake(p) && this.isAudible(p) && this.guideVoices[p.id]?.kind === 'real');
+            // Only voices in the mix: a muted (or not soloed) part isn't heard, so isn't credited (nor, in a Learn copy of a
+            // song they sing in, the owner's parts the export leaves out).
+            const heard = this.parts.filter((p) => !hasTake(p) && this.isAudible(p) && this.guideVoices[p.id]?.kind === 'real' && !(this.choirOfSomeoneElse && this.guideVoices[p.id].choir));
             const credit = (p) => {
                 const voice = this.guideVoices[p.id];
                 // An AI voice based on a credited singer names them ("Alto: AI voice based on Ada E.'s singing, with permission").
@@ -619,13 +625,16 @@ export const StudioView = {
         },
         /** This choir project's song while a part made from the singer's voice is in the mix; else null. */
         choirRequest() {
-            if (!this.project?.choir) return null;
+            // A Learn copy of a song they sing in is never downloaded as a choir: its export leaves the owner's parts out.
+            if (!this.project?.choir || this.choirOfSomeoneElse) return null;
             if (!this.parts.some((p) => !hasTake(p) && this.guideVoices[p.id]?.kind === 'real' && this.guideVoices[p.id].choir)) return null;
-            return ownChoir.data?.requests?.find((r) => r.id === this.project.choir.requestId) ?? { id: this.project.choir.requestId, canDownload: false };
+            // Their own song, or one they sing in (its canDownload is theirs, by their own plan); unknown counts as not.
+            const id = this.project.choir.requestId;
+            return ownChoir.data?.requests?.find((r) => r.id === id) ?? ownChoir.data?.joined?.find((j) => j.song?.id === id)?.song ?? { id, canDownload: false };
         },
         /** An AI voice sings in the mix as heard (js/ai-voices.js): its credits and its file's name say so. */
         aiInMix() {
-            return this.parts.some((p) => !hasTake(p) && this.isAudible(p) && this.guideVoices[p.id]?.kind === 'real' && this.guideVoices[p.id].ai);
+            return this.parts.some((p) => !hasTake(p) && this.isAudible(p) && this.guideVoices[p.id]?.kind === 'real' && this.guideVoices[p.id].ai && !(this.choirOfSomeoneElse && this.guideVoices[p.id].choir));
         },
         /** The credits' heading: "Real voices: ...", or "Voices: ..." once an AI voice is among them (never called real). */
         creditsLine() {
@@ -822,6 +831,11 @@ export const StudioView = {
         closeMic(); // opened for this session's recordings; the mic light goes out on leaving
     },
     methods: {
+        /** Silence in place of each part made from someone's singing, for a Learn copy's export (by part key). */
+        silentChoir() {
+            const keys = this.parts.filter((p) => this.guideVoices[p.id]?.choir).map((p) => p.templatePartKey);
+            return new Map(keys.map((key) => [key, { samples: new Float32Array(1), sampleRate: 48000 }]));
+        },
         /** The choir's full-quality parts by part key, for one export (Download's links; never kept on the device). */
         async choirFull() {
             const voices = await loadChoirFull(await downloadParts(this.choirRequest));
@@ -1482,7 +1496,10 @@ export const StudioView = {
                     file = zip(stems);
                 } else {
                     // A choir of your own exports its full-quality parts (the server's download, Plus), not the listening copy.
-                    const full = this.choirRequest && !this.choirLocked ? await this.choirFull() : null;
+                    // A Learn copy of a song they sing in: the owner's AI parts stay out of the file (the security review), as
+                    // for a song without them.
+                    const silent = this.choirOfSomeoneElse ? this.silentChoir() : null;
+                    const full = silent ?? (this.choirRequest && !this.choirLocked ? await this.choirFull() : null);
                     const render = () => sessionStore.renderMix({ chords, room, track });
                     const rendered = full ? await sessionStore.withChoirAudio(full, render) : await render();
                     file = format === 'mp3' ? await encodeMp3(rendered.channels, rendered.sampleRate, { comment }) : encodeWav(rendered.channels, rendered.sampleRate, { comment });

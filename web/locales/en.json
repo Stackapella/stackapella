@@ -8681,7 +8681,8 @@
                 "body": "{count, plural, one {{name}'s {parts} part stops playing and is deleted. Yours plays again.} other {{name}'s {parts} parts stop playing and are deleted. Yours play again.}}",
                 "action": "Remove {name}",
                 "done": "{name} is no longer in this choir.",
-                "short": "Remove"
+                "short": "Remove",
+                "shares": "Any link you shared to this song stops working. Share it again when you like."
             },
             "join": {
                 "title": "{count, plural, one {{owner} invited you to sing the {parts} part of {song}} other {{owner} invited you to sing the {parts} parts of {song}}}",
@@ -8691,13 +8692,14 @@
                 "expired": "This invite has expired or been used. Ask for a new link.",
                 "own": "This is your own choir.",
                 "header": "Sing in {owner}'s choir",
-                "done": "You're in {owner}'s choir"
+                "done": "You're in {owner}'s choir",
+                "full": "This choir already has a voice for every part."
             },
             "agree": {
                 "title": "A voice like yours in {owner}'s song",
                 "one": "{count, plural, one {In {owner}'s {song}, a voice like yours sings only the {parts} part. {owner} never gets the voice itself.} other {In {owner}'s {song}, a voice like yours sings only the {parts} parts. {owner} never gets the voice itself.}}",
                 "two": "{owner} can play, share and download this song. {owner} never gets your voice to use anywhere else.",
-                "three": "Leave any time: your parts are deleted and {owner}'s own parts play again. Copies already downloaded can't be taken back.",
+                "three": "Leave any time: your parts are deleted from the song and from any page it's shared on, and {owner}'s own parts play again. Copies already downloaded can't be taken back.",
                 "words": "The words a voice like yours will sing",
                 "showName": "Show my name if {owner} shares it",
                 "showNameOff": "Off: it says “a friend”.",
@@ -8718,7 +8720,7 @@
             "leave": {
                 "button": "Leave this choir",
                 "title": "Leave {owner}'s {song}?",
-                "body": "Your parts stop playing and are deleted, and {owner}'s play again. Your saved voice stays yours.",
+                "body": "Your parts are deleted from the song and from any page it's shared on, and {owner}'s play again. Your saved voice stays yours.",
                 "action": "Leave",
                 "done": "You've left {owner}'s choir."
             },
@@ -8742,7 +8744,8 @@
             },
             "parts": {
                 "changed": "The parts changed since you opened this. Here's what a voice like yours will sing now."
-            }
+            },
+            "friendLeft": "{name} left {song}. Its shared links stopped working: share it again when you like."
         }
     },
     "aiVoice": {

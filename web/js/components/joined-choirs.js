@@ -10,7 +10,7 @@ import { toast } from './ui.js';
 import { confirmAction } from './confirm.js';
 import { startFromTemplate } from '../stores/projects.js';
 import { loadTemplate, templatePartName } from '../templates.js';
-import { choirOf, loadOwnChoir, ownChoir, partList, savedVoice, togetherOn } from '../own-choir.js';
+import { choirOf, loadOwnChoir, ownChoir, partList, savedVoice } from '../own-choir.js';
 import { loadChoir, playChoir, stopChoir } from '../own-choir-player.js';
 import { HomeBand } from './home.js';
 
@@ -19,7 +19,8 @@ export const JoinedChoirs = {
     data: () => ({ playingId: null, loadingId: null, busy: false }),
     setup: () => ({ savedVoice, navigate }),
     computed: {
-        joined: () => (togetherOn() ? ownChoir.data?.joined ?? [] : []),
+        // Shown while there's a membership, whatever the switch: leaving must always work (the security review).
+        joined: () => ownChoir.data?.joined ?? [],
         /** A ready choir of their own already: then "Hear a song of your own" isn't offered. */
         ownReady: () => (ownChoir.data?.requests ?? []).some((r) => r.status === 'ready'),
     },

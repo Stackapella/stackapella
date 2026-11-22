@@ -135,7 +135,7 @@ export const ProjectsView = {
                 <section v-if="choirReady.length" class="card divide-y divide-line px-4" role="status" :aria-label="together ? t('ownChoir.together.home.readyTitle') : null" data-choir-ready>
                     <h2 v-if="together" class="py-3 text-sm font-semibold text-muted">{{ t('ownChoir.together.home.readyTitle') }}</h2>
                     <div v-for="r in choirReady" :key="r.id" class="flex flex-wrap items-center gap-3 py-3" data-choir-notice>
-                        <p class="min-w-0 flex-1 text-cream">{{ friendReady(r) ? t('ownChoir.together.home.owner', { name: friendReady(r).name, song: r.title }) : together ? t('ownChoir.together.joined.mine', { song: r.title }) : t('ownChoir.ready.notice', { song: r.title }) }}</p>
+                        <p class="min-w-0 flex-1 text-cream">{{ leftOf(r) ? t('ownChoir.together.friendLeft', { name: leftOf(r).name, song: r.title }) : friendReady(r) ? t('ownChoir.together.home.owner', { name: friendReady(r).name, song: r.title }) : together ? t('ownChoir.together.joined.mine', { song: r.title }) : t('ownChoir.ready.notice', { song: r.title }) }}</p>
                         <button type="button" class="btn-secondary btn-sm" @click="navigate('/t/' + encodeURIComponent(r.templateId) + '/choir')">{{ t('ownChoir.ready.button') }}</button>
                     </div>
                 </section>
@@ -353,7 +353,10 @@ export const ProjectsView = {
         /** Songs made in a voice like theirs, ready and not yet heard (Hear yourself as a choir): Home's notice. */
         together: () => togetherOn(),
         choirReady() {
-            return ownChoirOn() ? readyUnseen() : [];
+            // A song ready and not yet heard, or one a friend left since (its shares came down; said whatever the switch).
+            const left = (ownChoir.data?.requests ?? []).filter((r) => (r.left ?? []).some((l) => !l.seen));
+            const ready = ownChoirOn() ? readyUnseen() : [];
+            return [...ready, ...left.filter((r) => !ready.includes(r))];
         },
         /** Make your own's ways in, each with its own icon; Hum a tune only for staff or once the server switches it on. */
         makeWays() {
@@ -554,7 +557,8 @@ export const ProjectsView = {
         loadShared().catch((error) => error?.code !== 'offline' && console.warn('Shared projects not loaded', error));
         loadCatalogue(); // real voices' credits on the songs
         // Hear yourself as a choir: where its songs stand, for the notice (quietly nothing while it's off).
-        loadAuthConfig().then(() => loadOwnChoir()).catch((error) => console.warn('Hear yourself as a choir did not load', error));
+        // Even with the switch off: someone in a friend's choir (or with friends in theirs) can always leave or remove.
+        loadAuthConfig().then(() => loadOwnChoir({ force: true })).catch((error) => console.warn('Hear yourself as a choir did not load', error));
         // Drafts start or stop showing (before the launch, an admin): the library again.
         this.stopDrafts = onDraftsChange(() => listTemplates().then((list) => (this.templates = list), (error) => console.warn('Templates not loaded', error)));
         // The library (/api/templates and the bundled songs) after Home's first frame (the first-visit speed pass,
@@ -636,6 +640,10 @@ export const ProjectsView = {
         },
     },
     methods: {
+        /** A friend who left this song since it was last seen (a choir with friends), if any. */
+        leftOf(request) {
+            return (request.left ?? []).find((l) => !l.seen) ?? null;
+        },
         /** The friend whose parts just came into this ready song, if any (a choir with friends). */
         friendReady(request) {
             return togetherOn() ? (request.members ?? []).find((m) => m.status === 'ready' && !m.seen) ?? null : null;

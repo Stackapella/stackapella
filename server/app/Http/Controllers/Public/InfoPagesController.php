@@ -17,6 +17,7 @@ use App\Support\Pages\SongParts;
 use App\Support\Site\ComingSoon;
 use App\Support\Site\HelpGuide;
 use App\Support\Site\OpenSource;
+use App\Support\Site\PlusFeatures;
 use App\Support\Site\SitePages;
 use App\Support\Site\Teams;
 use App\Support\Templates\Catalogue;
@@ -138,7 +139,8 @@ final class InfoPagesController extends Controller
 
         return response()->view('pages.pricing', [
             'title' => __('pages.pricing.title'),
-            'meta' => $this->meta(__('pages.pricing.meta_title'), __('pages.pricing.description'), '/pricing'),
+            // Plus's features from the one list (PlusFeatures): `:plus_sentence` in the description.
+            'meta' => $this->meta(__('pages.pricing.meta_title'), strtr((string) __('pages.pricing.description'), PlusFeatures::replacements()), '/pricing'),
             'price' => Prices::of($currency),
             'currencies' => Prices::CURRENCIES,
             'trialDays' => (int) config('billing.trial_days'),

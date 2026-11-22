@@ -209,8 +209,13 @@ final class OwnChoirRequests
 
     public function seen(User $user, OwnChoirRequest $request): OwnChoirRequest
     {
+        // The owner sees their friends' leaving too.
+        if ($request->user_id === $user->id) {
+            OwnChoirMember::query()->where('own_choir_request_id', $request->id)->whereNotNull('left_at')->whereNull('owner_seen_at')->update(['owner_seen_at' => now()]);
+        }
+
         // A song they joined (choir together): their parts in it are seen.
-        $member = OwnChoirMember::query()->where('own_choir_request_id', $request->id)->where('user_id', $user->id)->first();
+        $member = OwnChoirMember::query()->where('own_choir_request_id', $request->id)->where('user_id', $user->id)->whereNull('left_at')->first();
 
         if ($member !== null) {
             $member->seen_at ??= now();
@@ -342,11 +347,13 @@ final class OwnChoirRequests
      * commit, so an encode finishing meanwhile keeps nothing). The row stays, emptied, so it still counts toward the
      * quota; the account's deletion takes it.
      */
-    /** A friend's render on another's song, gone for good: its files, then its row. */
+    /**
+     * A friend's render on another's song, ended: its files go; its row stays, emptied, so what it cost still counts
+     * toward the owner's minutes (the review).
+     */
     public static function purgeJob(OwnChoirRequest $job): void
     {
         self::purge($job);
-        OwnChoirRequest::query()->whereKey($job->id)->delete();
     }
 
     private static function purge(OwnChoirRequest $request): void
@@ -417,7 +424,8 @@ final class OwnChoirRequests
 
         $until = now()->addMinutes((int) config('own_choir.download_minutes'));
 
-        return array_values($request->parts()->where('status', 'ready')->whereNotNull('media_key')->orderBy('part_key')->get()
+        // The song as it plays: each part's active render, a friend's included (and gone the moment they leave).
+        return array_values(ChoirTogether::activeParts($request)
             ->map(static fn (OwnChoirPart $part): array => ['partKey' => $part->part_key, 'url' => Storage::disk('private')->temporaryUrl((string) $part->media_key, $until), 'sampleRate' => $part->sample_rate, 'frames' => $part->frames, 'offsetFrames' => 0])->all());
     }
 

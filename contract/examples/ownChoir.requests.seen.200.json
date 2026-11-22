@@ -96,6 +96,7 @@
             }
         ],
         "members": [],
+        "left": [],
         "invite": {
             "canInvite": true,
             "parts": [

@@ -121,6 +121,7 @@
                     }
                 ],
                 "members": [],
+                "left": [],
                 "invite": {
                     "canInvite": true,
                     "parts": [
@@ -145,6 +146,7 @@
                 "parts": [],
                 "voices": [],
                 "members": [],
+                "left": [],
                 "invite": null
             }
         ],

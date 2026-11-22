@@ -130,6 +130,10 @@ def journey(f):
     f.run("document.querySelector('[role=dialog] form').requestSubmit()")
     f.wait("!document.querySelector('[data-choir-delete]')", what="the song deleted")
 
+    # A new invite's token is 32 characters (the server makes them 24 to 32): the app's route takes it.
+    tab(f)
+    f.go("/choir/join/" + "a" * 32 + "?api=mock&scenario=&as=signedOut", "document.querySelector('[data-join-title]') || document.querySelector('[data-join-off]')")
+
     # The friend's join, signed out: who invited them to sing which parts, and an account first, the link kept.
     tab(f)
     f.go("/choir/join/tok-1?api=mock&scenario=&as=signedOut", "document.querySelector('[data-join-title]')")
