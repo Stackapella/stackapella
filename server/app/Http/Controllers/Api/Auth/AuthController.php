@@ -34,6 +34,7 @@ use App\Support\Accounts\SignInProviders;
 use App\Support\Accounts\SignInSession;
 use App\Support\Accounts\SignUpBrowser;
 use App\Support\AiVoices\AiGuides;
+use App\Support\AiVoices\AiMark;
 use App\Support\Flags;
 use App\Support\Languages\Languages;
 use App\Support\Media\Instruments;
@@ -126,6 +127,8 @@ final class AuthController extends Controller
             // On their own songs from the creator too (own_choir_songs).
             'ownChoirSongs' => OwnChoir::songsOn($request->user() instanceof User ? $request->user() : null),
             'ownChoirTogether' => ChoirTogether::on($request->user() instanceof User ? $request->user() : null),
+            // The AI marking the app writes into its own exports holding an AI voice (EU AI Act Article 50).
+            'aiMark' => AiMark::forApp(),
             // Song requests (the song_requests switch); staff see them before (account.songRequests).
             'songRequests' => $flags->on('song_requests'),
             'schools' => $flags->on('schools'),

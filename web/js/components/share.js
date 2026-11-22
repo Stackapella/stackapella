@@ -82,6 +82,7 @@ export const ShareSheet = {
                 </fieldset>
                 <Switch :on="polish" :label="t('polish.name')" :hint="t('share.polishedHint')" class="rounded-2xl border border-line py-2 pe-2 ps-4" @change="polish = $event" />
                 <p data-ui="facts" class="flex gap-2.5 text-sm text-muted"><Icon name="info" :size="18" class="mt-0.5 shrink-0" />{{ t('share.anyone') }}</p>
+                <p v-if="realVoice" class="text-sm text-cream" data-share-real-voice>{{ t('ownChoir.share.realVoice') }}</p>
                 <div v-if="before" class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dashed border-line px-4 py-3 text-sm text-cream" data-shared-before>
                     <span>{{ t('share.sharedBefore', { when: timeAgo(before.createdAt) }) }}</span>
                     <button type="button" class="btn-secondary btn-sm" data-share-update @click="useBefore">{{ t('share.useThat') }}</button>
@@ -164,6 +165,10 @@ export const ShareSheet = {
             return [kind, formatTime(session.contentLength || 0), this.polish ? t('share.polishedTag') : null].filter(Boolean).join(' · ');
         },
         /** This song's last link, to use again (the rest live where every link is managed). */
+        /** Their own singing in this mix (a choir song with their whole-song take as the lead): said once, on the sheet. */
+        realVoice() {
+            return !!session.project?.choir?.lead;
+        },
         before() {
             return this.earlier.filter((h) => h.visibility === 'unlisted' && h.pageUrl && h.status === 'ready').sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0] ?? null;
         },

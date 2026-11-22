@@ -107,11 +107,13 @@
     "/js/dsp.js",
     "/js/timing-check.js",
     "/js/public/live-mic.js",
+    "/js/public/mic-pick.js",
     "/js/public/tool-layout.js",
     "/js/public/tool-prefs.js",
     "/js/public/tones.js",
     "/js/public/voices.js",
-    "/js/theory.js"
+    "/js/theory.js",
+    "/js/mic-choice.js"
   ],
   "/js/public/tools/metronome.js": [
     "/js/public/tools/metronome.js",
@@ -212,6 +214,7 @@
   "/js/public/tools/tuner.js": [
     "/js/public/tools/tuner.js",
     "/js/public/live-mic.js",
+    "/js/public/mic-pick.js",
     "/js/public/tool-prefs.js",
     "/js/public/tool-layout.js",
     "/js/public/voices.js",
@@ -220,6 +223,7 @@
     "/js/dsp.js",
     "/js/notes.js",
     "/js/public/tuner-reading.js",
+    "/js/mic-choice.js",
     "/js/pitch-display.js"
   ],
   "/js/public/tools/tuning-forks.js": [
@@ -248,6 +252,7 @@
   "/js/public/tools/vocal-range-test.js": [
     "/js/public/tools/vocal-range-test.js",
     "/js/public/live-mic.js",
+    "/js/public/mic-pick.js",
     "/js/public/tool-layout.js",
     "/js/public/tool-prefs.js",
     "/js/public/piano.js",
@@ -257,7 +262,8 @@
     "/js/listen.js",
     "/js/public/tools/share-card.js",
     "/js/notes.js",
-    "/js/theory.js"
+    "/js/theory.js",
+    "/js/mic-choice.js"
   ],
   "/js/public/tools/warmup-player.js": [
     "/js/public/tools/warmup-player.js",

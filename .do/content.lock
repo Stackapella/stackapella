@@ -3,5 +3,5 @@
 # server/database/templates (server/tool/content.sh). An empty commit means the content is still
 # in this tree. Bump with server/tool/content-bump.sh <commit>, never by hand.
 repo=hillelcoren/stackapella-courses
-commit=8fce9ba78c0121054a19049f5c77d263e885e899
-sha256=db64c58293e2f1c2e0e0846a069b13833e34703dcdbe856cb50e4f6093be3e00
+commit=763e4cd266a593b9a8ea8f7f60032348ec1194aa
+sha256=cf363dd6bdf0a0f988c7ac132371a7e70601a71d81a9468a212bd55c4182ee7d

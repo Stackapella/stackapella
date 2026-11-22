@@ -64,6 +64,8 @@ export async function shareProject({ title, visibility = 'unlisted', partId = nu
         guides: mix.guides,
         // Parts made from the singer's own singing (Hear yourself as a choir): credited as AI on the share page.
         ...(mix.choirParts?.length ? { choirParts: mix.choirParts } : {}),
+        // Their own whole-song take as the lead (You + choir): the server takes the share down if the take is deleted.
+        ...(session.project.choir?.lead ? { realVoice: ['take'] } : {}),
         tracks: mix.tracks,
         // Update that link (Hillel's bug, 2026-11-22: a link used again kept its old mix): the same share, the mix as heard now.
         ...(replaces ? { replaces } : {}),

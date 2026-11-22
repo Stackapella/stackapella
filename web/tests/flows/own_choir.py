@@ -180,6 +180,17 @@ def journey(f):
     f.go("/t/amazing-grace/choir?api=mock&scenario=&as=member", "document.querySelector('[data-listen-to]')")
     assert f.js("document.querySelector('[data-listen-to] [role=radio]:nth-child(2)').getAttribute('aria-checked')") == "true", "Listen to wasn't remembered"
     f.shot("ready-you-choir")
+    # Share follows it: You + choir shares their take as the lead, and the sheet says it's their own singing.
+    f.run("document.querySelector('[data-choir-share]').click()")
+    f.wait("/^\\/p\\/[\\w-]+$/.test(location.pathname) && document.querySelector('[data-share-real-voice]')", timeout=30, what="the share sheet with their own singing")
+    assert f.js("(async () => (await import('/js/stores/session.js')).session.project?.choir?.lead)()") is True, "the shared project's lead isn't their take"
+    f.shot("share-real-voice")
+    f.press("Escape")
+    # Your recording: Share shares the full choir, and says the recording stays private.
+    f.go("/t/amazing-grace/choir?api=mock&scenario=&as=member", "document.querySelector('[data-listen-to]')")
+    f.run("document.querySelector('[data-listen-to] [role=radio]:nth-child(1)').click()")
+    f.wait("document.querySelector('[data-share-full]')", what="the full choir is what's shared")
+    f.run("document.querySelector('[data-listen-to] [role=radio]:last-child').click()")  # back to the full choir
     f.run("sessionStorage.removeItem('stackapella.mockChoirLead'); await (await import('/js/own-choir.js')).loadOwnChoir({ force: true })")
     # A low voice's arrangement: one quiet line.
     f.run("sessionStorage.setItem('stackapella.mockChoirLow', '1'); await (await import('/js/own-choir.js')).loadOwnChoir({ force: true })")

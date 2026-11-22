@@ -6,6 +6,7 @@ namespace App\Jobs;
 
 use App\Models\OwnChoirPart;
 use App\Services\Audio\Ffmpeg;
+use App\Support\AiVoices\AiMark;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -48,9 +49,12 @@ final class EncodeChoirPart implements ShouldQueue
         try {
             $probe = $ffmpeg->probe($in);
 
-            if ($probe === null || ! str_contains($probe['format'], 'wav') || $probe['codec'] !== 'pcm_s16le' || $probe['channels'] !== 1 || $probe['sampleRate'] !== $part->sample_rate || $probe['frames'] === null || abs($probe['frames'] - $part->frames) > 1) {
+            // An AI voice's master carries its AI marking (EU AI Act Article 50), once required.
+            $unmarked = (bool) config('ai_marking.required') && ! AiMark::marked($in);
+
+            if ($unmarked || $probe === null || ! str_contains($probe['format'], 'wav') || $probe['codec'] !== 'pcm_s16le' || $probe['channels'] !== 1 || $probe['sampleRate'] !== $part->sample_rate || $probe['frames'] === null || abs($probe['frames'] - $part->frames) > 1) {
                 Storage::disk('private')->delete($part->master_key);
-                $part->forceFill(['status' => 'failed', 'failure' => 'bad_audio', 'master_key' => null])->save();
+                $part->forceFill(['status' => 'failed', 'failure' => $unmarked ? 'unmarked' : 'bad_audio', 'master_key' => null])->save();
 
                 return;
             }
@@ -58,9 +62,9 @@ final class EncodeChoirPart implements ShouldQueue
             $volume = $ffmpeg->volume($in);
             $gain = $volume['mean'] !== null ? (float) config('beta.guide_rms_dbfs') - $volume['mean'] : 0.0;
             $gain = max(-24.0, min(24.0, $volume['peak'] !== null ? min($gain, -2.0 - $volume['peak']) : $gain));
-            $ffmpeg->encodeGuide($in, $out, $part->sample_rate, 0, $part->frames, $gain);
+            $ffmpeg->encodeGuide($in, $out, $part->sample_rate, 0, $part->frames, $gain, ai: true);
             // And the listening copy the app plays (the billing review): full quality is only for Download, with Plus.
-            $ffmpeg->encodeGuide($in, $listen, $part->sample_rate, 0, $part->frames, $gain, kbps: 64);
+            $ffmpeg->encodeGuide($in, $listen, $part->sample_rate, 0, $part->frames, $gain, kbps: 64, ai: true);
 
             $key = self::store($out);
             $listenKey = self::store($listen);

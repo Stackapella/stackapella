@@ -145,7 +145,7 @@ export const SingView = {
                 <div v-if="lessonDone && !recording" class="mx-4 mt-2 flex justify-end md:mx-6" data-lesson-back>
                     <button type="button" class="btn-secondary btn-sm max-sm:w-full" @click="backToLesson"><Icon name="back" :size="16" /> {{ t('sing.lessonBack') }}</button>
                 </div>
-                <ModeBar v-if="!recording && !bandShown && !recorded && !resung && (way === 'whole' || coach.step === 'record')" :class="coaching && !playing ? 'hidden md:flex' : ''" :mode="practice.mode" @mode="setMode" />
+                <ModeBar v-if="!clipTake && !recording && !bandShown && !recorded && !resung && (way === 'whole' || coach.step === 'record')" :class="coaching && !playing ? 'hidden md:flex' : ''" :mode="practice.mode" @mode="setMode" />
                 <VoiceNote v-if="!recording" @use-range="useRange" />
 
                 <div class="flex min-h-0 flex-1 flex-col md:flex-row">

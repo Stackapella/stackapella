@@ -1767,6 +1767,13 @@ that differs first shows, if the device fits `audience` and isn't in one it `exc
 the arm label on the device (never an id). `experiment` stays onb1's until it ends.
 **Request:** none.
 
+`aiMark` (since 2026-11-23, EU AI Act Article 50): `{ "text", "generator", "digitalSourceType" }`, the one wording
+of the machine-readable marking every file holding an AI voice carries. The app writes it into its own exports that
+hold one (WAV: `LIST`/`INFO` `ICMT` the text and `ISFT` the generator, and a `bext` description; MP3: ID3 `COMM` the
+text and `TXXX` `AI_GENERATED` "true" and `AI_GENERATOR`); the server writes it into every AAC it makes from AI audio
+(the choir's parts and listening copies, AI guides, a shared mix holding one: the comment, and `ai_generated`,
+`ai_generator`, `digital_source_type`).
+
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 |  | `auth.config.json` | `auth.config.200.json` |
@@ -8132,7 +8139,10 @@ Start sending a checked master: a presigned PUT for the WAV ("Uploads", above). 
     "control": "melody", "pitchShift": 0, "reference": "daniella-alto" } }
 ```
 
-The master is a 16-bit mono WAV at 48000 Hz (`bytes` is `44 + frames * 2`), at most 10 minutes, its frame 0 at the
+The master is a 16-bit mono WAV at 48000 Hz (`bytes` is the whole file: `44 + frames * 2`, the audio's data chunk
+first, then since 2026-11-23 its AI marking, at most 64 KB more: a `LIST`/`INFO` chunk whose `ICMT` is config
+`ai_marking.text` and an `iXML` chunk whose `USER` starts `ai_generated=true;`, EU AI Act Article 50; with
+`ai_marking.required` on, a master without it fails `unmarked`), at most 10 minutes, its frame 0 at the
 template's beat 0. `checks` are the voices lane's gates, stored for Admin: `notesOver30` must be 0 (a part with any
 note over 30 cents is never uploaded). `renderer.reference` is a short label, never a path or a URL. A part that
 already has an AI guide may be uploaded again: the new one replaces it when it's published.

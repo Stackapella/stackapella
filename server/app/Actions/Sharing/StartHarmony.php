@@ -197,7 +197,7 @@ final class StartHarmony
             'own_voice_parts' => $choir['parts'] === [] ? null : $choir['parts'],
             'own_voice_friends' => $choir['friends'] === [] ? null : $choir['friends'],
             // Their own real voice in the mix (2026-11-23), kept so the share comes down when it's deleted.
-            'real_voice' => $this->realVoice($user, (array) ($data['realVoice'] ?? []), is_string($choirSaved['requestId'] ?? null) ? $choirSaved['requestId'] : null),
+            'real_voice' => $choir['parts'] === [] ? null : $this->realVoice($user, (array) ($data['realVoice'] ?? []), is_string($choirSaved['requestId'] ?? null) ? $choirSaved['requestId'] : null),
             'template_version_id' => $version?->id,
             'words_part_key' => $version !== null ? ($part->template_part_key ?? $this->melodyKey($version)) : null,
             'bpm' => $project->bpm,
@@ -215,7 +215,8 @@ final class StartHarmony
 
     /**
      * Which of their own recordings the mix holds, as the server knows them: the project's choir song's lead (`take`),
-     * their saved voice's clip (`clip`); null for none.
+     * their saved voice's clip (`clip`); null for none. Only ever beside their AI parts: a recording alone is never
+     * shared (the coordinator, 2026-11-23).
      *
      * @param  array<mixed>  $claimed
      * @return array{take?: int, clip?: int}|null

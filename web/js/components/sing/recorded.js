@@ -96,7 +96,9 @@ export const JustRecorded = {
         <section class="flex min-h-full w-full flex-col" aria-labelledby="recorded-title" data-take-review>
             <div class="mx-auto w-full max-w-6xl flex-1 space-y-6 px-4 pb-8 pt-5 md:px-8">
                 <!-- The parts, honestly: done, next, then the rest. -->
-                <ol v-if="stack.length > 1" class="flex flex-wrap gap-2" :aria-label="t('sing.parts')">
+                <!-- A choir clip's take (the coordinator, 2026-11-23): just the take's player, the choir card and Record again; no
+                     parts list, scoring, Fine-tune or next part (any octave goes, and nothing else is recorded here). -->
+                <ol v-if="stack.length > 1 && !choir" class="flex flex-wrap gap-2" :aria-label="t('sing.parts')">
                     <li v-for="row in stack" :key="row.id" class="flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold" :class="row.you ? 'border-cream text-cream' : row.done ? 'border-edge text-cream' : row.name === nextName ? 'border-accent text-cream' : 'border-edge text-muted'" translate="no">
                         <Icon v-if="row.done || row.you" name="check" :size="12" />{{ row.name }}<span v-if="!row.done && !row.you && row.name === nextName" class="text-accent-strong">· {{ t('sing.review.next') }}</span>
                     </li>
@@ -104,14 +106,14 @@ export const JustRecorded = {
                 <header class="flex flex-wrap items-end justify-between gap-3">
                     <div class="min-w-0">
                         <p v-if="sungBy" class="mb-2 text-lg font-bold text-cream" data-sung-by>{{ sungBy }}</p>
-                        <p class="text-xs font-bold uppercase tracking-[0.14em]" :style="{ color: paintInk(color) }" translate="no">{{ t('sing.review.eyebrow', { part: partName }) }}</p>
+                        <p v-if="!choir" class="text-xs font-bold uppercase tracking-[0.14em]" :style="{ color: paintInk(color) }" translate="no">{{ t('sing.review.eyebrow', { part: partName }) }}</p>
                         <h2 id="recorded-title" ref="heading" tabindex="-1" class="mt-1 text-4xl font-extrabold tracking-tight text-cream outline-none">{{ headline }}</h2>
-                        <p class="mt-1 text-muted">{{ outcome.everyPart ? t('sing.recorded.everyPartHint') : t('sing.review.hint') }}</p>
+                        <p class="mt-1 text-muted">{{ choir ? t('ownChoir.record.doneHint') : outcome.everyPart ? t('sing.recorded.everyPartHint') : t('sing.review.hint') }}</p>
                     </div>
-                    <button type="button" class="btn-ghost btn-sm" @click="$emit('studio')">{{ t('sing.openStudio') }}</button>
+                    <button v-if="!choir" type="button" class="btn-ghost btn-sm" @click="$emit('studio')">{{ t('sing.openStudio') }}</button>
                 </header>
                 <p v-if="bleed && !(score && score.status !== 'scored')" class="rounded-2xl bg-raised p-3 text-sm text-cream" role="status">{{ sk('report.bleedSerious', 'report.bleed') }}</p>
-                <slot name="report" />
+                <slot v-if="!choir" name="report" />
                 <div class="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-2 lg:items-start">
                     <div class="space-y-6">
                         <!-- Hear it with the others: a small mixer. -->
@@ -138,7 +140,7 @@ export const JustRecorded = {
                             <p class="text-xs text-muted">{{ t('sing.review.tapToMute') }} {{ polished ? t('polish.hearOn') : t('polish.hearOff') }}</p>
                         </div>
                         <!-- Fine-tune the take: two tiles. -->
-                        <div class="space-y-2">
+                        <div v-if="!choir" class="space-y-2">
                             <p class="label">{{ t('sing.review.fineTune') }}</p>
                             <div class="grid gap-2 sm:grid-cols-2">
                                 <button type="button" class="card p-4 text-start hover:border-line" :aria-expanded="nudging" @click="nudging = !nudging"><span class="block font-bold text-cream">{{ t('sing.review.nudgeTitle') }}</span><span class="block text-sm text-muted">{{ t('sing.review.nudgeHint') }}</span></button>
@@ -158,7 +160,7 @@ export const JustRecorded = {
                         </div>
                     </div>
                     <!-- The feedback: the one thing to try, the phrases, the picked one's pitch line. -->
-                    <div v-if="review.length" class="card space-y-4 p-4">
+                    <div v-if="review.length && !choir" class="card space-y-4 p-4">
                         <div v-if="one">
                             <p class="label">{{ t('sing.review.oneThing') }}</p>
                             <p class="mt-1 text-cream" data-one-thing>{{ oneLine }}</p>
@@ -206,7 +208,8 @@ export const JustRecorded = {
                 <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-3">
                     <p class="me-auto text-sm text-muted">{{ t('sing.review.saved') }}</p>
                     <button type="button" class="btn-secondary" @click="$emit('again')">{{ t('sing.recorded.again') }}</button>
-                    <button v-if="outcome.everyPart" type="button" class="btn-primary" @click="$emit('share')">{{ t('share.title') }}</button>
+                    <template v-if="choir"></template>
+                    <button v-else-if="outcome.everyPart" type="button" class="btn-primary" @click="$emit('share')">{{ t('share.title') }}</button>
                     <button v-else-if="nextName" type="button" class="btn-primary" @click="$emit('next')">{{ t('sing.review.keepNext', { part: nextName }) }} <Icon name="arrow" :size="16" /></button>
                     <button v-else type="button" class="btn-primary" @click="$emit('studio')">{{ t('sing.openStudio') }}</button>
                 </div>
@@ -218,6 +221,7 @@ export const JustRecorded = {
         },
         /** The score as the headline: "Close: 88% on pitch" (or the celebration, or the part recorded while it's worked out). */
         headline() {
+            if (this.choir) return t('ownChoir.record.done'); // a choir clip: no part, no score
             if (this.outcome.everyPart) return t('sing.recorded.everyPart');
             if (this.score?.status === 'scored') return t('report.summary', { level: t(LEVEL[this.score.word]), percent: this.score.percent });
             return t('sing.recorded.title', { part: this.partName });

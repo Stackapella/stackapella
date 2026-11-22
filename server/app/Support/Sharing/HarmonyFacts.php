@@ -140,8 +140,8 @@ final class HarmonyFacts
     }
 
     /**
-     * Their own real voice in it (2026-11-23): the lead ("The lead is {name}'s own voice…"), or the whole of it, their
-     * recording with no AI; null when it holds none, or their name can't be shown (the AI line says it then).
+     * Their own real voice in it (2026-11-23): the lead ("The lead is {name}'s own voice…"); null when it holds none, or
+     * their name can't be shown (the AI line says it then).
      *
      * @param  list<array{name: string|null, part: string, ai: bool, aiBasedOn: string|null, ownVoice: bool, friend?: bool}>  $guides
      * @return array{kind: string, name: string}|null
@@ -156,13 +156,9 @@ final class HarmonyFacts
             return null;
         }
 
-        $ai = collect($guides)->contains('ai', true);
-
-        return match (true) {
-            isset($real['take']) && $ai => ['kind' => 'lead', 'name' => $named],
-            ! $ai => ['kind' => 'only', 'name' => $named],
-            default => null,
-        };
+        // Only as the lead beside AI parts: their recording alone is never put on a public page (the coordinator,
+        // 2026-11-23: "Your recording" shares the full choir).
+        return isset($real['take']) && collect($guides)->contains('ai', true) ? ['kind' => 'lead', 'name' => $named] : null;
     }
 
     /**

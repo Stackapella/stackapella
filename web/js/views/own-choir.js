@@ -243,9 +243,11 @@ export const OwnChoirView = {
                      download it, labelled AI; learning a part is one quiet option, never the main button. -->
                 <template v-if="request?.status === 'ready'">
                     <p v-for="name in leftNames" :key="name" class="card p-4 text-cream" role="status" data-choir-left>{{ t('ownChoir.together.friendLeft', { name, song }) }}</p>
-                    <h1 class="text-3xl font-extrabold tracking-tight text-cream">{{ t('ownChoir.listen.title', { song }) }}</h1>
+                    <h1 class="text-3xl font-extrabold tracking-tight text-cream">{{ t('ownChoir.listen.title', { song }) }} <span class="chip align-middle text-sm font-semibold tracking-normal" data-ai-voice="tag">{{ t('ownChoir.together.who.ai') }}</span></h1>
                     <div class="card space-y-4 p-5" data-choir-track>
-                        <p class="text-sm text-muted" data-choir-label>{{ panelLabel }}</p>
+                        <!-- The AI label once (the coordinator, 2026-11-23): the H1 says "in a voice like yours"; this line only when
+                             friends' voices join (it names whose). -->
+                        <p v-if="together && (request.members ?? []).length" class="text-sm text-muted" data-choir-label>{{ panelLabel }}</p>
                         <!-- A low voice's arrangement (the server's, from their range): said once, quietly. -->
                         <p v-if="request.voicing === 'low'" class="text-sm text-muted" data-choir-low-voice>{{ t('ownChoir.ready.lowVoice') }}</p>
                         <!-- Words not in English: the AI parts are sung on "oo" (ai-modal, via Hillel), from the song's language. -->
@@ -258,6 +260,7 @@ export const OwnChoirView = {
                         </div>
                         <!-- Share (the share page credits each part as AI made from their singing): the studio's share sheet. -->
                         <button type="button" class="btn-secondary w-full justify-center" :disabled="busy" data-choir-share @click="share">{{ t('ownChoir.share.button') }}</button>
+                        <p v-if="listenTo === 'recording'" class="text-sm text-muted" data-share-full>{{ t('ownChoir.share.fullOnly') }}</p>
                     </div>
                     <!-- Downloading is Plus's (Hillel, 2026-11-21); listening and sharing stay free. The server says who may. -->
                     <PlusMoment v-if="plusFor" :title="t('ownChoir.ready.download')" :text="t('plus.moment.choirDownload')" from="choir_download" :next="here" price @close="plusFor = false" />
@@ -753,13 +756,13 @@ export const OwnChoirView = {
          * The choir project for the ready song, keeping its parts to play offline: its own, else a new one tied to it; `focusKey`
          * opens it on that part. One at a time (a second tap waits for the first).
          */
-        async choirProject(focusKey = null) {
+        async choirProject(focusKey = null, { lead = false } = {}) {
             let project = this.project?.choir?.requestId === this.request.id ? this.project : null;
             if (project) {
-                await saveProject({ ...JSON.parse(JSON.stringify(project)), choir: choirOf(this.request) });
+                await saveProject({ ...JSON.parse(JSON.stringify(project)), choir: choirOf(this.request, { lead }) });
                 return project;
             }
-            return startFromTemplate(this.template, { keyChosen: true, focusKey, choir: choirOf(this.request) });
+            return startFromTemplate(this.template, { keyChosen: true, focusKey, choir: choirOf(this.request, { lead }) });
         },
         /** The ready song's parts, decoded once (kept on the device after the first time). */
         voices() {
@@ -938,7 +941,10 @@ export const OwnChoirView = {
             if (this.busy) return;
             this.busy = true;
             try {
-                navigate(`/p/${(await this.choirProject()).id}?sheet=share`);
+                // Share follows Listen to (Hillel): You + choir shares their take as the lead; Your recording shares the
+                // full choir (the bare clip stays private; the coordinator, 2026-11-22).
+                const lead = this.listenTo === 'withChoir' && !!this.request.leadTake;
+                navigate(`/p/${(await this.choirProject(null, { lead })).id}?sheet=share`);
             } finally {
                 this.busy = false;
             }

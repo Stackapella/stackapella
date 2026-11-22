@@ -169,6 +169,11 @@ final class OwnChoirTest extends TestCase
         $listen = OwnChoirPart::query()->first()?->listen_key;
         $this->assertNotNull($listen);
         $this->assertSame('aac', app(Ffmpeg::class)->probe(Storage::disk('private')->path((string) $listen), upload: false)['codec'] ?? null);
+        // Both carry the AI marking (EU AI Act Article 50).
+        foreach ([$media, $listen] as $file) {
+            $tags = app(Ffmpeg::class)->tags(Storage::disk('private')->path((string) $file));
+            $this->assertSame(['true', config('ai_marking.text'), config('ai_marking.generator')], [$tags['ai_generated'] ?? null, $tags['comment'] ?? null, $tags['ai_generator'] ?? null]);
+        }
         $this->assertNotSame($media, $listen);
         $this->assertStringContainsString(basename((string) $listen), (string) collect($show->json('data.requests.0.parts'))->pluck('url')->implode(' '));
 

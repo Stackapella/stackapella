@@ -38,6 +38,8 @@ const MOMENTS = {
     private_shared: tk('plus.moment.privateShared'),
     // Downloading a choir made from your voice (Hillel, 2026-11-21; listening and sharing stay free).
     choir_download: tk('plus.moment.choirDownload'),
+    choir_settings: tk('plus.moment.choirSettings'), // Choir settings' Plus sheet (Checkout's moment, for Admin's choir line)
+    choir_friends: tk('plus.moment.choirFriends'),
     // More songs in your own voice, the free one used (once per email, ever).
     choir_song: tk('plus.moment.choirSong'),
 };

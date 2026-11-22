@@ -27,6 +27,7 @@
 // stands in for the mic in tests: a function like listen() that hands back onFrame and returns { stop }.
 
 import { listen, reasonOf, TRACKER_FILES } from '../live-mic.js';
+import { micRow, onPicked, savedMic, settleMic } from '../mic-pick.js';
 import { toolPrefs } from '../tool-prefs.js';
 import { segmented, sheetRow, stepper, toolLayout } from '../tool-layout.js';
 import { audio, voice } from '../voices.js';
@@ -51,6 +52,7 @@ export const WORDS = [
     'dStandard', 'dropCs', 'dropB', 'openC', 'openA', 'hearNote', 'tapToHear', 'voiceLowHint',
     'naming', 'letters', 'fixedDo', 'german', 'sensitivity', 'sensitivityLow', 'sensitivityHigh', 'zone', 'zoneValue',
     'settingsTitle', 'reset', 'referenceHint', 'soundingPitch', 'writtenPitch', 'sensLow', 'sensMedium', 'sensHigh', 'zoneStrict', 'zoneForgiving', 'zoneShort',
+    'micLabel',
 ];
 
 export { REFERENCE } from '../tuner-reading.js';
@@ -227,7 +229,11 @@ export function mountTuner(root, { words = {}, keySlot = null, onError = null, o
     let tunedSince = null; // a sung note in tune since (s, the mic's clock), for the page's lesson line
     let spoken = '';
 
+    // The mic chooser (mic-pick.js), first in the sheet: shown once the mic is allowed and there's more than one input.
+    micRow(ui.sheet, sheetRow);
     for (const el of root.querySelectorAll('[data-w]')) el.textContent = w(el.dataset.w);
+    // A mic chosen in More: remembered (here and for the app, by name), and the tuner moves to it as it listens.
+    onPicked(root.querySelector('[data-picker]'), (id) => session?.use?.(id).catch((error) => console.warn('That mic could not be opened', error)));
     const modes = segmented(ui.modes, [{ key: 'voice', label: w('voice') }, { key: 'instrument', label: w('instrument') }], {
         current: settings.mode,
         label: w('modes'),
@@ -576,12 +582,13 @@ export function mountTuner(root, { words = {}, keySlot = null, onError = null, o
         render();
         const reach = REACH[settings.mode];
         try {
-            const opened = await open({ deviceId, ...reach, quietDb: -90, onFrame: feed });
+            const opened = await open({ deviceId: deviceId || savedMic(), ...reach, quietDb: -90, onFrame: feed });
             if (!session) {
                 opened.stop(); // stopped while the mic was being asked for
                 return;
             }
             session = opened;
+            await settleMic(opened, root.querySelector('[data-picker]'));
         } catch (error) {
             session = null;
             awake?.release();

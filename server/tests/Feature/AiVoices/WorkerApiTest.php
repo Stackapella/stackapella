@@ -172,7 +172,9 @@ final class WorkerApiTest extends TestCase
 
         $master = $this->master($template, $voice, $wav);
         $this->assertMatchesContract($this->worker('POST', '/api/worker/ai/uploads', ['part' => 'nope'] + $master), 'worker.ai.uploads.create', 404);
-        $this->assertMatchesContract($this->worker('POST', '/api/worker/ai/uploads', ['bytes' => $master['bytes'] + 2] + $master), 'worker.ai.uploads.create', 422);
+        $this->assertMatchesContract($this->worker('POST', '/api/worker/ai/uploads', ['bytes' => $master['bytes'] - 2] + $master), 'worker.ai.uploads.create', 422);
+        // Its AI marking may follow the audio, up to 64 KB, never more.
+        $this->worker('POST', '/api/worker/ai/uploads', ['bytes' => $master['bytes'] + 65538] + $master)->assertUnprocessable();
         $this->worker('POST', '/api/worker/ai/uploads', ['checks' => ['notesOver30' => 1] + $master['checks']] + $master)->assertUnprocessable()->assertJsonValidationErrors('checks.notesOver30');
         $this->worker('POST', '/api/worker/ai/uploads', ['renderer' => ['reference' => '/home/x/ref.wav'] + $master['renderer']] + $master)->assertUnprocessable()->assertJsonValidationErrors('renderer.reference');
         $this->worker('POST', '/api/worker/ai/uploads', ['sampleRate' => 24000] + $master)->assertUnprocessable();

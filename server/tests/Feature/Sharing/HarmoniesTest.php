@@ -11,6 +11,7 @@ use App\Models\Harmony;
 use App\Models\ShareVideo;
 use App\Models\Take;
 use App\Models\User;
+use App\Services\Audio\Ffmpeg;
 use App\Support\Flags;
 use App\Support\Sharing\HarmonyFacts;
 use App\Support\Trust\TrustLevel;
@@ -410,11 +411,11 @@ final class HarmoniesTest extends TestCase
         $harmony = $this->shareHarmony($project);
         $name = (string) $harmony->user?->name;
 
-        // Their lead take with AI parts: "lead"; their recording alone: "only"; none: null.
+        // Their lead take with AI parts: "lead"; anything else: null.
         $harmony->forceFill(['real_voice' => ['take' => 41], 'own_voice_parts' => ['alto']])->save();
         $this->assertSame(['kind' => 'lead', 'name' => $name], $facts->realVoice($harmony, $facts->guides($harmony)));
         $harmony->forceFill(['real_voice' => ['clip' => 7], 'own_voice_parts' => null])->save();
-        $this->assertSame('only', $facts->realVoice($harmony, $facts->guides($harmony))['kind'] ?? null);
+        $this->assertNull($facts->realVoice($harmony, $facts->guides($harmony)), 'Their recording alone is never shared.');
         $harmony->forceFill(['real_voice' => null])->save();
         $this->assertNull($facts->realVoice($harmony, $facts->guides($harmony)));
 
@@ -424,5 +425,24 @@ final class HarmoniesTest extends TestCase
         $this->assertNull($harmony->refresh()->deleted_at, 'Another recording: stays.');
         app(DeleteHarmony::class)->withRealVoice(takes: [41]);
         $this->assertNotNull($harmony->refresh()->deleted_at);
+    }
+
+    public function test_a_shared_mix_holding_an_ai_voice_is_marked_and_one_without_is_not(): void
+    {
+        $this->owner();
+        [$project] = $this->recordedProject();
+        $wav = Wav::stereo(2.0);
+
+        foreach ([['alto'], null] as $ai) {
+            $id = (string) $this->startHarmony($project, $wav)->json('data.id');
+            $harmony = Harmony::query()->where('public_id', $id)->firstOrFail();
+            $harmony->forceFill(['own_voice_parts' => $ai])->save();
+            Storage::disk('private')->put($harmony->upload_key, $wav);
+            $this->postJson('/api/harmonies/'.$id.'/complete')->assertOk();
+            $tags = app(Ffmpeg::class)->tags(Storage::disk('private')->path((string) $harmony->refresh()->audio_key));
+
+            $this->assertSame($ai !== null ? 'true' : null, $tags['ai_generated'] ?? null);
+            $this->assertSame($ai !== null ? config('ai_marking.text') : null, $tags['comment'] ?? null);
+        }
     }
 }

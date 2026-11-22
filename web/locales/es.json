@@ -5660,11 +5660,10 @@
         },
         "title": "Óyete como un coro",
         "intro": {
-            "one": "Canta {song} y “For He's a Jolly Good Fellow”, en la octava que te resulte cómoda.",
+            "one": "Canta {song} dos veces, en la octava que te resulte cómoda.",
             "oneSong": "Canta {song} durante 30 segundos, en la octava que te resulte cómoda.",
             "oneBody": "No hace falta cantar bien: solo escuchamos cómo suena tu voz, y la guardamos en privado para tus próximas canciones.",
             "choose": "Canción para cantar",
-            "thenJolly": "y después “For He's a Jolly Good Fellow”",
             "two": "Hacemos cada parte de {song} con una voz como la tuya, marcada como IA.",
             "three": "Luego aprende tu parte: cada una que grabas ocupa el lugar de su versión de IA.",
             "whole": "Cantar la canción entera",
@@ -5679,7 +5678,9 @@
             "again": "Canta otra vez",
             "failed": "Tu grabación no se envió. Inténtalo de nuevo.",
             "readyNow": "Tu coro está listo",
-            "listen": "Escuchar tu coro"
+            "listen": "Escuchar tu coro",
+            "done": "Tu canto está grabado",
+            "doneHint": "Escúchalo si quieres y luego crea tu coro."
         },
         "wait": {
             "title": "Tu coro está en camino",
@@ -5784,7 +5785,9 @@
             "tooLong": "Esta canción es demasiado larga para hacerla con una voz como la tuya: como mucho 8 partes, de hasta 5 minutos cada una."
         },
         "share": {
-            "button": "Comparte mi coro"
+            "button": "Comparte mi coro",
+            "realVoice": "Esto comparte tu propio canto, con voces de IA hechas a partir de él.",
+            "fullOnly": "Comparte el coro completo. Tu grabación se queda privada."
         },
         "off": {
             "signedOut": "Inicia sesión para oírte como un coro.",

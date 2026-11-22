@@ -61,4 +61,21 @@ final class SharedAiPartsPageTest extends TestCase
         $this->assertStringContainsString(e(__('pages.song.ai.mix_own', ['part' => 'Bass', 'name' => 'Sam Rivers'])), $html);
         $this->assertSame(1, substr_count($html, 'href="/about/ai-voices"'));
     }
+
+    public function test_a_share_with_their_real_voice_in_the_lead_says_so_once_in_place_of_the_ai_line(): void
+    {
+        $template = $this->catalogue();
+        $sharer = User::factory()->create(['name' => 'Sam Rivers']);
+        $harmony = Harmony::factory()->create(['user_id' => $sharer->id, 'project_id' => null, 'template_version_id' => $template->current_version_id, 'guide_ids' => [], 'own_voice_parts' => ['Alto', 'Bass'], 'real_voice' => ['take' => 41]]);
+        Storage::disk('private')->put((string) $harmony->audio_key, 'aac');
+        Storage::disk('private')->put((string) $harmony->card_key, 'jpg');
+        app(HarmonyFiles::class)->sync($harmony);
+
+        $html = (string) $this->get('/h/'.$harmony->refresh()->public_id)->assertOk()->getContent();
+
+        $this->assertStringContainsString('data-real-voice="lead"', $html);
+        $this->assertStringContainsString(e(__('sharing.page.real_lead', ['name' => 'Sam Rivers'])), $html);
+        $this->assertStringNotContainsString(e(__('pages.song.ai.mix_own', ['part' => 'Alto', 'name' => 'Sam Rivers'])), $html);
+        $this->assertSame(1, substr_count($html, 'href="/about/ai-voices"'));
+    }
 }

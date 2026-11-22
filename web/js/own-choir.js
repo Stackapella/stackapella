@@ -47,7 +47,7 @@ export function tunePart(template) {
 
 // The choir's 30 seconds: a tune the singer chooses (Hillel, 2026-11-22: "make it easy for the user to choose between
 // Silent Night, Amazing Grace, Happy Birthday or Joy to the World"), whatever song the choir is for. Happy Birthday is
-// the hidden `voice-capture` song (Happy Birthday, then For He's a Jolly Good Fellow). The server lists them, in order,
+// the hidden `voice-capture` song (v4: Happy Birthday twice, "dear friend", in F). The server lists them, in order,
 // the first the default, each with where the take stops (`stopBeat`, a phrase start; null for the whole tune).
 export const CLIP_TEMPLATE = 'voice-capture';
 const CLIP_CHOICE = 'stackapella.clipSong';
@@ -160,7 +160,6 @@ export const ClipChoice = {
                     :class="picked === song.templateId ? 'border-accent bg-raised' : 'border-line hover:border-muted'" :aria-pressed="picked === song.templateId ? 'true' : 'false'"
                     :data-clip-song="song.templateId" @click="chooseClip(song.templateId)">
                     <span class="block text-[15px] font-semibold text-cream">{{ clipPick.titles[song.templateId] ?? '' }}</span>
-                    <span v-if="song.templateId === CLIP_TEMPLATE" class="block text-xs text-muted">{{ t('ownChoir.intro.thenJolly') }}</span>
                 </button>
             </div>
             <Switch v-if="songId && picked === songId && !clipPick.noHeadphones" :on="clipPick.whole" :label="t('ownChoir.intro.whole')" :hint="t('ownChoir.intro.wholeHint')" class="pt-2" data-clip-whole @change="clipPick.whole = $event" />
@@ -536,8 +535,11 @@ export function choirVoices(project, partKey) {
 }
 
 /** What a choir project keeps of its song: the request, its version and parts (to play offline). */
-export function choirOf(request) {
-    return { requestId: request.id, templateId: request.templateId, version: request.version, parts: request.parts.map((p) => ({ ...p })) };
+export function choirOf(request, { lead = false } = {}) {
+    // `lead`: their whole-song take sings the tune (You + choir; shared as their real voice, `realVoice: ["take"]`).
+    const take = lead ? request.leadTake : null;
+    const parts = request.parts.map((p) => (take && p.partKey === take.partKey ? { ...take } : { ...p }));
+    return { requestId: request.id, templateId: request.templateId, version: request.version, parts, ...(take ? { lead: true } : {}) };
 }
 
 /**

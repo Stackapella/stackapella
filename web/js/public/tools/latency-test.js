@@ -25,6 +25,7 @@ import { outputDelay } from '../../../engine/clock.js';
 import { click, median } from '../../dsp.js';
 import { CLAP_CLICKS, CLAP_GAP_SECONDS, measureClaps, measureLatency } from '../../timing-check.js';
 import { reasonOf } from '../live-mic.js';
+import { onPicked, PICKER_ROW, savedMic, showPicker } from '../mic-pick.js';
 import { segmented, sheetRow, toolLayout } from '../tool-layout.js';
 import { toolPrefs } from '../tool-prefs.js';
 import { sound } from '../tones.js';
@@ -36,7 +37,7 @@ export const WORDS = ['routeQuestion', 'howToLabel', 'idleHint', 'wired', 'bluet
     'ms', 'plusMinus', 'tight', 'fine', 'late', 'veryLate', 'zoneTight', 'zoneFine', 'zoneLate', 'zoneVeryLate',
     'whatNow', 'do1', 'do2', 'do3', 'headsetMic', 'browserSays', 'again', 'thisVisit', 'byTap', 'byMic',
     'roundTrip', 'tapEarly', 'copy', 'copied', 'copyText', 'copyTextMic', 'kept', 'failed', 'failedHint', 'denied', 'noMic', 'settings', 'settingsTitle', 'reset', 'done',
-    'clapExact', 'clapIntro', 'clapTip', 'clapStart', 'clapping', 'clapUneven', 'clapFew', 'clapNote', 'byClap'];
+    'clapExact', 'clapIntro', 'clapTip', 'clapStart', 'clapping', 'clapUneven', 'clapFew', 'clapNote', 'byClap', 'micLabel'];
 
 export const ROUTES = ['wired', 'bluetooth', 'speakers'];
 const RUNS = 3; // the mic check's runs
@@ -167,6 +168,7 @@ const SHEET_ROWS = [
   <p class="font-semibold text-cream" data-exact></p>
   <p class="text-sm text-muted" data-mic-intro></p>
   <p class="text-sm text-muted" data-clap-tip hidden></p>
+  ${PICKER_ROW}
   <button type="button" class="btn-primary justify-self-start" data-ui="mic-start" data-mic-start></button>
   <div class="space-y-2" data-measuring hidden>
     <p class="text-sm text-cream" data-measuring-words></p>
@@ -395,7 +397,11 @@ export function mountLatencyTest(root, { words = {}, keySlot = null, route = nul
         };
         if (claps) frame = requestAnimationFrame(tick);
         try {
-            device ??= await open({ deviceId });
+            if (!device) {
+                device = await open({ deviceId: deviceId || savedMic() });
+                // The mics have names once allowed: the chooser shows when there's more than one.
+                await showPicker(root.querySelector('[data-picker]'), deviceId || savedMic() || 'default').catch((error) => console.warn('The mic picker could not be filled', error));
+            }
             if (claps) {
                 const found = await measureByClaps(device);
                 ui.openSheet(false);
@@ -436,6 +442,13 @@ export function mountLatencyTest(root, { words = {}, keySlot = null, route = nul
 
     ui.onPrimary(() => (card.dataset.phase === 'tapping' ? finishTapping() : ['mic', 'clap'].includes(last?.method) && card.dataset.phase === 'done' ? measureByMic() : startTapping()));
     $('[data-mic-start]').addEventListener('click', measureByMic);
+    // A mic chosen in the sheet: remembered (here and for the app, by name); the next check opens it.
+    const micWord = root.querySelector('[data-picker-label] [data-w="micLabel"]');
+    if (micWord) micWord.textContent = words.micLabel ?? '';
+    onPicked(root.querySelector('[data-picker]'), (id) => {
+        letMicGo();
+        deviceId = id;
+    });
     $('[data-copy]').addEventListener('click', async () => {
         if (!last) return;
         const line = fill(last.method === 'tap' ? words.copyText : words.copyTextMic, { route: words[last.route] ?? last.route, ms: number(last.ms), spread: number(Math.max(1, last.spreadMs)) });

@@ -18,6 +18,7 @@ use App\Models\OwnChoirVoice;
 use App\Models\Template;
 use App\Models\User;
 use App\Models\UserLearning;
+use App\Support\AiVoices\AiMark;
 use App\Support\Errors\ScrubEvent;
 use App\Support\Flags;
 use App\Support\Ids;
@@ -112,15 +113,15 @@ final class ChoirTogetherTest extends TestCase
     }
 
     /** The renderer claims Ben's job and sends his parts. */
-    private function render(): OwnChoirRequest
+    private function render(?string $wav = null): OwnChoirRequest
     {
         $claim = $this->worker('POST', '/api/worker/choir/claim')->assertOk();
         $job = OwnChoirRequest::query()->findOrFail(Ids::decode((string) $claim->json('data.id')));
         $token = (string) $claim->json('data.claim');
-        $wav = Wav::tone(1.0);
+        $wav ??= Wav::tone(1.0);
 
         foreach ($claim->json('data.parts') as $key) {
-            $frames = intdiv(strlen($wav) - 44, 2);
+            $frames = (int) (unpack('V', substr($wav, 40, 4))[1] ?? 0) / 2; // The data chunk's frames: marking chunks may follow.
             $this->worker('POST', "/api/worker/choir/jobs/{$job->sqid()}/parts", ['claim' => $token, 'part' => $key, 'sampleRate' => 48000, 'frames' => $frames, 'bytes' => strlen($wav), 'sha256' => hash('sha256', $wav),
                 'checks' => ['pitchMaxCents' => 20.0, 'pitchMedianCents' => 8.0, 'notesMeasured' => 4, 'notesTotal' => 4, 'notesOver15' => 0, 'notesOver30' => 0, 'dropouts' => 0, 'heldSeconds' => 1.0, 'durationSeconds' => 1.0],
                 'renderer' => ['model' => 'soulx-singer', 'codeRevision' => str_repeat('a', 40), 'weightsRevision' => str_repeat('b', 40), 'steps' => 32, 'control' => 'melody', 'pitchShift' => 0, 'reference' => 'own-clip']])->assertCreated();
@@ -688,5 +689,42 @@ final class ChoirTogetherTest extends TestCase
         $this->ann->forceFill(['store_plus_until' => null])->save();
         $this->as($this->ann);
         $this->assertMatchesContract($this->postJson("/api/own-choir/requests/{$this->song->sqid()}/remake", ['sung' => $sung]), 'ownChoir.requests.remake', 403);
+    }
+
+    public function test_a_master_carries_its_ai_marking_and_once_required_one_without_it_is_refused(): void
+    {
+        OwnChoirVoice::factory()->create(['user_id' => $this->ann->id, 'status' => 'ready']);
+        $this->as($this->ann);
+        $sung = ['humanize' => 0, 'voicing' => 'written', 'breaths' => 'legato', 'quality' => 'standard', 'ensembleTiming' => 'tight', 'pitchSpread' => 'off'];
+        config(['ai_marking.required' => true]);
+
+        // Marked: accepted with its chunks after the audio, and made.
+        $this->postJson("/api/own-choir/requests/{$this->song->sqid()}/remake", ['sung' => $sung])->assertStatus(202);
+        $this->assertTrue(AiMark::marked((function (): string {
+            $p = tempnam(sys_get_temp_dir(), 'w');
+            file_put_contents($p, Wav::marked(Wav::tone(1.0)));
+
+            return $p;
+        })()));
+        $this->render(Wav::marked(Wav::tone(1.0)));
+        $this->assertSame(4, OwnChoirPart::query()->where('own_choir_request_id', $this->song->id)->where('status', 'ready')->count());
+
+        // Unmarked, once required: refused.
+        $this->as($this->ann);
+        $this->postJson("/api/own-choir/requests/{$this->song->sqid()}/remake", ['sung' => $sung])->assertStatus(202);
+        $claim = $this->worker('POST', '/api/worker/choir/claim')->assertOk();
+        $job = OwnChoirRequest::query()->findOrFail(Ids::decode((string) $claim->json('data.id')));
+        $wav = Wav::tone(1.0);
+        $frames = intdiv(strlen($wav) - 44, 2);
+        $this->worker('POST', "/api/worker/choir/jobs/{$job->sqid()}/parts", ['claim' => (string) $claim->json('data.claim'), 'part' => 'alto', 'sampleRate' => 48000, 'frames' => $frames, 'bytes' => strlen($wav) + 70000, 'sha256' => hash('sha256', $wav),
+            'checks' => ['pitchMaxCents' => 20.0, 'pitchMedianCents' => 8.0, 'notesMeasured' => 4, 'notesTotal' => 4, 'notesOver15' => 0, 'notesOver30' => 0, 'dropouts' => 0, 'heldSeconds' => 1.0, 'durationSeconds' => 1.0],
+            'renderer' => ['model' => 'soulx-singer', 'codeRevision' => str_repeat('a', 40), 'weightsRevision' => str_repeat('b', 40), 'steps' => 32, 'control' => 'melody', 'pitchShift' => 0, 'reference' => 'own-clip']])->assertStatus(422);
+        $this->worker('POST', "/api/worker/choir/jobs/{$job->sqid()}/parts", ['claim' => (string) $claim->json('data.claim'), 'part' => 'alto', 'sampleRate' => 48000, 'frames' => $frames, 'bytes' => strlen($wav), 'sha256' => hash('sha256', $wav),
+            'checks' => ['pitchMaxCents' => 20.0, 'pitchMedianCents' => 8.0, 'notesMeasured' => 4, 'notesTotal' => 4, 'notesOver15' => 0, 'notesOver30' => 0, 'dropouts' => 0, 'heldSeconds' => 1.0, 'durationSeconds' => 1.0],
+            'renderer' => ['model' => 'soulx-singer', 'codeRevision' => str_repeat('a', 40), 'weightsRevision' => str_repeat('b', 40), 'steps' => 32, 'control' => 'melody', 'pitchShift' => 0, 'reference' => 'own-clip']])->assertCreated();
+        $part = OwnChoirPart::query()->where('own_choir_request_id', $job->id)->sole();
+        Storage::disk('private')->put($part->upload_key, $wav);
+        $this->worker('POST', "/api/worker/choir/parts/{$part->sqid()}/complete");
+        $this->assertSame(['failed', 'unmarked'], [$part->refresh()->status, $part->failure]);
     }
 }

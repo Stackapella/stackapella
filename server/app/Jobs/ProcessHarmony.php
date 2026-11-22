@@ -127,7 +127,8 @@ final class ProcessHarmony implements ShouldQueue
                 return;
             }
 
-            $ffmpeg->encodeMix($wav, $aac, $harmony->channels);
+            // A mix holding an AI voice is marked so (EU AI Act Article 50).
+            $ffmpeg->encodeMix($wav, $aac, $harmony->channels, ai: (array) $harmony->ai_parts !== [] || (array) $harmony->own_voice_parts !== [] || (array) $harmony->own_voice_friends !== []);
             $base = 'harmonies/'.Str::lower(Str::random(32));
             $made = ["{$base}.m4a", "{$base}.jpg"];
 

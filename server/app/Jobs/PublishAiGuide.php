@@ -13,6 +13,7 @@ use App\Models\TemplateGuide;
 use App\Services\Audio\Ffmpeg;
 use App\Support\AiVoices\AiGuides;
 use App\Support\AiVoices\AiLicence;
+use App\Support\AiVoices\AiMark;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -63,6 +64,13 @@ final class PublishAiGuide implements ShouldQueue
         try {
             $probe = $ffmpeg->probe($in);
 
+            // An AI voice's master carries its AI marking (EU AI Act Article 50), once required.
+            if ((bool) config('ai_marking.required') && ! AiMark::marked($in)) {
+                $this->refuse($upload, 'unmarked');
+
+                return;
+            }
+
             if ($probe === null || ! str_contains($probe['format'], 'wav') || $probe['codec'] !== 'pcm_s16le' || $probe['channels'] !== 1
                 || $probe['sampleRate'] !== $upload->sample_rate || $probe['frames'] === null || abs($probe['frames'] - $upload->frames) > 1) {
                 $this->refuse($upload, 'bad_audio');
@@ -74,7 +82,7 @@ final class PublishAiGuide implements ShouldQueue
             $gain = $volume['mean'] !== null ? (float) config('beta.guide_rms_dbfs') - $volume['mean'] : 0.0;
             // Never louder than its loudest sample allows: at most -2 dBFS, room for the AAC encoder's overshoot.
             $gain = max(-24.0, min(24.0, $volume['peak'] !== null ? min($gain, -2.0 - $volume['peak']) : $gain));
-            $ffmpeg->encodeGuide($in, $out, $upload->sample_rate, 0, $upload->frames, $gain);
+            $ffmpeg->encodeGuide($in, $out, $upload->sample_rate, 0, $upload->frames, $gain, ai: true);
 
             $key = 'guides/'.Str::lower(Str::random(32)).'.m4a';
             $stream = fopen($out, 'rb');

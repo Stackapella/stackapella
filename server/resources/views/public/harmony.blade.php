@@ -100,7 +100,11 @@
             @endif
             {{-- A real voice by its singer's name; an AI part in the app's Share words, its singer named only as they chose
                  (design rules, "AI: plain about it, never loud"), with one link to About AI voices. --}}
-            @if (count($harmony['guides']))
+            {{-- Their own real voice in the lead (2026-11-23): one line, in place of the AI line, never both. The bare clip is
+                 never on a public page (the coordinator, 2026-11-23). --}}
+            @if (($harmony['realVoice']['kind'] ?? null) === 'lead')
+                <p data-real-voice="lead">{{ __('sharing.page.real_lead', ['name' => $harmony['realVoice']['name']]) }} <a href="/about/ai-voices" class="s-lk">{{ __('pages.song.ai.about') }}</a></p>
+            @elseif (count($harmony['guides']))
                 {{-- An own-voice part (Hear yourself as a choir: `ownVoice`) is "made from" its singer's singing, a catalogue AI
                      part "based on" a consenting singer's; either says only "AI voice" without a name, except a friend's
                      part in a choir with friends (`friend`), which says "made from a friend's singing" unless they chose to

@@ -21,7 +21,8 @@
 //   mountRangeTest(el, { words, keySlot, onResult: ({ low, high, type }) => ..., onError: (reason) => ... });
 
 import { listen, reasonOf, TRACKER_FILES } from '../live-mic.js';
-import { toolLayout } from '../tool-layout.js';
+import { micRow, onPicked, savedMic, settleMic } from '../mic-pick.js';
+import { sheetRow, toolLayout } from '../tool-layout.js';
 import { toolPrefs } from '../tool-prefs.js';
 import { isBlack, PIANO } from '../piano.js';
 import { grandStaff } from '../staff.js';
@@ -47,6 +48,7 @@ export const WORDS = [
     'cardTitle', 'cardChallenge', 'cardTagline', 'cardSite', 'cardSaved',
     'manual', 'manualHow', 'manualLow', 'manualHigh', 'restart', 'keyboard', 'noMic', 'holding', 'settingsTitle', 'reset',
     'noFry', 'sinceLast', 'sinceSame', 'semitoneHigher', 'semitonesHigher', 'semitoneLower', 'semitonesLower', 'theSame',
+    'micLabel',
 ];
 
 export const HOLD_SECONDS = 1; // the app's range check holds a note this long (RANGE_HOLD_SECONDS)
@@ -161,6 +163,8 @@ export function mountRangeTest(root, { words = {}, keySlot = null, onResult = nu
     ui.hero.innerHTML = HERO;
     ui.panel.innerHTML = PANEL;
     ui.sheet.innerHTML = SHEET;
+    // The mic chooser (mic-pick.js), first in the sheet: shown once the mic is allowed and there's more than one input.
+    micRow(ui.sheet, sheetRow);
     const $ = (sel) => root.querySelector(sel);
     const card = ui.element;
     card.dataset.tool = 'range';
@@ -189,6 +193,8 @@ export function mountRangeTest(root, { words = {}, keySlot = null, onResult = nu
     let tone = null; // the note playing back
 
     for (const el of root.querySelectorAll('[data-w]')) el.textContent = w(el.dataset.w);
+    // A mic chosen in More: remembered (here and for the app, by name), and the test moves to it as it listens.
+    onPicked(root.querySelector('[data-picker]'), (id) => session?.use?.(id).catch((error) => console.warn('That mic could not be opened', error)));
     $('[data-keyboard]').setAttribute('aria-label', w('keyboard'));
     const name = (midi) => {
         const p = pitchName(midi, { naming });
@@ -408,7 +414,8 @@ export function mountRangeTest(root, { words = {}, keySlot = null, onResult = nu
     async function ensureMic() {
         if (session) return true;
         try {
-            session = await open({ deviceId, onFrame: feed });
+            session = await open({ deviceId: deviceId || savedMic(), onFrame: feed });
+            await settleMic(session, root.querySelector('[data-picker]'));
             return true;
         } catch (error) {
             session = null;

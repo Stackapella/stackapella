@@ -5660,11 +5660,10 @@
         },
         "title": "Hear yourself as a choir",
         "intro": {
-            "one": "Sing {song} and For He's a Jolly Good Fellow, in whatever octave feels comfortable.",
+            "one": "Sing {song} twice, in whatever octave feels comfortable.",
             "oneSong": "Sing {song} for 30 seconds, in whatever octave feels comfortable.",
             "oneBody": "It needn't be good singing: we only listen for what your voice sounds like, and keep it privately for your next songs.",
             "choose": "Song to sing",
-            "thenJolly": "then For He's a Jolly Good Fellow",
             "two": "We make every part of {song} in a voice like yours, labelled as AI.",
             "three": "Then learn your part: each one you record takes the place of its AI version.",
             "whole": "Sing the whole song",
@@ -5679,7 +5678,9 @@
             "again": "Sing again",
             "failed": "Your recording didn't send. Try again.",
             "readyNow": "Your choir is ready",
-            "listen": "Listen to your choir"
+            "listen": "Listen to your choir",
+            "done": "Your singing is recorded",
+            "doneHint": "Listen back if you like, then make your choir."
         },
         "wait": {
             "title": "Your choir is on its way",
@@ -5784,7 +5785,9 @@
             "tooLong": "This song is too long to make in a voice like yours: at most 8 parts, each up to 5 minutes."
         },
         "share": {
-            "button": "Share my choir"
+            "button": "Share my choir",
+            "realVoice": "This shares your own singing, with AI voices made from it.",
+            "fullOnly": "Shares the full choir. Your recording stays private."
         },
         "off": {
             "signedOut": "Sign in to hear yourself as a choir.",

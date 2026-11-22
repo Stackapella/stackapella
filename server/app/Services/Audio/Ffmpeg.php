@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Audio;
 
+use App\Support\AiVoices\AiMark;
 use Illuminate\Support\Facades\Process;
 use RuntimeException;
 
@@ -55,6 +56,20 @@ final class Ffmpeg
     }
 
     /**
+     * A file's container tags (format_tags), as ffprobe reads them: the AI marking among them.
+     *
+     * @return array<string, string>
+     */
+    public function tags(string $path): array
+    {
+        $result = Process::timeout(60)->run(['ffprobe', '-v', 'error', ...self::LOCAL_IN, '-show_entries', 'format_tags', '-of', 'json', $path]);
+        $data = (array) json_decode($result->output(), true);
+        $tags = (array) ($data['format']['tags'] ?? []);
+
+        return array_map(static fn (mixed $v): string => (string) $v, $tags);
+    }
+
+    /**
      * The mean loudness (RMS) and the loudest sample, in dBFS, from ffmpeg's volumedetect. Null
      * for silence.
      *
@@ -75,7 +90,7 @@ final class Ffmpeg
      * @param  list<array{0: float, 1: float}>  $mutes  spans of the guide's own seconds to silence (a
      *                                                  breath a later version added), each with 15 ms ramps
      */
-    public function encodeGuide(string $in, string $out, int $sampleRate, int $from, int $to, float $gainDb, int $fadeMs = 10, array $mutes = [], ?int $kbps = null): void
+    public function encodeGuide(string $in, string $out, int $sampleRate, int $from, int $to, float $gainDb, int $fadeMs = 10, array $mutes = [], ?int $kbps = null, bool $ai = false): void
     {
         $length = max(1, $to - $from);
         $fade = round(min($fadeMs / 1000, $length / $sampleRate / 4), 4);
@@ -92,7 +107,7 @@ final class Ffmpeg
             'volume='.round($gainDb, 2).'dB',
         ]);
 
-        $result = Process::timeout(200)->run(['ffmpeg', '-hide_banner', '-nostats', '-y', ...self::LOCAL_IN, '-i', $in, '-af', $filter, '-c:a', 'aac', '-b:a', ($kbps ?? ((int) config('beta.guide_kbps') ?: 128)).'k', '-ar', (string) $sampleRate, '-ac', '1', '-movflags', '+faststart', '-f', 'mp4', $out]);
+        $result = Process::timeout(200)->run(['ffmpeg', '-hide_banner', '-nostats', '-y', ...self::LOCAL_IN, '-i', $in, '-af', $filter, '-c:a', 'aac', '-b:a', ($kbps ?? ((int) config('beta.guide_kbps') ?: 128)).'k', '-ar', (string) $sampleRate, '-ac', '1', ...($ai ? AiMark::mp4Metadata() : []), '-movflags', $ai ? '+faststart+use_metadata_tags' : '+faststart', '-f', 'mp4', $out]);
 
         if (! $result->successful() || ! is_file($out)) {
             throw new RuntimeException('ffmpeg could not make the guide: '.mb_strimwidth($result->errorOutput(), 0, 500, '...'));
@@ -103,9 +118,9 @@ final class Ffmpeg
      * A shared mix for the CDN, as it was rendered (no gain, no filter): AAC in an MP4, 160 kbps
      * for stereo and 128 for mono, at its own rate.
      */
-    public function encodeMix(string $in, string $out, int $channels): void
+    public function encodeMix(string $in, string $out, int $channels, bool $ai = false): void
     {
-        $result = Process::timeout(200)->run(['ffmpeg', '-hide_banner', '-nostats', '-y', ...self::WAV_IN, '-i', $in, '-c:a', 'aac', '-b:a', $channels > 1 ? '160k' : '128k', '-ac', (string) $channels, '-movflags', '+faststart', '-f', 'mp4', $out]);
+        $result = Process::timeout(200)->run(['ffmpeg', '-hide_banner', '-nostats', '-y', ...self::WAV_IN, '-i', $in, '-c:a', 'aac', '-b:a', $channels > 1 ? '160k' : '128k', '-ac', (string) $channels, ...($ai ? AiMark::mp4Metadata() : []), '-movflags', $ai ? '+faststart+use_metadata_tags' : '+faststart', '-f', 'mp4', $out]);
 
         if (! $result->successful() || ! is_file($out) || filesize($out) === 0) {
             throw new RuntimeException('ffmpeg could not make the mix: '.mb_strimwidth($result->errorOutput(), 0, 300));

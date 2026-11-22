@@ -38,7 +38,8 @@
                 "plusTeams",
                 "plusPrivate",
                 "choirSeats",
-                "ownChoirTogether"
+                "ownChoirTogether",
+                "aiMark"
             ],
             "properties": {
                 "methods": {
@@ -296,6 +297,26 @@
                 "choirSeats": {
                     "type": "boolean",
                     "description": "Choir seats (the choir_seats switch, docs/choir-seats-plan.md): while true, every member of a choir group needs a seat (the director's seat panel, the seats moment before Start a group, an unseated member's \"Ask your director\"; groups.show's seat and seats). False: as before."
+                },
+                "aiMark": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "text",
+                        "generator",
+                        "digitalSourceType"
+                    ],
+                    "properties": {
+                        "text": {
+                            "type": "string"
+                        },
+                        "generator": {
+                            "type": "string"
+                        },
+                        "digitalSourceType": {
+                            "type": "string"
+                        }
+                    }
                 }
             }
         }

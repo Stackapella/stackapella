@@ -57,7 +57,8 @@ final class CreateAiUploadRequest extends FormRequest
 
                 $frames = $input('frames');
 
-                if (! is_int($frames) || (int) $value !== 44 + $frames * 2) {
+                // The audio, and after it the worker's AI marking chunks (EU AI Act Article 50; config ai_marking).
+                if (! is_int($frames) || (int) $value < 44 + $frames * 2 || (int) $value > 44 + $frames * 2 + (int) config('ai_marking.max_chunk_bytes')) {
                     $fail(__('validation.ai_master_bytes'));
                 }
             }],
