@@ -1,4 +1,5 @@
 import { toRaw, toRefs } from 'vue';
+import { aiMark } from '../ai-mark.js';
 import { downloadParts, ownChoir } from '../own-choir.js';
 import { loadChoirFull } from '../own-choir-player.js';
 import { styleOf } from '../band-style.js';
@@ -132,12 +133,13 @@ export const StudioView = {
                         <button v-if="!project.beta && !fromSheetMusic && sharedParts.length" type="button" class="btn-ghost btn-sm hidden lg:flex" @click="dialog = 'share'">{{ t('share.title') }}</button>
                         <button v-if="!project.beta" type="button" class="btn-ghost btn-sm hidden items-center gap-1.5 lg:flex" :disabled="!parts.length" @click="dialog = 'export'"><Icon name="download" :size="16" /> {{ t('studio.export') }}</button>
                         <button v-if="!project.shared" type="button" class="hidden size-10 place-items-center rounded-full glass-bubble text-cream lg:grid" :aria-label="t('studio.menu.settings')" :title="t('studio.menu.settings')" @click="dialog = 'settings'"><Icon name="sliders" :size="18" /></button>
+                        <!-- Share in plain sight on a phone too (a newcomer couldn't find it in the More menu: Hillel's dad, 2026-11-23). -->
+                        <button v-if="!project.beta && !fromSheetMusic && sharedParts.length" type="button" class="btn-secondary btn-sm lg:hidden" data-studio-share @click="dialog = 'share'">{{ t('share.title') }}</button>
                         <button v-if="isTemplate && !project.beta" type="button" class="btn-secondary btn-sm flex items-center gap-1.5" @click="navigate('/p/' + id + '/sing')"><Icon name="note" :size="16" /> {{ t('sing.open') }}</button>
                         <details class="relative lg:hidden">
                             <summary class="list-none rounded-full border border-line p-2 text-cream hover:bg-raised" :aria-label="t('common.more')"><Icon name="more" /></summary>
                             <div class="absolute end-0 z-30 mt-2 w-60 rounded-2xl border border-line bg-raised p-1.5 shadow-xl">
                                 <button v-if="isTemplate && !project.beta" type="button" class="block w-full rounded-xl px-3 py-2.5 text-start text-cream hover:bg-panel" @click="menu('sing', $event)">{{ t('studio.menu.learn') }}</button>
-                                <button v-if="!project.beta && !fromSheetMusic && sharedParts.length" type="button" class="block w-full rounded-xl px-3 py-2.5 text-start text-cream hover:bg-panel" @click="menu('share', $event)">{{ t('share.title') }}</button>
                                 <button type="button" class="block w-full rounded-xl px-3 py-2.5 text-start text-cream hover:bg-panel disabled:opacity-40" :disabled="!parts.length" @click="menu('export', $event)">{{ t('studio.export') }}</button>
                                 <button v-if="!project.shared" type="button" class="block w-full rounded-xl px-3 py-2.5 text-start text-cream hover:bg-panel" @click="menu('settings', $event)">{{ t('studio.menu.settings') }}</button>
                                 <button type="button" class="block w-full rounded-xl px-3 py-2.5 text-start text-cream hover:bg-panel" @click="menu('mic', $event)">{{ t('studio.menu.micAndTiming') }}</button>
@@ -1502,7 +1504,9 @@ export const StudioView = {
                     const full = silent ?? (this.choirRequest && !this.choirLocked ? await this.choirFull() : null);
                     const render = () => sessionStore.renderMix({ chords, room, track });
                     const rendered = full ? await sessionStore.withChoirAudio(full, render) : await render();
-                    file = format === 'mp3' ? await encodeMp3(rendered.channels, rendered.sampleRate, { comment }) : encodeWav(rendered.channels, rendered.sampleRate, { comment });
+                    // A mix an AI voice sings in is marked inside the file too (EU AI Act Article 50; auth.config's wording).
+                    const mark = this.aiInMix || (full && !silent) ? aiMark() : null;
+                    file = format === 'mp3' ? await encodeMp3(rendered.channels, rendered.sampleRate, { comment, aiMark: mark }) : encodeWav(rendered.channels, rendered.sampleRate, { comment, aiMark: mark });
                 }
                 const url = URL.createObjectURL(file);
                 // A mix an AI voice sings in says so in its name too (design rules, "AI: plain about it"); stems are takes only.

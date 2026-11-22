@@ -2414,6 +2414,12 @@ select:disabled {
 .s-harmony-band { text-align: center; }
 .s-harmony-band .s-h2 { margin-inline: auto; }
 .s-harmony .s-sung { justify-content: center; }
+/* Who sings, between the title block and the player (Hillel, 2026-11-23): body size, full ink, an AI chip; the block
+   title, line, player reads as one. */
+.s-ai-line { display: flex; align-items: baseline; justify-content: center; gap: 8px; max-width: 560px; margin: 14px auto 0; font-size: 15px; line-height: 1.45; color: var(--color-cream); text-wrap: pretty; }
+.s-ai-line > span:last-child { text-align: start; }
+.s-ai-chip { flex: none; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--color-line); background: var(--color-panel); font-size: 12px; font-weight: 750; letter-spacing: .04em; line-height: 1.5; }
+.s-harmony .s-ai-line + .s-share-player { margin-top: 18px; }
 .s-harmony .s-sung > span:last-child { flex: none; text-align: start; }
 .s-harmony + .s-harmony-band + .s-share-credits { justify-items: center; text-align: center; }
 .s-harmony + .s-harmony-band + .s-share-credits .s-report { justify-self: center; }

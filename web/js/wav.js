@@ -3,12 +3,15 @@
 /**
  * Interleaves `channels` (Float32Arrays of equal length) into a 16-bit PCM WAV Blob. A `comment`
  * (the real voices' credits) goes in a LIST/INFO chunk as ICMT, which players show as the comment.
+ * `aiMark` ({ text, generator }, auth.config's, EU AI Act Article 50) marks a file holding an AI voice, machine-readably:
+ * ICMT starts with its text, ISFT is its generator, and a bext chunk carries the text as its description.
  */
-export function encodeWav(channels, sampleRate, { comment = null } = {}) {
+export function encodeWav(channels, sampleRate, { comment = null, aiMark = null } = {}) {
     const frames = channels[0].length;
     const count = channels.length;
     const dataBytes = frames * count * 2;
-    const info = comment ? infoChunk(comment) : new Uint8Array(0);
+    const icmt = [aiMark?.text, comment].filter(Boolean).join('\n');
+    const info = concat(icmt ? infoChunk(icmt, aiMark?.generator ?? null) : new Uint8Array(0), aiMark?.text ? bextChunk(aiMark.text) : new Uint8Array(0));
     const view = new DataView(new ArrayBuffer(44 + dataBytes + info.length));
     const text = (at, value) => {
         for (let i = 0; i < value.length; i++) {
@@ -40,18 +43,41 @@ export function encodeWav(channels, sampleRate, { comment = null } = {}) {
     return new Blob([view.buffer], { type: 'audio/wav' });
 }
 
-/** LIST/INFO with one ICMT (comment), UTF-8, padded to an even length as RIFF requires. */
-function infoChunk(comment) {
-    const text = new TextEncoder().encode(`${comment}\0`);
-    const padded = text.length + (text.length % 2);
-    const out = new Uint8Array(12 + 8 + padded);
-    const view = new DataView(out.buffer);
-    const ascii = (at, value) => [...value].forEach((c, i) => view.setUint8(at + i, c.charCodeAt(0)));
-    ascii(0, 'LIST');
-    view.setUint32(4, out.length - 8, true);
-    ascii(8, 'INFO');
-    ascii(12, 'ICMT');
-    view.setUint32(16, text.length, true);
-    out.set(text, 20);
+const concat = (...parts) => {
+    const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0));
+    let at = 0;
+    for (const p of parts) {
+        out.set(p, at);
+        at += p.length;
+    }
     return out;
+};
+
+/** One RIFF sub-chunk: its id, its size and its bytes, padded to an even length as RIFF requires. */
+function subChunk(id, bytes) {
+    const out = new Uint8Array(8 + bytes.length + (bytes.length % 2));
+    const view = new DataView(out.buffer);
+    [...id].forEach((c, i) => view.setUint8(i, c.charCodeAt(0)));
+    view.setUint32(4, bytes.length, true);
+    out.set(bytes, 8);
+    return out;
+}
+
+/** LIST/INFO with ICMT (comment) and, for a marked file, ISFT (the software), UTF-8, each zero-ended. */
+function infoChunk(comment, software = null) {
+    const z = (value) => new TextEncoder().encode(`${value}\0`);
+    const fields = concat(subChunk('ICMT', z(comment)), software ? subChunk('ISFT', z(software)) : new Uint8Array(0));
+    return subChunk('LIST', concat(new TextEncoder().encode('INFO'), fields));
+}
+
+/**
+ * A Broadcast Wave bext chunk (EBU Tech 3285, version 1) whose Description is `text` (ASCII, at most 256 bytes; the rest
+ * of the fixed fields empty), so broadcast tools read the AI marking too.
+ */
+function bextChunk(text) {
+    const body = new Uint8Array(602);
+    const ascii = [...String(text)].map((c) => (c.charCodeAt(0) < 128 ? c.charCodeAt(0) : 63)).slice(0, 256);
+    body.set(ascii, 0);
+    new DataView(body.buffer).setUint16(346, 1, true); // Version 1
+    return subChunk('bext', body);
 }

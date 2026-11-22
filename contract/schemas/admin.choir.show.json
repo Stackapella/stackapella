@@ -1,0 +1,285 @@
+{
+    "$id": "admin.choir.show.json",
+    "title": "The choir's anonymous numbers over 7 or 30 days (Admin > Choir)",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "period",
+                "from",
+                "to",
+                "floor",
+                "totals",
+                "daily",
+                "funnel",
+                "reasons",
+                "songs",
+                "gates",
+                "firstSuccess",
+                "renderSeconds",
+                "plusFromChoir"
+            ],
+            "properties": {
+                "period": {
+                    "enum": [
+                        "7d",
+                        "30d"
+                    ]
+                },
+                "from": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                },
+                "floor": {
+                    "type": "integer"
+                },
+                "totals": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "kind",
+                            "n",
+                            "before"
+                        ],
+                        "properties": {
+                            "kind": {
+                                "type": "string"
+                            },
+                            "n": {
+                                "type": "integer"
+                            },
+                            "before": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "daily": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "date",
+                            "kinds"
+                        ],
+                        "properties": {
+                            "date": {
+                                "type": "string"
+                            },
+                            "kinds": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "kind",
+                                        "n"
+                                    ],
+                                    "properties": {
+                                        "kind": {
+                                            "type": "string"
+                                        },
+                                        "n": {
+                                            "type": "integer"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "funnel": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "step",
+                            "n",
+                            "before"
+                        ],
+                        "properties": {
+                            "step": {
+                                "enum": [
+                                    "intro",
+                                    "take",
+                                    "sent",
+                                    "requested",
+                                    "ready",
+                                    "seen",
+                                    "played"
+                                ]
+                            },
+                            "n": {
+                                "type": "integer"
+                            },
+                            "before": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "reasons": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "reason",
+                            "n",
+                            "before"
+                        ],
+                        "properties": {
+                            "reason": {
+                                "enum": [
+                                    "length",
+                                    "quiet",
+                                    "loud",
+                                    "noisy",
+                                    "notes",
+                                    "edge",
+                                    "short",
+                                    "other"
+                                ]
+                            },
+                            "n": {
+                                "type": "integer"
+                            },
+                            "before": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "songs": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "song",
+                            "ok",
+                            "failed"
+                        ],
+                        "properties": {
+                            "song": {
+                                "enum": [
+                                    "capture",
+                                    "silent",
+                                    "grace",
+                                    "joy"
+                                ]
+                            },
+                            "ok": {
+                                "type": "integer"
+                            },
+                            "failed": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "gates": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "part",
+                            "voicing",
+                            "n"
+                        ],
+                        "properties": {
+                            "part": {
+                                "enum": [
+                                    "soprano",
+                                    "alto",
+                                    "tenor",
+                                    "bass",
+                                    "other"
+                                ]
+                            },
+                            "voicing": {
+                                "enum": [
+                                    "written",
+                                    "low",
+                                    "full"
+                                ]
+                            },
+                            "n": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "firstSuccess": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "tries",
+                            "n"
+                        ],
+                        "properties": {
+                            "tries": {
+                                "enum": [
+                                    "1",
+                                    "2",
+                                    "3",
+                                    "4+"
+                                ]
+                            },
+                            "n": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "renderSeconds": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "n",
+                        "before"
+                    ],
+                    "properties": {
+                        "n": {
+                            "type": "integer"
+                        },
+                        "before": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "plusFromChoir": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "n",
+                        "before"
+                    ],
+                    "properties": {
+                        "n": {
+                            "type": "integer"
+                        },
+                        "before": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

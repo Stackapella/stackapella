@@ -27,7 +27,7 @@ final class StartCheckout
      * shared (a group, a friend on your song; docs/pricing-plan.md). Anything else, an older app's plus_song or workout
      * too, is "other".
      */
-    public const MOMENTS = ['storage_limit', 'mp3', 'stems', 'guide', 'private_template', 'settings', 'group_start', 'invite_friend', 'private_shared', 'choir_download', 'choir_song'];
+    public const MOMENTS = ['storage_limit', 'mp3', 'stems', 'guide', 'private_template', 'settings', 'group_start', 'invite_friend', 'private_shared', 'choir_download', 'choir_song', 'choir_settings', 'choir_friends'];
 
     public function __construct(private readonly BillingGateway $gateway, private readonly BillingState $state, private readonly Plans $plans, private readonly TrustLevel $trust) {}
 

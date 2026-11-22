@@ -222,6 +222,7 @@ export const OPERATIONS = {
     'voices.claims.create': ['POST', '/api/voices/claims'],
     'voices.claims.delete': ['DELETE', '/api/voices/claims/{id}'],
     'admin.growth.show': ['GET', '/api/admin/growth'],
+    'admin.choir.show': ['GET', '/api/admin/choir'],
     'admin.outreach.list': ['GET', '/api/admin/outreach'],
     'admin.outreach.create': ['POST', '/api/admin/outreach'],
     'admin.outreach.import': ['POST', '/api/admin/outreach/import'],
@@ -910,6 +911,8 @@ export const api = {
         sharing: () => call('admin.sharing.show'),
         breadth: () => call('admin.breadth.show'),
         growth: { show: ({ period, days } = {}) => call('admin.growth.show', { query: { period, days } }) },
+        // The choir's anonymous numbers (Hear yourself as a choir): 7d or 30d.
+        choir: { show: ({ period } = {}) => call('admin.choir.show', { query: { period } }) },
         // Outreach (docs/outreach-plan.md): one organization, one email, sent by Hillel's own press.
         outreach: {
             list: ({ status, group, angle, q } = {}) => call('admin.outreach.list', { query: { status, group, angle, q } }),

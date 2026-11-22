@@ -47,6 +47,22 @@
                 </span>
             </div>
 
+            {{-- Who sings, right under the title and above the player, so it reads with the song (Hillel, 2026-11-23). Their own real voice in the lead (2026-11-23): one line, in place of the AI line, never both. The bare clip is
+                 never on a public page (the coordinator, 2026-11-23). --}}
+            @if (($harmony['realVoice']['kind'] ?? null) === 'lead')
+                <p class="s-ai-line" data-real-voice="lead"><span class="s-ai-chip">{{ __('pages.song.ai.chip') }}</span><span>{{ __('sharing.page.real_lead', ['name' => $harmony['realVoice']['name']]) }} <a href="/about/ai-voices" class="s-lk">{{ __('pages.song.ai.about') }}</a></span></p>
+            @elseif (count($harmony['guides']))
+                {{-- An own-voice part (Hear yourself as a choir: `ownVoice`) is "made from" its singer's singing, a catalogue AI
+                     part "based on" a consenting singer's; either says only "AI voice" without a name, except a friend's
+                     part in a choir with friends (`friend`), which says "made from a friend's singing" unless they chose to
+                     show their name. --}}
+                @php($credit = static fn (array $g): string => ($g['ai'] ?? false) ? (string) (($g['aiBasedOn'] ?? null) !== null ? __(($g['ownVoice'] ?? false) ? 'pages.song.ai.mix_own' : 'pages.song.ai.mix_based_on', ['part' => $g['part'], 'name' => $g['aiBasedOn']]) : (($g['friend'] ?? false) ? __('pages.song.ai.mix_own', ['part' => $g['part'], 'name' => __('pages.song.ai.a_friend')]) : __('pages.song.ai.mix', ['part' => $g['part']]))) : $g['name'].' ('.$g['part'].')')
+                @php($anyAi = collect($harmony['guides'])->contains('ai', true))
+                {{-- Every part an AI voice made from one person's singing (a choir song): one short line, not a list. --}}
+                @php($ownNames = collect($harmony['guides'])->every(static fn (array $g): bool => ($g['ai'] ?? false) && ($g['ownVoice'] ?? false)) ? collect($harmony['guides'])->map(static fn (array $g): string => (string) ($g['aiBasedOn'] ?? __('pages.song.ai.a_friend')))->unique()->values() : collect())
+                <p @class(['s-ai-line', 's-ai-line-plain' => ! $anyAi]) data-voices>@if ($anyAi)<span class="s-ai-chip">{{ __('pages.song.ai.chip') }}</span>@endif<span>{{ $ownNames->count() === 1 ? __('sharing.page.ai_own', ['name' => $ownNames->first()]) : __('sharing.page.voices', ['names' => collect($harmony['guides'])->map($credit)->join(', ')]) }}@if ($anyAi) <a href="/about/ai-voices" class="s-lk">{{ __('pages.song.ai.about') }}</a>@endif</span></p>
+            @endif
+
             {{-- The player (js/public/harmony.js): the round button, then one waveform row per part in
                  its colour (or the mix in the parts' colours); without the script, the audio's own controls. --}}
             <div class="s-mixer s-share-player" data-player data-peaks="{{ json_encode($harmony['peaks']) }}" data-colors="{{ json_encode($harmony['colors']) }}" data-parts="{{ json_encode($harmony['parts'] ?? []) }}" data-duration="{{ $harmony['durationSeconds'] }}">
@@ -100,17 +116,7 @@
             @endif
             {{-- A real voice by its singer's name; an AI part in the app's Share words, its singer named only as they chose
                  (design rules, "AI: plain about it, never loud"), with one link to About AI voices. --}}
-            {{-- Their own real voice in the lead (2026-11-23): one line, in place of the AI line, never both. The bare clip is
-                 never on a public page (the coordinator, 2026-11-23). --}}
-            @if (($harmony['realVoice']['kind'] ?? null) === 'lead')
-                <p data-real-voice="lead">{{ __('sharing.page.real_lead', ['name' => $harmony['realVoice']['name']]) }} <a href="/about/ai-voices" class="s-lk">{{ __('pages.song.ai.about') }}</a></p>
-            @elseif (count($harmony['guides']))
-                {{-- An own-voice part (Hear yourself as a choir: `ownVoice`) is "made from" its singer's singing, a catalogue AI
-                     part "based on" a consenting singer's; either says only "AI voice" without a name, except a friend's
-                     part in a choir with friends (`friend`), which says "made from a friend's singing" unless they chose to
-                     show their name. --}}
-                @php($credit = static fn (array $g): string => ($g['ai'] ?? false) ? (string) (($g['aiBasedOn'] ?? null) !== null ? __(($g['ownVoice'] ?? false) ? 'pages.song.ai.mix_own' : 'pages.song.ai.mix_based_on', ['part' => $g['part'], 'name' => $g['aiBasedOn']]) : (($g['friend'] ?? false) ? __('pages.song.ai.mix_own', ['part' => $g['part'], 'name' => __('pages.song.ai.a_friend')]) : __('pages.song.ai.mix', ['part' => $g['part']]))) : $g['name'].' ('.$g['part'].')')
-                <p>{{ __('sharing.page.voices', ['names' => collect($harmony['guides'])->map($credit)->join(', ')]) }}@if (collect($harmony['guides'])->contains('ai', true)) <a href="/about/ai-voices" class="s-lk">{{ __('pages.song.ai.about') }}</a>@endif</p>
+            @if (count($harmony['guides']))
                 {{-- A song sung in a voice like its singer's: one quiet way for a listener to make their own (own_choir;
                      ai-frontend's ask, the marketing review, 2026-11-22). --}}
                 @if (collect($harmony['guides'])->contains('ownVoice', true) && \App\Support\Pages\SongParts::switchedOn('own_choir'))

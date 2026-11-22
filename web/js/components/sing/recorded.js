@@ -208,6 +208,8 @@ export const JustRecorded = {
                 <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-3">
                     <p class="me-auto text-sm text-muted">{{ t('sing.review.saved') }}</p>
                     <button type="button" class="btn-secondary" @click="$emit('again')">{{ t('sing.recorded.again') }}</button>
+                    <!-- Share from the take itself (a newcomer couldn't find it: Hillel's dad, 2026-11-23); not for a choir clip. -->
+                    <button v-if="!choir && !outcome.everyPart" type="button" class="btn-secondary" data-review-share @click="$emit('share')">{{ t('share.title') }}</button>
                     <template v-if="choir"></template>
                     <button v-else-if="outcome.everyPart" type="button" class="btn-primary" @click="$emit('share')">{{ t('share.title') }}</button>
                     <button v-else-if="nextName" type="button" class="btn-primary" @click="$emit('next')">{{ t('sing.review.keepNext', { part: nextName }) }} <Icon name="arrow" :size="16" /></button>

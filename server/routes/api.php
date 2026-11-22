@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\Admin\BlocklistController;
 use App\Http\Controllers\Api\Admin\BoardsController as AdminBoards;
 use App\Http\Controllers\Api\Admin\BooksController as AdminBooks;
 use App\Http\Controllers\Api\Admin\BreadthController as AdminBreadth;
+use App\Http\Controllers\Api\Admin\ChoirInsightsController as AdminChoirInsights;
 use App\Http\Controllers\Api\Admin\CoachDirectoryController as AdminCoachDirectory;
 use App\Http\Controllers\Api\Admin\CoachingController as AdminCoaching;
 use App\Http\Controllers\Api\Admin\CodeWatchController as AdminCodeWatch;
@@ -661,6 +662,7 @@ Route::middleware(['auth', 'editor', 'second-factor'])->prefix('admin')->name('a
         Route::get('/funnel', AdminFunnel::class)->name('funnel.show');
         Route::get('/dropoffs', AdminDropoffs::class)->name('dropoffs.show');
         Route::get('/sharing', AdminSharing::class)->name('sharing.show');
+        Route::get('/choir', AdminChoirInsights::class)->name('choir.show');
         Route::get('/breadth', AdminBreadth::class)->name('breadth.show');
         Route::get('/experiments', [AdminExperiments::class, 'index'])->name('experiments.list');
         Route::get('/school', [AdminSchool::class, 'index'])->name('school.list');

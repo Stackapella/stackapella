@@ -565,6 +565,7 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `admin.funnel.show` | `GET /api/admin/funnel` | An admin | L |
 | `admin.dropoffs.show` | `GET /api/admin/dropoffs` | An admin | L |
 | `admin.sharing.show` | `GET /api/admin/sharing` | An admin | L |
+| `admin.choir.show` | `GET /api/admin/choir` | An admin | L |
 | `admin.breadth.show` | `GET /api/admin/breadth` | An admin | L |
 | `admin.experiments.list` | `GET /api/admin/experiments` | An admin | L |
 | `admin.experiments.create` | `POST /api/admin/experiments` | An admin, in sudo | L |
@@ -2867,7 +2868,8 @@ Start Checkout. **Request:** `{ "interval": "year", "currency": "usd", "trial": 
   `private_template` or `settings`, and since 2026-11-12 starting something shared, `group_start`
   (Start a group) or `invite_friend` (a friend on your song), and since 2026-11-17 `private_shared`
   (a shared private arrangement, behind `plus_private`), and since 2026-11-21 `choir_download` (Download on a choir song
-  made from your voice) and `choir_song` (more choir songs once the free one is had) (anything else, an older app's
+  made from your voice) and `choir_song` (more choir songs once the free one is had), and since 2026-11-23
+`choir_settings` (Choir settings) and `choir_friends` (a choir with more friends) (anything else, an older app's
   `plus_song` too, is kept as `other`);
 - `startNowConsent` (optional): true when the person ticked the consent to start at once. Where
   `billing.prices` says it's needed and it isn't true, `422 validation_failed` on
@@ -6719,6 +6721,23 @@ ranked). `worst` is the three drops that lost the most, for Home's "What needs y
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 | | `admin.dropoffs.show.json` | `admin.dropoffs.show.200.json` |
+
+#### `admin.choir.show`
+
+Admin > Choir (Hillel, 2026-11-23: "make sure this is all tracked so we can analyze over time to improve"): the
+choir's anonymous daily counts, from the growth fresh start, over `?period=7d` or `30d` (the default) to today (report
+timezone), each beside the period before. `totals`: every choir kind with a count, the server's and the app's (`kind`,
+`n`, `before`), for the app to group (`choir_guide_*`, `choir_take_level_*`, `choir_transpose_*`, `choir_octave_*`,
+`choir_view_*`, `choir_remake_*`, `choir_plus_sheet_*`, `choir_settings_opened_*`, `choir_download`, `choir_share`,
+`choir_remade`, `choir_part_tries_*`); `daily`: each day's kinds with a count, for the trends; `funnel`: intro, take,
+sent, requested, ready, seen, played; `reasons`: why clips failed, most first; `songs`: each capture song's made and
+failed clips; `gates`: part gate failures by part and voicing, most first; `firstSuccess`: the tries a first song took;
+`renderSeconds`: the GPU seconds of made songs and remakes; `plusFromChoir`: Checkouts completed from a choir moment.
+A number over a total under `floor` reads as too few to tell. Numbers only, nothing about anyone. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.choir.show.json` | `admin.choir.show.200.json` |
 
 #### `admin.sharing.show`
 

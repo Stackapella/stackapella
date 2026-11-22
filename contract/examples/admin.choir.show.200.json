@@ -1,0 +1,202 @@
+{
+    "data": {
+        "period": "30d",
+        "from": "2026-10-25",
+        "to": "2026-11-23",
+        "floor": 30,
+        "totals": [
+            {
+                "kind": "choir_take_sent",
+                "n": 84,
+                "before": 61
+            },
+            {
+                "kind": "own_choir_ready",
+                "n": 52,
+                "before": 40
+            },
+            {
+                "kind": "choir_view_with_choir",
+                "n": 19,
+                "before": 0
+            },
+            {
+                "kind": "choir_guide_on",
+                "n": 71,
+                "before": 58
+            },
+            {
+                "kind": "choir_guide_off",
+                "n": 13,
+                "before": 3
+            }
+        ],
+        "daily": [
+            {
+                "date": "2026-11-22",
+                "kinds": [
+                    {
+                        "kind": "choir_take_sent",
+                        "n": 6
+                    },
+                    {
+                        "kind": "own_choir_ready",
+                        "n": 4
+                    }
+                ]
+            },
+            {
+                "date": "2026-11-23",
+                "kinds": [
+                    {
+                        "kind": "choir_take_sent",
+                        "n": 9
+                    },
+                    {
+                        "kind": "own_choir_ready",
+                        "n": 5
+                    }
+                ]
+            }
+        ],
+        "funnel": [
+            {
+                "step": "intro",
+                "n": 240,
+                "before": 190
+            },
+            {
+                "step": "take",
+                "n": 120,
+                "before": 95
+            },
+            {
+                "step": "sent",
+                "n": 84,
+                "before": 61
+            },
+            {
+                "step": "requested",
+                "n": 80,
+                "before": 60
+            },
+            {
+                "step": "ready",
+                "n": 52,
+                "before": 40
+            },
+            {
+                "step": "seen",
+                "n": 47,
+                "before": 36
+            },
+            {
+                "step": "played",
+                "n": 45,
+                "before": 33
+            }
+        ],
+        "reasons": [
+            {
+                "reason": "notes",
+                "n": 14,
+                "before": 12
+            },
+            {
+                "reason": "quiet",
+                "n": 6,
+                "before": 5
+            },
+            {
+                "reason": "noisy",
+                "n": 3,
+                "before": 2
+            },
+            {
+                "reason": "length",
+                "n": 0,
+                "before": 1
+            },
+            {
+                "reason": "loud",
+                "n": 0,
+                "before": 0
+            },
+            {
+                "reason": "edge",
+                "n": 0,
+                "before": 0
+            },
+            {
+                "reason": "short",
+                "n": 0,
+                "before": 0
+            },
+            {
+                "reason": "other",
+                "n": 0,
+                "before": 0
+            }
+        ],
+        "songs": [
+            {
+                "song": "capture",
+                "ok": 30,
+                "failed": 12
+            },
+            {
+                "song": "silent",
+                "ok": 12,
+                "failed": 6
+            },
+            {
+                "song": "grace",
+                "ok": 6,
+                "failed": 3
+            },
+            {
+                "song": "joy",
+                "ok": 4,
+                "failed": 2
+            }
+        ],
+        "gates": [
+            {
+                "part": "bass",
+                "voicing": "low",
+                "n": 5
+            },
+            {
+                "part": "soprano",
+                "voicing": "written",
+                "n": 2
+            }
+        ],
+        "firstSuccess": [
+            {
+                "tries": "1",
+                "n": 31
+            },
+            {
+                "tries": "2",
+                "n": 9
+            },
+            {
+                "tries": "3",
+                "n": 3
+            },
+            {
+                "tries": "4+",
+                "n": 1
+            }
+        ],
+        "renderSeconds": {
+            "n": 18240,
+            "before": 13100
+        },
+        "plusFromChoir": {
+            "n": 3,
+            "before": 1
+        }
+    }
+}

@@ -55,6 +55,7 @@ const SHELL = [
     '/js/storage.js',
     '/js/theme.js',
     '/js/wav.js',
+    '/js/ai-mark.js',
     '/js/stores/projects.js',
     '/js/stores/session.js',
     '/js/stores/session-live.js',

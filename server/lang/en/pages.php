@@ -120,6 +120,8 @@ return [
             // A friend's part in a choir with friends whose name isn't shown (they left Show my name off).
             'a_friend' => 'a friend',
             'about' => 'About AI voices',
+            // The small chip before a share page's who-sings line, when an AI voice is in it.
+            'chip' => 'AI',
             // The ask under a song's parts when one is sung by AI (be_voice_note says "the app's own voice").
             'note' => 'Some parts are still waiting for a real singer. Sing one, make your harmony public and say yes to featuring it, and we may choose your part as the voice others learn from, credited to you by your profile name. For singers 18 and over.',
         ],

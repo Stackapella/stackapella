@@ -46,6 +46,8 @@ return [
         'eyebrow' => 'A harmony on Stackapella',
         // Under the voices of a song sung in a voice like its singer's (own_choir).
         'choir' => 'Hear yourself as a choir: your first song is free',
+        // A choir song whose every part is an AI voice made from one person's singing: one line under the title.
+        'ai_own' => 'AI voices made from :name\'s singing',
         'play' => 'Play',
         'pause' => 'Pause',
         'listen' => 'Listen',

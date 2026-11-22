@@ -267,6 +267,7 @@
         '/js/reminders.js',
         '/js/game-toggle.js',
         '/js/accent-colours.js',
+        '/js/ai-mark.js',
         '/js/breaths.js',
         '/js/synth.js',
         '/js/next-up.js',

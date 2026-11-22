@@ -5,6 +5,7 @@
 import { engine, unlock } from './audio.js';
 import { guideKey, loadRecordedGuide, trimDecoded } from './recorded-guides.js';
 import { encodeWav } from './wav.js';
+import { aiMark } from './ai-mark.js';
 
 const RATE = 48000; // every part decoded at one rate, so the download mixes them sample for sample
 const PREFIX = 'choir:';
@@ -81,7 +82,7 @@ export function choirPosition() {
 export async function mixChoirShaped(voices, sound) {
     if (!shaped(sound)) return mixChoir(voices);
     const { channels, sampleRate } = await renderChoir(voices, sound);
-    return encodeWav(channels, sampleRate);
+    return encodeWav(channels, sampleRate, { aiMark: aiMark() }); // every part here is AI-made: marked (EU AI Act Article 50)
 }
 
 export function mixChoir(voices) {
@@ -94,5 +95,5 @@ export function mixChoir(voices) {
     }
     const peak = out.reduce((most, s) => Math.max(most, Math.abs(s)), 0);
     if (peak > 0.98) for (let i = 0; i < out.length; i++) out[i] *= 0.98 / peak;
-    return encodeWav([out], RATE);
+    return encodeWav([out], RATE, { aiMark: aiMark() });
 }

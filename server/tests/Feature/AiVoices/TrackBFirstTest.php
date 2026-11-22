@@ -80,7 +80,7 @@ final class TrackBFirstTest extends TestCase
         $this->assertStringContainsString((string) basename((string) $parts->first()?->listen_key), (string) collect($show->json('data.requests.0.parts'))->pluck('url')->implode(' '));
         $this->getJson("/api/own-choir/requests/{$song->sqid()}/download")->assertOk()->assertJsonCount($parts->count(), 'data.parts');
 
-        // Shared: its parts credited as AI made from the sharer's singing, with the About AI voices link.
+        // Shared: credited as AI voices made from the sharer's singing, with the About AI voices link.
         [$project] = $this->projectWithPart();
         $shared = $this->startHarmony($project, Wav::stereo(2.0), ['choirParts' => [$parts->first()?->sqid()]])->assertCreated();
         $harmony = Harmony::query()->where('public_id', (string) $shared->json('data.id'))->firstOrFail();
@@ -91,7 +91,8 @@ final class TrackBFirstTest extends TestCase
         Storage::disk('private')->put('harmonies/track-b.jpg', 'jpg');
         app(HarmonyFiles::class)->sync($harmony);
         $page = (string) $this->get('/h/'.$harmony->refresh()->public_id)->assertOk()->getContent();
-        $this->assertStringContainsString(e(__('pages.song.ai.mix_own', ['part' => $harmony->own_voice_parts[0], 'name' => (string) $user->name])), $page);
+        // One line under the title when every part is made from one person's singing (2026-11-23).
+        $this->assertStringContainsString(e(__('sharing.page.ai_own', ['name' => (string) $user->name])), $page);
         $this->assertStringContainsString('href="/about/ai-voices"', $page);
 
         // Track A stays out of sight: no catalogue AI guides, no AI licence for a beta singer.

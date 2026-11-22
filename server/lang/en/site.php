@@ -1354,8 +1354,8 @@ return [
         'headline_before' => 'You, as a',
         'headline_em' => 'whole choir',
         // `lead` without own_choir_hum, `lead_hum` with it (the hummed-song path's own switch).
-        'lead' => 'Sing a song you know for 30 seconds, then pick a song from our library. Every part is sung by AI in a voice like yours: a finished choir track to play and share, and to download with Plus.',
-        'lead_hum' => 'Sing a song you know for 30 seconds, then pick a song from our library, or hum a tune of your own. Every part is sung by AI in a voice like yours: a finished choir track to play and share, and to download with Plus.',
+        'lead' => 'Sing about 30 seconds of a song you know, like Happy Birthday or Silent Night, and hear that song come back as a whole choir, every part sung by AI in a voice like yours. Your first choir is free; more songs from our library come with Plus.',
+        'lead_hum' => 'Sing about 30 seconds of a song you know, like Happy Birthday or Silent Night, and hear that song come back as a whole choir, every part sung by AI in a voice like yours. Your first choir is free; more songs from our library, or a tune you hum, come with Plus.',
         'start' => 'Try it with Silent Night',
         // The hero's main button on the page without the audio demo (Hillel: "support starting track B without A"); the
         // same link as `start`.
@@ -1398,9 +1398,9 @@ return [
             'own' => ['kick' => 'Made by you', 'heading' => 'A song of your own', 'body' => 'Hum a tune and give it your own words, if you like. The app writes it down and arranges the harmony, then every part, your tune included, is sung in a voice like yours: with your words, or on "oo".', 'cta' => 'Make your own'],
         ],
         'steps' => [
-            ['title' => 'Sing a song you know', 'body' => 'One of four everyone knows, for 30 seconds, in whatever octave feels comfortable. It needn\'t be good singing: we only listen for what your voice sounds like, and keep it privately for your next songs.'],
-            ['title' => 'Pick a song', 'body' => 'Any song in our library. Its notes come from the arrangement, not from your singing.'],
-            ['title' => 'Hear your choir', 'body' => 'A few minutes later, your choir is ready, in tune and in time with the arrangement: play it and share it, or download it with Plus.'],
+            ['title' => 'Sing a song you know', 'body' => 'Happy Birthday twice through, or about 30 seconds of Silent Night, Amazing Grace or Joy to the World, in whatever octave feels comfortable. It needn\'t be good singing.'],
+            ['title' => 'Hear it as a choir', 'body' => 'A few minutes later, every part is ready, in tune and in time with the arrangement.'],
+            ['title' => 'Make it yours', 'body' => 'Keep your own recording as the lead, share it, or pick another song from our library.'],
         ],
         // Step 2's body while own_choir_hum is on.
         'step_choose_hum' => 'Any song in our library, or a tune you hum yourself. The notes come from the song, not from your 30 seconds.',
@@ -1429,12 +1429,34 @@ return [
             'download' => ['Can I download it?', 'Yes, with Plus (:price_month a month or :price_year a year). Listening to it and sharing it are free.'],
             // Hillel delegated, 2026-11-21: 60 minutes of AI singing a month of Plus (each month of the subscription, from its
             // renewal day: backend), never unlimited; the free song once per email.
-            'how_many' => ['How many songs can I make?', 'Your first song is free, once per email address. Plus, :price_month a month or :price_year a year, includes 60 minutes of AI singing a month, about 15 songs.'],
+            'how_many' => ['How many songs can I make?', 'Your first choir is free, once per email address: the song you sing. Plus, :price_month a month or :price_year a year, includes 60 minutes of AI singing a month, about 15 songs.'],
             'delete' => ['Can I delete it?', 'Yes, in the app at any time: any choir, every one at once, or your saved voice. Once deleted, it\'s gone.'],
         ],
         'faq_hum' => ['Does my humming need to be in tune?', 'No. The app writes down what you hum, and you can fix any note before the parts are made.'],
         'own_songs_hum' => 'Yes. Hum a tune and type its words, and every part sings them; without words it sings "oo". A song from our library keeps its own words. Songs you make are private to you unless you share them, and anything shared says it was made with AI.',
         'more' => 'About AI voices',
+        // You + choir (ai-choir-page's scene, 2026-11-23): your own recording as the lead, the AI choir around it.
+        'lead_scene' => [
+            'kick' => '',
+            'title_before' => 'You, with',
+            'title_em' => 'the choir around you.',
+            'body' => 'Keep your own recording as the lead, and hear the AI parts sing around it.',
+            'you' => 'You',
+            'you_chip' => 'Your recording',
+        ],
+        // Behind own_choir_together: a friend with another range sings the parts that suit them.
+        'friends' => [
+            'kick' => 'With friends',
+            'heading' => 'Better with friends: a high voice and a low voice.',
+            'body' => 'Invite a friend whose voice sits higher or lower than yours. They sing for 30 seconds, and the parts that suit them are sung in a voice like theirs.',
+            'you' => 'You',
+            'friend' => 'A friend',
+            'chip_you' => 'AI voice made from your singing',
+            'chip_friend' => 'AI voice made from your friend\'s singing',
+        ],
+        // Questions: always (tune), and with own_choir_together (friends).
+        'faq_tune' => ['Which song do I sing?', 'Happy Birthday twice through, or about 30 seconds of Silent Night, Amazing Grace or Joy to the World: whichever you know best. Your free choir is the song you sing.'],
+        'faq_friends' => ['Do my friends need an account?', 'Yes, a free one, and they must be 18 or over. Joining costs them nothing: their parts count against your minutes, never theirs.'],
         // Under the steps while own_choir_together is on: friends with other ranges sing the parts that suit them.
         'together' => 'Better with friends: a high voice and a low voice, each singing the parts that suit it.',
     ],

@@ -57,8 +57,11 @@ final class SharedAiPartsPageTest extends TestCase
 
         $html = (string) $this->get('/h/'.$harmony->refresh()->public_id)->assertOk()->getContent();
 
-        $this->assertStringContainsString(e(__('pages.song.ai.mix_own', ['part' => 'Alto', 'name' => 'Sam Rivers'])), $html);
-        $this->assertStringContainsString(e(__('pages.song.ai.mix_own', ['part' => 'Bass', 'name' => 'Sam Rivers'])), $html);
+        // Every part made from one person's singing: one short line under the title (Hillel, 2026-11-23), not a list.
+        $this->assertStringContainsString(e(__('sharing.page.ai_own', ['name' => 'Sam Rivers'])), $html);
+        $this->assertStringNotContainsString(e(__('pages.song.ai.mix_own', ['part' => 'Alto', 'name' => 'Sam Rivers'])), $html);
+        $this->assertStringContainsString('<span class="s-ai-chip">', $html);
+        $this->assertLessThan(strpos($html, 'data-player'), strpos($html, 'data-voices'));
         $this->assertSame(1, substr_count($html, 'href="/about/ai-voices"'));
     }
 
