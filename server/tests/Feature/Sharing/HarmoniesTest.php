@@ -15,6 +15,7 @@ use App\Support\Sharing\HarmonyFacts;
 use App\Support\Trust\TrustLevel;
 use App\Support\Usage\Plans;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Tests\Support\Sharing;
@@ -343,5 +344,60 @@ final class HarmoniesTest extends TestCase
     {
         $this->postJson('/api/harmonies', [])->assertUnauthorized();
         $this->getJson('/api/harmonies')->assertUnauthorized();
+    }
+
+    public function test_update_that_link_gives_a_share_a_new_mix_at_the_same_address(): void
+    {
+        // Hillel's share bug (2026-11-23): shared with one track, unmuted all, chose the same link: it must play the new mix.
+        $this->owner();
+        [$project] = $this->recordedProject();
+        $first = Wav::stereo(2.0);
+        $id = (string) $this->startHarmony($project, $first)->json('data.id');
+        $share = Harmony::query()->where('public_id', $id)->firstOrFail();
+        Storage::disk('private')->put($share->upload_key, $first);
+        $this->postJson('/api/harmonies/'.$id.'/complete')->assertOk();
+        $share->refresh();
+        [$oldAudio, $oldMedia] = [(string) $share->audio_key, (string) $share->media_audio_key];
+
+        // Someone else's share, or another project's: not found.
+        $this->startHarmony($project, Wav::stereo(1.5), ['replaces' => 'nope'])->assertNotFound();
+
+        $second = Wav::stereo(1.5, hz: 330);
+        $updated = $this->startHarmony($project, $second, ['replaces' => $id, 'title' => null]);
+        $this->assertMatchesContract($updated, 'harmonies.create', 201);
+        $updated->assertJsonPath('data.id', $id)->assertJsonPath('data.status', 'ready')->assertJsonPath('upload.method', 'PUT');
+        $pending = Harmony::query()->where('replaces_id', $share->id)->sole();
+        $this->getJson('/api/harmonies?projectId='.$project)->assertJsonCount(1, 'data');
+
+        // Until it's in, the page plays the old mix; then the new one, at the same address, the old off the CDN.
+        Storage::disk('private')->put($pending->upload_key, $second);
+        $this->postJson('/api/harmonies/'.$id.'/complete')->assertOk()->assertJsonPath('data.id', $id);
+        $share->refresh();
+        $this->assertNull(Harmony::query()->find($pending->id), 'The new row folded in.');
+        $this->assertNotSame($oldAudio, $share->audio_key);
+        $this->assertSame(intdiv(strlen($second) - 44, 4), $share->frames);
+        $this->assertSame('Amazing Grace for Gran', $share->title, 'The title stays unless sent.');
+        $this->assertIsArray($share->tracks, 'The new tracks, as a list (not encoded twice).');
+        $this->assertSame('Alto', $share->tracks[0]['name'] ?? null);
+        $this->get('/h/'.$id)->assertOk();
+        Storage::disk('private')->assertMissing($oldAudio);
+        Storage::disk('media')->assertMissing($oldMedia);
+        Storage::disk('media')->assertExists((string) $share->media_audio_key);
+        $this->getJson('/api/harmonies/'.$id)->assertJsonPath('data.status', 'ready');
+    }
+
+    public function test_a_share_whose_columns_were_encoded_twice_is_repaired_once(): void
+    {
+        $this->owner();
+        [$project] = $this->recordedProject();
+        $harmony = $this->shareHarmony($project);
+        $tracks = $harmony->tracks;
+        DB::table('harmonies')->where('id', $harmony->id)->update(['tracks' => json_encode(json_encode($tracks))]);
+
+        $migration = require database_path('migrations/2026_11_23_175000_repair_twice_encoded_harmony_columns.php');
+        $migration->up();
+        $migration->up();
+
+        $this->assertEquals($tracks, $harmony->refresh()->tracks);
     }
 }

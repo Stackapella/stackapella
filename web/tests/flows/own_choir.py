@@ -10,7 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
-from help_shots import clear_projects  # noqa: E402
+from help_shots import clear_projects, t  # noqa: E402
 
 SESSION = "(await import('/js/stores/session.js')).session"
 LABEL = "AI voice made from your singing"
@@ -73,7 +73,17 @@ def journey(f):
     f.shot("start-choice")
     f.go("/t/amazing-grace/choir?api=mock&scenario=&as=member", "document.querySelector('[data-clip-song]')")
     assert f.js("document.querySelector('[data-clip-song=\"amazing-grace\"]').getAttribute('aria-pressed')") == "true", "the choice wasn't remembered"
+    # The free choir is the song they sing (Hillel): Happy Birthday's tune makes Happy Birthday, and the page says so.
     f.run("document.querySelector('[data-clip-song=\"voice-capture\"]').click()")
+    f.wait("document.querySelector('[data-free-song]')?.textContent.includes('Happy Birthday')", what="the free choir named")
+    f.run("document.querySelector('[data-clip-song=\"amazing-grace\"]').click()")
+    f.wait("!document.querySelector('[data-free-song]')", what="this page's song, sung")
+    # Headphones beside the tune (Hillel: "You make two choices and click sing to start"): without, nothing plays.
+    assert not f.js("document.body.innerText.includes('Headphones on, so only your voice is recorded')"), "the old headphones line is back"
+    f.run("document.querySelector('[data-headphones-pick] [role=radio]:nth-child(2)').click()")
+    f.wait("document.querySelector('[data-headphones-pick]').dataset.answer === 'no'", what="no headphones chosen")
+    f.run("document.querySelector('[data-headphones-pick]').scrollIntoView({ block: 'center' })")
+    f.shot("start-picks")
 
     # Start singing: Sing on a choir project. A take (a steady tone, 20 s, from beat 0) goes as the clip, as Make my choir sends it.
     f.run("document.querySelector('[data-choir-start]').click()")
@@ -81,10 +91,6 @@ def journey(f):
     f.wait("document.querySelector('[data-first-note] [data-first-note-usual]')", what="the first-note step")
     f.shot("first-note")
     f.run("document.querySelector('[data-first-note-usual]').click()")
-    # Hillel: headphones or not; without, nothing plays while recording (a count-in to see, the words lighting up).
-    f.wait("document.querySelector('[data-headphones-answer=no]')", what="the headphones choice")
-    f.shot("headphones")
-    f.run("document.querySelector('[data-headphones-answer=no]').click()")
     f.wait("/^\\/p\\/[\\w-]+\\/sing$/.test(location.pathname)", what="Sing on the choir project")
     clip_project = f.js("location.pathname.split('/')[2]")
     assert f.js(f"""(async () => {{ const s = await import('/js/stores/projects.js'); await s.loadProjects(); return s.projects.all.find((x) => x.id === {json.dumps(clip_project)})?.choir?.noHeadphones; }})()""") is True, "the no-headphones take isn't marked"
@@ -97,14 +103,39 @@ def journey(f):
     # The voice-capture song, whatever the song (Hillel, 2026-11-22): a project only for the take, for Amazing Grace.
     made = f.js(f"""(async () => {{ const s = await import('/js/stores/projects.js'); await s.loadProjects(); const p = s.projects.all.find((x) => x.id === {json.dumps(clip_project)});
         return {{ id: p.template.id, forId: p.choir?.forTemplateId }}; }})()""")
-    assert made == {"id": "voice-capture", "forId": "amazing-grace"}, made
+    assert made == {"id": "amazing-grace", "forId": "amazing-grace"}, made
     # The melody, the whole song, with no part picker and no voice type shown (any octave).
     f.wait("""(async () => { const { session } = await import('/js/stores/session.js'); const { tunePart } = await import('/js/own-choir.js');
         const focus = session.parts.find((p) => p.id === session.practice?.focus);
         return focus && focus.templatePartKey === tunePart(session.project.template) && session.practice?.sing?.way === 'whole'; })()""", what="Sing on the tune")
     f.wait("document.querySelector('[data-settings-open]')", what="Sing ready")
     assert not f.js("document.querySelector('[data-sing-part-picker]') || document.querySelector('[data-sing-part-name]')"), "a voice type shown for the choir's take"
+    key_word = f.js("(await import('/js/i18n.js')).t('studio.meta.key', { key: '' }).trim()")
+    assert key_word not in f.js("document.querySelector('header').innerText"), "a key shown for the choir's take (its tune may change key)"
     f.shot("clip-sing")
+    # Hillel: the clip's count-in is one bar of the song's metre, counted 1 2 3 (4), large and fading, then the singing.
+    counted = f.js("""(async () => {
+        const audio = await import('/js/audio.js'); await audio.unlock(); audio.engine.setLoopback(true);
+        sessionStorage.setItem('stackapella.headphones', '1');
+        const S = await import('/js/stores/session.js'); const seen = []; let big = false;
+        await S.startRecording();
+        const metre = S.session.countInBeats;
+        for (let i = 0; i < 600 && S.session.countIn !== null; i++) {
+            const n = S.session.countIn; if (n && seen[seen.length - 1] !== n) seen.push(n);
+            big ||= !!document.querySelector('[data-count-big]');
+            await new Promise((r) => requestAnimationFrame(r));
+        }
+        await S.finishRecording({ interrupted: true });
+        return { seen, metre, big };
+    })()""")
+    beats = f.js("(async () => { const { session } = await import('/js/stores/session.js'); return Number(String(session.project.timeSignature || '4/4').split('/')[0]); })()")
+    expected = list(range(1, (4 if beats == 2 else beats) + 1))
+    assert counted["seen"] == expected and counted["metre"] == len(expected) and counted["big"], counted
+    f.run("(await import('/js/stores/session.js')).startRecording()")
+    f.wait("document.querySelector('[data-count-big] span')?.textContent.trim() === '2'", what="the count-in's 2")
+    assert t(f, "ownChoir.headphones.silentLine") in f.js("document.querySelector('[data-recording-stage]').innerText"), "a silent take says it hears the guide"
+    f.shot("count-in")
+    f.run("await (await import('/js/stores/session.js')).finishRecording({ interrupted: true })")
     # As Make my choir sends it: the voice-capture melody for Amazing Grace; then the take's project goes.
     tune = f.js("(async () => { const m = await import('/js/own-choir.js'); return m.tunePart(await m.clipTemplate()); })()")
     f.run("""const { sendClip } = await import('/js/own-choir.js');

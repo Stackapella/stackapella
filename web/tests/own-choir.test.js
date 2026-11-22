@@ -72,3 +72,14 @@ test('own choir: the first note sung moves the tune to start there, never more t
     assert(shiftTo(50, 60) === 2, 'ten down is two up');
     assert(shiftTo(null, 60) === 0 && shiftTo(62, null) === 0, 'nothing heard: as written');
 });
+
+test('own choir: a take level is its loudest stretches in dBFS, and clipping is caught', async () => {
+    const { takeLevel, levelVerdict } = await import('/js/own-choir.js');
+    const tone = (amp, seconds = 2, rate = 8000) => new Float32Array(rate * seconds).map((_, i) => amp * Math.sin(i / 3));
+    const quiet = takeLevel(tone(0.005), 8000);
+    assert(quiet.db < -40 && levelVerdict(quiet) === 'low', `a whisper is low: ${quiet.db}`);
+    const good = takeLevel(tone(0.2), 8000);
+    assert(levelVerdict(good) === 'ok', `a normal voice is ok: ${good.db}`);
+    const hot = takeLevel(tone(1.2).map((v) => Math.max(-1, Math.min(1, v))), 8000);
+    assert(hot.clipped && levelVerdict(hot) === 'loud', 'a clipped take is loud');
+});

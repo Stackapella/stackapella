@@ -56,4 +56,31 @@ final class VoicingTransformTest extends TestCase
         $this->assertFalse(VoicingTransform::isLow($tune, [60, 79]));
         $this->assertFalse(VoicingTransform::isLow($tune, [48, 79]), 'Fits both: as written.');
     }
+
+    public function test_both_octaves_add_a_low_twin_beside_each_treble_part(): void
+    {
+        $full = VoicingTransform::full($this->song());
+
+        $this->assertSame(['soprano', 'soprano-low', 'alto', 'alto-low', 'tenor', 'bass'], array_column($full['data']['parts'], 'key'));
+        $this->assertSame(['soprano' => 0, 'soprano-low' => -12, 'alto' => 0, 'alto-low' => -12, 'tenor' => 0, 'bass' => 0], $full['shifts']);
+        $this->assertSame('Soprano (low)', $full['data']['parts'][1]['name']);
+        $this->assertSame([72, 74, 76], array_column($full['data']['parts'][0]['guide']['notes'], 'pitch'), 'As written beside it.');
+        $this->assertSame([60, 62, 64], array_column($full['data']['parts'][1]['guide']['notes'], 'pitch'));
+        $this->assertSame(['soprano', 'soprano-low', 'alto', 'alto-low', 'tenor', 'bass'], VoicingTransform::keys($this->song(), 'full'));
+        $this->assertSame(['soprano', 'alto', 'tenor', 'bass'], VoicingTransform::keys($this->song(), 'low'));
+    }
+
+    public function test_every_part_stays_where_the_renderer_sings_and_the_gates_hear(): void
+    {
+        $data = ['parts' => [
+            ['key' => 'bass', 'guide' => ['notes' => [['beat' => 0, 'length' => 1, 'pitch' => 34], ['beat' => 1, 'length' => 1, 'pitch' => 40]]]],
+            ['key' => 'soprano', 'guide' => ['notes' => [['beat' => 0, 'length' => 1, 'pitch' => 86], ['beat' => 1, 'length' => 1, 'pitch' => 80]]]],
+            ['key' => 'alto', 'guide' => ['notes' => [['beat' => 0, 'length' => 1, 'pitch' => 30], ['beat' => 1, 'length' => 1, 'pitch' => 90]]]],
+        ]];
+        $fitted = VoicingTransform::inRange($data);
+
+        $this->assertSame([46, 52], array_column($fitted['parts'][0]['guide']['notes'], 'pitch'), 'Up an octave, whole.');
+        $this->assertSame([74, 68], array_column($fitted['parts'][1]['guide']['notes'], 'pitch'), 'Down an octave, whole.');
+        $this->assertSame([30, 90], array_column($fitted['parts'][2]['guide']['notes'], 'pitch'), 'Too wide either way: left for the gates.');
+    }
 }

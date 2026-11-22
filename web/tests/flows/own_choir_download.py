@@ -38,6 +38,12 @@ def journey(f):
     # A clip that couldn't make a voice (the example's Amazing Grace): the words ask for the tune and its words.
     f.go("/t/amazing-grace/choir?api=mock&scenario=&as=member", "document.querySelector('[data-choir-failed]')")
     assert t(f, "ownChoir.failed.clip_unusable") in f.js("document.querySelector('[data-choir-failed]').textContent"), f.js("document.querySelector('[data-choir-failed]').textContent")
+    # With the server's reason (failureDetail): that reason and its one fix, instead.
+    f.run("sessionStorage.setItem('stackapella.mockFailureDetail', 'quiet'); sessionStorage.removeItem('stackapella.mockChoir');")
+    f.go("/t/amazing-grace/choir?api=mock&scenario=&as=member", "document.querySelector('[data-choir-failed]')")
+    assert t(f, "ownChoir.failed.detail.quiet") in f.js("document.querySelector('[data-choir-failed]').textContent"), "the reason isn't said"
+    f.shot("failed-quiet")
+    f.run("sessionStorage.removeItem('stackapella.mockFailureDetail'); sessionStorage.removeItem('stackapella.mockChoir');")
 
     # Free: Download is there, and opens the Plus sheet; no file is made.
     f.go(PAGE.format(who="member"), "document.querySelector('[data-choir-download]')")

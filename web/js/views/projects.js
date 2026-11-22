@@ -660,6 +660,8 @@ export const ProjectsView = {
             // The site's "Try it with <song>" (/your-choir: ?choir=1): straight to that song's Hear yourself as a choir when it's
             // on for this account; otherwise the song's sheet, as any song link.
             if (query.get('choir') === '1' && account.me) {
+                // Came from /your-choir (Hillel): its take is sent by itself once saved, and made while they listen back.
+                tabStorage.set('stackapella.choirFromSite', song.id);
                 const url = new URL(location.href);
                 ['song', 'part', 'choir'].forEach((name) => url.searchParams.delete(name));
                 history.replaceState(history.state, '', url.pathname + url.search); // Back from the page never comes here again

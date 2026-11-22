@@ -16,7 +16,9 @@ use App\Models\OwnChoirVoice;
 use App\Notifications\Admin\OpsAlert;
 use App\Services\Audio\Ffmpeg;
 use App\Support\Admin\Admins;
+use App\Support\OwnChoir\ChoirCounts;
 use App\Support\OwnChoir\OwnChoir;
+use App\Support\OwnChoir\VoicingTransform;
 use App\Support\Storage\ReceivedUploads;
 use App\Support\Storage\Uploads;
 use Illuminate\Support\Facades\Cache;
@@ -289,7 +291,8 @@ final class ChoirJobs
                 return [];
             }
 
-            $old = OwnChoirPart::query()->where('own_choir_request_id', $song->id)->whereIn('part_key', $new->pluck('part_key')->all())->lockForUpdate()->get();
+            // The song's own parts (a friend's live on their job): those remade, and any the new voicing no longer has.
+            $old = OwnChoirPart::query()->where('own_choir_request_id', $song->id)->where(fn ($q) => $q->whereIn('part_key', $new->pluck('part_key')->all())->orWhereNotIn('part_key', VoicingTransform::keys((array) ($song->templateVersion->data ?? []), (string) $remake->voicing)))->lockForUpdate()->get();
             OwnChoirPart::query()->whereKey($old->modelKeys())->delete();
             OwnChoirPart::query()->whereKey($new->modelKeys())->update(['own_choir_request_id' => $song->id]);
             $song->forceFill(['sung' => $remake->sung, 'voicing' => $remake->voicing, 'seen_at' => null])->save();
@@ -301,7 +304,24 @@ final class ChoirJobs
         Storage::disk('private')->delete($files);
     }
 
-    public function finish(OwnChoirRequest $request, string $claim, ?string $failed, ?float $gpuSeconds = null): OwnChoirRequest
+    /**
+     * @param  array{detail?: string|null, level?: string|null, partTries?: list<array{partKey: string, tries: int}>|null, gateFailures?: list<array{partKey: string, reason?: string|null}>|null}  $report
+     */
+    public function finish(OwnChoirRequest $request, string $claim, ?string $failed, ?float $gpuSeconds = null, array $report = []): OwnChoirRequest
+    {
+        $done = $this->finishJob($request, $claim, $failed, $gpuSeconds);
+
+        // Why its clip couldn't be used, for its singer alone (Hillel, 2026-11-23).
+        if ($failed === 'clip_unusable' && $done->status === OwnChoirStatus::Failed && ($report['detail'] ?? null) !== null) {
+            $done->forceFill(['failure_detail' => $report['detail']])->save();
+        }
+
+        ChoirCounts::finished($done->loadMissing(['clipTemplateVersion.template', 'voice']), $report);
+
+        return $done;
+    }
+
+    private function finishJob(OwnChoirRequest $request, string $claim, ?string $failed, ?float $gpuSeconds): OwnChoirRequest
     {
         if ($gpuSeconds !== null) {
             DB::transaction(static fn () => self::spend(self::lockHeld($request->id, $claim), $gpuSeconds));
@@ -341,7 +361,6 @@ final class ChoirJobs
         // A remake made (choir settings): its parts replace the song's, and the song takes its settings.
         if ($request->remake && $request->parent_request_id !== null) {
             self::foldRemake($request);
-            app(RecordCounts::class)->server('own_choir_remade', true, null);
 
             return $request->refresh();
         }

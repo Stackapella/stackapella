@@ -7,6 +7,7 @@ namespace App\Actions\Sharing;
 use App\Jobs\ProcessHarmony;
 use App\Models\Harmony;
 use App\Support\Storage\ReceivedUploads;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -17,6 +18,17 @@ final class CompleteHarmony
 {
     public function handle(Harmony $harmony): Harmony
     {
+        // "Update that link": completing the share completes its new mix, waiting to replace it.
+        if ($harmony->status === Harmony::READY && ($pending = Harmony::query()->where('replaces_id', $harmony->id)->where('status', Harmony::UPLOADING)->latest('id')->first()) !== null) {
+            try {
+                $this->handle($pending);
+            } catch (ModelNotFoundException) {
+                // Already processed and folded into the share (a queue that runs at once).
+            }
+
+            return $harmony->refresh();
+        }
+
         if ($harmony->status !== Harmony::UPLOADING) {
             return $harmony;
         }

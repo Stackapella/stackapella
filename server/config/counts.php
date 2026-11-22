@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use App\Support\OwnChoir\ChoirCounts;
 use App\Support\Pages\SongCollections;
 
 /*
@@ -113,6 +114,16 @@ return [
         // Hear yourself as a choir (track B): a song in your own voice heard, gone on into Sing, shared, and a real part
         // recorded that replaced an AI one in it.
         'own_choir_heard', 'own_choir_sing', 'own_choir_shared', 'own_choir_replaced', 'own_choir_download',
+        // The choir's steps as the app sees them (Hillel, 2026-11-23: "make sure this is all tracked so we can analyze
+        // over time to improve"): the tune chosen, the first note, headphones, the level check, the take, a failure
+        // read, the ready song, the view chosen, the settings and the Plus sheet from each choir moment.
+        'choir_intro_seen', 'choir_song_voice_capture', 'choir_song_silent_night', 'choir_song_amazing_grace', 'choir_song_joy_to_the_world',
+        'choir_first_note_done', 'choir_first_note_skipped', 'choir_headphones_yes', 'choir_headphones_no',
+        'choir_level_low', 'choir_level_loud', 'choir_level_ok', 'choir_take_started', 'choir_take_warned_quiet', 'choir_take_warned_clipped', 'choir_take_sent',
+        'choir_failure_seen_quiet', 'choir_failure_seen_noisy', 'choir_failure_seen_notes', 'choir_failure_seen_short', 'choir_failure_seen_edge',
+        'choir_failure_seen_length', 'choir_failure_seen_loud', 'choir_failure_seen_other', 'choir_try_again', 'choir_ready_seen', 'choir_listen_played',
+        'choir_view_recording', 'choir_view_with_choir', 'choir_view_full', 'choir_settings_opened_plus', 'choir_settings_opened_locked',
+        'choir_plus_sheet_choir_download', 'choir_plus_sheet_choir_settings', 'choir_plus_sheet_choir_friends',
         // Weekly use of what section 2 found under-used, once a device a week (read against app_week).
         'use_library', 'use_song_course', 'use_course', 'use_workout', 'use_boss', 'use_studio', 'use_group', 'use_tools', 'remind_on',
         // The app's health where Sentry can't see it (the coordinator, 2026-11-14): the "didn't start" screen shown
@@ -208,7 +219,9 @@ return [
         'cfg_country', 'cfg_no_country',
         // A choir's seat pack bought (its first subscription started, trial or paid), by size only: 10 to 19, 20 to 49,
         // 50 and up (App\Support\Groups\ChoirSeats::band). Never the group or who bought it.
-        'seats_bought_10', 'seats_bought_20', 'seats_bought_50'],
+        'seats_bought_10', 'seats_bought_20', 'seats_bought_50',
+        // The choir's outcomes over time (App\Support\OwnChoir\ChoirCounts; Hillel, 2026-11-23).
+        ...ChoirCounts::kinds()],
 
     // A shared link's page opened, counted by the server as so:<surface> (docs/retention-plan.md, sharing): a shared
     // song's page, an invite to sing a part, Hillel's invite link, a choir group's join link, a challenge. By surface

@@ -242,6 +242,9 @@ final class SongPagesController extends Controller
             // Once own_choir is on, the teaser is the real thing: this song in the app, ready to hear yourself as a choir
             // (the app's `choir` link, agreed with the frontend; the marketing review, 2026-11-22), where the choir can sing it.
             'choirLive' => self::choirLink($sung, $withheld === null),
+            // "Your first one is free" only where it is: a free choir is the song the singer sings for their voice
+            // (own_choir.clip_templates; voice-capture is Happy Birthday's page), Hillel, 2026-11-23.
+            'choirFree' => in_array($sung->slug, self::freeChoirSongs(), true),
             'learn' => array_combine(array_column($partCards, 'key'), array_map(static fn (array $card): string => Hosts::app('/?'.http_build_query(['song' => $sung->slug, 'part' => $card['key'], 'ref' => 'song-page'])), $partCards)),
             // The page that collects it gives the hero its palette (its link card's and band's); a song no page collects, the songs' own.
             'tone' => $home['key'] ?? 'song',
@@ -292,5 +295,16 @@ final class SongPagesController extends Controller
         }
 
         return Hosts::app('/?'.http_build_query(['song' => $sung->slug, 'choir' => 1, 'ref' => $ref]));
+    }
+
+    /**
+     * The songs a free choir can be: the clip's tunes (own_choir.clip_templates), the hidden voice-capture one shown as
+     * Happy Birthday.
+     *
+     * @return list<string>
+     */
+    private static function freeChoirSongs(): array
+    {
+        return array_values(array_map(static fn (string $slug): string => $slug === 'voice-capture' ? 'happy-birthday' : $slug, array_keys((array) config('own_choir.clip_templates'))));
     }
 }

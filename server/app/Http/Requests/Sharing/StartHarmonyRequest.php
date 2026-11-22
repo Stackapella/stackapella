@@ -32,6 +32,8 @@ final class StartHarmonyRequest extends FormRequest
 
         return [
             'changeId' => ['required', 'uuid'],
+            // "Update that link": the id of their own live share of this project to give this mix (2026-11-23).
+            'replaces' => ['sometimes', 'nullable', 'string', 'max:32'],
             'projectId' => ['required', 'uuid'],
             'partId' => ['nullable', 'uuid'],
             'title' => ['nullable', 'string', 'max:120', new NoLinks],

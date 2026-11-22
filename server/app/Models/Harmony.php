@@ -49,6 +49,7 @@ use Illuminate\Support\Str;
  * @property bool $open_parts_guide
  * @property Carbon|null $stems_ready_at
  * @property int|null $parent_id
+ * @property int|null $replaces_id a new mix waiting to replace this share's ("Update that link")
  * @property string|null $fill_part_key
  * @property Carbon|null $fill_told_at
  * @property int|null $featured_fill_id

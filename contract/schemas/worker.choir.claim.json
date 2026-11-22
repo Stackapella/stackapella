@@ -171,7 +171,8 @@
                 "voicing": {
                     "enum": [
                         "written",
-                        "low"
+                        "low",
+                        "full"
                     ],
                     "description": "low: `data` is the low-voice version (treble parts an octave down), rendered as given."
                 },

@@ -143,6 +143,22 @@ final class HarmonyFiles
     }
 
     /**
+     * New public copies for a new mix at the same address ("Update that link"): the old ones off the bucket and the CDN.
+     */
+    public function republish(Harmony $harmony): void
+    {
+        DB::transaction(function () use ($harmony): void {
+            $locked = Harmony::query()->whereKey($harmony->id)->lockForUpdate()->first();
+
+            if ($locked !== null && $locked->media_audio_key !== null) {
+                $this->unpublish($locked);
+            }
+        });
+
+        $this->sync($harmony->refresh());
+    }
+
+    /**
      * Every file it has (and its videos'), for deleting or removing it for good.
      */
     public function deleteAll(Harmony $harmony): void

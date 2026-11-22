@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Sharing;
 
+use App\Actions\Counts\RecordCounts;
 use App\Actions\Gallery\OpenParts;
 use App\Actions\OwnChoir\ChoirTogether;
 use App\Actions\Projects\Owned;
@@ -32,6 +33,7 @@ use DateTimeInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -45,7 +47,7 @@ final class StartHarmony
     public function __construct(private readonly TrustLevel $trust, private readonly Uploads $uploads, private readonly ShareGate $gate, private readonly Plans $plans, private readonly UploadBytes $uploadBytes) {}
 
     /**
-     * @param  array{changeId: string, projectId: string, partId?: string|null, title?: string|null, visibility: string, sampleRate: int, channels: int, frames: int, bytes: int, sha256: string, beatZeroSeconds?: float|int|null, guides?: list<string>|null, choirParts?: list<string>|null, parentId?: string|null, fillPart?: string|null, tracks: list<array{name: string, color: string, peaks: string, kind?: string}>}  $data
+     * @param  array{changeId: string, projectId: string, partId?: string|null, title?: string|null, visibility: string, sampleRate: int, channels: int, frames: int, bytes: int, sha256: string, beatZeroSeconds?: float|int|null, guides?: list<string>|null, choirParts?: list<string>|null, parentId?: string|null, fillPart?: string|null, tracks: list<array{name: string, color: string, peaks: string, kind?: string}>, replaces?: string|null}  $data
      * @return array{harmony: Harmony, upload: array{url: string, method: string, headers: array<string, string>, expiresAt: DateTimeInterface}|null}
      */
     public function handle(User $user, array $data, string $ip): array
@@ -59,11 +61,18 @@ final class StartHarmony
             $harmony = DB::transaction(fn (): Harmony => $this->start($user, $data, $ip));
         }
 
-        return ['harmony' => $harmony, 'upload' => $harmony->status === Harmony::UPLOADING ? $this->uploads->presign($harmony->upload_key, 'audio/wav', $harmony->upload_bytes) : null];
+        $upload = $harmony->status === Harmony::UPLOADING ? $this->uploads->presign($harmony->upload_key, 'audio/wav', $harmony->upload_bytes) : null;
+
+        // "Update that link": the answer is the share being replaced (its address), with the new mix's upload.
+        if ($harmony->replaces_id !== null) {
+            return ['harmony' => Harmony::query()->findOrFail($harmony->replaces_id), 'upload' => $upload];
+        }
+
+        return ['harmony' => $harmony, 'upload' => $upload];
     }
 
     /**
-     * @param  array{changeId: string, projectId: string, partId?: string|null, title?: string|null, visibility: string, sampleRate: int, channels: int, frames: int, bytes: int, sha256: string, beatZeroSeconds?: float|int|null, guides?: list<string>|null, choirParts?: list<string>|null, parentId?: string|null, fillPart?: string|null, tracks: list<array{name: string, color: string, peaks: string, kind?: string}>}  $data
+     * @param  array{changeId: string, projectId: string, partId?: string|null, title?: string|null, visibility: string, sampleRate: int, channels: int, frames: int, bytes: int, sha256: string, beatZeroSeconds?: float|int|null, guides?: list<string>|null, choirParts?: list<string>|null, parentId?: string|null, fillPart?: string|null, tracks: list<array{name: string, color: string, peaks: string, kind?: string}>, replaces?: string|null}  $data
      */
     private function start(User $user, array $data, string $ip): Harmony
     {
@@ -92,6 +101,26 @@ final class StartHarmony
         }
 
         Owned::live($project);
+
+        // "Update that link" (Hillel, 2026-11-23): their own live share of this project, given a new mix at its address.
+        $replaces = null;
+
+        if (($data['replaces'] ?? null) !== null) {
+            $replaces = Harmony::query()->where('public_id', (string) $data['replaces'])->where('user_id', $user->id)->where('project_id', $project->id)
+                ->where('status', Harmony::READY)->whereNull('deleted_at')->whereNull('removed_at')->lockForUpdate()->first() ?? throw new Refusal(404, 'not_found');
+
+            // One new mix at a time: an earlier one not yet uploaded makes way; one being processed finishes first.
+            $pending = Harmony::query()->where('replaces_id', $replaces->id)->whereIn('status', [Harmony::UPLOADING, Harmony::PROCESSING])->get();
+
+            if ($pending->contains('status', Harmony::PROCESSING)) {
+                throw new Refusal(409, 'share_updating');
+            }
+
+            foreach ($pending as $old) {
+                Storage::disk('private')->delete((string) $old->upload_key);
+                $old->delete();
+            }
+        }
 
         $part = null;
         if (($data['partId'] ?? null) !== null) {
@@ -153,6 +182,7 @@ final class StartHarmony
             'fill_part_key' => $fill !== null ? (string) ($data['fillPart'] ?? '') : null,
             'part_name' => $part !== null ? $this->partName($part, $version) : null,
             'change_id' => $data['changeId'],
+            'replaces_id' => $replaces?->id,
             'visibility' => $data['visibility'],
             'status' => Harmony::UPLOADING,
             // Random and immutable, never guessable from the person or the song.
@@ -171,6 +201,11 @@ final class StartHarmony
             'beat_zero_ms' => isset($data['beatZeroSeconds']) ? (int) round((float) $data['beatZeroSeconds'] * 1000) : null,
             'title_held_at' => TextFilter::holds($title) ? now() : null,
         ])->save();
+
+        // The choir's anonymous counts (2026-11-23): a share holding someone's AI choir.
+        if ($choir['parts'] !== []) {
+            app(RecordCounts::class)->serverAmount('choir_share', 1);
+        }
 
         return $harmony;
     }

@@ -208,7 +208,8 @@
                         "additionalProperties": false,
                         "required": [
                             "templateId",
-                            "stopBeat"
+                            "stopBeat",
+                            "songId"
                         ],
                         "properties": {
                             "templateId": {
@@ -219,6 +220,9 @@
                                     "number",
                                     "null"
                                 ]
+                            },
+                            "songId": {
+                                "type": "string"
                             }
                         }
                     }
@@ -249,7 +253,8 @@
                 "voicing",
                 "settings",
                 "remakeMinutes",
-                "remake"
+                "remake",
+                "failureDetail"
             ],
             "properties": {
                 "id": {
@@ -424,7 +429,8 @@
                 "voicing": {
                     "enum": [
                         "written",
-                        "low"
+                        "low",
+                        "full"
                     ],
                     "description": "low: arranged for a low voice, the treble parts an octave down (\"Arranged for a low voice\")."
                 },
@@ -450,7 +456,9 @@
                     "additionalProperties": false,
                     "required": [
                         "standard",
-                        "fine"
+                        "fine",
+                        "fullStandard",
+                        "fullFine"
                     ],
                     "description": "The minutes a remake would use, as charged.",
                     "properties": {
@@ -458,6 +466,12 @@
                             "type": "number"
                         },
                         "fine": {
+                            "type": "number"
+                        },
+                        "fullStandard": {
+                            "type": "number"
+                        },
+                        "fullFine": {
                             "type": "number"
                         }
                     }
@@ -509,6 +523,19 @@
                             "$ref": "#/$defs/sung"
                         }
                     }
+                },
+                "failureDetail": {
+                    "enum": [
+                        "length",
+                        "quiet",
+                        "loud",
+                        "noisy",
+                        "edge",
+                        "short",
+                        "notes",
+                        null
+                    ],
+                    "description": "Why its clip couldn't be used (with failure clip_unusable), for its singer alone; null otherwise."
                 }
             }
         },
@@ -712,6 +739,7 @@
                     "enum": [
                         "auto",
                         "low",
+                        "full",
                         "high",
                         "written"
                     ]

@@ -56,6 +56,8 @@ final class HarmoniesController extends Controller
             ->with('project', 'part', 'user', 'templateVersion')
             ->where('user_id', $user->id)
             ->whereNull('deleted_at')
+            // A new mix waiting to replace a share ("Update that link") is that share's, not one of its own.
+            ->whereNull('replaces_id')
             ->when(is_string($project), fn ($query) => $query->where('project_id', Project::query()->where('uuid', $project)->where('user_id', $user->id)->value('id') ?? 0))
             ->orderByDesc('id')
             ->cursorPaginate(50);

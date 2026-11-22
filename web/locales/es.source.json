@@ -3211,7 +3211,7 @@
         },
         "feature": "Stackapella may feature it on our X and Bluesky",
         "featureHint": "Credited to you, after we listen. Everyone who sang on it agrees first. Untick any time: nothing more is posted, and its voices stop being guides.",
-        "stillProcessing": "Your harmony is still being prepared. In a few minutes, open Share again and choose Use that link.",
+        "stillProcessing": "Your harmony is still being prepared. In a few minutes, open Share again and choose Update that link.",
         "guides": "Public songs can be featured: your parts may become the voice other singers learn from, credited to you.",
         "guidesTerms": "Read the terms",
         "titleOf": "Share {title}",
@@ -3222,8 +3222,8 @@
         "onePart": "One part",
         "polishedHint": "Balanced, with a little room. Your takes aren't changed.",
         "anyone": "Anyone with the link can listen. It isn't listed or searchable, and you can stop sharing at any time.",
-        "sharedBefore": "You shared this song {when}.",
-        "useThat": "Use that link",
+        "sharedBefore": "You shared this song {when}. Update that link so everyone with it hears what you hear now, or make a new one.",
+        "useThat": "Update that link",
         "createLink": "Create link",
         "message": "Message",
         "email": "Email",
@@ -5670,13 +5670,14 @@
         },
         "record": {
             "title": "Sing for 30 seconds",
-            "headphones": "Headphones on, so only your voice is recorded.",
             "start": "Start singing",
             "short": "That was under 15 seconds. Sing a little longer so we can hear your voice.",
             "use": "Make my choir",
             "sending": "Sending your recording...",
             "again": "Sing again",
-            "failed": "Your recording didn't send. Try again."
+            "failed": "Your recording didn't send. Try again.",
+            "readyNow": "Your choir is ready",
+            "listen": "Listen to your choir"
         },
         "wait": {
             "title": "Your choir is on its way",
@@ -5710,7 +5711,16 @@
             "gates_failed": "Some parts didn't come out in tune. Try again with a new recording.",
             "render_failed": "Something went wrong on our side. Try again.",
             "expired": "It took too long and stopped. Try again.",
-            "reference_gone": "Your saved voice was deleted before this song was made. Sing 30 seconds again to make it."
+            "reference_gone": "Your saved voice was deleted before this song was made. Sing 30 seconds again to make it.",
+            "detail": {
+                "quiet": "Your recording was too quiet. Move closer to the mic (about a hand's width) and sing at normal volume.",
+                "noisy": "There was too much background noise. Try a quieter room.",
+                "notes": "We couldn't follow the tune. Sing it through with the words as shown.",
+                "short": "There wasn't enough singing. Keep singing to the end.",
+                "edge": "A breath or bump at the start or end got in the way. Wait for the count-in and stop cleanly.",
+                "length": "Something went wrong with the recording's length. Please try again.",
+                "loud": "Your recording was too loud in places. Back off a little from the mic and sing at normal volume."
+            }
         },
         "listen": {
             "title": "{song}, in a voice like yours",
@@ -5797,7 +5807,11 @@
             "lasting": "That email address won't last. Change it to one you keep in Settings, then try again."
         },
         "check": {
-            "failed": "The quick check didn't go through. Try it again."
+            "failed": "The quick check didn't go through. Try it again.",
+            "quiet": "That take was very quiet, so it may not make a voice. Sing it again a little closer to the mic?",
+            "clipped": "That take was too loud in places, so it may not make a voice. Sing it again a little further back?",
+            "again": "Sing it again",
+            "send": "Send it anyway"
         },
         "together": {
             "who": {
@@ -5915,11 +5929,12 @@
             "noMic": "We couldn't hear a note. Try again, a little louder, or use the usual key."
         },
         "headphones": {
-            "title": "Are you wearing headphones?",
             "yes": "I have headphones",
-            "yesHint": "You'll hear the tune as you sing.",
-            "no": "No headphones: I'll sing on my own",
-            "noHint": "Nothing plays while you record. Watch the count-in, then follow the words as they light up."
+            "yesHint": "You'll hear the tune while you sing.",
+            "noHint": "Nothing plays; follow the words as they light up.",
+            "silentLine": "Nothing plays. Follow the words as they light up.",
+            "label": "Headphones",
+            "noShort": "No headphones"
         },
         "settings": {
             "title": "Choir settings",
@@ -5942,8 +5957,8 @@
             "voicingOptions": {
                 "auto": "Auto",
                 "low": "Low voice",
-                "high": "High voice",
-                "written": "As written"
+                "written": "As written",
+                "full": "Both octaves"
             },
             "breaths": "Breaths",
             "breathsOptions": {
@@ -5984,7 +5999,17 @@
             "timingHint": "How together they start.",
             "pitchHint": "How exactly in tune.",
             "remakeOf": "{minutes, plural, one {Uses # of your {left} AI-singing minutes} other {Uses # of your {left} AI-singing minutes}}",
-            "remakeNeedsChange": "Change a setting to remake."
+            "remakeNeedsChange": "Change a setting to remake.",
+            "lowTwin": "{part} (low)"
+        },
+        "level": {
+            "low": "A bit quiet. Move closer to the mic, or turn the mic up.",
+            "loud": "A bit loud. Back off a little.",
+            "ok": "Sounds good."
+        },
+        "free": {
+            "yourSong": "Your free choir is the song you sing: {song}.",
+            "refused": "Your free choir is the song you sing for your voice. Choose it there, or get Plus for any song."
         }
     },
     "aiVoice": {

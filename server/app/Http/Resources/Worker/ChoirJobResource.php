@@ -29,7 +29,11 @@ final class ChoirJobResource extends JsonResource
     {
         $job = $this->resource;
         $version = $job->templateVersion ?? throw new LogicException('A claimed job has its song.');
-        $voiced = $job->voicing === 'low' ? VoicingTransform::low((array) $version->data) : ['data' => (array) $version->data, 'shifts' => array_fill_keys(array_column(array_filter((array) ($version->data['parts'] ?? []), 'is_array'), 'key'), 0)];
+        $voiced = match ($job->voicing) {
+            'low' => VoicingTransform::low((array) $version->data),
+            'full' => VoicingTransform::full((array) $version->data),
+            default => ['data' => VoicingTransform::inRange((array) $version->data), 'shifts' => array_fill_keys(array_column(array_filter((array) ($version->data['parts'] ?? []), 'is_array'), 'key'), 0)],
+        };
 
         return [
             'id' => $job->sqid(),

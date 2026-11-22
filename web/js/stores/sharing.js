@@ -31,7 +31,7 @@ async function inAccount(projectId) {
 // harmony on the server, never a second one.
 let last = null;
 
-export async function shareProject({ title, visibility = 'unlisted', partId = null, room = 'small' }, onStep = () => {}) {
+export async function shareProject({ title, visibility = 'unlisted', partId = null, room = 'small', replaces = null }, onStep = () => {}) {
     const projectId = session.project.id;
     onStep('saving');
     // Sharing sends the mix: offline it says so, not that the song isn't saved (it may well be).
@@ -47,7 +47,7 @@ export async function shareProject({ title, visibility = 'unlisted', partId = nu
     const wav = encodeWav(mix.channels, mix.sampleRate);
     onStep('sending');
     const sha256 = hex(await crypto.subtle.digest('SHA-256', await wav.arrayBuffer()));
-    const asked = JSON.stringify({ projectId, partId, title: title.trim(), visibility, sha256 });
+    const asked = JSON.stringify({ projectId, partId, title: title.trim(), visibility, sha256, replaces });
     if (last?.asked !== asked) last = { asked, changeId: crypto.randomUUID() };
     const body = {
         changeId: last.changeId,
@@ -65,6 +65,8 @@ export async function shareProject({ title, visibility = 'unlisted', partId = nu
         // Parts made from the singer's own singing (Hear yourself as a choir): credited as AI on the share page.
         ...(mix.choirParts?.length ? { choirParts: mix.choirParts } : {}),
         tracks: mix.tracks,
+        // Update that link (Hillel's bug, 2026-11-22: a link used again kept its old mix): the same share, the mix as heard now.
+        ...(replaces ? { replaces } : {}),
     };
     // A take just sent is still being processed on the server for a moment: wait for it (a minute at most).
     const create = async () => {

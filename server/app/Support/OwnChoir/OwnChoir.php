@@ -353,6 +353,18 @@ final class OwnChoir
     }
 
     /** Their kept voice, ready to use; null without one. */
+    /** The song a voice was made from (its clip, the tune it sang), read once a request. */
+    public static function voiceOrigin(OwnChoirVoice $voice): ?OwnChoirRequest
+    {
+        return self::originOf($voice->id);
+    }
+
+    /** (Keyed by the voice's id, so every copy of it read in a request shares the one query.) */
+    private static function originOf(int $voiceId): ?OwnChoirRequest
+    {
+        return once(static fn (): ?OwnChoirRequest => OwnChoirRequest::query()->where('own_choir_voice_id', $voiceId)->where('from_voice', false)->whereNotNull('part_key')->oldest('id')->first());
+    }
+
     public static function voice(User $user): ?OwnChoirVoice
     {
         return OwnChoirVoice::query()->where('user_id', $user->id)->where('status', 'ready')->orderByDesc('id')->first();
@@ -379,6 +391,8 @@ final class OwnChoir
             'version' => $version->version,
             'status' => $request->status->value,
             'failure' => $request->failure,
+            // Why its clip couldn't be used, for its singer alone (2026-11-23).
+            'failureDetail' => $viewer->id === $request->user_id ? $request->failure_detail : null,
             'createdAt' => $request->created_at?->utc()->toIso8601ZuluString(),
             'readyAt' => $request->ready_at?->utc()->toIso8601ZuluString(),
             'startsAfter' => $request->starts_after?->utc()->toIso8601ZuluString(),
@@ -391,7 +405,13 @@ final class OwnChoir
             'voicing' => $request->voicing,
             // Plus's choir settings (2026-11-23): the mix, how it's sung, what a remake would use, and one on its way.
             'settings' => ['sound' => ChoirSettings::sound($request), 'sung' => ChoirSettings::sung($request)],
-            'remakeMinutes' => ['standard' => ChoirSettings::remakeMinutes($request, 'standard', $remakeParts = ChoirSettings::remakeParts($request)), 'fine' => ChoirSettings::remakeMinutes($request, 'fine', $remakeParts)],
+            'remakeMinutes' => [
+                'standard' => ChoirSettings::remakeMinutes($request, 'standard', $remakeParts = ChoirSettings::remakeParts($request)),
+                'fine' => ChoirSettings::remakeMinutes($request, 'fine', $remakeParts),
+                // Both octaves: the treble parts twice.
+                'fullStandard' => ChoirSettings::remakeMinutes($request, 'standard', $fullParts = ChoirSettings::remakeParts($request, 'full'), 'full'),
+                'fullFine' => ChoirSettings::remakeMinutes($request, 'fine', $fullParts, 'full'),
+            ],
             'remake' => ($remake = ChoirSettings::remakeOf($request)) === null ? null : [
                 'status' => match ($remake->status) {
                     OwnChoirStatus::Rendering => 'rendering',

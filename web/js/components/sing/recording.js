@@ -6,6 +6,7 @@
 // has been on pitch so far. Space or Esc stops (the screen's keys).
 
 import { formatTime } from '../../theme.js';
+import { formatNumber } from '../../i18n.js';
 import { Icon } from '../icon.js';
 import { CountIn } from '../count-in.js';
 import { joinSyllables } from '../practice.js';
@@ -21,6 +22,8 @@ export const RecordingStage = {
         color: { type: String, required: true },
         take: { type: Number, default: 1 },
         countIn: { type: Number, default: null },
+        // The choir clip's count-in shown large in the middle, each number fading over its beat (seconds per beat).
+        bigCount: { type: Number, default: null },
         position: { type: Number, default: 0 },
         length: { type: Number, default: 0 },
         busy: Boolean,
@@ -30,9 +33,12 @@ export const RecordingStage = {
         hearing: { type: String, default: '' }, // who you hear while recording (Sing's hearLine)
     },
     emits: ['stop', 'again'],
-    setup: () => ({ formatTime, joinSyllables }),
+    setup: () => ({ formatTime, formatNumber, joinSyllables }),
     template: `
         <div class="flex min-h-0 flex-1 flex-col" data-recording-stage>
+            <div v-if="bigCount && countIn" class="pointer-events-none fixed inset-0 z-30 grid place-items-center" aria-hidden="true" data-count-big>
+                <span :key="countIn" class="count-big text-[9rem] font-extrabold leading-none text-cream tabular-nums md:text-[12rem]" :style="{ animationDuration: bigCount + 's' }">{{ formatNumber(countIn) }}</span>
+            </div>
             <!-- The screen's heading for a screen reader (the song's title shows below it): focus comes here as the take
                  starts, so the keyboard isn't left on the page, and Stop is the next Tab (the first-week a11y pass). -->
             <h1 ref="heading" tabindex="-1" class="sr-only">{{ t('sing.recordingStage.heading', { title }) }}</h1>

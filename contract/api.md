@@ -3113,13 +3113,23 @@ Start sharing a mix. `partId` must be one of the project's parts (`409 part_miss
   one that doesn't fit answers `403 storage_limit`; limited like takes (`take-uploads`) and
   paused with uploads (`423 paused`), as well as by the share limit when it's unlisted. Waits while two of the account's shares are still being mixed (`429 rate_limited`, `retryAfter` 30).
 
+**Update that link** (Hillel's share bug, 2026-11-23): optional `replaces`, the `id` of the sharer's own live share
+of this project. The new mix goes up as usual, but the answer is that share (its `id` and `pageUrl`, playing the old
+mix) with the new mix's `upload`; `harmonies.complete` on that share's `id` completes it. Once processed, the new mix,
+tracks, guides and AI or real voices become the share's, at the same address; its title changes only if one was sent,
+its visibility stays, and the old audio is deleted and taken off the CDN. `404 not_found`: no such live share of theirs
+on this project; `409 share_updating`: an earlier new mix for it is still being processed (one not yet uploaded makes
+way).
+
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 201 |  | `harmonies.create.json` | `harmonies.create.201.json` |
 | 403 | `age_unconfirmed` | `error.json` | `harmonies.create.age_unconfirmed.json` |
 | 403 | `email_unverified` | `error.json` | `harmonies.create.email_unverified.json` |
 | 403 | `storage_limit` | `error.json` | `harmonies.create.storage_limit.json` |
+| 404 | `not_found` | `error.json` | `harmonies.create.not_found.json` |
 | 409 | `project_missing` | `error.json` | `harmonies.create.project_missing.json` |
+| 409 | `share_updating` | `error.json` | `harmonies.create.share_updating.json` |
 | 409 | `part_missing` | `error.json` | `harmonies.create.part_missing.json` |
 | 409 | `binned` | `error.json` | `harmonies.create.binned.json` |
 | 409 | `no_takes` | `error.json` | `harmonies.create.no_takes.json` |
@@ -7593,7 +7603,11 @@ singer's original clip, an AAC copy kept with their saved voice, `{ "url", "expi
 song that made the voice is ready; theirs alone (a friend's clip is kept with the friend's voice and shown only to
 them), deleted with the voice (stop making songs, deleting the voice or the account, a voice unused for months), and in
 Download my data. `clipSongs` (since 2026-11-23) lists the tunes a clip may sing, in the order shown, the first the default
-(voice-capture, shown as Happy Birthday): `[{ "templateId", "stopBeat" }]`. The clip stops at `stopBeat` (null: the
+(voice-capture, shown as Happy Birthday): `[{ "templateId", "stopBeat", "songId" }]`, `songId` the song it makes as the
+free song. Each song's `failureDetail`: why its clip couldn't be used (with `clip_unusable`), one of `length`, `quiet`,
+`loud`, `noisy`, `notes`, `edge`, `short` (the most fixable first), for its singer alone; null otherwise. `voicing` may
+be `full`: both octaves, each treble part beside its `-low` twin ("Soprano (low)"), six parts, the pairs 3 dB down in
+`settings.sound.balance`; `remakeMinutes.fullStandard` and `fullFine` what a remake in both octaves would use. The clip stops at `stopBeat` (null: the
 whole tune): the app sings, and the worker's `clip.data` holds, only the notes starting before it, each unchanged. Each song's `progress` (since 2026-11-23) gives each of its parts' real state while it's `queued` or `rendering`: `[{ "partKey": "alto", "status": "ready" | "making" | "waiting" }]`, all `waiting` before the renderer claims it, then `making` until that part's render is in; `[]` otherwise (a friend's job lists only their parts). Each song's `canDownload` says whether the app offers Download (Plus, Hillel 2026-11-21); without it, Download
 opens the Plus sheet (`billing.checkout`'s `moment` `choir_download`), and listening and sharing stay free. It's a gate
 in the app, as MP3 export is, not a lock on bytes: the app mixes the WAV from the parts' private playback links, which
@@ -7632,7 +7646,9 @@ else the first, whatever is sent, and the renderer finds the octave they sang it
 Since 2026-11-23 the clip sings **the voice-capture tune** whatever song is being made (Hillel: "let's go with Happy
 Birthday"): a hidden one-part template, Happy Birthday once then For He's a Jolly Good Fellow once, about 30 seconds,
 listed nowhere but served by `templates.show`. Optional `clipTemplateId`, the template whose tune the clip sings:
-one the singer chose from config `own_choir.clip_templates` (Hillel, 2026-11-23): `"voice-capture"` (the default, shown
+(the free song is the song they sang, Hillel, 2026-11-23: "more expected": on the free plan `templateId` must be
+the clip tune's song, `clipSongs[].songId`, Happy Birthday for voice-capture; else `409 free_song_is_your_clip` with
+that `songId`; Plus makes any song) one the singer chose from config `own_choir.clip_templates` (Hillel, 2026-11-23): `"voice-capture"` (the default, shown
 as Happy Birthday), `"silent-night"`, `"amazing-grace"` or `"joy-to-the-world"`; any other is `422`. Its current
 version is recorded. `partKey` and `offsetFrames` then refer to the clip's template (its melody, its beat 0). The words
 shown are the words sung ("dear friend" on Happy Birthday's name line). Optional `guide`: `false` when the singer chose no headphones, so nothing played while they sang and they kept the tempo
@@ -7672,6 +7688,7 @@ the state's `busyToday` says so first; paid Plus is rendered first.
 | 403 | `quota_reached` | `error.json` | `ownChoir.requests.create.quota_reached.json` |
 | 403 | `account_required` | `error.json` | `ownChoir.requests.create.account_required.json` |
 | 404 | `not_found` | `error.json` | `ownChoir.requests.create.not_found.json` |
+| 409 | `free_song_is_your_clip` | `error.json` | `ownChoir.requests.create.free_song_is_your_clip.json` |
 | 409 | `request_open` | `error.json` | `ownChoir.requests.create.request_open.json` |
 | 409 | `voice_required` | `error.json` | `ownChoir.requests.create.voice_required.json` |
 | 409 | `song_too_long` | `error.json` | `ownChoir.requests.create.song_too_long.json` |
@@ -8058,7 +8075,11 @@ On a job with a `clip` (`409 no_clip` otherwise): send the reference prepared fr
 a 16-bit mono WAV; `meta` your own JSON, at most 64 KB, given back with the reference on later jobs; `octave` (optional:
 −12, 0 or 12) the semitones the clip was sung from the written tune; `sungRange` (optional: `[low, high]`, MIDI 20 to
 110, the octave applied) the notes actually sung in the stretch the voice was cut from. Both are kept with the voice:
-its range for a choir with friends, and a check on the octave the app measured.
+its range for a choir with friends, and a check on the octave the app measured. Optional, for the singer and the anonymous counts (2026-11-23): `detail`
+with `failed: "clip_unusable"`, one of `length`, `quiet`, `loud`, `noisy`, `notes`, `edge`, `short` (the most fixable
+first); `level`, the take's singing level, `quiet` (under −35 dBFS), `ok` or `loud` (over −6 dBFS or clipped);
+`partTries` `[{ "partKey", "tries" }]`; `gateFailures` `[{ "partKey", "reason" }]`, every gate failure on the way, a
+retry's too (`pitch`, `measured`, `shift`, `rest`, `clicks`, `length`, `broken`). Counted as numbers per day only.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|

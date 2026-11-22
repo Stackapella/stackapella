@@ -416,6 +416,19 @@ final class RecordCounts
     }
 
     /**
+     * A server kind added by an amount (a sum, like the choir's render seconds): a number and nothing else.
+     */
+    public function serverAmount(string $kind, int $n): void
+    {
+        if ($n <= 0 || config('counts.enabled') !== true || ! in_array($kind, (array) config('counts.server_kinds'), true)) {
+            return;
+        }
+
+        DB::statement('insert into usage_counts (day, kind, audience, country, count) values (?, ?, ?, ?, ?) on duplicate key update count = count + ?', [ReportDay::today(), $kind, 'account', '', $n, $n]);
+        self::hourly('account', [[$kind, '', $n]]);
+    }
+
+    /**
      * The same counts in this UTC hour (usage_count_hours), in one statement: what a pro-rated
      * comparison reads (today by this hour against yesterday by the same hour, and every period
      * cut at the same point). Never a country or an arm.

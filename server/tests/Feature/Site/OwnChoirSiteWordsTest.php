@@ -165,4 +165,20 @@ final class OwnChoirSiteWordsTest extends TestCase
         config(['own_choir.max_parts' => 1]);
         $this->assertStringContainsString('href="/songs/amazing-grace"', (string) $this->get('/your-choir')->assertOk()->getContent());
     }
+
+    public function test_a_song_page_says_the_first_choir_is_free_only_on_a_song_a_free_choir_can_be(): void
+    {
+        app(SyncOfficialTemplates::class)->handle();
+        $this->on('own_choir');
+        $free = e(__('pages.song.choir.free'));
+
+        // Amazing Grace is one of the clip's tunes, so a free choir can be it.
+        $this->assertStringContainsString($free, (string) $this->get('/songs/amazing-grace')->assertOk()->getContent());
+
+        // Not among them: the link stays, the free line doesn't.
+        config(['own_choir.clip_templates' => ['voice-capture' => null, 'silent-night' => 36]]);
+        $html = (string) $this->get('/songs/amazing-grace')->assertOk()->getContent();
+        $this->assertStringContainsString('song=amazing-grace&amp;choir=1', $html);
+        $this->assertStringNotContainsString($free, $html);
+    }
 }

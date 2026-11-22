@@ -476,6 +476,29 @@
     }
 }
 
+/* The choir clip's count-in (Hillel: "show 1 2 3 4 on the screen in large nice fading numbers"): each number large and
+   centred, fading over its beat (the duration is the beat's, set inline); with reduced motion, just the number. */
+.count-big {
+    animation: count-big 0.6s ease-out forwards;
+}
+
+@keyframes count-big {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(1.12);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .count-big {
+        animation: none;
+    }
+}
+
 /* "Nice!" over a note just found: up and away (still with reduced motion; the template skips the class). */
 .cheer-pop {
     animation: cheer-pop 0.9s ease-out forwards;

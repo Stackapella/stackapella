@@ -490,7 +490,8 @@ async function renderGuides(key, sampleRate) {
         }
         // The chords underneath only when they're on (off by default): the band is the slow part on a phone.
         kept.backing = template.chords?.length && session.practice?.chords ? markRaw(await songBand(template, { transpose, speed: session.practice?.speed ?? 1, sampleRate, style: styleOf(session.practice?.chordsSound) })) : null;
-        kept.drone = renderDrone(session.practice?.drone, { sampleRate, speed: session.practice?.speed ?? 1 });
+        // The choir's clip take has no drone: its tune may change key (voice-capture: F, then A-flat; ai-modal).
+        kept.drone = clipTake() ? null : renderDrone(session.practice?.drone, { sampleRate, speed: session.practice?.speed ?? 1 });
         kept.droneMode = kept.drone ? session.practice.drone : null;
         if (kept.guidesKey !== key) return;
         session.guideVoices = voices;
@@ -1015,7 +1016,7 @@ function renderDrone(mode, { sampleRate, speed = 1 }) {
  */
 export async function setDrone(mode) {
     const id = session.openedId;
-    if (!session.isTemplate || session.recording) return;
+    if (!session.isTemplate || session.recording || clipTake()) return;
     const kind = mode !== 'off' && mode !== kept.droneMode; // a drone not rendered yet: render it
     if (kind && session.playing) await stopPlayback();
     session.practice.drone = mode;
@@ -1320,13 +1321,10 @@ function tick() {
     if (session.recording) {
         const beat = 60 / (session.project.bpm || 90);
         if (position < session.recordFrom - 0.02) {
-            // The click sounding now: its beat in the song, then its place in the bar (as the clicks accent it).
+            // The click sounding now, counted 1 to the count-in's length (it ends where the singing starts); before the
+            // first click (the engine's lead): 0, counting in with nothing to show yet.
             const left = Math.ceil((session.recordFrom - position) / beat - 0.02);
-            const clickBeat = Math.round(session.recordFrom / beat) - left;
-            // Before the first click (the engine's lead): 0, counting in with nothing to show yet.
-            // Counted in the metre of the bar recording starts in (as the engine's count-in clicks are).
-            const bar = barAt(metreSong(), Math.round(session.recordFrom / beat));
-            session.countIn = left > session.countInBeats ? 0 : ((((clickBeat - bar.start) % bar.beats) + bar.beats) % bar.beats) + 1;
+            session.countIn = left > session.countInBeats ? 0 : session.countInBeats - left + 1;
         } else {
             session.countIn = null;
         }
@@ -1358,6 +1356,11 @@ function songMetre() {
     return meters?.length ? { meters, timeSignature: session.project.timeSignature } : {};
 }
 
+/** The choir's clip take (an own choir's or a join's 30 seconds): a project made only for it, not yet sent. */
+export function clipTake() {
+    return !!session.project?.choir && !session.project.choir.requestId;
+}
+
 export async function startRecording({ fromStart = false } = {}) {
     if (!(await ready())) return;
     // The studio always records from the start (Hillel: "In the studio we should always rewind to
@@ -1375,14 +1378,18 @@ export async function startRecording({ fromStart = false } = {}) {
         color: target?.color ?? PART_COLORS.find((c) => !used.has(c)) ?? PART_COLORS[session.parts.length % PART_COLORS.length],
     };
     session.recordFrom = session.position;
-    // Count in to the bar line, then on to where recording starts (a pickup starts mid-bar), in the metre there.
+    // The metre where recording starts: one bar of it counts in.
     const fromBeat = Math.round(session.recordFrom / session.beatSeconds);
     const bar = barAt(metreSong(), fromBeat);
     const perBar = beatsPerBar(bar.timeSignature);
-    const intoBar = fromBeat - bar.start;
     // The choir's 30 seconds sung without headphones (Hillel): nothing plays, and at least a bar's count-in to see.
     const silent = !!session.project.choir?.noHeadphones && !session.project.choir.requestId;
-    const countInBars = session.project.countInBars || (silent ? 1 : 0);
+    // The count-in (Hillel, 2026-11-22: "count to 4 and show 1 2 3 4", "or count to 3 if it's a waltz", and for every
+    // recording): one bar of the song's metre (2/4 counts four, over two bars), ending exactly where the singing starts,
+    // pickup or not. Off when the song's Count-in is off, except a no-headphones clip take, which needs one to see.
+    if (clipTake()) count('choir_take_started'); // the choir's anonymous counts (no IDs)
+    const counted = session.project.countInBars || silent || clipTake();
+    const oneBar = perBar === 2 ? 4 : perBar;
     engine.play({
         silent,
         fromSeconds: session.recordFrom,
@@ -1390,7 +1397,8 @@ export async function startRecording({ fromStart = false } = {}) {
         beatsPerBar: perBar,
         pickupBeats: session.pickup,
         ...songMetre(),
-        countInBeats: (session.countInBeats = countInBars ? countInBars * perBar + intoBar : 0),
+        countInBeats: (session.countInBeats = counted ? oneBar : 0),
+        countInFromOne: true, // its first click is the accented one: "1
         countInSounds: chipCountIn(), // game mode with Game sounds on: chip blips (the take's own clicks stay)
         metronome: session.project.metronome && !!session.project.bpm,
         record: true,

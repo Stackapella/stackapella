@@ -38,14 +38,14 @@ final class ClipTune
     /**
      * The tunes a singer may choose, in the order shown, each with the beat it stops on (null: the whole tune).
      *
-     * @return list<array{templateId: string, stopBeat: float|null}>
+     * @return list<array{templateId: string, stopBeat: float|null, songId: string}>
      */
     public static function songs(): array
     {
         $songs = [];
 
         foreach ((array) config('own_choir.clip_templates') as $slug => $stop) {
-            $songs[] = ['templateId' => (string) $slug, 'stopBeat' => $stop === null ? null : (float) $stop];
+            $songs[] = ['templateId' => (string) $slug, 'stopBeat' => $stop === null ? null : (float) $stop, 'songId' => self::choirSong((string) $slug)];
         }
 
         return $songs;
@@ -77,6 +77,12 @@ final class ClipTune
         }, (array) ($data['parts'] ?? []));
 
         return $data;
+    }
+
+    /** The song a clip tune makes as the free song: Happy Birthday for voice-capture, else the tune's own song. */
+    public static function choirSong(string $clipSlug): string
+    {
+        return (string) (((array) config('own_choir.clip_songs'))[$clipSlug] ?? $clipSlug);
     }
 
     public static function default(): string

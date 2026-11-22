@@ -35,6 +35,7 @@
                 "version": 8,
                 "status": "ready",
                 "failure": null,
+                "failureDetail": null,
                 "createdAt": "2026-11-21T09:00:00Z",
                 "readyAt": "2026-11-21T09:04:00Z",
                 "startsAfter": null,
@@ -171,7 +172,9 @@
                 },
                 "remakeMinutes": {
                     "standard": 6.4,
-                    "fine": 12.8
+                    "fine": 12.8,
+                    "fullStandard": 9.6,
+                    "fullFine": 19.2
                 },
                 "remake": null
             },
@@ -182,6 +185,7 @@
                 "version": 4,
                 "status": "failed",
                 "failure": "clip_unusable",
+                "failureDetail": null,
                 "createdAt": "2026-11-20T18:00:00Z",
                 "readyAt": null,
                 "startsAfter": null,
@@ -229,7 +233,9 @@
                 },
                 "remakeMinutes": {
                     "standard": 6.4,
-                    "fine": 12.8
+                    "fine": 12.8,
+                    "fullStandard": 9.6,
+                    "fullFine": 19.2
                 },
                 "remake": null
             }
@@ -238,19 +244,23 @@
         "clipSongs": [
             {
                 "templateId": "voice-capture",
-                "stopBeat": null
+                "stopBeat": null,
+                "songId": "happy-birthday"
             },
             {
                 "templateId": "silent-night",
-                "stopBeat": 36
+                "stopBeat": 36,
+                "songId": "silent-night"
             },
             {
                 "templateId": "amazing-grace",
-                "stopBeat": 36
+                "stopBeat": 36,
+                "songId": "amazing-grace"
             },
             {
                 "templateId": "joy-to-the-world",
-                "stopBeat": 63
+                "stopBeat": 63,
+                "songId": "joy-to-the-world"
             }
         ]
     }

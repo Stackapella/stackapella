@@ -72,7 +72,9 @@ final class ChoirController extends Controller
     {
         $failed = $request->validated('failed');
         $gpu = $request->validated('gpuSeconds');
-        $done = $jobs->finish($job->load('templateVersion'), (string) $request->validated('claim'), is_string($failed) ? $failed : null, is_numeric($gpu) ? (float) $gpu : null);
+        /** @var array{detail?: string|null, level?: string|null, partTries?: list<array{partKey: string, tries: int}>|null, gateFailures?: list<array{partKey: string, reason?: string|null}>|null} $report */
+        $report = $request->safe()->only(['detail', 'level', 'partTries', 'gateFailures']);
+        $done = $jobs->finish($job->load('templateVersion'), (string) $request->validated('claim'), is_string($failed) ? $failed : null, is_numeric($gpu) ? (float) $gpu : null, $report);
 
         return response()->json(['data' => ['id' => $done->sqid(), 'status' => $done->status->value, 'failure' => $done->failure]]);
     }

@@ -6,6 +6,8 @@
 import { keepNext, plusPriceLine, PlusMoment } from '../components/plus-moment.js';
 import { loadPrices } from '../stores/plan.js';
 import { api } from '../api.js';
+import { count } from '../usage.js';
+import { session as tabStorage } from '../storage.js';
 import { formatDate, formatNumber, t, tk } from '../i18n.js';
 import { navigate } from '../router.js';
 import { AppScreen } from '../components/page.js';
@@ -18,7 +20,7 @@ import { songTitle } from '../song-titles.js';
 import { Agreement } from './beta.js';
 import { TurnstileBox } from '../turnstile.js';
 import { ClipChoice, clipLine, clipPick, clipTemplate, pickedClip, tooLong } from '../own-choir.js';
-import { FirstNoteStep, HeadphonesChoice } from '../components/first-note.js';
+import { FirstNoteStep, HeadphonesPick, rememberedHeadphones } from '../components/first-note.js';
 import { ChoirSettings } from '../components/choir-settings.js';
 import { isPlus } from '../stores/plan.js';
 import { inviteLine, inviteText, nameList, partList, togetherOn, whoSings, whoseList } from '../own-choir.js';
@@ -30,13 +32,16 @@ import { loadMine, mine, ownTemplate } from '../stores/templates.js';
 import { saveProject } from '../stores/projects.js';
 import { choirPosition, loadChoir, loadChoirFull, mixChoirShaped, playChoir, stopChoir } from '../own-choir-player.js';
 
+// Why a clip couldn't make a voice, and the one fix (Hillel: "so they know why it failed, to fix it next time"; the
+// server's `failureDetail`, owner-only).
+const FAILURE_DETAILS = { quiet: tk('ownChoir.failed.detail.quiet'), noisy: tk('ownChoir.failed.detail.noisy'), notes: tk('ownChoir.failed.detail.notes'), short: tk('ownChoir.failed.detail.short'), loud: tk('ownChoir.failed.detail.loud'), edge: tk('ownChoir.failed.detail.edge'), length: tk('ownChoir.failed.detail.length') };
 const FAILURES = { clip_unusable: tk('ownChoir.failed.clip_unusable'), bad_clip: tk('ownChoir.failed.bad_clip'), gates_failed: tk('ownChoir.failed.gates_failed'), render_failed: tk('ownChoir.failed.render_failed'), expired: tk('ownChoir.failed.expired'), reference_gone: tk('ownChoir.failed.reference_gone') };
 
 export const OwnChoirView = {
-    components: { Agreement, AppScreen, ChoirSettings, ClipChoice, FirstNoteStep, HeadphonesChoice, Icon, PlusMoment, TurnstileBox },
+    components: { Agreement, AppScreen, ChoirSettings, ClipChoice, FirstNoteStep, HeadphonesPick, Icon, PlusMoment, TurnstileBox },
     props: { id: { type: String, required: true } },
     data: () => ({ plusSettings: false, shift: null, hearingClip: false, firstNote: null, leftNames: [], plusFriends: false, sentInvite: null, copied: false, plusFor: false, emailSent: false, sending: false, checkToken: null, checkRound: 0, state: 'loading', offReason: 'unavailable', canStart: false, template: null, terms: null, busy: false, playing: false, loadingTrack: false, hum: null, own: false }),
-    setup: () => ({ isPlus, ownChoir, account, isOpen, templatePartName, savedVoice, formatNumber, navigate }),
+    setup: () => ({ rememberedHeadphones, isPlus, ownChoir, account, isOpen, templatePartName, savedVoice, formatNumber, navigate }),
     computed: {
         /** Back here from the Plus page, once Plus is on. */
         here: () => location.pathname,
@@ -181,10 +186,26 @@ export const OwnChoirView = {
         steps() {
             // Hillel's intro design (split step 1): the first step's title, and what it needn't be under it, muted.
             // Step 1 names the tune they chose to sing (Hillel: four to choose from), the choice under it.
-            return [{ title: clipLine(), body: t('ownChoir.intro.oneBody'), choose: true }, { title: t('ownChoir.intro.two', { song: this.song }) }, { title: t('ownChoir.intro.three') }];
+            return [{ title: clipLine(), body: t('ownChoir.intro.oneBody'), choose: true }, { title: t('ownChoir.intro.two', { song: this.freeSongId && this.freeSongId !== this.id ? this.clipTitle : this.song }) }, { title: t('ownChoir.intro.three') }];
+        },
+        /** A free singer's choir song: the one their clip tune makes (`clipSongs[].songId`), or null with Plus. */
+        freeSongId() {
+            const q = ownChoir.data?.quota;
+            if (!q || q.plus || !(q.freeLeft > 0)) return null;
+            const choice = pickedClip();
+            return choice.songId ?? (choice.templateId === 'voice-capture' ? 'happy-birthday' : choice.templateId);
+        },
+        clipTitle() {
+            return clipPick.titles[pickedClip().templateId] ?? '';
+        },
+        /** What the page shows now, for its counts: set once it's open (not while loading, off or asking the terms). */
+        seenKey() {
+            return this.state === 'ready' ? `${this.id}:${this.request?.id ?? 'none'}:${this.request?.status ?? 'none'}` : null;
         },
         failure() {
             const code = this.request?.failure;
+            const detail = FAILURE_DETAILS[this.request?.failureDetail];
+            if (detail) return t(detail);
             return FAILURES[code] ? t(FAILURES[code]) : t('ownChoir.failed.body');
         },
     },
@@ -309,8 +330,8 @@ export const OwnChoirView = {
                     <!-- Hillel's intro design: a vertical stepper. Numbered dots joined by a thin line (none after the last), the
                          first (where they are) filled with the accent, the others ringed; game mode's dots are its chips. -->
                     <!-- After Start singing: the first note they'd like (Hillel), in place of the steps; then Sing, in that key. -->
-                    <HeadphonesChoice v-if="firstNote && shift !== null" class="mt-10" @choose="(silent) => record(shift, silent)" />
-                    <FirstNoteStep v-else-if="firstNote" class="mt-10" :first="firstNote.pitch" :song="firstNote.song" @go="shift = $event" />
+                    <!-- Headphones were chosen beside the tune (Hillel: two choices, then one button to start). -->
+                    <FirstNoteStep v-if="firstNote" class="mt-10" :first="firstNote.pitch" :song="firstNote.song" @go="record($event, rememberedHeadphones() === 'no')" />
                     <template v-else>
                     <ol class="mt-10" data-choir-steps>
                         <li v-for="(step, i) in steps" :key="i" class="grid grid-cols-[32px_1fr] gap-x-[18px]" :data-choir-step="i + 1">
@@ -322,12 +343,14 @@ export const OwnChoirView = {
                                 <span class="block text-[17px] font-semibold leading-[1.35]" :class="i === 0 ? 'text-cream' : 'text-cream/80'">{{ step.title }}</span>
                                 <span v-if="step.body" class="mt-1 block text-[15px] leading-[1.55] text-muted" data-step-body>{{ step.body }}</span>
                                 <ClipChoice v-if="step.choose && canStart" class="mt-4" />
+                                <!-- The free choir is the song they sing (Hillel): said when that isn't this page's song. -->
+                                <span v-if="step.choose && canStart && freeSongId && freeSongId !== id" class="mt-2 block text-sm text-cream" data-free-song>{{ t('ownChoir.free.yourSong', { song: clipTitle }) }}</span>
+                                <HeadphonesPick v-if="step.choose && canStart" class="mt-5" />
                             </span>
                         </li>
                     </ol>
                     <!-- One card: the headphones line, then Start singing with the free line beside it (stacked on a phone). -->
                     <div class="mt-10 space-y-5" :class="goCard ? (game ? 'card p-6' : 'card rounded-[20px] p-6') : ''" data-choir-go>
-                    <p class="flex items-center gap-2.5 text-[15px] text-cream/80"><span class="size-2 shrink-0 rounded-full bg-accent" aria-hidden="true"></span>{{ t('ownChoir.record.headphones') }}</p>
                     <p v-if="ownChoir.data?.busyToday && canStart" class="text-sm text-cream" data-choir-busy>{{ t('ownChoir.busy.today') }}</p>
                     <!-- A voice kept from before (Hillel: "store a model to make it easier"): the next song is one tap; singing again
                          is a quiet option that replaces it. Without one, Start singing. -->
@@ -380,6 +403,27 @@ export const OwnChoirView = {
         this.stopClip();
     },
     watch: {
+        // A Plus sheet opened from a choir moment (its `from` carries on to Checkout for the conversion).
+        plusFor(open) {
+            if (open) count('choir_plus_sheet_choir_download');
+        },
+        plusSettings(open) {
+            if (open) count('choir_plus_sheet_choir_settings');
+        },
+        plusFriends(open) {
+            if (open) count('choir_plus_sheet_choir_friends');
+        },
+        // The choir's anonymous counts (no IDs): what the singer saw, once per song and state while the page is open.
+        seenKey: {
+            immediate: true,
+            handler(key) {
+                if (!key) return;
+                const status = this.request?.status;
+                if (status === 'failed') count(`choir_failure_seen_${FAILURE_DETAILS[this.request?.failureDetail] ? this.request.failureDetail : 'other'}`);
+                else if (status === 'ready') count('choir_ready_seen');
+                else if (!status) count('choir_intro_seen');
+            },
+        },
         // The free song had (however the page got there: a load, or the terms just agreed): its card says what Plus costs.
         freeHad: {
             immediate: true,
@@ -654,6 +698,8 @@ export const OwnChoirView = {
         async start() {
             if (this.busy) return;
             this.busy = true;
+            count(`choir_song_${pickedClip().templateId.replaceAll('-', '_')}`);
+            if (this.request?.status === 'failed') count('choir_try_again');
             try {
                 const clip = await clipTemplate();
                 const notes = clip.parts.find((p) => p.key === tunePart(clip))?.guide?.notes ?? [];
@@ -670,7 +716,8 @@ export const OwnChoirView = {
                 // The tune they chose, whatever this song is (Hillel, 2026-11-22), on a project only for the take
                 // (`forTemplateId`: the song the choir is for), moved to start on their note; its melody, any octave.
                 const chosen = pickedClip().templateId;
-                let project = projects.all.find((p) => p.choir?.forTemplateId === this.id && !p.choir.requestId && !p.deleted) ?? null;
+                const forId = this.freeSongId ?? this.id; // the free choir is the song they sing (Hillel; the server's rule)
+                let project = projects.all.find((p) => p.choir?.forTemplateId === forId && !p.choir.requestId && !p.deleted) ?? null;
                 // A take's project for another tune or key than the one chosen now: it goes, and the tune starts afresh.
                 if (project && (project.template?.id !== chosen || (project.transpose || 0) !== shift || !!project.choir.noHeadphones !== silent)) {
                     await deleteProject(project.id).catch((error) => console.warn('The earlier take was not removed', error));
@@ -678,7 +725,7 @@ export const OwnChoirView = {
                 }
                 const clip = project?.template ?? (await clipTemplate());
                 const tune = tunePart(clip);
-                project ??= await startFromTemplate(clip, { transpose: shift, keyChosen: true, focusKey: tune, choir: { requestId: null, forTemplateId: this.id, noHeadphones: silent } });
+                project ??= await startFromTemplate(clip, { transpose: shift, keyChosen: true, focusKey: tune, choir: { requestId: null, forTemplateId: forId, noHeadphones: silent, auto: tabStorage.get('stackapella.choirFromSite') === this.id } });
                 navigate(`/p/${project.id}/sing${tune ? `?part=${encodeURIComponent(tune)}` : ''}`);
             } finally {
                 this.busy = false;
@@ -768,6 +815,7 @@ export const OwnChoirView = {
                 await playChoir(voices, this.request.settings?.sound ?? null);
                 this.playing = true;
                 countChoir('own_choir_heard');
+                count('choir_listen_played');
                 this.watchEnd();
             } catch (error) {
                 console.warn('The choir did not play', error);

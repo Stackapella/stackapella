@@ -3211,7 +3211,7 @@
         },
         "feature": "Stackapella puede destacarla en nuestras cuentas de X y Bluesky",
         "featureHint": "Con tu nombre en los créditos, después de que la escuchemos. Antes tienen que aceptarlo todos los que cantaron en ella. Desmárcalo cuando quieras: no se publica nada más y sus voces dejan de ser guías.",
-        "stillProcessing": "Tu armonía aún se está preparando. En unos minutos, vuelve a abrir Compartir y elige Usar ese enlace.",
+        "stillProcessing": "Tu armonía aún se está preparando. En unos minutos, vuelve a abrir Compartir y elige Actualizar ese enlace.",
         "guides": "Las canciones públicas se pueden destacar: tus voces pueden ser la voz con la que aprenden otros cantantes, con tu nombre.",
         "guidesTerms": "Ver las condiciones",
         "titleOf": "Compartir {title}",
@@ -3222,8 +3222,8 @@
         "onePart": "Una voz",
         "polishedHint": "Equilibrada, con un poco de ambiente de sala. Tus tomas no cambian.",
         "anyone": "Cualquiera con el enlace puede escucharla. No aparece en listas ni en búsquedas, y puedes dejar de compartirla cuando quieras.",
-        "sharedBefore": "Compartiste esta canción {when}.",
-        "useThat": "Usar ese enlace",
+        "sharedBefore": "Compartiste esta canción {when}. Actualiza ese enlace para que quien lo tenga oiga lo que oyes ahora, o crea uno nuevo.",
+        "useThat": "Actualizar ese enlace",
         "createLink": "Crear enlace",
         "message": "Mensaje",
         "email": "Correo",
@@ -5670,13 +5670,14 @@
         },
         "record": {
             "title": "Canta 30 segundos",
-            "headphones": "Ponte auriculares, para que solo se grabe tu voz.",
             "start": "Empieza a cantar",
             "short": "Han sido menos de 15 segundos. Canta un poco más para que podamos oír tu voz.",
             "use": "Haz mi coro",
             "sending": "Enviando tu grabación...",
             "again": "Canta otra vez",
-            "failed": "Tu grabación no se envió. Inténtalo de nuevo."
+            "failed": "Tu grabación no se envió. Inténtalo de nuevo.",
+            "readyNow": "Tu coro está listo",
+            "listen": "Escuchar tu coro"
         },
         "wait": {
             "title": "Tu coro está en camino",
@@ -5710,7 +5711,16 @@
             "gates_failed": "Algunas partes no salieron afinadas. Inténtalo de nuevo con una grabación nueva.",
             "render_failed": "Algo falló por nuestra parte. Inténtalo de nuevo.",
             "expired": "Tardó demasiado y se detuvo. Inténtalo de nuevo.",
-            "reference_gone": "Tu voz guardada se borró antes de hacer esta canción. Canta 30 segundos otra vez para hacerla."
+            "reference_gone": "Tu voz guardada se borró antes de hacer esta canción. Canta 30 segundos otra vez para hacerla.",
+            "detail": {
+                "quiet": "Tu grabación se oía muy baja. Acércate al micrófono (a un palmo) y canta a volumen normal.",
+                "noisy": "Había demasiado ruido de fondo. Prueba en un sitio más tranquilo.",
+                "notes": "No pudimos seguir la melodía. Cántala de principio a fin con la letra que se muestra.",
+                "short": "No hubo suficiente canto. Sigue cantando hasta el final.",
+                "edge": "Una respiración o un golpe al principio o al final se interpuso. Espera a la cuenta atrás y termina limpio.",
+                "length": "Algo falló con la duración de la grabación. Vuelve a intentarlo.",
+                "loud": "Tu grabación sonó demasiado alta en algunos momentos. Apártate un poco del micrófono y canta a volumen normal."
+            }
         },
         "listen": {
             "title": "{song}, con una voz como la tuya",
@@ -5797,7 +5807,11 @@
             "lasting": "Esa dirección de correo es temporal. Cámbiala en Ajustes por una que vayas a conservar y vuelve a intentarlo."
         },
         "check": {
-            "failed": "La comprobación rápida no funcionó. Inténtalo otra vez."
+            "failed": "La comprobación rápida no funcionó. Inténtalo otra vez.",
+            "quiet": "Esa toma se oyó muy baja, así que puede que no sirva para hacer una voz. ¿La cantas otra vez un poco más cerca del micrófono?",
+            "clipped": "Esa toma se oyó demasiado alta en algunos momentos, así que puede que no sirva para hacer una voz. ¿La cantas otra vez un poco más lejos?",
+            "again": "Cantar de nuevo",
+            "send": "Enviarla igualmente"
         },
         "together": {
             "who": {
@@ -5915,11 +5929,12 @@
             "noMic": "No pudimos oír una nota. Vuelve a intentarlo un poco más fuerte, o usa la tonalidad habitual."
         },
         "headphones": {
-            "title": "¿Llevas auriculares?",
             "yes": "Tengo auriculares",
             "yesHint": "Oirás la melodía mientras cantas.",
-            "no": "Sin auriculares: canto por mi cuenta",
-            "noHint": "No suena nada mientras grabas. Mira la cuenta atrás y sigue la letra a medida que se ilumina."
+            "noHint": "No suena nada; sigue la letra a medida que se ilumina.",
+            "silentLine": "No suena nada. Sigue la letra a medida que se ilumina.",
+            "label": "Auriculares",
+            "noShort": "Sin auriculares"
         },
         "settings": {
             "title": "Ajustes del coro",
@@ -5942,8 +5957,8 @@
             "voicingOptions": {
                 "auto": "Automático",
                 "low": "Voz grave",
-                "high": "Voz aguda",
-                "written": "Como está escrito"
+                "written": "Como está escrito",
+                "full": "Ambas octavas"
             },
             "breaths": "Respiraciones",
             "breathsOptions": {
@@ -5984,7 +5999,17 @@
             "timingHint": "Cuánto coinciden las voces al empezar.",
             "pitchHint": "Lo exacta que es la afinación entre las voces.",
             "remakeOf": "{minutes, plural, one {Usa # de tus {left} minutos de canto con IA} other {Usa # de tus {left} minutos de canto con IA}}",
-            "remakeNeedsChange": "Cambia un ajuste para rehacerlo."
+            "remakeNeedsChange": "Cambia un ajuste para rehacerlo.",
+            "lowTwin": "{part} (grave)"
+        },
+        "level": {
+            "low": "Algo bajo. Acércate al micrófono, o sube su volumen.",
+            "loud": "Algo alto. Apártate un poco.",
+            "ok": "Suena bien."
+        },
+        "free": {
+            "yourSong": "Tu coro gratis es la canción que cantas: {song}.",
+            "refused": "Tu coro gratis es la canción que cantas para tu voz. Elígela ahí, o hazte Plus para cualquier canción."
         }
     },
     "aiVoice": {

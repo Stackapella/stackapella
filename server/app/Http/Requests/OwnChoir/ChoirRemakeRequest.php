@@ -22,7 +22,7 @@ final class ChoirRemakeRequest extends FormRequest
         return [
             'sung' => ['required', 'array'],
             'sung.humanize' => ['required', 'integer', 'between:0,3'],
-            'sung.voicing' => ['required', 'in:auto,low,high,written'],
+            'sung.voicing' => ['required', 'in:auto,low,full,high,written'],
             'sung.breaths' => ['required', 'in:legato,natural'],
             'sung.quality' => ['required', 'in:standard,fine'],
             'sung.ensembleTiming' => ['required', 'in:tight,natural,loose'],

@@ -325,6 +325,7 @@ export function choirRefusal(error, { own = false } = {}) {
     // A throwaway address can't take the free song: a lasting one, changed in Settings.
     if (code === 'validation_failed' && error?.errors?.email) return t('ownChoir.email.lasting');
     if (code === 'turnstile_required' || code === 'turnstile_failed') return t('ownChoir.check.failed');
+    if (code === 'free_song_is_your_clip') return t('ownChoir.free.refused');
     return t('ownChoir.record.failed');
 }
 
@@ -522,6 +523,35 @@ export function choirOf(request) {
  * from the song's beat 0 (or the take's start, if it started later), at most 30 seconds, as a 16-bit mono WAV, and
  * where beat 0 falls in it. `{ wav, frames, offsetFrames, seconds }`.
  */
+/**
+ * How loud the singing is, as the worker measures it (ai-modal): the 90th percentile of 50 ms frame levels (dBFS, the
+ * loudest stretches of singing), and whether it clipped. The worker takes singing between -35 and -6 dBFS.
+ */
+export function takeLevel(samples, sampleRate) {
+    const frame = Math.max(1, Math.round(sampleRate * 0.05));
+    const levels = [];
+    let over = 0;
+    for (let at = 0; at + frame <= samples.length; at += frame) {
+        let sum = 0;
+        for (let i = at; i < at + frame; i++) {
+            const v = samples[i];
+            sum += v * v;
+            if (Math.abs(v) >= 0.99) over += 1;
+        }
+        levels.push(10 * Math.log10(sum / frame + 1e-12));
+    }
+    levels.sort((a, b) => a - b);
+    const db = levels.length ? levels[Math.min(levels.length - 1, Math.floor(levels.length * 0.9))] : -120;
+    return { db, clipped: over > samples.length * 0.0005 };
+}
+
+/** 'low', 'loud' or 'ok' for a level, with a little room inside the worker's -35 to -6 dBFS. */
+export function levelVerdict({ db, clipped }) {
+    if (clipped || db > -8) return 'loud';
+    if (db < -33) return 'low';
+    return 'ok';
+}
+
 export function clipFrom(samples, sampleRate, startSeconds) {
     const beat0 = Math.round(-startSeconds * sampleRate); // the take's frame at the song's beat 0
     const start = Math.max(0, beat0);
@@ -624,8 +654,10 @@ export const ChoirCard = {
     components: { TurnstileBox },
     // siteKey: the check before the account's first song (the server's `checkNeeded`, only with a site key set).
     // join: a friend's tune for an invite: the button leads to the yes (nothing is sent from here).
-    props: { seconds: { type: Number, required: true }, busy: Boolean, error: { type: String, default: '' }, siteKey: { type: String, default: null }, join: Boolean },
-    emits: ['make', 'again'],
+    // sent: the request this take became, sent by itself (from /your-choir): its parts' states while it's made, then Listen.
+    props: { seconds: { type: Number, required: true }, busy: Boolean, error: { type: String, default: '' }, siteKey: { type: String, default: null }, join: Boolean, sent: { type: Object, default: null }, check: { type: String, default: null } },
+    // check: 'quiet' or 'clipped', a take the worker would likely refuse: Sing it again, or Send it anyway (`force`).
+    emits: ['make', 'again', 'listen', 'force'],
     data: () => ({ token: null, checkKey: 0 }),
     setup: () => ({ MIN_SECONDS }),
     watch: {
@@ -637,8 +669,51 @@ export const ChoirCard = {
             }
         },
     },
+    computed: {
+        ready() {
+            return this.sent?.status === 'ready';
+        },
+        progress() {
+            return this.sent?.progress ?? [];
+        },
+        readyCount() {
+            return this.progress.filter((p) => p.status === 'ready').length;
+        },
+    },
+    methods: {
+        partLabel(key) {
+            return templatePartName({ key, name: key });
+        },
+        statusWord(status) {
+            return status === 'ready' ? t('ownChoir.wait.part.ready') : status === 'making' ? t('ownChoir.wait.part.making') : t('ownChoir.wait.part.waiting');
+        },
+        dot(status) {
+            if (status === 'ready') return 'bg-good';
+            if (status === 'making') return matchMedia('(prefers-reduced-motion: reduce)').matches ? 'bg-accent' : 'bg-accent animate-pulse';
+            return 'border border-muted';
+        },
+    },
     template: `
-        <div class="card flex flex-col gap-3 p-4 sm:flex-row sm:flex-wrap sm:items-center" data-choir-card>
+        <!-- Sent by itself (Hillel: from /your-choir it starts at once): made while they listen back, then Listen. -->
+        <div v-if="sent" class="card space-y-3 p-4" role="status" data-choir-sent :data-state="sent.status">
+            <p class="font-bold text-cream">{{ ready ? t('ownChoir.record.readyNow') : t('ownChoir.wait.title') }}</p>
+            <ul v-if="!ready && progress.length" class="divide-y divide-line">
+                <li v-for="p in progress" :key="p.partKey" class="flex min-h-11 items-center justify-between gap-3 py-1" :data-choir-part="p.partKey" :data-choir-part-status="p.status">
+                    <span class="font-semibold text-cream">{{ partLabel(p.partKey) }}</span>
+                    <span class="inline-flex items-center gap-2 text-sm"><span class="size-2.5 shrink-0 rounded-full" :class="dot(p.status)" aria-hidden="true"></span><span :class="p.status === 'waiting' ? 'text-muted' : 'text-cream'">{{ statusWord(p.status) }}</span></span>
+                </li>
+            </ul>
+            <p v-if="!ready && progress.length" class="border-t border-line pt-3 text-sm text-muted tabular-nums">{{ t('ownChoir.wait.partsReady', { n: readyCount, count: progress.length }) }}</p>
+            <button v-if="ready" type="button" class="btn-primary" data-choir-listen @click="$emit('listen')">{{ t('ownChoir.record.listen') }}</button>
+        </div>
+        <div v-else-if="check" class="card space-y-3 p-4" role="alert" :data-choir-check="check">
+            <p class="text-cream">{{ check === 'clipped' ? t('ownChoir.check.clipped') : t('ownChoir.check.quiet') }}</p>
+            <div class="flex flex-wrap gap-2">
+                <button type="button" class="btn-primary" data-choir-again @click="$emit('again')">{{ t('ownChoir.check.again') }}</button>
+                <button type="button" class="btn-secondary" :disabled="busy" data-choir-force @click="$emit('force', token)">{{ t('ownChoir.check.send') }}</button>
+            </div>
+        </div>
+        <div v-else class="card flex flex-col gap-3 p-4 sm:flex-row sm:flex-wrap sm:items-center" data-choir-card>
             <div class="min-w-0 flex-1">
                 <p class="font-bold text-cream">{{ t('ownChoir.title') }}</p>
                 <p class="text-sm text-muted" :role="error ? 'alert' : null">{{ error || (seconds < MIN_SECONDS ? t('ownChoir.record.short') : t('ownChoir.wait.kept')) }}</p>

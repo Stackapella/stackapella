@@ -6,6 +6,7 @@
         "version": 8,
         "status": "ready",
         "failure": null,
+        "failureDetail": null,
         "createdAt": "2026-11-21T09:00:00Z",
         "readyAt": "2026-11-21T09:04:00Z",
         "startsAfter": null,
@@ -142,7 +143,9 @@
         },
         "remakeMinutes": {
             "standard": 6.4,
-            "fine": 12.8
+            "fine": 12.8,
+            "fullStandard": 9.6,
+            "fullFine": 19.2
         },
         "remake": null
     }

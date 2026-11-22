@@ -8,10 +8,11 @@
 import { formatNumber, t, tk } from '../i18n.js';
 import { templatePartName } from '../templates.js';
 import { Segmented } from './controls.js';
+import { count } from '../usage.js';
 
 const ROOMS = ['dry', 'small', 'hall', 'chapel'];
 const SUNG = {
-    voicing: ['auto', 'low', 'high', 'written'],
+    voicing: ['auto', 'low', 'full', 'written'], // "full": both octaves, six parts (a low twin for soprano and alto)
     breaths: ['legato', 'natural'],
     ensembleTiming: ['tight', 'natural', 'loose'],
     pitchSpread: ['off', 'subtle', 'wide'],
@@ -24,7 +25,7 @@ const DEFAULT_SUNG = { humanize: 0, voicing: 'auto', breaths: 'legato', ensemble
 // The words for each choice (`off` is said "Exact"), and each row's label.
 const WORDS = {
     room: { dry: tk('ownChoir.settings.rooms.dry'), small: tk('ownChoir.settings.rooms.small'), hall: tk('ownChoir.settings.rooms.hall'), chapel: tk('ownChoir.settings.rooms.chapel') },
-    voicing: { auto: tk('ownChoir.settings.voicingOptions.auto'), low: tk('ownChoir.settings.voicingOptions.low'), high: tk('ownChoir.settings.voicingOptions.high'), written: tk('ownChoir.settings.voicingOptions.written') },
+    voicing: { auto: tk('ownChoir.settings.voicingOptions.auto'), low: tk('ownChoir.settings.voicingOptions.low'), full: tk('ownChoir.settings.voicingOptions.full'), written: tk('ownChoir.settings.voicingOptions.written') },
     breaths: { legato: tk('ownChoir.settings.breathsOptions.smooth'), natural: tk('ownChoir.settings.breathsOptions.natural') },
     ensembleTiming: { tight: tk('ownChoir.settings.timingOptions.tight'), natural: tk('ownChoir.settings.timingOptions.natural'), loose: tk('ownChoir.settings.timingOptions.loose') },
     pitchSpread: { off: tk('ownChoir.settings.pitchOptions.exact'), subtle: tk('ownChoir.settings.pitchOptions.subtle'), wide: tk('ownChoir.settings.pitchOptions.wide') },
@@ -46,7 +47,7 @@ export const ChoirSettings = {
     components: { Segmented },
     emits: ['sound', 'remake', 'plus'],
     data() {
-        return { sung: { ...DEFAULT_SUNG, ...(this.request.settings?.sung ?? {}) } };
+        return { sung: { ...DEFAULT_SUNG, ...(this.request.settings?.sung ?? {}) }, opened: false };
     },
     setup: () => ({ ROOMS, SUNG, WORDS, LABEL, HINT }),
     computed: {
@@ -56,8 +57,11 @@ export const ChoirSettings = {
         parts() {
             return (this.request.parts ?? []).map((p) => p.partKey);
         },
+        /** The exact minutes for the settings chosen, as the server charges them (both octaves: six parts). */
         minutes() {
-            return this.request.remakeMinutes?.[this.sung.quality] ?? null;
+            const m = this.request.remakeMinutes ?? {};
+            if (this.sung.voicing === 'full') return (this.sung.quality === 'fine' ? m.fullFine : m.fullStandard) ?? null;
+            return m[this.sung.quality] ?? null;
         },
         /** How it's sung as made now: Remake waits until something here differs from it. */
         made() {
@@ -86,10 +90,16 @@ export const ChoirSettings = {
             return this.sound.balance.find((b) => b.partKey === key)?.db ?? 0;
         },
         partLabel(key) {
-            const part = this.template?.parts?.find((p) => p.key === key);
-            return templatePartName(part ?? { key, name: key });
+            // Both octaves' low twins ("soprano-low"): "Soprano (low)", as the server names them.
+            const low = key.endsWith('-low');
+            const base = low ? key.slice(0, -4) : key;
+            const part = this.template?.parts?.find((p) => p.key === base);
+            const name = templatePartName(part ?? { key: base, name: base });
+            return low ? t('ownChoir.settings.lowTwin', { part: name }) : name;
         },
         gate() {
+            if (!this.opened) count(this.plus ? 'choir_settings_opened_plus' : 'choir_settings_opened_locked');
+            this.opened = true;
             if (this.plus) return true;
             this.$emit('plus');
             return false;

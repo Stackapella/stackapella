@@ -89,7 +89,7 @@ export const JustRecorded = {
         voice: { type: Object, default: null }, // Be the voice's invitation (js/be-the-voice.js): { part, guest }, or null
         choir: { type: Object, default: null }, // a choir project's take (js/own-choir.js): { seconds, busy, error }, or null
     },
-    emits: ['hear', 'mute', 'again', 'next', 'nudge', 'nudged', 'line-up', 'studio', 'resing', 'trim', 'polish', 'share', 'hear-phrase', 'voice-share', 'voice-later', 'choir-make'],
+    emits: ['hear', 'mute', 'again', 'next', 'nudge', 'nudged', 'line-up', 'studio', 'resing', 'trim', 'polish', 'share', 'hear-phrase', 'voice-share', 'voice-later', 'choir-make', 'choir-force', 'choir-listen'],
     data: () => ({ nudging: false, picked: null }),
     setup: () => ({ MAX_NUDGE_MS, CHART, formatNumber, formatTime, sk }),
     template: `
@@ -199,7 +199,7 @@ export const JustRecorded = {
                 </div>
                 <!-- Be the voice (Hillel, 2026-11-12): a usable take of a part no one has given a real voice, one calm card after the take's own checks. -->
                 <BeTheVoice v-if="voice" :part="voice.part" :guest="voice.guest" @share="$emit('voice-share')" @later="$emit('voice-later')" />
-                <ChoirCard v-else-if="choir" :seconds="choir.seconds" :busy="choir.busy" :error="choir.error" :site-key="choir.siteKey" :join="choir.join" @make="$emit('choir-make', $event)" @again="$emit('again')" />
+                <ChoirCard v-else-if="choir" :seconds="choir.seconds" :busy="choir.busy" :error="choir.error" :site-key="choir.siteKey" :join="choir.join" :sent="choir.sent" :check="choir.check" @force="$emit('choir-force', $event)" @make="$emit('choir-make', $event)" @again="$emit('again')" @listen="$emit('choir-listen')" />
             </div>
             <!-- One clear decision, always in view. -->
             <div class="sticky bottom-0 z-10 border-t border-edge bg-ink/95 px-4 py-3 backdrop-blur md:px-8">

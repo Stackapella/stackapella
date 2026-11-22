@@ -18,6 +18,7 @@ use App\Models\OwnChoirVoice;
 use App\Models\Template;
 use App\Models\User;
 use App\Services\Cloudflare\Turnstile;
+use App\Support\OwnChoir\ChoirCounts;
 use App\Support\OwnChoir\ChoirSettings;
 use App\Support\OwnChoir\ClipTune;
 use App\Support\OwnChoir\OwnChoir;
@@ -113,6 +114,17 @@ final class OwnChoirRequests
         $tune = $withClip ? ClipTune::version($clip['clipTemplateId'] ?? null, $version) : null;
 
         // (partKey isn't checked: the clip is recorded as its tune's melody, whatever part the app named.)
+
+        // The free song is the song they sang (Hillel, 2026-11-23): their new clip's tune, or the one their saved voice
+        // sang; Plus makes any song.
+        // (A staff end-to-end test picks its song.)
+        if (OwnChoir::tier($user) === 'free' && ! $staffTest) {
+            $sang = $tune?->template->slug ?? self::voiceTune($user);
+
+            if ($sang !== null && ClipTune::choirSong($sang) !== $template->slug) {
+                throw new Refusal(409, 'free_song_is_your_clip', ['songId' => ClipTune::choirSong($sang)]);
+            }
+        }
 
         if ($template->isOfficial() && $this->catalogue->grant($template, $user) === null) {
             throw new Refusal(403, 'account_required');
@@ -443,13 +455,15 @@ final class OwnChoirRequests
         }
 
         $voice = OwnChoir::voice($user) ?? throw new Refusal(409, 'voice_required');
-        $parts = ChoirSettings::remakeParts($song);
-        $minutes = ChoirSettings::remakeMinutes($song, $sung['quality'], $parts);
+        $full = $sung['voicing'] === 'full' ? 'full' : 'written';
+        $parts = ChoirSettings::remakeParts($song, $full);
+        $minutes = ChoirSettings::remakeMinutes($song, $sung['quality'], $parts, $full);
         // auto: the low-voice version when their range suits it; high renders as written (no higher version yet).
         $range = ChoirTogether::range($user, null, [], 0);
         $melody = ChoirTogether::partNotes($song)[self::melody((array) $song->templateVersion?->data) ?? ''] ?? [];
         $voicing = match ($sung['voicing']) {
             'low' => 'low',
+            'full' => 'full',
             'auto' => $range !== null && $melody !== [] && VoicingTransform::isLow($melody, $range) ? 'low' : 'written',
             default => 'written',
         };
@@ -469,6 +483,7 @@ final class OwnChoirRequests
                 throw new Refusal(403, 'quota_reached', ['which' => $which, ...($which === 'minutes' ? ['needed' => $minutes] : [])]);
             }
 
+            ChoirCounts::remade(ChoirSettings::sung($song), $sung);
             $remake = new OwnChoirRequest;
             $remake->forceFill([
                 'user_id' => $user->id,
@@ -490,6 +505,14 @@ final class OwnChoirRequests
         });
 
         return $song;
+    }
+
+    /** The tune their saved voice was sung to, if the voice remembers it. */
+    private static function voiceTune(User $user): ?string
+    {
+        $voice = OwnChoir::voice($user);
+
+        return ($voice === null ? null : OwnChoir::voiceOrigin($voice))?->clipVersion()?->template?->slug;
     }
 
     /** Their own song (not a friend's job, nor one they joined); Plus to change its settings. */
@@ -553,6 +576,7 @@ final class OwnChoirRequests
         }
 
         $until = now()->addMinutes((int) config('own_choir.download_minutes'));
+        app(RecordCounts::class)->serverAmount('choir_download', 1);
 
         // The song as it plays: each part's active render, a friend's included (and gone the moment they leave).
         return array_values(ChoirTogether::activeParts($request)

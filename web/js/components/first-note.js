@@ -7,6 +7,9 @@
 import { t } from '../i18n.js';
 import { nameNote } from '../note-names.js';
 import { VoiceCapture } from './voice-capture.js';
+import { levelVerdict, takeLevel } from '../own-choir.js';
+import { count } from '../usage.js';
+import { Segmented } from './controls.js';
 
 /**
  * The semitones that put the tune's first note on the one sung, kept within a fifth either way: further than that, the
@@ -31,60 +34,68 @@ export function rememberedHeadphones() {
     }
 }
 
+/** Set the headphones answer ('yes' or 'no'), remembered on this device. */
+export function rememberHeadphones(answer) {
+    try {
+        localStorage.setItem(HEADPHONES, answer);
+    } catch (error) {
+        console.info('The headphones answer was not kept', error?.message ?? error);
+    }
+    count(`choir_headphones_${answer}`);
+}
+
 /**
- * After the first note (Hillel: "a clear no headphone option where the user just sings and we don't play any sounds
- * while recording"): I have headphones (the tune plays, as ever) or No headphones (nothing plays; a count-in to see,
- * then the words lighting up in time). The answer is remembered and offered first. `choose` carries `silent`.
+ * Hillel: "merge the headphone selection into the song selection page. You make two choices and click sing to start".
+ * Headphones or not, beside the tune chosen, remembered; its hint says what each means.
  */
-export const HeadphonesChoice = {
-    emits: ['choose'],
+export const HeadphonesPick = {
+    components: { Segmented },
+    data: () => ({ answer: rememberedHeadphones() === 'no' ? 'no' : 'yes' }),
     computed: {
-        order() {
-            return rememberedHeadphones() === 'no' ? ['no', 'yes'] : ['yes', 'no'];
-        },
+        options: () => [
+            { value: 'yes', label: t('ownChoir.headphones.yes') },
+            { value: 'no', label: t('ownChoir.headphones.noShort') },
+        ],
     },
     methods: {
-        choose(answer) {
-            try {
-                localStorage.setItem(HEADPHONES, answer);
-            } catch (error) {
-                console.info('The headphones answer was not kept', error?.message ?? error);
-            }
-            this.$emit('choose', answer === 'no');
+        pick(answer) {
+            this.answer = answer;
+            rememberHeadphones(answer);
         },
     },
     template: `
-        <section class="space-y-4" data-headphones>
-            <h2 class="text-xl font-bold text-cream">{{ t('ownChoir.headphones.title') }}</h2>
-            <div class="grid gap-3">
-                <button v-for="(answer, i) in order" :key="answer" type="button" class="card flex min-h-11 flex-col items-start gap-1 p-5 text-start hover:bg-raised/60"
-                    :class="i === 0 ? 'border-accent' : ''" :data-headphones-answer="answer" @click="choose(answer)">
-                    <span class="font-semibold text-cream">{{ answer === 'yes' ? t('ownChoir.headphones.yes') : t('ownChoir.headphones.no') }}</span>
-                    <span class="text-sm text-muted">{{ answer === 'yes' ? t('ownChoir.headphones.yesHint') : t('ownChoir.headphones.noHint') }}</span>
-                </button>
-            </div>
-        </section>`,
+        <div class="space-y-2" data-headphones-pick :data-answer="answer">
+            <p class="text-xs font-bold uppercase tracking-[0.14em] text-muted">{{ t('ownChoir.headphones.label') }}</p>
+            <Segmented :model-value="answer" :options="options" :label="t('ownChoir.headphones.label')" full class="[&_.seg-option]:min-h-11" @update:model-value="pick" />
+            <p class="text-sm text-muted">{{ answer === 'no' ? t('ownChoir.headphones.noHint') : t('ownChoir.headphones.yesHint') }}</p>
+        </div>`,
 };
 
 export const FirstNoteStep = {
     components: { VoiceCapture },
+    setup: () => ({ count }),
     props: {
         first: { type: Number, default: null }, // the tune's first melody note (MIDI), as written
         song: { type: String, default: '' },
     },
     emits: ['go'],
-    data: () => ({ sung: null, round: 0, silent: false }),
+    data: () => ({ sung: null, round: 0, silent: false, level: null }),
     computed: {
         note() {
             return this.sung == null ? '' : nameNote(Math.round(this.sung));
         },
     },
     methods: {
-        found(midi) {
+        /** The note held, and how loud it was (ai-modal: a quiet take never reaches the worker): low, loud or ok. */
+        found(midi, clip = null) {
             this.sung = midi;
+            this.level = clip?.samples?.length ? levelVerdict(takeLevel(clip.samples, clip.sampleRate)) : null;
+            count('choir_first_note_done');
+            if (this.level) count(`choir_level_${this.level}`);
         },
         again() {
             this.sung = null;
+            this.level = null;
             this.silent = false;
             this.round += 1;
         },
@@ -102,9 +113,10 @@ export const FirstNoteStep = {
             <p v-if="sung == null && silent" class="text-sm text-cream" role="status" data-first-note-silent>{{ t('ownChoir.firstNote.noMic') }}</p>
             <div v-else-if="sung != null" class="card space-y-4 p-5" role="status" data-first-note-heard>
                 <p class="text-cream">{{ t('ownChoir.firstNote.heard', { note, song }) }}</p>
+                <p v-if="level" class="text-sm" :class="level === 'ok' ? 'text-muted' : 'text-cream'" :data-first-note-level="level">{{ level === 'low' ? t('ownChoir.level.low') : level === 'loud' ? t('ownChoir.level.loud') : t('ownChoir.level.ok') }}</p>
                 <button type="button" class="btn-primary w-full sm:w-auto" data-first-note-use @click="use">{{ t('ownChoir.firstNote.use', { note }) }}</button>
                 <button type="button" class="link inline-flex min-h-11 items-center text-sm" data-first-note-again @click="again">{{ t('ownChoir.firstNote.again') }}</button>
             </div>
-            <button type="button" class="link-quiet inline-flex min-h-11 items-center text-sm" data-first-note-usual @click="$emit('go', 0)">{{ t('ownChoir.firstNote.usual') }}</button>
+            <button type="button" class="link-quiet inline-flex min-h-11 items-center text-sm" data-first-note-usual @click="count('choir_first_note_skipped'); $emit('go', 0)">{{ t('ownChoir.firstNote.usual') }}</button>
         </section>`,
 };

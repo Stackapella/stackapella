@@ -21,7 +21,8 @@ import * as sessionStore from '../stores/session.js';
 import { account } from '../stores/account.js';
 import { claimInvitation, countVoice, later, needsVoice, saidLater, usableTake, voiceAskOpen } from '../be-the-voice.js';
 import { aiCredit, aiCtaOpen } from '../ai-voices.js';
-import { checkKey, choirRefusal, joinFor, keepJoinClip, ownChoirOn, sendClip, tunePart } from '../own-choir.js';
+import { checkKey, choirRefusal, joinFor, keepJoinClip, loadOwnChoir, MIN_SECONDS, ownChoir, ownChoirOn, sendClip, takeLevel, tunePart } from '../own-choir.js';
+import { session as tabStorage } from '../storage.js';
 import { aiPartsOf } from '../stores/catalogue.js';
 import { sendVoiceTake } from '../voice-take.js';
 import { signUpFor } from '../components/account-wall.js';
@@ -104,7 +105,7 @@ export const SingView = {
     components: { SingShell: screenLoading(), ShareVoice: defineAsyncComponent(() => import('../components/share-voice.js').then((m) => m.ShareVoice)), DailyShare, RingMeter, VoiceCareLine, TimingLine, PopupSlot, TakeBest, IdeaVoice, PhraseStage, Chooser, Stage, RecordingStage, Lane, NowCard, Coach, StepDone, JustRecorded, LineBar, ModeBar, SingHeader, Transport, TurnBand, PartSheet, SettingsSheet, HeadphonesDialog, TimingDialog, RangeDialog, Icon, VoiceNote, ResingSheet, ResungCard, TrimSheet, WhatsNext, LockedBanner, ShareSheet },
     props: { id: { type: String, required: true } },
     setup: () => ({ ...toRefs(session), audio, formatTime, shownTitle, prefs, game, effect, aiCtaOpen }),
-    data: () => ({ tasteAsked: false, crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null, ring: null, ringChord: '', lessonStep: null, lessonOpening: false, voiceAt: 0, voicePartId: null, choirSending: false, choirError: '' }),
+    data: () => ({ tasteAsked: false, crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null, ring: null, ringChord: '', lessonStep: null, lessonOpening: false, voiceAt: 0, voicePartId: null, choirSending: false, choirError: '', choirSent: null, choirCheck: null }),
     template: `
         <div class="flex h-dvh flex-col bg-ink" :data-paused="paused ? '' : null">
             <p class="sr-only" aria-live="polite">{{ said }}</p>
@@ -124,7 +125,7 @@ export const SingView = {
                 :title="shownTitle(project)" :focus="focusPart ? { slot: focusPart, name: partName, range: templatePart(focusPart)?.range ?? null } : null" :bpm="project.bpm" :phrases="phraseRows.length" :length="lengthSeconds" :auto="!choosing" :no-voice="noVoiceSlots" :ai-voice="aiVoiceSlots"
                 @choose="choose" @range="dialog = 'range'" @back="leave" @studio="openStudio" />
             <!-- Recording strips everything else away (113.png): the lane, the words, Stop -->
-            <RecordingStage v-else-if="recording" :title="shownTitle(project)" :named="!!project.title?.trim()" :part-name="clipTake ? '' : partName" :color="paint(focusPart.color)" :take="takeNumbers[rerecordId] ?? 1" :hearing="hearLine"
+            <RecordingStage v-else-if="recording" :title="shownTitle(project)" :named="!!project.title?.trim()" :part-name="clipTake ? '' : partName" :big-count="60 / (project.bpm || 90)" :color="paint(focusPart.color)" :take="takeNumbers[rerecordId] ?? 1" :hearing="hearLine"
                 :count-in="countIn" :position="position" :length="lengthSeconds" :busy="busy" :on-pitch="onPitch" :line="hasWords ? currentLine : null" :next="hasWords ? nextLine : null" @stop="recordOrStop" @again="startOver">
                 <template #hearing><span class="relative block"><button type="button" class="relative grid size-11 shrink-0 place-items-center rounded-full glass-bubble text-cream" :aria-label="t('sing.settings.open')" data-settings-open @click="dialog = 'settings'"><Icon name="sliders" :size="20" /><span v-if="hearingChanged" class="absolute end-0 top-0 size-3 rounded-full bg-accent ring-2 ring-ink" data-hearing-changed aria-hidden="true"></span></button>
                     <!-- Game mode's bonus pop-ups (docs/game-elements-plan.md): under the header's end, never on the lane -->
@@ -159,7 +160,7 @@ export const SingView = {
                         <JustRecorded v-else-if="recorded" class="m-auto" :outcome="recorded" :part-name="nameOf(recorded.part)" :next-name="recorded.next ? nameOf(recorded.next) : ''" :hearing="playing"
                             :nudge-ms="nudgeMsOf(recorded.part)" :lining="lining" :lined="lined" :can-resing="phraseRows.length > 1" :color="paint(recorded.part.color)" :stack="recordedStack"
                             :score="recorded.report?.score ?? null" :notes="reportNotes" :track="recorded.report?.track ?? null" :beat-seconds="fullBeatSeconds" :offset-seconds="recorded.part.offsetSeconds + (recorded.part.nudgeSeconds || 0)"
-                            :phrases="reportPhrases" :phrase-labels="phraseRows.map((p) => p.label)" :position="position" :length-seconds="lengthSeconds" :bleed="!!recorded.report?.bleed" :sung-by="sungBy" :voice="voiceInvite" :choir="choirTake" @choir-make="makeChoir"
+                            :phrases="reportPhrases" :phrase-labels="phraseRows.map((p) => p.label)" :position="position" :length-seconds="lengthSeconds" :bleed="!!recorded.report?.bleed" :sung-by="sungBy" :voice="voiceInvite" :choir="choirTake" @choir-make="makeChoir" @choir-force="(token) => makeChoir(token, { force: true })" @choir-listen="listenToChoir"
                             @hear="hearTake" @mute="toggleHearing" @again="recordPart" @next="nextPart" @nudge="nudge" @nudged="nudged" @line-up="lineUp" @studio="openStudio" @resing="resingFrom" @trim="openTrim" :polished="prefs.hearPolished" @polish="hearPolished" @share="dialog = 'share'" @hear-phrase="hearPhrase" @voice-share="voiceShare" @voice-later="voiceLater">
                             <template #report>
                                 <!-- The part's leaderboard (components/boards.js): your best, or why it didn't count; never a lesson's song -->
@@ -289,7 +290,8 @@ export const SingView = {
         songInfo() {
             const p = this.project;
             const section = this.sections.find((s) => this.position >= s.startSeconds && this.position < s.endSeconds);
-            return [sectionName(section?.name), p.key ? t('studio.meta.key', { key: keyLabel(p.key) }) : null, t('studio.meta.bpm', { bpm: p.bpm })].filter(Boolean).join(' · ');
+            // No key for the choir's clip take (its tune may change key: voice-capture goes from F to A-flat).
+            return [sectionName(section?.name), p.key && !this.clipTake ? t('studio.meta.key', { key: keyLabel(p.key) }) : null, t('studio.meta.bpm', { bpm: p.bpm })].filter(Boolean).join(' · ');
         },
         notes() {
             return this.focusPart ? sessionStore.templatePart(this.focusPart)?.guide.notes ?? [] : [];
@@ -472,7 +474,8 @@ export const SingView = {
         choirTake() {
             const part = this.recorded?.part;
             if (!this.project?.choir || this.project.choir.requestId || !part?.templatePartKey || !ownChoirOn()) return null;
-            return { seconds: (part.frames || 0) / (part.sampleRate || 48000), busy: this.choirSending, error: this.choirError, siteKey: checkKey(), join: !!joinFor(this.project.id) };
+            const sent = this.choirSent ? (ownChoir.data?.requests ?? []).find((r) => r.id === this.choirSent) ?? { status: 'queued', progress: [] } : null;
+            return { seconds: (part.frames || 0) / (part.sampleRate || 48000), busy: this.choirSending, error: this.choirError, siteKey: checkKey(), join: !!joinFor(this.project.id), sent, check: this.choirCheck };
         },
         /** The part Be the voice's sheet is for: the review's, or the one a sign-up came back to (?voice=<partId>). */
         voicePart() {
@@ -660,6 +663,8 @@ export const SingView = {
          */
         hearLine() {
             if (!this.focusPart || !this.recording) return '';
+            // A no-headphones clip take plays nothing: say what to follow instead.
+            if (this.clipTake && this.project.choir?.noHeadphones) return t('ownChoir.headphones.silentLine');
             void session.hearing.off.length; // the mix reads it; so does this line
             const all = sessionStore.levels();
             const items = [];
@@ -729,8 +734,13 @@ export const SingView = {
         },
         /** Just recorded's mixer mutes for its review only: leaving it, every part plays again. */
         recorded(now) {
+            this.choirCheck = null; // a new take: its own level, if it's sent
             sessionStore.setInReview(!!now);
             if (!now) sessionStore.clearReview();
+            // From /your-choir (Hillel: "auto start the choir processing and show it working while you review"): the take
+            // goes by itself once saved (not a friend's join, nor with a check to pass first, nor a take too short).
+            const auto = now && this.clipTake && this.project.choir?.auto && !this.choirSent && !joinFor(this.project.id) && !checkKey();
+            if (auto && (now.part?.frames || 0) / (now.part?.sampleRate || 48000) >= MIN_SECONDS) this.makeChoir();
         },
         /** A phrase played through to its end counts once (each round of a loop too). */
         position(now, before) {
@@ -873,6 +883,7 @@ export const SingView = {
         engine.onInterrupt = this.onInterrupt;
     },
     beforeUnmount() {
+        clearInterval(this.choirPoll);
         if (this.project?.id) leftSong(this.project.id); // a unit song's visit ends when Sing does (unit-song.js)
         // A re-sung phrase on trial wasn't kept: the take goes back as it was.
         if (this.resung) sessionStore.tryTake(this.resung.outcome.part, this.resung.before);
@@ -1059,10 +1070,30 @@ export const SingView = {
          * Make my choir: the take's first 30 seconds from the song's start go as this song's clip (js/own-choir.js); the
          * project remembers the request, and the choir page says what happens next. A refusal is said on the card.
          */
-        async makeChoir(turnstileToken = null) {
+        /** Listen, once the choir sent from here is ready: its page; the take's own project goes (it was only for this). */
+        async listenToChoir() {
+            const forId = this.project.choir?.forTemplateId;
+            const projectId = this.project.id;
+            navigate(`/t/${encodeURIComponent(forId)}/choir`);
+            const { deleteProject } = await import('../stores/projects.js');
+            await deleteProject(projectId).catch((error) => console.warn('The take was not removed', error));
+        },
+        async makeChoir(turnstileToken = null, { force = false } = {}) {
             const part = this.recorded?.part;
             const samples = part && sessionStore.takeOf(part);
             if (!samples || this.choirSending) return;
+            // A take the worker would refuse (ai-modal: singing under -35 dBFS, or clipped) isn't sent without a word:
+            // Sing it again, or Send it anyway.
+            if (!force) {
+                const level = takeLevel(samples, part.sampleRate);
+                const check = level.clipped ? 'clipped' : level.db < -35 ? 'quiet' : null;
+                if (check) {
+                    this.choirCheck = check;
+                    count(`choir_take_warned_${check}`);
+                    return;
+                }
+            }
+            this.choirCheck = null;
             this.choirSending = true;
             this.choirError = '';
             try {
@@ -1092,6 +1123,18 @@ export const SingView = {
                 // project was only for the take, so it goes once sent (the server keeps only the voice made from it).
                 const forId = this.project.choir?.forTemplateId ?? null;
                 const request = await sendClip({ templateId: forId ?? this.project.template.id, clipTemplateId: forId ? this.project.template.id : null, clipTranspose: forId ? clipTranspose : 0, guide: !this.project.choir?.noHeadphones, octave: forId ? octave : null, partKey: part.templatePartKey, samples, sampleRate: part.sampleRate, startSeconds: part.offsetSeconds + (part.nudgeSeconds || 0), turnstileToken });
+                // Sent by itself from /your-choir: they stay with their take while it's made (a look every 15 s), then Listen.
+                if (forId) count('choir_take_sent');
+                if (forId && this.project.choir?.auto) {
+                    this.choirSent = request.id;
+                    tabStorage.remove('stackapella.choirFromSite');
+                    this.choirPoll = setInterval(() => {
+                        const made = (ownChoir.data?.requests ?? []).find((r) => r.id === this.choirSent);
+                        if (made?.status === 'ready' || made?.status === 'failed') clearInterval(this.choirPoll);
+                        else loadOwnChoir({ force: true }).catch((error) => console.info('The choir was not checked', error?.message ?? error));
+                    }, 15000);
+                    return;
+                }
                 if (forId) {
                     const projectId = this.project.id;
                     navigate(`/t/${encodeURIComponent(forId)}/choir`);

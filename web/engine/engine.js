@@ -501,7 +501,7 @@ export class Engine {
      * has just opened, a longer lead lets iOS finish switching its audio session before the first
      * click, instead of on it.
      */
-    play({ fromSeconds = 0, toSeconds = null, bpm = null, beatsPerBar = 4, pickupBeats = 0, meters = null, timeSignature = null, countInBeats = 0, countInSounds = null, metronome = false, loop = null, repeat = null, record = false, latencyFrames = 0, onChunk = null, leadSeconds = LEAD_SECONDS, startFrame = null, silent = false }) {
+    play({ fromSeconds = 0, toSeconds = null, bpm = null, beatsPerBar = 4, pickupBeats = 0, meters = null, timeSignature = null, countInBeats = 0, countInSounds = null, metronome = false, loop = null, repeat = null, record = false, latencyFrames = 0, onChunk = null, leadSeconds = LEAD_SECONDS, startFrame = null, silent = false, countInFromOne = false }) {
         // `startFrame` (a context frame ahead of now, such as passEnd()): this run begins there,
         // seamlessly after what is playing, which carries on until then (the tempo ladder's next
         // speed at a loop's end). Only what was scheduled from that frame on is cancelled.
@@ -527,7 +527,9 @@ export class Engine {
             const bar = grid.meters ? barAt({ timeSignature: grid.timeSignature, pickupBeats: grid.pickupBeats, meters: grid.meters }, fromBeat) : null;
             const countGrid = bar ? { beatsPerBar: bar.beats, pickupBeats: bar.start, meters: null } : grid;
             for (let i = 0; i < countInBeats; i++) {
-                this.scheduleBuffer(this.isBarLine(fromBeat - countInBeats + i, countGrid) ? sounds.accent : sounds.normal, first + i * beat, 1, this.playBus, first);
+                // countInFromOne: counted 1 to N whatever the bar, the "1" accented (Sing's count-in, 2026-11-22).
+                const accented = countInFromOne ? i === 0 : this.isBarLine(fromBeat - countInBeats + i, countGrid);
+                this.scheduleBuffer(accented ? sounds.accent : sounds.normal, first + i * beat, 1, this.playBus, first);
             }
         }
         this.timeline = {

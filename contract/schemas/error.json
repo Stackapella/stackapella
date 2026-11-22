@@ -88,6 +88,10 @@
         "needed": {
             "type": "number",
             "description": "quota_reached with which `minutes`: the part-minutes this song needs (each part's last note's end, summed)."
+        },
+        "songId": {
+            "type": "string",
+            "description": "free_song_is_your_clip: the song their clip makes as the free song."
         }
     }
 }

@@ -29,6 +29,7 @@ const REFUSED = {
     paused: tk('share.refused.paused'),
     rate_limited: tk('share.refused.limit'),
     harmony_failed: tk('share.refused.failed'),
+    share_updating: tk('share.stillProcessing'), // Update that link while an earlier new mix is still being prepared
     imported_private: tk('share.refused.imported'),
     harmony_unavailable: tk('share.refused.unavailable'),
     offline: tk('common.offline'),
@@ -83,7 +84,7 @@ export const ShareSheet = {
                 <p data-ui="facts" class="flex gap-2.5 text-sm text-muted"><Icon name="info" :size="18" class="mt-0.5 shrink-0" />{{ t('share.anyone') }}</p>
                 <div v-if="before" class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dashed border-line px-4 py-3 text-sm text-cream" data-shared-before>
                     <span>{{ t('share.sharedBefore', { when: timeAgo(before.createdAt) }) }}</span>
-                    <button type="button" class="btn-secondary btn-sm" @click="useBefore">{{ t('share.useThat') }}</button>
+                    <button type="button" class="btn-secondary btn-sm" data-share-update @click="useBefore">{{ t('share.useThat') }}</button>
                 </div>
                 <div class="flex justify-end gap-3 border-t border-line pt-4">
                     <button type="button" class="btn-secondary" @click="$emit('close')">{{ t('common.cancel') }}</button>
@@ -187,12 +188,12 @@ export const ShareSheet = {
         this.earlier = await sharedFrom(session.project.id).catch(() => []);
     },
     methods: {
-        async share() {
+        async share(replaces = null) {
             this.stage = 'working';
             this.error = null;
             try {
                 prefs.polish = this.polish;
-                this.harmony = await shareProject({ title: this.name, visibility: 'unlisted', partId: this.what === 'part' ? this.partId : null, room: this.polish ? prefs.room ?? 'small' : null }, (step) => (this.step = step));
+                this.harmony = await shareProject({ title: replaces ? this.before.title : this.name, visibility: 'unlisted', partId: this.what === 'part' ? this.partId : null, room: this.polish ? prefs.room ?? 'small' : null, replaces }, (step) => (this.step = step));
                 this.stage = 'done';
             } catch (error) {
                 const code = error?.code;
@@ -256,9 +257,9 @@ export const ShareSheet = {
         signIn() {
             navigate(`/signin?mode=signup&for=share&next=${encodeURIComponent(location.pathname)}`);
         },
+        /** Update that link: the same link and page, now with the mix as it sounds here (never the old one as it was). */
         useBefore() {
-            this.harmony = this.before;
-            this.stage = 'done';
+            this.share(this.before.id);
         },
         /** Stop sharing: asked once, then the link stops working for everyone. */
         async stop() {

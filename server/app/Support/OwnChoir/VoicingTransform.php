@@ -17,40 +17,156 @@ final class VoicingTransform
      */
     public static function low(array $data): array
     {
-        $parts = array_values(array_filter((array) ($data['parts'] ?? []), static fn (mixed $p): bool => is_array($p) && is_string($p['key'] ?? null)));
-        $notes = [];
+        [$notes, $bass, $treble] = self::analyse($data);
+        $shifts = array_map(static fn (bool $high): int => $high ? -12 : 0, $treble);
 
-        foreach ($parts as $part) {
-            $notes[$part['key']] = array_values(array_filter((array) ($part['guide']['notes'] ?? []), 'is_array'));
-        }
+        $data['parts'] = array_map(static fn (mixed $part): mixed => is_array($part) && ($treble[$part['key'] ?? ''] ?? false) ? self::lowered($part, $notes, $bass) : $part, (array) ($data['parts'] ?? []));
 
-        $bass = self::bassKey($notes);
+        return ['data' => self::inRange($data), 'shifts' => $shifts];
+    }
+
+    /**
+     * Both octaves (Hillel liked as written and low together, 2026-11-23): each treble part as written and, beside it,
+     * "<key>-low", the same part an octave down (by the same rule); tenor and bass once.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array{data: array<string, mixed>, shifts: array<string, int>}
+     */
+    public static function full(array $data): array
+    {
+        [$notes, $bass, $treble] = self::analyse($data);
+        $parts = [];
         $shifts = [];
 
-        foreach ($notes as $key => $list) {
-            $shifts[$key] = $key !== $bass && self::treble($key, $list) ? -12 : 0;
+        foreach ((array) ($data['parts'] ?? []) as $part) {
+            $parts[] = $part;
+
+            if (! is_array($part) || ! is_string($part['key'] ?? null)) {
+                continue;
+            }
+
+            $shifts[$part['key']] = 0;
+
+            if ($treble[$part['key']] ?? false) {
+                $low = self::lowered($part, $notes, $bass);
+                $low['key'] = $part['key'].'-low';
+                $low['name'] = trim((string) ($part['name'] ?? ucfirst($part['key']))).' (low)';
+                unset($low['melody']);
+                $parts[] = $low;
+                $shifts[$low['key']] = -12;
+            }
         }
 
-        $data['parts'] = array_map(static function (mixed $part) use ($shifts, $notes, $bass): mixed {
-            if (! is_array($part) || ($shifts[$part['key'] ?? ''] ?? 0) === 0) {
+        $data['parts'] = $parts;
+
+        return ['data' => self::inRange($data), 'shifts' => $shifts];
+    }
+
+    /**
+     * Every part within what the renderer sings well and its gates can hear (MIDI 36 to 84; voices, 2026-11-23): a part
+     * that would leave it moves a whole octave toward the middle, keeping its chord tones.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    public static function inRange(array $data): array
+    {
+        $data['parts'] = array_map(static function (mixed $part): mixed {
+            if (! is_array($part) || ! is_array($part['guide']['notes'] ?? null)) {
                 return $part;
             }
 
-            $part['guide']['notes'] = array_map(static function (mixed $n) use ($notes, $bass): mixed {
-                if (! is_array($n) || ! is_numeric($n['pitch'] ?? null)) {
-                    return $n;
-                }
+            $pitches = array_map(static fn (array $n): int => (int) $n['pitch'], array_filter($part['guide']['notes'], static fn (mixed $n): bool => is_array($n) && is_numeric($n['pitch'] ?? null)));
 
-                $moved = (int) $n['pitch'] - 12;
-                $under = $bass === null ? null : self::lowestDuring($notes[$bass], (float) ($n['beat'] ?? 0), (float) ($n['length'] ?? 0));
+            if ($pitches === []) {
+                return $part;
+            }
 
-                return $under !== null && $moved < $under ? $n : array_replace($n, ['pitch' => $moved]);
-            }, (array) $part['guide']['notes']);
+            $shift = match (true) {
+                min($pitches) < 36 && max($pitches) + 12 <= 84 => 12,
+                max($pitches) > 84 && min($pitches) - 12 >= 36 => -12,
+                default => 0,
+            };
+
+            if ($shift !== 0) {
+                $part['guide']['notes'] = array_map(static fn (mixed $n): mixed => is_array($n) && is_numeric($n['pitch'] ?? null) ? array_replace($n, ['pitch' => (int) $n['pitch'] + $shift]) : $n, $part['guide']['notes']);
+            }
 
             return $part;
         }, (array) ($data['parts'] ?? []));
 
-        return ['data' => $data, 'shifts' => $shifts];
+        return $data;
+    }
+
+    /**
+     * The song's part keys as a voicing sings them: with "full", each treble part followed by its "-low" twin.
+     *
+     * @param  array<string, mixed>  $data
+     * @return list<string>
+     */
+    public static function keys(array $data, string $voicing): array
+    {
+        [, , $treble] = self::analyse($data);
+        $keys = [];
+
+        foreach ($treble as $key => $high) {
+            $keys[] = (string) $key;
+
+            if ($voicing === 'full' && $high) {
+                $keys[] = $key.'-low';
+            }
+        }
+
+        return $keys;
+    }
+
+    /**
+     * Each part's notes, the bass's key, and which parts are treble.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array{0: array<string, list<array<string, mixed>>>, 1: string|null, 2: array<string, bool>}
+     */
+    private static function analyse(array $data): array
+    {
+        $notes = [];
+
+        foreach ((array) ($data['parts'] ?? []) as $part) {
+            if (is_array($part) && is_string($part['key'] ?? null)) {
+                $notes[$part['key']] = array_values(array_filter((array) ($part['guide']['notes'] ?? []), 'is_array'));
+            }
+        }
+
+        $bass = self::bassKey($notes);
+        $treble = [];
+
+        foreach ($notes as $key => $list) {
+            $treble[$key] = $key !== $bass && self::treble($key, $list);
+        }
+
+        return [$notes, $bass, $treble];
+    }
+
+    /**
+     * A part an octave down, a note that would fall below the bass sounding with it kept at pitch.
+     *
+     * @param  array<string, mixed>  $part
+     * @param  array<string, list<array<string, mixed>>>  $notes
+     * @return array<string, mixed>
+     */
+    private static function lowered(array $part, array $notes, ?string $bass): array
+    {
+        $part['guide']['notes'] = array_map(static function (mixed $n) use ($notes, $bass): mixed {
+            if (! is_array($n) || ! is_numeric($n['pitch'] ?? null)) {
+                return $n;
+            }
+
+            $moved = (int) $n['pitch'] - 12;
+            $under = $bass === null ? null : self::lowestDuring($notes[$bass], (float) ($n['beat'] ?? 0), (float) ($n['length'] ?? 0));
+
+            return $under !== null && $moved < $under ? $n : array_replace($n, ['pitch' => $moved]);
+        }, (array) ($part['guide']['notes'] ?? []));
+
+        return $part;
     }
 
     /**

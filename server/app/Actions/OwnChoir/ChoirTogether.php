@@ -24,6 +24,7 @@ use App\Support\Ids;
 use App\Support\OwnChoir\ChoirAssign;
 use App\Support\OwnChoir\ClipTune;
 use App\Support\OwnChoir\OwnChoir;
+use App\Support\OwnChoir\VoicingTransform;
 use App\Support\Storage\Uploads;
 use App\Support\Trust\TrustLevel;
 use App\Support\Usage\UploadBytes;
@@ -457,7 +458,8 @@ final class ChoirTogether
             }
         }
 
-        $order = array_keys(self::partNotes($song));
+        // The song's order, a "-low" twin beside its part (both octaves).
+        $order = VoicingTransform::keys((array) ($song->templateVersion->data ?? []), 'full');
 
         return $active->sortBy(static fn (OwnChoirPart $p): int => (int) array_search($p->part_key, $order, true))->values();
     }
@@ -656,7 +658,7 @@ final class ChoirTogether
         }
 
         // Older voices: the part they sang along to when they made it, in the octave the worker heard.
-        $origin = $voice === null ? null : OwnChoirRequest::query()->with('templateVersion')->where('own_choir_voice_id', $voice->id)->whereNotNull('part_key')->oldest('id')->first();
+        $origin = $voice === null ? null : OwnChoir::voiceOrigin($voice);
         // The tune its clip sang (Happy Birthday since 2026-11-23, else the song's own).
         $originTune = $origin?->clipVersion();
         $originNotes = $originTune === null ? [] : self::versionNotes($originTune);

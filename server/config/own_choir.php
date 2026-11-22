@@ -31,6 +31,9 @@ return [
     // The tunes a singer may choose for their clip (Hillel, 2026-11-23), in the order shown, voice-capture (shown as Happy
     // Birthday) first, each with the beat it stops on (a phrase start, about 30 seconds in; null: the whole tune).
     'clip_templates' => ['voice-capture' => null, 'silent-night' => 36, 'amazing-grace' => 36, 'joy-to-the-world' => 63],
+    // The free song is the song they sang (Hillel, 2026-11-23: "more expected"): each clip tune's song, itself unless
+    // named here.
+    'clip_songs' => ['voice-capture' => 'happy-birthday'],
     // Across everyone, part-minutes rendered a day: past it, new songs wait for tomorrow and the admins are told once.
     'daily_part_minutes' => 600,
     // A remake at fine quality (64 steps) costs its real GPU time: 1.92x measured, rounded (Hillel, 2026-11-23: "make

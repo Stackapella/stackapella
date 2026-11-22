@@ -184,7 +184,8 @@ async function stateful(operation, params, body, cases, query = {}) {
         // the id asked for, so the take's project is that tune's.
         if (['voice-capture', 'joy-to-the-world'].includes(params.id)) {
             const { data } = await example('templates.show.200.json');
-            return respond(200, { data: { ...data, template: { ...data.template, id: params.id } } });
+            const title = params.id === 'joy-to-the-world' ? params.id.replaceAll('-', ' ') : data.template.title; // its own name, not the example's
+            return respond(200, { data: { ...data, template: { ...data.template, id: params.id, title } } });
         }
         // An open library song as the server sends it (stackapella.mockOpenSong, this tab): reviewed, to a guest as well
         // (`grant: "open"`: a guest sings its first line, the app's cut, before the account's invitation).
@@ -247,6 +248,8 @@ async function stateful(operation, params, body, cases, query = {}) {
         const ownChoirTogether = tabStorage.get('stackapella.mockTogether') === '1' || !!data.ownChoirTogether;
         return respond(200, { data: { ...data, ideas: !scenarios().includes('ideas.list:not_found'), experiments, lendVoice, selfHosted, withheldSongs, aiVoices, ownChoir, ownChoirSongs, turnstileSiteKey, ownChoirTogether } });
     }
+    // A share's body as sent (Update that link's `replaces` among it), for the flows; the example answers as before.
+    if (operation === 'harmonies.create') globalThis.mockShareBody = body;
     // Who's signed in, and what that allows.
     const as = tabStorage.get('stackapella.mockAs') || 'member';
     const accountAs = async (who) => {
@@ -406,6 +409,8 @@ async function stateful(operation, params, body, cases, query = {}) {
         const dress = (r) => {
             // A low voice's arrangement (mockChoirLow, this tab), else as written: the server's call, from the range.
             r.voicing = tabStorage.get('stackapella.mockChoirLow') ? 'low' : 'written';
+            // Why a clip couldn't make a voice (mockFailureDetail, this tab), as the server says it, owner-only.
+            if (r.status === 'failed') r.failureDetail = tabStorage.get('stackapella.mockFailureDetail') || null;
             r.settings ??= { sound: { room: 'dry', balance: (r.parts ?? []).map((p) => ({ partKey: p.partKey, db: 0 })) }, sung: { humanize: 0, voicing: 'auto', breaths: 'legato', ensembleTiming: 'tight', pitchSpread: 'off', quality: 'standard' } };
             r.remakeMinutes ??= { standard: 2, fine: 4 };
             r.remake ??= null;
@@ -487,7 +492,8 @@ async function stateful(operation, params, body, cases, query = {}) {
                 for (const v of j.song.voices) if (v.whose === 'you') v.status = 'ready';
             }
             for (const r of choir.requests) {
-                if (r.status !== 'queued' || r.startsAfter) continue; // tomorrow's (today's ceiling) stays queued
+                // tomorrow's (today's ceiling) stays queued; one held "being made" (mockChoirMaking) is made once the flag goes
+                if ((r.status !== 'queued' && r.status !== 'rendering') || r.startsAfter) continue;
                 // mockChoirMaking: it stays being made, one part ready, one making, the rest waiting (the contract's `progress`).
                 if (tabStorage.get('stackapella.mockChoirMaking')) {
                     r.status = 'rendering';

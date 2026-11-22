@@ -34,11 +34,13 @@ final class ChoirSettings
             }
         }
 
-        $keys = array_keys(ChoirTogether::partNotes($song));
+        $keys = VoicingTransform::keys((array) ($song->templateVersion->data ?? []), $song->voicing);
+        $doubled = $song->voicing === 'full' ? array_merge(...array_map(static fn (string $k): array => str_ends_with($k, '-low') ? [$k, substr($k, 0, -4)] : [], $keys)) : [];
 
         return [
             'room' => in_array($saved['room'] ?? null, self::ROOMS, true) ? (string) $saved['room'] : 'hall',
-            'balance' => array_map(static fn (string $key): array => ['partKey' => $key, 'db' => $levels[$key] ?? 0.0], $keys),
+            // Both octaves: each doubled pair 3 dB down, so tenor and bass aren't buried.
+            'balance' => array_map(static fn (string $key): array => ['partKey' => $key, 'db' => $levels[$key] ?? (in_array($key, $doubled, true) ? -3.0 : 0.0)], $keys),
             'leadBlend' => isset($saved['leadBlend']) ? (float) $saved['leadBlend'] : null,
             'recordingLevel' => isset($saved['recordingLevel']) ? (float) $saved['recordingLevel'] : null,
         ];
@@ -62,11 +64,13 @@ final class ChoirSettings
      *
      * @return list<string>
      */
-    public static function remakeParts(OwnChoirRequest $song): array
+    public static function remakeParts(OwnChoirRequest $song, string $voicing = 'written'): array
     {
         $friends = ChoirTogether::activeMembers($song)->pluck('parts')->flatten()->map(static fn (mixed $p): string => (string) $p)->all();
+        $keys = VoicingTransform::keys((array) ($song->templateVersion->data ?? []), $voicing);
 
-        return array_values(array_diff(array_keys(ChoirTogether::partNotes($song)), $friends));
+        // A friend's part is never remade, nor its low twin.
+        return array_values(array_filter($keys, static fn (string $k): bool => ! in_array(str_ends_with($k, '-low') ? substr($k, 0, -4) : $k, $friends, true)));
     }
 
     /**
@@ -74,10 +78,11 @@ final class ChoirSettings
      *
      * @param  list<string>|null  $parts  the parts it makes (remakeParts), when the caller has them
      */
-    public static function remakeMinutes(OwnChoirRequest $song, string $quality, ?array $parts = null): float
+    public static function remakeMinutes(OwnChoirRequest $song, string $quality, ?array $parts = null, string $voicing = 'written'): float
     {
         $data = (array) ($song->templateVersion->data ?? []);
-        $parts ??= self::remakeParts($song);
+        $data = $voicing === 'full' ? VoicingTransform::full($data)['data'] : $data;
+        $parts ??= self::remakeParts($song, $voicing);
         $data['parts'] = array_values(array_filter((array) ($data['parts'] ?? []), static fn (mixed $p): bool => is_array($p) && in_array($p['key'] ?? null, $parts, true)));
         $minutes = OwnChoir::partMinutes($data);
 

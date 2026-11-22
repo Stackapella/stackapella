@@ -32,6 +32,7 @@ use Illuminate\Support\Carbon;
  * @property array<string, mixed>|null $sound choir settings' mix (2026-11-23)
  * @property array<string, mixed>|null $sung how it's sung
  * @property bool $remake a remake: its parts replace its song's (parent_request_id) when made
+ * @property string|null $failure_detail why its clip couldn't be used (length, quiet, loud, noisy, edge, short, notes)
  * @property string $voicing written, or low: the treble parts an octave down (2026-11-23)
  * @property int|null $octave the octave the app measured the clip sung in (−12, 0 or 12; a friend's tune)
  * @property OwnChoirStatus $status

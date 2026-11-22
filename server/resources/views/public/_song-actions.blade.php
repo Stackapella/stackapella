@@ -16,7 +16,7 @@
      naming AI once, and counts choir_teaser once (js/public/choir-teaser.js). Nothing is recorded or kept. --}}
 @if (($choirLive ?? null) !== null)
     {{-- Live (own_choir): one quiet link into the app with this song, and the free first song said once. --}}
-    <p class="s-sg-note"><a href="{{ $choirLive }}" class="s-lk" data-choir-live>{{ __('pages.song.choir.button') }}</a> {{ __('pages.song.choir.free') }}</p>
+    <p class="s-sg-note"><a href="{{ $choirLive }}" class="s-lk" data-choir-live>{{ __('pages.song.choir.button') }}</a>@if ($choirFree ?? false) {{ __('pages.song.choir.free') }}@endif</p>
 @elseif ($choirTeaser ?? false)
     <p class="s-sg-note" data-choir-teaser><button type="button" class="s-lk" aria-expanded="false" aria-controls="choir-soon">{{ __('pages.song.choir.button') }}</button> <x-site.soon /></p>
     <p class="s-sg-note" id="choir-soon" hidden>{{ __('pages.song.choir.soon') }}</p>
