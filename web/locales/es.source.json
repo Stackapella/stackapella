@@ -5816,7 +5816,11 @@
                 "own": "This is your own choir.",
                 "header": "Sing in {owner}'s choir",
                 "done": "You're in {owner}'s choir",
-                "full": "This choir already has a voice for every part."
+                "full": "This choir already has a voice for every part.",
+                "clipLost": "Your recording wasn't kept on this device. Sing the tune again.",
+                "next": "Next",
+                "youSing": "{count, plural, one {You'll sing the {parts} part.} other {You'll sing the {parts} parts.}}",
+                "othersKept": "{count, plural, one {The {parts} part stays with the voice it suits better.} other {The {parts} parts stay with the voices they suit better.}}"
             },
             "agree": {
                 "title": "A voice like yours in {owner}'s song",
@@ -5826,11 +5830,14 @@
                 "words": "The words a voice like yours will sing",
                 "showName": "Show my name if {owner} shares it",
                 "showNameOff": "Off: it says “a friend”.",
-                "sing": "Agree and sing 30 seconds",
                 "saved": "Agree and use my saved voice",
-                "part": "Sing along with the {part} part for 30 seconds.",
                 "free": "Free for you. We keep the voice made from your singing privately, for your own songs; delete it any time.",
-                "no": "No thanks"
+                "no": "No thanks",
+                "tune": "Sing the tune of {song} for 30 seconds, in whatever octave feels comfortable.",
+                "local": "Your take stays on this device until you agree.",
+                "send": "Agree and send",
+                "again": "Sing it again",
+                "singInstead": "Sing 30 seconds instead"
             },
             "joined": {
                 "title": "Songs you sing in",

@@ -81,6 +81,14 @@ return [
         'cdn_endpoint_id' => env('DIGITALOCEAN_CDN_ENDPOINT_ID'),
     ],
 
+    // Public media behind Cloudflare (docs/runbook.md, "Media behind Cloudflare"): with CDN_URL on the proxied host,
+    // a deleted file is purged from Cloudflare's cache too. A token that may only purge this zone's cache. Unset, only
+    // DigitalOcean's CDN is purged (as before).
+    'cloudflare_cdn' => [
+        'zone_id' => env('CLOUDFLARE_ZONE_ID'),
+        'purge_token' => env('CLOUDFLARE_PURGE_TOKEN'),
+    ],
+
     // Google Search Console, read-only (docs/search-console.md): the service account's JSON key, as
     // is or base64-encoded, and the property it was added to. Off until the key is set.
     'search_console' => [

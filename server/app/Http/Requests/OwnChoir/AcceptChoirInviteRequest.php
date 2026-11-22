@@ -30,6 +30,8 @@ final class AcceptChoirInviteRequest extends FormRequest
             'wordsSha' => ['sometimes', 'nullable', 'string', 'size:64'],
             'useSavedVoice' => ['sometimes', 'boolean'],
             'partKey' => ['required_with:sampleRate', 'nullable', 'string', 'max:40'],
+            // The octave the app measured the tune sung in, on the take still on the device (2026-11-23).
+            'octave' => ['sometimes', 'nullable', 'integer', 'in:-12,0,12'],
             'offsetFrames' => ['sometimes', 'nullable', 'integer', 'min:0', 'max:1440000'],
             'sampleRate' => ['sometimes', 'nullable', 'integer', 'in:16000,22050,24000,32000,44100,48000'],
             'frames' => ['required_with:sampleRate', 'nullable', 'integer', 'min:1'],

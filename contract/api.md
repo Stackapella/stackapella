@@ -7619,7 +7619,8 @@ prepared from it replaces their saved one. `409 voice_required`: no saved voice 
 one song may cost to render (config `own_choir.max_parts`, 8, and `max_part_seconds`, 300). **Request** with a clip: `{ "templateId":
 "silent-night", "partKey": "alto", "offsetFrames": 24000, "sampleRate": 48000, "frames": 1440000, "bytes": 2880044,
 "sha256": "<64 hex>" }`: a 16-bit mono WAV recorded in the app (no file uploads), 5 to 30 seconds; `partKey` the part
-they sang along to; `offsetFrames` the clip frame where the song's beat 0 falls (latency removed), or null. `403
+they sang along to (since 2026-11-23 always the tune: the server records the song's melody part, `melody: true` or
+else the first, whatever is sent, and the renderer finds the octave they sang it in); `offsetFrames` the clip frame where the song's beat 0 falls (latency removed), or null. `403
 consent_required`; `403 quota_reached` with `which` (`free`, `month` or `day`); `403 account_required` for a song they
 can't start; `409 request_open`: one song at a time; `404 not_found`: no such song or part.
 
@@ -7737,8 +7738,9 @@ The owner takes back an invite not yet used. **Request:** none.
 #### `ownChoir.invites.show`
 
 The invite as the friend opening it sees it, signed in or not: the song, the owner's first name, the parts it names
-and `yourParts`, exactly the ones your voice would sing (`?useSavedVoice=1`, or `?partKey=` for the part you'll sing
-along to, when your range isn't measured),
+and `yourParts`, exactly the ones your voice would sing: from your measured range, else (`?useSavedVoice=1`) the range
+your saved voice actually sang, else (since 2026-11-23, a friend sings the tune too) the tune's range in the octave the
+app measured on the take still on the device (`?partKey=<the melody>&octave=-12`, `0` or `12`),
 the song as it is (its listening copy, 2 hours) and, for the owner's own song, its words with `wordsSha`. A used,
 expired or revoked link answers only its `status` and `expiresAt` (`title`, `templateId` and `owner` null, nothing
 else), so a link that went round tells nobody whose song it was. `404 not_found`: no such link (or the switch is
@@ -7754,7 +7756,8 @@ off for its owner). Counts `own_choir_invite_opened`. **Request:** none.
 The friend joins, signed in, with the own-choir terms accepted (`403 consent_required`; `ownChoir.consent` first) and
 18 or over (`403 adult_required`), a confirmed email (`403 email_unverified`). **Request:** `{ "parts": ["soprano",
 "alto"], "showName": false, "wordsSha": "<from show, for an own song>", "useSavedVoice": true }`, `parts` the exact
-`yourParts` the friend saw and agreed to (`409 parts_changed` when they're no longer what their voice would sing:
+`yourParts` the friend saw and agreed to, with a new clip its `octave` as in `invites.show` and `partKey` the melody
+(the take is uploaded only after the yes) (`409 parts_changed` when they're no longer what their voice would sing:
 show again; `403 plus_required` or `409 choir_full` when the song's friends are full by then, checked under the owner's
 lock), or a new clip's fields as `requests.create` takes
 them (`partKey`, the part they sang along to; `offsetFrames`, `sampleRate`, `frames`, `bytes`, `sha256`), answering the
@@ -7981,8 +7984,11 @@ when it's free. Admin shows the last, and is told once when it pauses.
 #### `worker.choir.references.create`
 
 On a job with a `clip` (`409 no_clip` otherwise): send the reference prepared from it. **Request:** `{ "claim": "<token>", "sampleRate":
-24000, "frames": 480000, "bytes": 960044, "sha256": "<64 hex>", "meta": { ... } }`: a 16-bit mono WAV; `meta` your own
-JSON, at most 64 KB, given back with the reference on later jobs.
+24000, "frames": 480000, "bytes": 960044, "sha256": "<64 hex>", "meta": { ... }, "octave": -12, "sungRange": [48, 65] }`:
+a 16-bit mono WAV; `meta` your own JSON, at most 64 KB, given back with the reference on later jobs; `octave` (optional:
+−12, 0 or 12) the semitones the clip was sung from the written tune; `sungRange` (optional: `[low, high]`, MIDI 20 to
+110, the octave applied) the notes actually sung in the stretch the voice was cut from. Both are kept with the voice:
+its range for a choir with friends, and a check on the octave the app measured.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|

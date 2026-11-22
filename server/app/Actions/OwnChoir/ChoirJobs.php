@@ -8,6 +8,7 @@ use App\Actions\Counts\RecordCounts;
 use App\Enums\OwnChoirStatus;
 use App\Exceptions\Refusal;
 use App\Jobs\EncodeChoirPart;
+use App\Models\AuditLog;
 use App\Models\OwnChoirPart;
 use App\Models\OwnChoirRequest;
 use App\Models\OwnChoirVoice;
@@ -134,7 +135,7 @@ final class ChoirJobs
     /**
      * The reference the renderer prepared from a job's new clip: it becomes the singer's kept voice once it's in.
      *
-     * @param  array{sampleRate: int, frames: int, bytes: int, sha256: string, meta: array<string, mixed>}  $reference
+     * @param  array{sampleRate: int, frames: int, bytes: int, sha256: string, meta: array<string, mixed>, octave?: int|null, sungRange?: list<int>|null}  $reference
      * @return array{voice: OwnChoirVoice, put: array{url: string, method: string, headers: array<string, string>, expiresAt: \DateTimeInterface}}
      */
     public function startReference(OwnChoirRequest $request, string $claim, array $reference): array
@@ -151,7 +152,7 @@ final class ChoirJobs
     }
 
     /**
-     * @param  array{sampleRate: int, frames: int, bytes: int, sha256: string, meta: array<string, mixed>}  $reference
+     * @param  array{sampleRate: int, frames: int, bytes: int, sha256: string, meta: array<string, mixed>, octave?: int|null, sungRange?: list<int>|null}  $reference
      * @return array{voice: OwnChoirVoice, put: array{url: string, method: string, headers: array<string, string>, expiresAt: \DateTimeInterface}}
      */
     private function newReference(OwnChoirRequest $request, array $reference): array
@@ -167,8 +168,22 @@ final class ChoirJobs
             'sha256' => strtolower($reference['sha256']),
             'meta' => $reference['meta'],
             'wordless' => self::wordless((array) ($request->templateVersion->data ?? []), (string) $request->part_key),
-        ])->save();
+        ]);
+        // The octave the tune was sung in and the notes actually sung (the worker's report): the voice's range later.
+        $range = array_values((array) ($reference['sungRange'] ?? []));
+
+        if (count($range) === 2 && $range[0] <= $range[1]) {
+            $voice->forceFill(['sung_low' => (int) $range[0], 'sung_high' => (int) $range[1]]);
+        }
+
+        $voice->forceFill(['octave' => $reference['octave'] ?? null])->save();
         $request->forceFill(['own_choir_voice_id' => $voice->id])->save();
+
+        // A check on the octave the app measured before the friend's yes: logged when the worker heard otherwise (the
+        // agreed parts render as agreed).
+        if ($request->octave !== null && isset($reference['octave']) && (int) $reference['octave'] !== $request->octave) {
+            AuditLog::record('own_choir.octave_differs', null, null, after: ['request' => $request->sqid(), 'app' => $request->octave, 'worker' => (int) $reference['octave']]);
+        }
 
         return ['voice' => $voice, 'put' => $this->uploads->presign($voice->upload_key, 'audio/wav', $voice->bytes)];
     }

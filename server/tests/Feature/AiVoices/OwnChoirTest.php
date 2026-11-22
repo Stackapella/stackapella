@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\AiVoices;
 
+use App\Actions\OwnChoir\OwnChoirRequests;
 use App\Enums\OwnChoirStatus;
 use App\Jobs\CheckChoirClip;
 use App\Models\OwnChoirConsent;
@@ -110,7 +111,8 @@ final class OwnChoirTest extends TestCase
         // The renderer claims it, sends every part, and finishes.
         $claim = $this->worker('POST', '/api/worker/choir/claim');
         $this->assertMatchesContract($claim, 'worker.choir.claim', 200);
-        $claim->assertJsonPath('data.clip.part', 'alto')->assertJsonPath('data.clip.offsetFrames', 24000);
+        // The clip is always the tune: the melody, whatever part the app named (Hillel, 2026-11-23).
+        $claim->assertJsonPath('data.clip.part', 'soprano')->assertJsonPath('data.clip.offsetFrames', 24000);
         $this->assertMatchesContract($this->worker('POST', '/api/worker/choir/claim'), 'worker.choir.claim', 204);
         $token = (string) $claim->json('data.claim');
         $this->assertMatchesContract($this->worker('POST', "/api/worker/choir/jobs/{$request->sqid()}/finish", ['failed' => null, 'claim' => $token]), 'worker.choir.jobs.finish', 409);
@@ -326,5 +328,18 @@ final class OwnChoirTest extends TestCase
         $mine = OwnChoirRequest::factory()->create(['user_id' => $plus->id, 'template_version_id' => $version, 'status' => OwnChoirStatus::Ready, 'tries' => 1]);
         $this->actingAs($plus)->getJson('/api/own-choir')->assertJsonPath('data.requests.0.canDownload', true);
         $this->postJson("/api/own-choir/requests/{$mine->sqid()}/seen")->assertJsonPath('data.canDownload', true);
+    }
+
+    public function test_the_clip_is_always_the_tune_whatever_part_is_named(): void
+    {
+        $this->singer();
+        OwnChoirConsent::factory()->create(['user_id' => auth()->id()]);
+        $wav = Wav::tone(8.0);
+
+        $this->postJson('/api/own-choir/requests', $this->clip($wav, 'silent-night') + ['partKey' => 'bass'])->assertCreated();
+
+        $this->assertSame('soprano', OwnChoirRequest::query()->sole()->part_key, 'Silent Night\'s melody, not the bass of "oo"s.');
+        $this->assertSame('soprano', OwnChoirRequests::melody(['parts' => [['key' => 'alto'], ['key' => 'soprano', 'melody' => true]]]));
+        $this->assertSame('alto', OwnChoirRequests::melody(['parts' => [['key' => 'alto'], ['key' => 'tenor']]]), 'Unmarked: the first.');
     }
 }

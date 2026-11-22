@@ -21,7 +21,7 @@ import * as sessionStore from '../stores/session.js';
 import { account } from '../stores/account.js';
 import { claimInvitation, countVoice, later, needsVoice, saidLater, usableTake, voiceAskOpen } from '../be-the-voice.js';
 import { aiCredit, aiCtaOpen } from '../ai-voices.js';
-import { checkKey, choirRefusal, joinFor, joinWithClip, keepJoin, ownChoirOn, sendClip, tunePart } from '../own-choir.js';
+import { checkKey, choirRefusal, joinFor, keepJoinClip, ownChoirOn, sendClip, tunePart } from '../own-choir.js';
 import { aiPartsOf } from '../stores/catalogue.js';
 import { sendVoiceTake } from '../voice-take.js';
 import { signUpFor } from '../components/account-wall.js';
@@ -468,7 +468,7 @@ export const SingView = {
         choirTake() {
             const part = this.recorded?.part;
             if (!this.project?.choir || this.project.choir.requestId || !part?.templatePartKey || !ownChoirOn()) return null;
-            return { seconds: (part.frames || 0) / (part.sampleRate || 48000), busy: this.choirSending, error: this.choirError, siteKey: checkKey() };
+            return { seconds: (part.frames || 0) / (part.sampleRate || 48000), busy: this.choirSending, error: this.choirError, siteKey: checkKey(), join: !!joinFor(this.project.id) };
         },
         /** The part Be the voice's sheet is for: the review's, or the one a sign-up came back to (?voice=<partId>). */
         voicePart() {
@@ -832,7 +832,7 @@ export const SingView = {
         // Hear yourself as a choir's 30 seconds: always the tune, with its words, in whatever octave suits them (Hillel,
         // 2026-11-22: a bass part all on "oo" left too little to hear). No chooser and no key fitting: the clip is sung
         // against the tune as written, in their own octave.
-        const choirClip = session.project?.choir && !session.project.choir.requestId && !joinFor(this.id);
+        const choirClip = session.project?.choir && !session.project.choir.requestId; // their own song's, or a join's
         const tune = choirClip && session.parts.find((p) => p.templatePartKey === tunePart(session.project.template));
         if (tune) {
             this.sing({ way: 'whole' });
@@ -1066,13 +1066,18 @@ export const SingView = {
                 // what happens next; the take isn't kept, as for their own song.
                 const join = joinFor(this.project.id);
                 if (join) {
-                    await joinWithClip(join.token, { partKey: part.templatePartKey, parts: join.parts ?? null, samples, sampleRate: part.sampleRate, startSeconds: part.offsetSeconds + (part.nudgeSeconds || 0), showName: join.showName, wordsSha: join.wordsSha });
-                    // The project was only for the 30 seconds: it goes (the friend's parts live in the owner's song).
-                    const projectId = this.project.id;
-                    keepJoin(projectId, null);
-                    navigate(`/choir/join/${encodeURIComponent(join.token)}`);
-                    const { deleteProject } = await import('../stores/projects.js');
-                    await deleteProject(projectId).catch((error) => console.warn('The joining project was not removed', error));
+                    // Tune first (the coordinator, 2026-11-22): the take stays on this device, its octave read here against the
+                    // tune as written (-12, 0 or +12), and the yes comes next with exactly the parts a voice like theirs sings.
+                    let octave = 0;
+                    try {
+                        const notes = sessionStore.templatePart(part)?.guide.notes;
+                        const track = notes && (await trackInWorker(samples, part.sampleRate));
+                        if (track) octave = 12 * (scoreTake(track, notes, { beatSeconds: this.fullBeatSeconds, startSeconds: part.offsetSeconds, transpose: this.project.transpose || 0 }).octave || 0);
+                    } catch (error) {
+                        console.warn('The octave sung was not read; the written one stands', error);
+                    }
+                    keepJoinClip(join.token, { samples: samples.slice(), sampleRate: part.sampleRate, startSeconds: part.offsetSeconds + (part.nudgeSeconds || 0), partKey: part.templatePartKey, octave, projectId: this.project.id });
+                    navigate(`/choir/join/${encodeURIComponent(join.token)}?sung=1`);
                     return;
                 }
                 const request = await sendClip({ templateId: this.project.template.id, partKey: part.templatePartKey, samples, sampleRate: part.sampleRate, startSeconds: part.offsetSeconds + (part.nudgeSeconds || 0), turnstileToken });

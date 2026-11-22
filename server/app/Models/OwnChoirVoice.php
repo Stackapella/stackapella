@@ -28,6 +28,9 @@ use Illuminate\Support\Carbon;
  * @property string $sha256
  * @property array<string, mixed> $meta
  * @property bool $wordless prepared from a clip of a part with no words (a hum)
+ * @property int|null $octave the octave the tune was sung in (−12, 0 or 12), as the worker heard it
+ * @property int|null $sung_low the lowest note actually sung (MIDI), the octave applied
+ * @property int|null $sung_high the highest
  * @property Carbon|null $saved_at
  * @property Carbon|null $last_used_at
  * @property Carbon|null $created_at
@@ -51,6 +54,9 @@ final class OwnChoirVoice extends Model
             'bytes' => 'integer',
             'meta' => 'array',
             'wordless' => 'boolean',
+            'octave' => 'integer',
+            'sung_low' => 'integer',
+            'sung_high' => 'integer',
             'saved_at' => 'datetime',
             'last_used_at' => 'datetime',
         ];

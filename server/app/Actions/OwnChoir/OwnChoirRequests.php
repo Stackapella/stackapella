@@ -154,7 +154,9 @@ final class OwnChoirRequests
                 return ['request' => $request, 'put' => null];
             }
 
-            $request = new OwnChoirRequest(['part_key' => $clip['partKey']]);
+            // The clip is always the tune (Hillel, 2026-11-23: a bass part of "oo"s gives a voice no words): the song's
+            // melody, sung in any octave the singer likes, whatever part the app named.
+            $request = new OwnChoirRequest(['part_key' => self::melody((array) $version->data) ?? $clip['partKey']]);
             $this->uploadBytes->count($user, (int) $clip['bytes']);
             $request->forceFill([
                 'user_id' => $user->id,
@@ -388,6 +390,20 @@ final class OwnChoirRequests
     }
 
     /** A song of their own from the creator (own_choir_own), counted beside the library's. */
+    /**
+     * A song's melody part: the one marked `melody` (the template schema allows one), else its first.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public static function melody(array $data): ?string
+    {
+        $parts = array_values(array_filter((array) ($data['parts'] ?? []), 'is_array'));
+        $marked = collect($parts)->first(static fn (array $p): bool => ($p['melody'] ?? false) === true);
+        $key = ($marked ?? ($parts[0] ?? []))['key'] ?? null;
+
+        return is_string($key) ? $key : null;
+    }
+
     /** A joiner's own first song later (choir together's loop): counted once. */
     private function countFriendOwn(User $user, int $requestId): void
     {

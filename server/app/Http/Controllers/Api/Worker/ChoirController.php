@@ -49,7 +49,7 @@ final class ChoirController extends Controller
 
     public function startReference(CreateChoirReferenceRequest $request, OwnChoirRequest $job, ChoirJobs $jobs): JsonResponse
     {
-        /** @var array{sampleRate: int, frames: int, bytes: int, sha256: string, meta: array<string, mixed>} $reference */
+        /** @var array{sampleRate: int, frames: int, bytes: int, sha256: string, meta: array<string, mixed>, octave?: int|null, sungRange?: list<int>|null} $reference */
         $reference = $request->validated();
         ['voice' => $voice, 'put' => $put] = $jobs->startReference($job->load('templateVersion'), (string) $request->validated('claim'), $reference);
 

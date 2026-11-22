@@ -338,12 +338,36 @@ function forgetStaleJoins() {
     import('./stores/projects.js').then(({ deleteProject }) => Promise.all(old.map((id) => deleteProject(id).catch(() => null)))).catch((error) => console.warn('A joining project was not removed', error));
 }
 
+// A friend's sung tune for an invite, kept in memory here until they agree (never uploaded or stored before the yes):
+// { samples, sampleRate, startSeconds, partKey, octave, projectId }, by token.
+const joinClips = new Map();
+
+/** Keeps the tune they just sang for this invite, until the yes. */
+export function keepJoinClip(token, clip) {
+    joinClips.set(token, clip);
+}
+
+/** The tune sung for this invite and kept here, or null (a reload loses it). */
+export function joinClipFor(token) {
+    return joinClips.get(token) ?? null;
+}
+
+/** Discards the take at once (No thanks, leaving, singing it again), with the project made only for it. */
+export async function dropJoinClip(token) {
+    const clip = joinClips.get(token);
+    joinClips.delete(token);
+    if (!clip?.projectId) return;
+    keepJoin(clip.projectId, null);
+    const { deleteProject } = await import('./stores/projects.js');
+    await deleteProject(clip.projectId).catch((error) => console.warn('The joining take was not removed', error));
+}
+
 /** A friend joining by an invite: the clip sent as `sendClip` sends it, to `invites.accept`; answers the member. */
-export async function joinWithClip(token, { partKey, parts = null, samples, sampleRate, startSeconds, showName = false, wordsSha = null }) {
+export async function joinWithClip(token, { partKey, parts = null, octave = 0, samples, sampleRate, startSeconds, showName = false, wordsSha = null }) {
     const clip = clipFrom(samples, sampleRate, startSeconds);
     const bytes = await clip.wav.arrayBuffer();
     const sha256 = hex(await crypto.subtle.digest('SHA-256', bytes));
-    const { data: member, upload } = await api.ownChoir.invites.accept(token, { showName, wordsSha, useSavedVoice: false, parts, partKey, offsetFrames: clip.offsetFrames, sampleRate, frames: clip.frames, bytes: bytes.byteLength, sha256 });
+    const { data: member, upload } = await api.ownChoir.invites.accept(token, { showName, wordsSha, useSavedVoice: false, parts, octave, partKey, offsetFrames: clip.offsetFrames, sampleRate, frames: clip.frames, bytes: bytes.byteLength, sha256 });
     if (upload) {
         await uploadTo(upload, clip.wav);
         await api.ownChoir.members.complete(member.id);
@@ -482,7 +506,8 @@ export function countChoir(kind) {
 export const ChoirCard = {
     components: { TurnstileBox },
     // siteKey: the check before the account's first song (the server's `checkNeeded`, only with a site key set).
-    props: { seconds: { type: Number, required: true }, busy: Boolean, error: { type: String, default: '' }, siteKey: { type: String, default: null } },
+    // join: a friend's tune for an invite: the button leads to the yes (nothing is sent from here).
+    props: { seconds: { type: Number, required: true }, busy: Boolean, error: { type: String, default: '' }, siteKey: { type: String, default: null }, join: Boolean },
     emits: ['make', 'again'],
     data: () => ({ token: null, checkKey: 0 }),
     setup: () => ({ MIN_SECONDS }),
@@ -503,7 +528,7 @@ export const ChoirCard = {
             </div>
             <TurnstileBox v-if="siteKey && seconds >= MIN_SECONDS" :key="checkKey" class="sm:basis-full" :site-key="siteKey" @token="token = $event" @failed="token = null" data-choir-check />
             <div class="flex shrink-0 flex-wrap gap-2">
-                <button v-if="seconds >= MIN_SECONDS" type="button" class="btn-secondary" :disabled="busy || (!!siteKey && !token)" :aria-busy="busy ? 'true' : null" data-choir-make @click="$emit('make', token)"><span v-if="busy" class="spinner" aria-hidden="true"></span>{{ busy ? t('ownChoir.record.sending') : t('ownChoir.record.use') }}</button>
+                <button v-if="seconds >= MIN_SECONDS" type="button" class="btn-secondary" :disabled="busy || (!!siteKey && !token)" :aria-busy="busy ? 'true' : null" data-choir-make @click="$emit('make', token)"><span v-if="busy" class="spinner" aria-hidden="true"></span>{{ busy ? t('ownChoir.record.sending') : join ? t('ownChoir.together.join.next') : t('ownChoir.record.use') }}</button>
                 <button v-else type="button" class="btn-secondary" data-choir-again @click="$emit('again')">{{ t('ownChoir.record.again') }}</button>
             </div>
         </div>`,

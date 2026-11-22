@@ -171,28 +171,44 @@ def journey(f):
     f.run("document.querySelector('[role=dialog] form').requestSubmit()")
     f.wait("!document.querySelector('[data-joined]')", what="left")
 
-    # Agree and start singing: Sing on the invite's part, and the 30 seconds go to the invite, not to a song of their own.
+    # Tune first (exact consent): a new singer sings the tune (kept on this device), then the yes names exactly the parts a
+    # voice like theirs sings, by the octave they sang in; nothing is sent until Agree and send.
     tab(f, mockChoirState="fresh")
-    f.go("/choir/join/tok-2?api=mock&scenario=&as=member", "document.querySelector('[data-choir-agree]') || document.querySelector('[data-join-agree]')")
-    # A new singer meets the own-choir terms (18 and over) once, between the invite and this song's yes.
+    f.go("/choir/join/tok-2?api=mock&scenario=&as=member", "document.querySelector('[data-choir-agree]') || document.querySelector('[data-join-sing-step]')")
+    # A new singer meets the own-choir terms (18 and over) once, before singing.
     if f.js("!!document.querySelector('[data-choir-agree]')"):
         shoot(f, "join-terms")
         f.run("document.querySelector('[data-choir-agree]').click()")
-    f.wait("document.querySelector('[data-join-sing]')", what="Agree and start singing")
-    assert not f.js("document.querySelector('[data-join-saved]')"), "a saved voice offered to someone without one"
+    f.wait("document.querySelector('[data-join-sing-step] [data-join-sing]')", what="sing the tune first")
+    assert not f.js("document.querySelector('[data-join-agree]')"), "the yes before singing, without a saved voice"
+    assert f.js("!!document.querySelector('[data-join-tune]')"), "the join doesn't say to sing the tune"
+    how = t(f, "ownChoir.together.join.how", {"owner": "Ann"})
+    assert how not in f.js("document.querySelector('main').innerText"), "the sing step's lead says it twice"
+    shoot(f, "join-sing-first")
     f.run("document.querySelector('[data-join-sing]').click()")
-    f.wait("/^\\/p\\/[\\w-]+\\/sing$/.test(location.pathname)", what="Sing on the choir project")
+    f.wait("/^\\/p\\/[\\w-]+\\/sing$/.test(location.pathname)", what="Sing on the tune")
     project = f.js("location.pathname.split('/')[2]")
+    tune = f.js("(async () => (await import('/js/own-choir.js')).tunePart(await (await import('/js/templates.js')).loadTemplate('silent-night')))()")
     join = f.js(f"(await import('/js/own-choir.js')).joinFor({json.dumps(project)})")
-    assert join and join["token"] == "tok-2" and join["partKey"] == "soprano", join
-    # As Make my choir does for a join: the 30 seconds go to the invite with exactly the parts the yes named.
-    f.run(f"""const {{ joinFor, joinWithClip }} = await import('/js/own-choir.js');
-        const join = joinFor({json.dumps(project)});
-        const samples = new Float32Array(48000 * 20).map((_, i) => 0.3 * Math.sin(i / 20));
-        await joinWithClip('tok-2', {{ partKey: 'soprano', parts: join.parts, samples, sampleRate: 48000, startSeconds: 0 }});""")
+    assert join and join["token"] == "tok-2" and join["partKey"] == tune, join
+    # As Next does after singing: the take kept on this device (an octave down), and back to the yes. Nothing sent yet.
+    f.run(f"""const {{ keepJoinClip }} = await import('/js/own-choir.js');
+        keepJoinClip('tok-2', {{ samples: new Float32Array(48000 * 20).map((_, i) => 0.3 * Math.sin(i / 20)), sampleRate: 48000, startSeconds: 0, partKey: {json.dumps(tune)}, octave: -12, projectId: {json.dumps(project)} }});
+        (await import('/js/router.js')).navigate('/choir/join/tok-2?sung=1');""")
+    f.wait("document.querySelector('[data-join-agree] [data-join-send]')", what="the yes, after singing")
+    assert not f.js("globalThis.mockChoirJoin"), "something was sent before Agree"
+    point = f.js("document.querySelector('[data-join-agree] li').textContent")
+    assert "alto" in point and "soprano" not in point, f"the yes doesn't name exactly their parts: {point}"
+    assert f.js("!!document.querySelector('[data-join-local]')"), "the yes doesn't say the take stays on the device"
+    found = f.js("document.querySelector('[data-join-found]')?.textContent ?? ''")
+    assert "alto" in found and "soprano" in found, f"the yes doesn't say what the singing found: {found}"
+    shoot(f, "join-agree-after-singing")
+    f.run("document.querySelector('[data-join-send]').click()")
+    f.wait("document.querySelector('[data-join-done]')", what="sent: on its way")
     sent = f.js("globalThis.mockChoirJoin")
-    assert sent["useSavedVoice"] is False and sent["partKey"] == "soprano" and sent["parts"] == ["soprano", "alto"] and len(sent["sha256"]) == 64, sent
+    assert sent["useSavedVoice"] is False and sent["partKey"] == tune and sent["octave"] == -12 and sent["parts"] == ["alto"] and len(sent["sha256"]) == 64, sent
     assert not f.js("globalThis.mockChoirClip"), "the join's 30 seconds went to a song of their own"
+    assert not f.js("(async () => (await import('/js/own-choir.js')).joinClipFor('tok-2'))()"), "the take kept on the device after sending"
     clear_projects(f)
 
     # In Spanish: the owner's Who sings, the join's yes, and the friend's Home.
@@ -205,6 +221,22 @@ def journey(f):
     f.go("/choir/join/tok-3?api=mock&scenario=&as=member&lang=es", "document.querySelector('[data-join-agree]') || document.querySelector('[data-join-done]')")
     f.no_sideways("the join, in Spanish")
     shoot(f, "es-join")
+    # In Spanish too, tune first: the sing step, then the yes after singing an octave down.
+    tab(f, mockChoirState="fresh")
+    f.go("/choir/join/tok-4?api=mock&scenario=&as=member&lang=es", "document.querySelector('[data-choir-agree]') || document.querySelector('[data-join-sing-step]')")
+    if f.js("!!document.querySelector('[data-choir-agree]')"):
+        f.run("document.querySelector('[data-choir-agree]').click()")
+    f.wait("document.querySelector('[data-join-sing-step]')", what="the sing step, in Spanish")
+    shoot(f, "es-join-sing-first")
+    # Leaving the join discards a take, so: away, then the take kept (as Next does from Sing), then back.
+    f.run(f"""const {{ navigate }} = await import('/js/router.js'); navigate('/'); await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+        const {{ keepJoinClip, tunePart }} = await import('/js/own-choir.js'); const {{ loadTemplate }} = await import('/js/templates.js');
+        keepJoinClip('tok-4', {{ samples: new Float32Array(48000 * 20), sampleRate: 48000, startSeconds: 0, partKey: tunePart(await loadTemplate('silent-night')), octave: -12, projectId: null }});
+        (await import('/js/router.js')).navigate('/choir/join/tok-4?sung=1');""")
+    f.wait("document.querySelector('[data-join-found]')", what="what the singing found, in Spanish")
+    f.no_sideways("the yes after singing, in Spanish")
+    shoot(f, "es-join-agree-after-singing")
+    tab(f, mockChoirJoined="ready")
     f.go("/?api=mock&scenario=&as=member&lang=es", "document.querySelector('[data-joined]')")
     f.no_sideways("Home, in Spanish")
     shoot(f, "es-friend-home")

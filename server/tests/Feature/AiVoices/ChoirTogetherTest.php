@@ -100,7 +100,7 @@ final class ChoirTogetherTest extends TestCase
     /** Join as the app does: read the exact parts this voice would sing, then say yes to them. */
     private function join(string $token, array $body): TestResponse
     {
-        $query = isset($body['partKey']) ? '?partKey='.$body['partKey'] : (($body['useSavedVoice'] ?? false) ? '?useSavedVoice=1' : '');
+        $query = isset($body['partKey']) ? '?partKey='.$body['partKey'].'&octave='.($body['octave'] ?? 0) : (($body['useSavedVoice'] ?? false) ? '?useSavedVoice=1' : '');
         $yours = $this->getJson("/api/own-choir/join/{$token}{$query}")->json('data.yourParts');
 
         return $this->postJson("/api/own-choir/join/{$token}", ['parts' => is_array($yours) ? $yours : [], ...$body]);
@@ -427,6 +427,61 @@ final class ChoirTogetherTest extends TestCase
 
         $this->getJson("/api/own-choir/join/{$token}")->assertJsonPath('data.yourParts', null);
         $this->assertContains('soprano', (array) $this->getJson("/api/own-choir/join/{$token}?partKey=soprano")->json('data.yourParts'));
+    }
+
+    public function test_a_low_friend_singing_the_tune_an_octave_down_is_given_the_low_parts(): void
+    {
+        // A friend sings the tune too (2026-11-23), here an octave down as most men do: the app measured -12 on the
+        // take still on the device, and the yes names the low parts their voice suits, never the tune's own.
+        // Ann's measured range is high here, so the low parts suit Dan better than her.
+        UserLearning::factory()->create(['user_id' => $this->ann->id, 'progress' => ['range' => ['low' => 60, 'high' => 79], 'rangeSource' => 'measured']]);
+        $token = $this->invite();
+        $dan = $this->singer('Dan');
+        $this->as($dan);
+
+        $low = (array) $this->getJson("/api/own-choir/join/{$token}?partKey=soprano&octave=-12")->json('data.yourParts');
+        $this->assertNotContains('soprano', $low);
+        $this->assertNotContains('alto', $low);
+        $this->assertEqualsCanonicalizing(['tenor', 'bass'], $low, 'The low parts invited for him.');
+        $this->assertNotContains('bass', (array) $this->getJson("/api/own-choir/join/{$token}?partKey=soprano&octave=0")->json('data.yourParts'), 'Sung as written: not the bass.');
+        $this->assertSame($this->getJson("/api/own-choir/join/{$token}?partKey=soprano")->json('data.yourParts'), $this->getJson("/api/own-choir/join/{$token}?partKey=soprano&octave=7")->json('data.yourParts'), 'Only -12, 0 or 12.');
+
+        // He agrees to exactly those, the clip recorded as the tune with the octave the app measured.
+        $wav = Wav::tone(8.0);
+        $this->assertSame($low, $this->getJson("/api/own-choir/join/{$token}?partKey=bass&octave=-12")->json('data.yourParts'), 'Always the tune, whatever part is named.');
+        $this->postJson("/api/own-choir/join/{$token}", ['parts' => ['soprano'], 'showName' => false, 'partKey' => 'soprano', 'octave' => -12, 'offsetFrames' => 24000, 'sampleRate' => 48000, 'frames' => intdiv(strlen($wav) - 44, 2), 'bytes' => strlen($wav), 'sha256' => hash('sha256', $wav)])->assertStatus(409)->assertJsonPath('code', 'parts_changed');
+        $this->postJson("/api/own-choir/join/{$token}", ['parts' => array_values($low), 'showName' => false, 'partKey' => 'soprano', 'octave' => -12, 'offsetFrames' => 24000, 'sampleRate' => 48000, 'frames' => intdiv(strlen($wav) - 44, 2), 'bytes' => strlen($wav), 'sha256' => hash('sha256', $wav)])->assertCreated();
+        $job = OwnChoirRequest::query()->where('user_id', $dan->id)->sole();
+        $this->assertSame(['soprano', -12], [$job->part_key, $job->octave]);
+        $this->assertEqualsCanonicalizing($low, (array) OwnChoirMember::query()->sole()->parts);
+    }
+
+    public function test_the_worker_reports_the_octave_and_range_sung_kept_with_the_voice_and_checked(): void
+    {
+        $token = $this->invite();
+        $dan = $this->singer('Dan');
+        $this->as($dan);
+        $wav = Wav::tone(8.0);
+        $this->join($token, ['showName' => false, 'partKey' => 'soprano', 'octave' => -12, 'offsetFrames' => 24000, 'sampleRate' => 48000, 'frames' => intdiv(strlen($wav) - 44, 2), 'bytes' => strlen($wav), 'sha256' => hash('sha256', $wav)])->assertCreated();
+        $member = OwnChoirMember::query()->sole();
+        Storage::disk('private')->put((string) OwnChoirRequest::query()->where('own_choir_member_id', $member->id)->value('upload_key'), $wav);
+        $this->postJson("/api/own-choir/members/{$member->sqid()}/complete")->assertOk();
+
+        $claim = $this->worker('POST', '/api/worker/choir/claim')->assertOk();
+        $job = OwnChoirRequest::query()->findOrFail(Ids::decode((string) $claim->json('data.id')));
+        $reference = Wav::tone(2.0);
+        $body = ['claim' => (string) $claim->json('data.claim'), 'sampleRate' => 48000, 'frames' => intdiv(strlen($reference) - 44, 2), 'bytes' => strlen($reference), 'sha256' => hash('sha256', $reference), 'meta' => ['v' => 1]];
+        $this->worker('POST', "/api/worker/choir/jobs/{$job->sqid()}/reference", $body + ['octave' => 7])->assertStatus(422);
+        $this->worker('POST', "/api/worker/choir/jobs/{$job->sqid()}/reference", $body + ['sungRange' => [48, 200]])->assertStatus(422);
+        $this->worker('POST', "/api/worker/choir/jobs/{$job->sqid()}/reference", $body + ['octave' => 0, 'sungRange' => [48, 65]])->assertCreated();
+
+        $voice = OwnChoirVoice::query()->where('user_id', $dan->id)->sole();
+        $this->assertSame([0, 48, 65], [$voice->octave, $voice->sung_low, $voice->sung_high]);
+        $voice->forceFill(['status' => 'ready'])->save();
+        $this->assertTrue(AuditLog::query()->where('action', 'own_choir.octave_differs')->exists(), 'The app heard -12, the worker 0: logged.');
+
+        // His next invite reads the range his voice actually sang, widened two semitones.
+        $this->assertSame([46, 67], ChoirTogether::range($dan->fresh() ?? $dan, null, []));
     }
 
     public function test_a_friend_reads_the_own_choir_terms_and_only_staff_see_the_draft_notice(): void

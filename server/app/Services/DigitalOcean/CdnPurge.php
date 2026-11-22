@@ -9,9 +9,9 @@ use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Remove files from the Spaces CDN's edge caches. Public files are cached for a year, so a
- * deleted guide (a singer asked for removal) would otherwise keep playing from the edge. Without
- * a DigitalOcean token and the CDN endpoint (locally, in tests) it does nothing.
+ * Remove files from the edge caches: DigitalOcean's Spaces CDN, and Cloudflare's once public media is behind it
+ * (docs/runbook.md, "Media behind Cloudflare"). Public files are cached for a year, so a deleted guide (a singer asked
+ * for removal) would otherwise keep playing from the edge. Without their tokens (locally, in tests) it does nothing.
  */
 final class CdnPurge
 {
@@ -36,15 +36,30 @@ final class CdnPurge
      */
     public function forgetOrFail(array $keys): void
     {
-        $token = (string) config('services.digitalocean.token');
-        $endpoint = (string) config('services.digitalocean.cdn_endpoint_id');
-
-        if ($keys === [] || $token === '' || $endpoint === '') {
+        if ($keys === []) {
             return;
         }
 
-        Http::withToken($token)->timeout(15)
-            ->delete("https://api.digitalocean.com/v2/cdn/endpoints/{$endpoint}/cache", ['files' => array_values($keys)])
-            ->throw();
+        $token = (string) config('services.digitalocean.token');
+        $endpoint = (string) config('services.digitalocean.cdn_endpoint_id');
+
+        if ($token !== '' && $endpoint !== '') {
+            Http::withToken($token)->timeout(15)
+                ->delete("https://api.digitalocean.com/v2/cdn/endpoints/{$endpoint}/cache", ['files' => array_values($keys)])
+                ->throw();
+        }
+
+        // Media behind Cloudflare (CDN_URL on the proxied host): its cache too, by each file's address, 30 a call.
+        $zone = (string) config('services.cloudflare_cdn.zone_id');
+        $purge = (string) config('services.cloudflare_cdn.purge_token');
+        $base = rtrim((string) config('filesystems.disks.media.url'), '/');
+
+        if ($zone !== '' && $purge !== '' && $base !== '') {
+            foreach (array_chunk(array_values($keys), 30) as $chunk) {
+                Http::withToken($purge)->timeout(15)
+                    ->post("https://api.cloudflare.com/client/v4/zones/{$zone}/purge_cache", ['files' => array_map(static fn (string $key): string => $base.'/'.ltrim($key, '/'), $chunk)])
+                    ->throw();
+            }
+        }
     }
 }

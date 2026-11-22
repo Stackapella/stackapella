@@ -5816,7 +5816,11 @@
                 "own": "Este coro es tuyo.",
                 "header": "Canta en el coro de {owner}",
                 "done": "Ya estás en el coro de {owner}",
-                "full": "Este coro ya tiene una voz para cada parte."
+                "full": "Este coro ya tiene una voz para cada parte.",
+                "clipLost": "Tu grabación no se guardó en este dispositivo. Vuelve a cantar la melodía.",
+                "next": "Siguiente",
+                "youSing": "{count, plural, one {Cantarás la parte de {parts}.} other {Cantarás las partes de {parts}.}}",
+                "othersKept": "{count, plural, one {La parte de {parts} se queda con la voz a la que le va mejor.} other {Las partes de {parts} se quedan con las voces a las que les van mejor.}}"
             },
             "agree": {
                 "title": "Una voz como la tuya en la canción de {owner}",
@@ -5826,11 +5830,14 @@
                 "words": "La letra que cantará una voz como la tuya",
                 "showName": "Mostrar mi nombre si {owner} comparte la canción",
                 "showNameOff": "Desactivado: dice “una persona amiga”.",
-                "sing": "Acepto y canto 30 segundos",
                 "saved": "Acepto y uso mi voz guardada",
-                "part": "Canta 30 segundos con la parte de {part}.",
                 "free": "Gratis para ti. Guardamos en privado la voz hecha con tu canto, para tus propias canciones; bórrala cuando quieras.",
-                "no": "No, gracias"
+                "no": "No, gracias",
+                "tune": "Canta la melodía de {song} durante 30 segundos, en la octava que te resulte cómoda.",
+                "local": "Tu toma se queda en este dispositivo hasta que aceptes.",
+                "send": "Acepto y envío",
+                "again": "Cantar de nuevo",
+                "singInstead": "Mejor canto 30 segundos"
             },
             "joined": {
                 "title": "Canciones en las que cantas",

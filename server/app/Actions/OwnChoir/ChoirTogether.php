@@ -126,7 +126,7 @@ final class ChoirTogether
      *
      * @return array<string, mixed>
      */
-    public function show(string $token, ?User $viewer = null, ?string $partKey = null, bool $savedVoice = false): array
+    public function show(string $token, ?User $viewer = null, ?string $partKey = null, bool $savedVoice = false, int $octave = 0): array
     {
         $invite = self::byToken($token);
         $song = $invite->song;
@@ -146,7 +146,7 @@ final class ChoirTogether
             'owner' => self::firstName($song->user),
             'parts' => array_values($invite->parts),
             // Exactly what this person's voice would sing, for their yes (null while it can't be told).
-            'yourParts' => $viewer === null || $viewer->id === $song->user_id ? null : self::assignFor($invite, $viewer, $savedVoice ? null : $partKey),
+            'yourParts' => $viewer === null || $viewer->id === $song->user_id ? null : self::assignFor($invite, $viewer, $savedVoice ? null : $partKey, $octave),
             'listen' => array_values(self::activeParts($song)->map(static fn (OwnChoirPart $p): array => OwnChoir::recording($p))->all()),
             'words' => $words,
             'wordsSha' => $sha,
@@ -157,7 +157,7 @@ final class ChoirTogether
     /**
      * ownChoir.invites.accept: the friend joins.
      *
-     * @param  array{parts?: list<string>, showName: bool, wordsSha?: string|null, useSavedVoice?: bool|null, partKey?: string|null, offsetFrames?: int|null, sampleRate?: int|null, frames?: int|null, bytes?: int|null, sha256?: string|null}  $data
+     * @param  array{parts?: list<string>, octave?: int|null, showName: bool, wordsSha?: string|null, useSavedVoice?: bool|null, partKey?: string|null, offsetFrames?: int|null, sampleRate?: int|null, frames?: int|null, bytes?: int|null, sha256?: string|null}  $data
      * @return array{member: OwnChoirMember, put: array{url: string, method: string, headers: array<string, string>, expiresAt: \DateTimeInterface}|null}
      */
     public function accept(User $user, string $token, array $data): array
@@ -214,7 +214,9 @@ final class ChoirTogether
 
         // Their yes is to exact parts: what their voice sings now, among the invite's named ones.
         $agreed = array_values(array_map('strval', (array) ($data['parts'] ?? [])));
-        $ranges = self::ranges($invite, $user, $withClip ? (string) $data['partKey'] : null) ?? throw new Refusal(409, 'voice_required');
+        // A new clip is the tune, sung in the octave the app measured on the device before the yes.
+        $octave = $withClip ? (int) ($data['octave'] ?? 0) : 0;
+        $ranges = self::ranges($invite, $user, $withClip ? (string) $data['partKey'] : null, $octave) ?? throw new Refusal(409, 'voice_required');
         $assigned = self::assignWith($invite, $user, $ranges);
 
         if ($agreed !== $assigned) {
@@ -223,7 +225,7 @@ final class ChoirTogether
 
         $clip = $data;
 
-        return DB::transaction(function () use ($user, $song, $owner, $invite, $clip, $voice, $withClip, $sha, $ranges): array {
+        return DB::transaction(function () use ($user, $song, $owner, $invite, $clip, $voice, $withClip, $sha, $ranges, $octave): array {
             // The owner's account locked: their minutes and their friends are read and spent one join at a time.
             Owned::lockAccount($owner);
             OwnChoirRequest::query()->whereKey($song->id)->lockForUpdate()->first();
@@ -288,8 +290,10 @@ final class ChoirTogether
             // A new clip: as requests.create takes one (its bytes the friend's own), checked once it's in.
             app(UploadBytes::class)->count($user, (int) $clip['bytes']);
             $job->forceFill([
-                'part_key' => (string) $clip['partKey'],
+                // The tune, whatever part was named (as every choir clip), and the octave the app measured.
+                'part_key' => OwnChoirRequests::melody((array) $song->templateVersion?->data) ?? (string) $clip['partKey'],
                 'offset_frames' => $clip['offsetFrames'] ?? null,
+                'octave' => $octave,
                 'status' => OwnChoirStatus::Uploading,
                 'upload_key' => 'uploads/choir/'.Str::lower(Str::random(32)).'.wav',
                 'sample_rate' => $clip['sampleRate'],
@@ -606,7 +610,7 @@ final class ChoirTogether
      * @param  array<string, list<array<string, mixed>>>  $notes
      * @return array{0: int, 1: int}|null
      */
-    public static function range(User $user, ?string $sangAlong, array $notes): ?array
+    public static function range(User $user, ?string $sangAlong, array $notes, int $octave = 0): ?array
     {
         $progress = (array) (UserLearning::query()->where('user_id', $user->id)->first()->progress ?? []);
         $range = $progress['range'] ?? null;
@@ -615,16 +619,28 @@ final class ChoirTogether
             return [(int) $range['low'], (int) $range['high']];
         }
 
+        // The part they sang (the tune, since 2026-11-23), in the octave they sang it.
         if ($sangAlong !== null && isset($notes[$sangAlong])) {
-            return ChoirAssign::fromPart($notes[$sangAlong]);
+            $range = ChoirAssign::fromPart($notes[$sangAlong]);
+
+            return $range === null ? null : [$range[0] + $octave, $range[1] + $octave];
         }
 
-        // Their saved voice: the part they sang along to when they made it.
+        // Their saved voice: the notes it actually sang (the worker's report), widened two semitones.
         $voice = OwnChoir::voice($user);
+
+        if ($voice !== null && $voice->sung_low !== null && $voice->sung_high !== null) {
+            return [$voice->sung_low - 2, $voice->sung_high + 2];
+        }
+
+        // Older voices: the part they sang along to when they made it, in the octave the worker heard.
         $origin = $voice === null ? null : OwnChoirRequest::query()->with('templateVersion')->where('own_choir_voice_id', $voice->id)->whereNotNull('part_key')->oldest('id')->first();
         $originNotes = $origin === null ? [] : self::partNotes($origin);
 
-        return $origin !== null && isset($originNotes[(string) $origin->part_key]) ? ChoirAssign::fromPart($originNotes[(string) $origin->part_key]) : null;
+        $range = $origin !== null && isset($originNotes[(string) $origin->part_key]) ? ChoirAssign::fromPart($originNotes[(string) $origin->part_key]) : null;
+        $shift = (int) ($voice->octave ?? 0);
+
+        return $range === null ? null : [$range[0] + $shift, $range[1] + $shift];
     }
 
     /**
@@ -633,9 +649,9 @@ final class ChoirTogether
      *
      * @return list<string>|null
      */
-    public static function assignFor(OwnChoirInvite $invite, User $user, ?string $sangAlong): ?array
+    public static function assignFor(OwnChoirInvite $invite, User $user, ?string $sangAlong, int $octave = 0): ?array
     {
-        $ranges = self::ranges($invite, $user, $sangAlong);
+        $ranges = self::ranges($invite, $user, $sangAlong, $octave);
 
         return $ranges === null ? null : self::assignWith($invite, $user, $ranges);
     }
@@ -645,10 +661,12 @@ final class ChoirTogether
      *
      * @return array{friend: array{0: int, 1: int}, owner: array{0: int, 1: int}}|null
      */
-    private static function ranges(OwnChoirInvite $invite, User $user, ?string $sangAlong): ?array
+    private static function ranges(OwnChoirInvite $invite, User $user, ?string $sangAlong, int $octave = 0): ?array
     {
         $notes = self::partNotes($invite->song);
-        $friend = self::range($user, $sangAlong, $notes);
+        // A new clip is always the tune, whatever part was named (2026-11-23).
+        $sangAlong = $sangAlong === null ? null : (OwnChoirRequests::melody((array) $invite->song->templateVersion?->data) ?? $sangAlong);
+        $friend = self::range($user, $sangAlong, $notes, $octave);
         $owner = self::ownerRange($invite->song, $notes);
 
         return $friend === null || $owner === null ? null : ['friend' => $friend, 'owner' => $owner];

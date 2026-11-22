@@ -434,14 +434,18 @@ async function stateful(operation, params, body, cases, query = {}) {
             const status = token === 'tok-used' ? 'used' : token === 'tok-expired' ? 'expired' : token === 'tok-revoked' ? 'revoked' : 'open';
             const owners = shown.requests[0];
             // yourParts: exactly what this person's voice would sing among the named parts (a saved voice, or the part sung along to).
-            const yourParts = query?.useSavedVoice || query?.partKey ? ['soprano', 'alto'] : null;
+            // yourParts: exactly what this person's voice would sing among the named parts: their saved voice's, or the tune
+            // they just sang, by the octave they sang it in (an octave down suits the alto here, an octave up the soprano).
+            const byOctave = (octave) => (Number(octave) === -12 ? ['alto'] : Number(octave) === 12 ? ['soprano'] : ['soprano', 'alto']);
+            const yourParts = query?.useSavedVoice ? ['soprano', 'alto'] : query?.partKey ? byOctave(query.octave) : null;
             const invite = { status, title: owners.title, templateId: owners.templateId, owner: 'Ann', parts: ['soprano', 'alto'], yourParts, listen: owners.parts.map((p) => local({ ...p, id: `${p.id}-listen` })), words: null, wordsSha: null, expiresAt: now }; // i18n-ignore: the mock's names
             if (operation === 'ownChoir.invites.show') return respond(200, { data: invite });
             if (status !== 'open') return caseFor('invite_closed');
             if (!choir.consent) return caseFor('consent_required');
             if (body?.useSavedVoice && !choir.voice) return caseFor('voice_required');
             if (choir.joined.some((j) => j.song.id === 'RqAnn1')) return caseFor('already_member');
-            if (JSON.stringify(body?.parts ?? null) !== JSON.stringify(invite.parts)) return respond(409, { message: 'parts_changed', code: 'parts_changed' });
+            const exact = body?.useSavedVoice ? ['soprano', 'alto'] : byOctave(body?.octave ?? 0);
+            if (JSON.stringify(body?.parts ?? null) !== JSON.stringify(exact)) return respond(409, { message: 'parts_changed', code: 'parts_changed' });
             const member = { id: `Mb${choir.joined.length + 5}J`, requestId: 'RqAnn1', name: null, parts: invite.parts, status: body?.useSavedVoice ? 'on_its_way' : 'uploading', showName: !!body?.showName, joinedAt: now, seen: false };
             globalThis.mockChoirJoin = body; // what was sent, for the flows
             choir.joined.push({ member, song: { ...owners, id: 'RqAnn1', owner: 'Ann', canDownload: as === 'plus', parts: owners.parts.map((p) => local({ ...p, id: `${p.id}-ann` })), voices: owners.parts.map((p) => ({ partKey: p.partKey, whose: invite.parts.includes(p.partKey) ? 'you' : 'owner', name: invite.parts.includes(p.partKey) ? null : 'Ann', memberId: null, status: invite.parts.includes(p.partKey) ? 'on_its_way' : 'ready', fit: null })) } }); // i18n-ignore: the mock's names

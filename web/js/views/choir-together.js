@@ -16,6 +16,7 @@ import { account, loadAccount, loadAuthConfig } from '../stores/account.js';
 import { startFromTemplate } from '../stores/projects.js';
 import { loadTemplate, templatePartName } from '../templates.js';
 import { Agreement } from './beta.js';
+import { dropJoinClip, joinClipFor, joinWithClip, tunePart } from '../own-choir.js';
 import { choirRefusal, keepJoin, loadOwnChoir, ownChoir, partList, savedVoice, termsNeeded, togetherOn } from '../own-choir.js';
 import { loadChoir, playChoir, stopChoir } from '../own-choir-player.js';
 import { game as gameSkin } from '../stores/appearance.js';
@@ -23,7 +24,7 @@ import { game as gameSkin } from '../stores/appearance.js';
 export const ChoirTogetherJoinView = {
     components: { AccountWall, Agreement, AppScreen, Switch },
     props: { token: { type: String, required: true } },
-    data: () => ({ partsChanged: false, wordsChanged: false, state: 'loading', invite: null, terms: null, showName: false, busy: false, playing: false, loadingTrack: false, template: null }),
+    data: () => ({ withClip: false, singInstead: false, clipLost: false, sent: false, partsChanged: false, wordsChanged: false, state: 'loading', invite: null, terms: null, showName: false, busy: false, playing: false, loadingTrack: false, template: null }),
     setup: () => ({ account, savedVoice, navigate }),
     computed: {
         here() {
@@ -44,17 +45,20 @@ export const ChoirTogetherJoinView = {
             const invite = this.invite;
             return invite ? t('ownChoir.together.join.title', { count: this.parts.length, owner: invite.owner, parts: this.partsText, song: invite.title }) : '';
         },
-        /** The part they sing along with for their 30 seconds: the first the invite names. */
-        firstPart() {
-            const key = this.parts[0];
-            return key ? templatePartName(this.template?.parts?.find((p) => p.key === key) ?? { key, name: key }) : '';
-        },
         /** The yes's three points, shown read-only before an account and as the yes after. */
         points() {
             const owner = this.invite?.owner ?? '';
             return [t('ownChoir.together.agree.one', { count: this.yourParts.length, owner, parts: partList(this.yourParts, this.template), song: this.invite?.title ?? '' }), t('ownChoir.together.agree.two', { owner }), t('ownChoir.together.agree.three', { owner })];
         },
         game: () => gameSkin(),
+        /** What the tune just sung found, when it's fewer than the invite's parts; else nothing to say. */
+        found() {
+            if (this.state !== 'agree' || !this.withClip) return '';
+            const yours = this.yourParts;
+            const others = this.parts.filter((key) => !yours.includes(key));
+            if (!others.length || !yours.length) return '';
+            return t('ownChoir.together.join.youSing', { count: yours.length, parts: partList(yours, this.template) }) + ' ' + t('ownChoir.together.join.othersKept', { count: others.length, parts: partList(others, this.template) });
+        },
         header() {
             return this.invite ? t('ownChoir.together.join.header', { owner: this.invite.owner }) : t('ownChoir.title');
         },
@@ -64,6 +68,8 @@ export const ChoirTogetherJoinView = {
     },
     unmounted() {
         this.stop();
+        // Leaving without agreeing: the take kept on this device goes at once (never sent; the coordinator's condition).
+        if (!this.sent) dropJoinClip(this.token);
     },
     methods: {
         async load() {
@@ -106,12 +112,31 @@ export const ChoirTogetherJoinView = {
                 }
                 return;
             }
-            await this.readYourParts();
-            this.state = 'agree';
+            await this.next();
+        },
+        /**
+         * Tune first (the coordinator, 2026-11-22; exact consent): with the tune just sung (kept on this device), the yes
+         * with exactly the parts a voice like theirs sings; with a saved voice, the yes for it; else, sing the tune first.
+         */
+        async next() {
+            const clip = joinClipFor(this.token);
+            this.withClip = !!clip;
+            if (clip) {
+                await this.readYourParts({ partKey: clip.partKey, octave: clip.octave });
+                this.state = 'agree';
+                return;
+            }
+            if (savedVoice() && !this.singInstead) {
+                await this.readYourParts({ useSavedVoice: 1 });
+                this.state = 'agree';
+                return;
+            }
+            // Back here after singing, but the take is gone (a reload): say so, and sing again.
+            this.clipLost = new URLSearchParams(location.search).has('sung');
+            this.state = 'sing';
         },
         /** The invite again, now knowing whose voice: exactly the parts it would sing (`yourParts`). */
-        async readYourParts() {
-            const query = savedVoice() ? { useSavedVoice: 1 } : { partKey: this.parts[0] };
+        async readYourParts(query) {
             try {
                 this.invite = (await api.ownChoir.invites.show(this.token, query)).data;
             } catch (error) {
@@ -122,8 +147,7 @@ export const ChoirTogetherJoinView = {
             this.busy = true;
             try {
                 ownChoir.data = (await api.ownChoir.consent({ version: this.terms.version })).data;
-                await this.readYourParts();
-                this.state = 'agree';
+                await this.next();
             } catch (error) {
                 if (error?.code === 'agreement_changed') this.terms = (await api.beta.agreement.show({ lang: 'en', for: 'own_choir' })).data;
                 else toast(t('common.didntWork'), { tone: 'error' });
@@ -172,8 +196,11 @@ export const ChoirTogetherJoinView = {
             if (this.busy) return;
             this.busy = true;
             try {
+                await dropJoinClip(this.token); // singing it again replaces the take kept here
                 const template = this.template ?? (await loadTemplate(this.invite.templateId));
-                const partKey = this.parts[0];
+                // Always the tune, with its words, in whatever octave (never the invite's part: a low "oo" part gives too
+                // little to hear, as Hillel's own bass clip showed).
+                const partKey = tunePart(template) ?? this.parts[0];
                 const join = { token: this.token, showName: this.showName, wordsSha: this.invite.wordsSha ?? null, partKey, parts: this.yourParts, owner: this.invite.owner };
                 const project = await startFromTemplate(template, { keyChosen: true, focusKey: partKey, choir: { requestId: null } });
                 keepJoin(project.id, join);
@@ -187,6 +214,32 @@ export const ChoirTogetherJoinView = {
         },
         lower(name) {
             return (name ?? '').toLocaleLowerCase(document.documentElement.lang || undefined);
+        },
+        /** "Agree and send": the tune just sung goes now, with exactly the parts the yes named; then the take goes from here. */
+        async send() {
+            const clip = joinClipFor(this.token);
+            if (this.busy || !clip) return;
+            this.busy = true;
+            try {
+                await joinWithClip(this.token, { ...clip, parts: this.yourParts, showName: this.showName, wordsSha: this.invite.wordsSha ?? null });
+                this.sent = true;
+                await dropJoinClip(this.token);
+                this.state = 'joined';
+            } catch (error) {
+                this.refused(error);
+            } finally {
+                this.busy = false;
+            }
+        },
+        /** "Sing 30 seconds instead" (with a saved voice): the tune first, as anyone new. */
+        singFresh() {
+            this.singInstead = true;
+            this.state = 'sing';
+        },
+        /** "No thanks": the take kept here goes at once, and so do they. */
+        async decline() {
+            await dropJoinClip(this.token);
+            navigate('/');
         },
         /** A refusal in its own words; the terms come back if they're needed after all. */
         refused(error) {
@@ -230,7 +283,10 @@ export const ChoirTogetherJoinView = {
 
             <section v-else class="space-y-5" data-join :data-join-state="state">
                 <h1 class="pt-4 text-3xl font-extrabold tracking-tight text-cream" data-join-title>{{ state === 'joined' ? t('ownChoir.together.join.done', { owner: invite.owner }) : title }}</h1>
-                <p v-if="state !== 'joined'" class="text-cream">{{ t('ownChoir.together.join.how', { owner: invite.owner }) }}</p>
+                <!-- After singing, when fewer parts suit their voice than the invite named: which they'll sing, which stay Ann's. -->
+                <p v-if="found" class="text-cream" data-join-found>{{ found }}</p>
+                <!-- The lead, except where the sing step already says it (Hillel: never the same thing twice). -->
+                <p v-if="state !== 'joined' && state !== 'sing'" class="text-cream">{{ t('ownChoir.together.join.how', { owner: invite.owner }) }}</p>
                 <button type="button" class="btn-secondary self-start" :aria-busy="loadingTrack ? 'true' : null" data-join-listen @click="listen"><span v-if="loadingTrack" class="spinner" aria-hidden="true"></span>{{ playing ? t('studio.stop') : t('ownChoir.together.join.listen', { owner: invite.owner }) }}</button>
 
                 <!-- Signed out: what joining means, read-only, then an account (the link kept). -->
@@ -260,13 +316,25 @@ export const ChoirTogetherJoinView = {
                     </div>
                     <p class="text-sm text-muted" data-join-free>{{ t('ownChoir.together.agree.free') }}</p>
                     <Switch :on="showName" :label="t('ownChoir.together.agree.showName', { owner: invite.owner })" :hint="showName ? '' : t('ownChoir.together.agree.showNameOff')" class="py-1" data-join-show-name @change="showName = $event" />
-                    <p v-if="!savedVoice()" class="text-sm text-muted">{{ t('ownChoir.together.agree.part', { part: lower(firstPart) }) }}</p>
-                    <!-- On a phone: full width and stacked, the yes first; then a quiet No thanks. -->
+                    <p v-if="withClip" class="text-sm text-cream" data-join-local>{{ t('ownChoir.together.agree.local') }}</p>
+                    <!-- On a phone: full width and stacked, the yes first; then the quiet ways out. -->
                     <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                        <button v-if="savedVoice()" type="button" class="btn-primary w-full sm:w-auto" :disabled="busy" data-join-saved @click="useSaved">{{ t('ownChoir.together.agree.saved') }}</button>
-                        <button type="button" :class="savedVoice() ? 'btn-secondary' : 'btn-primary'" class="w-full sm:w-auto" :disabled="busy" data-join-sing @click="sing">{{ t('ownChoir.together.agree.sing') }}</button>
+                        <button v-if="withClip" type="button" class="btn-primary w-full sm:w-auto" :disabled="busy" :aria-busy="busy ? 'true' : null" data-join-send @click="send">{{ t('ownChoir.together.agree.send') }}</button>
+                        <button v-else type="button" class="btn-primary w-full sm:w-auto" :disabled="busy" data-join-saved @click="useSaved">{{ t('ownChoir.together.agree.saved') }}</button>
                     </div>
-                    <button type="button" class="link-quiet inline-flex min-h-11 items-center text-sm" data-join-no @click="navigate('/')">{{ t('ownChoir.together.agree.no') }}</button>
+                    <div class="flex flex-wrap gap-x-5">
+                        <button v-if="withClip" type="button" class="link-quiet inline-flex min-h-11 items-center text-sm" data-join-again @click="sing">{{ t('ownChoir.together.agree.again') }}</button>
+                        <button v-else type="button" class="link-quiet inline-flex min-h-11 items-center text-sm" data-join-sing-instead @click="singFresh">{{ t('ownChoir.together.agree.singInstead') }}</button>
+                        <button type="button" class="link-quiet inline-flex min-h-11 items-center text-sm" data-join-no @click="decline">{{ t('ownChoir.together.agree.no') }}</button>
+                    </div>
+                </section>
+
+                <!-- Tune first: they sing the tune (kept on this device), then see the yes with exactly their parts. -->
+                <section v-else-if="state === 'sing'" class="card space-y-4 p-5" data-join-sing-step>
+                    <p v-if="clipLost" class="text-sm text-cream" role="status" data-join-clip-lost>{{ t('ownChoir.together.join.clipLost') }}</p>
+                    <p class="text-cream" data-join-tune>{{ t('ownChoir.together.agree.tune', { song: invite.title }) }}</p>
+                    <button type="button" class="btn-primary w-full sm:w-auto" :disabled="busy" data-join-sing @click="sing">{{ t('ownChoir.record.start') }}</button>
+                    <button type="button" class="link-quiet inline-flex min-h-11 items-center text-sm" data-join-no @click="decline">{{ t('ownChoir.together.agree.no') }}</button>
                 </section>
             </section>
         </AppScreen>`,

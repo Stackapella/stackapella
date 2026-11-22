@@ -26,6 +26,7 @@ use Illuminate\Support\Carbon;
  * @property bool $from_voice made from a kept voice rather than a new clip
  * @property string|null $part_key
  * @property int|null $offset_frames
+ * @property int|null $octave the octave the app measured the clip sung in (−12, 0 or 12; a friend's tune)
  * @property OwnChoirStatus $status
  * @property string|null $failure
  * @property string|null $upload_key
@@ -92,6 +93,7 @@ final class OwnChoirRequest extends Model
             'claim_started_at' => 'datetime',
             'first_claimed_at' => 'datetime',
             'only_parts' => 'array',
+            'octave' => 'integer',
             'held_for_minutes' => 'boolean',
             'clip_checked_at' => 'datetime',
             'claimed_at' => 'datetime',

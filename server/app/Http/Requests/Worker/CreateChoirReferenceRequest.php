@@ -44,6 +44,10 @@ final class CreateChoirReferenceRequest extends FormRequest
                 }
             }],
             'sha256' => ['required', 'string', 'regex:/^[0-9a-fA-F]{64}$/'],
+            // The worker's own report (2026-11-23): the octave the tune was sung in, and the notes actually sung.
+            'octave' => ['sometimes', 'nullable', 'integer', 'in:-12,0,12'],
+            'sungRange' => ['sometimes', 'nullable', 'array', 'size:2'],
+            'sungRange.*' => ['integer', 'between:20,110'],
             'meta' => ['required', 'array', function (string $attribute, mixed $value, Closure $fail): void {
                 if (strlen((string) json_encode($value)) > (int) config('own_choir.meta_bytes')) {
                     $fail(__('validation.choir_meta'));

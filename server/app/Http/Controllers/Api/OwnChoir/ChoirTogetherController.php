@@ -43,12 +43,15 @@ final class ChoirTogetherController extends Controller
         $viewer = $request->user();
         $partKey = $request->query('partKey');
 
-        return response()->json(['data' => $together->show($token, $viewer instanceof User ? $viewer : null, is_string($partKey) && $partKey !== '' ? $partKey : null, $request->boolean('useSavedVoice'))]);
+        // The octave the app measured on the take still on the device: -12, 0 or 12 (anything else is 0).
+        $octave = in_array((int) $request->query('octave', '0'), [-12, 0, 12], true) ? (int) $request->query('octave', '0') : 0;
+
+        return response()->json(['data' => $together->show($token, $viewer instanceof User ? $viewer : null, is_string($partKey) && $partKey !== '' ? $partKey : null, $request->boolean('useSavedVoice'), $octave)]);
     }
 
     public function accept(AcceptChoirInviteRequest $request, string $token, ChoirTogether $together, #[CurrentUser] User $user): JsonResponse
     {
-        /** @var array{parts?: list<string>, showName: bool, wordsSha?: string|null, useSavedVoice?: bool|null, partKey?: string|null, offsetFrames?: int|null, sampleRate?: int|null, frames?: int|null, bytes?: int|null, sha256?: string|null} $data */
+        /** @var array{parts?: list<string>, octave?: int|null, showName: bool, wordsSha?: string|null, useSavedVoice?: bool|null, partKey?: string|null, offsetFrames?: int|null, sampleRate?: int|null, frames?: int|null, bytes?: int|null, sha256?: string|null} $data */
         $data = $request->validated();
         ['member' => $member, 'put' => $put] = $together->accept($user, $token, $data);
 
