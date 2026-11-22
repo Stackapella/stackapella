@@ -58,7 +58,7 @@
             "humanize": 0,
             "breaths": "legato",
             "quality": "standard",
-            "ensembleTiming": "tight",
+            "ensembleTiming": "natural",
             "pitchSpread": "off"
         }
     }

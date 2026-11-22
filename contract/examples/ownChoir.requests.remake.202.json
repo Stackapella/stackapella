@@ -137,7 +137,7 @@
                 "voicing": "auto",
                 "breaths": "legato",
                 "quality": "standard",
-                "ensembleTiming": "tight",
+                "ensembleTiming": "natural",
                 "pitchSpread": "off"
             }
         },
@@ -172,7 +172,7 @@
                 "voicing": "auto",
                 "breaths": "legato",
                 "quality": "fine",
-                "ensembleTiming": "tight",
+                "ensembleTiming": "natural",
                 "pitchSpread": "off"
             }
         },

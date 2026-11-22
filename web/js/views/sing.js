@@ -29,6 +29,7 @@ import { signUpFor } from '../components/account-wall.js';
 import { askDue, askNotNow, askSeen } from '../asks.js';
 import { askNot, askShown, askYes } from '../funnel.js';
 import { count, tried } from '../usage.js';
+import { badgeHold } from '../game/badge-news.js';
 import { local } from '../storage.js';
 import { countInText } from '../components/count-in.js';
 import { session } from '../stores/session.js';
@@ -126,7 +127,7 @@ export const SingView = {
                 @choose="choose" @range="dialog = 'range'" @back="leave" @studio="openStudio" />
             <!-- Recording strips everything else away (113.png): the lane, the words, Stop -->
             <RecordingStage v-else-if="recording" :title="shownTitle(project)" :named="!!project.title?.trim()" :part-name="clipTake ? '' : partName" :big-count="60 / (project.bpm || 90)" :color="paint(focusPart.color)" :take="takeNumbers[rerecordId] ?? 1" :hearing="hearLine"
-                :count-in="countIn" :position="position" :length="lengthSeconds" :busy="busy" :on-pitch="onPitch" :line="hasWords ? currentLine : null" :next="hasWords ? nextLine : null" @stop="recordOrStop" @again="startOver">
+                :count-in="countIn" :position="position" :length="lengthSeconds" :busy="busy" :on-pitch="clipTake ? null : onPitch" :line="hasWords ? currentLine : null" :next="hasWords ? nextLine : null" @stop="recordOrStop" @again="startOver">
                 <template #hearing><span class="relative block"><button type="button" class="relative grid size-11 shrink-0 place-items-center rounded-full glass-bubble text-cream" :aria-label="t('sing.settings.open')" data-settings-open @click="dialog = 'settings'"><Icon name="sliders" :size="20" /><span v-if="hearingChanged" class="absolute end-0 top-0 size-3 rounded-full bg-accent ring-2 ring-ink" data-hearing-changed aria-hidden="true"></span></button>
                     <!-- Game mode's bonus pop-ups (docs/game-elements-plan.md): under the header's end, never on the lane -->
                     <PopupSlot v-if="effect('popups')" class="ge-slot--float" :queue="hud" /></span></template>
@@ -138,7 +139,7 @@ export const SingView = {
                 <TurnBand v-if="bandShown" :color="paint(focusPart.color)" :others="otherNames" :marked="hearingChanged" @settings="dialog = 'settings'" />
                 <SingHeader v-else :title="shownTitle(project)" :named="!!project.title?.trim()" :info="songInfo" :part-name="partName" :color="paint(focusPart.color)" :chip="chip"
                     :recording="recording" :recorded-seconds="recordedSeconds" :count-in="countIn" :about="about" :badge="settingsBadge"
-                    @back="leave" @part="dialog = 'part'" @settings="dialog = 'settings'" :marked="hearingChanged" :view="view" @view="setView" :any-part="clipTake" />
+                    @back="leave" @part="dialog = 'part'" @settings="dialog = 'settings'" :marked="hearingChanged" :view="recorded && clipTake ? '' : view" @view="setView" :any-part="clipTake" />
                 <LockedBanner v-if="locked" :reason="locked" :owner="project?.shared?.owner?.name ?? ''" class="mx-4 mt-2 md:mx-6" />
                 <PrivatePlus v-if="plusSheet" :kind="project?.shared ? 'other' : 'own'" :name="project?.shared?.owner?.name ?? ''" @close="plusSheet = false" />
                 <!-- A lesson's step done here (sung long enough, or recorded): the way back, where its Finish now waits. Secondary: the coach keeps the one primary. -->
@@ -291,7 +292,7 @@ export const SingView = {
             const p = this.project;
             const section = this.sections.find((s) => this.position >= s.startSeconds && this.position < s.endSeconds);
             // No key for the choir's clip take (its tune may change key: voice-capture goes from F to A-flat).
-            return [sectionName(section?.name), p.key && !this.clipTake ? t('studio.meta.key', { key: keyLabel(p.key) }) : null, t('studio.meta.bpm', { bpm: p.bpm })].filter(Boolean).join(' · ');
+            return [sectionName(section?.name), p.key && !this.clipTake ? t('studio.meta.key', { key: keyLabel(p.key) }) : null, this.clipTake ? null : t('studio.meta.bpm', { bpm: p.bpm })].filter(Boolean).join(' · ');
         },
         notes() {
             return this.focusPart ? sessionStore.templatePart(this.focusPart)?.guide.notes ?? [] : [];
@@ -669,6 +670,8 @@ export const SingView = {
             const all = sessionStore.levels();
             const items = [];
             const mine = all.get(guideId(this.focusPart.id));
+            // The choir clip's take, in plain words (the coordinator's review): the tune, and the other parts.
+            if (this.clipTake) return mine?.audible ? t('ownChoir.record.hearAll') : t('ownChoir.record.hearOthers');
             if (mine?.audible) items.push(t('sing.hear.yourGuide'));
             const others = this.parts.filter((p) => p.templatePartKey && p.id !== this.focusPart.id);
             const heard = others.filter((p) => [p.id, guideId(p.id)].some((id) => all.get(id)?.audible));
@@ -698,6 +701,12 @@ export const SingView = {
         },
     },
     watch: {
+        clipTake: {
+            immediate: true,
+            handler(on) {
+                badgeHold.on = !!on; // badges wait while the choir's clip is sung and reviewed
+            },
+        },
         /** A guest's taste: its first phrase sung along, the invitation shown (counted once a device). */
         tasteInvite(invite) {
             if (!invite || !this.showDone) return;
@@ -883,6 +892,7 @@ export const SingView = {
         engine.onInterrupt = this.onInterrupt;
     },
     beforeUnmount() {
+        badgeHold.on = false;
         clearInterval(this.choirPoll);
         if (this.project?.id) leftSong(this.project.id); // a unit song's visit ends when Sing does (unit-song.js)
         // A re-sung phrase on trial wasn't kept: the take goes back as it was.

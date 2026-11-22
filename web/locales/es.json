@@ -5667,7 +5667,7 @@
             "two": "Hacemos cada parte de {song} con una voz como la tuya, marcada como IA.",
             "three": "Luego aprende tu parte: cada una que grabas ocupa el lugar de su versión de IA.",
             "whole": "Cantar la canción entera",
-            "wholeHint": "Tu toma será la melodía principal que puedes comparar con la de la IA; sus primeros 30 segundos hacen tu voz."
+            "wholeHint": "Cántala entera y oye la tuya junto al coro de IA."
         },
         "record": {
             "title": "Canta 30 segundos",
@@ -5680,7 +5680,9 @@
             "readyNow": "Tu coro está listo",
             "listen": "Escuchar tu coro",
             "done": "Tu canto está grabado",
-            "doneHint": "Escúchalo si quieres y luego crea tu coro."
+            "doneHint": "Escúchalo si quieres y luego crea tu coro.",
+            "hearAll": "Oirás la melodía y las demás partes.",
+            "hearOthers": "Tu melodía está apagada. Oirás las demás partes."
         },
         "wait": {
             "title": "Tu coro está en camino",
@@ -5929,12 +5931,12 @@
             "noMic": "No pudimos oír una nota. Vuelve a intentarlo un poco más fuerte, o usa la tonalidad habitual."
         },
         "headphones": {
-            "yes": "Tengo auriculares",
             "yesHint": "Oirás la melodía mientras cantas.",
             "noHint": "No suena nada; sigue la letra a medida que se ilumina.",
             "silentLine": "No suena nada. Sigue la letra a medida que se ilumina.",
             "label": "Auriculares",
-            "noShort": "Sin auriculares"
+            "noShort": "Sin auriculares",
+            "yesShort": "Auriculares"
         },
         "settings": {
             "title": "Ajustes del coro",
@@ -6005,7 +6007,9 @@
             "you": "Tú",
             "ai": "IA",
             "recordingLevel": "Tu grabación, mezclada",
-            "off": "Desactivada"
+            "off": "Desactivada",
+            "sungHintMonthly": "Lo rehace la IA. Plus incluye {n} minutos de canto con IA al mes.",
+            "leadBlendHint": "Quién canta la melodía."
         },
         "level": {
             "low": "Algo bajo. Acércate al micrófono, o sube su volumen.",

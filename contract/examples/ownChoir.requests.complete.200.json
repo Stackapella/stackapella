@@ -65,7 +65,7 @@
                 "voicing": "auto",
                 "breaths": "legato",
                 "quality": "standard",
-                "ensembleTiming": "tight",
+                "ensembleTiming": "natural",
                 "pitchSpread": "off"
             }
         },

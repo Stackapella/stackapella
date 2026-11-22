@@ -13,6 +13,12 @@ export const BADGE_TOAST_SECONDS = 3;
 /** Badges earned in the lesson running now, not yet said (their names, in order). */
 export const badgeNews = reactive({ names: [] });
 
+/**
+ * Badges held while the choir's clip is sung and reviewed (the coordinator's review: a toast covered four screens'
+ * headings): set by Sing on a clip take, and when it lets go what was earned is said once.
+ */
+export const badgeHold = reactive({ on: false });
+
 /** "New badge: X" or "New badges: X, Y and Z". */
 export const badgeWords = (names) => (names.length === 1 ? t('badges.new', { name: names[0] }) : t('badges.newMany', { names: formatList(names) }));
 
@@ -24,18 +30,18 @@ function toastBadges(names) {
 /** Says newly earned badges: kept for the lesson's end in a lesson, else one short toast. */
 export function sayBadges(names) {
     if (!names.length) return;
-    if (route.name === 'learn') {
+    if (route.name === 'learn' || badgeHold.on) {
         for (const name of names) if (!badgeNews.names.includes(name)) badgeNews.names.push(name);
         return;
     }
     toastBadges(names);
 }
 
-// A lesson left before its end: what it earned is said once, on the way out.
+// A lesson left before its end (or a choir clip's take let go): what it earned is said once, on the way out.
 watch(
-    () => route.name,
-    (name) => {
-        if (name === 'learn' || !badgeNews.names.length) return;
+    () => [route.name, badgeHold.on],
+    ([name, held]) => {
+        if (name === 'learn' || held || !badgeNews.names.length) return;
         const names = badgeNews.names.splice(0);
         toastBadges(names);
     },

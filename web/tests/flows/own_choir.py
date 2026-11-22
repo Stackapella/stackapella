@@ -75,9 +75,9 @@ def journey(f):
     assert f.js("document.querySelector('[data-clip-song=\"amazing-grace\"]').getAttribute('aria-pressed')") == "true", "the choice wasn't remembered"
     # The free choir is the song they sing (Hillel): Happy Birthday's tune makes Happy Birthday, and the page says so.
     f.run("document.querySelector('[data-clip-song=\"voice-capture\"]').click()")
-    f.wait("document.querySelector('[data-free-song]')?.textContent.includes('Happy Birthday')", what="the free choir named")
+    f.wait("document.querySelector('[data-choir-quota]')?.textContent.includes('Happy Birthday')", what="the free choir named, once, under Start")
     f.run("document.querySelector('[data-clip-song=\"amazing-grace\"]').click()")
-    f.wait("!document.querySelector('[data-free-song]')", what="this page's song, sung")
+    f.wait("!document.querySelector('[data-choir-quota]')?.textContent.includes('Happy Birthday')", what="this page's song, sung")
     # Its own tune, with headphones: Sing the whole song (the take becomes the lead); not without headphones.
     f.run("document.querySelector('[data-headphones-pick] [role=radio]:nth-child(1)').click()")
     f.wait("document.querySelector('[data-clip-whole]')", what="Sing the whole song")

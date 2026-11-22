@@ -127,6 +127,7 @@ export const Checkbox = {
 export function fitSegments(root = document.body) {
     const fit = (seg) => {
         seg.classList.remove('seg-stack', 'seg-stack-1');
+        if (seg.dataset.scrollRow !== undefined) return; // a row that scrolls sideways instead (Listen to's three)
         if (seg.scrollWidth <= seg.clientWidth + 1) return;
         seg.classList.add('seg-stack');
         if (seg.children.length % 2) seg.classList.add('seg-stack-1');

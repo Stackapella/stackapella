@@ -53,7 +53,7 @@ export const HeadphonesPick = {
     data: () => ({ answer: rememberedHeadphones() === 'no' ? 'no' : 'yes' }),
     computed: {
         options: () => [
-            { value: 'yes', label: t('ownChoir.headphones.yes') },
+            { value: 'yes', label: t('ownChoir.headphones.yesShort') },
             { value: 'no', label: t('ownChoir.headphones.noShort') },
         ],
     },

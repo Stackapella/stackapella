@@ -14,7 +14,8 @@ use App\Models\OwnChoirRequest;
  */
 final class ChoirSettings
 {
-    public const SUNG = ['humanize' => 0, 'voicing' => 'auto', 'breaths' => 'legato', 'quality' => 'standard', 'ensembleTiming' => 'tight', 'pitchSpread' => 'off'];
+    // "natural" timing unless chosen (voices, 2026-11-23: what the worker sings when none is chosen).
+    public const SUNG = ['humanize' => 0, 'voicing' => 'auto', 'breaths' => 'legato', 'quality' => 'standard', 'ensembleTiming' => 'natural', 'pitchSpread' => 'off'];
 
     public const ROOMS = ['dry', 'small', 'hall', 'chapel'];
 

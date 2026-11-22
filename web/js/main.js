@@ -5,7 +5,7 @@ import { setDraftsFor } from './templates.js';
 import { api, apiEvents } from './api.js';
 import { storageEvents } from './db.js';
 import { allWords, chooseLanguage, firstWordsFor, wordsFor, formatDate, formatNumber, isLive, loadLanguage, locale, localized, setLiveLanguages, t, timeAgo, tk } from './i18n.js';
-import { local } from './storage.js';
+import { local, session } from './storage.js';
 import './note-names.js'; // every note name by the person's naming (C4, Do4, H3): dsp.js midiName asks it
 import { navigate, route } from './router.js';
 import { liveSession } from './stores/session-live.js';
@@ -232,6 +232,18 @@ async function fetchAhead() {
 }
 const afterLoad = (run) => (document.readyState === 'complete' ? whenIdle(run) : window.addEventListener('load', () => whenIdle(run), { once: true }));
 afterLoad(fetchAhead);
+// The site's "Try it with <song>" (/your-choir: /?song=…&choir=1): straight to that song's choir before the first paint,
+// never Home for a moment first (Hillel, 2026-11-23). Back from the choir page goes Home, as the redirect did before.
+{
+    const query = new URLSearchParams(location.search);
+    const song = query.get('song');
+    if (location.pathname === '/' && query.get('choir') === '1' && song && /^[a-z0-9-]+$/.test(song)) {
+        session.set('stackapella.choirFromSite', song); // the take from it is sent by itself (views/own-choir.js)
+        const ref = query.get('ref'); // the arrival's source, still counted where the app reads it
+        navigate(`/t/${encodeURIComponent(song)}/choir${ref ? `?ref=${encodeURIComponent(ref)}` : ''}`, { replace: true });
+    }
+}
+document.documentElement.dataset.firstRoute = location.pathname; // the page the app first paints (choir_link checks it)
 const app = createApp(App);
 app.directive('fill', fill);
 watchErrors(app); // to Sentry through /log/errors, once auth.config gives the DSN

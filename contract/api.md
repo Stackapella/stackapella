@@ -8030,7 +8030,7 @@ prepared before, with your own `meta`). `claim` is this claim's token: every cal
 "<token>"`), and one with a missing or stale token is `409 job_not_claimed` (another worker may have it now). A claim lasts 20 minutes; a job not
 finished by then goes back to the queue, at most twice, then fails (`render_failed`). The clip's link lasts 30 minutes;
 delete everything you held once you post `finish`. `own`: the singer's own song (no gates re-render: finish
-`gates_failed`). `settings` (Plus's choir settings, the defaults today's sound): `humanize` 0 to 3, `breaths`, `quality`
+`gates_failed`). `settings` (Plus's choir settings; unset, `ensembleTiming` is `natural` since 2026-11-23 and the rest today's sound): `humanize` 0 to 3, `breaths`, `quality`
 (`fine`: 64 steps), `ensembleTiming`, `pitchSpread`; seeded from the song and part, so a remake comes out the same. `voicing` (`written` or `low`) and `shifts` (`[{ "partKey", "shift" }]`, each part's octave shift, −12 or 0): a low-voice song's
 `data` is already transformed (treble parts an octave down, octaves only so every chord tone is kept, a moved note that
 would fall below the bass sounding with it kept at pitch); render `data` as given, and the gates check it as given. A `clip` names the template its singer sang (since 2026-11-23 voice-capture by default, whatever song

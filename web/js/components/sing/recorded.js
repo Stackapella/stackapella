@@ -122,9 +122,9 @@ export const JustRecorded = {
                                 <button type="button" class="grid size-12 shrink-0 place-items-center bubble bubble-primary" data-disc="play" :aria-label="hearing ? t('studio.stop') : t('sing.recorded.hearOthers')" @click="$emit('hear')"><Icon :name="hearing ? 'stop' : 'play'" :size="20" /></button>
                                 <div class="min-w-0 flex-1">
                                     <p class="font-bold text-cream" :data-replay="hearing ? '' : null">{{ hearing ? sk('sing.recorded.hearOthers', 'game.replay') : t('sing.recorded.hearOthers') }}</p>
-                                    <p class="tabular-nums text-xs text-muted">{{ formatTime(Math.max(0, position)) }} / {{ formatTime(lengthSeconds) }}<template v-if="phraseNow !== null"> · {{ t('sing.review.phrase', { number: phraseNow + 1 }) }}</template></p>
+                                    <p class="tabular-nums text-xs text-muted">{{ formatTime(Math.max(0, position)) }} / {{ formatTime(lengthSeconds) }}<template v-if="phraseNow !== null && !choir"> · {{ t('sing.review.phrase', { number: phraseNow + 1 }) }}</template></p>
                                 </div>
-                                <button type="button" role="switch" :aria-checked="polished ? 'true' : 'false'" class="tap-44 flex items-center gap-2 rounded-full glass-bubble py-1.5 pe-3 ps-1.5 text-sm font-semibold" :class="polished ? 'text-cream' : 'text-muted'" @click="$emit('polish', !polished)">
+                                <button v-if="!choir" type="button" role="switch" :aria-checked="polished ? 'true' : 'false'" class="tap-44 flex items-center gap-2 rounded-full glass-bubble py-1.5 pe-3 ps-1.5 text-sm font-semibold" :class="polished ? 'text-cream' : 'text-muted'" @click="$emit('polish', !polished)">
                                     <span class="relative h-4 w-7 shrink-0 rounded-full transition" :class="polished ? 'bg-accent' : 'bg-line'" aria-hidden="true"><span class="absolute top-0.5 size-3 rounded-full bg-cream transition-[inset-inline-start]" :style="{ insetInlineStart: polished ? '0.875rem' : '0.125rem' }"></span></span>{{ t('polish.name') }}
                                 </button>
                             </div>
@@ -132,12 +132,12 @@ export const JustRecorded = {
                                 <li v-for="row in stack" :key="row.id" class="flex items-center gap-2">
                                     <!-- Tap a part to mute it, right here (Hillel, 2026-11-02: help in place, not in Settings). -->
                                     <button type="button" class="tap-44 flex w-32 shrink-0 items-center gap-1.5 truncate text-start text-xs font-semibold" :class="row.muted ? 'text-muted' : 'text-cream'" :aria-pressed="row.muted ? 'false' : 'true'" :aria-label="t('sing.review.muteLabel', { part: row.name })" data-mute-part @click="$emit('mute', row.id)">
-                                        <span class="size-2 shrink-0 rounded-full" :style="{ background: row.color }"></span><span class="truncate" translate="no">{{ row.you ? t('home.lead.you', { part: row.name }) : row.name }}</span><span v-if="row.muted" class="ms-auto shrink-0 font-bold">{{ t('sing.hear.offShort') }}</span>
+                                        <span class="size-2 shrink-0 rounded-full" :style="{ background: row.color }"></span><span class="truncate" translate="no">{{ row.you ? t('home.lead.you', { part: row.name }) : row.name }}</span><span v-if="choir && !row.you" class="chip shrink-0 px-1.5 text-[10px]" data-ai-voice="tag">{{ t('ownChoir.together.who.ai') }}</span><span v-if="row.muted" class="ms-auto shrink-0 font-bold">{{ t('sing.hear.offShort') }}</span>
                                     </button>
                                     <span class="min-w-0 flex-1 rounded-lg bg-ink px-1" :class="row.muted ? 'opacity-40' : ''" :style="row.you ? { boxShadow: 'inset 0 0 0 1.5px ' + row.color } : null"><PeakRow :peaks="row.peaks" :color="row.color" :at="hearing ? Math.max(0, position) / lengthSeconds : null" /></span>
                                 </li>
                             </ul>
-                            <p class="text-xs text-muted">{{ t('sing.review.tapToMute') }} {{ polished ? t('polish.hearOn') : t('polish.hearOff') }}</p>
+                            <p class="text-xs text-muted">{{ t('sing.review.tapToMute') }}<template v-if="!choir"> {{ polished ? t('polish.hearOn') : t('polish.hearOff') }}</template></p>
                         </div>
                         <!-- Fine-tune the take: two tiles. -->
                         <div v-if="!choir" class="space-y-2">
@@ -207,7 +207,7 @@ export const JustRecorded = {
             <div class="sticky bottom-0 z-10 border-t border-edge bg-ink/95 px-4 py-3 backdrop-blur md:px-8">
                 <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-3">
                     <p class="me-auto text-sm text-muted">{{ t('sing.review.saved') }}</p>
-                    <button type="button" class="btn-secondary" @click="$emit('again')">{{ t('sing.recorded.again') }}</button>
+                    <button type="button" class="btn-secondary" :class="choir ? 'max-sm:w-full' : ''" @click="$emit('again')">{{ t('sing.recorded.again') }}</button>
                     <!-- Share from the take itself (a newcomer couldn't find it: Hillel's dad, 2026-11-23); not for a choir clip. -->
                     <button v-if="!choir && !outcome.everyPart" type="button" class="btn-secondary" data-review-share @click="$emit('share')">{{ t('share.title') }}</button>
                     <template v-if="choir"></template>

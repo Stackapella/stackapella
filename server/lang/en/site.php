@@ -1451,6 +1451,8 @@ return [
             'body' => 'Invite a friend whose voice sits higher or lower than yours. They sing for 30 seconds, and the parts that suit them are sung in a voice like theirs.',
             'you' => 'You',
             'friend' => 'A friend',
+            // Said once under the heading; each lane wears the small AI chip (stage.ai_chip).
+            'ai' => 'Every part is sung by AI in a voice like its singer\'s.',
             'chip_you' => 'AI voice made from your singing',
             'chip_friend' => 'AI voice made from your friend\'s singing',
         ],

@@ -184,7 +184,9 @@ async function stateful(operation, params, body, cases, query = {}) {
         // the id asked for, so the take's project is that tune's.
         if (['voice-capture', 'joy-to-the-world'].includes(params.id)) {
             const { data } = await example('templates.show.200.json');
-            const title = params.id === 'joy-to-the-world' ? params.id.replaceAll('-', ' ') : data.template.title; // its own name, not the example's
+            // Its own name, not the example's: the id's words, capitalised as titles are (short words lower).
+            const small = new Set(['to', 'the', 'a', 'of', 'and']);
+            const title = params.id === 'joy-to-the-world' ? params.id.split('-').map((w, i) => (i && small.has(w) ? w : w[0].toUpperCase() + w.slice(1))).join(' ') : data.template.title;
             return respond(200, { data: { ...data, template: { ...data.template, id: params.id, title } } });
         }
         // An open library song as the server sends it (stackapella.mockOpenSong, this tab): reviewed, to a guest as well

@@ -102,7 +102,8 @@ export const OwnChoirView = {
         quotaLine() {
             const q = ownChoir.data?.quota;
             if (!q) return '';
-            if (!q.plus && q.freeLeft > 0) return t('ownChoir.limit.free');
+            // The free offer, said once under Start; it names the song when it isn't this page's (the song they sing).
+            if (!q.plus && q.freeLeft > 0) return this.freeSongId && this.freeSongId !== this.id ? t('ownChoir.free.yourSong', { song: this.clipTitle }) : t('ownChoir.limit.free');
             // Plus counts singing minutes (part-minutes); the songs are an estimate for this song, so "about".
             if (q.unit === 'minutes' && q.minutesLeft != null) {
                 // Each month of the subscription, from its renewal day: `resetsAt` is when the month turns and the full
@@ -197,6 +198,15 @@ export const OwnChoirView = {
             options.push({ value: 'choir', label: t('ownChoir.version.fullChoir') });
             return options;
         },
+        /**
+         * Stop making songs from my singing: not on a first visit (the coordinator's review: nothing to stop yet), but
+         * once they've had a choir or a voice (remembered on this device, so it stays after a song is deleted).
+         */
+        stopShown() {
+            const had = !!this.request || savedVoice() || (ownChoir.data?.requests?.length ?? 0) > 0;
+            if (had) local.set('stackapella.choirHad', '1');
+            return had || local.get('stackapella.choirHad') === '1';
+        },
         /** A free singer's choir song: the one their clip tune makes (`clipSongs[].songId`), or null with Plus. */
         freeSongId() {
             const q = ownChoir.data?.quota;
@@ -230,15 +240,16 @@ export const OwnChoirView = {
 
             <!-- The terms, once: the short version, the terms, one button (English only, as the AI licence). -->
             <section v-else-if="state === 'terms' && terms" class="space-y-5" data-choir-terms>
-                <h1 class="text-2xl font-bold text-cream" translate="no">{{ terms.title }}</h1>
-                <div class="card p-5" :class="game ? '' : 'max-h-[50dvh] overflow-y-auto'" tabindex="0" role="region" :aria-label="terms.title"><Agreement :agreement="terms" :level="2" /></div>
-                <button type="button" class="btn-primary" :disabled="busy" data-choir-agree @click="agree">{{ t('ownChoir.terms.agree') }}</button>
+                <!-- The coordinator's review: no heading repeating the bar's title, no box scrolling inside the page, one wide button. -->
+                <h1 v-if="terms.title !== t('ownChoir.title')" class="text-2xl font-bold text-cream" translate="no">{{ terms.title }}</h1>
+                <div class="card p-5" role="region" :aria-label="terms.title"><Agreement :agreement="terms" :level="2" /></div>
+                <button type="button" class="btn-primary w-full" :disabled="busy" data-choir-agree @click="agree">{{ t('ownChoir.terms.agree') }}</button>
             </section>
 
             <!-- The start (nothing yet, or it failed) follows Hillel's intro design to its values: a 600 px column, the
                  eyebrow 12 px over a big heading, the stepper, one card for the headphones and the actions, a quiet footer. -->
             <section v-else :class="intro ? 'mx-auto w-full max-w-[600px] pb-12 pt-6 md:pt-16' : 'space-y-5'" data-choir-page :data-choir-state="request?.status ?? 'none'">
-                <p class="eyebrow" translate="no">{{ song }}</p>
+                <p v-if="!intro && request?.status !== 'ready'" class="eyebrow" translate="no">{{ song }}</p>
                 <!-- Ready: the finished track first (Hillel: "some people will just want a finished track"): play it here and
                      download it, labelled AI; learning a part is one quiet option, never the main button. -->
                 <template v-if="request?.status === 'ready'">
@@ -253,10 +264,10 @@ export const OwnChoirView = {
                         <!-- Words not in English: the AI parts are sung on "oo" (ai-modal, via Hillel), from the song's language. -->
                         <p v-if="notEnglish" class="text-sm text-muted" data-choir-on-oo>{{ t('ownChoir.ready.onOo') }}</p>
                         <!-- Hillel: "compare your original, to you with choir around, or full choir" (for everyone). -->
-                        <Segmented v-if="viewOptions.length > 1" :model-value="listenTo" :options="viewOptions" :label="t('ownChoir.version.label')" full class="[&_.seg-option]:min-h-11" data-listen-to @update:model-value="chooseView" />
+                        <Segmented v-if="viewOptions.length > 1" :model-value="listenTo" :options="viewOptions" :label="t('ownChoir.version.label')" full class="overflow-x-auto [&_.seg-option]:min-h-11 [&_.seg-option]:shrink-0" data-scroll-row data-listen-to @update:model-value="chooseView" />
                         <div class="grid gap-2.5 sm:grid-cols-2">
                             <button type="button" class="btn-primary btn-lg justify-center" :aria-busy="loadingTrack ? 'true' : null" data-choir-play @click="togglePlay"><span v-if="loadingTrack" class="spinner" aria-hidden="true"></span>{{ playing || hearingClip ? t('studio.stop') : t('ownChoir.ready.button') }}</button>
-                            <button type="button" class="btn-secondary btn-lg justify-center" :disabled="loadingTrack" data-choir-download @click="download">{{ t('ownChoir.ready.download') }}</button>
+                            <button type="button" class="btn-secondary btn-lg justify-center" :disabled="loadingTrack" data-choir-download @click="download">{{ t('ownChoir.ready.download') }}<span v-if="!request.canDownload" class="chip-accent ms-2 text-xs" data-download-plus>{{ t('ownChoir.settings.plusBadge') }}</span></button>
                         </div>
                         <!-- Share (the share page credits each part as AI made from their singing): the studio's share sheet. -->
                         <button type="button" class="btn-secondary w-full justify-center" :disabled="busy" data-choir-share @click="share">{{ t('ownChoir.share.button') }}</button>
@@ -265,7 +276,7 @@ export const OwnChoirView = {
                     <!-- Downloading is Plus's (Hillel, 2026-11-21); listening and sharing stay free. The server says who may. -->
                     <PlusMoment v-if="plusFor" :title="t('ownChoir.ready.download')" :text="t('plus.moment.choirDownload')" from="choir_download" :next="here" price @close="plusFor = false" />
                     <!-- Choir settings (the coordinator for Hillel): Sound at once, How it's sung by a remake; Plus's, shown to all. -->
-                    <ChoirSettings :request="request" :template="template" :plus="isPlus()" :busy="busy" :minutes-left="ownChoir.data?.quota?.minutesLeft ?? null" :has-lead="!!request.leadTake" :has-recording="ownChoir.data?.voice?.clipListen?.templateId === request.templateId" @sound="saveSound" @remake="remake" @plus="plusSettings = true" />
+                    <ChoirSettings :request="request" :template="template" :plus="isPlus()" :busy="busy" :minutes-left="ownChoir.data?.quota?.minutesLeft ?? null" :monthly="ownChoir.data?.quota?.minutesPerMonth ?? null" :has-lead="!!request.leadTake" :has-recording="ownChoir.data?.voice?.clipListen?.templateId === request.templateId" @sound="saveSound" @remake="remake" @plus="plusSettings = true" />
                     <PlusMoment v-if="plusSettings" :title="t('ownChoir.settings.title')" :text="t('plus.moment.choirSettings')" from="choir_settings" :next="here" price @close="plusSettings = false" />
                     <!-- A choir with friends (behind own_choir_together): the "really you" line becomes Who sings, one row a part, each
                          with its AI label (or their real take's), the parts that sit high or low for them, and one invite line. -->
@@ -352,7 +363,6 @@ export const OwnChoirView = {
                                 <span v-if="step.body" class="mt-1 block text-[15px] leading-[1.55] text-muted" data-step-body>{{ step.body }}</span>
                                 <ClipChoice v-if="step.choose && canStart" class="mt-4" :song-id="id" />
                                 <!-- The free choir is the song they sing (Hillel): said when that isn't this page's song. -->
-                                <span v-if="step.choose && canStart && freeSongId && freeSongId !== id" class="mt-2 block text-sm text-cream" data-free-song>{{ t('ownChoir.free.yourSong', { song: clipTitle }) }}</span>
                                 <HeadphonesPick v-if="step.choose && canStart" class="mt-5" />
                             </span>
                         </li>
@@ -403,7 +413,7 @@ export const OwnChoirView = {
                 </template>
                 <!-- Not on a ready song (the coordinator for Hillel: a destructive account action stays off a celebratory
                      screen; the voice's own delete is the saved voice row in Settings). -->
-                <p v-if="request?.status !== 'ready'" :class="intro ? 'mt-10 border-t border-line pt-4' : 'pt-4'"><button type="button" class="inline-flex min-h-11 items-center" :class="intro ? 'text-[13px] text-muted underline underline-offset-4 hover:text-cream' : 'link-quiet text-sm'" data-choir-stop @click="stopAll">{{ t('ownChoir.stop.button') }}</button></p>
+                <p v-if="request?.status !== 'ready' && stopShown" :class="intro ? 'mt-10 border-t border-line pt-4' : 'pt-4'"><button type="button" class="inline-flex min-h-11 items-center" :class="intro ? 'text-[13px] text-muted underline underline-offset-4 hover:text-cream' : 'link-quiet text-sm'" data-choir-stop @click="stopAll">{{ t('ownChoir.stop.button') }}</button></p>
             </section>
         </AppScreen>`,
     unmounted() {

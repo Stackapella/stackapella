@@ -36,9 +36,6 @@ export const RecordingStage = {
     setup: () => ({ formatTime, formatNumber, joinSyllables }),
     template: `
         <div class="flex min-h-0 flex-1 flex-col" data-recording-stage>
-            <div v-if="bigCount && countIn" class="pointer-events-none fixed inset-0 z-30 grid place-items-center" aria-hidden="true" data-count-big>
-                <span :key="countIn" class="count-big text-[9rem] font-extrabold leading-none text-cream tabular-nums md:text-[12rem]" :style="{ animationDuration: bigCount + 's' }">{{ formatNumber(countIn) }}</span>
-            </div>
             <!-- The screen's heading for a screen reader (the song's title shows below it): focus comes here as the take
                  starts, so the keyboard isn't left on the page, and Stop is the next Tab (the first-week a11y pass). -->
             <h1 ref="heading" tabindex="-1" class="sr-only">{{ t('sing.recordingStage.heading', { title }) }}</h1>
@@ -52,7 +49,7 @@ export const RecordingStage = {
                     <p class="truncate text-sm font-bold md:text-base" :class="named ? 'text-cream' : 'italic text-muted'" :translate="named ? 'no' : null">{{ title }}</p>
                     <p data-ui="facts" class="flex items-center justify-center gap-1.5 text-xs text-muted md:text-sm">
                         <span class="size-2 shrink-0 rounded-full" :style="{ background: color }" aria-hidden="true"></span>
-                        <span class="truncate"><template v-if="partName"><span translate="no" data-sing-part-name>{{ partName }}</span> · </template>{{ t('sing.recordingStage.take', { number: take }) }}</span>
+                        <span class="truncate"><template v-if="partName"><span translate="no" data-sing-part-name>{{ partName }}</span> · {{ t('sing.recordingStage.take', { number: take }) }}</template></span>
                     </p>
                 </div>
                 <span class="justify-self-end"><slot name="hearing" /></span>
@@ -60,7 +57,12 @@ export const RecordingStage = {
             <p v-if="hearing" class="px-4 text-center text-sm text-muted md:px-8" data-hear-line>{{ hearing }}</p>
 
             <div class="flex min-h-0 flex-1 flex-col justify-center gap-5 px-4 pb-4 text-cream md:gap-8 md:px-8">
-                <div class="h-[38vh] min-h-48 shrink-0 overflow-hidden rounded-3xl border border-edge bg-panel md:h-[40vh]"><slot /></div>
+                <!-- The count-in's big number sits on the lane, clipped to it (the coordinator's review: never over the words). -->
+                <div class="relative h-[38vh] min-h-48 shrink-0 overflow-hidden rounded-3xl border border-edge bg-panel md:h-[40vh]"><slot />
+                    <div v-if="bigCount && countIn" class="pointer-events-none absolute inset-0 z-10 grid place-items-center" aria-hidden="true" data-count-big>
+                        <span :key="countIn" class="count-big text-[min(9rem,30vh)] font-extrabold leading-none text-cream tabular-nums" :style="{ animationDuration: bigCount + 's' }">{{ formatNumber(countIn) }}</span>
+                    </div>
+                </div>
                 <div v-if="line" class="space-y-3">
                     <KaraokeLine :line="line" :position="position" :color="color" class="text-4xl font-extrabold leading-[1.1] tracking-tight md:text-7xl" />
                     <p v-if="next" translate="no" class="text-xl font-extrabold text-cream/45 md:text-3xl">{{ joinSyllables(next.syllables) }}</p>

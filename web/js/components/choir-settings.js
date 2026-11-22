@@ -8,6 +8,7 @@
 import { formatNumber, t, tk } from '../i18n.js';
 import { templatePartName } from '../templates.js';
 import { Segmented } from './controls.js';
+import { Icon } from './icon.js';
 import { count } from '../usage.js';
 
 const ROOMS = ['dry', 'small', 'hall', 'chapel'];
@@ -43,10 +44,11 @@ export const ChoirSettings = {
         plus: Boolean, // without Plus, every control opens the Plus sheet
         busy: Boolean,
         minutesLeft: { type: Number, default: null }, // their AI-singing minutes left (ownChoir.show's quota)
+        monthly: { type: Number, default: null }, // Plus's AI-singing minutes a month, said once (How it's sung's hint)
         hasLead: Boolean, // a whole-song take as the lead: the Lead blend
         hasRecording: Boolean, // their clip was sung to this song: it can be mixed in
     },
-    components: { Segmented },
+    components: { Segmented, Icon },
     emits: ['sound', 'remake', 'plus'],
     data() {
         return { sung: { ...DEFAULT_SUNG, ...(this.request.settings?.sung ?? {}) }, opened: false };
@@ -163,11 +165,12 @@ export const ChoirSettings = {
     template: `
         <section class="space-y-6" aria-labelledby="choir-settings-h" data-choir-settings :data-plus="plus ? 'yes' : 'no'">
             <div class="space-y-1">
-                <h2 id="choir-settings-h" class="flex items-center gap-2 text-lg font-bold text-cream">{{ t('ownChoir.settings.title') }}<span v-if="!plus" class="chip-accent" data-settings-plus-badge>{{ t('ownChoir.settings.plusBadge') }}</span></h2>
+                <h2 id="choir-settings-h" class="flex items-center gap-2 text-lg font-bold text-cream">{{ t('ownChoir.settings.title') }}<span v-if="!plus" class="chip-accent gap-1" data-settings-plus-badge><Icon name="lock" :size="12" />{{ t('ownChoir.settings.plusBadge') }}</span></h2>
                 <p v-if="!plus" class="text-sm text-muted" data-settings-locked>{{ t('ownChoir.settings.locked') }}</p>
             </div>
 
-            <div class="space-y-3" data-settings-sound>
+            <!-- Without Plus the panel is dimmed under a lock (a tap still opens the Plus sheet): the coordinator's review. -->
+            <div class="space-y-3" :class="plus ? '' : 'opacity-60'" data-settings-sound>
                 <div>
                     <p class="text-xs font-bold uppercase tracking-[0.14em] text-muted">{{ t('ownChoir.settings.sound') }}</p>
                     <p class="text-sm text-muted">{{ t('ownChoir.settings.soundHint') }}</p>
@@ -178,7 +181,7 @@ export const ChoirSettings = {
                         <Segmented :model-value="sound.room" :options="roomOptions" :label="t('ownChoir.settings.room')" full class="[&_.seg-option]:min-h-11" data-settings-room @update:model-value="setRoom" />
                     </div>
                     <div v-if="hasLead" class="space-y-1 py-4" data-settings-blend>
-                        <p class="font-semibold text-cream">{{ t('ownChoir.settings.leadBlend') }}</p>
+                        <div><p class="font-semibold text-cream">{{ t('ownChoir.settings.leadBlend') }}</p><p class="text-sm text-muted">{{ t('ownChoir.settings.leadBlendHint') }}</p></div>
                         <input type="range" min="0" max="1" step="0.1" class="block min-h-11 w-full accent-[var(--color-accent)]" :value="sound.leadBlend ?? 0" :aria-label="t('ownChoir.settings.leadBlend')" @change="setBlend" />
                         <div class="flex justify-between text-xs text-muted"><span>{{ t('ownChoir.settings.you') }}</span><span>{{ t('ownChoir.settings.ai') }}</span></div>
                     </div>
@@ -200,10 +203,10 @@ export const ChoirSettings = {
                 </div>
             </div>
 
-            <div class="space-y-3" data-settings-sung>
+            <div class="space-y-3" :class="plus ? '' : 'opacity-60'" data-settings-sung>
                 <div>
                     <p class="text-xs font-bold uppercase tracking-[0.14em] text-muted">{{ t('ownChoir.settings.sung') }}</p>
-                    <p class="text-sm text-muted">{{ t('ownChoir.settings.sungHint') }}</p>
+                    <p class="text-sm text-muted">{{ monthly ? t('ownChoir.settings.sungHintMonthly', { n: monthly }) : t('ownChoir.settings.sungHint') }}</p>
                 </div>
                 <div class="card divide-y divide-line px-5">
                     <div class="space-y-1 py-4">
@@ -224,7 +227,7 @@ export const ChoirSettings = {
                 <p v-if="remaking" class="text-sm text-cream" role="status" data-remaking>{{ t('ownChoir.settings.remaking') }}</p>
                 <div v-else class="flex flex-wrap items-center justify-between gap-x-5 gap-y-3">
                     <p class="text-sm text-muted" data-remake-cost>{{ changed || !plus ? costLine : t('ownChoir.settings.remakeNeedsChange') }}</p>
-                    <button type="button" class="btn-primary max-sm:w-full" :disabled="busy || (plus && !changed)" :aria-busy="busy ? 'true' : null" data-remake @click="remake">{{ t('ownChoir.settings.remake') }}</button>
+                    <button type="button" class="btn-secondary max-sm:w-full" :disabled="busy || (plus && !changed)" :aria-busy="busy ? 'true' : null" data-remake @click="remake">{{ t('ownChoir.settings.remake') }}</button>
                 </div>
                 <button v-if="custom" type="button" class="link-quiet inline-flex min-h-11 items-center text-sm" data-settings-reset @click="reset">{{ t('ownChoir.settings.reset') }}</button>
             </div>
