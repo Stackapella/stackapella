@@ -24,11 +24,12 @@ def journey(f):
     f.shot("header")
     if f.size != "desktop":
         f.no_sideways("Sing")
-    controls = f.js("[...document.querySelectorAll('header button, header [role=meter], header [role=group]')].filter((e) => e.getClientRects().length).length")
-    expected = 2 if f.size != "desktop" else 3  # a phone's part chip is Settings' first row
+    controls = f.js("[...document.querySelectorAll('header button, header [role=meter], header [role=group]')].filter((e) => e.getClientRects().length && !e.closest('[data-ui=view-switch] button')).length")
+    # A phone's part chip is Settings' first row; Words / Notes / Staff is one control (Hillel, 2026-11-22).
+    expected = 3 if f.size != "desktop" else 4
     assert controls == expected, f"the header has {controls} controls, not {expected}"
     assert not f.js("document.querySelector('[data-hear-line]')"), "the You'll hear line is back"
-    modes = f.js("(() => { const g = document.querySelector('[role=group][aria-label]'); const r = g.getBoundingClientRect(); const p = g.parentElement; const box = p.getBoundingClientRect(); return Math.abs((r.left + r.right) / 2 - (box.left + p.clientWidth / 2)); })()")
+    modes = f.js("(() => { const g = document.querySelector('[role=group][aria-label]:not([data-ui=view-switch])'); const r = g.getBoundingClientRect(); const p = g.parentElement; const box = p.getBoundingClientRect(); return Math.abs((r.left + r.right) / 2 - (box.left + p.clientWidth / 2)); })()")
     assert modes < 4, f"the modes aren't centred ({modes}px off)"
     # Hillel: scrolling Settings scrolled the screen behind. A real wheel over the sheet scrolls the
     # sheet; the page and Sing's stage hold still, and the page unlocks when it closes.

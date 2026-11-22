@@ -156,12 +156,10 @@ class Flow:
     KEYS = {"Enter": (13, "\r"), "Escape": (27, ""), "Tab": (9, ""), " ": (32, " "), "n": (78, "n"), "m": (77, "m"), "r": (82, "r"), "ArrowLeft": (37, ""), "ArrowUp": (38, ""), "ArrowRight": (39, ""), "ArrowDown": (40, "")}
 
     def sing_view(self, view):
-        """Sing's view (words, notes or staff), chosen in Session settings' Show."""
-        self.run("document.querySelector('[data-settings-open]').click()")
-        self.wait("document.querySelector('[data-view]')", what="Session settings' Show")
-        self.click_t(f"sing.view.{view}")
-        self.press("Escape")
-        return self.wait("!document.querySelector('[data-session-settings]')", what="Session settings closed")
+        """Sing's view (words, notes or staff), chosen on Sing's header (Hillel, 2026-11-22)."""
+        self.wait("document.querySelector('[data-ui=view-switch]')", what="Sing's Words / Notes / Staff")
+        self.run(f"document.querySelector('[data-sing-view={view}]').click()")
+        return self.wait(f"document.querySelector('[data-sing-view={view}]').getAttribute('aria-pressed') === 'true'", what=f"the {view} view")
 
     def press(self, key):
         """Presses a key for real (the browser's own input, so Enter activates the focused button)."""

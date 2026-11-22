@@ -102,7 +102,7 @@ return [
         // Hear yourself as a choir (docs/ai-voices-build-plan.md, phase 2, behind own_choir_teaser): its angle first, AI said once.
         'choir' => [
             'button' => 'Hear yourself as a choir',
-            'soon' => 'Sing Happy Birthday twice, and hear every part of this arrangement in a voice like yours, made by AI.',
+            'soon' => 'Sing two short songs everyone knows, and hear every part of this arrangement in a voice like yours, made by AI.',
             // Beside the live link (own_choir).
             'free' => 'Your first one is free.',
         ],

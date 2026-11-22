@@ -14,11 +14,6 @@ import { AiVoiceLabel, voiceCredit } from '../../ai-voices.js';
 import { HearingSection } from './hearing.js';
 import { Switch } from '../controls.js';
 
-const VIEWS = [
-    { value: 'words', label: tk('sing.view.words') },
-    { value: 'notes', label: tk('sing.view.notes') },
-    { value: 'staff', label: tk('sing.view.staff') },
-];
 const SPEEDS = [1, 0.85, 0.7];
 // Letters say themselves as a note in the naming in use (D4, Re4 with fixed Do: note-names.js).
 const styleLabel = (n) => (n === 'letters' ? midiName(62) : t(STYLE_LABELS[n]));
@@ -42,7 +37,6 @@ export const SettingsSheet = {
         chordsSound: { type: String, default: 'pad' },
         drone: { type: String, default: 'off' }, // a drone to tune against: 'off', 'key' or 'chord' (docs/tune-chord-plan.md)
         droneLevel: { type: Number, default: 0.4 },
-        view: { type: String, default: 'words' },
         sample: { type: String, default: '' }, // your part's first notes, named as chosen ("B♭2 C3 D3")
         color: { type: String, required: true },
         hearing: { type: Object, required: true }, // What you hear: { rows, guideLevel, speakers, voices }
@@ -50,29 +44,24 @@ export const SettingsSheet = {
         partName: { type: String, default: '' }, // a phone's part picker (the header's chip on a wide screen)
         partColor: { type: String, default: '' },
     },
-    emits: ['part', 'toggle', 'level', 'view', 'speed', 'ladder', 'chords', 'chords-level', 'chords-sound', 'drone', 'drone-level', 'voices', 'split', 'reset', 'close'],
-    setup: () => ({ VIEWS, SPEEDS, NOTE_STYLES, styleLabel, SHORTCUTS, prefs, BAND_STYLES, styleOf }),
+    emits: ['part', 'toggle', 'level', 'speed', 'ladder', 'chords', 'chords-level', 'chords-sound', 'drone', 'drone-level', 'voices', 'split', 'reset', 'close'],
+    setup: () => ({ SPEEDS, NOTE_STYLES, styleLabel, SHORTCUTS, prefs, BAND_STYLES, styleOf }),
     // 67.png: Display (Show, Note names with a sample, the keyboard, the other parts), Practice (Speed
     // with the tempo it plays at, Chords underneath, Guide voices), Controls (shortcuts and their keys).
     template: `
-        <Modal :title="t('sing.settings.title')" @close="$emit('close')">
+        <!-- Wide screens (Hillel, 2026-11-22: "make the settings popup wider on desktop"): two columns, What you hear | the rest. -->
+        <Modal :title="t('sing.settings.title')" :wider="!recording" @close="$emit('close')">
             <template #actions><button v-if="!recording" type="button" class="link-quiet min-h-11 text-sm" @click="$emit('reset')">{{ t('sing.settings.reset') }}</button></template>
-            <div class="-mx-6 divide-y divide-line" data-session-settings>
+            <div class="-mx-6 divide-y divide-line" :class="recording ? '' : 'lg:grid lg:grid-cols-2 lg:divide-y-0'" data-session-settings>
                 <button v-if="partName && !recording" type="button" class="flex w-full items-center gap-4 px-6 pb-6 text-start sm:hidden" data-part-picker @click="$emit('part')">
                     <span class="size-3 shrink-0 rounded-full" :style="{ background: partColor }" aria-hidden="true"></span>
                     <span class="min-w-0 flex-1"><span class="block text-xs font-bold uppercase tracking-[0.14em] text-muted">{{ t('sing.yourPart.title') }}</span><span class="block font-semibold text-cream" translate="no">{{ partName }}</span></span>
                     <Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" />
                 </button>
                 <HearingSection v-bind="hearing" :recording="recording" :class="partName && !recording ? 'max-sm:pt-6' : ''" @toggle="$emit('toggle', $event)" @level="$emit('level', $event)" @voices="$emit('voices')" @split="$emit('split', $event)" />
-                <template v-if="!recording">
+                <div v-if="!recording" class="divide-y divide-line lg:border-s lg:border-line" data-settings-column>
                 <section class="space-y-5 px-6 py-6" :aria-label="t('sing.settings.display')">
                     <p class="text-xs font-bold uppercase tracking-[0.14em] text-muted" aria-hidden="true">{{ t('sing.settings.display') }}</p>
-                    <fieldset>
-                        <legend class="mb-2 font-semibold text-cream">{{ t('sing.settings.show') }}</legend>
-                        <div class="grid grid-cols-3 rounded-2xl border border-line p-1">
-                            <button v-for="v in VIEWS" :key="v.value" type="button" class="min-h-10 rounded-xl text-sm font-semibold" :class="view === v.value ? 'glass-bubble-solid' : 'text-muted hover:text-cream'" :aria-pressed="view === v.value ? 'true' : 'false'" data-view @click="$emit('view', v.value)">{{ t(v.label) }}</button>
-                        </div>
-                    </fieldset>
                     <fieldset>
                         <div class="mb-2 flex items-baseline justify-between gap-3"><legend class="font-semibold text-cream">{{ t('sing.settings.names.title') }}</legend><span v-if="sample" class="tabular-nums text-xs text-muted" translate="no">{{ sample }}</span></div>
                         <div class="grid rounded-2xl border border-line p-1 grid-cols-4">
@@ -126,7 +115,7 @@ export const SettingsSheet = {
                     </dl>
                     <p class="text-xs text-muted">{{ t('sing.settings.shortcutsHint') }}</p>
                 </section>
-                </template>
+                </div>
             </div>
         </Modal>`,
     computed: {

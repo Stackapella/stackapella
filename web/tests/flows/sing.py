@@ -217,6 +217,15 @@ def journey(f):
     f.click_t("studio.pause")
     f.sing_view("staff")
     f.wait("document.querySelector('main svg ellipse')", what="the staff")
+    # Hillel, 2026-11-22: Words / Notes / Staff on the main screen, not in Session settings; on a phone, a row of its own.
+    assert f.js("document.querySelector('[data-sing-view=staff]').getAttribute('aria-pressed')") == "true"
+    f.run("document.querySelector('[data-settings-open]').click()")
+    f.wait("document.querySelector('[data-session-settings]')", what="Session settings")
+    assert not f.js("document.querySelector('[data-session-settings] [data-sing-view]')"), "the view still in Session settings"
+    f.press("Escape")
+    f.wait("!document.querySelector('[data-session-settings]')", what="Session settings closed")
+    f.no_sideways("Sing's header with the view switch")
+    f.run("document.querySelectorAll('[data-toast-tone]').forEach((toast) => toast.remove())")  # a clear look at the header
     f.shot("staff")
     f.sing_view("notes")
     f.wait("document.querySelector('main canvas')", what="the notes lane")

@@ -10,6 +10,13 @@ import { Icon } from '../icon.js';
 import { tk } from '../../i18n.js';
 import { CountIn } from '../count-in.js';
 
+// Sing's views, one tap from the header (and its V key).
+export const VIEWS = [
+    { value: 'words', label: tk('sing.view.words') },
+    { value: 'notes', label: tk('sing.view.notes') },
+    { value: 'staff', label: tk('sing.view.staff') },
+];
+
 /** The mic's level as five bars, live (your turn and recording). */
 export const MicLevel = {
     props: { color: { type: String, default: 'currentColor' } },
@@ -53,9 +60,11 @@ export const SingHeader = {
         about: { type: String, default: '' }, // your part's range (and who sings its guide), on the details line
         badge: { type: String, default: '' }, // on Settings: what's changed from the defaults
         marked: Boolean, // a dot on Settings while What you hear has anything changed
+        // Words, Notes or Staff, chosen right here (Hillel, 2026-11-22: moved out of Session settings); '' hides it.
+        view: { type: String, default: '' },
     },
-    emits: ['back', 'part', 'settings'],
-    setup: () => ({ formatTime }),
+    emits: ['back', 'part', 'settings', 'view'],
+    setup: () => ({ formatTime, VIEWS }),
     template: `
         <header class="flex flex-wrap items-center gap-x-3 gap-y-2 px-3 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))] min-[900px]:px-6">
             <template v-if="recording">
@@ -75,6 +84,10 @@ export const SingHeader = {
                     <Icon name="sliders" :size="20" />
                     <span v-if="badge" class="absolute -end-2 -top-2 rounded-full bg-raised px-1.5 text-[10px] font-bold text-cream">{{ badge }}</span>
                 </button>
+                <!-- Words / Notes / Staff: beside Your part and Settings; on a phone, its own slim row under them. -->
+                <div v-if="view" class="grid shrink-0 grid-cols-3 rounded-full glass-bubble bg-raised/60 p-1 max-sm:order-last max-sm:w-full sm:inline-grid" role="group" :aria-label="t('sing.settings.show')" data-ui="view-switch">
+                    <button v-for="v in VIEWS" :key="v.value" type="button" class="min-h-9 rounded-full px-3 text-sm font-semibold" :class="view === v.value ? 'glass-bubble-solid' : 'text-muted hover:text-cream'" :aria-pressed="view === v.value ? 'true' : 'false'" :data-sing-view="v.value" @click="$emit('view', v.value)">{{ t(v.label) }}</button>
+                </div>
                 <div class="flex shrink-0 items-center max-sm:hidden">
                     <button type="button" class="flex min-h-11 shrink-0 items-center gap-2 rounded-full glass-bubble bg-raised/60 py-1.5 pe-2.5 ps-3 text-sm font-semibold text-cream hover:bg-raised" :aria-label="t('sing.yourPart.open', { part: partName })" @click="$emit('part')">
                         <span class="size-2.5 rounded-full" :style="{ background: color }" aria-hidden="true"></span>

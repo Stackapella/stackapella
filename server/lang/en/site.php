@@ -1348,14 +1348,14 @@ return [
     // singing, learning your part, the ethics up front. AI said plainly, never first. No prices until Hillel sets them.
     'your_choir' => [
         'title' => 'Hear yourself as a choir',
-        'description' => 'Sing Happy Birthday twice, then hear a real choir arrangement with every part sung by AI in a voice like yours. Free to hear and share; download with Plus.',
+        'description' => 'Sing two short songs everyone knows, then hear a real choir arrangement with every part sung by AI in a voice like yours. Free to hear and share; download with Plus.',
         'eyebrow' => 'Hear yourself as a choir',
         // The headline in two, its key phrase in the warm accent (design rules, the five pages' headline).
         'headline_before' => 'You, as a',
         'headline_em' => 'whole choir',
         // `lead` without own_choir_hum, `lead_hum` with it (the hummed-song path's own switch).
-        'lead' => 'Sing Happy Birthday twice, then pick a song from our library. Every part is sung by AI in a voice like yours: a finished choir track to play and share, and to download with Plus.',
-        'lead_hum' => 'Sing Happy Birthday twice, then pick a song from our library, or hum a tune of your own. Every part is sung by AI in a voice like yours: a finished choir track to play and share, and to download with Plus.',
+        'lead' => 'Sing two short songs everyone knows, then pick a song from our library. Every part is sung by AI in a voice like yours: a finished choir track to play and share, and to download with Plus.',
+        'lead_hum' => 'Sing two short songs everyone knows, then pick a song from our library, or hum a tune of your own. Every part is sung by AI in a voice like yours: a finished choir track to play and share, and to download with Plus.',
         'start' => 'Try it with Silent Night',
         // The hero's main button on the page without the audio demo (Hillel: "support starting track B without A"); the
         // same link as `start`.
@@ -1398,7 +1398,7 @@ return [
             'own' => ['kick' => 'Made by you', 'heading' => 'A song of your own', 'body' => 'Hum a tune and give it your own words, if you like. The app writes it down and arranges the harmony, then every part, your tune included, is sung in a voice like yours: with your words, or on "oo".', 'cta' => 'Make your own'],
         ],
         'steps' => [
-            ['title' => 'Sing Happy Birthday twice', 'body' => 'To "dear friend", in whatever octave feels comfortable. It needn\'t be good singing: we only listen for what your voice sounds like, and keep it privately for your next songs.'],
+            ['title' => 'Sing two short songs', 'body' => 'Happy Birthday and For He\'s a Jolly Good Fellow, in whatever octave feels comfortable. It needn\'t be good singing: we only listen for what your voice sounds like, and keep it privately for your next songs.'],
             ['title' => 'Pick a song', 'body' => 'Any song in our library. Its notes come from the arrangement, not from your singing.'],
             ['title' => 'Hear your choir', 'body' => 'A few minutes later, your choir is ready, in tune and in time with the arrangement: play it and share it, or download it with Plus.'],
         ],
@@ -1464,7 +1464,7 @@ return [
             'whose' => 'Only yours. It\'s made from your own recording, sung in the app, and never used to make a voice for anyone else, or for anything else. Your songs are made on our GPU provider\'s servers, which keep what they process encrypted for at most 7 days, then delete it.',
             'yours' => 'Nothing you sing becomes an AI voice unless you choose to hear yourself as a choir. Then a short reference of your voice is kept privately in your account, only for your own songs, until you delete it, and at most 12 months after you last use it.',
             'label' => 'Everything made this way is marked as AI, in the app and on anything you share: each part says it\'s an AI voice made from your singing. It\'s never presented as a real recording of you or anyone else.',
-            'end' => ['title' => 'Hear yourself as a choir', 'body' => 'Sing Happy Birthday twice, and hear every part of a song in a voice like yours. Your first song is free.', 'cta' => 'Hear yourself as a choir'],
+            'end' => ['title' => 'Hear yourself as a choir', 'body' => 'Sing two short songs everyone knows, and hear every part of a song in a voice like yours. Your first song is free.', 'cta' => 'Hear yourself as a choir'],
         ],
         'sections' => [
             'what' => ['heading' => 'What an AI voice is', 'body' => 'A singing voice made by a computer model. It sings the part\'s own notes and words, from our arrangement, at the written pitch. Nobody recorded it singing that song.'],

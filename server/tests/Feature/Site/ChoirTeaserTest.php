@@ -39,7 +39,7 @@ final class ChoirTeaserTest extends TestCase
         $this->assertStringContainsString('<script type="module" src="/js/public/choir-teaser.js"></script>', $html);
         // Its words lead with the arrangement and the 30 seconds, and say AI once.
         $soon = (string) __('pages.song.choir.soon');
-        $this->assertStringStartsWith('Sing Happy Birthday twice', $soon);
+        $this->assertStringStartsWith('Sing two short songs', $soon);
         $this->assertSame(1, substr_count($soon, 'AI'));
         $this->assertSame(0, substr_count((string) __('pages.song.choir.button'), 'AI'));
         // Only on the song's own page, never its part pages.
