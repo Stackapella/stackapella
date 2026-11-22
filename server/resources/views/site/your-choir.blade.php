@@ -166,7 +166,7 @@
                             <div>
                                 <ol class="yc-steps">
                                     @foreach ((array) \Illuminate\Support\Facades\Lang::get('site.your_choir.steps') as $step)
-                                        <li class="yc-v{{ $loop->iteration }}"><span class="yc-n" aria-hidden="true">{{ $loop->iteration }}</span><div><h3>{{ $step['title'] }}</h3><p>{{ $own !== null && $loop->iteration === 1 ? __('site.your_choir.step_choose_hum') : $step['body'] }}</p></div></li>
+                                        <li class="yc-v{{ $loop->iteration }}"><span class="yc-n" aria-hidden="true">{{ $loop->iteration }}</span><div><h3>{{ $step['title'] }}</h3><p>{{ $own !== null && $loop->iteration === 2 ? __('site.your_choir.step_choose_hum') : $step['body'] }}</p></div></li>
                                     @endforeach
                                 </ol>
                                 @if ($together ?? false)

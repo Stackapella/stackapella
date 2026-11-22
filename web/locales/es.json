@@ -5648,7 +5648,8 @@
         },
         "title": "Óyete como un coro",
         "intro": {
-            "one": "Canta la melodía de {song} durante 30 segundos, en la octava que te resulte cómoda. No hace falta cantar bien: solo escuchamos cómo suena tu voz, y la guardamos en privado para tus próximas canciones.",
+            "one": "Canta la melodía de {song} durante 30 segundos, en la octava que te resulte cómoda.",
+            "oneBody": "No hace falta cantar bien: solo escuchamos cómo suena tu voz, y la guardamos en privado para tus próximas canciones.",
             "two": "Hacemos cada parte con una voz como la tuya, marcada como IA.",
             "three": "Luego aprende tu parte: cada una que grabas ocupa el lugar de su versión de IA."
         },

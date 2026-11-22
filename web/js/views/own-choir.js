@@ -160,7 +160,8 @@ export const OwnChoirView = {
             return hasWords(this.template) && !language.toLowerCase().startsWith('en');
         },
         steps() {
-            return [t('ownChoir.intro.one', { song: this.song }), t('ownChoir.intro.two'), t('ownChoir.intro.three')];
+            // Hillel's intro design (split step 1): the first step's title, and what it needn't be under it, muted.
+            return [{ title: t('ownChoir.intro.one', { song: this.song }), body: t('ownChoir.intro.oneBody') }, { title: t('ownChoir.intro.two') }, { title: t('ownChoir.intro.three') }];
         },
         failure() {
             const code = this.request?.failure;
@@ -270,12 +271,21 @@ export const OwnChoirView = {
                         <p class="text-cream">{{ failure }}</p>
                     </div>
                     <h1 v-else class="text-3xl font-extrabold tracking-tight text-cream">{{ t('ownChoir.record.title') }}</h1>
-                    <!-- Numbered by hand, so game mode (which drops list markers) keeps them too. -->
-                    <ol class="space-y-2 text-cream" data-choir-steps>
-                        <li v-for="(step, i) in steps" :key="i" class="flex gap-2.5"><span class="w-5 shrink-0 font-bold tabular-nums" aria-hidden="true">{{ formatNumber(i + 1) }}.</span><span>{{ step }}</span></li>
+                    <!-- Hillel's intro design: a vertical stepper. Numbered dots joined by a thin line (none after the last), the
+                         first (where they are) filled with the accent, the others ringed; game mode's dots are its chips. -->
+                    <ol data-choir-steps>
+                        <li v-for="(step, i) in steps" :key="i" class="flex gap-3.5" :data-choir-step="i + 1">
+                            <span class="flex w-6 shrink-0 flex-col items-center" aria-hidden="true">
+                                <span :class="dotClass(i)" data-ui="step-dot">{{ formatNumber(i + 1) }}</span>
+                                <span v-if="i < steps.length - 1" class="mt-1 w-px flex-1 bg-line"></span>
+                            </span>
+                            <span class="min-w-0 pt-0.5" :class="i < steps.length - 1 ? 'pb-5' : ''">
+                                <span class="block" :class="i === 0 ? 'text-cream' : 'text-cream/80'">{{ step.title }}</span>
+                                <span v-if="step.body" class="mt-1 block text-sm text-muted">{{ step.body }}</span>
+                            </span>
+                        </li>
                     </ol>
                     <p class="text-sm text-muted">{{ t('ownChoir.record.headphones') }}</p>
-                    <p v-if="quotaLine" class="text-sm text-cream" data-choir-quota>{{ quotaLine }}</p>
                     <p v-if="ownChoir.data?.busyToday && canStart" class="text-sm text-cream" data-choir-busy>{{ t('ownChoir.busy.today') }}</p>
                     <!-- A voice kept from before (Hillel: "store a model to make it easier"): the next song is one tap; singing again
                          is a quiet option that replaces it. Without one, Start singing. -->
@@ -311,6 +321,7 @@ export const OwnChoirView = {
                         <button type="button" class="link tap-44 self-start text-sm" :disabled="busy" data-choir-start @click="start">{{ t('ownChoir.songs.singInstead') }}</button>
                     </template>
                     <button v-else-if="canStart" type="button" class="btn-primary btn-lg" :disabled="busy" data-choir-start @click="start">{{ request?.status === 'failed' ? t('ownChoir.record.again') : t('ownChoir.record.start') }}</button>
+                    <p v-if="quotaLine" class="text-sm text-cream" data-choir-quota>{{ quotaLine }}</p>
                 </template>
                 <!-- Not on a ready song (the coordinator for Hillel: a destructive account action stays off a celebratory
                      screen; the voice's own delete is the saved voice row in Settings). -->
@@ -357,6 +368,11 @@ export const OwnChoirView = {
         clearInterval(this.poll);
     },
     methods: {
+        /** A step's dot: the first filled with the accent, the rest ringed (game: its chips, the first its accent chip). */
+        dotClass(i) {
+            if (this.game) return i === 0 ? 'chip-accent size-6 justify-center p-0 tabular-nums' : 'chip size-6 justify-center p-0 tabular-nums';
+            return i === 0 ? 'flex size-6 items-center justify-center rounded-full bg-accent text-xs font-bold text-accent-ink tabular-nums' : 'flex size-6 items-center justify-center rounded-full border border-line text-xs font-bold text-muted tabular-nums';
+        },
         statusWord(status) {
             return status === 'ready' ? t('ownChoir.wait.part.ready') : status === 'making' ? t('ownChoir.wait.part.making') : t('ownChoir.wait.part.waiting');
         },

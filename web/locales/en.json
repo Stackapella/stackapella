@@ -8523,7 +8523,8 @@
         },
         "title": "Hear yourself as a choir",
         "intro": {
-            "one": "Sing the tune of {song} for 30 seconds, in whatever octave feels comfortable. It needn't be good singing: we only listen for what your voice sounds like, and keep it privately for your next songs.",
+            "one": "Sing the tune of {song} for 30 seconds, in whatever octave feels comfortable.",
+            "oneBody": "It needn't be good singing: we only listen for what your voice sounds like, and keep it privately for your next songs.",
             "two": "We make every part of it in a voice like yours, labelled as AI.",
             "three": "Then learn your part: each one you record takes the place of its AI version."
         },

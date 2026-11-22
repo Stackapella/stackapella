@@ -57,6 +57,11 @@ def journey(f):
     f.wait("document.querySelector('[data-choir-start]')", what="Start singing")
     assert "free" in f.js("document.querySelector('[data-choir-quota]')?.textContent ?? ''"), "the free one is said"
     f.no_sideways("the choir page")
+    # Hillel's intro design: a stepper of three, the first step split (title, then a muted body), the first dot filled.
+    assert f.js("document.querySelectorAll('[data-choir-step]').length") == 3
+    assert f.js("document.querySelector('[data-choir-step=\"1\"] .text-sm')?.textContent.includes('good singing')"), "step 1 has no muted body"
+    assert f.js("!!document.querySelector('[data-choir-start]') && document.querySelector('[data-choir-start]').compareDocumentPosition(document.querySelector('[data-choir-quota]')) & Node.DOCUMENT_POSITION_FOLLOWING"), "the free line isn't under Start singing"
+    f.no_sideways("the choir's start")
     f.shot("start")
 
     # Start singing: Sing on a choir project. A take (a steady tone, 20 s, from beat 0) goes as the clip, as Make my choir sends it.
