@@ -188,7 +188,7 @@ def without_voices(f):
     assert try_box[1] <= try_box[2] and try_box[0] >= 0, f"the way in is on the first screen: {try_box}"
     assert f.js("document.querySelectorAll('img').length") == 0, "no photos on this page"
     views = f.js("[...document.querySelectorAll('[data-yc-stage] [data-s]')].map((s) => s.dataset.s)")
-    assert views == ["hero", "four", "yours"], f"the picture's scenes: {views}"
+    assert views == ["hero", "four", "lead", "yours"], f"the picture's scenes: {views}"
     # The first screen: the voice line becomes the four parts once, on its own, then rests (nothing animates for ever).
     time.sleep(3.5)
     opened = f.js(OPEN)
@@ -199,9 +199,29 @@ def without_voices(f):
     time.sleep(1.2)
     assert f.js("getComputedStyle(document.querySelector('[data-s=four]')).opacity") == "1", "the four parts' words show"
     assert f.js(OPEN) == ["you:soprano", "ai:soprano", "ai:alto", "ai:tenor", "ai:bass"], f"four: the voice line folded, the four parts open: {f.js(OPEN)}"
+    # You + choir: the voice line back as the lead, named as the singer's own recording, the AI alto, tenor and bass
+    # around it, the AI soprano given way.
     f.run("window.scrollTo(0, 2 * innerHeight)")
+    f.wait(f"{ROOT}.dataset.view === 'lead'", timeout=5, what="you with the choir")
+    time.sleep(1.2)
+    assert f.js(OPEN) == ["you:soprano", "ai:alto", "ai:tenor", "ai:bass"], f"lead: your recording and the AI parts around it: {f.js(OPEN)}"
+    shown = f.js("[...document.querySelectorAll('.yc-you :is(.yc-you-voice, .yc-you-lead)')].filter((b) => getComputedStyle(b).display !== 'none').map((b) => b.className)")
+    assert shown == ["yc-you-lead"], f"lead: the voice line is named as your recording: {shown}"
+    f.run("window.scrollTo(0, 3 * innerHeight)")
     f.wait(f"{ROOT}.dataset.view === 'yours'", timeout=5, what="now yours")
     f.no_sideways("the picture")
+    # Better with friends (own_choir_together on in this server's database): four parts, two in a voice like yours and
+    # two in a voice like your friend's, each saying whose with the small AI chip; no button of its own.
+    if f.js("!!document.querySelector('.yc-friends')"):
+        chips = f.js("[...document.querySelectorAll('.yc-friends .yc-chip')].map((c) => c.textContent.trim())")
+        assert len(chips) == 4 and len(set(chips)) == 1, f"friends: every part the same small AI chip: {chips}"
+        whose = f.js("[...document.querySelectorAll('.yc-friends .yc-song small')].map((c) => c.textContent.trim())")
+        assert len(whose) == 4 and len(set(whose)) == 2, f"friends: each part says whose voice: {whose}"
+        assert f.js("document.querySelectorAll('.yc-friends [data-your-choir-try], .yc-friends a, .yc-friends button').length") == 0, "friends: no second try block"
+        f.run("document.querySelector('.yc-friends').scrollIntoView()")
+        time.sleep(0.6)
+        f.shot("friends")
+        f.no_sideways("with friends")
     f.run("window.scrollTo(0, 0)")
 
 

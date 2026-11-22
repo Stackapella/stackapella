@@ -6,8 +6,10 @@ namespace App\Support\OwnChoir;
 
 /**
  * The low-voice version of a song (Hillel, 2026-11-23: a low voice's soprano and alto came out high and thin): the treble
- * parts an octave down, tenor and bass as written. Octaves only, so every chord tone is kept; a moved note that would
- * fall below the bass sounding with it stays at pitch, so the bass stays the lowest note. Pure: data in, data out.
+ * parts an octave down, tenor and bass as written. Octaves only, so every chord tone is kept. The tune moves whole, so it
+ * keeps its shape; where it would sound under the bass, that bass note moves down an octave if its own range allows, else
+ * the tune crosses under it there. An inner part's note that would fall below the bass stays at pitch. Pure: data in,
+ * data out.
  */
 final class VoicingTransform
 {
@@ -18,16 +20,32 @@ final class VoicingTransform
     public static function low(array $data): array
     {
         [$notes, $bass, $treble] = self::analyse($data);
+        $tune = self::tuneKey($data, $treble);
         $shifts = array_map(static fn (bool $high): int => $high ? -12 : 0, $treble);
+        // The tune an octave down whole, so it keeps its shape (Ma'oz Tzur's second note leapt up a seventh when moved
+        // note by note); the bass makes room under it where it can.
+        $low = $tune === null ? null : self::wholeDown($notes[$tune]);
+        $bassNotes = $bass === null ? [] : ($low === null ? $notes[$bass] : self::makeRoom($notes[$bass], $low));
 
-        $data['parts'] = array_map(static fn (mixed $part): mixed => is_array($part) && ($treble[$part['key'] ?? ''] ?? false) ? self::lowered($part, $notes, $bass) : $part, (array) ($data['parts'] ?? []));
+        $data['parts'] = array_map(static function (mixed $part) use ($treble, $tune, $low, $bass, $bassNotes): mixed {
+            if (! is_array($part) || ! is_string($part['key'] ?? null)) {
+                return $part;
+            }
+
+            return match (true) {
+                $part['key'] === $tune && $low !== null => self::withNotes($part, $low),
+                $part['key'] === $bass => self::withNotes($part, $bassNotes),
+                $treble[$part['key']] ?? false => self::lowered($part, $bassNotes),
+                default => $part,
+            };
+        }, (array) ($data['parts'] ?? []));
 
         return ['data' => self::inRange($data), 'shifts' => $shifts];
     }
 
     /**
      * Both octaves (Hillel liked as written and low together, 2026-11-23): each treble part as written and, beside it,
-     * "<key>-low", the same part an octave down (by the same rule); tenor and bass once.
+     * "<key>-low", the same part an octave down (the tune whole, the others by the same rule); tenor and bass once.
      *
      * @param  array<string, mixed>  $data
      * @return array{data: array<string, mixed>, shifts: array<string, int>}
@@ -35,20 +53,24 @@ final class VoicingTransform
     public static function full(array $data): array
     {
         [$notes, $bass, $treble] = self::analyse($data);
+        $tune = self::tuneKey($data, $treble);
+        $lowTune = $tune === null ? null : self::wholeDown($notes[$tune]);
+        $bassNotes = $bass === null ? [] : ($lowTune === null ? $notes[$bass] : self::makeRoom($notes[$bass], $lowTune));
         $parts = [];
         $shifts = [];
 
         foreach ((array) ($data['parts'] ?? []) as $part) {
-            $parts[] = $part;
-
             if (! is_array($part) || ! is_string($part['key'] ?? null)) {
+                $parts[] = $part;
+
                 continue;
             }
 
+            $parts[] = $part['key'] === $bass ? self::withNotes($part, $bassNotes) : $part;
             $shifts[$part['key']] = 0;
 
             if ($treble[$part['key']] ?? false) {
-                $low = self::lowered($part, $notes, $bass);
+                $low = $part['key'] === $tune && $lowTune !== null ? self::withNotes($part, $lowTune) : self::lowered($part, $bassNotes);
                 $low['key'] = $part['key'].'-low';
                 $low['name'] = trim((string) ($part['name'] ?? ucfirst($part['key']))).' (low)';
                 unset($low['melody']);
@@ -170,24 +192,92 @@ final class VoicingTransform
     }
 
     /**
-     * A part an octave down, a note that would fall below the bass sounding with it kept at pitch.
+     * An inner part an octave down, a note that would fall below the bass sounding with it kept at pitch.
      *
      * @param  array<string, mixed>  $part
-     * @param  array<string, list<array<string, mixed>>>  $notes
+     * @param  list<array<string, mixed>>  $bassNotes
      * @return array<string, mixed>
      */
-    private static function lowered(array $part, array $notes, ?string $bass): array
+    private static function lowered(array $part, array $bassNotes): array
     {
-        $part['guide']['notes'] = array_map(static function (mixed $n) use ($notes, $bass): mixed {
+        $part['guide']['notes'] = array_map(static function (mixed $n) use ($bassNotes): mixed {
             if (! is_array($n) || ! is_numeric($n['pitch'] ?? null)) {
                 return $n;
             }
 
             $moved = (int) $n['pitch'] - 12;
-            $under = $bass === null ? null : self::lowestDuring($notes[$bass], (float) ($n['beat'] ?? 0), (float) ($n['length'] ?? 0));
+            $under = $bassNotes === [] ? null : self::lowestDuring($bassNotes, (float) ($n['beat'] ?? 0), (float) ($n['length'] ?? 0));
 
             return $under !== null && $moved < $under ? $n : array_replace($n, ['pitch' => $moved]);
         }, (array) ($part['guide']['notes'] ?? []));
+
+        return $part;
+    }
+
+    /**
+     * The tune: the part marked `melody`, else the first treble part.
+     *
+     * @param  array<string, mixed>  $data
+     * @param  array<string, bool>  $treble
+     */
+    private static function tuneKey(array $data, array $treble): ?string
+    {
+        foreach ((array) ($data['parts'] ?? []) as $part) {
+            if (is_array($part) && ($part['melody'] ?? false) === true && ($treble[$part['key'] ?? ''] ?? false)) {
+                return (string) $part['key'];
+            }
+        }
+
+        $first = array_key_first(array_filter($treble));
+
+        return $first === null ? null : (string) $first;
+    }
+
+    /**
+     * Every note an octave down.
+     *
+     * @param  list<array<string, mixed>>  $notes
+     * @return list<array<string, mixed>>
+     */
+    private static function wholeDown(array $notes): array
+    {
+        return array_map(static fn (array $n): array => is_numeric($n['pitch'] ?? null) ? array_replace($n, ['pitch' => (int) $n['pitch'] - 12]) : $n, $notes);
+    }
+
+    /**
+     * The bass under the lowered tune: a bass note the tune would sound below moves an octave down, if that stays within
+     * the bass's own written range (and what the renderer sings well); else the tune crosses under it for that note.
+     *
+     * @param  list<array<string, mixed>>  $bass
+     * @param  list<array<string, mixed>>  $tune
+     * @return list<array<string, mixed>>
+     */
+    private static function makeRoom(array $bass, array $tune): array
+    {
+        $pitches = array_map(static fn (array $n): int => (int) $n['pitch'], array_filter($bass, static fn (array $n): bool => is_numeric($n['pitch'] ?? null)));
+        $floor = $pitches === [] ? 36 : max(36, min($pitches));
+
+        return array_map(static function (array $n) use ($tune, $floor): array {
+            if (! is_numeric($n['pitch'] ?? null)) {
+                return $n;
+            }
+
+            $over = self::lowestDuring($tune, (float) ($n['beat'] ?? 0), (float) ($n['length'] ?? 0));
+
+            return $over !== null && $over < (int) $n['pitch'] && (int) $n['pitch'] - 12 >= $floor ? array_replace($n, ['pitch' => (int) $n['pitch'] - 12]) : $n;
+        }, $bass);
+    }
+
+    /**
+     * A part with new notes.
+     *
+     * @param  array<string, mixed>  $part
+     * @param  list<array<string, mixed>>  $notes
+     * @return array<string, mixed>
+     */
+    private static function withNotes(array $part, array $notes): array
+    {
+        $part['guide']['notes'] = $notes;
 
         return $part;
     }

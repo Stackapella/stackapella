@@ -83,4 +83,17 @@ final class VoicingTransformTest extends TestCase
         $this->assertSame([74, 68], array_column($fitted['parts'][1]['guide']['notes'], 'pitch'), 'Down an octave, whole.');
         $this->assertSame([30, 90], array_column($fitted['parts'][2]['guide']['notes'], 'pitch'), 'Too wide either way: left for the gates.');
     }
+
+    public function test_the_bass_makes_room_under_the_tune_where_its_range_allows_else_the_tune_crosses(): void
+    {
+        $song = ['parts' => [
+            ['key' => 'soprano', 'melody' => true, 'guide' => ['notes' => [['beat' => 0, 'length' => 1, 'pitch' => 67], ['beat' => 1, 'length' => 1, 'pitch' => 62]]]],
+            ['key' => 'bass', 'guide' => ['notes' => [['beat' => 0, 'length' => 1, 'pitch' => 60], ['beat' => 1, 'length' => 1, 'pitch' => 55], ['beat' => 2, 'length' => 1, 'pitch' => 48]]]],
+        ]];
+        $low = VoicingTransform::low($song)['data']['parts'];
+
+        $this->assertSame([55, 50], array_column($low[0]['guide']['notes'], 'pitch'), 'The tune whole.');
+        // 60 under 55: down to 48, its own lowest note, so it moves; 55 under 50: 43 is below its range, so the tune crosses.
+        $this->assertSame([48, 55, 48], array_column($low[1]['guide']['notes'], 'pitch'));
+    }
 }

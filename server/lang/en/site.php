@@ -1403,7 +1403,6 @@ return [
             ['title' => 'Make it yours', 'body' => 'Keep your own recording as the lead, share it, or pick another song from our library.'],
         ],
         // Step 2's body while own_choir_hum is on.
-        'step_choose_hum' => 'Any song in our library, or a tune you hum yourself. The notes come from the song, not from your 30 seconds.',
         'learn' => 'Want to sing it yourself too? Learn any part, and your own takes replace the AI ones.',
         'voice' => [
             'title' => 'What happens to your voice',
@@ -1453,14 +1452,10 @@ return [
             'friend' => 'A friend',
             // Said once under the heading; each lane wears the small AI chip (stage.ai_chip).
             'ai' => 'Every part is sung by AI in a voice like its singer\'s.',
-            'chip_you' => 'AI voice made from your singing',
-            'chip_friend' => 'AI voice made from your friend\'s singing',
         ],
         // Questions: always (tune), and with own_choir_together (friends).
         'faq_tune' => ['Which song do I sing?', 'Happy Birthday twice through, or about 30 seconds of Silent Night, Amazing Grace or Joy to the World: whichever you know best. Your free choir is the song you sing.'],
         'faq_friends' => ['Do my friends need an account?', 'Yes, a free one, and they must be 18 or over. Joining costs them nothing: their parts count against your minutes, never theirs.'],
-        // Under the steps while own_choir_together is on: friends with other ranges sing the parts that suit them.
-        'together' => 'Better with friends: a high voice and a low voice, each singing the parts that suit it.',
     ],
 
     // About AI voices (/about/ai-voices; docs/ai-voices-build-plan.md, marketing item 2): unlisted and noindex until the

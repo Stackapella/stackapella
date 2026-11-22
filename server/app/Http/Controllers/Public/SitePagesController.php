@@ -120,20 +120,23 @@ final class SitePagesController extends Controller
             ...$frame,
             'indexed' => $on,
             // Silent Night in the app, ready to hear yourself as a choir (the app's `choir` link, agreed with the frontend).
-            'try' => Hosts::app('/?'.http_build_query(['song' => 'silent-night', 'choir' => 1, 'ref' => $ref ?? 'your-choir'])),
+            // The choir page on the song most singers start with: their voice and their free choir in one (the frontend).
+            'try' => Hosts::app('/?'.http_build_query(['song' => YourChoirStage::PICTURE_SONG, 'choir' => 1, 'ref' => $ref ?? 'your-choir'])),
             // The stage: one real voice becoming the AI's two parts, then four (YourChoirStage, from VoiceDemo's own
             // voices and gating); null, and the page shows no demo, until every voice is there.
             'stage' => $shown = $stage->stage(),
             // Without the demo's voices (track B may open before any singer's voice is licensed for AI; Hillel, 2026-11-21:
             // "lets support starting track B without A ... so there aren't samples"): the arrangement as a picture, no sound.
-            'picture' => $shown === null ? YourChoirStage::picture(self::choirTemplates()->get((string) config('site.voice_demo.ai.song'))) : null,
+            'picture' => $shown === null ? $picture = YourChoirStage::picture(self::choirTemplates()->get(YourChoirStage::PICTURE_SONG)) : null,
+            // The same song's four parts for the friends section, whichever stage shows.
+            'parts' => ($picture ?? YourChoirStage::picture(self::choirTemplates()->get(YourChoirStage::PICTURE_SONG)))['parts'] ?? [],
             // A song of your own (hummed, or with your own words: Hillel, 2026-11-20), only once its switch is on (the
             // coordinator: the page never promises what isn't live); the app's create screen (agreed with the frontend).
             'own' => self::switchedOn($flags, self::OWN_SONGS) ? Hosts::app('/create?'.http_build_query(['ref' => $ref ?? 'your-choir'])) : null,
             // The library card's songs, each with its story's picture, as the songs hub shows them.
             'songs' => self::choirSongs(),
             'toolsUrl' => SitePages::toolsHome(),
-            // A choir with friends, once its switch is on (docs/choir-together-plan.md): one line under the steps.
+            // A choir with friends, once its switch is on (docs/choir-together-plan.md): its section and question.
             'together' => self::switchedOn($flags, 'own_choir_together'),
             // Plus's prices in the visitor's currency, for the questions that name them (the marketing review, 2026-11-22).
             'price' => Prices::of(Prices::currency($request)),

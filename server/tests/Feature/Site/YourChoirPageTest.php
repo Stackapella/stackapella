@@ -52,7 +52,7 @@ final class YourChoirPageTest extends TestCase
 
         $html = (string) $this->get('/your-choir')->assertOk()->assertHeaderMissing('X-Robots-Tag')->getContent();
         $this->assertStringContainsString(e(__('site.your_choir.headline_em')), $html);
-        $this->assertStringContainsString('song=silent-night&amp;choir=1', $html);
+        $this->assertStringContainsString('song=happy-birthday&amp;choir=1', $html);
         $this->assertStringContainsString('href="/about/ai-voices"', $html);
         $this->assertStringNotContainsString('AI', __('site.your_choir.headline_before').__('site.your_choir.headline_em'));
         // AI named in the hero once (design rules), never in the headline, and once among the voice's facts.
@@ -169,9 +169,31 @@ final class YourChoirPageTest extends TestCase
         // The way in on the first screen, in the hero, before anything else.
         $hero = (string) strstr((string) strstr($html, 'data-s="hero"'), 'data-s="four"', true);
         $this->assertStringContainsString(e(__('site.your_choir.start_voice')), $hero);
-        $this->assertStringContainsString('song=silent-night&amp;choir=1', $hero);
+        $this->assertStringContainsString('song=happy-birthday&amp;choir=1', $hero);
         // The scenes: the first screen, the four parts, now yours.
-        $this->assertSame(['hero', 'four', 'yours'], array_values(array_filter(array_map(static fn (string $s): string => $s, (array) (preg_match_all('/data-s="([a-z]+)"/', $html, $m) ? $m[1] : [])))));
+        $this->assertSame(['hero', 'four', 'lead', 'yours'], array_values(array_filter(array_map(static fn (string $s): string => $s, (array) (preg_match_all('/data-s="([a-z]+)"/', $html, $m) ? $m[1] : [])))));
+        // You + choir: the voice line is named as the singer's own recording there.
+        $this->assertStringContainsString(e(__('site.your_choir.lead_scene.you_chip')), $html);
+        // Which song to sing is always answered; friends only once their switch is on.
+        $this->assertStringContainsString(e((string) __('site.your_choir.faq_tune')[0]), $html);
+        $this->assertStringNotContainsString('yc-friends', $html);
+        $this->assertStringNotContainsString(e((string) __('site.your_choir.faq_friends')[0]), $html);
+
+        config(['flags.own_choir_together' => ['kind' => 'feature', 'values' => ['off', 'on']]]);
+        app(Flags::class)->set('own_choir_together', 'on', null, 'Choir with friends');
+        $together = (string) $this->get('/your-choir')->assertOk()->getContent();
+        $this->assertStringContainsString('yc-friends', $together);
+        $this->assertStringContainsString(e((string) __('site.your_choir.faq_friends')[0]), $together);
+        // Said once: the section's heading, with no second line under the steps.
+        $this->assertSame(1, substr_count($together, e(__('site.your_choir.friends.heading'))));
+        // Still one try block: the friends section carries no button.
+        $friends = (string) strstr((string) strstr($together, 'class="yc-sec yc-friends"'), '</section>', true);
+        // Two parts each, every lane saying whose and the same small AI chip; how the AI sings them is said once.
+        $this->assertSame(2, substr_count($friends, '· '.e(__('site.your_choir.friends.you')).'<'));
+        $this->assertSame(2, substr_count($friends, '· '.e(__('site.your_choir.friends.friend')).'<'));
+        $this->assertSame(4, substr_count($friends, '>'.e(__('site.your_choir.stage.ai_chip')).'<'));
+        $this->assertSame(1, substr_count($friends, e(__('site.your_choir.friends.ai'))));
+        $this->assertStringNotContainsString('data-your-choir-try', $friends);
     }
 
     public function test_a_song_of_your_own_is_offered_only_once_its_switch_is_on(): void
@@ -205,16 +227,5 @@ final class YourChoirPageTest extends TestCase
         $this->assertNotSame('', $found, 'the page gives its player its data');
 
         return (array) json_decode($found, true, 512, JSON_THROW_ON_ERROR);
-    }
-
-    public function test_a_choir_with_friends_adds_one_line_only_once_its_switch_is_on(): void
-    {
-        app(Flags::class)->set('own_choir', 'on', null, 'Own choir live');
-        $line = e(__('site.your_choir.together'));
-
-        $this->assertStringNotContainsString($line, (string) $this->get('/your-choir')->assertOk()->getContent());
-        config(['flags.own_choir_together' => ['kind' => 'feature', 'values' => ['off', 'on']]]);
-        app(Flags::class)->set('own_choir_together', 'on', null, 'Together live');
-        $this->assertStringContainsString($line, (string) $this->get('/your-choir')->assertOk()->getContent());
     }
 }

@@ -19,7 +19,7 @@
      becoming four parts in the first screen, then the four parts with their words, then "now yours". The designed
      default; the audio stage, when a singer's voices are licensed, is the extra. --}}
 @php($pic = $stage === null && ($picture ?? null) !== null)
-@php($views = $stage !== null ? array_values(array_filter(['hero', 'real', 'split', $stage['four'] ? 'four' : null, 'yours'])) : ($pic ? ['hero', 'four', 'yours'] : ['hero', 'yours']))
+@php($views = $stage !== null ? array_values(array_filter(['hero', 'real', 'split', $stage['four'] ? 'four' : null, 'yours'])) : ($pic ? ['hero', 'four', 'lead', 'yours'] : ['hero', 'yours']))
 @php($pinned = count($views))
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ __('meta.dir') }}">
@@ -114,6 +114,20 @@
                                 <p class="yc-say">{{ __('site.your_choir.picture.two.body') }}</p>
                             </div>
                         </section>
+
+                        {{-- You + choir: the singer's own recording as the lead, the AI parts around it (the voice line becomes
+                             "You · Your recording", the soprano gives way to it). --}}
+                        <section class="yc-sc" id="yc-s2" data-s="lead" aria-labelledby="yc-hl">
+                            <div class="yc-cap">
+                                <div>
+                                    @if ((string) __('site.your_choir.lead_scene.kick') !== '')
+                                        <p class="yc-kick">{{ __('site.your_choir.lead_scene.kick') }}</p>
+                                    @endif
+                                    <h2 id="yc-hl" class="yc-h2">{{ __('site.your_choir.lead_scene.title_before') }} <em>{{ __('site.your_choir.lead_scene.title_em') }}</em></h2>
+                                </div>
+                                <p class="yc-say">{{ __('site.your_choir.lead_scene.body') }}</p>
+                            </div>
+                        </section>
                     @endif
 
                     @if ($stage !== null)
@@ -166,12 +180,11 @@
                             <div>
                                 <ol class="yc-steps">
                                     @foreach ((array) \Illuminate\Support\Facades\Lang::get('site.your_choir.steps') as $step)
-                                        <li class="yc-v{{ $loop->iteration }}"><span class="yc-n" aria-hidden="true">{{ $loop->iteration }}</span><div><h3>{{ $step['title'] }}</h3><p>{{ $own !== null && $loop->iteration === 2 ? __('site.your_choir.step_choose_hum') : $step['body'] }}</p></div></li>
+                                        <li class="yc-v{{ $loop->iteration }}"><span class="yc-n" aria-hidden="true">{{ $loop->iteration }}</span><div><h3>{{ $step['title'] }}</h3><p>{{ $step['body'] }}</p></div></li>
                                     @endforeach
                                 </ol>
-                                @if ($together ?? false)
-                                    <p class="yc-say" data-yc-together>{{ __('site.your_choir.together') }}</p>
-                                @endif
+                                {{-- With own_choir_together the friends section below says "Better with friends" once, so the steps
+                                     carry no line of their own (no repetition, Hillel 2026-11-21). --}}
                                 {{-- No second try block: the hero's is the page's one (Hillel, 2026-11-21: "the 'try it' block is
                                      also repeated"). --}}
                             </div>
@@ -194,7 +207,9 @@
                                         </div>
                                         <div class="yc-lb">
                                             @if ($l['seg'] === 'you')
-                                                <b><span class="yc-orb bubble bubble-sm">{{ mb_substr((string) __('site.your_choir.picture.you'), 0, 1) }}</span>{{ __('site.your_choir.picture.you') }}<span class="yc-chip">{{ __('site.your_choir.picture.you_chip') }}</span></b>
+                                                {{-- Its name by scene: the 30 seconds that make the voice, then the recording kept as the lead. --}}
+                                                <b class="yc-you-voice"><span class="yc-orb bubble bubble-sm">{{ mb_substr((string) __('site.your_choir.picture.you'), 0, 1) }}</span>{{ __('site.your_choir.picture.you') }}<span class="yc-chip">{{ __('site.your_choir.picture.you_chip') }}</span></b>
+                                                <b class="yc-you-lead"><span class="yc-orb bubble bubble-sm">{{ mb_substr((string) __('site.your_choir.lead_scene.you'), 0, 1) }}</span>{{ __('site.your_choir.lead_scene.you') }}<span class="yc-chip">{{ __('site.your_choir.lead_scene.you_chip') }}</span></b>
                                             @else
                                                 <b><span class="yc-orb bubble bubble-sm">{{ mb_substr((string) __('pages.landing.hero.parts.'.$part), 0, 1) }}</span>{{ __('pages.landing.hero.parts.'.$part) }}<span class="yc-chip">{{ __('site.your_choir.stage.ai_chip') }}</span></b>
                                                 <small>{{ $picture['song'] }} · {{ $part === 'soprano' ? __('site.your_choir.stage.roles.tune') : __('site.your_choir.stage.roles.harmony') }}</small>
@@ -305,6 +320,43 @@
                 </section>
 
                 {{-- What happens to your voice: plain facts, AI named once, on one panel of glass. --}}
+                @if ($together && $parts !== [])
+                    {{-- Better with friends (own_choir_together): a high voice and a low voice, each part's lane saying whose
+                         singing its AI voice is made from (the shared words), the song's own notes. No button: the way in
+                         is the hero's; a friend is invited from the ready choir. --}}
+                    <section class="yc-sec yc-friends" aria-labelledby="yc-fr">
+                        <div class="yc-cap">
+                            <div>
+                                <p class="yc-kick">{{ __('site.your_choir.friends.kick') }}</p>
+                                <h2 id="yc-fr" class="yc-h2">{{ __('site.your_choir.friends.heading') }}</h2>
+                            </div>
+                            <div>
+                                <p class="yc-say">{{ __('site.your_choir.friends.body') }}</p>
+                                {{-- Said once here; each lane carries only the small AI chip the other scenes use (the
+                                     coordinator, 2026-11-22: "AI plain, never loud"). --}}
+                                <p class="yc-note">{{ __('site.your_choir.friends.ai') }}</p>
+                            </div>
+                        </div>
+                        <ul class="yc-library yc-pair" aria-hidden="true">
+                            @foreach ($parts as $lane)
+                                @php($mine = in_array($lane['part'], ['soprano', 'alto'], true))
+                                <li class="yc-v{{ $loop->iteration }}">
+                                    <span class="yc-song">
+                                        <b>{{ __('pages.landing.hero.parts.'.$lane['part']) }} <small>· {{ $mine ? __('site.your_choir.friends.you') : __('site.your_choir.friends.friend') }}</small><span class="yc-chip">{{ __('site.your_choir.stage.ai_chip') }}</span></b>
+                                        <span class="yc-song-tr" style="--beats: {{ min(12, max(1, $lane['beats'])) }}">
+                                            @foreach ($lane['notes'] as $note)
+                                                @continue($note['beat'] >= 12)
+                                                <i class="gem-note" style="--b: {{ $note['beat'] }}; --l: {{ min($note['length'], 12 - $note['beat']) }}; --y: {{ $note['y'] }}"></i>
+                                            @endforeach
+                                        </span>
+                                    </span>
+                                </li>
+                            @endforeach
+                        </ul>
+                        <div class="yc-floor" aria-hidden="true"><span><i></i><i></i><i></i><i></i></span></div>
+                    </section>
+                @endif
+
                 <section class="yc-sec" aria-labelledby="yc-voice">
                     <div class="yc-cap yc-cap-top">
                         <h2 id="yc-voice" class="yc-h2">{{ __('site.your_choir.voice.title') }}</h2>
@@ -327,6 +379,11 @@
                             {{-- The questions; with songs of your own live, the humming one after the second, and the own-songs
                                  answer as it is then. --}}
                             @php($faq = (array) \Illuminate\Support\Facades\Lang::get('site.your_choir.faq'))
+                            {{-- Which song to sing, after the first; with friends live, whether they need an account. --}}
+                            @php($faq = [...array_slice($faq, 0, 1, true), 'tune' => (array) \Illuminate\Support\Facades\Lang::get('site.your_choir.faq_tune'), ...array_slice($faq, 1, null, true)])
+                            @if ($together)
+                                @php($faq = [...array_slice($faq, 0, -1, true), 'friends' => (array) \Illuminate\Support\Facades\Lang::get('site.your_choir.faq_friends'), ...array_slice($faq, -1, null, true)])
+                            @endif
                             @if ($own !== null)
                                 @php($faq = [...array_slice($faq, 0, 2, true), 'hum' => (array) \Illuminate\Support\Facades\Lang::get('site.your_choir.faq_hum'), ...array_slice($faq, 2, null, true)])
                                 @php($faq['own_songs'][1] = (string) __('site.your_choir.own_songs_hum'))

@@ -23,6 +23,12 @@ final class YourChoirStage
     /** The silence between the real song and the AI one (seconds). */
     public const GAP = 1.6;
 
+    /**
+     * The picture's song: the one most singers make their voice with and get as their free choir (Happy Birthday, the
+     * first of the four tunes offered; the page's words never say it's the only one).
+     */
+    public const PICTURE_SONG = 'happy-birthday';
+
     public function __construct(private readonly VoiceDemo $demo) {}
 
     /**
@@ -174,7 +180,7 @@ final class YourChoirStage
 
     /**
      * The page's picture while there's no audio demo (Hillel, 2026-11-21: "lets support starting track B without A, we
-     * just need to adjust the your voice page so there aren't samples"): the AI song's own arrangement as lanes, no
+     * just need to adjust the your voice page so there aren't samples"): PICTURE_SONG's own arrangement as lanes, no
      * sound and no singer: its tune as the visitor's one voice line, then its four parts, each the app's glass gems with
      * their syllables, from the song's notes (never a recording). Null without the song in the library. `loaded`: the
      * song, when the page has it already.
@@ -183,9 +189,9 @@ final class YourChoirStage
      */
     public static function picture(?Template $loaded = null): ?array
     {
-        $slug = (string) (((array) config('site.voice_demo'))['ai']['song'] ?? '');
+        $slug = self::PICTURE_SONG;
         // The page has usually loaded the song already (its library list): used as is, not fetched again.
-        $template = $loaded !== null && $loaded->slug === $slug ? $loaded : ($slug === '' ? null : Template::query()->where('slug', $slug)->whereNull('hidden_at')->with('currentVersion')->first());
+        $template = $loaded !== null && $loaded->slug === $slug ? $loaded : Template::query()->where('slug', $slug)->whereNull('hidden_at')->with('currentVersion')->first();
         $parts = array_values(array_filter((array) (((array) $template?->currentVersion?->data)['parts'] ?? []), 'is_array'));
         $lanes = [];
         foreach (['soprano', 'alto', 'tenor', 'bass'] as $key) {

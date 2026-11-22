@@ -501,30 +501,30 @@ final class OwnChoirTest extends TestCase
         $this->assertSame(array_map(static fn (array $n): int => (int) $n['pitch'] - 3, array_filter($written, static fn (array $n): bool => isset($n['pitch']))), array_map(static fn (array $n): int => (int) $n['pitch'], array_filter($sung, static fn (array $n): bool => isset($n['pitch']))));
     }
 
-    public function test_silent_nights_low_voice_version_keeps_every_treble_note_above_the_bass(): void
+    public function test_the_low_voice_tune_keeps_its_shape_and_inner_parts_stay_above_the_bass(): void
     {
-        // The coordinator: Silent Night's "Ho-" of "Holy infant" read an octave high in a low render; the transform itself
-        // moves the whole soprano down and never puts a note under the bass (a gate/tracker question for voices).
+        // Ma'oz Tzur (Hillel heard its second note jump up): the tune moves down whole, every interval as written.
         $this->catalogue();
-        $data = (array) Template::query()->where('slug', 'silent-night')->firstOrFail()->currentVersion?->data;
-        $low = VoicingTransform::low($data);
         $notes = static fn (array $d, string $key): array => array_values(array_filter(collect((array) $d['parts'])->firstWhere('key', $key)['guide']['notes'], static fn (array $n): bool => isset($n['pitch'])));
-        $bass = $notes($low['data'], 'bass');
 
-        foreach (['soprano', 'alto'] as $key) {
-            foreach ($notes($low['data'], $key) as $i => $n) {
-                $written = $notes($data, $key)[$i]['pitch'];
-                $this->assertContains($n['pitch'], [$written, $written - 12]);
-                $this->assertSame($written % 12, $n['pitch'] % 12);
-                $under = array_filter($bass, static fn (array $b): bool => $b['beat'] < $n['beat'] + max((float) $n['length'], 0.001) && $n['beat'] < $b['beat'] + $b['length']);
-                foreach ($under as $b) {
-                    $this->assertGreaterThanOrEqual($b['pitch'], $n['pitch'], "{$key} note {$i} stays above the bass");
+        foreach (['maoz-tzur', 'silent-night'] as $slug) {
+            $data = (array) Template::query()->where('slug', $slug)->firstOrFail()->currentVersion?->data;
+
+            foreach ([VoicingTransform::low($data)['data'], VoicingTransform::full($data)['data']] as $i => $made) {
+                $tune = $notes($made, $i === 0 ? 'soprano' : 'soprano-low');
+                $this->assertSame(array_map(static fn (array $n): int => $n['pitch'] - 12, $notes($data, 'soprano')), array_column($tune, 'pitch'), "{$slug}: the tune an octave down, whole.");
+                $bass = $notes($made, 'bass');
+                $alto = $notes($made, $i === 0 ? 'alto' : 'alto-low');
+
+                foreach ($alto as $j => $n) {
+                    $written = $notes($data, 'alto')[$j]['pitch'];
+                    $this->assertContains($n['pitch'], [$written, $written - 12]);
+                    foreach (array_filter($bass, static fn (array $b): bool => $b['beat'] < $n['beat'] + max((float) $n['length'], 0.001) && $n['beat'] < $b['beat'] + $b['length']) as $b) {
+                        $this->assertGreaterThanOrEqual($b['pitch'], $n['pitch'], "{$slug}: the alto stays above the bass");
+                    }
                 }
             }
         }
-
-        $soprano = $notes($low['data'], 'soprano');
-        $this->assertSame(array_map(static fn (array $n): int => $n['pitch'] - 12, $notes($data, 'soprano')), array_column($soprano, 'pitch'), 'The whole tune an octave down.');
     }
 
     public function test_the_kept_clip_goes_with_the_voice_and_is_never_anyone_elses(): void
