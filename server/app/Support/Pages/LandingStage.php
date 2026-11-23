@@ -260,12 +260,4 @@ final class LandingStage
 
         return $joins;
     }
-
-    /** A singer's initials for their bubble in the choir card ("Priya Shah" is PS): each name's first letter, two at most. */
-    public static function initials(string $name): string
-    {
-        $words = preg_split('/\s+/u', trim($name), -1, PREG_SPLIT_NO_EMPTY) ?: [];
-
-        return mb_strtoupper(implode('', array_map(static fn (string $word): string => mb_substr($word, 0, 1), array_slice($words, 0, 2))));
-    }
 }

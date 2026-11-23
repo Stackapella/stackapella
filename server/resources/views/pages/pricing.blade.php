@@ -19,6 +19,7 @@
                     <p class="s-eyebrow s-hub-eyebrow"><span class="s-dots" aria-hidden="true">@foreach ([1, 2, 3, 4] as $n)<b class="s-v{{ $n }}"></b>@endforeach</span><x-site.skin :game="__('pages.landing.game.pricing_kick')" :serious="__('pages.pricing.eyebrow')" /></p>
                     {{-- The second line in the warm amber, the five pages' key phrase (never a fixed pink). --}}
                     <h1 id="page-h">{{ __('pages.landing.plans_title') }} <span class="s-h-more">{{ __('pages.landing.plans_title_more') }}</span></h1>
+                    <p class="s-lede s-price-lede">{{ \App\Support\Site\Teams::text('pages.pricing.lede') }}</p>
                 </div>
                 {{-- How you pay and the currency, one row (the design), each a segmented control. --}}
                 <div class="s-pricehead-side">
@@ -45,20 +46,22 @@
                 {{-- Under the cards: the tax and renewal line at left, the choir offer at right (it isn't Plus). --}}
                 <div class="s-plans-under">
                     <p class="s-cur">{{ $price['taxIncluded'] ? __('pages.pricing.tax_included') : __('pages.pricing.tax_added') }} {{ $smallPrint[0] }}</p>
-                    <p class="s-plan-choirs">{{ __('pages.landing.plans_choirs') }} <a href="/for/choir-directors?ref=for-choirs-pricing">{{ \App\Support\Site\Teams::text('pages.landing.plans_choirs_link') }}</a></p>
                 </div>
+                {{-- Leading a choir? One callout (the approved blueprint, 2026-11-23): what it costs a choir, and the way to
+                     how groups work. Its words follow the live switches (plus_teams, choir_seats). --}}
+                <aside class="s-callout s-v4" aria-label="{{ __('pages.pricing.choir_link') }}">
+                    <p>{{ \App\Support\Site\Teams::text('pages.pricing.choir_callout') }}</p>
+                    <a href="/for/choir-directors?ref=for-choirs-pricing" class="s-arrow-link">{{ __('pages.pricing.choir_link') }} <x-site.icon name="arrow" size="16" /></a>
+                </aside>
             </section>
         </div>
 
-        {{-- Side by side, in groups, straight after the plans (Hillel: the courses go below it); a tick or a
-             dash says yes or no (with the word for screen readers). Plus's column on the card's warm fill, and
-             "Only what's different" (a checkbox and :has, no script) folds every row both plans share. --}}
+        {{-- The difference, in short (Saul, the consultant: "radically shorter"; Hillel approved the blueprint, 2026-11-23):
+             only the rows people decide on, then every detail one press away (a details element, no script): the full
+             comparison in groups, with "Only what's different" and the small print. --}}
         <section class="s-wrap s-sec2 s-compare" aria-labelledby="compare-h">
-            <div class="s-compare-head">
-                <h2 id="compare-h" class="s-title">{{ __('pages.pricing.compare') }}</h2>
-                <label class="s-diff"><input type="checkbox" role="switch" class="sr-only" data-compare-diff /><span class="switch-track" aria-hidden="true"><span class="switch-knob"></span></span><span>{{ __('pages.pricing.only_different') }}</span></label>
-            </div>
-            <table class="s-table s-table-fit s-table-sticky s-table-plans">
+            <h2 id="compare-h" class="s-title">{{ __('pages.pricing.compare_short') }}</h2>
+            <table class="s-table s-table-fit s-table-plans s-table-short">
                 <thead>
                     <tr>
                         <th scope="col"><span class="sr-only">{{ __('pages.pricing.feature') }}</span></th>
@@ -66,39 +69,57 @@
                         <th scope="col" class="s-col-plus">{{ __('pages.pricing.plus') }}</th>
                     </tr>
                 </thead>
-                @foreach ($compare as $group)
-                    <tbody @if ($group['same']) data-same @endif>
-                        <tr class="s-table-group"><th scope="colgroup" colspan="2">{{ __('pages.pricing.groups.'.$group['key']) }}</th><td class="s-col-plus"></td></tr>
-                        @foreach ($group['rows'] as $row)
-                            <tr @if ($row['same']) data-same @endif>
-                                <th scope="row">{{ $row['label'] }}</th>
-                                @foreach ($row['cells'] as $i => $cell)
-                                    <td @class(['s-col-plus' => $i === 1, 's-plusmore' => $i === 1 && ! $row['same'] && $cell !== __('pages.pricing.yes')])>
-                                        @if ($cell === __('pages.pricing.yes'))
-                                            <span class="s-yes"><x-site.icon name="check" size="18" /><span class="sr-only">{{ $cell }}</span></span>
-                                        @elseif ($cell === __('pages.pricing.no'))
-                                            <span class="s-no" aria-hidden="true"></span><span class="sr-only">{{ $cell }}</span>
-                                        @else
-                                            {{ $cell }}
-                                        @endif
-                                    </td>
-                                @endforeach
-                            </tr>
-                        @endforeach
-                    </tbody>
-                @endforeach
-                {{-- The way to Plus at its column's foot, only once checkout is open. --}}
-                @if ($checkoutOpen)
-                    <tfoot><tr><td colspan="2"></td><td class="s-col-plus"><a href="{{ \App\Support\Http\Hosts::app('/plus?from=pricing-table') }}">{{ __('pages.landing.plans_get') }}</a></td></tr></tfoot>
-                @else
-                    <tfoot aria-hidden="true"><tr><td colspan="2"></td><td class="s-col-plus"></td></tr></tfoot>
-                @endif
+                <tbody>
+                    @foreach ($decide as $row)
+                        @include('pages._compare-row', ['row' => $row])
+                    @endforeach
+                </tbody>
             </table>
-            <ul class="s-small">
-                @foreach (array_slice($smallPrint, 1) as $line)
-                    <li>{{ $line }}</li>
+            <details class="s-every">
+                <summary>{{ __('pages.pricing.compare_all') }} <x-site.icon name="chevron" size="16" /></summary>
+                <div class="s-compare-head">
+                    <h3 class="sr-only">{{ __('pages.pricing.compare') }}</h3>
+                    <label class="s-diff"><input type="checkbox" role="switch" class="sr-only" data-compare-diff /><span class="switch-track" aria-hidden="true"><span class="switch-knob"></span></span><span>{{ __('pages.pricing.only_different') }}</span></label>
+                </div>
+                <table class="s-table s-table-fit s-table-sticky s-table-plans">
+                    <thead>
+                        <tr>
+                            <th scope="col"><span class="sr-only">{{ __('pages.pricing.feature') }}</span></th>
+                            <th scope="col">{{ __('pages.pricing.free') }}</th>
+                            <th scope="col" class="s-col-plus">{{ __('pages.pricing.plus') }}</th>
+                        </tr>
+                    </thead>
+                    @foreach ($compare as $group)
+                        <tbody @if ($group['same']) data-same @endif>
+                            <tr class="s-table-group"><th scope="colgroup" colspan="2">{{ __('pages.pricing.groups.'.$group['key']) }}</th><td class="s-col-plus"></td></tr>
+                            @foreach ($group['rows'] as $row)
+                                @include('pages._compare-row', ['row' => $row])
+                            @endforeach
+                        </tbody>
+                    @endforeach
+                    {{-- The way to Plus at its column's foot, only once checkout is open. --}}
+                    @if ($checkoutOpen)
+                        <tfoot><tr><td colspan="2"></td><td class="s-col-plus"><a href="{{ \App\Support\Http\Hosts::app('/plus?from=pricing-table') }}">{{ __('pages.landing.plans_get') }}</a></td></tr></tfoot>
+                    @else
+                        <tfoot aria-hidden="true"><tr><td colspan="2"></td><td class="s-col-plus"></td></tr></tfoot>
+                    @endif
+                </table>
+                <ul class="s-small">
+                    @foreach (array_slice($smallPrint, 1) as $line)
+                        <li>{{ $line }}</li>
+                    @endforeach
+                </ul>
+            </details>
+        </section>
+
+        {{-- Words on this page: the four a singer may not know, each said plainly. --}}
+        <section class="s-wrap s-sec2 s-gloss" aria-labelledby="gloss-h">
+            <h2 id="gloss-h" class="s-title">{{ __('pages.pricing.glossary_title') }}</h2>
+            <dl>
+                @foreach ((array) \Illuminate\Support\Facades\Lang::get('pages.pricing.glossary') as [$term, $meaning])
+                    <div><dt>{{ $term }}</dt><dd>{{ $meaning }}</dd></div>
                 @endforeach
-            </ul>
+            </dl>
         </section>
 
         <section class="s-wrap s-sec" aria-labelledby="faq-h">
@@ -116,47 +137,20 @@
             </div>
         </section>
 
-        {{-- The courses, all free (Hillel, 2026-11-06; docs/plus-courses-plan.md; Hillel: below the table, as three lists on a band), as the
-             app's own More courses list has them (ce5498af): each group's open courses as short rows, linked to
-             their pages, then the ones still to come in one quiet line. Open is the catalogue's own (live, with
-             plus_courses on), so the page is never ahead of the app. --}}
-        {{-- A light band (the five-pages direction): the page ends in one dark block, the shared close, right under it. --}}
+        {{-- Every course, free: one short band (the approved blueprint; Saul: "radically shorter"), its lines and the
+             way to them all on /courses, which lists each course and says which are still to come. The page ends in
+             one dark block, the shared close, right under it. --}}
         <section class="s-pc-band" aria-labelledby="courses-h" data-plus-courses>
             <div class="s-wrap">
                 <div class="s-courses-head">
                     <div>
-                        @php($anyOpen = collect(\App\Support\Site\SitePages::COURSES)->contains(fn (string $slug): bool => \App\Support\Site\SitePages::courseOpen($slug)))
-                        <p class="s-kick">{{ __('pages.pricing.courses_eyebrow') }}@unless ($anyOpen) <x-site.soon />@endunless</p>
+                        <p class="s-kick">{{ __('pages.pricing.courses_eyebrow') }}</p>
                         <h2 id="courses-h" class="s-title">{{ __('pages.pricing.courses_title') }}</h2>
                     </div>
                     <div class="s-courses-lead">
                         <p>{{ __('pages.pricing.courses_lead') }} <b>{{ __('pages.pricing.courses_free') }}</b></p>
-                        <p>{{ __('pages.pricing.courses_coach') }}</p>
+                        <p><a href="/courses" class="s-arrow-link">{{ __('pages.pricing.courses_browse') }} <x-site.icon name="arrow" size="16" /></a></p>
                     </div>
-                </div>
-                <div class="s-courses">
-                    {{-- The groups as /courses has them (the catalogue's, SitePages::courseGroups), each course's name and line from its page. --}}
-                    {{-- Each group in its own colour, the same as /courses (s-cg-<group>; the five-pages plan, step 0). --}}
-                    @foreach (\App\Support\Site\SitePages::courseGroups() as $groupKey => $group)
-                        <section class="s-card3d s-cg-{{ $groupKey }}" aria-labelledby="courses-{{ $loop->iteration }}">
-                            <header><h3 id="courses-{{ $loop->iteration }}"><i aria-hidden="true"></i>{{ $group['name'] }}</h3><span>{{ trans_choice('pages.pricing.courses_count', count($group['courses'])) }}</span></header>
-                            @php($split = \App\Support\Site\SitePages::courseSplit($group['courses']))
-                            {{-- Each open course a chip to its page (Hillel's 2026-11-12 design), then the ones still to come as one quiet chip. --}}
-                            <div class="s-coursechips">
-                                @if ($split['open'])
-                                    <ul data-courses-open>
-                                        @foreach ($split['open'] as $slug)
-                                            <li><a href="/courses/{{ $slug }}">{{ __('site.courses.pages.'.$slug.'.name') }}</a></li>
-                                        @endforeach
-                                    </ul>
-                                @endif
-                                {{-- Before any course opens, the eyebrow already says Coming soon: the chip is just the names. --}}
-                                @if ($split['soon'] !== '')
-                                    <p class="s-coursechip-soon" data-courses-soon>@if ($anyOpen)<b>{{ __('pages.nav.coming_soon') }}</b> @endif{{ $split['soon'] }}</p>
-                                @endif
-                            </div>
-                        </section>
-                    @endforeach
                 </div>
             </div>
         </section>

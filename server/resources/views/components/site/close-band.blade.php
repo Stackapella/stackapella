@@ -5,8 +5,9 @@
      fact, its number bold (App\Support\Site\Explore). Game reads it as a CONTINUE? screen: PRESS START over the line,
      the label as CONTINUE? (x-site.skin), each tile's number as its big readout. `page` is one of Explore::PAGES; `href`
      is the page's way into lesson 1; `funnel` marks the landing's start for its funnel count. The landing passes its
-     voice bars (and its own game kick) in the slot. --}}
-@props(['page', 'href', 'funnel' => false])
+     voice bars (and its own game kick) in the slot, and `cue`, the words that say Start singing opens the app (the
+     landing's "in the app": a consultant's review, 2026-11-23). --}}
+@props(['page', 'href', 'funnel' => false, 'cue' => null])
 @php($words = (array) __('pages.site.close.'.$page))
 <section {{ $attributes->class(['s-ink', 's-close']) }} aria-labelledby="close-h">
     <div class="s-wrap s-close-in">
@@ -17,7 +18,7 @@
         @endif
         <h2 id="close-h"><span>{{ $words['title'] }}</span> <em class="s-hl-em">{{ $words['em'] }}</em></h2>
         <div class="s-close-act">
-            <a href="{{ $href }}" class="btn-primary btn-lg" @if ($funnel) data-funnel-start @endif>{{ __('pages.site.start') }} <x-site.icon name="arrow" size="18" /></a>
+            <a href="{{ $href }}" class="btn-primary btn-lg" @if ($funnel) data-funnel-start @endif>{{ __('pages.site.start') }}@if ($cue !== null) <small class="s-close-cue">{{ $cue }}</small>@endif <x-site.icon name="arrow" size="18" /></a>
             <p>{{ $words['line'] }}</p>
         </div>
         <nav class="s-explore" aria-labelledby="explore-h">

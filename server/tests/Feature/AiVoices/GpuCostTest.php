@@ -276,4 +276,31 @@ final class GpuCostTest extends TestCase
         $this->assertSame(0, OwnChoirFreeSong::query()->count());
         $this->assertSame(1, OwnChoir::quota($user)['freeLeft']);
     }
+
+    public function test_our_failure_gives_paid_plus_its_minutes_back_but_the_daily_cap_still_counts_it(): void
+    {
+        $paid = $this->singer(['store_plus_until' => now()->addDays(10)]);
+        config(['own_choir.plus_minutes' => 60, 'own_choir.daily' => 5]);
+        $full = OwnChoir::quota($paid);
+        $this->assertSame([60.0, 5], [$full['minutesLeft'], $full['todayLeft']]);
+
+        // Ours, after GPU work: the minutes come back, the day's songs don't.
+        $ours = $this->song($paid, ['status' => OwnChoirStatus::Failed, 'failure' => 'render_failed', 'gpu_seconds' => 300, 'part_minutes' => 10.0, 'priority' => 1]);
+        $this->assertSame([60.0, 4], [OwnChoir::quota($paid)['minutesLeft'], OwnChoir::quota($paid)['todayLeft']]);
+
+        // The take's failure after GPU work, and a gates failure on their own song, are theirs.
+        $this->song($paid, ['status' => OwnChoirStatus::Failed, 'failure' => 'clip_unusable', 'gpu_seconds' => 30, 'part_minutes' => 6.0, 'priority' => 1]);
+        $own = $this->song($paid, ['status' => OwnChoirStatus::Failed, 'failure' => 'gates_failed', 'own' => true, 'gpu_seconds' => 200, 'part_minutes' => 4.0, 'priority' => 1]);
+        // A song that failed before any GPU work never counted.
+        $unspent = $this->song($paid, ['status' => OwnChoirStatus::Failed, 'failure' => 'clip_unusable', 'gpu_seconds' => 0, 'part_minutes' => 8.0, 'priority' => 1]);
+        $made = $this->song($paid, ['part_minutes' => 5.0, 'priority' => 1]);
+        // 60 less the take's 6, their gates' 4 and the made 5; the day: all but the one that spent nothing (5 - 4).
+        $this->assertSame([45.0, 1], [OwnChoir::quota($paid)['minutesLeft'], OwnChoir::quota($paid)['todayLeft']]);
+
+        // The app is told which failed songs counted, to say "It didn't count toward your minutes" only then.
+        $this->assertSame([false, true, false, null], [OwnChoir::countedAgainst($ours), OwnChoir::countedAgainst($own), OwnChoir::countedAgainst($unspent), OwnChoir::countedAgainst($made)]);
+        OwnChoirRequest::query()->update(['voicing' => 'written']);
+        $shown = array_map(static fn (OwnChoirRequest $song): mixed => OwnChoir::request($song->refresh()->load(['templateVersion.template', 'parts']), null, $paid)['counted'], [$ours, $own, $unspent, $made]);
+        $this->assertSame([false, true, false, null], $shown);
+    }
 }

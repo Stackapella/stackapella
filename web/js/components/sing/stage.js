@@ -125,15 +125,15 @@ export const Stage = {
             <template v-else>
             <p v-if="turn && recording" class="text-lg font-bold" :style="{ color: paintInk(color) }">{{ t('sing.turn.title') }}</p>
             <template v-else-if="lineOf || start">
-                <p v-if="lineOf" class="text-sm"><span class="font-semibold text-cream">{{ lineOf }}</span></p>
-                <div v-if="start" class="flex w-fit max-w-full flex-wrap items-center gap-3 rounded-full border border-line bg-panel/80 py-1.5 pe-1.5 ps-4 text-cream" data-start-pill>
-                    <span class="size-2.5 shrink-0 rounded-full" :style="{ background: color }" aria-hidden="true"></span>
+                <p v-if="lineOf" class="t-counter" data-line-of>{{ lineOf }}</p>
+                <div v-if="start" class="flex w-fit max-w-full flex-wrap items-center gap-3 rounded-full border border-line py-1.5 pe-1.5 ps-4 text-[15px] text-cream" data-start-pill>
+                    <span class="size-[9px] shrink-0 rounded-full" :style="{ background: color }" aria-hidden="true"></span>
                     <span translate="no">{{ start.word ? t('sing.startWith', { word: start.word.replace(/-$/, ''), note: start.note }) : t('sing.startOn', { note: start.note }) }}</span>
-                    <button type="button" class="btn-secondary btn-sm" @click="$emit('hear-note')"><Icon name="note" :size="14" /> {{ t('sing.hearNote') }}</button>
+                    <button type="button" class="tap-44 inline-flex min-h-8 items-center gap-1.5 rounded-full bg-raised px-3.5 text-[13px] font-semibold text-cream hover:bg-line" @click="$emit('hear-note')"><Icon name="note" :size="14" /> {{ t('sing.hearNote') }}</button>
                 </div>
-                <p v-else-if="comingUp" class="text-sm font-semibold text-muted">{{ comingUp }}</p>
+                <p v-else-if="comingUp" class="text-sm text-subtle">{{ comingUp }}</p>
             </template>
-            <p v-else-if="comingUp" class="text-sm font-semibold text-muted">{{ comingUp }}</p>
+            <p v-else-if="comingUp" class="text-sm text-subtle">{{ comingUp }}</p>
             <slot />
             <KaraokeLine v-if="words && line" :line="line" :position="position" :color="color" :pill="turn" :glow="!!tuning?.lit" :class="staff ? 'text-2xl md:text-4xl' : 'text-5xl leading-[1.08] md:text-7xl'" class="font-extrabold tracking-tight" />
             <p v-else-if="!words && !staff" class="text-2xl text-muted">{{ t('sing.noWords') }}</p>

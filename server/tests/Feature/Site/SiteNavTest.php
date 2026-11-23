@@ -84,7 +84,7 @@ final class SiteNavTest extends TestCase
         $this->assertNotFalse($share);
         $this->assertNotFalse($free);
         $this->assertLessThan($free, $share);
-        $scene = substr($html, (int) $free, (int) strpos($html, 'id="lnf-s6"') - (int) $free);
+        $scene = substr($html, (int) $free, (int) strpos($html, 'id="lnf-s7"') - (int) $free);
         $this->assertStringContainsString('href="/courses"', $scene);
         $this->assertStringContainsString('href="/songs"', $scene);
         $this->assertStringContainsString('href="'.SitePages::toolsHome().'"', $scene);

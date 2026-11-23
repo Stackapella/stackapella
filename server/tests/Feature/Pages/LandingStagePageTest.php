@@ -7,8 +7,8 @@ namespace Tests\Feature\Pages;
 use App\Enums\TemplateAccess;
 use App\Models\Template;
 use App\Models\TemplateVersion;
-use App\Support\Flags;
 use App\Support\Pages\LandingStage;
+use App\Support\Site\AppWords;
 use App\Support\Site\GamePreload;
 use App\Support\Site\SitemapPaths;
 use App\Support\Site\SiteVisit;
@@ -78,8 +78,9 @@ final class LandingStagePageTest extends TestCase
 
         $html = (string) $this->get('/')->assertOk()->getContent();
         // The same control as the site header's (its component), before Language and appearance, and again in that
-        // menu for a phone (Hillel, 2026-11-16: "combine the two buttons"); light and dark only there.
-        $this->assertSame(2, substr_count($html, 'data-game-toggle'));
+        // menu for a phone (Hillel, 2026-11-16: "combine the two buttons"); light and dark only there. A third, the same
+        // switch, is the optional Game mode card under "New to harmony?" (the approved blueprint, 2026-11-23).
+        $this->assertSame(3, substr_count($html, 'data-game-toggle'));
         $this->assertStringContainsString('role="switch"', $html);
         $this->assertLessThan(strpos($html, 'data-look-menu'), strpos($html, 'data-game-toggle'));
         $this->assertSame(1, substr_count($html, 'data-look-menu'));
@@ -138,18 +139,20 @@ final class LandingStagePageTest extends TestCase
         $this->assertSame(1, substr_count($html, ' data-play '));
         $this->assertSame(1, substr_count($html, 'data-lnf-play'));
         // The dock is Play, the time and Start singing: a voice is heard alone by its lane (Hillel, 2026-11-16: "remove
-        // the S A T B buttons from the footer"). The Hear scene's button and the two Learn links start on the melody.
+        // the S A T B buttons from the footer"). The two Learn links start on the melody.
         $this->assertStringNotContainsString('data-lnf-voice', $html);
         $this->assertStringNotContainsString('lnf-vo', $html);
-        $this->assertSame(1, substr_count($html, 'data-lnf-hear'));
+        // A voice is heard alone by its lane's Solo; the Hear scene has no button of its own (the review, 2026-11-23).
+        $this->assertSame(0, substr_count($html, 'data-lnf-hear'));
         $this->assertSame(2, substr_count($html, 'data-lnf-learn'));
-        $page->assertSee('Hear the soprano alone')->assertSee('Learn the soprano part')->assertSee('4 voices · '.$stage['seconds'])
+        $page->assertSee('Learn the soprano part')->assertSee('4 voices · '.$stage['seconds'])
             ->assertSee('Start lesson one')->assertSee('class="lnf-start"', false);
         // Stop is a stop: the word and the square, never a pause.
         $this->assertStringNotContainsStringIgnoringCase('pause', strip_tags((string) strstr((string) strstr($html, '<header class="lnf-top"'), '<div class="lnf-foot-wrap">', true)));
-        // All nine scenes are in the page, in order, for a reader with no script: five on the stage, four after it.
+        // All eight scenes are in the page, in order, for a reader with no script: five on the stage, three after it
+        // (the choir scene folded into the Leaders' way in and /for/choir-directors, 2026-11-23).
         $at = 0;
-        foreach (range(0, 8) as $scene) {
+        foreach ([0, 1, 2, 3, 4, 5, 7, 8] as $scene) {
             $next = strpos($html, 'id="lnf-s'.$scene.'"');
             $this->assertNotFalse($next);
             $this->assertGreaterThan($at, $next);
@@ -157,12 +160,30 @@ final class LandingStagePageTest extends TestCase
         }
         $this->assertGreaterThan(strpos($html, 'id="lnf-s4"'), strpos($html, 'data-lnf-tail'));
         $this->assertLessThan(strpos($html, 'id="lnf-s5"'), strpos($html, 'data-lnf-tail'));
-        // The choir card shows each sample singer's own initials.
-        foreach (['PS', 'SL', 'KO', 'TO'] as $initials) {
-            $this->assertStringContainsString('<span class="lnf-orb bubble">'.$initials.'</span>', $html);
-        }
         // The home page is on the arcade screen in game mode, as the public layout marks it (data-gs).
         $this->assertMatchesRegularExpression('/<html[^>]*\bdata-gs\b/', (string) $page->getContent());
+    }
+
+    public function test_lesson_one_is_previewed_in_the_apps_own_words_without_the_mic(): void
+    {
+        $this->amazingGrace();
+
+        $html = (string) $this->get('/')->assertOk()->getContent();
+        $at = strpos($html, 'class="lnf-glass lnf-lesson"');
+        $this->assertNotFalse($at, 'the preview is in the free section');
+        $this->assertGreaterThan(strpos($html, 'id="lnf-s5"'), $at);
+        $card = substr($html, $at, (int) strpos($html, '</figure>', $at) - $at);
+        foreach (['capture.listening', 'results.note.yours', 'listening.suits.highMiddle'] as $key) {
+            $this->assertStringContainsString(e(AppWords::get($key)), $card, $key);
+        }
+        $this->assertStringContainsString('>A3<', $card);
+        // Still: no control in it and nothing that asks for the mic; Start lesson one beside it is the way in.
+        $this->assertStringNotContainsString('<button', $card);
+        $this->assertStringNotContainsString('<a ', $card);
+        $this->assertStringNotContainsString('getUserMedia', $html);
+        $this->assertSame(4, substr_count($html, 'data-funnel-start'));
+
+        $this->assertStringContainsString('>La3<', (string) $this->get('/es')->assertOk()->getContent());
     }
 
     public function test_without_the_song_the_page_still_reads(): void
@@ -222,7 +243,7 @@ final class LandingStagePageTest extends TestCase
 
         $page = $this->get('/es')->assertOk();
 
-        $page->assertSee('Armonía,')->assertSee('Reproducir Amazing Grace')->assertSee('Escucha cuatro voces y quédate con una.');
+        $page->assertSee('Canta armonías')->assertSee('Reproducir Amazing Grace')->assertSee('Graba una canción entera por tu cuenta');
         // Its links to pages that have a Spanish stay in Spanish; its own two languages name themselves.
         $page->assertSee('href="/es/songs"', false)->assertSee('hreflang="en"', false);
         // The locale it set for itself is put back.
@@ -274,26 +295,6 @@ final class LandingStagePageTest extends TestCase
         $classes = array_unique(array_filter(explode(' ', implode(' ', $found[1]))));
         $missing = array_values(array_filter($classes, static fn (string $class): bool => ! str_contains($sheet, '.'.$class)));
         $this->assertSame([], $missing);
-    }
-
-    public function test_the_choir_scene_says_a_group_takes_plus_while_it_does(): void
-    {
-        $this->amazingGrace();
-        $line = 'Starting a choir group is part of Plus. Everyone you invite joins free.';
-
-        $this->get('/')->assertOk()->assertDontSee($line);
-        app(Flags::class)->set('plus_teams', 'on', null, 'test');
-        $this->get('/')->assertOk()->assertSee($line);
-        $this->get('/es')->assertOk()->assertSee('Crear un grupo de coro es parte de Plus.');
-    }
-
-    public function test_a_singers_initials_are_their_names_first_letters(): void
-    {
-        $this->assertSame('PS', LandingStage::initials('Priya Shah'));
-        $this->assertSame('TO', LandingStage::initials('  tom   okafor '));
-        $this->assertSame('ÁM', LandingStage::initials('Ángel María de la Cruz'));
-        $this->assertSame('K', LandingStage::initials('Kim'));
-        $this->assertSame('', LandingStage::initials(''));
     }
 
     private function amazingGrace(): void

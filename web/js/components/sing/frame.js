@@ -76,22 +76,22 @@ export const SingHeader = {
                 </span>
             </template>
             <template v-else>
-                <button type="button" class="grid size-11 shrink-0 place-items-center rounded-full text-cream hover:bg-raised" :aria-label="t('common.back')" @click="$emit('back')"><Icon name="back" :size="22" /></button>
+                <button type="button" class="icon-btn-quiet" :aria-label="t('common.back')" @click="$emit('back')"><Icon name="back" :size="22" /></button>
                 <div class="min-w-0 flex-1">
-                    <p class="line-clamp-2 font-bold leading-snug md:text-lg" :class="named ? 'text-cream' : 'italic text-muted'" :translate="named ? 'no' : null">{{ title }}</p>
-                    <p class="line-clamp-2 text-xs text-muted md:text-sm">{{ info }}<template v-if="about && !anyPart"> · <span class="text-cream" translate="no" data-sing-part-name>{{ partName }}</span> {{ about }}</template></p>
+                    <p class="line-clamp-2 text-[17px] font-semibold leading-snug" :class="named ? 'text-cream' : 'italic text-muted'" :translate="named ? 'no' : null">{{ title }}</p>
+                    <p class="line-clamp-2 text-[13px] text-subtle">{{ info }}<template v-if="about && !anyPart"> · <span class="text-cream" translate="no" data-sing-part-name>{{ partName }}</span> {{ about }}</template></p>
                 </div>
-                <button type="button" class="relative grid size-11 shrink-0 place-items-center rounded-full glass-bubble text-cream sm:order-last" :aria-label="t('sing.settings.open')" data-settings-open @click="$emit('settings')">
+                <button type="button" class="icon-btn relative sm:order-last" :aria-label="t('sing.settings.open')" data-settings-open @click="$emit('settings')">
                     <span v-if="marked && !badge" class="absolute end-0 top-0 size-3 rounded-full bg-accent ring-2 ring-ink" data-hearing-changed aria-hidden="true"></span>
                     <Icon name="sliders" :size="20" />
                     <span v-if="badge" class="absolute -end-2 -top-2 rounded-full bg-raised px-1.5 text-[10px] font-bold text-cream">{{ badge }}</span>
                 </button>
                 <!-- Words / Notes / Staff: beside Your part and Settings; on a phone, its own slim row under them. -->
-                <div v-if="view" class="grid shrink-0 grid-cols-3 rounded-full glass-bubble bg-raised/60 p-1 max-sm:order-last max-sm:w-full sm:inline-grid" role="group" :aria-label="t('sing.settings.show')" data-ui="view-switch">
-                    <button v-for="v in VIEWS" :key="v.value" type="button" class="min-h-9 rounded-full px-3 text-sm font-semibold" :class="view === v.value ? 'glass-bubble-solid' : 'text-muted hover:text-cream'" :aria-pressed="view === v.value ? 'true' : 'false'" :data-sing-view="v.value" @click="$emit('view', v.value)">{{ t(v.label) }}</button>
+                <div v-if="view" class="seg seg-header grid shrink-0 grid-cols-3 max-sm:order-last max-sm:w-full sm:inline-grid" role="group" :aria-label="t('sing.settings.show')" data-ui="view-switch">
+                    <button v-for="v in VIEWS" :key="v.value" type="button" class="seg-option" :aria-pressed="view === v.value ? 'true' : 'false'" :data-sing-view="v.value" @click="$emit('view', v.value)">{{ t(v.label) }}</button>
                 </div>
                 <div v-if="!anyPart" class="flex shrink-0 items-center max-sm:hidden" data-sing-part-picker>
-                    <button type="button" class="flex min-h-11 shrink-0 items-center gap-2 rounded-full glass-bubble bg-raised/60 py-1.5 pe-2.5 ps-3 text-sm font-semibold text-cream hover:bg-raised" :aria-label="t('sing.yourPart.open', { part: partName })" @click="$emit('part')">
+                    <button type="button" class="flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-edge bg-raised py-1.5 pe-2.5 ps-3 text-sm font-semibold text-cream hover:bg-line" :aria-label="t('sing.yourPart.open', { part: partName })" @click="$emit('part')">
                         <span class="size-2.5 rounded-full" :style="{ background: color }" aria-hidden="true"></span>
                         <span translate="no">{{ partName }}</span>
                         <span v-if="chip" class="hidden font-normal text-muted sm:inline" data-ui="phase-word">· {{ chip }}</span>
@@ -114,9 +114,8 @@ export const ModeBar = {
     setup: () => ({ MODES }),
     template: `
         <div class="flex justify-center overflow-x-auto px-4 pb-2 [scrollbar-width:none] min-[900px]:px-6">
-            <div class="inline-flex shrink-0 gap-1 rounded-full border border-line p-1" role="group" :aria-label="t('sing.mode')">
-                <button v-for="(label, value) in MODES" :key="value" type="button" class="shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition"
-                    :class="mode === value ? 'glass-bubble-solid' : 'text-muted hover:text-cream'" :aria-pressed="mode === value" @click="$emit('mode', value)">{{ t(label) }}</button>
+            <div class="seg seg-header shrink-0" role="group" :aria-label="t('sing.mode')">
+                <button v-for="(label, value) in MODES" :key="value" type="button" class="seg-option shrink-0" :aria-pressed="mode === value ? 'true' : 'false'" @click="$emit('mode', value)">{{ t(label) }}</button>
             </div>
         </div>`,
 };

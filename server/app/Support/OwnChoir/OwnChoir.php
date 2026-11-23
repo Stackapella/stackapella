@@ -178,13 +178,30 @@ final class OwnChoir
      */
     public static function releaseFree(OwnChoirRequest $request): void
     {
-        $ours = $request->status === OwnChoirStatus::Failed && in_array($request->failure, self::OURS, true) && ! ($request->own && $request->failure === 'gates_failed');
-        // Failed before any GPU work (an unusable clip, a voice gone): never counted (Hillel, 2026-11-23).
-        $unspent = $request->status === OwnChoirStatus::Failed && $request->gpu_seconds <= 0;
-
-        if ($request->tries === 0 || $ours || $unspent) {
+        if ($request->tries === 0 || ($request->status === OwnChoirStatus::Failed && self::givenBack($request))) {
             OwnChoirFreeSong::query()->where('own_choir_request_id', $request->id)->delete();
         }
+    }
+
+    /**
+     * A failed song given back to its singer's allowances (the free song, Plus not paid for's songs, paid Plus's
+     * minutes): it never reached the renderer, failed before any GPU work (an unusable clip, a voice gone; Hillel,
+     * 2026-11-23), or failed through ours (a gates failure on the singer's own song stays theirs). The daily cap
+     * counts it all the same (attempted).
+     */
+    public static function givenBack(OwnChoirRequest $request): bool
+    {
+        return $request->tries === 0 || $request->gpu_seconds <= 0
+            || (in_array($request->failure, self::OURS, true) && ! ($request->own && $request->failure === 'gates_failed'));
+    }
+
+    /**
+     * A failed song's place against its singer's allowances, for the app's "It didn't count toward your minutes" (null:
+     * not failed).
+     */
+    public static function countedAgainst(OwnChoirRequest $request): ?bool
+    {
+        return $request->status === OwnChoirStatus::Failed ? ! self::givenBack($request) : null;
     }
 
     /** The free song already used by this address or sign-in, on this account or one since deleted. */
@@ -223,7 +240,7 @@ final class OwnChoir
         $tier = self::tier($user);
         $since = $tier === 'paid' ? self::paidMonthStart($user) : now()->subDays((int) config('own_choir.window_days'));
         $when = DB::raw('coalesce(first_claimed_at, created_at)');
-        $window = $tier === 'paid' ? self::attempted($user) : self::counted($user);
+        $window = $tier === 'paid' ? self::charged($user) : self::counted($user);
         $window->where($when, '>=', $since);
         $oldest = (clone $window)->min($when);
         $resets = $tier === 'paid' ? $since->copy()->addMonthNoOverflow() : (is_string($oldest) ? Carbon::parse($oldest)->addDays((int) config('own_choir.window_days')) : null);
@@ -231,7 +248,7 @@ final class OwnChoir
         return [
             'freeLeft' => self::freeUsed($user) ? 0 : max(0, (int) config('own_choir.free_songs') - self::counted($user, byEmail: true)->count()),
             // Plus not paid for: a friend's parts on their song count as one of its songs too.
-            'monthLeft' => $tier === 'comped' ? max(0, (int) config('own_choir.comped_songs') - (clone $window)->count() - self::attempted($user)->where('bill_to_user_id', $user->id)->where($when, '>=', $since)->count()) : 0,
+            'monthLeft' => $tier === 'comped' ? max(0, (int) config('own_choir.comped_songs') - (clone $window)->count() - self::charged($user)->where('bill_to_user_id', $user->id)->where($when, '>=', $since)->count()) : 0,
             'todayLeft' => max(0, (int) config('own_choir.daily') - self::attempted($user)->where('created_at', '>=', now()->subDay())->count()),
             'plus' => $tier !== 'free',
             'unit' => $tier === 'paid' ? 'minutes' : 'songs',
@@ -260,7 +277,7 @@ final class OwnChoir
      * its place back only when it never reached the renderer (never sent, a clip that failed its check, deleted before its
      * turn), failed through ours (the renderer's own failure, its gates), or failed before any GPU work was spent on it
      * (`gpu_seconds` 0: an unusable clip, a voice gone; Hillel, 2026-11-23: "it shouldn't count as my free song"). The
-     * daily cap and the minutes (attempted) give back the same failures that spent nothing.
+     * daily cap (attempted) gives back the same failures that spent nothing; paid Plus's minutes (charged) give back these and ours.
      *
      * @return Builder<OwnChoirRequest>
      */
@@ -279,7 +296,7 @@ final class OwnChoir
     /**
      * The songs that count toward the daily cap: every song waiting for the renderer or that reached it (tries > 0),
      * however it ended, ours included. A singer can cause even our failures (a song at the limit expiring after its
-     * tries), so only the free and monthly allowances give those back; the cap on what one person costs a day never does.
+     * tries), so only the allowances give those back (counted, charged); the cap on what one person costs a day never does.
      *
      * @return Builder<OwnChoirRequest>
      */
@@ -292,7 +309,22 @@ final class OwnChoir
             ->orWhere(fn (Builder $tried) => $tried->where('tries', '>', 0)->where(fn (Builder $spent) => $spent->where('status', '!=', OwnChoirStatus::Failed->value)->orWhere('gpu_seconds', '>', 0))));
     }
 
-    /** Failures that are ours, not the singer's: their song is given back to the free and monthly allowances. */
+    /**
+     * What a singer's allowances charge (paid Plus's minutes, Plus not paid for's friends' parts): every song attempted
+     * counts, less the failures that are ours (givenBack), which the free song and monthly songs give back too (the
+     * coordinator for a UX review, 2026-11-23). The daily cap (attempted) keeps counting them: a singer can cause even
+     * our failures (a song at the limit expiring after its tries), so the cap on what one person costs a day never
+     * gives them back, as an abuse guard.
+     *
+     * @return Builder<OwnChoirRequest>
+     */
+    public static function charged(User $user): Builder
+    {
+        return self::attempted($user)->whereNot(fn (Builder $ours) => $ours->where('status', OwnChoirStatus::Failed->value)->whereIn('failure', self::OURS)
+            ->where(fn (Builder $theirs) => $theirs->where('own', false)->orWhere('failure', '!=', 'gates_failed')));
+    }
+
+    /** Failures that are ours, not the singer's: their song is given back to the free and monthly allowances and the minutes. */
     public const OURS = ['render_failed', 'gates_failed'];
 
     /**
@@ -440,6 +472,8 @@ final class OwnChoir
             'failure' => $request->failure,
             // Why its clip couldn't be used, for its singer alone (2026-11-23).
             'failureDetail' => $viewer->id === $request->user_id ? $request->failure_detail : null,
+            // A failed song: whether it counted toward their songs or minutes (false: given back).
+            'counted' => self::countedAgainst($request),
             'createdAt' => $request->created_at?->utc()->toIso8601ZuluString(),
             'readyAt' => $request->ready_at?->utc()->toIso8601ZuluString(),
             'startsAfter' => $request->starts_after?->utc()->toIso8601ZuluString(),

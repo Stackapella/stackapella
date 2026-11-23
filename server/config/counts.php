@@ -122,6 +122,11 @@ return [
         'choir_level_low', 'choir_level_loud', 'choir_level_ok', 'choir_take_started', 'choir_take_warned_quiet', 'choir_take_warned_clipped', 'choir_take_sent',
         'choir_failure_seen_quiet', 'choir_failure_seen_noisy', 'choir_failure_seen_notes', 'choir_failure_seen_short', 'choir_failure_seen_edge',
         'choir_failure_seen_length', 'choir_failure_seen_loud', 'choir_failure_seen_other', 'choir_try_again', 'choir_ready_seen', 'choir_listen_played',
+        // The failure screen's choices, a failure seen again for the same reason, and a take warned before it's sent (2026-11-23).
+        'choir_failure_action_sing', 'choir_failure_action_retry', 'choir_failure_action_earlier', 'choir_failure_action_back',
+        'choir_failure_repeat_quiet', 'choir_failure_repeat_noisy', 'choir_failure_repeat_notes', 'choir_failure_repeat_short',
+        'choir_failure_repeat_edge', 'choir_failure_repeat_length', 'choir_failure_repeat_loud', 'choir_failure_repeat_other',
+        'choir_take_warned_edge', 'choir_take_warned_short',
         'choir_view_recording', 'choir_view_with_choir', 'choir_view_full', 'choir_settings_opened_plus', 'choir_settings_opened_locked',
         'choir_plus_sheet_choir_download', 'choir_plus_sheet_choir_settings', 'choir_plus_sheet_choir_friends',
         // Weekly use of what section 2 found under-used, once a device a week (read against app_week).

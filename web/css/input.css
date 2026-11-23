@@ -9858,6 +9858,32 @@ main.cp-pt2 ~ [data-lesson-pages] { display: none; }
     .s-gb-strip { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 :root[data-skin="game"] body.s-arcade :is(.s-gb-card, .s-gb-part, .s-gb-assign, .s-gb-btn, .s-gb-assign select) { border-radius: 0; }
+/* For choir directors (site/for-directors.blade.php, 2026-11-23): the note under the way in, the four steps on glass
+   gems in a row, and "No group yet?" beside its three steps. */
+.s-dir-note { margin-top: 14px; max-width: 40em; font-size: 14.5px; line-height: 1.5; color: var(--color-muted); }
+.s-dir-steps { list-style: none; margin: 28px 0 0; padding: 0; display: grid; gap: 14px; }
+.s-dir-steps li { padding: 20px; background: var(--color-panel); border: 1px solid var(--color-line); border-radius: 24px; }
+.s-dir-steps h3 { margin-top: 14px; font-size: 19px; font-weight: 800; line-height: 1.2; letter-spacing: -0.01em; }
+.s-dir-steps p { margin-top: 6px; font-size: 15px; line-height: 1.5; color: var(--color-muted); }
+.s-dir-nogroup { display: grid; gap: 24px; }
+.s-dir-howto { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.s-dir-howto li { display: flex; align-items: flex-start; gap: 14px; padding: 16px 18px; background: var(--color-panel); border: 1px solid var(--color-line); border-radius: 20px; font-size: 16px; line-height: 1.5; }
+.s-dir-howto .s-disc { width: 32px; height: 32px; font-size: 15px; }
+:is(.s-dir-steps, .s-dir-howto) .gem { --gem: var(--c); --gem-ink: var(--ct); }
+/* The director's view in the first screen is the page's picture: crisp, never under the demo's veil, with its start
+   as a button under the board and the frame fitted to the board (the coordinator's review, 2026-11-23). */
+.s-dir-view .s-demo:not([data-state="live"]) .s-demo-stage::after { content: none; }
+.s-dir-view .s-demo-start { position: static; translate: none; margin-top: 16px; min-height: 52px; padding-inline-end: 22px; }
+.s-dir-view .s-demo-start-icon { width: 38px; height: 38px; }
+.s-dir-view .s-demo:not([data-state="live"]) .s-gb-foot { display: none; }
+.s-dir-view .s-demo-caption { text-align: start; }
+@media (min-width: 640px) and (max-width: 899.98px) { .s-dir-steps { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+@media (min-width: 900px) {
+    .s-dir-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin-top: 36px; }
+    .s-dir-steps li { padding: 24px; border-radius: 28px; }
+    .s-dir-nogroup { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; align-items: start; }
+}
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) :is(.s-dir-steps li, .s-dir-howto li) { border-radius: var(--arc-radius); border: var(--arc-frame) solid var(--arc-line); background: var(--arc-panel); box-shadow: var(--arc-shadow); }
 :root[data-skin="game"] body.s-arcade .s-gb-card { border: 2px solid #3be7ff; box-shadow: 6px 6px 0 #ff5fd2; }
 :root[data-skin="game"] body.s-arcade .s-gb-btn { border-color: #3be7ff; font: 400 11px/1.4 var(--a-hud); }
 .s-demo-start { position: absolute; inset: 50% auto auto 50%; translate: -50% -50%; display: inline-flex; align-items: center; gap: 12px; min-height: 64px; padding: 0 26px 0 10px; border-radius: 99px; border: 0; background: #ffc66b; color: #1a1420; font: 800 18px/1.1 Figtree, system-ui, sans-serif; box-shadow: 0 18px 40px -14px rgb(0 0 0 / .7); cursor: pointer; white-space: nowrap; }
@@ -13901,6 +13927,22 @@ a.cp-ll-block:focus-visible { outline: 3px solid var(--color-cream); outline-off
 .s-plan-fact { color: var(--color-muted); }
 .s-plan-choirs { margin-top: 20px; font-size: 13.5px; line-height: 1.45; color: var(--color-muted); }
 .s-plan-choirs a { font-weight: 700; color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+/* /pricing, short (the approved blueprint, 2026-11-23): the lede under the headline; a link with its arrow; the choir
+   callout under the cards; the short comparison, every detail one press away; the words on the page. */
+.s-price-lede { margin-top: 16px; max-width: 52ch; }
+.s-arrow-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-weight: 700; color: inherit; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.s-callout { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; margin-top: 22px; padding: 16px 22px; border-radius: 20px; background: color-mix(in srgb, var(--color-cream) 5%, transparent); border: 1px solid var(--color-line); }
+.s-callout p { flex: 1 1 320px; margin: 0; font-size: 16px; line-height: 1.45; }
+:root[data-theme$="-light"] .s-callout { background: color-mix(in srgb, var(--color-ink) 4%, transparent); }
+.s-table-short { margin-top: 18px; }
+.s-every { margin-top: 18px; }
+.s-every > summary { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer; list-style: none; font-weight: 700; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.s-every > summary::-webkit-details-marker { display: none; }
+.s-every > summary svg { transition: rotate .2s; } .s-every[open] > summary svg { rotate: 180deg; }
+.s-every .s-compare-head { justify-content: flex-end; margin-top: 8px; }
+.s-gloss dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px 32px; margin: 18px 0 0; }
+.s-gloss dt { font-weight: 700; } .s-gloss dd { margin: 4px 0 0; color: var(--color-muted); line-height: 1.5; }
+:root[data-skin='game'][data-gs] body.s-arcade:not(.s-calm) .s-callout { border-radius: var(--arc-radius); border: var(--arc-frame) solid var(--arc-line); background: var(--arc-panel); box-shadow: var(--arc-shadow); }
 /* The plans' title: its second line muted, so "Free to start." reads first. */
 .s-h-more { color: var(--color-muted); }
 .s-pricehead h1 .s-h-more { display: block; }

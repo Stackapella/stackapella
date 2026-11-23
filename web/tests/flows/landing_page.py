@@ -24,7 +24,7 @@ on it, then a page that scrolls, the site's footer, and a dock that stays. On a 
 - the stage's scenes follow the scroll, 0 to 4; after Share the stage lets go and the rest scrolls as a page: nothing
   scrolls inside itself, the lanes end above the dock in every scene, and the last question clears the dock;
 - scrolling never stops or moves the song;
-- the keyboard: Play is the first control in the page's main part, the lanes are one stop (the arrows move between them,
+- the keyboard: Try the first lesson, then Play, are the first controls in the page's main part, the lanes are one stop (the arrows move between them,
   Space hears one alone), and focus in a scene of the stage off the screen brings its scene;
 - light and dark by the top line's switch;
 - reduced motion: nothing is pinned, every scene shows, and the song still plays with its gems lit in place;
@@ -196,7 +196,7 @@ def play_and_solo(f):
     b = f.js(STATE)
     assert b["alone"] == ["alto"] and b["playing"] and b["p"] > a["p"], f"the alto alone, from the same spot: {b}"
     assert f.js("document.querySelector('[data-voice=alto] [data-hear-alone]').getAttribute('aria-pressed')") == "true", "the lane's button says it's pressed"
-    assert f.js("getComputedStyle(document.querySelector('[data-voice=alto] .lnf-chip-alone')).display") != "none", "the lane says Heard alone in words"
+    assert f.js("getComputedStyle(document.querySelector('[data-voice=alto] .lnf-solo-on')).display") != "none", "the lane's Solo says Heard alone in words"
     assert "alto" in b["live"].lower(), f"a screen reader is told which voice: {b['live']!r}"
     assert f.js(WAITS) == [] and "alto" in f.js(NOW).lower(), f"a voice alone wins over the joins: {f.js(WAITS)}, {f.js(NOW)!r}"
     f.run("document.querySelector('[data-voice=alto] [data-hear-alone]').click()")
@@ -206,18 +206,17 @@ def play_and_solo(f):
     assert c["playing"] and c["alone"] == [], f"all four again: {c}"
     if c["p"] * 72 < 16:
         assert "bass" in f.js(WAITS) and "tenor" in f.js(WAITS), f"the lanes still to join wait again: {f.js(WAITS)}"
-    # The Hear scene's button and the Learn links name the voice last heard alone, and lead to its part.
+    # The Learn links name the voice last heard alone, and lead to its part.
     learn = f.js("[...document.querySelectorAll('[data-lnf-learn]')].map((a) => [a.textContent.trim(), a.getAttribute('href')])")
     assert len(learn) == 2 and all("alto" in text.lower() and "part=alto" in href for text, href in learn), f"the Learn links follow the alto: {learn}"
-    assert "alto" in f.js("document.querySelector('[data-lnf-hear]').textContent").lower(), "the Hear button offers the alto again"
-    # The tenor alone by its lane (the dock has no voices), and back by the Hear scene's button.
+    # The tenor alone by its lane (the dock has no voices), and back by the same lane.
     assert f.js("document.querySelectorAll('[data-lnf-voice], .lnf-dock [data-hear-alone]').length") == 0, "the dock has no voice buttons"
     if c["playing"]:
         f.run("document.querySelector('[data-voice=tenor] [data-hear-alone]').click()")
         f.wait("document.querySelector('[data-voice=tenor]').hasAttribute('data-solo')", timeout=20, what="the tenor alone, by its lane")
-        assert f.js("document.querySelector('[data-lnf-hear]').getAttribute('aria-pressed')") == "true", "the Hear button says a voice is alone"
-        f.run("document.querySelector('[data-lnf-hear]').click()")
-        f.wait("!document.querySelector('[data-voice][data-solo]')", timeout=20, what="all four again, by the Hear button")
+        assert f.js("document.querySelector('[data-voice=tenor] [data-hear-alone]').getAttribute('aria-pressed')") == "true", "the tenor's lane says it's alone"
+        f.run("document.querySelector('[data-voice=tenor] [data-hear-alone]').click()")
+        f.wait("!document.querySelector('[data-voice][data-solo]')", timeout=20, what="all four again, by the tenor's lane")
         assert "tenor" in f.js("document.querySelector('[data-lnf-learn]').textContent").lower(), "the Learn link follows the tenor"
         time.sleep(0.8)
         c = f.js(STATE)
@@ -379,7 +378,7 @@ def scenes(f, before):
     else:
         assert state["p"] == 0, f"the song ended by itself while the scenes went by, never stopped part way: {state}"
     # After Share the stage lets go: the rest is a page that scrolls, each section in the flow, nothing scrolling inside.
-    for scene in (5, 6, 7, 8):
+    for scene in (5, 7, 8):
         f.run(f"window.scrollTo(0, document.getElementById('lnf-s{scene}').getBoundingClientRect().top + scrollY)")
         f.wait("document.getElementById('lnf').hasAttribute('data-tail')", timeout=10, what=f"scene {scene} is the page that scrolls")
         f.no_sideways(f"scene {scene}")
@@ -443,8 +442,9 @@ def theme(f):
 
 def keyboard(f):
     f.go("/?keys", READY)
-    first = f.js("(() => { const el = document.querySelector('main').querySelector('a[href], button, summary, [tabindex=\"0\"]'); return el?.hasAttribute('data-lnf-play'); })()")
-    assert first, "Play is the first control in the page's main part"
+    # The blueprint's one way in first (Try the first lesson), then Play.
+    first = f.js("[...document.querySelector('main').querySelectorAll('a[href], button, summary, [tabindex=\"0\"]')].slice(0, 2).map((el) => el.hasAttribute('data-funnel-start') ? 'try' : el.hasAttribute('data-lnf-play') ? 'play' : el.outerHTML.slice(0, 60))")
+    assert first == ["try", "play"], f"Try the first lesson, then Play, are the first controls in the page's main part: {first}"
     f.run("document.querySelector('[data-lnf-play]').focus()")
     f.press("Enter")
     f.wait("document.getElementById('lnf').hasAttribute('data-playing')", timeout=40, what="Enter on Play plays")
@@ -508,12 +508,12 @@ def home(f):
 def spanish(f):
     f.go("/es", READY)
     assert f.js("document.documentElement.lang") == "es", "the Spanish page says its language"
-    assert "Armonía" in f.js("document.querySelector('h1').textContent"), "the headline is in Spanish"
+    assert "armonía" in f.js("document.querySelector('h1').textContent").lower(), "the headline is in Spanish"
     assert f.js("document.querySelector('link[rel=canonical]')?.getAttribute('href') ?? ''").endswith("/es"), "the Spanish page's own address"
     for scene in (0, 1, 2, 3, 4):
         scroll_to(f, scene)
         f.no_sideways(f"the Spanish scene {scene}")
-    for scene in (5, 6, 7, 8):
+    for scene in (5, 7, 8):
         f.run(f"window.scrollTo(0, document.getElementById('lnf-s{scene}').getBoundingClientRect().top + scrollY)")
         time.sleep(0.3)
         f.no_sideways(f"the Spanish scene {scene}")

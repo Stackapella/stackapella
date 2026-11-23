@@ -34,7 +34,7 @@ final class PlusTeamsCopyTest extends TestCase
             'pricing\'s table' => ['/pricing', 'Friends singing on one of your songs', 'Inviting friends to sing on your songs'],
             'help on groups' => ['/help/groups', 'Groups are free.', 'Starting a group takes Plus; every singer joins free.'],
             'the choirs feature' => ['/features/choirs', 'Choir groups are free, for the director and every member.', 'Starting a choir group takes Plus; every member joins free.'],
-            'for choir directors' => ['/for/choir-directors', 'your singers never pay: learning on Stackapella is free.', 'they join your group free. Starting the group takes Plus.'],
+            'for choir directors' => ['/for/choir-directors', 'Starting a group is free, and your singers join free.', 'Starting a group takes Plus. Your singers join free.'],
             'a compare page' => ['/compare/howli', 'singing with friends and choir groups. Plus,', 'lets you invite friends to sing and start choir groups'],
         ];
     }

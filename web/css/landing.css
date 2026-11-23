@@ -370,7 +370,7 @@
 body { margin: 0; background: var(--ground); }
 .lnf {
     --pad: max(20px, calc((100vw - 1240px) / 2 + 20px));
-    --top: 72px; --bar: 88px; --foot: 0px; --split: 43svh; --ppb: 84px; --ph: calc(var(--pad) + 310px); --tilt: 9deg;
+    --top: 72px; --bar: 88px; --foot: 0px; --split: 43svh; --ppb: 84px; --ph: calc(var(--pad) + 380px); --tilt: 9deg;
     --ease: cubic-bezier(.16, 1, .3, 1);
     position: relative; isolation: isolate; background: var(--ground); color: var(--ink);
     font: 400 17px/1.5 Figtree, system-ui, sans-serif; -webkit-font-smoothing: antialiased; overflow-x: clip;
@@ -431,13 +431,22 @@ body { margin: 0; background: var(--ground); }
 
 /* Words. */
 .lnf-h1, .lnf-h2 { margin: 0; font-weight: 800; letter-spacing: -.045em; line-height: .93; text-wrap: balance; }
-.lnf-h1 { font-size: clamp(50px, 7.7vw, 112px); } .lnf-h1 span, .lnf-h1 em { display: block; }
+.lnf-h1 { font-size: clamp(50px, min(7.7vw, 12.4svh), 112px); } /* a short desktop: a step smaller, so the lanes keep their room */
+.lnf-stage [data-s="0"] .lnf-h1 { font-size: clamp(50px, min(6vw, 10svh), 92px); } /* the headline in two lines, with the ways in under it */ .lnf-h1 span, .lnf-h1 em { display: block; }
 .lnf-h2 { font-size: clamp(36px, 5.4vw, 84px); line-height: .98; }
 .lnf-h1 em, .lnf-h2 em { font-style: normal; color: var(--em); }
 .lnf-h2-two em { display: block; } .lnf-h2-two { font-size: clamp(32px, 4.3vw, 66px); }
 .lnf-say { margin: 0 0 20px; font-size: clamp(16.5px, 1.4vw, 20px); line-height: 1.45; color: color-mix(in srgb, var(--ink) 86%, transparent); max-width: 30em; }
-.lnf-promise { margin: 12px 0 0; font-size: 14px; font-weight: 600; line-height: 1.35; color: var(--mute); } .lnf-promise[hidden] { display: none; }
-.lnf-true { margin: -8px 0 16px; font-size: 14.5px; font-weight: 600; color: var(--mute); }
+/* Who it's for, on the first screen: three ways in, each saying who, what they get and its one next step. */
+.lnf-paths { grid-column: 1 / -1; min-width: 0; }
+.lnf-paths-h { margin: 4px 0 10px; font-size: 18px; font-weight: 800; letter-spacing: -.01em; line-height: 1.1; }
+.lnf-paths ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.lnf-path a { display: flex; flex-direction: column; gap: 3px; height: 100%; padding: 12px 18px 10px; border-radius: 18px; background: var(--panel); border: 1px solid var(--edge); color: var(--ink); text-decoration: none; transition: border-color .2s; }
+.lnf-path a:hover, .lnf-path a:focus-visible { border-color: color-mix(in srgb, var(--c) 70%, transparent); }
+.lnf-path .lnf-who { display: flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); } .lnf-who .lnf-badge { margin: 0; }
+.lnf-path b { font-size: 15.5px; font-weight: 800; line-height: 1.2; color: var(--c); }
+.lnf-path span { font-size: 14px; line-height: 1.35; color: var(--mute); } .lnf-path span[hidden] { display: none; }
+.lnf-path em { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; margin-top: auto; padding-top: 4px; font-style: normal; font-size: 15px; font-weight: 750; text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--c) 75%, transparent); text-decoration-thickness: 2px; text-underline-offset: 4px; }
 .lnf-lk { text-decoration: underline !important; text-underline-offset: 4px; font-weight: 700; white-space: nowrap; }
 .lnf-kick { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; font-size: 13px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--mute); }
 .lnf-bars { display: inline-flex; gap: 4px; } .lnf-bars i { width: 24px; height: 6px; border-radius: 6px; background: color-mix(in srgb, var(--ink) 16%, transparent); }
@@ -457,8 +466,17 @@ body { margin: 0; background: var(--ground); }
 .lnf-play-w .lnf-load { font-variant-numeric: tabular-nums; opacity: .85; }
 .lnf-tp .lnf-load { white-space: nowrap; }
 .lnf[data-failed] .lnf-play-w .lnf-load { opacity: 1; }
-.lnf-quiet { display: inline-flex; align-items: center; gap: 8px; height: 56px; padding: 0 24px; border-radius: 99px; background: var(--panel); border: 1px solid var(--edge); font-size: 17px; font-weight: 700; white-space: nowrap; cursor: pointer; }
-.lnf-quiet[aria-pressed="true"] { border-color: var(--ink); }
+.lnf-try { display: inline-flex; align-items: center; gap: 14px; min-height: 64px; padding: 8px 26px 8px 28px; border-radius: 99px; background: var(--btn); color: var(--btn-ink) !important; text-decoration: none; box-shadow: 0 0 0 8px color-mix(in srgb, var(--em) 22%, transparent), 0 0 60px 4px color-mix(in srgb, var(--em) 30%, transparent); }
+.lnf-try > span { display: grid; gap: 4px; } .lnf-try b { font-size: 19px; font-weight: 800; line-height: 1.05; white-space: nowrap; } .lnf-try small { font-size: 13px; font-weight: 600; opacity: .72; white-space: nowrap; }
+/* Play is the second press beside the way in: the song's own button, quieter (panel, not ink). */
+.lnf-stage .lnf-play { height: 64px; padding-inline-end: 26px; background: var(--panel); border: 1px solid var(--edge); color: var(--ink) !important; font-size: 17px; box-shadow: none; }
+.lnf-stage .lnf-play .lnf-orb { width: 46px; height: 46px; }
+.lnf-stage .lnf-play .lnf-orb::after, .lnf[data-loading] .lnf-stage .lnf-play .lnf-orb::after { border-color: color-mix(in srgb, var(--ink) 70%, transparent); }
+.lnf-badge { display: inline-flex; align-items: center; height: 20px; margin-inline-start: 8px; padding: 0 8px; border-radius: 6px; background: color-mix(in srgb, var(--c) 16%, transparent); color: var(--ink); font-size: 11px; font-style: normal; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; vertical-align: 2px; }
+/* Game mode, optional: the real switch, what it does, and that it's optional. */
+.lnf-gm { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin-top: 26px; padding: 14px 20px; border-radius: 20px; }
+.lnf-gm p { flex: 1 1 260px; margin: 0; font-size: 15px; line-height: 1.4; color: var(--mute); } .lnf-gm b { color: var(--ink); }
+.lnf-gm .lnf-badge { --c: var(--c4); margin: 0; }
 .lnf-prim { display: inline-flex; align-items: center; gap: 10px; height: 64px; padding: 0 32px; border-radius: 99px; background: var(--btn); color: var(--btn-ink) !important; font-size: 19px; font-weight: 800; white-space: nowrap; }
 .lnf-arrow { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 16px; font-weight: 700; text-decoration: underline !important; text-decoration-color: color-mix(in srgb, var(--ink) 40%, transparent) !important; text-underline-offset: 5px; }
 /* Play and Stop: the player stops and goes back to the start, so the square and the word Stop, never a pause. */
@@ -492,18 +510,18 @@ body { margin: 0; background: var(--ground); }
    the ground under it is the lane's tint. js/public/landing.js sets data-ring on the note sounding, data-state="settled"
    once it has, --gem-g on each lane's next note as it nears, and the words' place (data-fit). Ink by contrast: the
    page's four voices take the dark ink in a dark theme and the light one in a light theme (landing_page.py checks). */
-.lnf-g { position: absolute; left: calc(var(--b) * var(--ppb)); width: calc(var(--l) * var(--ppb) - 6px); top: calc(12% + var(--y) * 56%);
-    --gem-c: var(--c); --gem-hl: clamp(16px, 27cqh, 54px); --gem-surf: color-mix(in srgb, var(--c) calc(var(--gem-lane-tint) * 100%), var(--ground));
+.lnf-g { position: absolute; left: calc(var(--b) * var(--ppb)); width: calc(var(--l) * var(--ppb) - 6px); top: calc(12% + var(--y) * min(56%, 86% - var(--gem-hl))); /* a thin lane keeps its lowest note inside it */
+    --gem-c: var(--c); --gem-hl: clamp(20px, 27cqh, 54px); /* never under the 18 px a word fits inside (js/gem-spec.js minGem), the lanes at their thinnest when Play brings the dock up under the three ways in */ --gem-surf: color-mix(in srgb, var(--c) calc(var(--gem-lane-tint) * 100%), var(--ground));
     --gem-ring: var(--ink); --gem-text: var(--ink); --gem-ink: var(--gem-ink-dark); }
 :root[data-theme$="-light"] .lnf-g { --gem-ink: var(--gem-ink-light); }
 .lnf-g[data-ring] { z-index: 2; --gem-g: var(--gem-level-now); }
 .lnf-lb { position: absolute; z-index: 3; left: var(--pad); top: 0; bottom: 0; width: 300px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 5px; pointer-events: none; }
 .lnf-lb b { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 800; line-height: 1; letter-spacing: -.01em; color: var(--c); white-space: nowrap; }
 .lnf-lb small { max-width: 176px; padding-inline-start: 42px; font-size: 14px; font-weight: 500; line-height: 1.2; color: var(--mute); }
-.lnf-row > .lnf-orb { --c: inherit; }
 .lnf-lb .lnf-orb { --c: inherit; width: 32px; height: 32px; font-size: 13px; font-weight: 800; }
 /* A lane too low for two lines keeps its name. */
-@container (max-height: 64px) { .lnf-lb small { display: none; } }
+@container (max-height: 88px) { .lnf-lb small { display: none; } } /* the name, then Solo and the app's link: no room for the role */
+@container (max-height: 62px) { .lnf-lb { flex-direction: row; align-items: center; width: auto; gap: 14px; } .lnf-do { margin: 0; } }
 .lnf-mt { display: inline-flex; align-items: center; gap: 3px; height: 16px; } .lnf-mt i { width: 3px; border-radius: 2px; background: var(--c); height: 8px; }
 .lnf-mt i:nth-child(2) { height: 16px; } .lnf-mt i:nth-child(3) { height: 11px; } .lnf-mt i:nth-child(4) { height: 6px; }
 @media (prefers-reduced-motion: no-preference) {
@@ -522,10 +540,23 @@ body { margin: 0; background: var(--ground); }
 @keyframes lnf-turn { to { rotate: 1turn; } }
 @keyframes lnf-breathe { 0%, 100% { opacity: 0; scale: 1; } 50% { opacity: .6; scale: 1.08; } }
 .lnf-ln::before { content: ""; position: absolute; z-index: 2; inset: 0 auto 0 0; width: calc(var(--ph) - 60px); background: linear-gradient(90deg, color-mix(in srgb, var(--ground) 90%, var(--c)) calc(100% - 120px), transparent); pointer-events: none; }
-.lnf-mine { position: absolute; z-index: 4; left: calc(var(--pad) + 180px); top: 50%; translate: 0 -50%; display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 99px; border: 1.5px solid var(--c); background: color-mix(in srgb, var(--ground) 80%, var(--c)); font-size: 13.5px; font-weight: 700; white-space: nowrap; transition: opacity .4s; }
-.lnf-chip { display: none; align-items: center; gap: 6px; height: 24px; margin-inline-start: 42px; padding: 0 10px; border-radius: 99px; background: var(--c); color: var(--gi); font-size: 11px; font-weight: 800; line-height: 1; letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; }
+/* Solo and the link into the app, one row under the name. */
+.lnf-do { display: flex; align-items: center; gap: 4px 14px; margin-inline-start: 42px; }
+/* Every link into the app says so, in small words beside its own (a consultant's review, 2026-11-23: "label where app
+   links go"); in a filled button they take its ink, a step quieter. */
+.lnf-app, .lnf-close .s-close-cue { font-size: max(11px, .76em); font-weight: 600; letter-spacing: 0; text-transform: none; white-space: nowrap; opacity: .72; }
+/* The lane's control, drawn as a control (the lane itself is the button): Solo, then "Heard alone" in its colour. The
+   name and role are plain words, and the story's chips are flat square tags, so nothing but the controls looks
+   pressable. */
+.lnf-solo { display: inline-flex; flex: none; align-items: center; gap: 6px; height: 28px; padding: 0 12px; border-radius: 99px; border: 1.5px solid color-mix(in srgb, var(--c) 70%, transparent); background: color-mix(in srgb, var(--ground) 72%, transparent); box-shadow: 0 2px 0 color-mix(in srgb, var(--c) 40%, transparent); color: var(--ink); font-size: 12.5px; font-weight: 750; line-height: 1; white-space: nowrap; }
+.lnf-solo svg { color: var(--c); }
+.lnf-solo-on { display: none; }
+.lnf-ln[data-solo] .lnf-solo { background: var(--c); border-color: var(--c); color: var(--gi); box-shadow: none; } .lnf-ln[data-solo] .lnf-solo svg { color: inherit; }
+.lnf-ln[data-solo] .lnf-solo-on { display: inline; } .lnf-ln[data-solo] .lnf-solo-off { display: none; }
+.lnf-hit:hover ~ .lnf-lb .lnf-solo { border-color: var(--c); }
+.lnf-hit:focus-visible ~ .lnf-lb .lnf-solo { outline: 2px solid var(--ink); outline-offset: 2px; }
+.lnf-chip { display: none; align-items: center; gap: 6px; height: 24px; margin-inline-start: 42px; padding: 0 10px; border-radius: 6px; background: var(--c); color: var(--gi); font-size: 11px; font-weight: 800; line-height: 1; letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; }
 .lnf-chip-rec::before { content: ""; width: 8px; height: 8px; border-radius: 9px; background: currentColor; }
-.lnf-ln[data-solo] .lnf-chip-alone { display: inline-flex; }
 /* The voice heard alone glows at its edge, in its own colour. */
 .lnf-ln[data-solo] { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--c) 70%, transparent), 0 0 40px -8px var(--c); }
 .lnf-ln[data-off] { opacity: .3; }
@@ -555,8 +586,7 @@ body { margin: 0; background: var(--ground); }
 .lnf-foot { display: flex; justify-content: space-between; align-items: center; gap: 24px; margin: 10px 0 0; padding: 0 var(--pad); font-size: 12.5px; font-weight: 500; line-height: 1.35; color: var(--mute); }
 .lnf-foot p { margin: 0; } .lnf-cred { text-align: end; max-width: 62ch; margin-inline-start: auto !important; }
 .lnf-cred-short { display: none; }
-.lnf-cue { display: none; }
-.lnf-hint { display: none; }
+.lnf-foot { justify-content: flex-end; } .lnf-cred { min-width: 0; margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 
 /* The dock: it stays, in every scene and down the page. Play, the time, the four voices, the line being sung, and
    Start singing. */
@@ -570,16 +600,19 @@ body { margin: 0; background: var(--ground); }
 .lnf-line [data-done] { color: var(--ink); }
 .lnf-line [data-now] { color: var(--ink); text-decoration: underline 3px var(--em); text-underline-offset: 6px; }
 .lnf-next { margin: 5px 0 0; font-size: 14px; font-weight: 500; line-height: 1.1; color: var(--mute); min-height: 1.1em; white-space: nowrap; }
-.lnf-start { justify-self: end; display: inline-flex; align-items: center; gap: 8px; height: 52px; padding: 0 24px; border-radius: 99px; background: var(--btn); color: var(--btn-ink) !important; font-size: 16.5px; font-weight: 800; line-height: 1.05; white-space: nowrap; }
+.lnf-start { justify-self: end; display: inline-flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px; height: 52px; padding: 0 24px; border-radius: 99px; background: var(--btn); color: var(--btn-ink) !important; font-size: 16.5px; font-weight: 800; line-height: 1.05; white-space: nowrap; }
 .lnf-rail { position: absolute; left: 0; top: -2px; display: block; height: 3px; width: 100%; clip-path: inset(0 calc((1 - var(--lnf-run)) * 100%) 0 0); background: linear-gradient(90deg, var(--c1), var(--c2), var(--c3), var(--c4)); pointer-events: none; }
 .lnf:not([data-playing]) .lnf-rail { opacity: 0; }
 
 /* What floats in a scene: glass, lit at its edge in a voice's colour (the whole edge, never a stripe). */
 .lnf-glass { background: var(--panel); border: 1px solid var(--edge); border-radius: 28px; box-shadow: 0 40px 90px -40px rgb(0 0 0 / .8), inset 0 1px 0 rgb(255 255 255 / .16); }
 :root[data-theme$="-light"] .lnf-glass { box-shadow: 0 40px 80px -40px rgb(80 50 10 / .45), inset 0 1px 0 #fff; }
-@supports (backdrop-filter: blur(4px)) { @media (min-width: 900px) { .lnf-stage .lnf-glass, .lnf-look > .s-look-btn, .lnf-open, .lnf-stage .lnf-quiet { backdrop-filter: blur(18px) saturate(1.3); } } }
-.lnf-seg { display: inline-flex; margin: 0; padding: 4px; border-radius: 99px; background: var(--panel); border: 1px solid var(--edge); font-size: 13px; font-weight: 700; line-height: 1; }
-.lnf-seg span { padding: 9px 14px; border-radius: 99px; color: var(--mute); } .lnf-seg .lnf-on { background: var(--c1); color: var(--gi); }
+@supports (backdrop-filter: blur(4px)) { @media (min-width: 900px) { .lnf-stage .lnf-glass, .lnf-look > .s-look-btn, .lnf-open { backdrop-filter: blur(18px) saturate(1.3); } } }
+.lnf-seg { display: inline-flex; align-items: baseline; margin: 0; font-size: 12px; font-weight: 700; line-height: 1; letter-spacing: .08em; text-transform: uppercase; color: var(--mute); }
+/* Sing's three ways, as a caption: words with dots between, the one in use in the tune's colour and underlined; nothing
+   that looks pressable (it's a picture of the app's control, not one). */
+.lnf-seg span + span::before { content: "·"; margin: 0 10px; color: var(--mute); }
+.lnf-seg .lnf-on { color: var(--c1); text-decoration: underline 2px; text-underline-offset: 5px; }
 .lnf-share { width: min(400px, 100%); padding: 26px; }
 .lnf-share b { display: block; font-size: 24px; font-weight: 800; line-height: 1.1; letter-spacing: -.02em; } .lnf-share p { margin: 6px 0 16px; color: var(--mute); font-size: 16px; }
 .lnf-orbs { display: flex; gap: 10px; } .lnf-orbs .lnf-orb { width: 52px; height: 52px; font-size: 12px; font-weight: 800; }
@@ -625,19 +658,26 @@ body { margin: 0; background: var(--ground); }
 .lnf-slab strong { display: block; font-size: clamp(54px, 6.6vw, 96px); font-weight: 800; line-height: .9; letter-spacing: -.05em; color: var(--c); font-variant-numeric: tabular-nums; }
 .lnf-slab b { display: block; margin-top: 10px; font-size: clamp(19px, 1.7vw, 24px); font-weight: 800; line-height: 1.1; letter-spacing: -.02em; } .lnf-slab > span { display: block; margin-top: 6px; color: var(--mute); font-size: 16px; line-height: 1.4; }
 .lnf-slab i { position: absolute; inset-inline-end: 26px; top: 26px; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--ink) 10%, transparent); }
-.lnf-two { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 40px 72px; align-items: center; }
-.lnf-two .lnf-say { margin: 22px 0 0; }
-.lnf-plusline { display: flex; align-items: baseline; gap: 10px; margin: 16px 0 0; max-width: 34em; font-size: 15.5px; font-weight: 600; line-height: 1.4; color: var(--mute); }
-.lnf-two .lnf-go { margin-top: 26px; }
-.lnf-choir { justify-self: end; width: min(480px, 100%); padding: 22px 26px; }
-.lnf-choir p { margin: 0; }
-.lnf-choir-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-bottom: 12px; } .lnf-choir-h b { font-size: 22px; font-weight: 800; line-height: 1; } .lnf-choir-h span { color: var(--mute); font-size: 14px; text-align: end; }
+/* Lesson 1, previewed (the free section): its last step as the app shows it, in the app's own words, still, without the
+   mic; the held note is a glass note, the found note in the first part's colour; Start lesson one beside it. */
+.lnf-lessonrow { display: grid; gap: 22px; justify-items: center; }
+.lnf-lesson { width: min(100%, 400px); margin: 0; padding: 18px 22px 16px; border-radius: 28px; }
+.lnf-ls-card { display: grid; justify-items: center; gap: 4px; text-align: center; }
+.lnf-ls-top { justify-self: stretch; display: flex; align-items: center; justify-content: space-between; margin: 0 0 8px; font-size: 13px; font-weight: 750; color: var(--mute); }
+.lnf-ls-bars { display: flex; gap: 4px; } .lnf-ls-bars i { width: 30px; height: 6px; border-radius: 99px; background: var(--c1); }
+.lnf-ls-ask { justify-self: start; margin: 0; font-size: 18px; font-weight: 800; letter-spacing: -.01em; }
+.lnf-ls-lane { position: relative; justify-self: stretch; display: block; height: 46px; margin: 8px 0 12px; border-radius: 14px; background: color-mix(in srgb, var(--ink) 6%, transparent); }
+.lnf-ls-lane .gem-note { --gem-c: var(--c1); --gem-h: 20; position: absolute; left: 10%; right: 22%; top: 13px; height: 20px; border-radius: 99px; }
+.lnf-ls-is { margin: 0; font-size: 12px; font-weight: 750; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
+.lnf-ls-note { margin: 0; font-size: 64px; font-weight: 800; line-height: 1; letter-spacing: -.03em; color: var(--c1); }
+.lnf-ls-suits { margin: 4px 0 0; max-width: 30ch; font-size: 15px; line-height: 1.45; }
+.lnf-lesson figcaption { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--edge); font-size: 13px; line-height: 1.45; color: var(--mute); text-align: center; }
+@media (min-width: 900px) {
+    .lnf-lessonrow { grid-template-columns: minmax(0, 400px) minmax(0, auto); justify-content: center; align-items: center; gap: 56px; }
+    .lnf-lessonrow .lnf-after { flex-direction: column; align-items: flex-start; margin: 0; }
+    .lnf-lessonrow .lnf-carols { justify-content: flex-start; text-align: start; max-width: 22em; }
+}
 /* A singer of the group: their initials in their voice's glass, the voice named in its colour, where they've got to. */
-.lnf-row { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid var(--edge); } .lnf-row .lnf-orb { width: 44px; height: 44px; font-size: 14px; font-weight: 800; letter-spacing: .02em; }
-.lnf-row b { display: block; font-size: 17px; font-weight: 700; line-height: 1.1; } .lnf-row small { display: block; margin-top: 4px; color: var(--c); font-size: 13.5px; font-weight: 800; line-height: 1; letter-spacing: .02em; }
-.lnf-row em { margin-inline-start: auto; font-size: 12.5px; font-weight: 700; font-style: normal; line-height: 1; padding: 7px 11px; border-radius: 99px; border: 1px solid var(--edge); color: var(--mute); white-space: nowrap; }
-.lnf-row .lnf-ok { color: var(--c3); border-color: var(--c3); } .lnf-row .lnf-mid { color: var(--c2); border-color: var(--c2); }
-.lnf-choir-n { padding-top: 10px; font-size: 13px; color: var(--mute); border-top: 1px solid var(--edge); }
 .lnf-money { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 26px; align-items: start; }
 .lnf-plans { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .lnf-plan { padding: 24px 26px; } .lnf-plan h3 { margin: 0; font-size: 20px; font-weight: 800; line-height: 1; display: flex; gap: 10px; align-items: center; }
@@ -691,9 +731,13 @@ body { margin: 0; background: var(--ground); }
 .lnf-foot-wrap .s-foot-legal { margin: 28px 0 0; font-size: 13px; color: var(--mute); } .lnf-foot-wrap .s-foot-legal + .s-foot-legal { margin-top: 6px; }
 .lnf-foot-wrap .s-fix-wrap { display: none; }
 .lnf-tail .lnf-sc:last-of-type { gap: 28px; padding-bottom: 24px; }
+/* A section over the lit floor ends its cards above the floor's bright rows, the longest Plus list included (2026-11-23). */
+.lnf-tail .lnf-sc:has(> .lnf-floor) { padding-bottom: clamp(150px, 24svh, 230px); }
 
 /* ---------- the stage, pinned: it fills the screen and stays for its five scenes, a scene a screen of scroll ---------- */
-@media (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+/* Pinned only where the screen has the height for it: below 560 px (a laptop zoomed in, a phone held sideways) the
+   stage's scenes are the still panels, as with reduced motion (js/public/landing.js reads the same query). */
+@media (prefers-reduced-motion: no-preference) and (scripting: enabled) and (min-height: 560px) {
     .lnf-page { scroll-snap-type: y proximity; }
     .lnf-pin { position: relative; }
     /* The stage lets go at the end of its five screens: the screens of scroll sit under it, not after it. */
@@ -713,15 +757,18 @@ body { margin: 0; background: var(--ground); }
     .lnf:not([data-playing]) .lnf-tr { transition: --lnf-t 1s var(--ease); }
     .lnf:not([data-playing]) .lnf-trace { transition: --lnf-t 1s var(--ease), opacity .5s; }
     .lnf-beam { display: block; }
-    .lnf[data-scene="0"] { --foot: 34px; }
+    /* The first scene also holds the three ways in, under the heading: the lanes start lower. */
+    .lnf[data-scene="0"] { --foot: 34px; --split: min(66svh, calc(43svh + 132px)); }
+    .lnf[data-cap0][data-scene="0"] { --split: clamp(43svh, calc(var(--top) + 54px + var(--lnf-cap0)), 74svh); }
+    .lnf[data-cap0="first"] .lnf-world { transition: none; }
+    /* A short desktop: under the ways in, the first scene's lanes show only with room to be read (four of 30 px and
+       more); else they come in with the next scene, and Play still plays them. */
+    .lnf-world { container: lnf-world / size; }
+    @container lnf-world (max-height: 119px) { .lnf[data-scene="0"] .lnf-deck { opacity: 0; visibility: hidden; } }
     .lnf-foot { position: absolute; left: 0; right: 0; bottom: var(--bar); height: 34px; margin: 0; }
-    .lnf-cue { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink); }
-    .lnf-hint { display: block; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; transition: opacity .4s; }
-    .lnf:is([data-played], [data-alone]) .lnf-hint { opacity: 0; }
     /* While it plays, the line that says who sings takes the place of the way on, under the lanes of every scene. */
     .lnf-now { position: absolute; z-index: 8; left: 0; right: 0; bottom: var(--bar); height: 34px; margin: 0; display: flex; align-items: center; pointer-events: none; }
     .lnf[data-playing]:is([data-scene="1"], [data-scene="2"], [data-scene="3"]) { --foot: 34px; }
-    .lnf[data-playing] .lnf-cue { visibility: hidden; }
     .lnf-dots { position: absolute; z-index: 9; right: 14px; top: 50%; translate: 0 -50%; display: grid; }
     .lnf-dots a { display: grid; place-items: center; width: 24px; height: 24px; }
     .lnf-dots a::before { content: ""; width: 6px; height: 6px; border-radius: 9px; background: color-mix(in srgb, var(--ink) 30%, transparent); transition: height .4s var(--ease), background-color .4s; }
@@ -731,7 +778,18 @@ body { margin: 0; background: var(--ground); }
     .lnf[data-scene="1"], .lnf[data-scene="2"] { --ppb: 128px; --tilt: 5deg; --split: 41svh; }
     .lnf:not([data-alone])[data-scene="1"] .lnf-ln.lnf-v1, .lnf:not([data-alone])[data-scene="2"] .lnf-ln.lnf-v1 { flex-grow: 4.2; }
     .lnf:not([data-alone])[data-scene="1"] .lnf-ln.lnf-v1 { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--c) 70%, transparent), 0 0 40px -8px var(--c); }
-    .lnf:not([data-alone])[data-scene="1"] .lnf-v1 .lnf-chip-alone, .lnf:not([data-alone])[data-scene="2"] [data-chip~="2"], .lnf:not([data-alone])[data-scene="3"] [data-chip~="3"], .lnf[data-scene="4"] [data-chip~="4"] { display: inline-flex; }
+    .lnf:not([data-alone])[data-scene="2"] [data-chip~="2"], .lnf:not([data-alone])[data-scene="3"] [data-chip~="3"], .lnf[data-scene="4"] [data-chip~="4"] { display: inline-flex; }
+    .lnf:not([data-alone])[data-scene="1"] .lnf-v1 .lnf-solo { background: var(--c); border-color: var(--c); color: var(--gi); box-shadow: none; }
+    .lnf:not([data-alone])[data-scene="1"] .lnf-v1 .lnf-solo svg { color: inherit; }
+    .lnf:not([data-alone])[data-scene="1"] .lnf-v1 .lnf-solo-on { display: inline; } .lnf:not([data-alone])[data-scene="1"] .lnf-v1 .lnf-solo-off { display: none; }
+    /* Solo where hearing a voice alone is the subject (the first scene and Hear); later the story's own tags have the
+       room, and only a voice really heard alone keeps its pressed Solo. */
+    .lnf:is([data-scene="2"], [data-scene="3"]) .lnf-ln:not([data-solo]) .lnf-do { display: none; }
+    /* One Play and one dark primary on the first screen (the review, 2026-11-23): the dock waits until Play is pressed
+       or the page moves on to the next scene, and the lanes take its room meanwhile. */
+    .lnf[data-scene="0"]:not([data-played], [data-playing], [data-loading], [data-failed]) { --bar: 0px; }
+    .lnf[data-scene="0"]:not([data-played], [data-playing], [data-loading], [data-failed]) .lnf-dock { translate: 0 110%; visibility: hidden; }
+    .lnf-dock { transition: translate .45s cubic-bezier(.2, .8, .2, 1), visibility .45s; }
     /* A voice really heard alone outranks the story's picture: its lane is the wide, lit one. */
     .lnf[data-alone]:is([data-scene="1"], [data-scene="2"], [data-scene="3"]) .lnf-ln[data-solo] { flex-grow: 3; }
     .lnf:not([data-alone])[data-scene="2"] .lnf-trace { opacity: 1; }
@@ -746,16 +804,14 @@ body { margin: 0; background: var(--ground); }
     .lnf:not([data-alone]):is([data-scene="1"], [data-scene="2"]) .lnf-ln:not(.lnf-v1) .lnf-g::before, .lnf:not([data-alone]):is([data-scene="1"], [data-scene="2"]) .lnf-ln:not(.lnf-v1) .lnf-g::after, .lnf:not([data-alone])[data-scene="3"] .lnf-ln.lnf-v4 .lnf-g::before, .lnf:not([data-alone])[data-scene="3"] .lnf-ln.lnf-v4 .lnf-g::after { display: none; }
     .lnf:not([data-alone]):is([data-scene="1"], [data-scene="2"]) .lnf-ln:not(.lnf-v1) .lnf-g > .gem-word, .lnf:not([data-alone])[data-scene="3"] .lnf-ln.lnf-v4 .lnf-g > .gem-word { display: none; }
     .lnf:not([data-alone]):is([data-scene="1"], [data-scene="2"]) .lnf-ln:not(.lnf-v1) .lnf-lb, .lnf:not([data-alone])[data-scene="3"] .lnf-ln.lnf-v4 .lnf-lb { opacity: .55; }
-    .lnf:not([data-scene="0"]) .lnf-mine { opacity: 0; pointer-events: none; visibility: hidden; }
     /* The voice heard alone keeps its way into the app beside it, whatever the scene. */
-    .lnf:is([data-scene="1"], [data-scene="2"], [data-scene="3"]) .lnf-ln[data-solo] .lnf-mine { opacity: 1; pointer-events: auto; visibility: visible; }
     /* 4: the lanes fold into the mark's four bars. */
     .lnf[data-scene="4"] .lnf-deck { transform: none; inset: 6% auto 10% var(--pad); width: min(46vw, 620px); gap: 18px; justify-content: center; }
     .lnf[data-scene="4"] .lnf-ln { flex: 0 0 15%; border-radius: 99px; border: 1px solid color-mix(in oklab, var(--c) 60%, black); background: linear-gradient(180deg, color-mix(in oklab, var(--c) 52%, white) 0%, var(--c) 44%, color-mix(in oklab, var(--c) 62%, black) 100%); box-shadow: inset 0 3px 0 rgb(255 255 255 / .75), inset 0 -10px 18px color-mix(in oklab, var(--c) 48%, black), 0 0 70px -4px var(--c); opacity: 1; }
     .lnf[data-scene="4"] .lnf-ln[data-wait] { opacity: .28; box-shadow: none; filter: saturate(.3); }
     .lnf[data-scene="4"] .lnf-ln.lnf-v1 { width: 100%; } .lnf[data-scene="4"] .lnf-ln.lnf-v2 { width: 74%; } .lnf[data-scene="4"] .lnf-ln.lnf-v3 { width: 88%; } .lnf[data-scene="4"] .lnf-ln.lnf-v4 { width: 62%; }
     .lnf[data-scene="4"] .lnf-ln::before { inset: 14% 34% auto 5%; width: auto; height: 22%; border-radius: 99px; background: linear-gradient(90deg, rgb(255 255 255 / .7), transparent); z-index: 1; }
-    .lnf[data-scene="4"] :is(.lnf-tr, .lnf-beam, .lnf-mt, .lnf-lb small, .lnf-lb .lnf-orb, .lnf-chip-alone) { display: none; }
+    .lnf[data-scene="4"] :is(.lnf-tr, .lnf-beam, .lnf-mt, .lnf-lb small, .lnf-lb .lnf-orb, .lnf-solo) { display: none; }
     .lnf[data-scene="4"] .lnf-lb { left: 22px; width: auto; flex-direction: row; align-items: center; gap: 10px; } .lnf[data-scene="4"] .lnf-lb b { color: var(--gi); font-size: 20px; }
     .lnf[data-scene="4"] .lnf-ln .lnf-chip { background: var(--gi); color: var(--c); margin: 0; }
     .lnf-share { position: absolute; right: var(--pad); top: calc(var(--split) + 6svh); transform: perspective(1200px) rotateY(-9deg) rotateX(3deg); }
@@ -767,8 +823,11 @@ body { margin: 0; background: var(--ground); }
     .lnf-tail .lnf-sc { min-height: 92svh; }
     .lnf-slabs { perspective: 1400px; }
     .lnf-slab:nth-child(1) { transform: rotateY(10deg) translateY(18px); } .lnf-slab:nth-child(2) { transform: translateY(-14px) scale(1.04); } .lnf-slab:nth-child(3) { transform: rotateY(-10deg) translateY(18px); }
-    .lnf-choir { transform: perspective(1300px) rotateY(-8deg); }
     .lnf-after { display: flex; justify-content: center; margin-top: 8px; } .lnf-carols { flex-basis: 100%; justify-content: center; text-align: center; }
+}
+/* A short desktop (a laptop's 768 px): the ways in say what the lede says, so it gives way and the lanes keep their room. */
+@media (min-width: 900px) and (max-height: 820px) and (min-height: 560px) and (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+    .lnf-stage [data-s="0"] .lnf-say { display: none; }
 }
 @media (max-width: 1180px) and (min-width: 900px) {
     /* A narrow desktop, as the site header: Game mode shows its switch alone (its name stays for a screen reader), so the
@@ -796,19 +855,33 @@ body { margin: 0; background: var(--ground); }
     .lnf-bg i { display: none; }
     .lnf-bg { background: radial-gradient(120vw 46svh at 0% 44%, color-mix(in srgb, var(--c1) 24%, transparent), transparent 70%), radial-gradient(120vw 46svh at 100% 70%, color-mix(in srgb, var(--c3) 20%, transparent), transparent 70%), radial-gradient(140vw 40svh at 40% 100%, color-mix(in srgb, var(--c4) 26%, transparent), transparent 70%); }
     .lnf-cap, .lnf-stage [data-s="0"] .lnf-cap { grid-template-columns: 1fr; gap: 12px; align-content: safe end; } /* never above the top bar if it overflows */
-    .lnf-h1 { font-size: clamp(44px, 14.6vw, 58px); } .lnf-say { margin-bottom: 14px; } .lnf-kick { margin-bottom: 10px; font-size: 12px; } .lnf-true { display: none; }
+    /* Play sits next to what it plays (Hillel, 2026-11-23: "move start button lower next to audio player tracks"): on a
+       phone the first screen reads the headline, Try the first lesson, the three ways in, then Play right over the
+       lanes, in both skins. Only the order on screen moves; a wide screen keeps Play beside Try. */
+    .lnf [data-s="0"] .lnf-cap > div:has(> .lnf-go), .lnf [data-s="0"] .lnf-go { display: contents; }
+    .lnf [data-s="0"] .lnf-cap > .lnf-h1 { order: 0; } .lnf [data-s="0"] .lnf-try { order: 1; } .lnf [data-s="0"] .lnf-paths { order: 2; } .lnf [data-s="0"] .lnf-play { order: 3; }
+    .lnf-h1 { font-size: clamp(44px, 14.6vw, 58px); } .lnf-say { margin-bottom: 14px; } .lnf-kick { margin-bottom: 10px; font-size: 12px; }
     .lnf-wide { display: none !important; }
+    .lnf-try { width: 100%; max-width: 480px; justify-content: center; min-height: 58px; padding: 6px 20px; } .lnf-stage .lnf-play { max-width: 480px; } .lnf-try b { font-size: 17.5px; } .lnf-try small { font-size: 12.5px; }
+    .lnf-stage .lnf-play { height: 52px; font-size: 15.5px; } .lnf-stage .lnf-play .lnf-orb { width: 38px; height: 38px; left: 7px; } .lnf-stage .lnf-play-w small.lnf-meta { display: none; }
+    .lnf-paths-h { margin: 2px 0 6px; font-size: 16px; }
     .lnf-play { height: 66px; width: 100%; justify-content: center; padding: 0 20px 0 64px; font-size: 19px; } .lnf-play .lnf-orb { width: 48px; height: 48px; position: absolute; left: 9px; } .lnf-play-w { gap: 5px; } .lnf-play-w small { font-size: 13px; }
-    .lnf-prim { width: 100%; justify-content: center; } .lnf-quiet { height: 46px; padding: 0 16px; font-size: 14.5px; } .lnf-go { gap: 8px 14px; } .lnf-arrow { font-size: 14.5px; }
+    .lnf-prim { width: 100%; justify-content: center; } .lnf-go { gap: 8px 14px; } .lnf-arrow { font-size: 14.5px; }
     .lnf-world { height: 340px; } .lnf-deck { gap: 7px; }
     .lnf-lb { left: 12px; top: 6px; bottom: auto; width: auto; flex-direction: row; align-items: center; z-index: 6; gap: 8px; } .lnf-lb b { font-size: 15px; gap: 7px; } .lnf-lb small { display: none; } .lnf-lb .lnf-orb { width: 20px; height: 20px; font-size: 10px; }
     .lnf-chip { margin: 0; height: 20px; font-size: 10px; }
     .lnf-ln::before { z-index: 6; width: 170px; height: 32px; inset: 0 auto auto 0; background: linear-gradient(90deg, color-mix(in srgb, var(--ground) 88%, var(--c)) 62%, transparent); }
     .lnf-g { top: calc(42% + var(--y) * 24%); --gem-hl: clamp(16px, 32cqh, 44px); }
     .lnf-trace { top: calc(42% + 16cqh); height: 24%; }
-    .lnf-mine { left: auto; right: 6px; top: 0; translate: none; height: 44px; padding: 0 12px; font-size: 12.5px; border: 0; background: none; z-index: 7; }
-    .lnf-mine::before { content: ""; position: absolute; inset: 7px 0; border-radius: 99px; border: 1.5px solid var(--c); background: color-mix(in srgb, var(--ground) 80%, var(--c)); z-index: -1; }
-    .lnf-foot { justify-content: center; text-align: center; font-size: 12px; } .lnf-cue, .lnf-hint { display: none !important; } .lnf-cred { margin: 0 !important; text-align: center; }
+    .lnf-lb { right: 6px; } .lnf-do { margin-inline-start: auto; gap: 8px; }
+    .lnf-solo { height: 24px; padding: 0 9px; font-size: 11.5px; }
+    .lnf-paths ul { grid-template-columns: 1fr; gap: 6px; }
+    /* On a phone a way in is who, what they get, then its step. */
+    .lnf-path a { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 0 10px; padding: 7px 14px 6px; border-radius: 14px; }
+    .lnf-path b { flex: 1 1 auto; font-size: 15px; } .lnf-path span { flex: 1 0 100%; font-size: 13.5px; line-height: 1.3; }
+    .lnf-path em { flex: 1 0 100%; margin: 0; padding: 2px 0 0; font-size: 14px; }
+    .lnf-lb .lnf-mt { display: none; }
+    .lnf-foot { justify-content: center; text-align: center; font-size: 12px; } .lnf-cred { margin: 0 !important; text-align: center; }
     .lnf-cred-full { display: none; } .lnf-cred-short { display: inline; }
     /* The dock on a phone: the line being sung, then one pill (play, the time, Start singing). */
     .lnf-dock { height: auto; padding: 0 10px calc(10px + env(safe-area-inset-bottom)); grid-template-columns: 1fr auto; grid-template-areas: "words words" "tp start"; gap: 0; border: 0; background: linear-gradient(transparent, var(--ground) 10px); /* solid behind the sung line, so the page never shows through its words */ -webkit-backdrop-filter: none; backdrop-filter: none; pointer-events: none; }
@@ -827,9 +900,9 @@ body { margin: 0; background: var(--ground); }
     .lnf-foot-wrap .s-foot-grid { grid-template-columns: 1fr; gap: 28px; } .lnf-foot-wrap .s-foot-cols { grid-template-columns: 1fr 1fr; gap: 22px 16px; } .lnf-foot-wrap .s-flink { min-height: 44px; }
     .lnf-letter { grid-template-columns: 1fr; gap: 14px; }
     .lnf-tail .lnf-sc { padding-block: 64px; gap: 22px; }
-    .lnf-two, .lnf-money { grid-template-columns: 1fr; gap: 22px; } .lnf-two .lnf-say { margin-top: 14px; } .lnf-two .lnf-go { margin-top: 18px; }
-    .lnf-slabs { grid-template-columns: 1fr; gap: 12px; } .lnf-slab { padding: 14px 20px; display: grid; grid-template-columns: 104px 1fr; align-items: center; column-gap: 8px; border-radius: 22px; } .lnf-slab strong { grid-row: span 2; } .lnf-slab b, .lnf-slab > span { margin: 0; } .lnf-slab > span { font-size: 14px; } .lnf-slab i { display: none; }
-    .lnf-choir { justify-self: stretch; width: auto; padding: 14px 18px; border-radius: 22px; } .lnf-row { padding: 9px 0; } .lnf-row .lnf-orb { width: 38px; height: 38px; font-size: 12.5px; }
+    .lnf-tail .lnf-sc:has(> .lnf-floor) { padding-bottom: 120px; }
+    .lnf-money { grid-template-columns: 1fr; gap: 22px; }
+    .lnf-slabs { grid-template-columns: 1fr; gap: 12px; } .lnf-slab { padding: 14px 20px; display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 16px; border-radius: 22px; } .lnf-slab strong { grid-row: span 2; } .lnf-slab b, .lnf-slab > span { margin: 0; } .lnf-slab > span { font-size: 14px; } .lnf-slab i { display: none; }
     .lnf-plans { grid-template-columns: 1fr; gap: 12px; } .lnf-plan { padding: 18px 20px; border-radius: 22px; } .lnf-price { font-size: 36px; }
     .lnf-faq { gap: 8px; } .lnf-faq summary { min-height: 52px; padding: 6px 16px; } .lnf-faq details p { padding: 0 16px 14px; font-size: 14.5px; }
     .lnf-share { padding: 16px; border-radius: 22px; } .lnf-share b { font-size: 19px; } .lnf-share p { margin-bottom: 10px; font-size: 14px; } .lnf-orbs .lnf-orb { width: 40px; height: 40px; font-size: 11px; } .lnf-pair span { padding: 11px 4px; }
@@ -837,12 +910,26 @@ body { margin: 0; background: var(--ground); }
     .lnf-mark { width: 62vw; gap: 9px; }
     .lnf-floor { height: 150px; }
 }
-@media (max-width: 899px) and (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+@media (max-width: 899px) and (prefers-reduced-motion: no-preference) and (scripting: enabled) and (min-height: 560px) {
     .lnf-stage .lnf-cap, .lnf-stage [data-s="0"] .lnf-cap { top: calc(var(--top) + 8px); height: calc(var(--split) - var(--top) - 16px); }
     /* The first scene, its heading's height measured (js/public/landing.js, --lnf-cap0): the lanes start 14 px under it,
-       with no empty band above the heading and nothing over the lanes, between the top bar's 150 px and 62% of the screen. */
-    .lnf[data-cap0][data-scene="0"] { --split: clamp(calc(var(--top) + 150px), calc(var(--top) + 22px + var(--lnf-cap0)), 62svh); }
+       with no empty band above the heading and nothing over the lanes. With the three ways in, the heading can need
+       most of a phone's height: it gets it, and the lanes give way below (2026-11-23). */
+    .lnf[data-cap0][data-scene="0"] { --split: clamp(calc(var(--top) + 150px), calc(var(--top) + 22px + var(--lnf-cap0)), calc(100svh - 34px)); }
     .lnf[data-cap0="first"] .lnf-world { transition: none; }
+    .lnf-stage [data-s="0"] .lnf-say { display: none; }
+    /* Below the first screen the top bar is one 52 px row: the scenes' words start under it, not low on an empty band
+       (the review, 2026-11-23). */
+    .lnf[data-top="small"]:not(:has(.lnf-top:focus-within)) { --top: 52px; }
+    .lnf-stage .lnf-sc:not([data-s="0"]) .lnf-cap { align-content: start; }
+    /* A lane too short for its name's row above its notes: the name sits on its own solid backing, so it reads cleanly
+       over a note passing under it (the notes stay on the playhead's time). */
+    @container (max-height: 55px) { .lnf-lb b { padding: 2px 8px 2px 2px; border-radius: 10px; background: color-mix(in srgb, var(--ground) 90%, var(--c)); } }
+    /* Under the three ways in, the first scene's lanes show only with room to be read and tapped (four of 30 px and
+       more); on a shorter screen they come in with the next scene, and Play still plays them. */
+    .lnf-world { container: lnf-world / size; }
+    @container lnf-world (max-height: 119px) { .lnf[data-scene="0"] .lnf-deck { opacity: 0; visibility: hidden; } }
+    .lnf-stage [data-s="0"] .lnf-h1 { font-size: clamp(40px, 12.8vw, 52px); }
     /* A lane too short for its label row and its notes (a small phone's first scene): the notes step aside, so I sing this
        never sits over them. */
     @container (max-height: 52px) { .lnf[data-scene="0"] .lnf-tr { display: none; } }
@@ -857,6 +944,21 @@ body { margin: 0; background: var(--ground); }
     .lnf[data-scene="4"] { --split: 42svh; } .lnf[data-scene="4"] .lnf-deck { inset: 0 18px auto 18px; height: 168px; width: auto; gap: 8px; } .lnf[data-scene="4"] .lnf-ln { flex: 0 0 36px; } .lnf[data-scene="4"] .lnf-lb { top: 0; bottom: 0; } .lnf[data-scene="4"] .lnf-ln::before { height: 22%; width: auto; }
     .lnf-share { transform: none; left: 18px; right: 18px; width: auto; top: calc(var(--split) + 182px); }
 }
+/* On a phone's pinned first screen each way in is one row, who and what they get with its arrow (the step's words stay
+   for a screen reader), so the lanes keep their room under them; while the song plays the ways in fold away and the
+   lanes have the screen. */
+@media (max-width: 899px) and (prefers-reduced-motion: no-preference) and (scripting: enabled) and (min-height: 560px) {
+    .lnf-stage .lnf-path a { flex-wrap: nowrap; align-items: center; padding: 8px 14px; }
+    .lnf-stage .lnf-path span { display: none; }
+    .lnf-stage .lnf-path em { flex: 0 0 auto; margin: 0 0 0 auto; padding: 0; font-size: 0; text-decoration: none; } .lnf-stage .lnf-path em svg { width: 16px; height: 16px; }
+    .lnf-stage .lnf-who .lnf-badge { white-space: nowrap; }
+    .lnf[data-playing] .lnf-paths { display: none; }
+    /* A way in whose step goes somewhere its title doesn't say (Singers to the AI choir while it's on) shows the step as its title. */
+    .lnf-stage .lnf-path a[data-lnf-go-title] b { display: none; }
+    .lnf-stage .lnf-path a[data-lnf-go-title] em { flex: 1 1 auto; flex-wrap: nowrap; justify-content: space-between; gap: 10px; font-size: 15px; font-weight: 800; line-height: 1.2; color: var(--c); }
+    /* A narrow note's words go over it, where on a phone the lane's name row is: on the stage they wait for the sung line. */
+    .lnf-stage .lnf-g[data-fit="above"] > .gem-word { visibility: hidden; }
+}
 /* The phone's first row holds the name, Language and appearance and Open the app: it tightens as the screen narrows. */
 @media (max-width: 400px) {
     .lnf-top { gap: 0 5px; } .lnf-logo { font-size: 16px; gap: 7px; } .lnf-open { padding: 0 10px; font-size: 13px; }
@@ -870,7 +972,17 @@ body { margin: 0; background: var(--ground); }
     .lnf-nav a { padding: 0 3px; font-size: 13px; }
     .lnf-line { font-size: 15px; } .lnf-now { font-size: 12px; }
 }
+/* A short screen (a laptop zoomed in, a phone held sideways): the player is its one row, without the line being sung. */
+@media (max-height: 559px) {
+    .lnf { --bar: 64px; }
+    .lnf-dock { height: auto; min-height: 64px; grid-template-areas: none; grid-template-columns: minmax(0, 1fr) auto; padding-block: 6px calc(6px + env(safe-area-inset-bottom)); }
+    .lnf-dock::before { grid-area: 1 / 1 / 2 / -1; }
+    .lnf-words { display: none; }
+    .lnf-tp, .lnf-start { grid-area: auto; }
+    .lnf-foot-wrap { padding-bottom: calc(64px + env(safe-area-inset-bottom) + 24px); }
+}
 @media (max-width: 899px) and (max-height: 760px) {
+    .lnf[data-scene="0"] .lnf-foot { visibility: hidden; } /* a short phone's first screen: the ways in have the room; the credit shows with the lanes */
     .lnf-h1 { font-size: clamp(40px, 12.5vw, 52px); } /* a short phone: the heading a step smaller and the lede left out (the heading and Play say it), so the lanes keep their room */
     .lnf-stage [data-s="0"] .lnf-say { display: none; }
 }

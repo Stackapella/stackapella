@@ -86,9 +86,11 @@ def journey(f):
     assert f.js("[...document.querySelectorAll('.s-cite a')].every((a) => /\\S/.test(a.getAttribute('aria-label') ?? ''))"), "a citation without a name"
     f.shot("song")
 
-    f.go("/courses", "document.querySelector('[data-courses-filter]')")
+    # Loaded, not just drawn: the chips' module listens only once it has run (a press before that did nothing, and a
+    # bigger sheet made that likelier, 2026-11-23).
+    f.go("/courses", "document.readyState === 'complete' && document.querySelector('[data-courses-filter]')")
     f.run("try { localStorage.removeItem('stackapella.coursesChip'); } catch {}")
-    f.go("/courses", "document.querySelector('[data-courses-filter]')")
+    f.go("/courses", "document.readyState === 'complete' && document.querySelector('[data-courses-filter]')")
     assert "note to four" in f.js("document.querySelector('.s-crs-start-h a').textContent").replace("\n", " ").replace("  ", " "), "the card's title reads as words"
     tab_to(f, "[data-filter=harmony]")
     f.press("Enter")
@@ -96,6 +98,10 @@ def journey(f):
     assert f.js("document.querySelector('[data-courses-shown]').textContent.trim() !== ''"), "the live line says what's shown"
 
     f.go("/pricing", "document.querySelector('[data-compare-diff]')")
+    # The whole table is behind See every detail (the short pricing page, 2026-11-23): Enter opens it, then its switch.
+    tab_to(f, ".s-every > summary")
+    f.press("Enter")
+    assert f.js("document.querySelector('.s-every').open") is True, "Enter opens See every detail"
     tab_to(f, "[data-compare-diff]")
     f.press(" ")
     assert f.js("document.activeElement.checked") is True, "Space turns Only what's different on"

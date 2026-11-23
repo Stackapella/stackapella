@@ -51,7 +51,8 @@ final class OrganizationsPageTest extends TestCase
         $this->assertStringNotContainsString('/for/organizations', (string) $this->get('/')->assertOk()->getContent());
         $this->assertStringNotContainsString('/for/organizations', (string) $this->get('/for/beginners')->assertOk()->getContent());
 
-        foreach (['choir-directors', 'music-teachers'] as $who) {
+        // For choir directors, radically shorter (2026-11-23), keeps to its four steps: the offer is the teachers' line.
+        foreach (['music-teachers'] as $who) {
             $this->assertStringContainsString('href="/for/organizations"', (string) $this->get('/for/'.$who)->assertOk()->getContent(), $who);
         }
     }

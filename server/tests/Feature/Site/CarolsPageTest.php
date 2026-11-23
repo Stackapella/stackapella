@@ -78,7 +78,7 @@ final class CarolsPageTest extends TestCase
             $this->assertStringContainsString(e(__('site.carols.play', ['song' => $carol['title']])), $html);
         }
         // The steps for sending each part's link moved to the directors' page.
-        $this->get('/for/choir-directors')->assertOk()->assertSee('Or send each section its part');
+        $this->get('/for/choir-directors')->assertOk()->assertSee(__('site.for_directors.nogroup.title'));
     }
 
     public function test_each_card_has_its_key_coverage_and_level_and_real_flat_and_sharp_signs(): void

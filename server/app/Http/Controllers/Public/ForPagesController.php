@@ -35,7 +35,8 @@ final class ForPagesController extends Controller
             $page['group_start'] = $ref;
         }
 
-        return response()->view('site.for', [
+        // For choir directors has its own short page (the consultant's concept, 2026-11-23); the others share site.for.
+        return response()->view($who === 'choir-directors' ? 'site.for-directors' : 'site.for', [
             'title' => SitePages::title((string) $page['title']),
             'meta' => ['title' => SitePages::title((string) $page['title']), 'description' => (string) $page['description'], 'url' => Hosts::publicUrl().'/for/'.$who],
             'area' => 'for',

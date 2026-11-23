@@ -76,6 +76,9 @@ final class InfoPagesController extends Controller
         return $faq;
     }
 
+    /** The comparison's rows people decide on, shown before every detail (pages.pricing.rows keys). */
+    private const DECIDE = ['storage', 'singers', 'templates', 'mp3', 'stems'];
+
     /** The pricing comparison's groups and the rows (pages.pricing.rows) in each. */
     private const PRICING_GROUPS = [
         'learn' => ['songs', 'preview', 'course', 'workout', 'report', 'guides'],
@@ -163,14 +166,18 @@ final class InfoPagesController extends Controller
             // The comparison in groups (the design round), each row's label and its Free and Plus cells; `same` marks
             // what both plans share, which "Only what's different" folds (a group whose rows are all the same, whole).
             'compare' => self::compare($groups, $rows, $limits),
+            // The difference, in short: only the rows people decide on (ai-marketing's pick, 2026-11-23), every detail
+            // folded under the short table. A row both plans share today (the switches decide some) isn't a difference.
+            'decide' => array_values(array_filter(self::compare(['decide' => [...self::DECIDE, ...(SongParts::switchedOn('own_choir') ? ['choir_songs'] : [])]], $rows, $limits)[0]['rows'], static fn (array $row): bool => ! $row['same'])),
             'plans' => Landing::plans(),
             'smallPrint' => (array) Lang::get('pages.pricing.small_print'),
             // Each answer's first sentence is its short answer, shown first in bold (the UX review, 2026-11-23).
-            'faq' => array_map(static fn (array $qa): array => [(string) $qa[0], ...self::shortFirst(str_replace(':days', (string) config('billing.trial_days'), (string) $qa[1]))], [
+            // Five questions at most (Saul: "4-5 FAQ"), Is it really free? first.
+            'faq' => array_slice(array_map(static fn (array $qa): array => [(string) $qa[0], ...self::shortFirst(str_replace(':days', (string) config('billing.trial_days'), (string) $qa[1]))], [
                 ...self::pricingFaq(),
                 ...($private ? [(array) Lang::get('pages.pricing.faq_private')] : []),
                 ...(OpenSource::on() ? [(array) Lang::get('pages.pricing.faq_selfhost')] : []),
-            ]),
+            ]), 0, 5),
         ], 200, $this->headers(varies: true));
     }
 

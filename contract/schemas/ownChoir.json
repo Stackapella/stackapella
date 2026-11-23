@@ -278,6 +278,7 @@
                 "remakeMinutes",
                 "remake",
                 "failureDetail",
+                "counted",
                 "leadTake",
                 "canUseRecordingAsLead"
             ],
@@ -561,6 +562,13 @@
                         null
                     ],
                     "description": "Why its clip couldn't be used (with failure clip_unusable), for its singer alone; null otherwise."
+                },
+                "counted": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ],
+                    "description": "A failed song: whether it counted toward its singer's free song, Plus songs or Plus minutes (false: given back). Null for a song not failed. The daily cap counts every song the renderer worked on either way."
                 },
                 "leadTake": {
                     "type": [

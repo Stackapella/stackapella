@@ -7652,7 +7652,11 @@ them), deleted with the voice (stop making songs, deleting the voice or the acco
 Download my data. `clipSongs` (since 2026-11-23) lists the tunes a clip may sing, in the order shown, the first the default
 (voice-capture, shown as Happy Birthday): `[{ "templateId", "stopBeat", "songId" }]`, `songId` the song it makes as the
 free song. Each song's `failureDetail`: why its clip couldn't be used (with `clip_unusable`), one of `length`, `quiet`,
-`loud`, `noisy`, `notes`, `edge`, `short` (the most fixable first), for its singer alone; null otherwise. `voicing` may
+`loud`, `noisy`, `notes`, `edge`, `short` (the most fixable first), for its singer alone; null otherwise. Each failed
+song's `counted` (since 2026-11-23): whether it counted toward the singer's free song, Plus songs or Plus minutes; false
+when it was given back (it never reached the renderer, failed before any GPU work, or failed on our side, `render_failed`
+or `gates_failed`, except a gates failure on their own song), so the app says "It didn't count toward your minutes" only
+then; null for a song not failed. The daily cap counts every song the renderer worked on either way. `voicing` may
 be `full`: both octaves, each treble part beside its `-low` twin ("Soprano (low)"), six parts, the pairs 3 dB down in
 `settings.sound.balance`; `remakeMinutes.fullStandard` and `fullFine` what a remake in both octaves would use. The clip stops at `stopBeat` (null: the
 whole tune): the app sings, and the worker's `clip.data` holds, only the notes starting before it, each unchanged.

@@ -28,7 +28,7 @@ final class PricingPageTest extends TestCase
 
         $this->assertStringContainsString(e(__('pages.landing.plans_paused')), $html);
         $this->assertStringNotContainsString('Try Plus free', $html);
-        $this->assertStringNotContainsString('<p class="s-note s-when-year">'.e(__('pages.pricing.cancel_any_time')), $html);
+        $this->assertStringNotContainsString(e(__('pages.pricing.plus_note')), $html);
         $this->assertStringNotContainsString('from=pricing-table', $html);
         // Free's Start singing is the page's primary while it's the only thing to do.
         $this->assertMatchesRegularExpression('/class="btn-primary btn-lg" data-funnel-start/', $html);
@@ -40,7 +40,8 @@ final class PricingPageTest extends TestCase
         $html = (string) $this->get('/pricing')->assertOk()->getContent();
 
         $this->assertStringContainsString('>'.e(__('pages.landing.plans_get')).'</a>', $html);
-        $this->assertStringContainsString(e(__('pages.pricing.cancel_any_time')), $html);
+        // Under Get Plus: it opens the app, and cancelling is online any time.
+        $this->assertStringContainsString(e(__('pages.pricing.plus_note')), $html);
         $this->assertStringContainsString('from=pricing-table', $html);
         $this->assertStringNotContainsString(e(__('pages.landing.plans_paused')), $html);
         $this->assertMatchesRegularExpression('/class="btn-secondary btn-lg" data-funnel-start/', $html);

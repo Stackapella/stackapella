@@ -52,8 +52,9 @@ final class OwnChoirSiteWordsTest extends TestCase
         $home = (string) $this->get('/')->assertOk()->getContent();
         $this->assertStringContainsString(e(__('pages.landing.plans_free_choir')), $home);
         $this->assertStringContainsString(e(__('plus.items.choir.0')), $home);
-        $this->assertStringContainsString('href="/your-choir?ref=choir-home"', $home);
-        $this->assertStringContainsString(e(__('landing.share.choir')), $home);
+        // Hear yourself as a choir is the Singers' step among the ways in, said once.
+        $this->assertSame(1, substr_count($home, 'href="/your-choir?ref=choir-home"'));
+        $this->assertStringContainsString(e(__('landing.paths.make.go_choir')), $home);
 
         $pricing = (string) $this->get('/pricing')->assertOk()->getContent();
         $this->assertStringContainsString('60 minutes a month, about 15 songs', $pricing);

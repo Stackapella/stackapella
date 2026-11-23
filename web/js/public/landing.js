@@ -131,7 +131,9 @@ function setUp() {
     const beats = Number(root.dataset.beats) || 1;
     const passes = Number(root.dataset.passes) || 1;
     const scenes = [...root.querySelectorAll('[data-lnf-stage] [data-s]')];
-    const still = matchMedia('(prefers-reduced-motion: reduce)');
+    // Reduced motion, or a screen too short for the pinned stage (css/landing.css, min-height: 560px): the still panels.
+    const still = matchMedia('(prefers-reduced-motion: reduce), (max-height: 559px)');
+    const calm = matchMedia('(prefers-reduced-motion: reduce)');
     const gems = [...root.querySelectorAll('.lnf-g')].map((el) => ({ el, b: Number(el.dataset.b), l: Number(el.dataset.l), state: '', glow: 0, word: el.textContent.trim() }));
     let song = {};
     try {
@@ -178,7 +180,7 @@ function setUp() {
         for (const gem of gems) {
             const state = noteState(gem, beat);
             // The next note's glow rises frame by frame while the song plays (not in a still pose, nor with reduced motion).
-            const glow = state === '' && playing() && !still.matches ? Math.round(nextGlow(gem, beat, beatSeconds) * 100) / 100 : 0;
+            const glow = state === '' && playing() && !calm.matches ? Math.round(nextGlow(gem, beat, beatSeconds) * 100) / 100 : 0;
             if (glow !== gem.glow) {
                 gem.glow = glow;
                 if (glow > 0) gem.el.style.setProperty('--gem-g', String(glow));
@@ -253,7 +255,7 @@ function setUp() {
         join: Number(lane.dataset.join) || 0,
         wait: false,
         hit: lane.querySelector('[data-hear-alone]'),
-        learn: lane.querySelector('[data-lnf-mine]')?.getAttribute('href') ?? null,
+        learn: lane.dataset.learn || null,
     }]));
     const hear = root.querySelector('[data-lnf-hear]');
     const learns = [...root.querySelectorAll('[data-lnf-learn]')];
@@ -385,7 +387,7 @@ function setUp() {
     // Which strips show the song: the ones in view, while it plays and motion is allowed.
     function liven() {
         for (const floor of floors) {
-            const on = floor.seen && playing() && !still.matches;
+            const on = floor.seen && playing() && !calm.matches;
             if (on === floor.live) continue;
             floor.live = on;
             if (on) floor.notes ??= notesOf(floor);
@@ -455,15 +457,20 @@ function setUp() {
     // A line above the page (an outreach partner's, a mudeo arrival's): the top line sits under it while it's in view.
     const note = document.querySelector('[data-lnf-note]');
 
-    // The first scene on a phone: the lanes start just under the heading, the lede, Play and the line under it, however
-    // they wrap (css/landing.css, data-cap0), so there's no empty band under the top bar and nothing runs into the lanes
-    // (Hillel, 2026-11-21: "the main landing home needs work on mobile"). Without this, the stylesheet's own split stands.
+    // The first scene: the lanes start just under the heading, the lede, Play and the three ways in, however they wrap
+    // (css/landing.css, data-cap0), so there's no empty band under the top bar and nothing runs into the lanes (Hillel,
+    // 2026-11-21: "the main landing home needs work on mobile"; the desktop too since the ways in, 2026-11-23). Without
+    // this, the stylesheet's own split stands.
     const cap0 = root.querySelector('.lnf-stage [data-s="0"] .lnf-cap');
     if (cap0 && 'ResizeObserver' in window) {
+        // Its pieces, the Try and Play group's own too: on a phone that group gives way (display: contents) so Play can sit
+        // under the three ways in, next to the lanes it plays (Hillel, 2026-11-23).
+        const pieces = () => [...cap0.querySelectorAll(':scope > *, :scope > * > .lnf-go > *')].filter((el) => el.getClientRects().length);
         const fitCap = () => {
-            const shown = [...cap0.children].filter((child) => child.getClientRects().length);
+            const shown = pieces();
             if (!shown.length) return;
-            const height = Math.ceil(shown.at(-1).getBoundingClientRect().bottom - shown[0].getBoundingClientRect().top);
+            // From the highest of them to the lowest (on a desktop the heading and the lede sit side by side, either the taller).
+            const height = Math.ceil(Math.max(...shown.map((el) => el.getBoundingClientRect().bottom)) - Math.min(...shown.map((el) => el.getBoundingClientRect().top)));
             root.style.setProperty('--lnf-cap0', `${height}px`);
             // The first fit takes its place at once (no slide on arrival); later ones move as the scenes do.
             if (!root.hasAttribute('data-cap0')) {
@@ -473,7 +480,7 @@ function setUp() {
         };
         fitCap();
         const watch = new ResizeObserver(() => requestAnimationFrame(fitCap));
-        for (const child of cap0.children) watch.observe(child);
+        for (const el of cap0.querySelectorAll(':scope > *, :scope > * > .lnf-go > *')) watch.observe(el);
     }
 
     function onScroll() {

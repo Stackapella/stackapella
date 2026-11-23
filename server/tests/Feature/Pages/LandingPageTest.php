@@ -71,9 +71,10 @@ final class LandingPageTest extends TestCase
 
     public function test_the_chord_promise_waits_for_the_arm_while_onb1_enrols(): void
     {
-        // No experiment running: the promise shows to everyone, as lesson 1 makes it.
+        // No experiment running: the promise (the learners' line, among the three ways in) shows to everyone, as
+        // lesson 1 makes it.
         $this->get('/')->assertOk()
-            ->assertSee(__('pages.landing.chord_promise'))
+            ->assertSee(__('landing.paths.learn.what'))
             ->assertDontSee('data-variant-except', false);
 
         // While onb1 enrols, the control arm gets no chord moment: the line waits, hidden, for the

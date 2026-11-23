@@ -32,9 +32,9 @@ final class ChoirSeatsCopyTest extends TestCase
             'pricing\'s table' => ['/pricing', 'A seat from your director'],
             'help on groups' => ['/help/groups', 'Every singer needs a seat: the director buys them for the choir'],
             'the choirs feature' => ['/features/choirs', 'Every singer in a choir group has a seat, which the director buys for the choir'],
-            'for choir directors' => ['/for/choir-directors', 'Each singer in your group needs a seat, which you buy for the choir from 10 seats'],
+            'for choir directors' => ['/for/choir-directors', 'Each singer needs a seat, which you buy for the choir from 10 seats'],
             'a compare page' => ['/compare/howli', 'is your seat in any choir group'],
-            'the landing' => ['/', 'Every singer in a choir group has a seat, bought for the choir by its director'],
+            'the landing\'s free plan' => ['/', 'Join any song you'],
         ];
     }
 

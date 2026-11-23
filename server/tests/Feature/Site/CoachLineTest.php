@@ -24,8 +24,8 @@ final class CoachLineTest extends TestCase
         // (The home page, since 2026-11-16, answers four questions and this isn't one of them: the line is where coaching is talked about.)
         $this->assertStringContainsString($core, (string) $this->get('/features/coaching')->assertOk()->getContent());
         $this->assertStringContainsString(e(__('site.for.pages.coaches.sections.0.heading')), (string) $this->get('/for/coaches')->assertOk()->getContent());
+        // (/pricing's short courses band, since 2026-11-23, leaves coaching to its own pages.)
         $pricing = (string) $this->get('/pricing')->assertOk()->getContent();
-        $this->assertStringContainsString(e(__('pages.pricing.courses_coach')), $pricing);
         // Buying coaching isn't claimed until coaching opens.
         $this->assertStringNotContainsString(e(__('pages.pricing.rows.coaching.0')), $pricing);
         app(Flags::class)->set('coaching', 'on', null, 'Opening coaching');

@@ -82,17 +82,18 @@ export const CourseView = {
     template: `
         <AppScreen :title="t('course.hub.title')" :eyebrow="t('course.hub.eyebrow')" back="/" :back-label="t('home.back')" measure="">
             <template #aside><a href="/voice" class="flex h-11 shrink-0 items-center gap-2 rounded-full glass-bubble px-4 text-sm font-semibold text-cream hover:bg-raised" @click.prevent="navigate('/voice')"><span class="size-2 rounded-full bg-accent" aria-hidden="true"></span>{{ voice ? t('course.hub.voiceIs', { voice }) : t('voice.title') }}</a></template>
-            <div v-if="learning.loaded && learning.course" class="mt-2 grid gap-4 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-                <section v-if="next" class="card p-6" :aria-label="t('course.hub.upNext')">
+            <div v-if="learning.loaded && learning.course" class="mt-2 grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+                <section v-if="next" class="card min-w-0 p-6" :aria-label="t('course.hub.upNext')">
                     <p class="t-section tabular-nums">{{ t('course.hub.upNextUnit', { number: unitNumber }) }}</p>
-                    <h2 class="t-title mt-1 text-cream" translate="no">{{ localized(next.lesson.title) }}</h2>
+                    <!-- A long word in game mode's pixel face at 32 px is wider than a 320 px phone's card: it hyphenates, never runs off. -->
+                    <h2 class="t-title mt-1 break-words hyphens-auto text-cream" translate="no">{{ localized(next.lesson.title) }}</h2>
                     <p v-if="line" class="mt-1 max-w-md text-muted" translate="no">{{ localized(line) }}</p>
                     <div class="mt-5 flex flex-wrap items-center gap-4">
                         <button type="button" class="btn-primary btn-lg" @click="navigate('/learn/' + next.lesson.id)"><Icon name="play" :size="16" /> {{ t('course.startLesson') }}</button>
                         <span class="tabular-nums text-sm text-muted">{{ game() ? t('course.hub.meta', { minutes: lessonMinutes(next.lesson) }) : t('course.aboutMin', { minutes: lessonMinutes(next.lesson) }) }}</span>
                     </div>
                 </section>
-                <section class="card flex flex-col p-6" :aria-label="t('workout.title')">
+                <section class="card flex min-w-0 flex-col p-6" :aria-label="t('workout.title')">
                     <p class="t-section tabular-nums">{{ t('workout.title') }}</p>
                     <h2 class="mt-1 text-lg font-semibold text-cream">{{ t('course.hub.workoutTime') }}</h2>
                     <p class="mt-1 text-sm text-muted">{{ t('course.hub.workoutLine') }}</p>

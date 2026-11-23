@@ -16,6 +16,7 @@
         <p class="s-note">{{ __('pages.landing.plans_free_note') }}</p>
         <div class="s-plan-cta">
             <a href="{{ $start }}" class="{{ $plans['checkoutOpen'] ? 'btn-secondary' : 'btn-primary' }} btn-lg" data-funnel-start>{{ __('pages.landing.start') }}</a>
+            <p class="s-note">{{ __('pages.pricing.free_note') }}</p>
         </div>
         <p class="s-plan-k">{{ __('pages.landing.plans_free_includes') }}</p>
         <ul>
@@ -36,7 +37,7 @@
         <div class="s-plan-cta">
             @if ($plans['checkoutOpen'])
                 <a href="{{ $plus }}" class="btn-primary btn-lg">{{ __('pages.landing.plans_get') }}</a>
-                <p class="s-note s-when-year">{{ __('pages.pricing.cancel_any_time') }}</p>
+                <p class="s-note">{{ __('pages.pricing.plus_note') }}</p>
             @else
                 <p class="s-plan-paused">{{ __('pages.landing.plans_paused') }}</p>
             @endif

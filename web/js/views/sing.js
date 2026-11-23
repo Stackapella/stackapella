@@ -292,7 +292,7 @@ export const SingView = {
             const p = this.project;
             const section = this.sections.find((s) => this.position >= s.startSeconds && this.position < s.endSeconds);
             // No key for the choir's clip take (its tune may change key: voice-capture goes from F to A-flat).
-            return [sectionName(section?.name), p.key && !this.clipTake ? t('studio.meta.key', { key: keyLabel(p.key) }) : null, this.clipTake ? null : t('studio.meta.bpm', { bpm: p.bpm })].filter(Boolean).join(' · ');
+            return [sectionName(section?.name), p.key && !this.clipTake ? t('studio.meta.key', { key: keyLabel(p.key) }) : null].filter(Boolean) /* the tempo lives in the transport (and Session settings), said once (the coordinator) */.join(' · ');
         },
         notes() {
             return this.focusPart ? sessionStore.templatePart(this.focusPart)?.guide.notes ?? [] : [];
