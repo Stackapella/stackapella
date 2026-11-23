@@ -55,7 +55,8 @@ import { lockReason } from '../stores/plan.js';
 import { count } from '../usage.js';
 import { noteSound } from '../sound-log.js';
 
-const roundButton = 'grid shrink-0 place-items-center rounded-full glass-bubble text-sm font-bold text-cream transition';
+// A round utility button (rewind): flat, the raised fill (the 2026-11-23 language: buttons are flat, glass is for gems and bubbles).
+const roundButton = 'grid shrink-0 place-items-center rounded-full bg-raised text-sm font-bold text-cream transition hover:bg-line';
 
 // The session store's actions the template calls as they are.
 const { togglePlay, templatePart } = sessionStore;
@@ -112,13 +113,13 @@ export const StudioView = {
                      from 1024 px the title is never narrower than 12rem (the buttons take their own row first; app_audit, 2026-11-12). A phone's
                      header is as it was. -->
                 <header class="flex flex-wrap items-center gap-x-3 gap-y-2 overflow-hidden px-3 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))] md:py-3 min-[900px]:px-5">
-                    <button type="button" class="grid size-10 shrink-0 place-items-center rounded-full glass-bubble text-cream" :aria-label="t('common.backToProjects')" @click="leave"><Icon name="back" :size="20" /></button>
+                    <button type="button" class="grid size-11 shrink-0 place-items-center rounded-full text-cream hover:bg-raised" :aria-label="t('common.backToProjects')" @click="leave"><Icon name="back" :size="20" /></button>
                     <div class="min-w-0 flex-1 lg:min-w-48">
                         <label class="sr-only" for="song-name">{{ t('project.nameLabel') }}</label>
                         <input id="song-name" :value="project.title" maxlength="80" autocomplete="off" translate="no" :placeholder="t('project.namePlaceholder')" :readonly="!!project.shared"
-                            class="block w-full truncate rounded-lg border border-transparent bg-transparent px-1 -mx-1 text-lg font-extrabold tracking-tight text-cream placeholder:text-muted hover:border-line focus:border-accent md:text-xl"
+                            class="block w-full truncate rounded-lg border border-transparent bg-transparent px-1 -mx-1 text-[17px] font-semibold text-cream placeholder:text-muted hover:border-line focus:border-accent md:text-xl"
                             @change="rename($event.target.value)" @keydown.enter="$event.target.blur()" />
-                        <button type="button" data-song-meta class="block min-h-6 max-w-full truncate text-start text-xs text-muted hover:text-cream md:text-sm" @click="dialog = project.shared ? 'together' : 'settings'">{{ meta }}<span v-if="credit"> · {{ credit }}</span> · <span :class="saving ? 'text-muted' : 'text-good'">{{ saving ? t('common.saving') : t('common.saved') }}</span></button>
+                        <button type="button" data-song-meta class="block min-h-6 max-w-full truncate text-start text-[13px] text-subtle hover:text-cream" @click="dialog = project.shared ? 'together' : 'settings'">{{ meta }}<span v-if="credit"> · {{ credit }}</span> · <span :class="saving ? 'text-muted' : 'text-good'">{{ saving ? t('common.saving') : t('common.saved') }}</span></button>
                     </div>
                     <span v-if="recording" class="flex items-center gap-2 rounded-full bg-record px-3 py-1.5 text-sm font-bold text-record-label" role="status"><span class="size-2 animate-pulse rounded-full bg-record-label"></span><span translate="no">{{ t('studio.recordingNamed', { name: liveName }) }}</span><span class="tabular-nums">{{ formatTime(Math.max(0, position - recordFrom)) }}</span></span>
                     <template v-else>
@@ -132,7 +133,7 @@ export const StudioView = {
                         </button>
                         <button v-if="!project.beta && !fromSheetMusic && sharedParts.length" type="button" class="btn-ghost btn-sm hidden lg:flex" @click="dialog = 'share'">{{ t('share.title') }}</button>
                         <button v-if="!project.beta" type="button" class="btn-ghost btn-sm hidden items-center gap-1.5 lg:flex" :disabled="!parts.length" @click="dialog = 'export'"><Icon name="download" :size="16" /> {{ t('studio.export') }}</button>
-                        <button v-if="!project.shared" type="button" class="hidden size-10 place-items-center rounded-full glass-bubble text-cream lg:grid" :aria-label="t('studio.menu.settings')" :title="t('studio.menu.settings')" @click="dialog = 'settings'"><Icon name="sliders" :size="18" /></button>
+                        <button v-if="!project.shared" type="button" class="hidden size-11 place-items-center rounded-full bg-raised text-cream hover:bg-line lg:grid" :aria-label="t('studio.menu.settings')" :title="t('studio.menu.settings')" @click="dialog = 'settings'"><Icon name="sliders" :size="18" /></button>
                         <!-- Share in plain sight on a phone too (a newcomer couldn't find it in the More menu: Hillel's dad, 2026-11-23). -->
                         <button v-if="!project.beta && !fromSheetMusic && sharedParts.length" type="button" class="btn-secondary btn-sm lg:hidden" data-studio-share @click="dialog = 'share'">{{ t('share.title') }}</button>
                         <button v-if="isTemplate && !project.beta" type="button" class="btn-secondary btn-sm flex items-center gap-1.5" @click="navigate('/p/' + id + '/sing')"><Icon name="note" :size="16" /> {{ t('sing.open') }}</button>
@@ -334,7 +335,7 @@ export const StudioView = {
                 <footer class="border-t border-line bg-panel px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 md:px-6 md:py-4" :class="recording ? 'bg-record/5' : ''">
                     <div class="flex items-center gap-2 md:gap-3">
                         <div class="w-16 shrink-0 md:w-auto md:min-w-48">
-                            <p class="text-xl font-bold tabular-nums md:text-4xl" :class="recording ? 'text-record' : 'text-cream'">{{ formatTime(position) }}<span class="hidden text-base font-normal text-muted md:inline"> / {{ formatTime(contentLength) }}</span></p>
+                            <p class="t-clock max-md:text-xl" :class="recording ? 'text-record' : 'text-cream'">{{ formatTime(position) }}<span class="t-clock-of hidden md:inline"> / {{ formatTime(contentLength) }}</span></p>
                             <p data-bar-beat class="truncate text-[11px] text-muted md:text-xs">{{ recording ? t('studio.othersPlayOn', { where: barBeat || '' }) : barBeat }}</p>
                         </div>
                         <template v-if="recording">
@@ -345,7 +346,7 @@ export const StudioView = {
                         <template v-else>
                             <button type="button" :class="[roundButton, 'ms-auto size-11', playing || position > 0 ? '' : 'hidden md:grid']" :aria-label="playing ? t('studio.stop') : t('studio.rewind')" @click="stopOrRewind"><Icon :name="playing ? 'stop' : 'rewind'" :size="16" /></button>
                             <button v-if="somethingToPlay" type="button" class="grid size-14 shrink-0 place-items-center transition bubble bubble-lg bubble-primary" data-disc="play" :aria-label="playing ? t('studio.pause') : t('studio.play')" :aria-busy="starting && !playing ? 'true' : null" @click="togglePlay"><span v-if="starting && !playing" class="spinner size-6" aria-hidden="true"></span><Icon v-else :name="playing ? 'pause' : 'play'" :size="26" /></button>
-                            <button type="button" class="flex min-w-0 flex-1 items-center gap-2 rounded-full glass-record py-2 pe-4 ps-2 font-semibold transition disabled:opacity-50 md:max-w-xs md:flex-none md:pe-7" :disabled="noTrack" data-record :class="playing || position > 0 ? '' : somethingToPlay ? 'ms-auto md:ms-0' : 'ms-auto md:flex-1'" @click="transportRecord">
+                            <button type="button" class="flex min-w-0 flex-1 items-center gap-2 rounded-full bg-record py-2 pe-4 ps-2 font-semibold text-record-label transition hover:brightness-110 disabled:opacity-50 md:max-w-xs md:flex-none md:pe-7" :disabled="noTrack" data-record :class="playing || position > 0 ? '' : somethingToPlay ? 'ms-auto md:ms-0' : 'ms-auto md:flex-1'" @click="transportRecord">
                                 <span class="grid size-10 shrink-0 place-items-center rounded-full bg-ink/90 text-record"><Icon name="record" :size="16" /></span>
                                 <span class="line-clamp-2 text-start leading-tight">{{ recordLabel }}</span>
                             </button>
@@ -487,7 +488,7 @@ export const StudioView = {
         },
         meta() {
             const p = this.project;
-            return [p.key ? t('studio.meta.key', { key: keyLabel(p.key) }) : null, p.bpm ? t('studio.meta.bpm', { bpm: p.bpm }) : null, p.timeSignature].filter(Boolean).join(' · ');
+            return [p.key ? t('studio.meta.key', { key: keyLabel(p.key) }) : null, p.bpm ? t('studio.meta.tempo', { bpm: p.bpm }) : null, p.timeSignature].filter(Boolean).join(' · ');
         },
         credit() {
             const credits = this.project.template?.credits;

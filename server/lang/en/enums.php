@@ -6,6 +6,7 @@ return [
     'admin_role' => [
         'admin' => 'Admin',
         'editor' => 'Editor',
+        'viewer' => 'Growth viewer',
     ],
     'block_type' => [
         'email' => 'Email address',

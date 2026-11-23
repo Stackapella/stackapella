@@ -17,7 +17,7 @@ return [
 
     'sign_in' => [
         'title' => 'Sign in to admin',
-        'intro' => 'Use the Google account that runs Stackapella. You\'ll confirm it\'s you with your passkey next.',
+        'intro' => 'Use the Google account you were given access with. You\'ll confirm it\'s you with your passkey next.',
         'google' => 'Sign in with Google',
         'ended' => 'Your admin session ended. Sign in again to carry on.',
         'signed_out' => 'You\'re signed out.',

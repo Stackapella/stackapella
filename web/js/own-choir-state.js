@@ -93,3 +93,6 @@ export function choirOf(request, { lead = false } = {}) {
 export function savedVoice() {
     return ownChoir.data?.voice ?? null;
 }
+
+/** This tab's one fix for the next choir take, after one that couldn't make a voice: an ownChoir.failed.* key, or none. */
+export const CHOIR_FIX = 'stackapella.choirFix';

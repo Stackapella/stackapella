@@ -31,6 +31,7 @@ export const RecordingStage = {
         line: { type: Object, default: null }, // the current line of words, or null (no words)
         next: { type: Object, default: null },
         hearing: { type: String, default: '' }, // who you hear while recording (Sing's hearLine)
+        tip: { type: String, default: '' }, // a choir take's one fix after one that failed, shown through the count-in
     },
     emits: ['stop', 'again'],
     setup: () => ({ formatTime, formatNumber, joinSyllables }),
@@ -55,6 +56,8 @@ export const RecordingStage = {
                 <span class="justify-self-end"><slot name="hearing" /></span>
             </header>
             <p v-if="hearing" class="px-4 text-center text-sm text-subtle md:px-8" data-hear-line>{{ hearing }}</p>
+            <!-- The last take's one fix (the coordinator's failure spec): over the count-in, gone once the singing starts. -->
+            <p v-if="tip && countIn !== null" class="alert-inline mx-auto mt-2 max-w-xl px-4 text-[15px] md:px-8" role="status" data-take-tip>{{ tip }}</p>
 
             <div class="flex min-h-0 flex-1 flex-col justify-center gap-5 px-4 pb-4 text-cream md:gap-8 md:px-8">
                 <!-- The count-in's big number sits on the lane, clipped to it (the coordinator's review: never over the words). -->

@@ -1,0 +1,134 @@
+{
+    "data": {
+        "period": "7d",
+        "from": "2026-11-17",
+        "to": "2026-11-23",
+        "timezone": "UTC",
+        "floor": 30,
+        "days": [
+            {
+                "date": "2026-11-17",
+                "made": 0,
+                "free": 0,
+                "plus": 0,
+                "comped": 0,
+                "together": 0,
+                "partMinutes": 0,
+                "failedOurs": 0,
+                "failedTake": 0
+            },
+            {
+                "date": "2026-11-18",
+                "made": 0,
+                "free": 0,
+                "plus": 0,
+                "comped": 0,
+                "together": 0,
+                "partMinutes": 0,
+                "failedOurs": 0,
+                "failedTake": 0
+            },
+            {
+                "date": "2026-11-19",
+                "made": 0,
+                "free": 0,
+                "plus": 0,
+                "comped": 0,
+                "together": 0,
+                "partMinutes": 0,
+                "failedOurs": 0,
+                "failedTake": 0
+            },
+            {
+                "date": "2026-11-20",
+                "made": 0,
+                "free": 0,
+                "plus": 0,
+                "comped": 0,
+                "together": 0,
+                "partMinutes": 0,
+                "failedOurs": 0,
+                "failedTake": 0
+            },
+            {
+                "date": "2026-11-21",
+                "made": 0,
+                "free": 0,
+                "plus": 0,
+                "comped": 0,
+                "together": 0,
+                "partMinutes": 0,
+                "failedOurs": 0,
+                "failedTake": 0
+            },
+            {
+                "date": "2026-11-22",
+                "made": 3,
+                "free": 2,
+                "plus": 1,
+                "comped": 0,
+                "together": 1,
+                "partMinutes": 14.5,
+                "failedOurs": 0,
+                "failedTake": 1
+            },
+            {
+                "date": "2026-11-23",
+                "made": 5,
+                "free": 3,
+                "plus": 1,
+                "comped": 1,
+                "together": 2,
+                "partMinutes": 26.0,
+                "failedOurs": 1,
+                "failedTake": 2
+            }
+        ],
+        "totals": {
+            "made": {
+                "n": 8,
+                "before": 0
+            },
+            "free": {
+                "n": 5,
+                "before": 0
+            },
+            "plus": {
+                "n": 2,
+                "before": 0
+            },
+            "comped": {
+                "n": 1,
+                "before": 0
+            },
+            "together": {
+                "n": 3,
+                "before": 0
+            },
+            "partMinutes": {
+                "n": 40.5,
+                "before": 0
+            },
+            "failedOurs": {
+                "n": 1,
+                "before": 0
+            },
+            "failedTake": {
+                "n": 3,
+                "before": 0
+            }
+        },
+        "funnel": {
+            "captureStarted": {
+                "n": 20,
+                "before": 0
+            },
+            "made": {
+                "n": 8,
+                "before": 0
+            },
+            "rate": 0.4,
+            "rateBefore": null
+        }
+    }
+}

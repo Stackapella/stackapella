@@ -9,7 +9,8 @@ use App\Models\User;
 use Illuminate\Contracts\Session\Session;
 
 /**
- * Who is an admin or an editor: three independent checks, all required (iaw's AdminGate).
+ * Who is an admin or an editor: three independent checks, all required (iaw's AdminGate). A growth viewer has three
+ * of their own (isViewer).
  *
  * 1. users.is_admin (or is_editor) is true in the database;
  * 2. the user's google_id is listed in ADMIN_GOOGLE_IDS (or EDITOR_GOOGLE_IDS);
@@ -54,11 +55,29 @@ final class AdminGate
         return $this->listed($user, $session, 'editor');
     }
 
+    /**
+     * A growth viewer (GrowthViewers), who may read only the anonymous growth numbers: three checks too. Their address
+     * granted from a console and not revoked; the Google account that first signed in with it, which is this user's;
+     * and Google confirming that address at a fresh sign-in in THIS session. Never an admin's or editor's lists.
+     */
+    public function isViewer(?User $user, ?Session $session): bool
+    {
+        if ($user === null || $session === null || $user->isSuspended() || $session->get(self::SESSION_FRESH) !== true) {
+            return false;
+        }
+
+        $viewer = GrowthViewers::active((string) $session->get(self::SESSION_EMAIL));
+        $googleId = (string) $user->google_id;
+
+        return $viewer !== null && $googleId !== '' && $viewer->google_id === $googleId;
+    }
+
     public function role(?User $user, ?Session $session): ?AdminRole
     {
         return match (true) {
             $this->isAdmin($user, $session) => AdminRole::Admin,
             $this->isEditor($user, $session) => AdminRole::Editor,
+            $this->isViewer($user, $session) => AdminRole::Viewer,
             default => null,
         };
     }

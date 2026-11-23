@@ -293,13 +293,13 @@ export const ChoirTogetherJoinView = {
 
             <!-- The own-choir terms, once (as the choir page has them). -->
             <section v-else-if="state === 'terms' && terms" class="space-y-5" data-join-terms>
-                <h1 class="text-2xl font-bold text-cream" translate="no">{{ terms.title }}</h1>
+                <h1 class="t-title text-cream" translate="no">{{ terms.title }}</h1>
                 <div class="card p-5" :class="game ? '' : 'max-h-[50dvh] overflow-y-auto'" tabindex="0" role="region" :aria-label="terms.title"><Agreement :agreement="terms" :level="2" /></div>
                 <button type="button" class="btn-primary" :disabled="busy" data-choir-agree @click="agreeTerms">{{ t('ownChoir.terms.agree') }}</button>
             </section>
 
             <section v-else class="space-y-5" data-join :data-join-state="state">
-                <h1 class="pt-4 text-3xl font-extrabold tracking-tight text-cream" data-join-title>{{ state === 'joined' ? t('ownChoir.together.join.done', { owner: invite.owner }) : title }}</h1>
+                <h1 class="t-title pt-4 text-cream" data-join-title>{{ state === 'joined' ? t('ownChoir.together.join.done', { owner: invite.owner }) : title }}</h1>
                 <!-- After singing, when fewer parts suit their voice than the invite named: which they'll sing, which stay Ann's. -->
                 <p v-if="found" class="text-cream" data-join-found>{{ found }}</p>
                 <!-- The lead, except where the sing step already says it (Hillel: never the same thing twice). -->
@@ -309,7 +309,7 @@ export const ChoirTogetherJoinView = {
                 <!-- Signed out: what joining means, read-only, then an account (the link kept). -->
                 <template v-if="state === 'signedOut'">
                     <ul class="card space-y-2 p-5 text-cream" data-join-points>
-                        <li v-for="(point, i) in points" :key="i" class="flex gap-2.5"><span class="w-5 shrink-0 font-bold tabular-nums" aria-hidden="true">{{ i + 1 }}.</span><span>{{ point }}</span></li>
+                        <li v-for="(point, i) in points" :key="i" class="flex gap-2.5"><span class="w-5 shrink-0 tabular-nums text-subtle" aria-hidden="true">{{ i + 1 }}.</span><span>{{ point }}</span></li>
                     </ul>
                     <AccountWall reason="choirJoin" :next="here" />
                 </template>
@@ -321,9 +321,9 @@ export const ChoirTogetherJoinView = {
 
                 <!-- This song's yes: three plain points, the words of an own song, Show my name (off); agreeing is the button. -->
                 <section v-else-if="state === 'agree'" class="card space-y-4 p-5" aria-labelledby="join-agree-h" data-join-agree>
-                    <h2 id="join-agree-h" class="text-lg font-bold text-cream">{{ t('ownChoir.together.agree.title', { owner: invite.owner }) }}</h2>
+                    <h2 id="join-agree-h" class="text-lg font-semibold text-cream">{{ t('ownChoir.together.agree.title', { owner: invite.owner }) }}</h2>
                     <ul class="space-y-2 text-cream">
-                        <li v-for="(point, i) in points" :key="i" class="flex gap-2.5"><span class="w-5 shrink-0 font-bold tabular-nums" aria-hidden="true">{{ i + 1 }}.</span><span>{{ point }}</span></li>
+                        <li v-for="(point, i) in points" :key="i" class="flex gap-2.5"><span class="w-5 shrink-0 tabular-nums text-subtle" aria-hidden="true">{{ i + 1 }}.</span><span>{{ point }}</span></li>
                     </ul>
                     <p v-if="partsChanged" class="text-sm text-cream" role="status" data-join-parts-changed>{{ t('ownChoir.together.parts.changed') }}</p>
                     <p v-if="wordsChanged" class="text-sm text-cream" role="status" data-join-words-changed>{{ t('ownChoir.together.words.changed') }}</p>
@@ -331,7 +331,7 @@ export const ChoirTogetherJoinView = {
                         <p class="text-sm font-semibold text-muted">{{ t('ownChoir.together.agree.words') }}</p>
                         <p class="whitespace-pre-line text-cream" translate="no">{{ invite.words }}</p>
                     </div>
-                    <p class="text-sm text-muted" data-join-free>{{ t('ownChoir.together.agree.free') }}</p>
+                    <p class="t-hint" data-join-free>{{ t('ownChoir.together.agree.free') }}</p>
                     <Switch :on="showName" :label="t('ownChoir.together.agree.showName', { owner: invite.owner })" :hint="showName ? '' : t('ownChoir.together.agree.showNameOff')" class="py-1" data-join-show-name @change="showName = $event" />
                     <p v-if="withClip" class="text-sm text-cream" data-join-local>{{ t('ownChoir.together.agree.local') }}</p>
                     <!-- On a phone: full width and stacked, the yes first; then the quiet ways out. -->

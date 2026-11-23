@@ -25,6 +25,7 @@ use App\Models\Engagement;
 use App\Models\Experiment;
 use App\Models\Flag;
 use App\Models\FlagUser;
+use App\Models\GrowthViewer;
 use App\Models\HandleHold;
 use App\Models\Harmony;
 use App\Models\Idea;
@@ -176,6 +177,7 @@ final class AppServiceProvider extends ServiceProvider
 
         Relation::enforceMorphMap([
             'user' => User::class,
+            'growth_viewer' => GrowthViewer::class,
             'beta_singer' => BetaSinger::class,
             'beta_assignment' => BetaAssignment::class,
             'beta_submission' => BetaSubmission::class,

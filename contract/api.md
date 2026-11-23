@@ -149,7 +149,7 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 
 | Operation | Method and path | Who | Since |
 |---|---|---|---|
-| `admin.me` | `GET /api/admin/me` | An admin or editor who has passed the second factor | M1 |
+| `admin.me` | `GET /api/admin/me` | An admin, editor or growth viewer who has passed the second factor | M1 |
 | `admin.flags.list` | `GET /api/admin/flags` | An admin | M1 |
 | `admin.flags.update` | `PUT /api/admin/flags/{name}` | An admin, in sudo | M1 |
 | `admin.limits.list` | `GET /api/admin/limits` | An admin | M1 |
@@ -562,8 +562,8 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `admin.mudeo.contacts` | `GET /api/admin/mudeo/contacts` | An admin | L |
 | `admin.network.show` | `GET /api/admin/network` | An admin | L |
 | `admin.counts.show` | `GET /api/admin/counts` | An admin | L |
-| `admin.funnel.show` | `GET /api/admin/funnel` | An admin | L |
-| `admin.dropoffs.show` | `GET /api/admin/dropoffs` | An admin | L |
+| `admin.funnel.show` | `GET /api/admin/funnel` | An admin, or a growth viewer | L |
+| `admin.dropoffs.show` | `GET /api/admin/dropoffs` | An admin, or a growth viewer | L |
 | `admin.sharing.show` | `GET /api/admin/sharing` | An admin | L |
 | `admin.choir.show` | `GET /api/admin/choir` | An admin | L |
 | `admin.choir.live` | `GET /api/admin/choir/live` | An admin | L |
@@ -592,11 +592,12 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `admin.outreach.update` | `PATCH /api/admin/outreach/{id}` | An admin | L |
 | `admin.outreach.drafts.create` | `POST /api/admin/outreach/{id}/drafts` | An admin | L |
 | `admin.outreach.replies.create` | `POST /api/admin/outreach/{id}/replies` | An admin | L |
-| `admin.growth.show` | `GET /api/admin/growth` | An admin | L |
-| `admin.sources.show` | `GET /api/admin/sources` | An admin | L |
+| `admin.growth.show` | `GET /api/admin/growth` | An admin, or a growth viewer | L |
+| `admin.growth.choirs` | `GET /api/admin/growth/choirs` | An admin, or a growth viewer | L |
+| `admin.sources.show` | `GET /api/admin/sources` | An admin, or a growth viewer | L |
 | `admin.active.show` | `GET /api/admin/active` | An admin | L |
 | `admin.groups.list` | `GET /api/admin/groups` | An admin | L |
-| `admin.reach.show` | `GET /api/admin/reach` | An admin | L |
+| `admin.reach.show` | `GET /api/admin/reach` | An admin, or a growth viewer | L |
 | `admin.revenue.show` | `GET /api/admin/revenue` | An admin | L |
 | `admin.live.show` | `GET /api/admin/live` | An admin | L |
 | `admin.pulse.show` | `GET /api/admin/pulse` | An admin | L |
@@ -637,8 +638,16 @@ sends the person to `/admin/sign-in?intended=<the admin page they were on>`.
 | 403 | `not_admin` | `error.json` | `admin.me.not_admin.json` |
 | 403 | `second_factor_required` | `error.json` | `admin.me.second_factor_required.json` |
 
-- **`role`** is `admin` or `editor`. An editor works the queues; money, bans, deletes, settings and
+- **`role`** is `admin`, `editor` or `viewer`. An editor works the queues; money, bans, deletes, settings and
   switches are the admin's (`docs/operations-plan.md`, "A moderator role").
+- **A growth viewer** (`viewer`; Hillel, 2026-11-23: an advisor who reads the numbers) sees only anonymous totals:
+  `admin.me`, `admin.growth.show`, `admin.growth.choirs`, `admin.reach.show`, `admin.funnel.show`,
+  `admin.dropoffs.show` and `admin.sources.show` (not `admin.counts.show`, whose countries aren't folded). Every other
+  admin operation answers a viewer `403 not_admin`, the server's own allow-list, so
+  never a person's account, email, group, request, refund, setting or any action. A viewer signs in as an admin does
+  (Google, freshly, then a passkey or the code), with three checks: the address granted from a console
+  (`app:viewer:grant`), the Google account that first signed in with it (kept from then on), and Google confirming
+  that address at this sign-in. The app shows a viewer only what they can open.
 - **`sudoUntil`** is when the last second-factor check stops counting for sensitive actions
   (`null` once it has). The app can say "Confirm it's you" before a sensitive action instead of
   waiting for the refusal.
@@ -6834,6 +6843,25 @@ now, and over the period `current`, `previous` and `weekAgo`, each cut at the sa
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 | | `admin.growth.show.json` | `admin.growth.show.200.json` |
+
+#### `admin.growth.choirs`
+
+AI choirs on Admin > Growth (Hillel, 2026-11-23: "make sure to include AI choirs made on admin growth"): anonymous daily
+counts, from the growth fresh start, over `?period=7d` or `30d` (the default) to today in the report timezone
+(`timezone`), each total beside the period before. `days`: every day of the period, zeros included. `made`: a singer's
+own songs made (not a friend's parts, not a remake), split by their plan when it was made: `free` (the free song), `plus`
+(paid Plus) and `comped` (Plus given, not paid). `together`: friends' parts made into someone's song. `partMinutes`:
+the part-minutes the renderer took on (the daily meter's measure, on the day it first took each song). `failedTake`:
+songs whose recording couldn't be used (`clip_unusable`); `failedOurs`: songs that failed on our side (the upload's
+check, the quality gates, the render). A song its singer abandoned or whose voice they deleted is neither. `funnel`:
+recordings started in the app (`choir_take_started`) to songs made, with `rate` (null with none started). A number
+over a total under `floor` reads as too few to tell. Counted from 2026-11-24 as they happen, and filled once before that
+from the songs still on the server (so a song deleted before then is missing, and a past song's free or comped is its
+singer's plan at the fill). Numbers only, nothing about anyone. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.growth.choirs.json` | `admin.growth.choirs.200.json` |
 
 #### `admin.sources.show`
 

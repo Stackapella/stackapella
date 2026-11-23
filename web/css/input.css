@@ -4026,6 +4026,34 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 .s-pp-track { position: relative; height: 8px; border-radius: 99px; background: color-mix(in srgb, var(--color-ink) 40%, transparent); }
 .s-pp-bar { position: absolute; top: 0; bottom: 0; border-radius: 99px; background: var(--c); }
 .s-pp-you { position: absolute; top: -5px; bottom: -5px; border-radius: 6px; border: 1px dashed var(--color-muted); }
+/* The site's phase of the 2026-11-23 language (docs/design-rules.md "The 2026-11-23 language"; the app's Phase 1b
+   above, here for the public site's own kit; Hillel said yes, 2026-11-23), after the home, pricing and For choir directors
+   redesigns. The site's own hook, body.s-arcade, in the calm look only: serious mode, a page the arcade doesn't restyle
+   (no data-gs), or a calm page; the arcade keeps its own pieces. Dark stays stage-dark (ai-design, 2026-11-23: graphite
+   as the default dark is Hillel's call, through the theme, with no site CSS of its own).
+   - Secondary buttons are an outline: no fill at rest, a 1 px edge in the line colour, a tint on hover. The go-to
+     button (btn-go) keeps its tint.
+   - The chosen segment is cream with the ink's words; switches are 40 x 24 with an 18 px knob in the same 44 px button.
+   - Eyebrows and small labels are the quieter grey (subtle), at 11 px; form hints too.
+   - A card's corners are 22 px, one radius for the site's cards and panels. */
+body.s-arcade:is(:root:not([data-skin='game']) *, :root:not([data-gs]) *, .s-calm) {
+    --btn-soft: transparent;
+    --btn-soft-hover: var(--fill-2);
+    --btn-soft-active: var(--fill-3);
+    --btn-outline: inset 0 0 0 1px var(--color-line);
+    --btn-outline-pressed: inset 0 0 0 1px var(--color-line);
+    --btn-go-edge: none;
+    --radius-card: 22px;
+}
+body.s-arcade:is(:root:not([data-skin='game']) *, :root:not([data-gs]) *, .s-calm) .seg-option:is([aria-checked='true'], [aria-pressed='true'], .is-on, :has(input:checked)) { background-color: var(--primary); color: var(--primary-ink); }
+body.s-arcade:is(:root:not([data-skin='game']) *, :root:not([data-gs]) *, .s-calm) .switch-track { width: 40px; height: 24px; }
+body.s-arcade:is(:root:not([data-skin='game']) *, :root:not([data-gs]) *, .s-calm) .switch-knob { top: 3px; width: 18px; height: 18px; }
+body.s-arcade:is(:root:not([data-skin='game']) *, :root:not([data-gs]) *, .s-calm) [role='switch']:active .switch-knob { width: 22px; }
+body.s-arcade:is(:root:not([data-skin='game']) *, :root:not([data-gs]) *, .s-calm) :is(.is-on .switch-knob, [aria-checked='true'] .switch-knob) { inset-inline-start: 19px; }
+body.s-arcade:is(:root:not([data-skin='game']) *, :root:not([data-gs]) *, .s-calm) [aria-checked='true']:active .switch-knob { inset-inline-start: 15px; }
+body.s-arcade:is(:root:not([data-skin='game']) *, :root:not([data-gs]) *, .s-calm) :is(.s-eyebrow, .s-kick, .eyebrow) { font-size: 11px; font-weight: 600; letter-spacing: .12em; color: var(--color-subtle); }
+body.s-arcade:is(:root:not([data-skin='game']) *, :root:not([data-gs]) *, .s-calm) .help { line-height: 1.4; color: var(--color-subtle); }
+body.s-arcade:is(:root:not([data-skin='game']) *, :root:not([data-gs]) *, .s-calm) :is(.s-mixer, .s-step, .s-story, .s-letter, .s-letter-note, .s-tile, .s-score, .s-gcard, .s-vt-hear, .s-sg-how, .s-sst-quote, .s-sst-facts, .s-spart-panel, .s-prose > section.s-short, .s-prose .s-granges, .s-card3d, .s-xcount, .s-plan, .s-callout, .s-dir-steps li, .s-gb-card) { border-radius: 22px; }
 /* landing:end */
 
 /* redesign:start. The redesign's shared sections (docs/marketing-redesign-plan.md): the ink band, an
@@ -9977,9 +10005,9 @@ main.cp-pt2 ~ [data-lesson-pages] { display: none; }
 /* Find your comfortable note (js/public/demos/comfortable-note.js): the app's own card (js/public/voice-capture.js),
    on the page like the mixer demos; the still frame is only its outline and first words. */
 .s-capture { display: grid; gap: 12px; width: min(100%, 28rem); margin-inline: auto; }
-.s-capture-still { display: grid; justify-items: center; gap: 6px; padding: 20px 20px 28px; border: 1px solid var(--color-line); border-radius: 24px; background: var(--color-panel); text-align: center; }
-.s-capture-still-h { margin-top: 10px; font-size: 18px; font-weight: 700; color: var(--color-cream); }
-.s-capture-still-sub { font-size: 14px; color: var(--color-muted); }
+.s-capture-still { display: grid; justify-items: center; gap: 6px; padding: 20px 20px 28px; text-align: center; } /* the card's outline: no box round it (the 2026-11-23 language, as the card) */
+.s-capture-still-h { margin-top: 10px; font-size: 17px; font-weight: 600; color: var(--color-cream); }
+.s-capture-still-sub { font-size: 14px; color: var(--color-subtle); }
 .s-cb-say.s-capture-say { min-height: 0; color: var(--color-cream); text-align: center; }
 .s-capture-say:empty { display: none; }
 .s-note-private { display: flex; align-items: flex-start; justify-content: center; gap: 8px; font-size: 13.5px; line-height: 1.5; color: var(--color-muted); }

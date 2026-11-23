@@ -17,6 +17,7 @@ use App\Services\EventSchedule\EventScheduleError;
 use App\Services\EventSchedule\HttpEventSchedule;
 use App\Support\Accounts\SignInSession;
 use App\Support\Admin\AdminGate;
+use App\Support\Admin\GrowthViewers;
 use App\Support\Admin\IntendedUrl;
 use App\Support\Admin\SecondFactor;
 use App\Support\Trust\Blocklist;
@@ -277,6 +278,10 @@ final class ProviderController extends Controller
         // Check 3 of AdminGate: the email Google itself confirmed during this sign-in.
         if ($verifiedEmail !== null) {
             $request->session()->put([AdminGate::SESSION_EMAIL => $verifiedEmail, AdminGate::SESSION_FRESH => true]);
+            // A growth viewer's first Google sign-in keeps that Google account as theirs.
+            if ($provider === 'google') {
+                GrowthViewers::pin($user, $verifiedEmail);
+            }
         }
 
         if (str_starts_with($intended, '/admin')) {
@@ -290,7 +295,7 @@ final class ProviderController extends Controller
 
             $request->session()->put('url.intended', $intended);
 
-            if ($this->secondFactor->required() && app(AdminGate::class)->isEditor($user, $request->session())) {
+            if ($this->secondFactor->required() && (app(AdminGate::class)->isEditor($user, $request->session()) || app(AdminGate::class)->isViewer($user, $request->session()))) {
                 return redirect()->route($this->secondFactor->isEnrolled($user) ? 'admin.second-factor.challenge' : 'admin.second-factor.setup');
             }
 

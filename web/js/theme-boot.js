@@ -183,7 +183,10 @@
         else delete root.dataset.accent;
         root.dataset.skin = game ? 'game' : 'serious';
         const meta = document.querySelector('meta[name="theme-color"]');
-        if (meta && COLOURS[id]) meta.setAttribute('content', COLOURS[id]);
+        // A page on its own stage (the home, /your-choir) names its ground for each mode, so the browser bar matches the page
+        // rather than the theme (graphite's bar over the home's night was a seam on a phone: ai-choir-page, 2026-11-23).
+        const own = meta?.dataset[mode === 'light' ? 'light' : 'dark'];
+        if (meta && (own || COLOURS[id])) meta.setAttribute('content', own || COLOURS[id]);
         // An installed app on iPhone: dark status bar text on a light theme.
         const bar = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
         if (bar) bar.setAttribute('content', mode === 'light' ? 'default' : 'black-translucent');

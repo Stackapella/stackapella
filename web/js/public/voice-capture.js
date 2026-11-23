@@ -23,11 +23,14 @@ const RING = 2 * Math.PI * 69;
 const still = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 const fill = (text, values) => String(text ?? '').replace(/\{(\w+)\}/g, (_, k) => values[k] ?? '');
 
-// The card: the app component's markup and classes, its words set as text afterwards (never as markup).
+// The card: the app component's markup and classes, its words set as text afterwards (never as markup). In the
+// 2026-11-23 language (75776783f): no box round it, quieter greys, the listening pulse.
 const CARD = `
-<div class="relative overflow-hidden rounded-3xl border border-line bg-panel px-5 pb-4 pt-5 sm:px-6 text-center" data-ui="capture" data-phase="searching">
+<div class="relative rounded-3xl px-5 pb-4 pt-5 sm:px-6 text-center" data-ui="capture" data-phase="searching">
   <div class="flex flex-col items-center gap-4">
     <div class="relative size-[9.5rem]" aria-hidden="true" data-ui="capture-hold">
+      <span class="capture-pulse absolute inset-0 rounded-full border-2" data-ui="capture-pulse" hidden></span>
+      <span class="capture-pulse absolute inset-0 rounded-full border-2" style="animation-delay:1s" data-ui="capture-pulse" hidden></span>
       <svg viewBox="0 0 152 152" class="absolute inset-0 size-full -rotate-90">
         <circle cx="76" cy="76" r="69" fill="none" stroke="var(--color-raised)" stroke-width="8"></circle>
         <circle cx="76" cy="76" r="69" fill="none" stroke-width="8" stroke-linecap="round" data-ring></circle>
@@ -38,25 +41,25 @@ const CARD = `
       </div>
     </div>
     <div class="flex min-h-11 flex-col gap-1" data-ui="capture-status">
-      <p class="text-lg font-bold text-cream" data-status></p>
-      <p class="text-sm text-muted" data-status-sub></p>
+      <p class="text-[17px] font-semibold text-cream" data-status></p>
+      <p class="text-sm text-subtle" data-status-sub></p>
     </div>
     <p class="sr-only" aria-live="polite" data-spoken></p>
     <div class="w-full space-y-1.5">
       <div class="relative h-16 overflow-hidden" style="mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent)" role="img" data-scale data-ui="capture-strip">
-        <div class="absolute inset-x-0 top-5 h-px bg-line"></div>
+        <div class="absolute inset-x-0 top-5 h-px bg-edge"></div>
         <div class="absolute top-0 h-10 -translate-x-1/2 rounded-md" style="left:50%" data-band></div>
         <div data-ticks></div>
         <div class="absolute top-0 h-10 w-0.5 -translate-x-1/2 rounded-full" style="left:50%" data-needle></div>
       </div>
-      <div class="flex items-center justify-between text-xs text-muted" aria-hidden="true" data-ui="capture-zoom">
+      <div class="flex items-center justify-between text-xs text-subtle" aria-hidden="true" data-ui="capture-zoom">
         <span data-lower></span>
         <span class="flex items-center gap-1" data-zoom-dots><span class="size-1.5 rounded-full"></span><span class="size-1.5 rounded-full"></span><span class="size-1.5 rounded-full"></span><span class="ms-1" data-zoom-word></span></span>
         <span data-higher></span>
       </div>
     </div>
-    <div class="flex w-full items-center justify-center gap-4 border-t border-line pt-3" data-ui="capture-mic">
-      <span class="min-w-0 flex-1 truncate text-start text-[0.8125rem] text-muted" data-mic-name></span>
+    <div class="flex w-full items-center justify-center gap-4 border-t border-edge pt-3" data-ui="capture-mic">
+      <span class="min-w-0 flex-1 truncate text-start text-[0.8125rem] text-subtle" data-mic-name></span>
       <button type="button" class="btn-primary btn-sm" data-start></button>
       <button type="button" class="link-quiet min-h-11 text-[0.8125rem] font-semibold" data-again hidden></button>
     </div>
@@ -96,6 +99,12 @@ export function mountCapture(root, { words = {}, color = 'var(--color-part-1)', 
         ring.setAttribute('stroke-dasharray', String(RING));
         ring.setAttribute('stroke-dashoffset', String(RING * (1 - hold)));
         ring.setAttribute('class', still() ? '' : 'transition-[stroke-dashoffset] duration-100 ease-linear');
+        // The 2026-11-23 language (the app's VoiceCapture): while it listens for a voice, two soft rings breathe out
+        // from the ring (a pulse, no note named); none under reduced motion.
+        for (const pulse of root.querySelectorAll('[data-ui=capture-pulse]')) {
+            pulse.hidden = !(phase === 'listening' || phase === 'hearing') || still();
+            pulse.style.borderColor = accent();
+        }
         // Only the note found is named: never the voice's note while it settles, whose letter would flash
         // (Hillel, 2026-11-02: "dont show the specific note ... until it finished"). The ring and the words
         // say it's hearing you meanwhile.
@@ -132,12 +141,12 @@ export function mountCapture(root, { words = {}, color = 'var(--color-part-1)', 
             el.dataset.tick = '';
             if (tick.active) el.dataset.active = '';
             const line = document.createElement('span');
-            line.className = `w-0.5 rounded-full ${tick.active ? 'mt-1.5 h-7' : tick.natural ? 'mt-3 h-[1.125rem] bg-muted/70' : 'mt-4 h-2.5 bg-line'}`;
+            line.className = `w-0.5 rounded-full ${tick.active ? 'mt-1.5 h-7' : tick.natural ? 'mt-3 h-[1.125rem] bg-subtle/60' : 'mt-4 h-2.5 bg-line'}`;
             if (tick.active) line.style.background = accent();
             el.append(line);
             if (tick.label && named) {
                 const label = document.createElement('span');
-                label.className = `whitespace-nowrap font-semibold tabular-nums ${tick.active ? 'text-[0.9375rem]' : 'text-[0.6875rem] text-muted'}`;
+                label.className = `whitespace-nowrap font-semibold tabular-nums ${tick.active ? 'text-[0.9375rem]' : 'text-[0.6875rem] text-subtle'}`;
                 label.setAttribute('translate', 'no');
                 if (tick.active) label.style.color = accent();
                 label.textContent = tick.label;

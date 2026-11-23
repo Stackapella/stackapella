@@ -282,8 +282,9 @@ return Application::configure(basePath: dirname(__DIR__))
             CountForeignOrigins::class,
         ]);
 
-        // Laravel's order, except that a too-old app is told so first, and the limiters count
-        // before sign-in is checked, so floods of signed-out requests are limited too.
+        // Laravel's order, except that a too-old app is told so first, the limiters count before sign-in
+        // is checked, so floods of signed-out requests are limited too, and staff's checks come before
+        // the route's models are looked up.
         $middleware->priority([
             CheckAppVersion::class,
             HandlePrecognitiveRequests::class,
@@ -294,6 +295,10 @@ return Application::configure(basePath: dirname(__DIR__))
             ThrottleRequests::class,
             AuthenticatesRequests::class,
             AuthenticatesSessions::class,
+            // Staff's checks before any {id} is looked up: someone who isn't let in is told 403, never whether it exists.
+            EnsureEditor::class,
+            EnsureSecondFactor::class,
+            EnsureAdmin::class,
             SubstituteBindings::class,
             Authorize::class,
         ]);

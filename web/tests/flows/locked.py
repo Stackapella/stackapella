@@ -28,7 +28,7 @@ def journey(f):
     f.go(f"/p/{project_id}?api=mock&as=member", "document.querySelector('#app')")
     f.wait_text(t(f, "locked.limit"))
     f.shot("studio")
-    f.js("document.querySelector('footer button.glass-record').click()")
+    f.js("document.querySelector('footer button[data-record]').click()")
     f.wait(f"document.querySelectorAll('[role=status]').length && [...document.body.innerText.matchAll({json.dumps(t(f, 'locked.limit'))})].length >= 2", what="the toast saying why")
     assert not f.js("(await import('/js/stores/session.js')).session.recording"), "it recorded"
     f.go("/storage?api=mock&as=member", "document.querySelector('h1')")

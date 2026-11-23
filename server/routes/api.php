@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\Admin\BlocklistController;
 use App\Http\Controllers\Api\Admin\BoardsController as AdminBoards;
 use App\Http\Controllers\Api\Admin\BooksController as AdminBooks;
 use App\Http\Controllers\Api\Admin\BreadthController as AdminBreadth;
+use App\Http\Controllers\Api\Admin\ChoirGrowthController as AdminChoirGrowth;
 use App\Http\Controllers\Api\Admin\ChoirInsightsController as AdminChoirInsights;
 use App\Http\Controllers\Api\Admin\ChoirLiveController as AdminChoirLive;
 use App\Http\Controllers\Api\Admin\CoachDirectoryController as AdminCoachDirectory;
@@ -678,6 +679,7 @@ Route::middleware(['auth', 'editor', 'second-factor'])->prefix('admin')->name('a
         Route::get('/live', [AdminLive::class, 'show'])->name('live.show');
         Route::get('/pulse', [AdminLive::class, 'pulse'])->name('pulse.show');
         Route::get('/growth', [AdminGrowth::class, 'overview'])->name('growth.show');
+        Route::get('/growth/choirs', AdminChoirGrowth::class)->name('growth.choirs');
         Route::get('/sources', [AdminGrowth::class, 'sources'])->name('sources.show');
         Route::get('/active', [AdminGrowth::class, 'active'])->name('active.show');
         Route::get('/reach', [AdminGrowth::class, 'reach'])->name('reach.show');

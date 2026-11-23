@@ -10,6 +10,7 @@ use App\Mail\Account\ClassCodesReady;
 use App\Mail\Account\ConfirmNewEmail;
 use App\Mail\Account\EmailChanging;
 use App\Mail\Account\ExportReady;
+use App\Mail\Account\GrowthViewerInvite;
 use App\Mail\Account\NewSignIn;
 use App\Mail\Account\NoticeDecided;
 use App\Mail\Account\NoticeIssued;
@@ -178,6 +179,7 @@ final class RenderEmails extends Command
             ['email-changing', 'Changing their email: to the old address, with an undo', 'The old address', fn () => $this->mail(new EmailChanging('ana.new@example.com', 'token'))],
             ['confirm-new-email', 'Changing their email: to the new address', 'The new address', fn () => $this->mail(new ConfirmNewEmail('token'), 'ana.new@example.com')],
             ['new-sign-in', 'A sign-in on a new browser', 'The account', fn () => $this->mail(new NewSignIn($browser))],
+            ['growth-viewer', 'A growth viewer is granted from a console (app:viewer:grant, with a --note)', 'The address granted', fn () => $this->mail(new GrowthViewerInvite('ana@example.com', 'You also have view access to our Google Search Console, for search data.'))],
             ['new-sign-in-app', 'A sign-in on a new app device', 'The account', fn () => $this->mail(new NewSignIn('the Stackapella app on an iPhone', true))],
             ['recovered-by-support', 'Support moved the account to a new address', 'The old address', fn () => $this->mail(new RecoveredBySupport('ana.new@example.com'))],
             ['export-ready', 'Download my data is ready', 'Whoever asked', fn () => $this->mail(new ExportReady(Hosts::appLink('/account/export'), '3 November'))],

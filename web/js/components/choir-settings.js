@@ -165,14 +165,14 @@ export const ChoirSettings = {
     template: `
         <section class="space-y-6" aria-labelledby="choir-settings-h" data-choir-settings :data-plus="plus ? 'yes' : 'no'">
             <div class="space-y-1">
-                <h2 id="choir-settings-h" class="flex items-center gap-2 text-lg font-bold text-cream">{{ t('ownChoir.settings.title') }}<span v-if="!plus" class="chip-accent gap-1" data-settings-plus-badge><Icon name="lock" :size="12" />{{ t('ownChoir.settings.plusBadge') }}</span></h2>
+                <h2 id="choir-settings-h" class="flex items-center gap-2 text-lg font-semibold text-cream">{{ t('ownChoir.settings.title') }}<span v-if="!plus" class="chip-accent gap-1" data-settings-plus-badge><Icon name="lock" :size="12" />{{ t('ownChoir.settings.plusBadge') }}</span></h2>
                 <p v-if="!plus" class="text-sm text-muted" data-settings-locked>{{ t('ownChoir.settings.locked') }}</p>
             </div>
 
             <!-- Without Plus the panel is dimmed under a lock (a tap still opens the Plus sheet): the coordinator's review. -->
             <div class="space-y-3" :class="plus ? '' : 'opacity-60'" data-settings-sound>
                 <div>
-                    <p class="text-xs font-bold uppercase tracking-[0.14em] text-muted">{{ t('ownChoir.settings.sound') }}</p>
+                    <p class="t-section">{{ t('ownChoir.settings.sound') }}</p>
                     <p class="text-sm text-muted">{{ t('ownChoir.settings.soundHint') }}</p>
                 </div>
                 <div class="card divide-y divide-line px-5">
@@ -205,7 +205,7 @@ export const ChoirSettings = {
 
             <div class="space-y-3" :class="plus ? '' : 'opacity-60'" data-settings-sung>
                 <div>
-                    <p class="text-xs font-bold uppercase tracking-[0.14em] text-muted">{{ t('ownChoir.settings.sung') }}</p>
+                    <p class="t-section">{{ t('ownChoir.settings.sung') }}</p>
                     <p class="text-sm text-muted">{{ monthly ? t('ownChoir.settings.sungHintMonthly', { n: monthly }) : t('ownChoir.settings.sungHint') }}</p>
                 </div>
                 <div class="card divide-y divide-line px-5">

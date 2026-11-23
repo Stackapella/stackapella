@@ -986,3 +986,10 @@ body { margin: 0; background: var(--ground); }
     .lnf-h1 { font-size: clamp(40px, 12.5vw, 52px); } /* a short phone: the heading a step smaller and the lede left out (the heading and Play say it), so the lanes keep their room */
     .lnf-stage [data-s="0"] .lnf-say { display: none; }
 }
+/* The site's phase of the 2026-11-23 language, on the home's own pieces (Hillel said yes, 2026-11-23; input.css has the
+   site kit's half): in the calm look, the stage's Play is an outline, the secondary beside Try the first lesson, and
+   the home's cards and panels share the 22 px corner. The home's labels are already its quiet grey; the arcade keeps
+   its own pieces (landing-game.css). */
+:root:not([data-skin='game']) .lnf-stage .lnf-play { background: transparent; }
+:root:not([data-skin='game']) :is(.lnf-glass, .lnf-lesson, .lnf-gm) { border-radius: 22px; }
+@media (min-width: 900px) { :root:not([data-skin='game']) .lnf-path a { border-radius: 22px; } }

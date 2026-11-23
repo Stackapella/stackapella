@@ -101,7 +101,7 @@ export const JoinedChoirs = {
             <article v-for="(entry, i) in joined" :key="entry.member.id" class="card space-y-3 p-4" :data-joined-member="entry.member.id" :data-joined-state="entry.member.status">
                 <div class="min-w-0">
                     <h3 class="flex flex-wrap items-center gap-2 font-semibold text-cream"><span translate="no">{{ t('ownChoir.together.joined.row', { owner: entry.song.owner, song: song(entry) }) }}</span><span v-if="ready(entry) && !entry.member.seen" class="chip" data-joined-new>{{ t('ownChoir.together.joined.ready') }}</span></h3>
-                    <p class="text-sm text-muted">{{ yours(entry) }}</p>
+                    <p class="t-hint">{{ yours(entry) }}</p>
                 </div>
                 <p v-if="!ready(entry)" class="text-sm text-cream" role="status">{{ t('ownChoir.together.joined.making') }}</p>
                 <div v-else class="flex flex-wrap items-center gap-x-4 gap-y-2">

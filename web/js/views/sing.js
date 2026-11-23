@@ -21,7 +21,8 @@ import * as sessionStore from '../stores/session.js';
 import { account } from '../stores/account.js';
 import { claimInvitation, countVoice, later, needsVoice, saidLater, usableTake, voiceAskOpen } from '../be-the-voice.js';
 import { aiCredit, aiCtaOpen } from '../ai-voices.js';
-import { checkKey, choirRefusal, clipSecondsFor, clipSongs, joinFor, keepJoinClip, loadOwnChoir, MIN_SECONDS, ownChoir, ownChoirOn, sendClip, takeLevel, tunePart } from '../own-choir.js';
+import { checkKey, choirRefusal, clipSecondsFor, clipSongs, joinFor, keepJoinClip, loadOwnChoir, MIN_SECONDS, ownChoir, ownChoirOn, sendClip, takeLevel, takeProblem, tunePart } from '../own-choir.js';
+import { CHOIR_FIX } from '../own-choir-state.js';
 import { session as tabStorage } from '../storage.js';
 import { aiPartsOf } from '../stores/catalogue.js';
 import { sendVoiceTake } from '../voice-take.js';
@@ -127,7 +128,7 @@ export const SingView = {
                 @choose="choose" @range="dialog = 'range'" @back="leave" @studio="openStudio" />
             <!-- Recording strips everything else away (113.png): the lane, the words, Stop -->
             <RecordingStage v-else-if="recording" :title="shownTitle(project)" :named="!!project.title?.trim()" :part-name="clipTake ? '' : partName" :big-count="60 / (project.bpm || 90)" :color="paint(focusPart.color)" :take="takeNumbers[rerecordId] ?? 1" :hearing="hearLine"
-                :count-in="countIn" :position="position" :length="lengthSeconds" :busy="busy" :on-pitch="clipTake ? null : onPitch" :line="hasWords ? currentLine : null" :next="hasWords ? nextLine : null" @stop="recordOrStop" @again="startOver">
+                :count-in="countIn" :tip="choirTip" :position="position" :length="lengthSeconds" :busy="busy" :on-pitch="clipTake ? null : onPitch" :line="hasWords ? currentLine : null" :next="hasWords ? nextLine : null" @stop="recordOrStop" @again="startOver">
                 <template #hearing><span class="relative block"><button type="button" class="relative grid size-11 shrink-0 place-items-center rounded-full glass-bubble text-cream" :aria-label="t('sing.settings.open')" data-settings-open @click="dialog = 'settings'"><Icon name="sliders" :size="20" /><span v-if="hearingChanged" class="absolute end-0 top-0 size-3 rounded-full bg-accent ring-2 ring-ink" data-hearing-changed aria-hidden="true"></span></button>
                     <!-- Game mode's bonus pop-ups (docs/game-elements-plan.md): under the header's end, never on the lane -->
                     <PopupSlot v-if="effect('popups')" class="ge-slot--float" :queue="hud" /></span></template>
@@ -236,6 +237,11 @@ export const SingView = {
         /** Recording the choir's 30 seconds (an own choir's or a join's take, any octave): no voice type to show or pick. */
         clipTake() {
             return !!this.project?.choir && !this.project.choir.requestId;
+        },
+        /** After a take that couldn't make a voice: its one fix, over the next take's count-in (views/own-choir.js keeps it). */
+        choirTip() {
+            const key = this.clipTake ? tabStorage.get(CHOIR_FIX) : null;
+            return key && key.startsWith('ownChoir.failed.') ? t(key) : '';
         },
         /** Build up to speed applies: on your own, on a looped phrase, playing (not recording). */
         onLadder() {
@@ -1111,7 +1117,10 @@ export const SingView = {
             // Sing it again, or Send it anyway.
             if (!force) {
                 const level = takeLevel(samples, part.sampleRate);
-                const check = level.clipped ? 'clipped' : level.db < -35 ? 'quiet' : null;
+                // And what a level can't show: a take stopped before 17 s of whole lines (a choir take only).
+                const phrases = this.project.choir ? (this.project.template.sections ?? []).flatMap((section) => section.phrases ?? []) : [];
+                const problem = () => takeProblem(samples, part.sampleRate, { startSeconds: part.offsetSeconds + (part.nudgeSeconds || 0), beatSeconds: this.fullBeatSeconds, phrases });
+                const check = level.clipped ? 'clipped' : level.db < -35 ? 'quiet' : problem();
                 if (check) {
                     this.choirCheck = check;
                     count(`choir_take_warned_${check}`);
@@ -1150,6 +1159,7 @@ export const SingView = {
                 const request = await sendClip({ templateId: forId ?? this.project.template.id, clipTemplateId: forId ? this.project.template.id : null, clipTranspose: forId ? clipTranspose : 0, guide: !this.project.choir?.noHeadphones, octave: forId ? octave : null, ...this.wholeTake(), partKey: part.templatePartKey, samples, sampleRate: part.sampleRate, startSeconds: part.offsetSeconds + (part.nudgeSeconds || 0), turnstileToken });
                 // Sent by itself from /your-choir: they stay with their take while it's made (a look every 15 s), then Listen.
                 if (forId) count('choir_take_sent');
+                tabStorage.remove(CHOIR_FIX); // sent: the fix was for this take
                 if (forId && this.project.choir?.auto) {
                     this.choirSent = request.id;
                     tabStorage.remove('stackapella.choirFromSite');

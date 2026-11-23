@@ -24,6 +24,7 @@ import { FROM_DAYS, PERIODS } from './growth-compare.js';
 import { METRICS as METRIC_NAMES, MetricCard, TrackingPanel } from './growth-cards.js';
 import { HOUR_MARGINS, HourChart } from './growth-chart.js';
 import { COLUMN_MARGINS, ColumnChart, CountStrip } from './growth-columns.js';
+import { GrowthChoirs } from './growth-choirs.js';
 
 // Each period's days, for what still reads a day count (the reach chart, and the cards from an older server); 4 weeks and
 // This month read as 30 there, 12 weeks as 84 (the people chart a week at a time).
@@ -75,7 +76,7 @@ export function sortSources(rows, by, rate = false) {
 
 export const OverviewSection = {
     mixins: [remembers('growth', { period: PERIODS, sortBy: Object.keys(COLUMNS) })],
-    components: { LoadFailed, ReachChart, SiteSectionsCard, MetricCard, TrackingPanel, HourChart, ColumnChart, CountStrip },
+    components: { LoadFailed, ReachChart, SiteSectionsCard, MetricCard, TrackingPanel, HourChart, ColumnChart, CountStrip, GrowthChoirs },
     props: { me: { type: Object, required: true } },
     data: () => ({ period: 'today', showHow: false, growth: null, sources: null, funnel: null, failed: false, sortBy: 'day2', updatedAt: null, now: Date.now(), refreshing: false, staleSince: null }),
     setup: () => ({ zoneName, PERIODS, PERIOD_NAMES, METRIC_NAMES, FEW, TILES, STEPS, COLUMNS, SHORT, ARM_COLORS, formatNumber, pct, day, navigate, HOUR_MARGINS, COLUMN_MARGINS }),
@@ -176,6 +177,9 @@ export const OverviewSection = {
                     </li>
                 </ul>
 
+                <!-- AI choirs beside the sign-ups (Hillel, 2026-11-23): its own 7 or 30 days, from the page's period at first. -->
+                <GrowthChoirs :period="shownPeriod" />
+
                 <!-- People using the app (Hillel: signed in against guests), week by week against the 12 weeks before. -->
                 <ReachChart :days="days" />
 
@@ -263,7 +267,9 @@ export const OverviewSection = {
                         </section>
 
                         <!-- The whole public site's visits by section, the last 7 days (admin/site-sections.js). -->
-                        <SiteSectionsCard :today="growth?.to ?? ''" :sections="growth?.sections ?? null" />
+                        <!-- Not for a growth viewer: its counts (admin.counts.show) aren't folded, so a small country could point
+                             to one person (backend, 2026-11-23); the server answers a viewer not_admin. -->
+                        <SiteSectionsCard v-if="me.role !== 'viewer'" :today="growth?.to ?? ''" :sections="growth?.sections ?? null" />
 
                         <!-- The running experiment, in one card; the Funnel has the rest. -->
                         <section v-if="experiment" class="card space-y-3 p-5 md:p-6" aria-labelledby="growth-exp-h" data-growth-experiment>

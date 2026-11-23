@@ -26,6 +26,8 @@ const ONE_THING = { wavered: tk('sing.review.oneWavered'), scooped: tk('sing.rev
 const NO_WORDS = { wavered: tk('sing.review.noWordsWavered'), scooped: tk('sing.review.noWordsScooped'), off: tk('sing.review.noWordsOff') };
 const FIX = { wavered: tk('sing.review.fixWavered'), scooped: tk('sing.review.fixScooped'), off: tk('sing.review.fixOff') };
 const CHART = { width: 560, height: 170, pad: 14 };
+// The check before a choir take is sent: what the worker would refuse, said with its fix (Sing it again, or Send it anyway).
+const CHECK_WORDS = { quiet: tk('ownChoir.check.quiet'), clipped: tk('ownChoir.check.clipped'), short: tk('ownChoir.check.short') };
 
 /** One part's waveform as thin bars in its colour (its take, or its guide), with the playhead. */
 const PeakRow = {
@@ -108,7 +110,7 @@ const ChoirReview = {
     },
     emits: ['hear', 'again', 'make', 'force', 'listen'],
     data: () => ({ token: null, checkKey: 0 }),
-    setup: () => ({ MIN_SECONDS, formatTime }),
+    setup: () => ({ MIN_SECONDS, formatTime, CHECK_WORDS }),
     watch: {
         // A refused check (a token works once): a fresh one.
         'choir.error'() {
@@ -176,7 +178,7 @@ const ChoirReview = {
                         <!-- Today's way to hear the take with the song's guide voices, kept quiet while the choir isn't ready (the coordinator). -->
                         <button v-if="!ready" type="button" class="link-quiet inline-flex min-h-11 items-center text-[0.8125rem]" data-hear-with-guides @click="$emit('hear', { alone: false })">{{ t('sing.recorded.hearOthers') }}</button>
                     </div>
-                    <p v-if="choir.check" class="alert-inline" role="alert" :data-choir-check="choir.check"><span>{{ choir.check === 'clipped' ? t('ownChoir.check.clipped') : t('ownChoir.check.quiet') }}</span></p>
+                    <p v-if="choir.check" class="alert-inline" role="alert" :data-choir-check="choir.check"><span>{{ t(CHECK_WORDS[choir.check] ?? CHECK_WORDS.quiet) }}</span></p>
                     <p v-else-if="!sent && short" class="alert-inline" role="alert"><span>{{ t('ownChoir.record.short') }}</span></p>
                     <p v-else-if="choir.error" class="alert-inline" style="--alert-c: var(--color-bad)" role="alert"><span>{{ choir.error }}</span></p>
                     <TurnstileBox v-if="!sent && !choir.check && choir.siteKey && !short" :key="checkKey" :site-key="choir.siteKey" @token="token = $event" @failed="token = null" data-choir-check />

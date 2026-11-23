@@ -142,7 +142,7 @@ def journey(f):
 
     # One header bar; the Numbers pages as underline tabs, Overview first (Hillel's menu by job, 2026-11-10).
     pages = json.loads(f.js("JSON.stringify([...document.querySelectorAll('[data-nav-sections] a')].map((a) => a.getAttribute('href')))"))
-    assert pages == ["/admin/growth", "/admin/live", "/admin/usage", "/admin/activity", "/admin/funnel", "/admin/dropoffs", "/admin/sources", "/admin/breadth", "/admin/sharing", "/admin/cohorts", "/admin/experiments", "/admin/revenue"], pages
+    assert pages == ["/admin/growth", "/admin/live", "/admin/usage", "/admin/activity", "/admin/funnel", "/admin/dropoffs", "/admin/sources", "/admin/breadth", "/admin/sharing", "/admin/choir", "/admin/cohorts", "/admin/experiments", "/admin/revenue"], pages
     assert f.js("document.querySelector('[data-nav-sections] [aria-current=page]').getAttribute('href')") == "/admin/growth"
     groups = f.js("[...document.querySelectorAll('header [data-nav-groups] a')].map((a) => a.textContent.trim().replace(/\\d+$/, '').trim())")
     assert groups == [t(f, f"admin.nav.group.{k}") for k in ("inbox", "users", "library", "marketing", "numbers", "settings")], groups
@@ -158,6 +158,7 @@ def journey(f):
     today_chart(f)
     visits_borrowed(f)
     fresh_start(f)
+    ai_choirs(f)
     period_charts(f)
 
 
@@ -589,6 +590,54 @@ api.admin.growth.show = async (q) => { const r = await show(q); return { ...r, d
     f.run("(await import('/js/router.js')).navigate('/admin/growth')")
     f.wait("document.querySelector('[data-growth-tiles], [data-growth-clock]')", what="Growth again, unstubbed")
     assert not f.js("!!document.querySelector('[data-growth-fresh]')"), "a fresh start said while it's off"
+
+
+
+def ai_choirs(f):
+    """AI choirs beside the sign-ups (admin.growth.choirs; Hillel, 2026-11-23): its own 7 or 30 days (7 from Today), the
+    totals against the period before with the plan's split, recordings started to choirs made, a bar a day, every day
+    as a table. A busier fortnight than the example's, so the bars and a change have something to say."""
+    stub = """const { api } = await import('/js/api.js'); const base = await (await fetch('/contract/examples/admin.growth.choirs.200.json')).json();
+window.choirQueries = [];
+api.admin.growth.choirs = async (q) => { window.choirQueries.push(q.period); const r = JSON.parse(JSON.stringify(base)); const d = r.data;
+  d.days.forEach((x, i) => { x.free = i % 3; x.plus = i % 2; x.comped = i === 4 ? 1 : 0; x.made = x.free + x.plus + x.comped; x.together = i % 2; x.partMinutes = x.made * 5.5; });
+  const sum = (k) => d.days.reduce((n, x) => n + x[k], 0);
+  for (const k of ['made', 'free', 'plus', 'comped', 'together', 'partMinutes']) d.totals[k] = { n: sum(k), before: 4 };
+  d.funnel = { captureStarted: { n: 40, before: 10 }, made: { n: sum('made'), before: 4 }, rate: sum('made') / 40, rateBefore: 0.4 };
+  d.period = q.period ?? '30d'; return r; };"""
+    open_growth(f, stub)
+    f.wait("document.querySelector('[data-growth-choirs] [data-choirs-total=made] [data-n]')", what="the AI choirs")
+    page = f.js("document.querySelector('[data-growth-period-select]').value")
+    want = "7d" if page in ("today", "7d") else "30d"
+    assert f.js("window.choirQueries[0]") == want, f"the page on {page} opens the choirs on {want}: {f.js('window.choirQueries')}"
+    made = f.js("+document.querySelector('[data-choirs-total=made] [data-n]').textContent")
+    bars = f.js("document.querySelectorAll('[data-choirs-bar]').length")
+    days = f.js("(await (await fetch('/contract/examples/admin.growth.choirs.200.json')).json()).data.days.length")
+    assert bars == days, f"{bars} bars for {days} days"
+    assert made > 4 and f.js("document.querySelector('[data-choirs-total=made] [data-change]').dataset.dir") == "up", "more made than before, said as up"
+    assert f.js("document.querySelector('[data-choirs-total=failed] [data-change]').classList.contains('text-muted')"), "failures said in colour"
+    split = f.js("document.querySelector('[data-choirs-total=made] [data-split]').textContent")
+    assert "free" in split and "Plus" in split, split
+    assert f.js("!!document.querySelector('[data-choirs-funnel] [data-rate]')"), "the rate isn't said"
+    assert f.js("!document.querySelector('[data-choirs-funnel] [data-few]')"), "40 started read as too few under a floor of 30"
+    f.run("document.querySelector('[data-growth-choirs]').scrollIntoView({ block: 'start' })")
+    f.no_sideways("AI choirs")
+    f.shot("ai-choirs")
+    # 30 days: asked of the server; the table, every day, newest first.
+    f.run("document.querySelector('[data-choirs-period=\"30d\"]').click()")
+    f.wait("window.choirQueries.at(-1) === '30d' && document.querySelector('[data-choirs-period=\"30d\"]').getAttribute('aria-checked') === 'true'", what="30 days asked")
+    f.run("document.querySelector('[data-choirs-table-toggle]').click()")
+    f.wait("document.querySelector('[data-choirs-table]')?.offsetParent", what="the table")
+    rows = f.js("document.querySelectorAll('[data-choirs-table] tbody tr').length")
+    assert rows == days, f"{rows} rows for {days} days"
+    f.run("document.querySelector('[data-choirs-table]').scrollIntoView({ block: 'center' })")
+    f.no_sideways("the choirs' table")
+    f.shot("ai-choirs-table")
+    # A failed answer: said, with Try again.
+    f.run("const { api } = await import('/js/api.js'); window.choirsOk = api.admin.growth.choirs; api.admin.growth.choirs = async () => { throw new Error('down'); };")
+    f.run("document.querySelector('[data-choirs-period=\"7d\"]').click()")
+    f.wait("document.querySelector('[data-growth-choirs]').textContent.includes(" + repr(t(f, "admin.growth.choirs.failed")) + ")", what="the failure said")
+    f.run("const { api } = await import('/js/api.js'); api.admin.growth.choirs = window.choirsOk;")
 
 
 if __name__ == "__main__":

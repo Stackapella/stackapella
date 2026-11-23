@@ -13,6 +13,9 @@ enum AdminRole: string
     case Admin = 'admin';
     case Editor = 'editor';
 
+    /** Reads Admin's anonymous growth numbers only (App\Support\Admin\GrowthViewers). */
+    case Viewer = 'viewer';
+
     public function label(): string
     {
         return __('enums.admin_role.'.$this->value);

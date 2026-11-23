@@ -76,8 +76,13 @@ final class ChoirJobs
                     return false;
                 }
 
+                $first = $request->first_claimed_at === null;
                 $request->forceFill(['status' => OwnChoirStatus::Rendering, 'claimed_at' => now(), 'claim_started_at' => now(), 'claim_token' => Str::random(32), 'claim_gpu_seconds' => 0,
                     'first_claimed_at' => $request->first_claimed_at ?? now(), 'tries' => $request->tries + 1])->save();
+
+                if ($first) {
+                    ChoirCounts::claimed($request);
+                }
 
                 if ($request->from_voice && $request->own_choir_voice_id !== null) {
                     OwnChoirVoice::query()->whereKey($request->own_choir_voice_id)->update(['last_used_at' => now()]);
@@ -371,6 +376,7 @@ final class ChoirJobs
         }
 
         app(RecordCounts::class)->server('own_choir_ready', true, null);
+        ChoirCounts::made($request);
 
         // A friend's parts are in the owner's song: the owner's quiet card shows again, and the song's voices counted.
         if ($request->parent_request_id !== null) {
@@ -463,6 +469,7 @@ final class ChoirJobs
             OwnChoirPart::query()->whereKey($parts->modelKeys())->delete();
             $locked->forceFill(['status' => OwnChoirStatus::Failed, 'failure' => $failure, 'clip_key' => null, 'claimed_at' => null, 'claim_token' => null])->save();
             OwnChoir::releaseFree($locked);
+            ChoirCounts::failed($failure);
 
             return array_values($files);
         });

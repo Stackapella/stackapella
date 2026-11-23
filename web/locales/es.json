@@ -189,6 +189,7 @@
         "countInLabel": "{count, plural, =0 {Sin cuenta de entrada} one {Cuenta de # compás} other {Cuenta de # compases}}",
         "meta": {
             "bpm": "{bpm} BPM",
+            "tempo": "Tempo {bpm}",
             "key": "en {key}"
         },
         "arrangementCredit": "Arreglo: {name}",
@@ -5796,8 +5797,6 @@
             "onOo": "Cantada con “uu”: por ahora, las voces de IA solo cantan letras en inglés."
         },
         "failed": {
-            "title": "No pudimos hacer tu coro",
-            "body": "Tu grabación se ha borrado. Inténtalo de nuevo con una nueva, en un sitio tranquilo y cantando un poco más fuerte.",
             "clip_unusable": "No pudimos oír suficiente canto para hacer una voz. Vuelve a intentarlo cantando las dos canciones con claridad.",
             "bad_clip": "Tu grabación no llegó como debía. Inténtalo de nuevo.",
             "gates_failed": "Algunas partes no salieron afinadas. Inténtalo de nuevo con una grabación nueva.",
@@ -5809,10 +5808,36 @@
                 "noisy": "Había demasiado ruido de fondo. Prueba en un sitio más tranquilo.",
                 "notes": "No pudimos seguir la melodía. Cántala de principio a fin con la letra que se muestra.",
                 "short": "No hubo suficiente canto. Sigue cantando hasta el final.",
-                "edge": "Una respiración o un golpe al principio o al final se interpuso. Espera a la cuenta atrás y termina limpio.",
+                "edge": "Oímos respiraciones fuertes justo antes de tus frases. Respira un momento antes, girado un poco del micrófono, y quédate quieto después de tu última nota.",
                 "length": "Algo falló con la duración de la grabación. Vuelve a intentarlo.",
                 "loud": "Tu grabación sonó demasiado alta en algunos momentos. Apártate un poco del micrófono y canta a volumen normal."
-            }
+            },
+            "lead": {
+                "take": "Con esa toma no pudimos hacer una voz.",
+                "ours": "Algo falló por nuestra parte.",
+                "gone": "No pudimos hacer esa canción."
+            },
+            "ours": {
+                "kept": "Tu voz está guardada, así que no hace falta cantar.",
+                "lost": "Tu grabación no nos llegó entera. Cántala una vez más, por favor.",
+                "twice": "Pasó dos veces seguidas. Vuelve a la canción por ahora, o inténtalo una vez más."
+            },
+            "cost": {
+                "free": "No gastó tu coro gratis.",
+                "minutes": "No contó para tus minutos."
+            },
+            "next": {
+                "headphones": "Seguimos sin oír tu voz con claridad. Ponte auriculares, para que la canción no llegue al micrófono, y canta una vez más.",
+                "tune": "Seguimos sin oír tu voz con claridad. Prueba otra melodía de la lista, una que te resulte cómoda."
+            },
+            "oneBody": "En la octava que te resulte cómoda. Guardamos tu voz en privado para tus próximas canciones.",
+            "earlier": {
+                "link": "Usar mi voz anterior",
+                "title": "Tu voz anterior está guardada",
+                "body": "Usaremos la voz de tu grabación del {date}."
+            },
+            "back": "Volver a {song}",
+            "onceMore": "Intentarlo una vez más"
         },
         "listen": {
             "title": "{song}, con una voz como la tuya",
@@ -5908,7 +5933,8 @@
             "quiet": "Esa toma se oyó muy baja, así que puede que no sirva para hacer una voz. ¿La cantas otra vez un poco más cerca del micrófono?",
             "clipped": "Esa toma se oyó demasiado alta en algunos momentos, así que puede que no sirva para hacer una voz. ¿La cantas otra vez un poco más lejos?",
             "again": "Cantar de nuevo",
-            "send": "Enviarla igualmente"
+            "send": "Enviarla igualmente",
+            "short": "Esa toma se detuvo antes de 17 segundos de frases enteras, así que puede que no sirva para hacer una voz. ¿La cantas otra vez, hasta el final?"
         },
         "together": {
             "who": {

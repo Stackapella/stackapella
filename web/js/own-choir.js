@@ -520,6 +520,20 @@ export function takeLevel(samples, sampleRate) {
     return { db, clipped: over > samples.length * 0.0005 };
 }
 
+/**
+ * A take the worker would refuse that a level can't show (the coordinator's failure spec, from ref_prep): `short`, under
+ * 17 s of whole phrases sung (stopped early). `phrases`: [fromBeat, toBeat] pairs; the take's frame of the song's beat 0
+ * is at `-startSeconds`. Null when the take passes. Pure. (No breath check before lines here: ai-modal is loosening the
+ * worker's edge rule, and a client check on today's would only turn people away sooner; the coordinator, 2026-11-23.)
+ */
+export const SHORT_PHRASE_SECONDS = 17;
+export function takeProblem(samples, sampleRate, { startSeconds = 0, beatSeconds, phrases = [] }) {
+    if (!phrases.length || !(beatSeconds > 0)) return null;
+    const songEnd = samples.length / sampleRate + startSeconds; // the song's time the take reached
+    const whole = phrases.filter(([, to]) => to * beatSeconds <= songEnd).reduce((sum, [from, to]) => sum + (to - from) * beatSeconds, 0);
+    return whole < SHORT_PHRASE_SECONDS ? 'short' : null;
+}
+
 /** 'low', 'loud' or 'ok' for a level, with a little room inside the worker's -35 to -6 dBFS. */
 export function levelVerdict({ db, clipped }) {
     if (clipped || db > -8) return 'loud';

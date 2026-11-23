@@ -32,7 +32,7 @@ export const SetupChoices = {
     template: `
         <!-- Compact (the transport, 53.png): each a chip with a small switch in it, on in the accent. -->
         <div v-if="compact" class="flex flex-wrap gap-2">
-            <button v-for="c in chips" :key="c.key" type="button" role="switch" :aria-checked="c.on ? 'true' : 'false'" class="tap-44 flex items-center gap-2 rounded-full glass-bubble py-1.5 pe-3 ps-1.5 text-sm font-semibold transition hover:bg-raised" :class="c.on ? 'text-cream' : 'text-muted'" @click="c.flip()">
+            <button v-for="c in chips" :key="c.key" type="button" role="switch" :aria-checked="c.on ? 'true' : 'false'" class="tap-44 flex items-center gap-2 rounded-full border border-edge bg-raised py-1.5 pe-3 ps-1.5 text-sm font-semibold transition hover:bg-raised" :class="c.on ? 'text-cream' : 'text-muted'" @click="c.flip()">
                 <span class="relative h-4 w-7 shrink-0 rounded-full transition" :class="c.on ? 'bg-accent' : 'bg-line'" aria-hidden="true"><span class="absolute top-0.5 size-3 rounded-full bg-cream transition-[inset-inline-start]" :style="{ insetInlineStart: c.on ? '0.875rem' : '0.125rem' }"></span></span>{{ c.label }}
             </button>
         </div>
@@ -99,8 +99,8 @@ export const VoiceRow = {
                         <span v-if="muted" class="shrink-0 text-xs text-muted">{{ t('studio.muted') }}</span>
                     </button>
                     <slot name="meter" />
-                    <button type="button" class="tap-44 grid h-8 min-w-8 shrink-0 place-items-center rounded-lg px-1.5 text-xs font-bold transition @[19rem]:px-2.5" :class="solo ? 'bg-accent text-accent-ink' : 'glass-bubble text-cream'" :aria-pressed="solo" :aria-label="t('studio.soloNamed', { name })" data-solo @click="$emit('solo')"><span class="@[19rem]:hidden" aria-hidden="true">{{ t('studio.row.soloShort') }}</span><span class="hidden @[19rem]:inline" aria-hidden="true">{{ t('studio.row.solo') }}</span></button>
-                    <button type="button" class="tap-44 grid h-8 min-w-8 shrink-0 place-items-center rounded-lg px-1.5 text-xs font-bold transition @[19rem]:px-2.5" :class="muted ? 'bg-cream text-ink' : !audible ? 'border border-cream/60 bg-cream/25 text-cream' : 'glass-bubble text-cream'" :aria-pressed="muted" :aria-label="t('studio.muteNamed', { name })" :aria-describedby="!muted && !audible ? nameId + '-solo' : null" :data-implied-mute="!muted && !audible ? '' : null" data-mute @click="$emit('mute')"><span class="@[19rem]:hidden" aria-hidden="true">{{ t('studio.row.muteShort') }}</span><span class="hidden @[19rem]:inline" aria-hidden="true">{{ t('studio.row.mute') }}</span></button>
+                    <button type="button" class="tap-44 grid h-8 min-w-8 shrink-0 place-items-center rounded-lg px-1.5 text-xs font-bold transition @[19rem]:px-2.5" :class="solo ? 'bg-accent text-accent-ink' : 'bg-raised text-cream hover:bg-line'" :aria-pressed="solo" :aria-label="t('studio.soloNamed', { name })" data-solo @click="$emit('solo')"><span class="@[19rem]:hidden" aria-hidden="true">{{ t('studio.row.soloShort') }}</span><span class="hidden @[19rem]:inline" aria-hidden="true">{{ t('studio.row.solo') }}</span></button>
+                    <button type="button" class="tap-44 grid h-8 min-w-8 shrink-0 place-items-center rounded-lg px-1.5 text-xs font-bold transition @[19rem]:px-2.5" :class="muted ? 'bg-cream text-ink' : !audible ? 'border border-cream/60 bg-cream/25 text-cream' : 'bg-raised text-cream hover:bg-line'" :aria-pressed="muted" :aria-label="t('studio.muteNamed', { name })" :aria-describedby="!muted && !audible ? nameId + '-solo' : null" :data-implied-mute="!muted && !audible ? '' : null" data-mute @click="$emit('mute')"><span class="@[19rem]:hidden" aria-hidden="true">{{ t('studio.row.muteShort') }}</span><span class="hidden @[19rem]:inline" aria-hidden="true">{{ t('studio.row.mute') }}</span></button>
                     <span v-if="!muted && !audible" :id="nameId + '-solo'" class="sr-only">{{ t('studio.silentBySolo') }}</span>
                 </div>
                 <p v-if="status" class="-mt-1.5 truncate text-xs" :class="[pickable ? 'ps-[2.625rem]' : 'ps-5', status.tone === 'take' ? 'text-good' : status.tone === 'rec' ? 'text-record' : 'text-muted']" translate="no" data-status><template v-if="status.ai"><AiVoiceLabel tag class="align-middle" /> · </template>{{ status.text }}</p>
@@ -170,7 +170,7 @@ export const AddVoice = {
                 <span class="text-sm text-muted">{{ t('studio.add.upNext') }}</span>
             </button>
             <div class="rounded-2xl border p-5 md:p-6" :class="first ? 'md:py-8' : ''" :style="{ borderColor: 'color-mix(in srgb, ' + color + ' 40%, transparent)', background: 'color-mix(in srgb, ' + color + ' 7%, transparent)' }">
-                <h2 class="font-extrabold tracking-tight text-cream" :class="first ? 'text-3xl md:text-4xl' : 'text-xl'">{{ first ? t('studio.add.firstTitle') : t('studio.add.nextTitle', { name }) }}</h2>
+                <h2 class="text-cream" :class="first ? 't-title' : 'text-lg font-semibold'">{{ first ? t('studio.add.firstTitle') : t('studio.add.nextTitle', { name }) }}</h2>
                 <p class="mt-2 max-w-lg text-muted">{{ first ? t('studio.add.firstHint') : after ? t('studio.add.hint', { name: after }) : t('studio.add.hintPlain') }}</p>
                 <!-- A phone has no room for these in the transport: the mic and the choices here. -->
                 <div class="mt-4 space-y-3 md:hidden">

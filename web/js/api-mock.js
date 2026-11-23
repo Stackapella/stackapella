@@ -370,7 +370,7 @@ async function stateful(operation, params, body, cases, query = {}) {
         // Kept in the tab (a page load keeps it), saved after each change.
         state.ownChoir ??= JSON.parse(tabStorage.get('stackapella.mockChoir') || 'null') ?? (tabStorage.get('stackapella.mockChoirState') === 'fresh'
             ? { ...shown, consent: null, voice: null, requests: [], quota: { ...shown.quota, freeLeft: 1, plus: false } }
-            : { ...shown, requests: shown.requests.map((r) => ({ ...r, parts: r.parts.map(local) })) });
+            : { ...shown, voice: tabStorage.get('stackapella.mockNoVoice') ? null : shown.voice, requests: shown.requests.map((r) => ({ ...r, parts: r.parts.map(local) })) });
         const choir = state.ownChoir;
         // Download is Plus's (the server decides; Hillel, 2026-11-21): here, the Plus account (`as=plus`) only.
         for (const r of choir.requests) r.canDownload = as === 'plus';
@@ -413,6 +413,10 @@ async function stateful(operation, params, body, cases, query = {}) {
             r.voicing = tabStorage.get('stackapella.mockChoirLow') ? 'low' : 'written';
             // Why a clip couldn't make a voice (mockFailureDetail, this tab), as the server says it, owner-only.
             if (r.status === 'failed') r.failureDetail = tabStorage.get('stackapella.mockFailureDetail') || null;
+            // Another failure than the example's (mockFailure, this tab): render_failed, gates_failed, bad_clip, reference_gone...
+            if (r.status === 'failed' && tabStorage.get('stackapella.mockFailure')) r.failure = tabStorage.get('stackapella.mockFailure');
+            // A failure that counted after all (mockCounted, this tab): the take's own after GPU work.
+            if (r.status === 'failed' && tabStorage.get('stackapella.mockCounted')) r.counted = true;
             r.settings ??= { sound: { room: 'dry', balance: (r.parts ?? []).map((p) => ({ partKey: p.partKey, db: 0 })) }, sung: { vibrato: 'natural', variation: 'natural', voicing: 'auto', breaths: 'legato', ensembleTiming: 'tight', pitchSpread: 'off', quality: 'standard' } };
             r.remakeMinutes ??= { standard: 2, fine: 4 };
             // Their whole-song take as the lead (mockChoirLead this tab, or a song sung whole here), once it's ready.

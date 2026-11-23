@@ -1,0 +1,292 @@
+{
+    "$id": "admin.growth.choirs.json",
+    "title": "AI choirs on Admin > Growth: made, together, part-minutes, failures and capture to choir, over 7 or 30 days",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "period",
+                "from",
+                "to",
+                "timezone",
+                "floor",
+                "days",
+                "totals",
+                "funnel"
+            ],
+            "properties": {
+                "period": {
+                    "enum": [
+                        "7d",
+                        "30d"
+                    ]
+                },
+                "from": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                },
+                "timezone": {
+                    "type": "string"
+                },
+                "floor": {
+                    "type": "integer"
+                },
+                "days": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "date",
+                            "made",
+                            "free",
+                            "plus",
+                            "comped",
+                            "together",
+                            "partMinutes",
+                            "failedOurs",
+                            "failedTake"
+                        ],
+                        "properties": {
+                            "date": {
+                                "type": "string"
+                            },
+                            "made": {
+                                "type": "integer"
+                            },
+                            "free": {
+                                "type": "integer"
+                            },
+                            "plus": {
+                                "type": "integer"
+                            },
+                            "comped": {
+                                "type": "integer"
+                            },
+                            "together": {
+                                "type": "integer"
+                            },
+                            "partMinutes": {
+                                "type": "number"
+                            },
+                            "failedOurs": {
+                                "type": "integer"
+                            },
+                            "failedTake": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "totals": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "made",
+                        "free",
+                        "plus",
+                        "comped",
+                        "together",
+                        "partMinutes",
+                        "failedOurs",
+                        "failedTake"
+                    ],
+                    "properties": {
+                        "made": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "n",
+                                "before"
+                            ],
+                            "properties": {
+                                "n": {
+                                    "type": "integer"
+                                },
+                                "before": {
+                                    "type": "integer"
+                                }
+                            }
+                        },
+                        "free": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "n",
+                                "before"
+                            ],
+                            "properties": {
+                                "n": {
+                                    "type": "integer"
+                                },
+                                "before": {
+                                    "type": "integer"
+                                }
+                            }
+                        },
+                        "plus": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "n",
+                                "before"
+                            ],
+                            "properties": {
+                                "n": {
+                                    "type": "integer"
+                                },
+                                "before": {
+                                    "type": "integer"
+                                }
+                            }
+                        },
+                        "comped": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "n",
+                                "before"
+                            ],
+                            "properties": {
+                                "n": {
+                                    "type": "integer"
+                                },
+                                "before": {
+                                    "type": "integer"
+                                }
+                            }
+                        },
+                        "together": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "n",
+                                "before"
+                            ],
+                            "properties": {
+                                "n": {
+                                    "type": "integer"
+                                },
+                                "before": {
+                                    "type": "integer"
+                                }
+                            }
+                        },
+                        "partMinutes": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "n",
+                                "before"
+                            ],
+                            "properties": {
+                                "n": {
+                                    "type": "number"
+                                },
+                                "before": {
+                                    "type": "number"
+                                }
+                            }
+                        },
+                        "failedOurs": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "n",
+                                "before"
+                            ],
+                            "properties": {
+                                "n": {
+                                    "type": "integer"
+                                },
+                                "before": {
+                                    "type": "integer"
+                                }
+                            }
+                        },
+                        "failedTake": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "n",
+                                "before"
+                            ],
+                            "properties": {
+                                "n": {
+                                    "type": "integer"
+                                },
+                                "before": {
+                                    "type": "integer"
+                                }
+                            }
+                        }
+                    }
+                },
+                "funnel": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "captureStarted",
+                        "made",
+                        "rate",
+                        "rateBefore"
+                    ],
+                    "properties": {
+                        "captureStarted": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "n",
+                                "before"
+                            ],
+                            "properties": {
+                                "n": {
+                                    "type": "integer"
+                                },
+                                "before": {
+                                    "type": "integer"
+                                }
+                            }
+                        },
+                        "made": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "n",
+                                "before"
+                            ],
+                            "properties": {
+                                "n": {
+                                    "type": "integer"
+                                },
+                                "before": {
+                                    "type": "integer"
+                                }
+                            }
+                        },
+                        "rate": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "rateBefore": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

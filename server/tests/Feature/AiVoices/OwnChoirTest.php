@@ -94,6 +94,7 @@ final class OwnChoirTest extends TestCase
 
     public function test_a_singer_hears_a_song_in_their_own_voice_and_the_clip_is_gone(): void
     {
+        config(['counts.enabled' => true]);
         $user = $this->singer();
         $wav = Wav::tone(6.0);
 
@@ -151,6 +152,10 @@ final class OwnChoirTest extends TestCase
         $clipKey = (string) $request->refresh()->clip_key;
         $this->assertMatchesContract($this->worker('POST', "/api/worker/choir/jobs/{$request->sqid()}/finish", ['failed' => null, 'claim' => $token]), 'worker.choir.jobs.finish', 200);
         Storage::disk('private')->assertMissing($clipKey);
+        // Admin > Growth's AI choirs: a free song made, and the part-minutes taken on when it was first claimed.
+        $counts = DB::table('usage_counts')->pluck('count', 'kind')->all();
+        $this->assertSame([1, (int) round($request->part_minutes * 60)], [$counts['choir_made_free'] ?? 0, $counts['choir_part_seconds'] ?? 0]);
+        $this->assertGreaterThan(0, $counts['choir_part_seconds']);
         $this->assertNull($request->refresh()->clip_key);
 
         // The original clip is kept with their voice as AAC, for them to compare (Hillel, 2026-11-23).
@@ -618,6 +623,9 @@ final class OwnChoirTest extends TestCase
         $this->getJson('/api/own-choir')->assertJsonPath('data.requests.0.failureDetail', 'noisy');
         $counts = DB::table('usage_counts')->pluck('count', 'kind')->all();
         $this->assertSame([1, 1, 1, 1], [$counts['choir_clip_fail_silent'] ?? 0, $counts['choir_clip_noisy'] ?? 0, $counts['choir_take_level_quiet'] ?? 0, $counts['choir_guide_on'] ?? 0]);
+        // The take's failure, not ours; its part-minutes were taken on all the same.
+        $this->assertSame([1, 0], [$counts['choir_failed_take'] ?? 0, $counts['choir_failed_ours'] ?? 0]);
+        $this->assertSame((int) round($song->part_minutes * 60), $counts['choir_part_seconds'] ?? 0);
         $this->assertSame(0, DB::table('usage_counts')->where('kind', 'like', '%'.$user->id.'%')->count(), 'Nothing about who.');
     }
 

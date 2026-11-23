@@ -1,6 +1,6 @@
 {
     "$id": "admin.me.json",
-    "title": "The signed-in admin or editor",
+    "title": "The signed-in admin, editor or growth viewer",
     "type": "object",
     "additionalProperties": false,
     "required": ["data"],
@@ -13,7 +13,7 @@
                 "id": { "type": "string", "description": "The user's Sqid." },
                 "name": { "type": "string" },
                 "email": { "type": "string" },
-                "role": { "type": "string", "enum": ["admin", "editor"] },
+                "role": { "type": "string", "enum": ["admin", "editor", "viewer"] },
                 "sudoUntil": { "type": ["string", "null"], "format": "date-time" }
             }
         }

@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use App\Models\User;
 use App\Support\Admin\AdminGate;
+use App\Support\Admin\GrowthViewers;
 use App\Support\Http\ApiError;
 use Closure;
 use Illuminate\Http\Request;
@@ -28,7 +29,8 @@ class EnsureAdmin
             return $this->signIn($request);
         }
 
-        if (! $this->allowed($user, $request)) {
+        // A growth viewer opens only the routes on GrowthViewers' allow-list, whatever the route's own role.
+        if (! $this->allowed($user, $request) && ! (GrowthViewers::mayOpen($request->route()?->getName()) && $this->gate->isViewer($user, $request->session()))) {
             return $this->isApi($request)
                 ? ApiError::response(403, 'not_admin')
                 : response()->view('admin.auth.not-admin', [], 403);

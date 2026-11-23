@@ -96,10 +96,8 @@ export const PatternsSection = {
             <!-- 3. The amber alert: first on the page, what went wrong and how to fix it. -->
             <div class="space-y-3" data-sg-pattern="alert">
                 <h3 class="font-bold text-cream">{{ t('styleguide.patterns.alert') }}</h3>
-                <div class="flex gap-3.5 rounded-[14px] border border-warn/35 bg-warn/10 px-[18px] py-4" role="alert">
-                    <span class="mt-px grid size-[22px] flex-none place-items-center rounded-full bg-warn text-[14px] font-bold text-ink" aria-hidden="true">!</span>
-                    <div class="flex min-w-0 flex-col gap-1"><p class="font-semibold text-cream">{{ t('ownChoir.failed.title') }}</p><p class="text-[15px] leading-[1.45] text-cream/85">{{ t('ownChoir.failed.detail.quiet') }}</p></div>
-                </div>
+                <!-- The language's inline alert, no box: the amber dot, the bold lead, the one fix. -->
+                <div class="alert-inline text-[15px]" role="alert"><p><strong>{{ t('ownChoir.failed.lead.take') }}</strong> {{ t('ownChoir.failed.detail.quiet') }}</p></div>
             </div>
 
             <!-- 4. AI, always said: the tag on a card or a row, the line under a title, a song sheet's quiet row. -->

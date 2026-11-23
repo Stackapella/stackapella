@@ -191,6 +191,7 @@ final class PersonalData
         'beta_singers.email' => 'In beta-singer.json; cleared when the account goes (ForgetSinger).',
         'email_suppressions.email' => 'Kept on purpose: an address we must never write to again (a bounce, a complaint or an unsubscribe).',
         'email_tokens.email' => 'Goes with the account (email_tokens.user_id cascades).',
+        'growth_viewers.email' => 'Not an account: an advisor\'s address given view-only access from a console, kept until revoked there (app:viewer:grant --revoke).',
         'mudeo_contacts.email' => "mudeo's old list, not an account: one invitation, and its own one-click unsubscribe.",
         'notices.subject' => 'What a notice is about, their own content; their notices go with the account (notices.user_id cascades).',
         'outreach_messages.to_email' => "An organization's published role address Hillel wrote to (docs/outreach-plan.md), not an account.",

@@ -18,6 +18,12 @@ final class ChoirCounts
 
     public const SONGS = ['voice-capture' => 'capture', 'silent-night' => 'silent', 'amazing-grace' => 'grace', 'joy-to-the-world' => 'joy'];
 
+    /** Whose a failure was: the take's (its recording couldn't be used) or ours (the upload's check, the gates, the render). */
+    public const FAILED = ['clip_unusable' => 'take', 'bad_clip' => 'ours', 'gates_failed' => 'ours', 'render_failed' => 'ours'];
+
+    /** What Admin > Growth's AI choirs read (App\Actions\Growth\ChoirGrowth), with own_choir_friend_ready and choir_take_started. */
+    public const GROWTH = ['choir_made_free', 'choir_made_plus', 'choir_made_comped', 'choir_part_seconds', 'choir_failed_ours', 'choir_failed_take'];
+
     /**
      * Every kind counted here, for config counts.server_kinds.
      *
@@ -27,7 +33,7 @@ final class ChoirCounts
     {
         $kinds = ['choir_remade', 'choir_download', 'choir_share', 'choir_guide_on', 'choir_guide_off', 'choir_transpose_none', 'choir_transpose_small', 'choir_transpose_large',
             'choir_octave_same', 'choir_octave_down', 'choir_octave_up', 'choir_take_level_quiet', 'choir_take_level_ok', 'choir_take_level_loud', 'choir_render_seconds',
-            'choir_tries_1', 'choir_tries_2', 'choir_tries_3', 'choir_tries_4', 'choir_part_tries_1', 'choir_part_tries_2', 'choir_part_tries_3', 'choir_clip_other'];
+            'choir_tries_1', 'choir_tries_2', 'choir_tries_3', 'choir_tries_4', 'choir_part_tries_1', 'choir_part_tries_2', 'choir_part_tries_3', 'choir_clip_other', ...self::GROWTH];
 
         foreach (self::SONGS as $song) {
             $kinds[] = "choir_clip_ok_{$song}";
@@ -114,6 +120,40 @@ final class ChoirCounts
             if (! (clone $before)->whereNotNull('ready_at')->exists()) {
                 $count('choir_tries_'.min(4, 1 + (clone $before)->where('status', OwnChoirStatus::Failed->value)->where('tries', '>', 0)->count()));
             }
+        }
+    }
+
+    /** A singer's own song made (not a friend's parts, not a remake), by their plan: free, paid Plus or Plus given. */
+    public static function made(OwnChoirRequest $song): void
+    {
+        if ($song->parent_request_id === null && ! $song->remake) {
+            app(RecordCounts::class)->serverAmount('choir_made_'.self::plan($song), 1);
+        }
+    }
+
+    /** Paid Plus when its song was asked for (first in the queue), else Plus given or free as its singer is now. */
+    public static function plan(OwnChoirRequest $song): string
+    {
+        if ($song->priority === 1) {
+            return 'plus';
+        }
+
+        $user = $song->user;
+
+        return $user !== null && OwnChoir::tier($user) === 'comped' ? 'comped' : 'free';
+    }
+
+    /** A song the renderer took on for the first time: its part-minutes, as the daily meter counts them (in seconds). */
+    public static function claimed(OwnChoirRequest $song): void
+    {
+        app(RecordCounts::class)->serverAmount('choir_part_seconds', (int) round($song->part_minutes * 60));
+    }
+
+    /** A song failed: the take's fault or ours (a song abandoned, or whose voice its singer deleted, is neither). */
+    public static function failed(string $failure): void
+    {
+        if (isset(self::FAILED[$failure])) {
+            app(RecordCounts::class)->serverAmount('choir_failed_'.self::FAILED[$failure], 1);
         }
     }
 

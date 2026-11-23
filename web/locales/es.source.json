@@ -189,6 +189,7 @@
         "countInLabel": "{count, plural, =0 {No count-in} one {Count-in # bar} other {Count-in # bars}}",
         "meta": {
             "bpm": "{bpm} BPM",
+            "tempo": "Tempo {bpm}",
             "key": "key of {key}"
         },
         "arrangementCredit": "Arrangement: {name}",
@@ -5796,8 +5797,6 @@
             "onOo": "Sung on “oo”: the AI voices can only sing English words for now."
         },
         "failed": {
-            "title": "We couldn't make your choir",
-            "body": "Your recording has been deleted. Try again with a new one, somewhere quiet, singing a little louder.",
             "clip_unusable": "We couldn't hear enough singing to make a voice. Try again, singing both songs clearly.",
             "bad_clip": "Your recording didn't arrive as it should. Try again.",
             "gates_failed": "Some parts didn't come out in tune. Try again with a new recording.",
@@ -5809,10 +5808,36 @@
                 "noisy": "There was too much background noise. Try a quieter room.",
                 "notes": "We couldn't follow the tune. Sing it through with the words as shown.",
                 "short": "There wasn't enough singing. Keep singing to the end.",
-                "edge": "A breath or bump at the start or end got in the way. Wait for the count-in and stop cleanly.",
+                "edge": "We heard loud breaths right before your lines. Breathe a moment earlier, turned a little away from the mic, and stay still after your last note.",
                 "length": "Something went wrong with the recording's length. Please try again.",
                 "loud": "Your recording was too loud in places. Back off a little from the mic and sing at normal volume."
-            }
+            },
+            "lead": {
+                "take": "That take couldn't make a voice.",
+                "ours": "Something went wrong on our side.",
+                "gone": "That song couldn't be made."
+            },
+            "ours": {
+                "kept": "Your voice is saved, so there's nothing to sing.",
+                "lost": "Your recording didn't reach us in one piece. Please sing it once more.",
+                "twice": "It happened twice in a row. Go back to the song for now, or try once more."
+            },
+            "cost": {
+                "free": "It didn't use your free choir.",
+                "minutes": "It didn't count toward your minutes."
+            },
+            "next": {
+                "headphones": "We still couldn't hear your voice clearly. Put headphones on, so the song doesn't reach the mic, and sing once more.",
+                "tune": "We still couldn't hear your voice clearly. Try another tune from the list, one that sits easy in your voice."
+            },
+            "oneBody": "Any octave that feels comfortable. We keep your voice private for your next songs.",
+            "earlier": {
+                "link": "Use my earlier voice instead",
+                "title": "Your earlier voice is saved",
+                "body": "We'll use the voice from your recording on {date}."
+            },
+            "back": "Back to {song}",
+            "onceMore": "Try once more"
         },
         "listen": {
             "title": "{song}, in a voice like yours",
@@ -5908,7 +5933,8 @@
             "quiet": "That take was very quiet, so it may not make a voice. Sing it again a little closer to the mic?",
             "clipped": "That take was too loud in places, so it may not make a voice. Sing it again a little further back?",
             "again": "Sing it again",
-            "send": "Send it anyway"
+            "send": "Send it anyway",
+            "short": "That take stopped before 17 seconds of whole lines, so it may not make a voice. Sing it again, to the end?"
         },
         "together": {
             "who": {

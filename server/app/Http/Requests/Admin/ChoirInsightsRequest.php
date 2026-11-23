@@ -6,7 +6,7 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-/** admin.choir.show: the period, 7 or 30 days (30 by default). */
+/** admin.choir.show and admin.growth.choirs: the period, 7 or 30 days (30 by default). */
 final class ChoirInsightsRequest extends FormRequest
 {
     public function authorize(): bool

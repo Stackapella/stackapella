@@ -69,6 +69,7 @@ while :; do
         # old, longer than any landing's turn should be.
         if [ -n "$pid" ] && ! ps -p "$pid" > /dev/null 2>&1 \
             && [ -n "$(find "$LOCK" -maxdepth 0 -mmin +20 2> /dev/null)" ]; then
+            echo "Took over a lock held by pid $pid ($(cat "$LOCK/who" 2> /dev/null || echo 'unknown')), untouched for 20 minutes" >&2
             rm -rf "$LOCK"
             continue
         fi
@@ -82,5 +83,10 @@ done
 echo $$ > "$LOCK/pid"
 pwd > "$LOCK/who"
 rm -f "$TICKET"
-trap 'rm -rf "$LOCK"' EXIT
+# A heartbeat: the holder touches the lock every minute while its landing runs, so a long chain (a full server
+# suite can pass 20 minutes) never looks abandoned to a waiter whose ps can't see this pid (2026-11-23: a waiter took
+# over a live chain's lock and merged mid-run).
+( while [ -d "$LOCK" ]; do touch "$LOCK" 2> /dev/null; sleep 60; done ) > /dev/null 2>&1 &
+BEAT=$!
+trap 'kill $BEAT 2> /dev/null; rm -rf "$LOCK"' EXIT
 "$@"

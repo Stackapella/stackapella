@@ -65,6 +65,8 @@ export const GROUPS = [
     { key: 'settings', label: tk('admin.nav.group.settings') },
 ];
 
+// What a growth viewer may open (contract admin.me: the server's own allow-list answers the rest not_admin).
+const VIEWER_SECTIONS = ['growth', 'funnel', 'dropoffs', 'sources'];
 export const SECTIONS = [
     { name: 'home', group: 'inbox', path: '/admin', label: tk('admin.nav.home'), hint: null, icon: 'home', role: 'editor', count: (c) => c.home, words: tk('admin.needs.homeCount') },
     { name: 'support', group: 'inbox', path: '/admin/support', label: tk('admin.nav.support'), hint: tk('admin.nav.supportHint'), icon: 'info', role: 'admin' },
@@ -312,7 +314,12 @@ export const AdminView = {
         </div>`,
     computed: {
         sections() {
+            if (this.viewer) return SECTIONS.filter((s) => VIEWER_SECTIONS.includes(s.name));
             return SECTIONS.filter((s) => s.role === 'editor' || this.me?.role === 'admin');
+        },
+        /** A growth viewer (an advisor; contract admin.me): only the anonymous numbers' four pages, opening on Growth. */
+        viewer() {
+            return this.me?.role === 'viewer';
         },
         /** The groups this person can open, each with its screens and what's waiting in them. */
         groups() {
@@ -337,7 +344,7 @@ export const AdminView = {
         },
         current() {
             const asked = route.params.section ?? 'home';
-            return this.sections.some((s) => s.name === asked) ? asked : 'home';
+            return this.sections.some((s) => s.name === asked) ? asked : this.viewer ? 'growth' : 'home';
         },
     },
     watch: {
@@ -347,6 +354,14 @@ export const AdminView = {
             handler() {
                 if (this.me) this.loadOverview();
                 this.revealNav();
+            },
+        },
+        // A viewer's Home, or a page they can't open, is Growth, said so in the address too (asked while on Growth, the
+        // page shown doesn't change, so the address is what's watched).
+        'route.params.section': {
+            immediate: true,
+            handler(asked) {
+                if (this.viewer && (asked ?? 'home') !== this.current) navigate(`/admin/${this.current}`, { replace: true });
             },
         },
     },
@@ -363,6 +378,7 @@ export const AdminView = {
             this.failed = false;
             try {
                 this.me = (await api.admin.me()).data;
+                if (this.viewer && (route.params.section ?? 'home') !== this.current) navigate(`/admin/${this.current}`, { replace: true });
                 this.revealNav();
                 this.loadOverview();
             } catch (error) {
@@ -374,6 +390,7 @@ export const AdminView = {
         },
         /** The home's numbers, and the nav's counts (what's waiting and unread). */
         async loadOverview() {
+            if (this.viewer) return; // not theirs to open: the server answers a viewer not_admin
             this.overviewFailed = false;
             try {
                 this.overview = (await api.admin.overview()).data;

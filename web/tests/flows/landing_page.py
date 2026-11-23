@@ -415,7 +415,7 @@ def unchosen(f):
     """Nothing chosen yet, the calm skin follows the device from the first paint, here and on a song page (Hillel,
     2026-11-17: "Auto everywhere, calm"): light on a light phone or laptop, dark on a dark one, the browser bar's colour too."""
     first = f.chrome.send("Page.addScriptToEvaluateOnNewDocument", {"source": FIRST_PAINT})["identifier"]
-    for device, want in (("light", ["warm-light", "#faf5ee"]), ("dark", ["stage-dark", "#000000"])):
+    for device, want in (("light", ["warm-light", "#faf5ee"]), ("dark", ["graphite-dark", "#151617"])):  # calm dark is Graphite until chosen (Hillel, 2026-11-23)
         f.scheme(device)
         for path in ("/", "/songs/amazing-grace"):
             f.go(path, "document.readyState !== 'loading'")

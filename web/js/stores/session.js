@@ -372,7 +372,13 @@ async function readyNow() {
     const id = session.openedId;
     await unlock();
     if (session.isTemplate) {
-        await prepareGuides(engine.sampleRate);
+        // The newest render: one that gave way to a newer (the catalogue arrived mid-render and changed the key) ends early with
+        // only your part kept, and loading then played a saved solo's part as silence until the next Play (studio_solo, 2026-11-23).
+        let waited;
+        do {
+            waited = prepareGuides(engine.sampleRate);
+            await waited;
+        } while (waited !== kept.guidesReady && stillOpen(id));
         // Your own part plays in its real voice from the first note: wait for it alone, never for the others (renderGuides).
         const focus = session.practice?.focus;
         while (focus && session.guideVoices[focus]?.loading && kept.arrival && stillOpen(id)) await kept.arrival;

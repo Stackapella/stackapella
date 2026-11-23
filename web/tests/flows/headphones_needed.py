@@ -39,6 +39,8 @@ def journey(f):
     f.run(f"sessionStorage.setItem('stackapella.lesson.{LESSON}', '0')")
     f.run(f"{ROUTER}.navigate('/learn/{LESSON}')")
     f.wait("document.querySelector('[data-best-headphones]')", what="Best with headphones on the first card")
+    # The example's Play comes with the exercise, a lazily loaded part: wait for it, not just the card's own line.
+    f.wait("document.querySelector('[data-play-disc]')", what="the example's Play")
     f.run("document.querySelector('[data-play-disc]').closest('button').click()")
     f.wait(NEEDED, what="the firm ask")
     text = f.js("document.querySelector('[role=dialog]').innerText")
