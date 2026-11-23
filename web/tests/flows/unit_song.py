@@ -80,7 +80,9 @@ def journey(f):
     # straight in Sing along on its tune; shown and tapped counted at the wall (us_shown:wall, us_tap:wall).
     f.run("localStorage.removeItem('stackapella.unitSong.counted')")
     f.go("/?api=mock&scenario=&as=signedOut", "document.querySelector('#app header')")
-    f.go("/learn/1-match", "document.querySelector('[data-needs-account] [data-wall-song]')")
+    f.go("/learn/1-match", "document.querySelector('[data-needs-account] [data-wall-not-now]')")
+    f.run("document.querySelector('[data-wall-not-now]').click()")  # the gentler ways open under Not now (the UX review)
+    f.wait("document.querySelector('[data-needs-account] [data-wall-song]')", what="the song under Not now")
     assert f.js("document.querySelectorAll('[data-wall-back] button').length") == 1, "the way back keeps its one link"
     assert not f.js("document.querySelector('[data-wall-song] button').className.includes('btn-')"), "a text link, not a button"
     f.wait_text(t(f, "courses.wall.songFirst"))

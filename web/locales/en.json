@@ -4997,8 +4997,9 @@
             "calendar": "Add tomorrow to my calendar",
             "morning": "Morning",
             "evening": "Evening",
-            "songFirst": "Or sing a song first",
-            "calendarTitle": "Sing: {title}"
+            "songFirst": "Sing a song first",
+            "calendarTitle": "Sing: {title}",
+            "notNow": "Not now"
         },
         "yours": "Your courses",
         "progressShort": "{done} of {total}",
@@ -5404,14 +5405,14 @@
     },
     "install": {
         "title": "Install Stackapella",
-        "why": "It opens like an app, with no browser bar, and keeps your songs safer on this device.",
+        "why": "It opens like an app, with no browser bar, and the browser keeps its storage longer, so songs on this device are less likely to be cleared. It doesn't back them up or sync them: an account does that.",
         "iphone": "On an iPhone: tap Share, then Add to Home Screen.",
         "button": "Install",
         "later": "Not now",
         "safeTitle": "Your songs are only on this device",
-        "safe": "Install the app so they're kept safer: Chrome keeps an installed app's storage longer than a website's.",
+        "safe": "Install the app so they're less likely to be cleared: Chrome keeps an installed app's storage longer than a website's. It doesn't back them up; an account does.",
         "mac": "In Safari: choose File, then Add to Dock.",
-        "whySafari": "It opens like an app, with no browser bar. It keeps its own storage, apart from Safari's.",
+        "whySafari": "It opens like an app, with no browser bar. It keeps its own storage, apart from Safari's, so songs here don't come with it: an account backs them up and syncs them.",
         "signInThere": "It starts fresh, so sign in there and your account comes along.",
         "riskTitle": "Safari may clear this",
         "risk": "It deletes a website's data after 7 days without a visit, and these are only here: {what}.",
@@ -8822,6 +8823,21 @@
             "doneHint": "Listen back if you like, then make your choir.",
             "hearAll": "You'll hear the tune and the other parts.",
             "hearOthers": "Your tune is off. You'll hear the other parts."
+        },
+        "review": {
+            "step1": "Step 1 of 2 · Recorded",
+            "step2": "Step 2 of 2 · Making",
+            "done": "Done",
+            "listenTake": "Listen to your take",
+            "yourTake": "Your take",
+            "recorded": "Recorded",
+            "you": "You",
+            "making": "Making…",
+            "partsHint": "The choir's parts appear here once you make your choir.",
+            "makingHint": "Each part shows here as it's made.",
+            "makingLead": "It can take a few minutes. We'll tell you here when it's ready.",
+            "readyLead": "Every part is in. Listen to hear yourself as a choir.",
+            "readyCount": "{count, plural, one {{n} of {count} part ready…} other {{n} of {count} parts ready…}}"
         },
         "wait": {
             "title": "Your choir is on its way",

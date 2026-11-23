@@ -1439,7 +1439,7 @@ return [
         'ways' => [
             'title' => 'The songs you can choose',
             'title_hum' => 'A song from our library, or one you make',
-            'library' => ['kick' => 'From our library', 'heading' => 'Real arrangements', 'body' => 'Not harmonies made up around a tune: the soprano, alto, tenor and bass a choir actually sings, words and all, arranged from songs in the public domain.', 'all' => 'See every song'],
+            'library' => ['kick' => 'From our library', 'heading' => 'Real arrangements', 'body' => 'Not harmonies made up around a tune: the soprano, alto, tenor and bass a choir actually sings, arranged from songs in the public domain.', 'all' => 'See every song'],
             // A song you make sings the words you give it, else "oo" (Hillel, 2026-11-20: "definiety allow typed words").
             'own' => ['kick' => 'Made by you', 'heading' => 'A song of your own', 'body' => 'Hum a tune and give it your own words, if you like. The app writes it down and arranges the harmony, then every part, your tune included, is sung in a voice like yours: with your words, or on "oo".', 'cta' => 'Make your own'],
         ],
@@ -1469,7 +1469,7 @@ return [
             // the doubt arises.
             'sing_well' => ['Can it make me sound like a good singer?', 'It lets you hear a voice like yours singing in tune. The pitch and timing come from the song, so every note lands where it should, however you sing. The tone is yours, breathiness and all, and it\'s always marked as AI. If you\'d like to sing it yourself one day, the courses are free.'],
             'who' => ['Who hears it?', 'Only you, unless you choose to share it.'],
-            'own_songs' => ['Can it sing my own songs, or other words?', 'It sings the songs in our library, with their own words.'],
+            'own_songs' => ['Can it sing my own songs, or other words?', 'It sings the songs in our library, with their own words in English. A song in another language is sung on "oo" for now, apart from the Jewish songs, which sing their own words.'],
             // Hillel, 2026-11-21: "if they want to download it they need to subscribe to plus".
             'download' => ['Can I download it?', 'Yes, with Plus (:price_month a month or :price_year a year). Listening to it and sharing it are free.'],
             // Hillel delegated, 2026-11-21: 60 minutes of AI singing a month of Plus (each month of the subscription, from its
@@ -1478,7 +1478,7 @@ return [
             'delete' => ['Can I delete it?', 'Yes, in the app at any time: any choir, every one at once, or your saved voice. Once deleted, it\'s gone.'],
         ],
         'faq_hum' => ['Does my humming need to be in tune?', 'No. The app writes down what you hum, and you can fix any note before the parts are made.'],
-        'own_songs_hum' => 'Yes. Hum a tune and type its words, and every part sings them; without words it sings "oo". A song from our library keeps its own words. Songs you make are private to you unless you share them, and anything shared says it was made with AI.',
+        'own_songs_hum' => 'Yes. Hum a tune and type its words in English, and every part sings them; without words it sings "oo". A song from our library keeps its own English words; one in another language is sung on "oo" for now, apart from the Jewish songs. Songs you make are private to you unless you share them, and anything shared says it was made with AI.',
         'more' => 'About AI voices',
         // You + choir (ai-choir-page's scene, 2026-11-23): your own recording as the lead, the AI choir around it.
         'lead_scene' => [

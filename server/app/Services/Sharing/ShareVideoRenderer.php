@@ -88,8 +88,8 @@ final class ShareVideoRenderer
             $filters[] = "[{$last}][end]overlay=x=0:y=0:format=yuv420:enable='gte(t,{$section})'[video]";
             $filters[] = "[{$audio}:a]afade=t=in:d=0.05,afade=t=out:st={$fadeOut}:d=0.6,apad=whole_dur={$total}[audio]";
 
-            // The `long` worker's cores (0: ffmpeg's own choice); set to 1 to measure it as the one-vCPU worker runs.
-            $threads = (int) config('sharing.videos.threads', 0);
+            // One thread on the one-vCPU worker (config sharing.videos.threads; 0 is ffmpeg's own choice).
+            $threads = (int) config('sharing.videos.threads', 1);
             $command = [
                 'ffmpeg', '-hide_banner', '-nostats', '-loglevel', 'error', '-y',
                 ...($threads > 0 ? ['-filter_complex_threads', (string) $threads, '-filter_threads', (string) $threads] : []),

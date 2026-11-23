@@ -14,7 +14,9 @@ import { formatTime } from '../../theme.js';
 import { Icon } from '../icon.js';
 import { sk } from '../../skin.js';
 import { BeTheVoice } from '../../be-the-voice.js';
-import { ChoirCard } from '../../own-choir.js';
+import { MIN_SECONDS } from '../../own-choir.js';
+import { TurnstileBox } from '../../turnstile.js';
+import { templatePartName } from '../../templates.js';
 
 const MAX_NUDGE_MS = 150;
 const LEVEL = { excellent: tk('report.level.excellent'), close: tk('report.level.close'), gettingThere: tk('report.level.gettingThere'), tricky: tk('report.level.tricky') };
@@ -27,10 +29,12 @@ const CHART = { width: 560, height: 170, pad: 14 };
 
 /** One part's waveform as thin bars in its colour (its take, or its guide), with the playhead. */
 const PeakRow = {
-    props: { peaks: { type: [Array, Float32Array], default: null }, color: { type: String, required: true }, at: { type: Number, default: null } },
+    // chunky: the choir mixer's wave (Hillel's design, the coordinator's review): 3 px rounded bars 2.5 px apart, each the
+    // loudest of its stretch, scaled so the loudest fills the 48 px lane, so loud and soft read at a glance.
+    props: { peaks: { type: [Array, Float32Array], default: null }, color: { type: String, required: true }, at: { type: Number, default: null }, chunky: Boolean },
     // The canvas sits absolutely in a box of its own height: its drawn width (in pixels) would
     // otherwise be the row's minimum, and on a narrow phone the review scrolled sideways (Hillel).
-    template: `<div class="relative h-9 min-w-0"><canvas ref="canvas" class="touch-pan-y absolute inset-0 h-full w-full" aria-hidden="true"></canvas><span v-if="at !== null" class="pointer-events-none absolute inset-y-0 w-0.5 bg-cream" :style="{ left: at * 100 + '%' }" aria-hidden="true"></span></div>`,
+    template: `<div class="relative min-w-0" :class="chunky ? 'h-12' : 'h-9'"><canvas ref="canvas" class="touch-pan-y absolute inset-0 h-full w-full" aria-hidden="true"></canvas><span v-if="at !== null" class="pointer-events-none absolute inset-y-0 w-0.5 bg-cream" :style="{ left: at * 100 + '%' }" aria-hidden="true"></span></div>`,
     watch: {
         color() {
             this.draw();
@@ -49,8 +53,26 @@ const PeakRow = {
             canvas.height = height * ratio;
             const g = canvas.getContext('2d');
             g.scale(ratio, ratio);
-            g.fillStyle = this.color;
+            // A canvas can't read a CSS variable: a colour given as var(--x) is the variable's value here.
+            const named = /^var\((--[\w-]+)\)$/.exec(this.color);
+            g.fillStyle = named ? getComputedStyle(canvas).getPropertyValue(named[1]).trim() || '#888' : this.color;
             const peaks = this.peaks ?? [];
+            if (this.chunky) {
+                const bars = Math.max(1, Math.floor((width + 2.5) / 5.5));
+                const top = Math.max(1e-6, ...Array.from(peaks));
+                for (let i = 0; i < bars; i += 1) {
+                    let peak = 0;
+                    const from = Math.floor((i / bars) * peaks.length);
+                    const to = Math.max(from + 1, Math.floor(((i + 1) / bars) * peaks.length));
+                    for (let k = from; k < to && k < peaks.length; k += 1) peak = Math.max(peak, peaks[k]);
+                    const bar = Math.max(height * 0.12, (peak / top) ** 1.4 * height);
+                    g.beginPath();
+                    if (g.roundRect) g.roundRect(i * 5.5, (height - bar) / 2, 3, bar, 1.5);
+                    else g.rect(i * 5.5, (height - bar) / 2, 3, bar);
+                    g.fill();
+                }
+                return;
+            }
             for (let x = 0; x < width; x += 3) {
                 const peak = peaks[Math.floor((x / width) * peaks.length)] ?? 0;
                 const bar = Math.max(0.75, Math.sqrt(peak) * height * 0.45);
@@ -60,8 +82,128 @@ const PeakRow = {
     },
 };
 
+/**
+ * A choir clip's take review, Hillel's mixer design (2026-11-23, docs/design-rules.md "The 2026-11-23 language"): the
+ * step and the screen's one title, then one card: the player (your take, alone: the choir isn't heard here) and a lane
+ * each for your take and the choir's parts, every lane saying its state in words (dashed while waiting, a faint wave of
+ * its notes while it's made, the wave once ready), then the quiet footer with the way on. The flows' hooks are kept:
+ * data-choir-sent (with data-state), data-choir-part and -status, data-choir-check, -again, -force, -make, -listen.
+ */
+// Each stage's step and title (a take recorded, the choir being made, the choir ready).
+const CHOIR_STAGES = {
+    recorded: { eyebrow: tk('ownChoir.review.step1'), title: tk('ownChoir.record.done') },
+    making: { eyebrow: tk('ownChoir.review.step2'), title: tk('ownChoir.wait.title') },
+    ready: { eyebrow: tk('ownChoir.review.done'), title: tk('ownChoir.record.readyNow') },
+};
+
+const ChoirReview = {
+    components: { Icon, PeakRow, TurnstileBox },
+    props: {
+        choir: { type: Object, required: true }, // { seconds, busy, error, siteKey, join, sent, check }
+        stack: { type: Array, default: () => [] }, // the song's parts: [{ id, key, name, color, peaks, you }]
+        color: { type: String, required: true }, // your part's
+        hearing: Boolean,
+        position: { type: Number, default: 0 },
+        lengthSeconds: { type: Number, default: 1 },
+    },
+    emits: ['hear', 'again', 'make', 'force', 'listen'],
+    data: () => ({ token: null, checkKey: 0 }),
+    setup: () => ({ MIN_SECONDS, formatTime }),
+    watch: {
+        // A refused check (a token works once): a fresh one.
+        'choir.error'() {
+            if (this.choir.siteKey) {
+                this.token = null;
+                this.checkKey += 1;
+            }
+        },
+    },
+    computed: {
+        sent: (vm) => vm.choir.sent,
+        ready: (vm) => vm.sent?.status === 'ready',
+        you: (vm) => vm.stack.find((r) => r.you) ?? null,
+        short: (vm) => vm.choir.seconds < MIN_SECONDS,
+        /** The choir's parts: as the server reports them once sent, else the song's parts, all waiting. */
+        lanes() {
+            const byKey = Object.fromEntries(this.stack.map((r) => [r.key, r]));
+            const list = this.sent?.progress?.length ? this.sent.progress.map((p) => ({ key: p.partKey, status: p.status })) : this.stack.map((r) => ({ key: r.key, status: this.ready ? 'ready' : 'waiting' }));
+            return list.map((l) => ({ ...l, name: byKey[l.key]?.name ?? templatePartName({ key: l.key, name: l.key }), peaks: byKey[l.key]?.peaks ?? null }));
+        },
+        readyCount: (vm) => vm.lanes.filter((l) => l.status === 'ready').length,
+        stage: (vm) => (vm.ready ? 'ready' : vm.sent ? 'making' : 'recorded'),
+        eyebrow: (vm) => t(CHOIR_STAGES[vm.stage].eyebrow),
+        title: (vm) => t(CHOIR_STAGES[vm.stage].title),
+        lead: (vm) => (vm.stage === 'ready' ? t('ownChoir.review.readyLead') : vm.stage === 'making' ? t('ownChoir.review.makingLead') : t('ownChoir.record.doneHint')),
+        hint: (vm) => (vm.stage === 'recorded' ? t('ownChoir.review.partsHint') : vm.stage === 'making' ? t('ownChoir.review.makingHint') : ''),
+    },
+    methods: {
+        word(status) {
+            return status === 'ready' ? t('ownChoir.wait.part.ready') : status === 'making' ? t('ownChoir.review.making') : t('ownChoir.wait.part.waiting');
+        },
+    },
+    template: `
+        <section class="flex min-h-full w-full flex-col" aria-labelledby="recorded-title" data-take-review>
+            <div class="mx-auto flex w-full max-w-[820px] flex-1 flex-col gap-7 px-6 pb-10 pt-6">
+                <div class="space-y-2.5">
+                    <p class="eyebrow-step">{{ eyebrow }}</p>
+                    <h2 id="recorded-title" ref="heading" tabindex="-1" class="t-title-lg text-cream outline-none">{{ title }}</h2>
+                    <p class="t-lead md:text-lg">{{ lead }}</p>
+                </div>
+                <div class="card flex flex-col gap-5 p-6" :role="sent ? 'status' : null" :data-choir-sent="sent ? '' : null" :data-state="sent ? sent.status : null">
+                    <div class="flex items-center gap-4">
+                        <button type="button" class="grid size-[60px] shrink-0 place-items-center bubble bubble-primary" data-disc="play" :aria-label="hearing ? t('studio.stop') : t('ownChoir.review.listenTake')" @click="$emit('hear', { alone: true })"><Icon :name="hearing ? 'stop' : 'play'" :size="22" /></button>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-lg font-semibold text-cream">{{ t('ownChoir.review.listenTake') }}</p>
+                            <p class="t-clock-of">{{ formatTime(Math.max(0, position)) }} / {{ formatTime(lengthSeconds) }}</p>
+                        </div>
+                        <p v-if="sent && lanes.length" class="shrink-0 text-sm text-subtle tabular-nums max-sm:hidden" data-choir-parts-count>{{ t('ownChoir.wait.partsReady', { n: readyCount, count: lanes.length }) }}</p>
+                    </div>
+                    <ul>
+                        <li v-if="you" class="grid min-h-[60px] grid-cols-[minmax(0,6.5rem)_minmax(0,1fr)_auto] items-center gap-4 border-t border-edge px-1 max-sm:grid-cols-[minmax(0,5.5rem)_minmax(0,1fr)_auto] max-sm:gap-3">
+                            <span class="min-w-0"><span class="block truncate text-base font-semibold text-cream">{{ t('ownChoir.review.yourTake') }}</span><span class="block text-xs text-subtle">{{ t('ownChoir.review.recorded') }}</span></span>
+                            <PeakRow chunky :peaks="you.peaks" :color="color" :at="hearing ? Math.max(0, position) / lengthSeconds : null" />
+                            <span class="flex items-center justify-end gap-2 text-[0.8125rem] text-cream"><span class="status-dot-on" :style="{ color }" aria-hidden="true"></span>{{ t('ownChoir.review.you') }}</span>
+                        </li>
+                        <li v-for="l in lanes" :key="l.key" class="grid min-h-[60px] grid-cols-[minmax(0,6.5rem)_minmax(0,1fr)_auto] items-center gap-4 border-t border-edge px-1 max-sm:grid-cols-[minmax(0,5.5rem)_minmax(0,1fr)_auto] max-sm:gap-3" :data-choir-part="sent ? l.key : null" :data-choir-part-status="sent ? l.status : null">
+                            <span class="min-w-0"><span class="block truncate text-base font-semibold text-cream" translate="no">{{ l.name }}</span><span class="block text-xs text-subtle" data-ai-voice="tag">{{ t('aiVoice.tag') }}</span></span>
+                            <PeakRow v-if="l.status !== 'waiting' && l.peaks" chunky :class="l.status === 'making' ? 'opacity-30' : ''" :peaks="l.peaks" color="var(--color-cream)" />
+                            <span v-else class="block border-t-2 border-dashed border-faint" aria-hidden="true"></span>
+                            <span class="flex items-center justify-end gap-2 text-[0.8125rem]" :class="l.status === 'ready' ? 'text-cream' : l.status === 'making' ? 'text-part-ink-1' : 'text-subtle'"><span :class="[l.status === 'ready' ? 'status-dot-on' : 'status-dot', l.status === 'making' ? 'motion-safe:animate-pulse' : '']" aria-hidden="true"></span>{{ word(l.status) }}</span>
+                        </li>
+                    </ul>
+                    <div v-if="hint || !ready" class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+                        <p v-if="hint" class="t-hint">{{ hint }}</p>
+                        <!-- Today's way to hear the take with the song's guide voices, kept quiet while the choir isn't ready (the coordinator). -->
+                        <button v-if="!ready" type="button" class="link-quiet inline-flex min-h-11 items-center text-[0.8125rem]" data-hear-with-guides @click="$emit('hear', { alone: false })">{{ t('sing.recorded.hearOthers') }}</button>
+                    </div>
+                    <p v-if="choir.check" class="alert-inline" role="alert" :data-choir-check="choir.check"><span>{{ choir.check === 'clipped' ? t('ownChoir.check.clipped') : t('ownChoir.check.quiet') }}</span></p>
+                    <p v-else-if="!sent && short" class="alert-inline" role="alert"><span>{{ t('ownChoir.record.short') }}</span></p>
+                    <p v-else-if="choir.error" class="alert-inline" style="--alert-c: var(--color-bad)" role="alert"><span>{{ choir.error }}</span></p>
+                    <TurnstileBox v-if="!sent && !choir.check && choir.siteKey && !short" :key="checkKey" :site-key="choir.siteKey" @token="token = $event" @failed="token = null" data-choir-check />
+                </div>
+            </div>
+            <div class="footer-bar">
+                <div class="mx-auto flex max-w-[820px] flex-wrap items-center gap-x-4 gap-y-3 px-6 py-3.5">
+                    <p class="min-w-56 flex-[1_1_14rem] text-sm text-subtle">{{ t('sing.review.saved') }}</p>
+                    <div class="flex w-full flex-col-reverse gap-2.5 sm:w-auto sm:flex-row">
+                        <template v-if="choir.check">
+                            <button type="button" class="btn-secondary" :disabled="choir.busy" data-choir-force @click="$emit('force', token)">{{ t('ownChoir.check.send') }}</button>
+                            <button type="button" class="btn-primary" data-choir-again @click="$emit('again')">{{ t('ownChoir.check.again') }}</button>
+                        </template>
+                        <template v-else>
+                            <button type="button" :class="short && !sent ? 'btn-primary' : 'btn-secondary'" :data-choir-again="short && !sent ? '' : null" @click="$emit('again')">{{ short && !sent ? t('ownChoir.record.again') : t('sing.recorded.again') }}</button>
+                            <button v-if="ready" type="button" class="btn-primary" data-choir-listen @click="$emit('listen')">{{ t('ownChoir.record.listen') }}</button>
+                            <button v-else-if="sent" type="button" class="btn-primary" disabled>{{ t('ownChoir.review.readyCount', { n: readyCount, count: lanes.length }) }}</button>
+                            <button v-else-if="!short" type="button" class="btn-primary" :disabled="choir.busy || (!!choir.siteKey && !token)" :aria-busy="choir.busy ? 'true' : null" data-choir-make @click="$emit('make', token)"><span v-if="choir.busy" class="spinner" aria-hidden="true"></span>{{ choir.busy ? t('ownChoir.record.sending') : choir.join ? t('ownChoir.together.join.next') : t('ownChoir.record.use') }}</button>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </section>`,
+};
+
 export const JustRecorded = {
-    components: { ChoirCard, Icon, PeakRow, BeTheVoice },
+    components: { ChoirReview, Icon, PeakRow, BeTheVoice },
     props: {
         outcome: { type: Object, required: true }, // sessionStore.finishRecording's
         partName: { type: String, required: true },
@@ -93,7 +235,8 @@ export const JustRecorded = {
     data: () => ({ nudging: false, picked: null }),
     setup: () => ({ MAX_NUDGE_MS, CHART, formatNumber, formatTime, sk }),
     template: `
-        <section class="flex min-h-full w-full flex-col" aria-labelledby="recorded-title" data-take-review>
+        <ChoirReview v-if="choir" ref="choirReview" :choir="choir" :stack="stack" :color="color" :hearing="hearing" :position="position" :length-seconds="lengthSeconds" @hear="$emit('hear', $event)" @again="$emit('again')" @make="$emit('choir-make', $event)" @force="$emit('choir-force', $event)" @listen="$emit('choir-listen')" />
+        <section v-else class="flex min-h-full w-full flex-col" aria-labelledby="recorded-title" data-take-review>
             <div class="mx-auto w-full max-w-6xl flex-1 space-y-6 px-4 pb-8 pt-5 md:px-8">
                 <!-- The parts, honestly: done, next, then the rest. -->
                 <!-- A choir clip's take (the coordinator, 2026-11-23): just the take's player, the choir card and Record again; no
@@ -201,7 +344,6 @@ export const JustRecorded = {
                 </div>
                 <!-- Be the voice (Hillel, 2026-11-12): a usable take of a part no one has given a real voice, one calm card after the take's own checks. -->
                 <BeTheVoice v-if="voice" :part="voice.part" :guest="voice.guest" @share="$emit('voice-share')" @later="$emit('voice-later')" />
-                <ChoirCard v-else-if="choir" :seconds="choir.seconds" :busy="choir.busy" :error="choir.error" :site-key="choir.siteKey" :join="choir.join" :sent="choir.sent" :check="choir.check" @force="$emit('choir-force', $event)" @make="$emit('choir-make', $event)" @again="$emit('again')" @listen="$emit('choir-listen')" />
             </div>
             <!-- One clear decision, always in view. -->
             <div class="sticky bottom-0 z-10 border-t border-edge bg-ink/95 px-4 py-3 backdrop-blur md:px-8">
@@ -294,7 +436,7 @@ export const JustRecorded = {
         },
     },
     mounted() {
-        this.$refs.heading.focus();
+        (this.$refs.heading ?? this.$refs.choirReview?.$refs.heading)?.focus();
     },
     methods: {
         troubleCount(p) {

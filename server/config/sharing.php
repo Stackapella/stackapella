@@ -37,8 +37,9 @@ return [
         'end_card_seconds' => 2,
         // 24 frames a second: smooth for a scrolling strip, and a fifth less to encode on the one-vCPU worker (2026-11-23).
         'fps' => 24,
-        // ffmpeg's threads (0: its own choice; 1 measures it as the one-vCPU worker runs).
-        'threads' => 0,
+        // ffmpeg's threads: one. The one-vCPU `long` worker shows ffmpeg 8 cores, and its own choice of 8 threads on one
+        // vCPU took about twice the CPU and time of one thread (2026-11-23). 0 leaves it to ffmpeg.
+        'threads' => 1,
     ],
 
     // Our font, for the share card and the video (resources/fonts, SIL Open Font License).

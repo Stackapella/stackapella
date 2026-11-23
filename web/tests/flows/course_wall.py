@@ -40,6 +40,12 @@ def journey(f):
     # text link under the wall's own links, never a second button: the share sheet, or tomorrow in the calendar.
     expected = f.js("(async () => (await import('/js/next-up.js')).nextUpLine('1-match'))()")
     assert expected and f.js("document.querySelector('[data-wall-next]')?.textContent.trim()") == expected, expected
+    # One way to continue (the UX review, item 2): the sign-up ways, then under a hairline Sign in and Not now; the gentler
+    # ways (the song, the link for later, Back to the course) only once Not now opens them.
+    assert not f.js("document.querySelector('[data-wall-later]')"), "the gentler ways show before Not now"
+    assert f.js("!!document.querySelector('[data-wall-foot] [data-wall-sign-in]')"), "Sign in isn't in the wall's footer"
+    f.run("document.querySelector('[data-wall-not-now]').click()")
+    f.wait("document.querySelector('[data-wall-later]') && document.querySelector('[data-wall-not-now]').getAttribute('aria-expanded') === 'true'", what="the gentler ways")
     back = f.js("[...document.querySelectorAll('[data-wall-back] button')].map((b) => b.className)")
     assert len(back) == 1 and "btn-" not in back[0], f"one text link, not a button: {back}"
     if f.js("!!document.querySelector('[data-wall-calendar]')"):

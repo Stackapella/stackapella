@@ -212,6 +212,15 @@ def journey(f):
         f.click_t("course.next")
         if not q("lesson 2 opens", "location.pathname === '/learn/1-match' && document.querySelector('main h1')"):
             return
+        # A guest meets the course wall here (Hillel, 2026-11-06: an account after lesson 1): it's looked at, its one way to
+        # continue and its Not now (the UX review, item 2), and the journey goes on without lessons 2 and 3, as a guest would.
+        # (Pressing Continue here once hit "Continue with Apple" and left the app: every later step broke.)
+        if f.js("!!document.querySelector('[data-needs-account]')"):
+            j.look_at("lesson 2's wall", "l2-wall")
+            if f.js("!!document.querySelector('[data-wall-not-now]')"):
+                f.run("document.querySelector('[data-wall-not-now]').click()")
+                j.look_at("lesson 2's wall, Not now", "l2-wall-later")
+            return
         j.look_at("lesson 2's Learn", "l2-learn")
         f.click_t("course.continue")
         # Try: Wait for me (over loopback the guide's own note is what's heard, so it moves on).
@@ -247,6 +256,8 @@ def journey(f):
                 j.note("lesson 2's end", f"no {share!r} on a starred lesson end")
 
     def lesson3():
+        if f.js("!!document.querySelector('[data-needs-account]')"):
+            return  # still the wall: a guest's lesson 3 waits for the account too
         f.click_t("course.next")
         if not q("lesson 3 opens", "location.pathname === '/learn/1-high-low' && document.querySelector('main h1')"):
             return

@@ -54,6 +54,9 @@ final class DocumentPagesController extends Controller
         // Singing every part yourself (docs/search-content-plan.md, 2026-11-23): "sing harmony with yourself", "one-person
         // a cappella", "layering your own voice" have demand, answered today only by music-software tutorials.
         'sing-harmony-with-yourself',
+        // Choirs search for SATB learning and practice tracks, answered mostly by paid tracks (2026-11-23): what they
+        // are, how to use them, and the library's part pages as free ones.
+        'free-satb-learning-tracks',
     ];
 
     /**

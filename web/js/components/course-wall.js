@@ -3,7 +3,7 @@
 // lesson and a course's page (`compact`). It says what comes with the account (their stars, their note,
 // their place in the course, every lesson of every course) and that it's free with no card, never a
 // price, a countdown or a second loud frame. Counted as the course's account ask, acct_course: shown once
-// a device, yes on any way in, and Back to the course as its Not now. A wall, not a nudge: the asks'
+// a device, yes on any way in, and Back to the course (under Not now, since the UX review) as its Not now. A wall, not a nudge: the asks'
 // ledger isn't told.
 //
 // Google and Apple are on the wall itself, the email way a link to sign-up, so a guest is one tap from an account
@@ -44,34 +44,39 @@ export const CourseWall = {
             </ul>
             <p class="text-sm text-muted">{{ t('courses.wall.free') }}</p>
             <div v-if="inline" class="flex flex-col gap-2.5" :class="compact ? '' : 'max-w-sm'" data-wall-providers>
-                <button v-for="p in providers" :key="p" type="button" class="btn-secondary w-full justify-center" :data-wall-provider="p" @click="provider(p)">{{ t(PROVIDERS[p]) }}</button>
+                <button v-for="p in providers" :key="p" type="button" class="btn-primary w-full justify-center" :data-wall-provider="p" @click="provider(p)">{{ t(PROVIDERS[p]) }}</button>
                 <a :href="signUp" class="link inline-flex min-h-6 items-center self-start text-sm" data-needs-account-yes @click.prevent="yes()">{{ t('courses.wall.email') }}</a>
             </div>
             <div v-else class="flex flex-wrap items-center gap-x-5 gap-y-3">
                 <a :href="signUp" class="btn-primary" :class="compact ? 'w-full justify-center' : ''" data-needs-account-yes @click.prevent="yes()">{{ t('wrap.makeAccount') }}</a>
             </div>
-            <p class="flex flex-wrap gap-x-5 gap-y-2 text-sm">
-                <a v-if="home" :href="home" class="link inline-flex min-h-6 items-center" data-needs-account-not @click.prevent="notNow">{{ t('course.backToCourse') }}</a>
-                <a :href="signIn" class="link inline-flex min-h-6 items-center" data-wall-sign-in @click.prevent="navigate(signIn)">{{ t('courses.wall.signIn') }}</a>
-            </p>
-            <!-- One quiet way back for a guest not making an account yet, idea 2: a text link, never a button. The share sheet
-                 where the device has one, else one calendar entry for tomorrow, morning or evening, made here. -->
-            <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-            <p class="flex flex-wrap items-center gap-x-4 gap-y-2" data-wall-back>
-                <button v-if="canShare" type="button" class="link inline-flex min-h-6 items-center" data-wall-send @click="sendMyselfTheLink(lessonId)">{{ t('courses.wall.sendLink') }}</button>
-                <button v-else-if="!choosingTime" type="button" class="link inline-flex min-h-6 items-center" data-wall-calendar @click="choosingTime = true">{{ t('courses.wall.calendar') }}</button>
-                <template v-else>
-                    <span class="text-muted">{{ t('courses.wall.calendar') }}:</span>
-                    <button type="button" class="link inline-flex min-h-6 items-center" data-wall-calendar-at="morning" @click="addTomorrow(lessonId, 'morning')">{{ t('courses.wall.morning') }}</button>
-                    <button type="button" class="link inline-flex min-h-6 items-center" data-wall-calendar-at="evening" @click="addTomorrow(lessonId, 'evening')">{{ t('courses.wall.evening') }}</button>
-                </template>
-            </p>
-            <!-- Unit 1's song (retention row 8, idea 4): for a guest not ready for an account, a minute inside a real song first,
-                 opened straight in Sing along on its tune. Beside the way back, its own element; the free course's full wall only. -->
-            <p v-if="song" class="flex items-center" data-wall-song><button type="button" class="link inline-flex min-h-6 items-center" :disabled="songOpening" data-wall-song-open @click="singSong">{{ t('courses.wall.songFirst') }}</button></p>
+            <!-- One way to continue above (the consultant's UX review, item 2); under a hairline, Sign in for someone with an
+                 account, and Not now, which opens the gentler ways in place: a song first, the link for later, back to the
+                 course (its acct_course Not now, counted as before). -->
+            <div class="space-y-2 border-t border-line pt-3" data-wall-foot>
+                <div class="flex flex-wrap items-center justify-between gap-x-5 gap-y-1 text-sm">
+                    <a :href="signIn" class="link inline-flex min-h-11 items-center" data-wall-sign-in @click.prevent="navigate(signIn)">{{ t('courses.wall.signIn') }}</a>
+                    <button type="button" class="link-quiet inline-flex min-h-11 items-center gap-1" :aria-expanded="later ? 'true' : 'false'" :aria-controls="uid + '-later'" data-wall-not-now @click="later = !later">{{ t('courses.wall.notNow') }}<Icon name="chevron" :size="16" class="transition-transform" :class="later ? 'rotate-180' : ''" /></button>
+                </div>
+                <div v-if="later" :id="uid + '-later'" class="flex flex-col items-start gap-1 text-sm" data-wall-later>
+                    <!-- Unit 1's song (retention row 8, idea 4): a minute inside a real song first, the free course's full wall only. -->
+                    <p v-if="song" class="flex items-center" data-wall-song><button type="button" class="link inline-flex min-h-11 items-center" :disabled="songOpening" data-wall-song-open @click="singSong">{{ t('courses.wall.songFirst') }}</button></p>
+                    <!-- One quiet way back for later (idea 2): the share sheet where the device has one, else a calendar entry for
+                         tomorrow, morning or evening, made here. -->
+                    <p class="flex flex-wrap items-center gap-x-4 gap-y-1" data-wall-back>
+                        <button v-if="canShare" type="button" class="link inline-flex min-h-11 items-center" data-wall-send @click="sendMyselfTheLink(lessonId)">{{ t('courses.wall.sendLink') }}</button>
+                        <button v-else-if="!choosingTime" type="button" class="link inline-flex min-h-11 items-center" data-wall-calendar @click="choosingTime = true">{{ t('courses.wall.calendar') }}</button>
+                        <template v-else>
+                            <span class="text-muted">{{ t('courses.wall.calendar') }}:</span>
+                            <button type="button" class="link inline-flex min-h-11 items-center" data-wall-calendar-at="morning" @click="addTomorrow(lessonId, 'morning')">{{ t('courses.wall.morning') }}</button>
+                            <button type="button" class="link inline-flex min-h-11 items-center" data-wall-calendar-at="evening" @click="addTomorrow(lessonId, 'evening')">{{ t('courses.wall.evening') }}</button>
+                        </template>
+                    </p>
+                    <a v-if="home" :href="home" class="link inline-flex min-h-11 items-center" data-needs-account-not @click.prevent="notNow">{{ t('course.backToCourse') }}</a>
+                </div>
             </div>
         </section>`,
-    data: () => ({ uid: 'wall-' + Math.random().toString(36).slice(2, 8), choosingTime: false, canShare: typeof navigator.share === 'function', songOpening: false }),
+    data: () => ({ later: false, songShown: false, uid: 'wall-' + Math.random().toString(36).slice(2, 8), choosingTime: false, canShare: typeof navigator.share === 'function', songOpening: false }),
     computed: {
         next: (vm) => '/learn/' + vm.lessonId,
         nextUp: (vm) => nextUpLine(vm.lessonId),
@@ -100,7 +105,15 @@ export const CourseWall = {
     mounted() {
         askShown('acct_course');
         askShown(`acct_course_${this.place}`);
-        if (this.song) countUnitSong('shown', 'wall');
+    },
+    watch: {
+        // The song's offer is seen once Not now opens it (us_shown:wall, as before when it showed at once).
+        later(open) {
+            if (open && this.song && !this.songShown) {
+                this.songShown = true;
+                countUnitSong('shown', 'wall');
+            }
+        },
     },
     methods: {
         yes() {

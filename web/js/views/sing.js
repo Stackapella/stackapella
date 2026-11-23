@@ -162,7 +162,7 @@ export const SingView = {
                             :nudge-ms="nudgeMsOf(recorded.part)" :lining="lining" :lined="lined" :can-resing="phraseRows.length > 1" :color="paint(recorded.part.color)" :stack="recordedStack"
                             :score="recorded.report?.score ?? null" :notes="reportNotes" :track="recorded.report?.track ?? null" :beat-seconds="fullBeatSeconds" :offset-seconds="recorded.part.offsetSeconds + (recorded.part.nudgeSeconds || 0)"
                             :phrases="reportPhrases" :phrase-labels="phraseRows.map((p) => p.label)" :position="position" :length-seconds="lengthSeconds" :bleed="!!recorded.report?.bleed" :sung-by="sungBy" :voice="voiceInvite" :choir="choirTake" @choir-make="makeChoir" @choir-force="(token) => makeChoir(token, { force: true })" @choir-listen="listenToChoir"
-                            @hear="hearTake" @mute="toggleHearing" @again="recordPart" @next="nextPart" @nudge="nudge" @nudged="nudged" @line-up="lineUp" @studio="openStudio" @resing="resingFrom" @trim="openTrim" :polished="prefs.hearPolished" @polish="hearPolished" @share="dialog = 'share'" @hear-phrase="hearPhrase" @voice-share="voiceShare" @voice-later="voiceLater">
+                            @hear="hearTake($event)" @mute="toggleHearing" @again="recordPart" @next="nextPart" @nudge="nudge" @nudged="nudged" @line-up="lineUp" @studio="openStudio" @resing="resingFrom" @trim="openTrim" :polished="prefs.hearPolished" @polish="hearPolished" @share="dialog = 'share'" @hear-phrase="hearPhrase" @voice-share="voiceShare" @voice-later="voiceLater">
                             <template #report>
                                 <!-- The part's leaderboard (components/boards.js): your best, or why it didn't count; never a lesson's song -->
                                 <TakeBest v-if="game() && recorded.report?.score?.percent != null && !project.course && project.template?.id" :key="'best-' + recorded.part.id" @result="ghostResult" :template-id="project.template.id" :template-version="project.template.version" :part-key="recorded.part.templatePartKey"
@@ -628,7 +628,7 @@ export const SingView = {
             return t('sing.recorded.sungBy', { song: shownTitle(this.project), names });
         },
         recordedStack() {
-            return this.parts.filter((p) => p.templatePartKey).map((p) => ({ id: p.id, name: this.nameOf(p), color: (appearance.version, paint(p.color)), peaks: hasTake(p) ? p.peaks : p.guidePeaks, you: p.id === this.recorded?.part.id, done: hasTake(p), muted: session.hearing.off.includes(p.id) }));
+            return this.parts.filter((p) => p.templatePartKey).map((p) => ({ id: p.id, key: p.templatePartKey, name: this.nameOf(p), color: (appearance.version, paint(p.color)), peaks: hasTake(p) ? p.peaks : p.guidePeaks, you: p.id === this.recorded?.part.id, done: hasTake(p), muted: session.hearing.off.includes(p.id) }));
         },
         /** The re-sung phrase's words, on its card. */
         resungLine() {
@@ -1732,12 +1732,13 @@ export const SingView = {
             this.recordPart();
         },
         /** Just recorded: hear your take with the others, from the start. */
-        async hearTake() {
+        /** The review's Play: your take with the others, or alone (`alone`: a choir clip's Listen to your take). */
+        async hearTake({ alone = false } = {}) {
             if (this.playing) {
                 await sessionStore.stopPlayback();
                 return;
             }
-            sessionStore.reviewListen();
+            sessionStore.reviewListen({ only: alone ? this.recorded?.part.id ?? null : null });
             this.position = 0;
             await sessionStore.togglePlay();
         },

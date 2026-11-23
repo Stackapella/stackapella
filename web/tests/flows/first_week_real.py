@@ -304,6 +304,8 @@ def _journey(f, report, wire, email, serious, counts_since, steps):
     expected = f.js("(async () => (await import('/js/next-up.js')).nextUpLine('1-match'))()")
     seen = f.js("document.querySelector('[data-wall-next]')?.textContent.trim() ?? null")
     report.add("wall names what waits ([data-wall-next])", bool(seen) and seen == expected and "Lesson 2" in (seen or ""), {"seen": seen, "expected": expected})
+    f.run("document.querySelector('[data-wall-not-now]')?.click()")  # the gentler ways sit under Not now (the UX review)
+    f.wait("document.querySelector('[data-wall-later]')", what="the gentler ways")
     back = f.js("[...document.querySelectorAll('[data-wall-back] button')].map((b) => ({ text: b.textContent.trim(), cls: b.className, data: Object.keys(b.dataset) }))")
     can_share = f.js("typeof navigator.share === 'function'")
     one_link = len(back) == 1 and "btn-" not in back[0]["cls"]
@@ -320,7 +322,9 @@ def _journey(f, report, wire, email, serious, counts_since, steps):
     f.run("(await import('/js/router.js')).navigate('/learn')")
     f.wait("location.pathname === '/learn'", what="the map")
     f.run("(await import('/js/router.js')).navigate('/learn/1-match')")
-    f.wait("document.querySelector('[data-needs-account] [data-wall-back]')", what="the wall again")
+    f.wait("document.querySelector('[data-needs-account] [data-wall-not-now]')", what="the wall again")
+    f.run("document.querySelector('[data-wall-not-now]').click()")
+    f.wait("document.querySelector('[data-needs-account] [data-wall-back]')", what="the gentler ways again")
     cal = f.js("document.querySelector('[data-wall-calendar]')?.textContent.trim() ?? null")
     report.add("without a share sheet: Add tomorrow to my calendar", cal == t(f, "courses.wall.calendar"), cal)
     if cal:

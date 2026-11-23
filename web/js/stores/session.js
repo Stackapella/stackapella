@@ -69,6 +69,7 @@ export const session = reactive({
     guideHeard: false, // your guide played during the last take (for the boards)
     inReview: false, // Sing's Just recorded is open (Polished applies there)
     reviewing: false, // the review is playing your take with the others (never saved into practice)
+    reviewOnly: null, // a part's id: the review plays that take alone (a choir clip's take, heard without the others)
     hearing: { off: [], guideLevel: GUIDE_LEVELS.medium, recordGuide: false }, // What you hear (per song on this device, never in the project)
     phase: null, // what the engine is playing: count-in, play, loop, listen, cue, turn
     preparing: false, // guides being rendered
@@ -222,7 +223,7 @@ export function closeSession() {
         engine.stop();
     }
     kept.wakeLock?.release().catch((error) => console.info('The wake lock was already gone', error));
-    Object.assign(session, { openedId: null, project: null, parts: [], missing: false, position: 0, playing: false, recording: false, countIn: null, recordFrom: 0, live: null, rerecordId: null, inReview: false, reviewing: false, hearing: { off: [], guideLevel: GUIDE_LEVELS.medium, recordGuide: false }, phase: null, preparing: false, busy: false, starting: false });
+    Object.assign(session, { openedId: null, project: null, parts: [], missing: false, position: 0, playing: false, recording: false, countIn: null, recordFrom: 0, live: null, rerecordId: null, inReview: false, reviewing: false, reviewOnly: null, hearing: { off: [], guideLevel: GUIDE_LEVELS.medium, recordGuide: false }, phase: null, preparing: false, busy: false, starting: false });
     kept.samples = new Map();
     kept.guides = new Map();
     kept.guideRates = new Map();
@@ -656,7 +657,8 @@ export function levels() {
     // melody). The review hears your take in place, with the others, without changing either.
     if (session.screen === 'sing' && session.isTemplate) {
         // What you hear turns parts off for the visit, recording included, and sets your guide's level.
-        slots = slots.map((p) => ({ ...p, muted: session.hearing.off.includes(p.id), solo: false, volume: 1 }));
+        // A choir clip's review plays your take alone (reviewOnly): the choir's parts aren't heard there.
+        slots = slots.map((p) => ({ ...p, muted: session.hearing.off.includes(p.id) || (session.reviewing && !!session.reviewOnly && p.id !== session.reviewOnly), solo: false, volume: 1 }));
         practice = session.reviewing ? { ...practice, mode: 'listen', withOthers: true, compare: true } : { ...practice, withOthers: practice.sing?.way === 'whole', compare: false };
         // Split ears is for headphones: on a speaker it would only put the music on one side of the room.
         practice = { ...practice, guideLevel: session.hearing.guideLevel, split: !!practice.split && !onSpeakers() };
@@ -800,9 +802,11 @@ export async function persist(task) {
 }
 
 /** Settings changes save shortly after the last one (a slider sends many). */
-/** The review plays your take with the others (Hear it, Play phrase N, Hear it in place). */
-export function reviewListen() {
+/** The review plays your take with the others (Hear it, Play phrase N, Hear it in place), or, given `only` (a part's
+ * id), that take alone (a choir clip's Listen to your take). */
+export function reviewListen({ only = null } = {}) {
     session.reviewing = true;
+    session.reviewOnly = only;
     syncMix();
 }
 
@@ -825,6 +829,7 @@ onTimingMeasured(lineUpEstimated);
 export function clearReview() {
     if (!session.reviewing) return;
     session.reviewing = false;
+    session.reviewOnly = null;
     syncMix();
 }
 
@@ -1367,6 +1372,7 @@ export async function startRecording({ fromStart = false } = {}) {
     // the start before recording"); Sing records from where it is.
     if (fromStart) session.position = 0;
     session.reviewing = false;
+    session.reviewOnly = null;
     session.guideHeard = session.hearing.recordGuide; // the take counts with the guide off unless it played
     syncMix();
     const target = session.parts.find((p) => p.id === session.rerecordId);
