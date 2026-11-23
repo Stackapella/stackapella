@@ -27,6 +27,14 @@ const easeOut = (t) => 1 - (1 - t) ** 3;
 const onsetCurve = (t) => 1 - (1 - t) ** 4;
 const settleCurve = (t) => 1 - (1 - t) ** 5;
 const stillMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+/** `color` (a hex, #rgb or #rrggbb, as a theme token or a part colour reads) at `alpha`, as rgba; anything else as it is. */
+const withAlpha = (color, alpha) => {
+    let hex = String(color ?? '').trim().replace(/^#/, '');
+    if (/^[0-9a-f]{3}$/i.test(hex)) hex = hex.replace(/./g, (c) => c + c);
+    if (!/^[0-9a-f]{6}$/i.test(hex)) return color;
+    const n = parseInt(hex, 16);
+    return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+};
 
 /** What a lane draws, and its defaults (the Lane's props). */
 export const LANE_DEFAULTS = {
@@ -53,6 +61,12 @@ export const LANE_DEFAULTS = {
     trail: null, // your voice's ribbon and dot, if not in your colour (the landing: white, so it reads over gold gems)
     trailGlow: null, // the dot's glow, if not the trail's colour
     ghost: [], // your best take's pitch line, faint, to race (game mode's ghost): [{ seconds, midi|null }]
+    // Hillel's Notes view (2026-11-23), Sing's lane only (the landing and song pages keep their look): a flat ground with the
+    // black keys' rows banded and the note now's row tinted, a wider keyboard naming its white keys, bar lines numbered
+    // (perBar, beats in a bar), the now line a plain 2 px line 200 px in on a wide lane with a fade behind it. The gems
+    // stay glass (docs/glass-spec.md).
+    flat: false,
+    perBar: 0,
 };
 
 /** A colour a canvas can use: a CSS variable (var(--x)) read from the page, else as it is. */
@@ -133,6 +147,71 @@ export class LanePainter {
         this.arcYellow = getComputedStyle(document.documentElement).getPropertyValue('--arc-yellow').trim() || '#ffd84a';
     }
 
+    /** The flat ground (Hillel's Notes view): the black keys' rows banded, the note now's row tinted, faint row lines, and
+     * the bars, each line numbered at its top. */
+    flatGround(g, { rows, mid, rowH, left, width, nowNote, x, seconds }) {
+        const band = this.light ? 'rgba(0,0,0,0.04)' : 'rgba(0,0,0,0.22)';
+        const rule = this.light ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.04)';
+        const now = nowNote ? nowNote.pitch + this.transpose : null;
+        for (const p of rows) {
+            const top = mid(p) - rowH / 2;
+            if (p === now) {
+                g.fillStyle = withAlpha(this.color, 0.07);
+                g.fillRect(left, top, width - left, rowH);
+            } else if (BLACK.has(((p % 12) + 12) % 12)) {
+                g.fillStyle = band;
+                g.fillRect(left, top, width - left, rowH);
+            }
+            g.fillStyle = rule;
+            g.fillRect(left, top + rowH - 1, width - left, 1);
+        }
+        if (!this.perBar) return;
+        const barSeconds = seconds(this.perBar);
+        const first = Math.max(0, Math.floor((this.position - this.secondsShown) / barSeconds));
+        g.font = '500 11px system-ui, sans-serif';
+        g.textBaseline = 'top';
+        for (let k = first; k <= first + Math.ceil((this.secondsShown * 2) / barSeconds) + 1; k++) {
+            const bx = x(k * barSeconds);
+            if (bx < left || bx > width) continue;
+            g.fillStyle = this.light ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.09)';
+            g.fillRect(Math.round(bx), EDGE, 1, rows.length ? mid(rows[0]) + rowH / 2 - EDGE : 0);
+            g.fillStyle = this.muted;
+            g.fillText(String(k + 1), Math.round(bx) + 6, EDGE + 6);
+        }
+    }
+
+    /** The flat keyboard: a column of its own, black keys darker, each white key named (C stronger), the note now lit in a
+     * glass key (docs/glass-spec.md: the keyboard's marked key). */
+    flatKeys(g, { rows, mid, rowH, keysW, inner, nowNote, ink }) {
+        g.save();
+        g.beginPath();
+        g.rect(0, EDGE, keysW, inner);
+        g.clip();
+        g.fillStyle = this.panel;
+        g.fillRect(0, EDGE, keysW, inner);
+        g.textBaseline = 'middle';
+        g.textAlign = 'right';
+        for (const p of rows) {
+            const pc = ((p % 12) + 12) % 12;
+            const black = BLACK.has(pc);
+            const lit = nowNote && nowNote.pitch + this.transpose === p;
+            const top = mid(p) - rowH / 2;
+            if (lit) gemBar(g, 1, top + 1, keysW - 3, rowH - 2, this.color, { light: this.light });
+            else if (black) {
+                g.fillStyle = this.ink;
+                g.fillRect(0, top, keysW, rowH);
+            }
+            if ((!black || lit) && rowH >= 11) {
+                g.fillStyle = lit ? ink : pc === 0 ? this.cream : this.muted;
+                g.font = `${lit || pc === 0 ? 600 : 400} ${Math.min(12, rowH * 0.65)}px system-ui, sans-serif`;
+                g.fillText(this.noteName(p) || '', keysW - 10, Math.round(mid(p)) + 0.5);
+            }
+        }
+        g.fillStyle = this.line;
+        g.fillRect(keysW - 1, EDGE, 1, inner);
+        g.restore();
+    }
+
     /** Stops any frame still to come (the lane is going). */
     destroy() {
         cancelAnimationFrame(this.again);
@@ -173,19 +252,21 @@ export class LanePainter {
         const seconds = (beat) => beat * this.beatSeconds;
         const nowNote = this.notes.find((n) => this.position >= seconds(n.beat) && this.position < seconds(n.beat + n.length));
         const { low, high } = this.frame(dt, nowNote);
-        const left = this.keyboard ? KEYS : 0;
+        const keysW = this.flat ? 56 : KEYS;
+        const left = this.keyboard ? keysW : 0;
         const inner = height - 2 * EDGE;
         const rowH = inner / (high - low);
         // A pitch's centre line (MIDI may be fractional): the camera's frame across the lane's height.
         const mid = (pitch) => EDGE + (high - pitch) * rowH;
         const pps = (width - left) / this.secondsShown;
-        const nowX = left + (width - left) * NOW_AT;
+        const nowX = this.flat && width - left > 560 ? left + 200 : left + (width - left) * NOW_AT;
         const x = (s) => nowX + (s - this.position) * pps;
         const rows = [];
         for (let p = Math.ceil(low - 0.5); p <= Math.floor(high + 0.5); p++) rows.push(p);
 
+        if (this.flat) this.flatGround(g, { rows, mid, rowH, left, width, nowNote, x, seconds });
         // The stage: faint semitone lines (a C stronger), a floor glow and drifting specks.
-        stage(g, { left, top: EDGE, width, bottom: height - EDGE, lines: rows.map((p) => ({ y: mid(p) + rowH / 2, strong: ((p % 12) + 12) % 12 === 0 })), accent: this.accent, light: this.light, drift: this.position * pps, still });
+        else stage(g, { left, top: EDGE, width, bottom: height - EDGE, lines: rows.map((p) => ({ y: mid(p) + rowH / 2, strong: ((p % 12) + 12) % 12 === 0 })), accent: this.accent, light: this.light, drift: this.position * pps, still });
         // A looped phrase, tinted.
         if (this.loop) {
             g.fillStyle = `${this.color}1a`;
@@ -287,6 +368,7 @@ export class LanePainter {
                 bounds: { top: EDGE, right: width },
                 reserve: lit ? tickRoom(barH) : 0,
                 ringed: ringT > 0,
+                quietName: this.flat,
             });
             if (lit && w > 18) gemTick(g, from, top, w, barH, ink, { outside: fit.where === 'in' && fit.end > from + w - tickRoom(barH), color: this.cream, ringed: ringT > 0 });
         }
@@ -301,9 +383,21 @@ export class LanePainter {
         });
         this.drawVoice(g, { x, mid, nowX, nowPitch: nowNote, seconds });
         g.restore();
-        vignette(g, { left, top: EDGE, width, bottom: height - EDGE, light: this.light });
-        // The now line: a glowing beam.
-        beam(g, nowX, EDGE, height - EDGE, this.state === 'recording' ? this.record : this.state === 'turn' ? this.color : this.cream, { light: this.light });
+        const nowColour = this.state === 'recording' ? this.record : this.state === 'turn' ? this.color : this.cream;
+        if (this.flat) {
+            // What's sung fades behind the now line; the line itself plain.
+            const fade = g.createLinearGradient(left, 0, nowX, 0);
+            fade.addColorStop(0, withAlpha(this.ink, 0.55));
+            fade.addColorStop(1, withAlpha(this.ink, 0));
+            g.fillStyle = fade;
+            g.fillRect(left, EDGE, nowX - left, inner);
+            g.fillStyle = nowColour;
+            g.fillRect(Math.round(nowX) - 1, EDGE, 2, inner);
+        } else {
+            vignette(g, { left, top: EDGE, width, bottom: height - EDGE, light: this.light });
+            // The now line: a glowing beam.
+            beam(g, nowX, EDGE, height - EDGE, nowColour, { light: this.light });
+        }
         // The chords along the top, and the other parts' names at the edges.
         g.textBaseline = 'alphabetic';
         g.font = '600 12px system-ui, sans-serif';
@@ -316,7 +410,8 @@ export class LanePainter {
             g.fillText(`${other.above ? '▲' : '▼'} ${other.name}`, left + 6, other.above ? (this.chords?.length ? EDGE + 12 : EDGE / 2 + 4) : height - EDGE / 2 + 4);
         }
         // The keyboard down the side, the note now lit.
-        if (this.keyboard) {
+        if (this.keyboard && this.flat) this.flatKeys(g, { rows, mid, rowH, keysW, inner, nowNote, ink });
+        else if (this.keyboard) {
             g.save();
             g.beginPath();
             g.rect(0, EDGE, KEYS, inner);

@@ -39,7 +39,7 @@ export const GEM = Object.freeze({
     // 2026-11-17: "Half margin + 12px step"). None inside a gem under `minGem` px tall. Too long: the word alone, then
     // the word alone at `step` px, then above the gem: `aboveSize` px `aboveWeight`, `aboveGap` px over its top, only
     // if it ends `aboveClear` px before the next gem.
-    words: { weight: 750, ofH: 0.44, min: 11, max: 20, tracking: 0.005, inset: 6, insetOfR: 0.5, step: 12, minGem: 18, aboveSize: 12, aboveWeight: 700, aboveGap: 4, aboveClear: 6 },
+    words: { weight: 750, ofH: 0.44, min: 11, max: 20, tracking: 0.005, inset: 6, insetOfR: 0.5, step: 12, minGem: 18, aboveSize: 12, aboveWeight: 700, aboveGap: 4, aboveClear: 6, nameOf: 0.8, nameWeight: 550, nameAlpha: 0.75 },
     // Motion, from the audio clock: next's glow ramp over the last min(nextS s, 1 beat); ms for the rest. The join's
     // band is `joinDeg` degrees wide.
     motion: { nextS: 0.45, onsetMs: 90, releaseMs: 160, settleMs: 240, joinMs: 900, joinFadeMs: 300, joinDeg: 100 },

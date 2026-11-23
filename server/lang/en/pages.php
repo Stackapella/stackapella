@@ -100,11 +100,16 @@ return [
         'voice_real' => 'Real voice',
         'voice_generated' => 'Generated voice',
         // Hear yourself as a choir (docs/ai-voices-build-plan.md, phase 2, behind own_choir_teaser): its angle first, AI said once.
+        // A Hanukkah song's page while it's Hanukkah's window: the choir guide.
+        'hanukkah_guide' => 'Singing it with a choir this Hanukkah?',
+        'hanukkah_guide_link' => 'A three-week plan',
         'choir' => [
             'button' => 'Hear yourself as a choir',
             'soon' => 'Sing a song you know for 30 seconds, and hear every part of this arrangement in a voice like yours, made by AI.',
             // Beside the live link (own_choir).
             'free' => 'Your first one is free.',
+            // Beside it on a Jewish song's page: the AI choir sings its words (2026-11-23).
+            'own_words' => 'It sings the song\'s own words, respelled for singing.',
         ],
         // An AI part (docs/ai-voices-build-plan.md, behind ai_voices): the same words as the app's label (agreed with
         // the frontend, docs/decisions.md). `wanted` is the site's call to record it; `mix` is a part in the mix's credit.
@@ -349,7 +354,7 @@ return [
             ['The basics', ['what-is-harmony', 'satb-explained', 'choir-voicings', 'what-is-a-descant', 'find-your-voice-type']],
             ['Learn your part', ['find-your-part', 'find-your-starting-note', 'hold-your-part', 'practise-a-choir-part', 'a-round-for-beginners', 'sing-harmony-with-yourself', 'free-satb-learning-tracks']],
             ['Skills', ['ear-training', 'sight-reading-for-singers', 'singing-in-tune', 'how-to-sing-with-vibrato', 'breathing-basics', 'arranging-a-cappella', 'vocal-percussion']],
-            ['Singing together', ['how-to-blend-in-a-choir', 'how-to-run-a-sectional', 'how-to-start-an-a-cappella-group', 'barbershop-tags', 'choir-audition-tips']],
+            ['Singing together', ['how-to-blend-in-a-choir', 'how-to-run-a-sectional', 'how-to-start-an-a-cappella-group', 'barbershop-tags', 'choir-audition-tips', 'hanukkah-songs-for-choir']],
         ],
         // A panel of the four choir parts' usual ranges, each to hear (site._guide-ranges, js/public/guide-ranges.js),
         // after the section a guide names here.

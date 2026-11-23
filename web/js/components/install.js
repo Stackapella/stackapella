@@ -71,7 +71,7 @@ export const InstallCard = {
         <section v-if="shown" class="card flex flex-wrap items-center gap-4 p-5" aria-labelledby="install-title" data-install data-ask :data-form="form">
             <Icon :name="{ offer: 'download', risk: 'shield' }[form] ?? 'lock'" :size="24" class="text-part-4" />
             <div class="min-w-52 flex-1">
-                <h2 id="install-title" class="font-bold text-cream">{{ form === 'offer' ? t('install.title') : form === 'risk' ? t('install.riskTitle') : t('install.safeTitle') }}</h2>
+                <h2 id="install-title" class="font-semibold text-cream">{{ form === 'offer' ? t('install.title') : form === 'risk' ? t('install.riskTitle') : t('install.safeTitle') }}</h2>
                 <p v-if="form === 'risk'" class="text-sm text-muted">{{ t('install.risk', { what: riskWhat }) }}</p>
                 <p v-else-if="form === 'keep'" class="text-sm text-muted">{{ t('install.keepSafari') }}</p>
                 <p v-else-if="form === 'account'" class="text-sm text-muted">{{ t('install.keepHere', { songs: here.songs, takes: here.takes }) }}</p>

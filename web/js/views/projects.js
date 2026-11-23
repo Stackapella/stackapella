@@ -219,7 +219,7 @@ export const ProjectsView = {
                             <ul id="home-songs" class="gap-3" :class="(songsOpen ? 'grid grid-cols-2 md:grid-cols-3' : '-mx-4 flex snap-x scroll-px-4 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0') + (trimmed ? '' : ' lg:grid-cols-4')">
                                 <template v-for="item in songRows" :key="item.key">
                                 <!-- A category's heading, over its songs, while the whole library shows by category. -->
-                                <li v-if="item.heading" class="col-span-full mt-3 first:mt-0" :data-library-heading="item.group"><h3 class="text-sm font-bold uppercase tracking-[0.12em] text-muted">{{ t(GROUP_WORDS[item.group] ?? GROUP_WORDS.more) }} <span class="tabular-nums">{{ item.count }}</span></h3></li>
+                                <li v-if="item.heading" class="col-span-full mt-3 first:mt-0" :data-library-heading="item.group"><h3 class="t-section">{{ t(GROUP_WORDS[item.group] ?? GROUP_WORDS.more) }} <span class="tabular-nums">{{ item.count }}</span></h3></li>
                                 <li v-else class="group relative" :class="songsOpen ? '' : 'w-40 shrink-0 snap-start md:w-auto'" data-song-card :data-daily="dailyShown && dailyState().today?.templateId === item.tpl.id ? '' : null">
                                     <!-- Game mode's daily challenge: today's song card wears its tag (docs/game-elements-plan.md) -->
                                     <DailyTag v-if="dailyShown && dailyState().today?.templateId === item.tpl.id" :challenge="dailyState().today" />
@@ -236,10 +236,10 @@ export const ProjectsView = {
                                                 <AiVoiceLabel v-if="aiPartsOf(item.tpl.id).length" tag data-card-ai />
                                             </span>
                                         </span>
-                                        <span class="px-1 font-bold leading-tight text-cream" translate="no" data-ui="cartridge-title">{{ songTitle(item.tpl) }}</span>
-                                        <span class="px-1 text-xs text-muted" :aria-label="singerText(item.tpl) + ' · ' + t(DIFFICULTY[item.tpl.difficulty] ?? DIFFICULTY.beginner)"><span aria-hidden="true">{{ singerCount(item.tpl) }} · {{ t(DIFFICULTY[item.tpl.difficulty] ?? DIFFICULTY.beginner) }}</span></span>
+                                        <span class="px-1 font-semibold leading-tight text-cream" translate="no" data-ui="cartridge-title">{{ songTitle(item.tpl) }}</span>
+                                        <span class="t-hint px-1" :aria-label="singerText(item.tpl) + ' · ' + t(DIFFICULTY[item.tpl.difficulty] ?? DIFFICULTY.beginner)"><span aria-hidden="true">{{ singerCount(item.tpl) }} · {{ t(DIFFICULTY[item.tpl.difficulty] ?? DIFFICULTY.beginner) }}</span></span>
                                         <!-- Why it's here (the consultant's UX review, item 9): among Home's picks for your range, the part that fits it. -->
-                                        <span v-if="!songsOpen && trimmed && fitPart(item.tpl)" class="px-1 text-xs text-cream/80" data-card-why>{{ t('home.songs.why.fits', { part: fitPart(item.tpl) }) }}</span>
+                                        <span v-if="!songsOpen && trimmed && fitPart(item.tpl)" class="px-1 text-[13px] text-cream/80" data-card-why>{{ t('home.songs.why.fits', { part: fitPart(item.tpl) }) }}</span>
                                     </button>
                                     <!-- Hillel: the preview's Play at the picture's top right, on hover (always on touch); a tap on the card still opens it. -->
                                     <button type="button" class="card-tools tap-44 absolute end-3 top-3 grid size-9 place-items-center rounded-full glass-bubble" :class="songOn(item.tpl.id) ? 'is-on bg-accent text-accent-ink' : 'bg-panel text-cream'" :aria-label="songOn(item.tpl.id) ? t('home.songs.stopNamed', { title: songTitle(item.tpl) }) : t('home.yours.playNamed', { title: songTitle(item.tpl) })" :aria-pressed="songOn(item.tpl.id) ? 'true' : 'false'" data-song-play @click="playLibrary(item.tpl)"><Icon :name="songOn(item.tpl.id) ? 'stop' : 'play'" :size="16" /></button>
@@ -247,8 +247,8 @@ export const ProjectsView = {
                                 </template>
                                 <li v-if="!trimmed && !songsOpen && hiddenSongs" class="w-40 shrink-0 snap-start md:w-auto">
                                     <button type="button" class="flex w-full flex-col gap-2 rounded-3xl p-1 text-start hover:bg-raised/50" aria-controls="home-songs" :aria-expanded="'false'" data-browse-all @click="openSongs(true)">
-                                        <span class="flex h-28 items-center justify-center gap-2 rounded-2xl border border-edge bg-panel px-3 text-center font-bold text-cream">{{ t('home.songs.browseAll') }} <Icon name="arrow" :size="18" /></span>
-                                        <span class="px-1 text-xs text-muted">{{ t('home.songs.more', { count: hiddenSongs }) }}</span>
+                                        <span class="flex h-28 items-center justify-center gap-2 rounded-2xl border border-edge bg-panel px-3 text-center font-semibold text-cream">{{ t('home.songs.browseAll') }} <Icon name="arrow" :size="18" /></span>
+                                        <span class="t-hint px-1">{{ t('home.songs.more', { count: hiddenSongs }) }}</span>
                                     </button>
                                 </li>
                             </ul>
@@ -267,8 +267,8 @@ export const ProjectsView = {
                                 <li class="w-40 shrink-0 snap-start md:w-auto">
                                     <!-- Hillel's design: "+ New song" in a dashed card, how to start under it. -->
                                     <button type="button" class="flex w-full flex-col gap-2 rounded-3xl p-1 text-start hover:bg-raised/50" data-new-song @click="newing = true">
-                                        <span class="flex h-28 items-center justify-center gap-3 rounded-2xl border-[1.5px] border-dashed border-line font-bold text-cream"><span class="bubble bubble-sm grid size-8 place-items-center" style="--bubble: var(--primary); --bubble-ink: var(--primary-ink)" aria-hidden="true" data-ui="plus-disc"><Icon name="plus" :size="18" /></span>{{ t('projects.new') }}</span>
-                                        <span class="px-1 text-xs text-muted">{{ t('home.yours.newHint') }}</span>
+                                        <span class="flex h-28 items-center justify-center gap-3 rounded-2xl border-[1.5px] border-dashed border-line font-semibold text-cream"><span class="bubble bubble-sm grid size-8 place-items-center" style="--bubble: var(--primary); --bubble-ink: var(--primary-ink)" aria-hidden="true" data-ui="plus-disc"><Icon name="plus" :size="18" /></span>{{ t('projects.new') }}</span>
+                                        <span class="t-hint px-1">{{ t('home.yours.newHint') }}</span>
                                     </button>
                                 </li>
                                 <li v-for="c in shownYours" :key="c.key" class="group relative w-40 shrink-0 snap-start md:w-auto" :data-kind="c.kind">
@@ -278,8 +278,8 @@ export const ProjectsView = {
                                             <SongCover :class="c.kind === 'draft' ? 'border-dashed' : ''" :song="c.song" :parts="c.parts" :mine="c.mine" :seed="seedOf(c.key)" />
                                             <span v-if="c.tag" data-ui="tag" :data-tone="c.warn ? 'yellow' : 'cyan'" class="absolute start-3 top-3 rounded-full bg-raised px-2 py-0.5 text-[10px] font-bold" :class="c.warn ? 'text-warn' : 'text-accent-strong'" translate="no">{{ c.tag }}</span>
                                         </span>
-                                        <span class="truncate pe-9 ps-1 font-bold leading-tight" data-ui="cartridge-title" :class="c.named ? 'text-cream' : 'italic text-muted'" :translate="c.named ? 'no' : null">{{ c.title }}</span>
-                                        <span class="px-1 text-xs text-muted" :class="c.mine ? '' : 'truncate'" :data-parts-you="c.mine ? '' : null">{{ c.meta }}</span>
+                                        <span class="truncate pe-9 ps-1 font-semibold leading-tight" data-ui="cartridge-title" :class="c.named ? 'text-cream' : 'italic text-muted'" :translate="c.named ? 'no' : null">{{ c.title }}</span>
+                                        <span class="t-hint px-1" :class="c.mine ? '' : 'truncate'" :data-parts-you="c.mine ? '' : null">{{ c.meta }}</span>
                                     </button>
                                     <button type="button" class="card-tools tap-44 absolute end-3 top-3 grid size-9 place-items-center rounded-full glass-bubble disabled:opacity-50" :class="songOn(c.key) ? 'is-on bg-accent text-accent-ink' : 'bg-panel text-cream'" :disabled="!c.play" :title="c.play ? null : c.why" :aria-label="!c.play ? c.why : songOn(c.key) ? t('home.songs.stopNamed', { title: c.title }) : t('home.yours.playNamed', { title: c.title })" :aria-pressed="songOn(c.key) ? 'true' : 'false'" data-song-play @click="c.play && c.play()"><Icon :name="songOn(c.key) ? 'stop' : 'play'" :size="16" /></button>
                                     <CardMenu class="card-tools absolute end-0 top-[7.1rem]" :label="t('home.yours.moreNamed', { title: c.title })" :items="c.menu" />
@@ -316,16 +316,16 @@ export const ProjectsView = {
                 <div class="space-y-3" data-new-sheet>
                     <button type="button" class="card-interactive flex w-full items-start gap-3 p-4 text-start" @click="makeOne">
                         <span class="bubble grid size-10 shrink-0 place-items-center"><Icon name="sparkle" :size="20" /></span>
-                        <span><span class="block font-bold text-cream">{{ t('home.new.make') }}</span><span class="text-sm text-muted">{{ t('home.new.makeHint') }}</span></span>
+                        <span><span class="block font-semibold text-cream">{{ t('home.new.make') }}</span><span class="text-sm text-muted">{{ t('home.new.makeHint') }}</span></span>
                     </button>
                     <button type="button" class="card-interactive flex w-full items-start gap-3 p-4 text-start" @click="newProject">
                         <span class="bubble grid size-10 shrink-0 place-items-center"><Icon name="mic" :size="20" /></span>
-                        <span><span class="block font-bold text-cream">{{ t('home.new.record') }}</span><span class="text-sm text-muted">{{ t('home.new.recordHint') }}</span></span>
+                        <span><span class="block font-semibold text-cream">{{ t('home.new.record') }}</span><span class="text-sm text-muted">{{ t('home.new.recordHint') }}</span></span>
                     </button>
                     <!-- Ideas (docs/ideas-app-plan.md), once open: someone's tune, waiting for your voice -->
                     <a v-if="ideas.open" href="/ideas" class="card-interactive flex w-full items-start gap-3 p-4 text-start" data-new-ideas @click.prevent="navigate('/ideas')">
                         <span class="bubble grid size-10 shrink-0 place-items-center"><Icon name="note" :size="20" /></span>
-                        <span><span class="block font-bold text-cream">{{ t('home.new.ideas') }}</span><span class="text-sm text-muted">{{ t('home.new.ideasHint') }}</span></span>
+                        <span><span class="block font-semibold text-cream">{{ t('home.new.ideas') }}</span><span class="text-sm text-muted">{{ t('home.new.ideasHint') }}</span></span>
                     </a>
                 </div>
             </Modal>
@@ -334,12 +334,12 @@ export const ProjectsView = {
                 <div class="space-y-2.5">
                     <button v-for="way in makeWays" :key="way.mode" type="button" class="card-interactive flex min-h-11 w-full items-center gap-3 p-4 text-start" data-make-option :data-new-hum="way.mode === 'hum' ? '' : null" @click="navigate('/create?mode=' + way.mode)">
                         <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-accent/10 text-accent" aria-hidden="true" data-make-icon><Icon :name="way.icon" :size="20" /></span>
-                        <span class="min-w-0 flex-1"><span class="block font-bold text-cream" data-ui="option-title">{{ t(way.title) }}</span><span class="block text-sm text-muted">{{ t(way.hint) }}</span></span>
+                        <span class="min-w-0 flex-1"><span class="block font-semibold text-cream" data-ui="option-title">{{ t(way.title) }}</span><span class="block text-sm text-muted">{{ t(way.hint) }}</span></span>
                         <Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" aria-hidden="true" />
                     </button>
                     <label class="card-interactive flex min-h-11 w-full cursor-pointer items-center gap-3 p-4 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-(--ring)" data-make-option>
                         <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-accent/10 text-accent" aria-hidden="true" data-make-icon><Icon name="arrowDown" :size="20" /></span>
-                        <span class="min-w-0 flex-1"><span class="block font-bold text-cream" data-ui="option-title">{{ t('create.home.import') }}</span><span class="block text-sm text-muted">{{ sheetMusic ? t('create.home.importHintSheet') : t('create.home.importHint') }}</span></span>
+                        <span class="min-w-0 flex-1"><span class="block font-semibold text-cream" data-ui="option-title">{{ t('create.home.import') }}</span><span class="block text-sm text-muted">{{ sheetMusic ? t('create.home.importHintSheet') : t('create.home.importHint') }}</span></span>
                         <Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" aria-hidden="true" />
                         <!-- Sheet music too (docs/sheet-music-plan.md), after the first week -->
                         <input type="file" :accept="sheetMusic ? '.json,application/json,.musicxml,.mxl,.xml,.mid,.midi,application/vnd.recordare.musicxml+xml,application/vnd.recordare.musicxml,audio/midi' : '.json,application/json'" class="sr-only" data-open-file @change="importFile($event.target.files[0]); $event.target.value = ''" />

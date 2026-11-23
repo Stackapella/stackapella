@@ -43,6 +43,10 @@
                     <h1 id="page-h">{{ __($words.'.headline') }} <em class="s-xserif">{{ __($words.'.headline_em') }}</em></h1>
                     {{-- One short lead (Hillel's Jewish Songs redesign); the intro is its own section after the songs. --}}
                     <p class="s-lead">{{ __($words.'.lead') }}</p>
+                    {{-- The Jewish songs' AI choir sings their own words, respelled for singing (2026-11-23), while own_choir is on. --}}
+                    @if ($slug === 'jewish-songs' && \App\Support\Pages\SongParts::switchedOn('own_choir') && trans()->has($words.'.ai_choir'))
+                        <p class="s-sub"><a href="/your-choir" class="s-lk">{{ __('site.your_choir.title') }}</a>: {{ __($words.'.ai_choir') }}</p>
+                    @endif
                     <div class="s-actions s-actions-row">
                         <a href="#songbook" class="btn-primary btn-lg">{{ __($words.'.pick') }} <span aria-hidden="true">↓</span></a>
                         @include('site._share', ['surface' => 'page-collection', 'url' => $canonical, 'title' => $title, 'name' => __($words.'.crumb'), 'lg' => true, 'label' => trans()->has($words.'.share') ? __($words.'.share') : __('site.share.choir')])

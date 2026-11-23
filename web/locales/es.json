@@ -1384,6 +1384,17 @@
             "range": "De {low} a {high}",
             "rangeInline": "de {low} a {high}"
         },
+        "meter": {
+            "label": "Tu afinación",
+            "ready": "Listo",
+            "inTune": "Afinado",
+            "slightlySharp": "Un poco alto",
+            "slightlyFlat": "Un poco bajo",
+            "sharpNow": "Alto",
+            "flatNow": "Bajo",
+            "sharp": "alto",
+            "flat": "bajo"
+        },
         "card": {
             "now": "ahora",
             "word": "“{word}”",

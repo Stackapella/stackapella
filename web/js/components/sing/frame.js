@@ -7,7 +7,7 @@ import { engine } from '../../audio.js';
 import { MODES } from '../../practice.js';
 import { formatTime } from '../../theme.js';
 import { Icon } from '../icon.js';
-import { tk } from '../../i18n.js';
+import { formatNumber, tk } from '../../i18n.js';
 import { CountIn } from '../count-in.js';
 
 // Sing's views, one tap from the header (and its V key).
@@ -160,7 +160,7 @@ export const Transport = {
         faster: Boolean,
     },
     emits: ['play', 'record', 'loop', 'again', 'tempo'],
-    setup: () => ({ formatTime }),
+    setup: () => ({ formatTime, formatNumber }),
     // The disc just tapped (Play or Record), spinning while the session gets ready (instant feedback, Hillel 2026-11-12).
     data: () => ({ pressed: null }),
     watch: {
@@ -170,21 +170,23 @@ export const Transport = {
     },
     template: `
         <div class="sing-controls px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2 md:flex md:items-center md:gap-6 md:border-t md:border-line md:bg-panel min-[900px]:px-6 md:py-3">
-            <span class="hidden min-w-36 text-2xl font-bold tabular-nums text-cream md:inline">{{ formatTime(position) }} <span class="text-sm font-normal text-muted">/ {{ formatTime(length) }}</span></span>
+            <!-- Hillel's 2026-11-23 transport: the clock at the start, Loop line, Play and Record in the middle, Tempo at the end. -->
+            <span class="hidden min-w-36 items-baseline gap-1.5 md:inline-flex"><span class="t-clock text-cream">{{ formatTime(position) }}</span><span class="t-clock-of">/ {{ formatTime(length) }}</span></span>
             <div v-if="recording" class="flex flex-1 flex-col items-center gap-1">
                 <button type="button" class="grid size-20 place-items-center transition disabled:opacity-40 bubble bubble-lg bubble-record bubble-now" :disabled="busy" :aria-label="t('studio.stopRecording')" data-recording-disc @click="$emit('record')"><Icon name="stop" :size="30" /></button>
                 <span class="text-sm font-semibold text-cream">{{ t('sing.transport.stop') }}</span>
             </div>
             <div v-else-if="!turn" class="hidden flex-1 items-center justify-center gap-4 md:flex">
-                <button type="button" class="btn-secondary" :aria-pressed="loop ? 'true' : 'false'" :class="loop ? 'ring-2 ring-cream/60' : ''" @click="$emit('loop')"><Icon name="loop" :size="16" /> {{ t('sing.transport.loopLine') }}</button>
-                <button type="button" class="grid size-[4.5rem] place-items-center transition disabled:opacity-40 bubble bubble-lg bubble-primary" data-disc="play" :disabled="busy" :aria-label="playing ? t('studio.pause') : t('studio.play')" data-play :aria-busy="spinning('play') ? 'true' : null" @click="press('play')"><span v-if="spinning('play')" class="spinner size-7" aria-hidden="true"></span><Icon v-else :name="playing ? 'pause' : 'play'" :size="30" /></button>
-                <button type="button" class="btn-secondary" :disabled="busy" :aria-label="t('sing.recordPart', { name: partName })" :aria-busy="spinning('record') ? 'true' : null" @click="press('record')"><span v-if="spinning('record')" class="spinner" aria-hidden="true"></span><span v-else class="size-2.5 rounded-full bg-record" aria-hidden="true"></span> {{ t('sing.transport.record') }}</button>
+                <button type="button" class="btn-pill" :aria-pressed="loop ? 'true' : 'false'" @click="$emit('loop')"><Icon name="loop" :size="16" /> {{ t('sing.transport.loopLine') }}</button>
+                <button type="button" class="grid size-16 place-items-center transition disabled:opacity-40 bubble bubble-lg bubble-primary" data-disc="play" :disabled="busy" :aria-label="playing ? t('studio.pause') : t('studio.play')" data-play :aria-busy="spinning('play') ? 'true' : null" @click="press('play')"><span v-if="spinning('play')" class="spinner size-7" aria-hidden="true"></span><Icon v-else :name="playing ? 'pause' : 'play'" :size="28" /></button>
+                <button type="button" class="btn-pill" style="--pill-c: var(--color-record)" :disabled="busy" :aria-label="t('sing.recordPart', { name: partName })" :aria-busy="spinning('record') ? 'true' : null" @click="press('record')"><span v-if="spinning('record')" class="spinner" aria-hidden="true"></span><span v-else class="size-2.5 rounded-full bg-record" aria-hidden="true"></span> {{ t('sing.transport.record') }}</button>
             </div>
-            <div v-if="!recording && !turn && bpm" class="hidden shrink-0 items-center gap-2 text-sm text-muted md:flex">
-                {{ t('sing.transport.tempo') }}
-                <button type="button" class="grid size-9 place-items-center rounded-full glass-bubble text-cream hover:bg-raised disabled:opacity-40" :disabled="!slower" :aria-label="t('sing.transport.slower')" @click="$emit('tempo', -1)">-</button>
-                <span class="min-w-16 text-center tabular-nums text-cream">{{ t('studio.meta.bpm', { bpm }) }}</span>
-                <button type="button" class="grid size-9 place-items-center rounded-full glass-bubble text-cream hover:bg-raised disabled:opacity-40" :disabled="!faster" :aria-label="t('sing.transport.faster')" @click="$emit('tempo', 1)">+</button>
+            <!-- The tempo as its word and a plain number between - and +, never BPM (the coordinator call 9). -->
+            <div v-if="!recording && !turn && bpm" class="hidden shrink-0 items-center gap-2.5 md:flex">
+                <span class="text-sm text-subtle">{{ t('sing.transport.tempo') }}</span>
+                <button type="button" class="icon-btn shadow-[inset_0_0_0_1px_var(--color-line)]" :disabled="!slower" :aria-label="t('sing.transport.slower')" @click="$emit('tempo', -1)"><Icon name="minus" :size="18" /></button>
+                <span class="min-w-12 text-center text-[15px] font-semibold tabular-nums text-cream">{{ formatNumber(bpm) }}</span>
+                <button type="button" class="icon-btn shadow-[inset_0_0_0_1px_var(--color-line)]" :disabled="!faster" :aria-label="t('sing.transport.faster')" @click="$emit('tempo', 1)"><Icon name="plus" :size="18" /></button>
             </div>
             <div v-if="!recording" class="flex flex-1 items-start justify-between md:justify-center md:gap-14" :class="turn ? '' : 'md:hidden'">
                 <div class="flex w-20 flex-col items-center gap-1">
@@ -214,14 +216,14 @@ export const Transport = {
 export const LineBar = {
     // compact: the studio's phone lane (docs/studio-words-plan.md), segments only, no padding; each
     // segment still names its line to a screen reader.
-    props: { lines: { type: Array, required: true }, position: { type: Number, default: 0 }, compact: Boolean }, // [{ label, startSeconds, endSeconds }]
+    props: { lines: { type: Array, required: true }, position: { type: Number, default: 0 }, compact: Boolean, color: { type: String, default: 'var(--color-cream)' } }, // [{ label, startSeconds, endSeconds }]; color: the fill (your part's)
     emits: ['seek'],
     template: `
         <ol class="grid gap-1.5" :class="compact ? '' : 'px-6 pt-3'" :style="{ gridTemplateColumns: 'repeat(' + lines.length + ', minmax(0, 1fr))' }" :aria-label="t('sing.lines')" data-line-bar>
             <li v-for="(line, i) in lines" :key="i">
                 <button type="button" class="block w-full text-start" :class="compact ? 'tap-44 min-h-6 py-2' : ''" :aria-current="i === now ? 'true' : null" :aria-label="compact ? line.label : null" :translate="compact ? 'no' : null" @click="$emit('seek', line.startSeconds)">
-                    <span class="block h-1.5 overflow-hidden rounded-full bg-raised" aria-hidden="true"><span class="block h-full rounded-full bg-cream/70" :style="{ width: fill(line) + '%' }"></span></span>
-                    <span v-if="!compact" class="mt-1.5 block truncate text-xs" :class="i === now ? 'text-cream' : 'text-muted'" translate="no">{{ line.label }}</span>
+                    <span class="block h-1 overflow-hidden rounded-full bg-raised" aria-hidden="true"><span class="block h-full rounded-full" :style="{ width: fill(line) + '%', background: color }"></span></span>
+                    <span v-if="!compact" class="mt-2 block truncate text-xs" :class="i === now ? 'font-semibold text-cream' : 'text-subtle'" translate="no">{{ line.label }}</span>
                 </button>
             </li>
         </ol>`,

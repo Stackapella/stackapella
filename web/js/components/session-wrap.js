@@ -54,7 +54,7 @@ export const SessionWrap = {
     setup: () => ({ learning, midiName, sk }),
     template: `
         <section class="w-full space-y-5 rounded-3xl border border-edge bg-panel p-5 text-start" aria-labelledby="wrap-title" data-session-wrap>
-            <h2 id="wrap-title" class="text-lg font-bold text-cream">{{ learning.progress.home !== null ? sk('wrap.titleSerious', 'wrap.title', { note: midiName(Math.round(learning.progress.home)), lessons, stars }) : sk('wrap.titleNoNoteSerious', 'wrap.titleNoNote', { lessons, stars }) }}</h2>
+            <h2 id="wrap-title" class="text-lg font-semibold text-cream">{{ learning.progress.home !== null ? sk('wrap.titleSerious', 'wrap.title', { note: midiName(Math.round(learning.progress.home)), lessons, stars }) : sk('wrap.titleNoNoteSerious', 'wrap.titleNoNote', { lessons, stars }) }}</h2>
             <div v-if="ask" class="space-y-3 border-t border-line pt-4" data-wrap-keep :data-ask="ask">
                 <!-- Installing is said for what it is, never as a way to keep what's here: on Safari an added app starts fresh, so a guest there is asked for the account. -->
                 <p class="font-semibold text-cream">{{ ask === 'account' ? sk('wrap.accountSerious', 'wrap.account', { stars }) : ask === 'nudge' ? sk('wrap.nudgeTitle', 'game.wrap.nudgeTitle') : t('wrap.installApp') }}</p>
@@ -150,7 +150,7 @@ export const RemindAsk = {
     template: `
         <section v-if="shown" class="flex flex-wrap items-center gap-4 rounded-3xl border border-edge bg-panel p-5" aria-labelledby="remind-ask-title" data-remind-ask data-ask>
             <div class="min-w-52 flex-1">
-                <h2 id="remind-ask-title" class="font-bold text-cream">{{ t('wrap.remindTitle') }}</h2>
+                <h2 id="remind-ask-title" class="font-semibold text-cream">{{ t('wrap.remindTitle') }}</h2>
                 <p class="text-sm text-muted">{{ t('wrap.remindWhy') }}</p>
             </div>
             <div class="flex flex-wrap items-center gap-3">
@@ -226,7 +226,7 @@ export const FirstWeek = {
         <section v-if="shown" class="rounded-3xl border border-edge bg-panel p-5" aria-labelledby="first-week-title" data-first-week>
             <div class="flex flex-wrap items-center gap-4">
                 <div class="min-w-52 flex-1">
-                    <h2 id="first-week-title" class="font-bold text-cream">{{ t('wrap.week.title') }}</h2>
+                    <h2 id="first-week-title" class="font-semibold text-cream">{{ t('wrap.week.title') }}</h2>
                     <p class="text-sm text-cream">{{ facts }}</p>
                 </div>
                 <button v-if="!keep" type="button" class="tap-44 btn-ghost btn-sm" data-first-week-done @click="done">{{ t('wrap.week.done') }}</button>

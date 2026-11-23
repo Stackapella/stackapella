@@ -104,6 +104,9 @@
     --gem-words-above-weight: 700;
     --gem-words-above-gap: 4;
     --gem-words-above-clear: 6;
+    --gem-words-name-of: 0.8;
+    --gem-words-name-weight: 550;
+    --gem-words-name-alpha: 0.75;
     --gem-motion-next-s: 0.45;
     --gem-motion-onset-ms: 90;
     --gem-motion-release-ms: 160;

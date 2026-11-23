@@ -187,7 +187,7 @@ export const SingView = {
                         <template v-else-if="view === 'notes'">
                             <div class="flex min-h-0 flex-1" data-ui="sing-stage">
                                 <div class="flex min-h-0 flex-1 flex-col gap-2 pt-2">
-                                    <NowCard class="mx-4 md:mx-6" :note="nowCard.note" :word="nowCard.word" :next="nowCard.next" :color="paint(focusPart.color)" :outlined="turn" :hint="turn ? hintState.hint : null" />
+                                    <NowCard class="mx-4 md:mx-6" :note="nowCard.note" :word="nowCard.word" :next="nowCard.next" :color="paint(focusPart.color)" :outlined="turn" :hint="turn ? hintState.hint : null" :line="hasWords ? currentLine : null" :position="position" :tuning="turn || recording ? stageTuning : null" :live="turn || recording" />
                                     <!-- Tune the chord (docs/tune-chord-plan.md): a held chord note against its pure tuning, when Sing's settings turn it on -->
                                     <RingMeter v-if="shownRing" class="mx-4 md:mx-6" :reading="shownRing" :chord="ringChord" :color="paint(focusPart.color)" />
                                     <!-- The combo, and in game mode the bonus pop-ups beside it (docs/game-elements-plan.md) -->
@@ -195,7 +195,7 @@ export const SingView = {
                                         <p v-if="combo >= 3" class="self-start rounded-full bg-raised px-3 py-1 text-sm font-semibold text-cream" data-combo>{{ t('course.combo', { count: combo }) }}</p>
                                         <PopupSlot v-if="effect('popups')" :queue="hud" />
                                     </div>
-                                    <Lane class="min-h-0 flex-1" :class="crt ? 'ge-crt' : ''" :notes="notes" :words="laneWords" :others="laneOthers" :transpose="project.transpose || 0" :beat-seconds="beatSeconds" :position="position"
+                                    <Lane class="min-h-0 flex-1" :class="crt ? 'ge-crt' : ''" flat :per-bar="perBar" :notes="notes" :words="laneWords" :others="laneOthers" :transpose="project.transpose || 0" :beat-seconds="beatSeconds" :position="position"
                                         :color="paint(focusPart.color)" :state="recording ? 'recording' : turn ? 'turn' : 'listen'" :note-name="laneName"
                                         :keyboard="prefs.keyboard" :chords="laneChords" :loop="laneLoop" :voice="turn ? voice.points : []" :lit="voice.lit" :hits="voice.hits" :trail="onFire ? 'var(--ge-fire)' : null" :ghost="ghostLine" :hint="turn ? hintState.hint : null" :data-voice="turn ? voice.points.length : 0" :data-lit="voice.lit.size" />
                                 </div>
@@ -213,7 +213,7 @@ export const SingView = {
                 </div>
 
                 <div v-if="getReady && !recording" class="flex justify-center pb-2"><button type="button" class="btn-secondary btn-sm" @click="firstNote"><Icon name="note" :size="16" /> {{ t('sing.firstNoteCard.playMine') }}</button></div>
-                <LineBar v-if="way === 'whole' && !recording && !recorded && phraseRows.length > 1" class="hidden bg-panel md:grid" :lines="phraseRows" :position="position" @seek="seekLine" />
+                <LineBar v-if="way === 'whole' && !recording && !recorded && phraseRows.length > 1" class="hidden bg-panel md:grid" :lines="phraseRows" :position="position" :color="paint(focusPart.color)" @seek="seekLine" />
                 <Transport v-if="!recorded && !resung" :starting="starting" :class="coaching && !playing ? 'hidden md:flex' : ''" :position="position" :length="lengthSeconds" :playing="playing && !recording" :recording="recording" :busy="busy" :loop="!!practice.loop" :part-name="partName"
                     :turn="way === 'parts' && phase === 'turn' && !recording" :bpm="way === 'whole' ? Math.round((project.bpm || project.template.tempo) * (practice.speed ?? 1)) : 0" :slower="canSlower" :faster="canFaster" @tempo="stepTempo" @play="transportPlay" @record="recordPart" @loop="loop" @again="repeatPhrase(here)" />
             </template>

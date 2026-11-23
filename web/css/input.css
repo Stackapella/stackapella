@@ -2456,7 +2456,7 @@ select:disabled {
 :is(.s-score, .s-score-paper) [data-echo][data-lit^="alto"] { --c: var(--color-part-2); }
 :is(.s-score, .s-score-paper) [data-echo][data-lit^="tenor"] { --c: var(--color-part-3); }
 :is(.s-score, .s-score-paper) [data-echo][data-lit^="bass"] { --c: var(--color-part-4); }
-.s-score-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px; font-size: 13px; }
+.s-score-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 12px; margin-top: 4px; font-size: 13px; } /* Full score drops under the pager on a narrow card */
 .s-score-pager { display: inline-flex; align-items: center; gap: 10px; }
 .s-score-pager button { position: relative; display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 50%; background: color-mix(in srgb, var(--ink) 9%, transparent); color: inherit; cursor: pointer; }
 .s-score-pager button::after { content: ''; position: absolute; inset: -6px; }
@@ -3526,7 +3526,9 @@ a.s-vt-rung:hover { background: color-mix(in srgb, var(--color-cream) 5%, transp
 @media (min-width: 640px) and (max-width: 899px) { .s-xhero.s-tone:has(.s-obj) .s-xhero-in { padding-top: 132px; } }
 @media (min-width: 900px) { .s-xhero.s-tone:has(.s-obj) .s-xhero-in { padding-top: 88px; } }
 /* /songs (public/songs, SongsHub): the promise and the swatches, the season's band, the panels, then every song. */
-.s-sh-hero { display: grid; gap: 28px; padding-top: 32px; }
+/* One column on a phone that never grows past the screen: the try card's score, once drawn, scales into it (it had made
+   the column its own width, 4 px past a 320 px screen). */
+.s-sh-hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; padding-top: 32px; }
 .s-sh-hero h1 { margin-top: 10px; font-size: clamp(36px, 9vw, 60px); line-height: 1.04; letter-spacing: -.025em; }
 .s-sh-hero .s-lede { margin-top: 14px; }
 .s-sh-start { margin-top: 14px; }

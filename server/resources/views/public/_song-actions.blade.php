@@ -14,9 +14,13 @@
 {{-- Behind own_choir_teaser (docs/ai-voices-build-plan.md, phase 2, finding out cheaply): one quiet button, Coming soon
      beside it; a tap says what it will be, leading with the angle (this real arrangement, from 30 seconds of singing) and
      naming AI once, and counts choir_teaser once (js/public/choir-teaser.js). Nothing is recorded or kept. --}}
+{{-- In Hanukkah's window (JewishSongs::seasonKey), a Hanukkah song's page offers the choir guide (2026-11-23). --}}
+@if (in_array('hanukkah', $song['genre'] ?? [], true) && \App\Support\Pages\JewishSongs::seasonKey() === 'hanukkah')
+    <p class="s-sg-note">{{ __('pages.song.hanukkah_guide') }} <a href="/guides/hanukkah-songs-for-choir" class="s-lk">{{ __('pages.song.hanukkah_guide_link') }}</a></p>
+@endif
 @if (($choirLive ?? null) !== null)
     {{-- Live (own_choir): one quiet link into the app with this song, and the free first song said once. --}}
-    <p class="s-sg-note"><a href="{{ $choirLive }}" class="s-lk" data-choir-live>{{ __('pages.song.choir.button') }}</a>@if ($choirFree ?? false) {{ __('pages.song.choir.free') }}@endif</p>
+    <p class="s-sg-note"><a href="{{ $choirLive }}" class="s-lk" data-choir-live>{{ __('pages.song.choir.button') }}</a>@if ($choirFree ?? false) {{ __('pages.song.choir.free') }}@endif @if (in_array('jewish', $song['genre'] ?? [], true)){{ __('pages.song.choir.own_words') }}@endif</p>
 @elseif ($choirTeaser ?? false)
     <p class="s-sg-note" data-choir-teaser><button type="button" class="s-lk" aria-expanded="false" aria-controls="choir-soon">{{ __('pages.song.choir.button') }}</button> <x-site.soon /></p>
     <p class="s-sg-note" id="choir-soon" hidden>{{ __('pages.song.choir.soon') }}</p>

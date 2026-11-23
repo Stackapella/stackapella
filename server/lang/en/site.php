@@ -2013,6 +2013,8 @@ return [
             'title' => 'Jewish Songs for Hanukkah, Passover and Shabbat',
             // In a festival's window only (JewishSongs::seasonKey: Hanukkah from 21 days before its first evening to its
             // last day), the page's search title and description lead with it; then back to the title above.
+            // After the lead while own_choir is on, beside a link to Hear yourself as a choir.
+            'ai_choir' => 'the AI choir sings these songs in their own words, respelled for singing.',
             'season_title' => ['hanukkah' => 'Hanukkah Songs for Choir: Learn Every Part Free'],
             'season_description' => ['hanukkah' => 'Hanukkah songs for choir in four-part harmony, free: Maoz Tzur and Oy Chanukah, each part to learn by ear in time for the first candle.'],
             'description' => 'Traditional Jewish songs for Hanukkah, Passover and Shabbat in four-part harmony, free: learn your part by ear and sing it with a choir or family.',

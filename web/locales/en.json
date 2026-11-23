@@ -4482,6 +4482,17 @@
             "range": "From {low} to {high}",
             "rangeInline": "from {low} to {high}"
         },
+        "meter": {
+            "label": "Your pitch",
+            "ready": "Ready",
+            "inTune": "In tune",
+            "slightlySharp": "Slightly sharp",
+            "slightlyFlat": "Slightly flat",
+            "sharpNow": "Sharp",
+            "flatNow": "Flat",
+            "sharp": "sharp",
+            "flat": "flat"
+        },
         "card": {
             "now": "now",
             "word": "“{word}”",

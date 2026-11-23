@@ -291,7 +291,7 @@ export function whenWordsReady(redraw) {
  * stays inside `bounds`), or nothing. Never clipped. `reserve` (a hit's tick) only lets the name give way: the word
  * stays where it is, and the tick goes above the gem when the word fills it. Returns { where, text, font, end, ... }.
  */
-export function gemFit(g, { x, y, w, h, word, name = '', nextX = Infinity, bounds = null, reserve = 0 }) {
+export function gemFit(g, { x, y, w, h, word, name = '', nextX = Infinity, bounds = null, reserve = 0, quietName = false }) {
     const said = gemWord(word);
     const r = gemRadius(w, h);
     const inset = Math.max(GEM.words.inset, GEM.words.insetOfR * r);
@@ -304,6 +304,17 @@ export function gemFit(g, { x, y, w, h, word, name = '', nextX = Infinity, bound
         return width <= space ? { where: 'in', text, font: fontAt(px), spacing: spacingAt(px), x: x + inset, end: x + inset + width } : null;
     };
     if (h >= GEM.words.minGem) {
+        // Sing's Notes view (Hillel's 2026-11-23 design, quietName): the name after the word, smaller and lighter.
+        if (quietName && said && name) {
+            const namePx = Math.max(GEM.words.min, Math.round(size * GEM.words.nameOf));
+            const nameFont = `${GEM.words.nameWeight} ${namePx}px Figtree, system-ui, sans-serif`;
+            const wordWidth = measure(g, fontAt(size), said, spacingAt(size));
+            const gap = Math.round(size * 0.4);
+            const nameWidth = measure(g, nameFont, name);
+            if (wordWidth + gap + nameWidth <= room - Math.max(0, reserve - GEM.words.inset)) {
+                return { where: 'in', text: said, font: fontAt(size), spacing: spacingAt(size), x: x + inset, end: x + inset + wordWidth + gap + nameWidth, name, nameFont, nameX: x + inset + wordWidth + gap };
+            }
+        }
         const both = said && name ? `${said} ${name}` : '';
         const one = said || name;
         // Word and name, the word alone, then the word alone a step smaller (never under the floor), before it goes above.
@@ -328,8 +339,8 @@ export function gemFit(g, { x, y, w, h, word, name = '', nextX = Infinity, bound
  * The words on a gem (gemFit's choice), drawn: `ink` inside; `above`, the colour above it; `ringed`, a word above
  * clears the ring. Returns the fit.
  */
-export function gemWords(g, { x, y, w, h, word, name = '', ink, above, nextX = Infinity, bounds = null, reserve = 0, ringed = false }) {
-    const fit = gemFit(g, { x, y, w, h, word, name, nextX, bounds, reserve });
+export function gemWords(g, { x, y, w, h, word, name = '', ink, above, nextX = Infinity, bounds = null, reserve = 0, ringed = false, quietName = false }) {
+    const fit = gemFit(g, { x, y, w, h, word, name, nextX, bounds, reserve, quietName });
     if (fit.where === 'none' || (fit.where === 'above' && !above)) return fit;
     g.save();
     g.textBaseline = 'middle';
@@ -339,6 +350,12 @@ export function gemWords(g, { x, y, w, h, word, name = '', ink, above, nextX = I
     if (fit.where === 'in') {
         g.fillStyle = ink;
         g.fillText(fit.text, fit.x, y + h / 2 + 0.5);
+        if (fit.name) {
+            g.font = fit.nameFont;
+            if ('letterSpacing' in g) g.letterSpacing = '0px';
+            g.globalAlpha *= GEM.words.nameAlpha;
+            g.fillText(fit.name, fit.nameX, y + h / 2 + 0.5);
+        }
     } else {
         const ring = ringed ? GEM.ring.knockout + GEM.ring.width + GEM.ring.keyline : 0;
         g.fillStyle = above;

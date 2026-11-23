@@ -58,8 +58,8 @@ export const ChoirPanel = {
     },
     template: `
         <section v-if="shown" :class="side ? '' : 'card p-5'" aria-labelledby="choir-panel-title" data-choir-panel :data-choir-panel-state="state">
-            <p class="text-xs font-bold uppercase tracking-[0.14em] text-muted">{{ t('ownChoir.home.label') }}</p>
-            <h2 id="choir-panel-title" class="mt-1.5 text-lg font-bold leading-snug text-cream">{{ t('ownChoir.title') }}</h2>
+            <p class="t-section">{{ t('ownChoir.home.label') }}</p>
+            <h2 id="choir-panel-title" class="mt-1.5 text-lg font-semibold leading-snug text-cream">{{ t('ownChoir.title') }}</h2>
             <ul v-if="rows.length" class="mt-2 divide-y divide-line" role="status" data-choir-ready>
                 <li v-for="r in rows" :key="r.id" class="flex flex-wrap items-center gap-x-3 gap-y-2 py-3" data-choir-notice>
                     <p class="min-w-0 flex-1 basis-40 text-sm text-cream">{{ line(r) }}</p>

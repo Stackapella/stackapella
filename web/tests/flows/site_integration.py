@@ -32,7 +32,13 @@ CSS_KB = 700  # site.css (about 385 since the course pages' rules went to course
 COURSES_KB = 90  # the page's course sheet, its courses only (/course-css/, about 17 to 55; courses.css whole is 310), only where a .cp- class shows
 REQUESTS = 45  # the page's own files (the landing's demo about 32)
 PREFETCH_KB = 1380  # the app's first screen, prefetched at idle (AppPrefetch): its own budget, never the page's weight; the landing's was 1,251 KB in 123 files on 2026-11-13 (a song page's 730), so 10% over, and it says which files grew
-SPEED = """(() => {
+# The song hubs (/songs and the songbooks: the carols, the collections) are weighed as people download them, gzipped
+# (the coordinator, 2026-11-23): each card carries its opening line's notes so a press plays at once, the hubs' main
+# way in, and that JSON is most of their uncompressed weight but a small part gzipped (/songs 778 KB, 197 gzipped, its
+# page 42 of that). Production sends brotli, smaller still. The heaviest hub gzipped was 224 KB (spirituals, its card
+# pictures; carols 223, /songs 197, hymns 187), so 15% over. Every other page keeps OWN_KB.
+HUB_GZ_KB = 260
+SPEED = """(async () => {
   const bad = [];
   const res = performance.getEntriesByType('resource');
   for (const r of res) if (r.renderBlockingStatus === 'blocking' && !r.name.startsWith(location.origin)) bad.push(`another site blocks the first paint: ${r.name.slice(0, 70)}`);
@@ -57,11 +63,18 @@ SPEED = """(() => {
   if (showsCourse && !linksCourses) bad.push('a course class shows, but no course sheet is linked');
   if (!showsCourse && linksCourses) bad.push('a course sheet is linked, but no course class shows');
   if (courses > COURSES_KB) bad.push(`the course sheet is ${Math.round(courses)} KB (budget COURSES_KB)`);
-  if (kb > OWN_KB) bad.push(`its own weight is ${Math.round(kb)} KB (budget OWN_KB)`);
+  if (document.querySelector('.s-sh-hero, [data-songbook]')) {
+    // A song hub: gzipped, as it travels (its own budget, set in the flow). Pictures and fonts are compressed already; the rest is
+    // gzipped here, the page fetched again for its bytes.
+    const gzip = async (url, init) => { const reader = (await fetch(url, init)).body.pipeThrough(new CompressionStream('gzip')).getReader(); let n = 0; for (;;) { const { done, value } = await reader.read(); if (done) return n; n += value.length; } };
+    let gz = await gzip(location.href, { cache: 'no-store' });
+    for (const r of own.filter((r) => !sheet(r))) gz += /\\.(woff2|webp|avif|png|jpe?g)(\\?|$)/.test(r.name) ? r.decodedBodySize : await gzip(r.name, { cache: 'force-cache' });
+    if (gz / 1024 > HUB_GZ_KB) bad.push(`its own weight gzipped is ${Math.round(gz / 1024)} KB (a song hub's budget HUB_GZ_KB; ${Math.round(kb)} KB uncompressed)`);
+  } else if (kb > OWN_KB) bad.push(`its own weight is ${Math.round(kb)} KB (budget OWN_KB)`);
   if (css > CSS_KB) bad.push(`site.css is ${Math.round(css)} KB (budget CSS_KB)`);
   if (own.length > REQUESTS) bad.push(`${own.length} requests for its own files (budget REQUESTS)`);
   return bad;
-})()""".replace("OWN_KB", str(OWN_KB)).replace("COURSES_KB", str(COURSES_KB)).replace("CSS_KB", str(CSS_KB)).replace("REQUESTS", str(REQUESTS)).replace("PREFETCH_KB", str(PREFETCH_KB))
+})()""".replace("OWN_KB", str(OWN_KB)).replace("COURSES_KB", str(COURSES_KB)).replace("CSS_KB", str(CSS_KB)).replace("REQUESTS", str(REQUESTS)).replace("PREFETCH_KB", str(PREFETCH_KB)).replace("HUB_GZ_KB", str(HUB_GZ_KB))
 PREFETCH_DONE = """(() => {
   const list = document.querySelector('[data-app-prefetch]');
   if (!list) return true;

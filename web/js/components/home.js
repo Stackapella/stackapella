@@ -172,14 +172,14 @@ export const HomeLead = {
             <div v-if="!learning.loaded" class="space-y-3" aria-hidden="true"><div class="skeleton h-8 w-2/3"></div><div class="skeleton h-12 w-full"></div></div>
 
             <div v-else-if="learning.failed" class="space-y-3">
-                <h1 id="lead-title" class="text-2xl font-extrabold tracking-tight text-cream">{{ t('course.title') }}</h1>
+                <h1 id="lead-title" class="t-title text-cream">{{ t('course.title') }}</h1>
                 <p class="text-muted" role="alert">{{ t('home.lead.failed') }}</p>
                 <button type="button" class="btn-secondary" @click="retry">{{ t('common.tryAgain') }}</button>
             </div>
 
             <div v-else-if="!started" :class="$slots.side ? 'grid gap-x-10 gap-y-6 lg:grid-cols-[minmax(0,1fr)_20rem]' : ''">
               <div class="min-w-0">
-                <h1 id="lead-title" class="max-w-md text-3xl font-extrabold leading-tight tracking-tight text-cream md:text-4xl">{{ t('home.lead.title') }}</h1>
+                <h1 id="lead-title" class="t-title-lg max-w-md text-cream">{{ t('home.lead.title') }}</h1>
                 <!-- The arcade screen (game/arcade.js): the stage and your real high score, as Hillel's design has them; hidden until its layer's CSS shows it -->
                 <p v-if="effect('arcade')" class="gs-hi hidden"><span class="gs-hi-stage" aria-hidden="true">{{ t('game.arcade.stage', { number: '01' }) }}</span><span class="gs-hi-score" aria-hidden="true">{{ t('game.arcade.hi', { score: String(learning.progress.xp.total).padStart(6, '0') }) }}</span><span class="sr-only">{{ t('game.arcade.hiLabel', { stage: 1, xp: learning.progress.xp.total }) }}</span></p>
                 <ul class="mt-5 space-y-2" aria-hidden="true" data-lead-lanes>
@@ -190,9 +190,9 @@ export const HomeLead = {
                         </svg>
                     </li>
                 </ul>
-                <p class="mt-4 text-sm text-muted">{{ t('home.lead.body') }}</p>
+                <p class="t-lead mt-4">{{ t('home.lead.body') }}</p>
                 <button type="button" class="btn-primary btn-lg mt-5 w-full sm:w-auto" :disabled="starting || !learning.course" @click="begin">{{ t('course.start') }} <Icon name="arrow" :size="18" /></button>
-                <p class="mt-3 text-xs text-muted">{{ t('home.lead.free') }}</p>
+                <p class="t-hint mt-3">{{ t('home.lead.free') }}</p>
               </div>
               <!-- A wide screen's side column (Hear yourself as a choir, from Home). -->
               <div v-if="$slots.side" class="hidden border-s border-line ps-10 lg:block"><slot name="side" /></div>
@@ -206,7 +206,7 @@ export const HomeLead = {
                 <TodayLine :lesson-id="finished ? null : next.lesson.id" :finished="finished" />
                 <!-- 42.png and Hillel's Home design: the unit as an eyebrow, its path of glass gems, the lesson's label and title, the unit's progress, Continue lesson. -->
                 <div class="flex flex-wrap items-start justify-between gap-3">
-                    <p class="tabular-nums text-xs font-bold uppercase tracking-[0.14em] text-accent-strong" translate="no" data-lead-eyebrow>{{ effect('title') ? t('game.home.stage', { number: unitNumber, title: localized(next.unit.title) }) : t('home.lead.unit', { number: unitNumber, title: localized(next.unit.title) }) }}</p>
+                    <p class="t-section tabular-nums" translate="no" data-lead-eyebrow>{{ effect('title') ? t('game.home.stage', { number: unitNumber, title: localized(next.unit.title) }) : t('home.lead.unit', { number: unitNumber, title: localized(next.unit.title) }) }}</p>
                     <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
                         <!-- The arcade screen: your high score beside the map, as the first-day hero has it in its corner (the eyebrow already names the stage) -->
                         <p v-if="effect('arcade')" class="gs-score hidden"><span aria-hidden="true">{{ t('game.arcade.hi', { score: String(learning.progress.xp.total).padStart(6, '0') }) }}</span><span class="sr-only">{{ t('game.arcade.hiLabel', { stage: unitNumber, xp: learning.progress.xp.total }) }}</span></p>
@@ -215,7 +215,7 @@ export const HomeLead = {
                 </div>
                 <LessonPath class="mt-6" :unit="next.unit" :current="finished ? null : next.lesson.id" />
                 <p class="mt-8 text-sm text-muted">{{ finished ? t('home.lead.allDone') : t('home.lead.lessonOf', { place: place, total: next.unit.lessons.length, minutes: minutes }) }}</p>
-                <h1 id="lead-title" class="mt-1 text-4xl font-extrabold leading-tight tracking-tight text-cream md:text-5xl" translate="no">{{ finished ? sk('home.lead.allDoneTitleSerious', 'home.lead.allDoneTitle') : localized(next.lesson.title) }}</h1>
+                <h1 id="lead-title" class="t-title mt-1 text-cream" translate="no">{{ finished ? sk('home.lead.allDoneTitleSerious', 'home.lead.allDoneTitle') : localized(next.lesson.title) }}</h1>
                 <div class="mt-5 flex max-w-md items-center gap-3" data-unit-progress>
                     <span class="h-1.5 flex-1 overflow-hidden rounded-full bg-raised" role="progressbar" :aria-valuenow="done" aria-valuemin="0" :aria-valuemax="next.unit.lessons.length" :aria-label="t('home.lead.unitProgress', { done, total: next.unit.lessons.length })"><span class="block h-full rounded-full bg-accent" :style="{ width: (100 * done) / next.unit.lessons.length + '%' }"></span></span>
                     <span v-if="!finished && left" class="shrink-0 text-sm text-muted">{{ t('home.lead.left', { count: left }) }}</span>
@@ -244,7 +244,7 @@ export const HomeLead = {
                 <p v-if="welcome" class="mb-3 text-sm font-semibold text-cream" data-welcome>{{ welcome }}</p>
                 <TodayLine :lesson-id="finished ? null : next.lesson.id" :finished="finished" />
                 <div class="flex items-start justify-between gap-3">
-                    <p class="tabular-nums text-xs font-bold uppercase tracking-[0.14em] text-accent-strong" translate="no" data-lead-eyebrow>{{ effect('title') ? t('game.home.stage', { number: unitNumber, title: localized(next.unit.title) }) : t('home.lead.unit', { number: unitNumber, title: localized(next.unit.title) }) }}</p>
+                    <p class="t-section tabular-nums" translate="no" data-lead-eyebrow>{{ effect('title') ? t('game.home.stage', { number: unitNumber, title: localized(next.unit.title) }) : t('home.lead.unit', { number: unitNumber, title: localized(next.unit.title) }) }}</p>
                     <a href="/learn" class="btn-go" @click.prevent="navigate('/learn')">{{ t('home.lead.map') }}</a>
                 </div>
                 <LessonPath class="mt-4" :unit="next.unit" :current="finished ? null : next.lesson.id" />
@@ -252,7 +252,7 @@ export const HomeLead = {
                     <GoalRing :color="color" />
                     <div class="min-w-0 flex-1">
                         <p class="truncate text-xs text-muted">{{ finished ? t('home.lead.allDone') : t('home.lead.lessonOf', { place: place, total: next.unit.lessons.length, minutes: minutes }) }}</p>
-                        <h1 id="lead-title" class="truncate text-lg font-bold text-cream" translate="no">{{ finished ? sk('home.lead.allDoneTitleSerious', 'home.lead.allDoneTitle') : localized(next.lesson.title) }}</h1>
+                        <h1 id="lead-title" class="truncate text-lg font-semibold text-cream" translate="no">{{ finished ? sk('home.lead.allDoneTitleSerious', 'home.lead.allDoneTitle') : localized(next.lesson.title) }}</h1>
                     </div>
                 </div>
                 <CourseWall v-if="walled" compact place="home" :level="2" :lesson-id="next.lesson.id" class="mt-4" />
@@ -371,7 +371,7 @@ export const WeekCard = {
         <section class="space-y-5" :class="bare ? '' : 'card p-5'" :aria-label="t('home.week.title')">
             <div class="flex items-center gap-4">
                 <GoalRing :size="56" />
-                <div class="min-w-0"><p class="font-bold text-cream">{{ game() ? t('home.week.title') : t('home.week.practised') }}</p><p class="text-sm text-muted">{{ game() ? t('home.week.goal', { count: learning.progress.goal }) : t('home.week.daysThisWeek', { count: sungDays }) }}</p></div>
+                <div class="min-w-0"><p class="font-semibold text-cream">{{ game() ? t('home.week.title') : t('home.week.practised') }}</p><p class="text-sm text-muted">{{ game() ? t('home.week.goal', { count: learning.progress.goal }) : t('home.week.daysThisWeek', { count: sungDays }) }}</p></div>
             </div>
             <ol class="grid grid-cols-7 gap-1.5" :aria-label="t('home.week.days')">
                 <li v-for="(d, i) in days" :key="d.day" class="flex flex-col items-center gap-1.5"  data-week-day :data-day-done="d.done ? '' : null" :data-day-today="d.today ? '' : null" :data-daily-stamp="stamped(d.day) ? '' : null">
@@ -415,7 +415,7 @@ export const WorkoutStrip = {
     template: `
         <section v-if="compact" class="card flex flex-col gap-4 p-5 sm:flex-row sm:items-center" aria-labelledby="band-workout" data-workout-card>
             <div class="min-w-0 flex-1">
-                <h2 id="band-workout" class="text-xl font-extrabold tracking-tight text-cream">{{ sk('workout.title', 'game.workout.title') }} <span class="font-semibold text-muted">· {{ t('home.workout.minutes', { minutes: total }) }}</span></h2>
+                <h2 id="band-workout" class="text-lg font-semibold text-cream">{{ sk('workout.title', 'game.workout.title') }} <span class="font-semibold text-muted">· {{ t('home.workout.minutes', { minutes: total }) }}</span></h2>
                 <p class="mt-1 text-sm text-muted" data-workout-line>{{ line }}</p>
                 <!-- How many and why (the consultant's UX review, item 5d): each step's reason, from what the workout was made of. -->
                 <p class="mt-1 text-sm text-cream/80" data-workout-why>{{ why }}</p>
@@ -425,7 +425,7 @@ export const WorkoutStrip = {
         </section>
         <section v-else aria-labelledby="band-workout">
             <div class="flex flex-wrap items-baseline justify-between gap-3">
-                <h2 id="band-workout" class="text-2xl font-extrabold tracking-tight text-cream">{{ sk('workout.title', 'game.workout.title') }}</h2>
+                <h2 id="band-workout" class="text-lg font-semibold text-cream">{{ sk('workout.title', 'game.workout.title') }}</h2>
                 <span class="text-sm text-muted">{{ t('home.workout.total', { minutes: total }) }}</span>
             </div>
             <p class="mt-1 text-sm text-muted" data-workout-why>{{ why }}</p>
@@ -436,7 +436,7 @@ export const WorkoutStrip = {
                 <li v-for="(step, i) in steps" :key="step.kind" class="min-w-0 rounded-[var(--radius-card)] border border-edge bg-panel px-4 py-3" data-workout-step>
                     <p class="flex items-center gap-2.5">
                         <span class="grid size-6 shrink-0 place-items-center rounded-full border border-line text-xs font-semibold tabular-nums text-cream" aria-hidden="true">{{ i + 1 }}</span>
-                        <span class="min-w-0 flex-1 truncate text-[11px] font-bold uppercase tracking-[0.12em] text-accent-strong">{{ t(STEP_WORDS[step.kind]) }}</span>
+                        <span class="t-section min-w-0 flex-1 truncate">{{ t(STEP_WORDS[step.kind]) }}</span>
                         <span class="shrink-0 text-xs tabular-nums text-muted">{{ t('home.workout.minutes', { minutes: STEP_MINUTES[step.kind] }) }}</span>
                     </p>
                     <p class="mt-1.5 truncate font-semibold text-cream">{{ what(step) }}</p>
@@ -496,7 +496,7 @@ export const HomeCourses = {
     template: `
         <section v-if="row.length && row.every((c) => !c.open || c.summary || tried[c.entry.id])" aria-labelledby="band-courses" data-home-courses>
             <div class="flex flex-wrap items-baseline justify-between gap-3">
-                <h2 id="band-courses" class="text-2xl font-extrabold tracking-tight text-cream">{{ sk('courses.homeTitle', 'courses.homeTitleGame') }}</h2>
+                <h2 id="band-courses" class="text-lg font-semibold text-cream">{{ sk('courses.homeTitle', 'courses.homeTitleGame') }}</h2>
                 <a href="/learn" class="btn-go" data-all-courses @click.prevent="navigate('/learn')">{{ t('courses.allCourses') }}</a>
             </div>
             <ul class="mt-3 -mx-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0">
@@ -563,8 +563,8 @@ export const HomeBand = {
             <div class="flex flex-wrap items-center gap-3">
                 <!-- The count wraps under a long title (a language up to 40% longer: language_fit), never off the edge. -->
                 <div class="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-3">
-                    <h2 :id="id" class="text-2xl font-extrabold tracking-tight text-cream">{{ title }}</h2>
-                    <span v-if="count" class="text-sm tabular-nums text-muted">{{ count }}</span>
+                    <h2 :id="id" class="text-lg font-semibold text-cream">{{ title }}</h2>
+                    <span v-if="count" class="t-hint tabular-nums">{{ count }}</span>
                 </div>
                 <slot name="aside" />
             </div>
