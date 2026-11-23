@@ -16,7 +16,10 @@ export const Modal = {
     // closer: the close button (a confirmation has its own safe answer instead).
     // sheet: a bottom sheet you act from (the song's sheet; Hillel's design, 2026-11-20): a grab handle on a phone, the
     // title larger, `lead` (its one line) under it, and the close a full 44 px circle.
-    props: { sheet: Boolean, lead: { type: String, default: '' }, title: String, titleIsContent: Boolean, wide: Boolean, wider: Boolean, dismissable: { type: Boolean, default: true }, closer: { type: Boolean, default: true }, tone: { type: String, default: null }, subtitle: { type: String, default: '' }, dot: { type: String, default: '' } },
+    // panel: a settings panel in the 2026-11-23 language (Hillel's Session settings design): the header a row over a
+    // hairline that stays put while the body scrolls, its title 18 px, the close the 44 px round button; the body is the
+    // caller's, edge to edge (its sections carry their own padding). With `wider`, 880 px from a wide screen.
+    props: { panel: Boolean, sheet: Boolean, lead: { type: String, default: '' }, title: String, titleIsContent: Boolean, wide: Boolean, wider: Boolean, dismissable: { type: Boolean, default: true }, closer: { type: Boolean, default: true }, tone: { type: String, default: null }, subtitle: { type: String, default: '' }, dot: { type: String, default: '' } },
     emits: ['close'],
     data: () => ({ headingId: `dialog-${++dialogs}` }),
     setup: () => ({ TONES: { bad: 'bg-record/15', busy: 'bg-warn/15', good: 'bg-good/15' } }),
@@ -24,22 +27,22 @@ export const Modal = {
         <Teleport to="body">
             <div class="fixed inset-0 z-40 flex items-end justify-center overscroll-none bg-black/60 md:items-center md:p-6" @click.self="dismissable && $emit('close')">
                 <section ref="panel" role="dialog" aria-modal="true" :aria-labelledby="headingId" tabindex="-1"
-                    class="max-h-[92dvh] w-full overflow-y-auto overscroll-contain rounded-t-3xl border border-edge bg-panel p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl outline-none md:rounded-3xl"
-                    :class="[wider ? 'md:max-w-xl lg:max-w-4xl' : wide ? 'md:max-w-xl' : 'md:max-w-md', sheet ? 'pt-2.5' : '']">
+                    class="max-h-[92dvh] w-full overflow-y-auto overscroll-contain rounded-t-3xl border border-edge bg-panel outline-none"
+                    :class="[panel ? 'pb-[env(safe-area-inset-bottom)] shadow-[0_24px_60px_rgb(0_0_0/0.5)] md:rounded-2xl' : 'p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] shadow-2xl md:rounded-3xl', wider ? (panel ? 'md:max-w-xl lg:max-w-[880px]' : 'md:max-w-xl lg:max-w-4xl') : wide ? 'md:max-w-xl' : 'md:max-w-md', sheet ? 'pt-2.5' : '']" :data-panel="panel ? '' : null">
                     <span v-if="sheet" class="mx-auto mb-4 block h-1 w-9 rounded-full bg-line md:hidden" aria-hidden="true" data-sheet-handle></span>
-                    <header class="mb-4 flex items-start justify-between gap-4" :class="tone ? '-mx-6 -mt-6 rounded-t-3xl px-6 pb-5 pt-6 transition-colors ' + TONES[tone] : ''" :data-tone="tone">
+                    <header class="flex justify-between gap-4" :class="panel ? 'sticky top-0 z-10 items-center border-b border-edge bg-panel px-6 py-3.5' : tone ? 'mb-4 items-start -mx-6 -mt-6 rounded-t-3xl px-6 pb-5 pt-6 transition-colors ' + TONES[tone] : 'mb-4 items-start'" :data-tone="tone">
                         <div class="flex min-w-0 items-start gap-3">
                             <span v-if="tone" class="mt-1 grid size-8 shrink-0 place-items-center rounded-full bg-ink/40" aria-hidden="true"><span class="size-3 rounded-full" :class="tone === 'bad' ? 'bg-record' : tone === 'busy' ? 'animate-pulse bg-warn' : 'bg-good'"></span></span>
                             <span v-if="dot" class="mt-2 size-3 shrink-0 rounded-full" :style="{ background: dot }" aria-hidden="true"></span>
                             <div class="min-w-0">
-                                <h2 :id="headingId" class="font-bold text-cream" :class="sheet ? 'text-2xl leading-tight tracking-tight' : 'text-xl'" :translate="titleIsContent ? 'no' : null">{{ title }}</h2>
+                                <h2 :id="headingId" class="text-cream" :class="panel ? 'text-lg font-semibold' : sheet ? 'text-2xl font-bold leading-tight tracking-tight' : 'text-xl font-bold'" :translate="titleIsContent ? 'no' : null">{{ title }}</h2>
                                 <p v-if="lead" class="mt-1.5 text-cream/85" translate="no" data-sheet-lead>{{ lead }}</p>
                                 <p v-if="subtitle" class="mt-1 text-sm text-cream/85" aria-live="polite">{{ subtitle }}</p>
                             </div>
                         </div>
-                        <div class="-mt-1 flex shrink-0 items-center gap-2">
+                        <div class="flex shrink-0 items-center gap-2" :class="panel ? 'gap-3' : '-mt-1'">
                             <slot name="actions" />
-                            <button v-if="dismissable && closer" type="button" class="rounded-full text-muted hover:text-cream" :class="sheet ? '-me-2.5 -mt-1.5 grid size-11 place-items-center bg-raised text-cream' : '-me-2 p-2'" @click="$emit('close')" :aria-label="t('common.close')">
+                            <button v-if="dismissable && closer" type="button" class="rounded-full" :class="panel ? 'icon-btn-quiet -me-2.5 text-muted hover:text-cream' : sheet ? '-me-2.5 -mt-1.5 grid size-11 place-items-center bg-raised text-cream' : '-me-2 p-2 text-muted hover:text-cream'" @click="$emit('close')" :aria-label="t('common.close')">
                                 <Icon name="close" />
                             </button>
                         </div>

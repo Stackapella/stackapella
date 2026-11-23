@@ -24,7 +24,7 @@ import { inFirstWeek } from './voice-care.js';
 import { prefs } from '../stores/prefs.js';
 import { exportNeedsPlus, isPlus } from '../stores/plan.js';
 import { songTitle } from '../song-titles.js';
-import { aiPartsOf, catalogue } from '../stores/catalogue.js';
+import { aiPartsOf, catalogue, recordingFor } from '../stores/catalogue.js';
 import { SLOW_MS } from './screen-loading.js';
 import { pastFirstWeek, voiceAskOpen, voicelessParts } from '../be-the-voice.js';
 import { AiVoiceLabel, voiceCredit } from '../ai-voices.js';
@@ -33,6 +33,8 @@ import { versionsOf } from '../song-versions.js';
 
 // A song's pace in words for a new singer (no BPM: the design rules' first-week words).
 const TEMPO = { slow: tk('templates.tempo.slow'), steady: tk('templates.tempo.steady'), lively: tk('templates.tempo.lively') };
+// What each part's guide is (the UX review, item 4).
+const GUIDE_WORDS = { real: tk('templates.guides.real'), ai: tk('templates.guides.ai'), hummed: tk('templates.guides.hummed') };
 const DIFFICULTY = { beginner: tk('templates.difficulty.beginner'), intermediate: tk('templates.difficulty.intermediate'), advanced: tk('templates.difficulty.advanced') };
 const ROOM_CHOICES = [
     { value: 'dry', label: tk('polish.room.dry') },
@@ -844,7 +846,7 @@ export const TemplateDialog = {
     // load: the song's notes still coming ('loading'), or why they didn't ('failed', 'offline'); starting: Start was tapped.
     props: { template: { type: Object, required: true }, previewing: Boolean, preparing: Boolean, credits: { type: Array, default: () => [] }, locked: Boolean, taste: Boolean, singers: { type: Number, default: 4 }, fresh: Boolean, load: { type: String, default: null }, notHere: { type: String, default: null }, starting: Boolean },
     emits: ['start', 'preview', 'close', 'signup', 'copy', 'singers', 'retry', 'voice', 'version', 'choir'],
-    setup: () => ({ midiName, formatTime, formatNumber, primary, secondary, singerOptions, templatePartName, keyLabel, DIFFICULTY, formatList, TEMPO, songTitle, versionsOf }),
+    setup: () => ({ midiName, formatTime, formatNumber, primary, secondary, singerOptions, templatePartName, keyLabel, DIFFICULTY, formatList, TEMPO, songTitle, versionsOf, GUIDE_WORDS }),
     template: `
         <!-- Hillel's song sheet (2026-11-20, shots-review/designs/song-sheet-2026-11-20): the title and its line in the header
              with a full 44 px close (and a grab handle on a phone); the facts as chips; one group between hairlines for
@@ -872,6 +874,14 @@ export const TemplateDialog = {
                         <div class="seg" role="radiogroup" :aria-labelledby="'singers-' + $.uid">
                             <button v-for="n in singerOptions(template)" :key="n" type="button" role="radio" class="seg-option tap-44" :aria-checked="singers === n ? 'true' : 'false'" @click="$emit('singers', n)">{{ formatNumber(n) }}</button>
                         </div>
+                    </div>
+                    <!-- What you'll hear for each part, before any playback (the consultant's UX review, item 4): a real voice, an
+                         AI voice or the hummed guide; one chip when every part has the same, else a chip a part. -->
+                    <div v-if="guides.length" class="py-3.5" data-song-guides>
+                        <p :id="'guides-' + $.uid" class="text-sm font-semibold text-cream">{{ t('templates.guides.title') }}</p>
+                        <ul class="mt-2 flex flex-wrap gap-2" :aria-labelledby="'guides-' + $.uid">
+                            <li v-for="g in guides" :key="g.key" class="chip min-h-8 px-3 text-sm" :data-guide="g.kind" :data-guide-part="g.key"><span class="size-2 shrink-0 rounded-full" :class="g.kind === 'ai' ? 'bg-accent' : g.kind === 'real' ? 'bg-good' : 'bg-muted'" aria-hidden="true"></span><span class="text-cream">{{ g.name ? t('templates.guides.part', { part: g.name, kind: t(GUIDE_WORDS[g.kind]) }) : t(GUIDE_WORDS[g.kind]) }}</span></li>
+                        </ul>
                     </div>
                     <p v-if="credits.length" class="py-3.5 text-sm text-cream" data-song-real-voices>{{ t('templates.sungBy', { names: formatList(credits) }) }}</p>
                     <!-- AI voices (js/ai-voices.js): one quiet row, a small dot, Be the voice inline once the call is open. -->
@@ -961,9 +971,20 @@ export const TemplateDialog = {
         singersShown() {
             return !this.locked && !this.fresh && singerOptions(this.template).length > 1;
         },
+        /**
+         * Each part's guide, said before playback (the UX review, item 4): `ai` (an AI voice), `real` (a person's recording)
+         * or `hummed` (the practice voice). A library song only; one entry, nameless, when every part has the same.
+         */
+        guides() {
+            if (!catalogue.list.find((entry) => entry.id === this.template.id)) return [];
+            const ai = aiPartsOf(this.template.id);
+            const parts = this.template.parts.filter((p) => p.kind !== 'instrument').map((p) => ({ key: p.key, name: templatePartName(p), kind: ai.includes(p.key) ? 'ai' : recordingFor(this.template.id, p.key) ? 'real' : 'hummed' }));
+            const kinds = new Set(parts.map((p) => p.kind));
+            return kinds.size === 1 ? [{ key: 'all', name: '', kind: parts[0]?.kind ?? 'hummed' }] : parts;
+        },
         /** The hairline group shows only when it has a row. */
         groupShown() {
-            return !!(versionsOf(this.template).length || this.singersShown || this.credits.length || this.aiParts.length || this.voiceless.length || this.choirShown);
+            return !!(this.guides.length || versionsOf(this.template).length || this.singersShown || this.credits.length || this.aiParts.length || this.voiceless.length || this.choirShown);
         },
         /** Hear yourself as a choir: on for this account, a library song they can start (not a guest's taste or a locked one). */
         choirShown() {

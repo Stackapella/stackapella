@@ -22,6 +22,13 @@ import { needsVoice } from '../be-the-voice.js';
 import { templatePartName } from '../templates.js';
 import { songTitle } from '../song-titles.js';
 
+// The explainer before joining (the UX review, item 8), from the agreement's short version.
+const EXPLAINER = [
+    { key: 'what', title: tk('voices.explain.what'), body: tk('voices.explain.whatBody') },
+    { key: 'who', title: tk('voices.explain.who'), body: tk('voices.explain.whoBody') },
+    { key: 'credit', title: tk('voices.explain.credit'), body: tk('voices.explain.creditBody') },
+    { key: 'stop', title: tk('voices.explain.stop'), body: tk('voices.explain.stopBody') },
+];
 const KINDS = ['all', 'songs', 'clips'];
 const KIND_WORDS = { all: tk('voices.kind.all'), songs: tk('voices.kind.songs'), clips: tk('voices.kind.clips') };
 // Refusals said in the person's words (contract: voices.join and voices.claims.create).
@@ -43,7 +50,7 @@ const day = (time) => (time ? formatDate(time, { month: 'short', day: 'numeric' 
 export const VoicesView = {
     components: { AccountWall, Agreement, Notice, AppScreen },
     data: () => ({ state: 'loading', agreement: null, wanted: null, skills: [], claims: [], kind: 'all', skill: '', credit: 'name', busy: null, refusal: null }),
-    setup: () => ({ KINDS, KIND_WORDS, account, day, navigate }),
+    setup: () => ({ KINDS, KIND_WORDS, EXPLAINER, account, day, navigate }),
     template: `
         <AppScreen :title="t('voices.title')" back="/settings" :measure="state === 'volunteer' ? '' : 'max-w-3xl'">
             <!-- Ready to share (Be the voice; the engagement review): your takes of parts that still have no voice, earlier Not nows
@@ -74,12 +81,16 @@ export const VoicesView = {
             <!-- Not yet a volunteer: what it is, the agreement, how you're credited, and Lend my voice. -->
             <section v-else-if="state === 'join'" class="space-y-5" data-voices-join>
                 <p class="text-lg text-cream">{{ t('voices.intro') }}</p>
-                <ul class="list-disc space-y-1 ps-5 text-muted">
-                    <li>{{ t('voices.point.unpaid') }}</li>
-                    <li>{{ t('voices.point.review') }}</li>
-                    <li>{{ t('voices.point.yours') }}</li>
-                </ul>
-                <div v-if="agreement" class="card max-h-[45dvh] overflow-y-auto p-5" tabindex="0" role="region" :aria-label="t('voices.agreement')"><Agreement :agreement="agreement" /></div>
+                <!-- Before any ask to record (the consultant's UX review, item 8): what you record, who hears it, credit, stopping,
+                     each one plain line from the agreement's short version, then the agreement itself a tap away. -->
+                <dl class="card divide-y divide-line px-5" data-voices-explainer>
+                    <div v-for="row in EXPLAINER" :key="row.key" class="py-3.5" :data-explain="row.key">
+                        <dt class="font-semibold text-cream">{{ t(row.title) }}</dt>
+                        <dd class="mt-0.5 text-sm text-muted">{{ t(row.body) }}</dd>
+                    </div>
+                </dl>
+                <p class="text-sm text-muted">{{ t('voices.point.unpaid') }} {{ t('voices.point.yours') }} <a v-if="agreement" href="#voices-agreement" class="link tap-44 font-semibold" data-voices-read @click.prevent="readAgreement">{{ t('voices.explain.read') }}</a></p>
+                <div v-if="agreement" id="voices-agreement" ref="agreement" class="card max-h-[45dvh] overflow-y-auto p-5" tabindex="0" role="region" :aria-label="t('voices.agreement')"><Agreement :agreement="agreement" /></div>
                 <fieldset class="space-y-2">
                     <legend class="label">{{ t('voices.credit') }}</legend>
                     <label class="check-row"><input v-model="credit" type="radio" class="radio" value="name" /> {{ t('voices.creditName', { name: account.me?.name ?? '' }) }}</label>
@@ -152,6 +163,11 @@ export const VoicesView = {
         await this.load();
     },
     methods: {
+        /** The agreement, in view and focused (its box scrolls on its own). */
+        readAgreement() {
+            this.$refs.agreement?.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+            this.$refs.agreement?.focus({ preventScroll: true });
+        },
         skillWords(id) {
             return this.skills.find((s) => s.id === id)?.words ?? id;
         },

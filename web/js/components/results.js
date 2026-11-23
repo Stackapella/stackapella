@@ -14,11 +14,12 @@ import { engine } from '../audio.js';
 import { hearNotes } from '../creator-audio.js';
 import { midiName } from '../dsp.js';
 import { localized, t, tk } from '../i18n.js';
-import { HEARD, withGuide } from '../results.js';
+import { HEARD, spanWords, withGuide } from '../results.js';
 import { prefs } from '../stores/prefs.js';
 import { formatTime } from '../theme.js';
 import { Switch } from './controls.js';
 import { Icon } from './icon.js';
+import { navigate } from '../router.js';
 import { LearnVisual } from './learn-visual.js';
 import { NoteKeyboard } from './note-keyboard.js';
 import { lazyComponent, tallyOn } from '../game/modules.js';
@@ -76,8 +77,31 @@ export const NoteResult = {
             </div>
             <p class="max-w-prose text-cream">{{ t(line.key, line.voiceKey ? { voice: t(line.voiceKey) } : line.values) }} {{ t('results.note.startsHere') }}</p>
             <NoteKeyboard :home="home" :range="range" class="max-w-2xl" />
+            <!-- What was measured and what estimated, in plain words (the consultant's UX review, item 3): the note they held,
+                 the range (a guess round the note until a range check), its span in piano keys, never "semitones". -->
+            <dl class="w-full max-w-md divide-y divide-line rounded-2xl border border-line text-start text-sm" data-note-found>
+                <div class="flex items-center justify-between gap-4 px-4 py-3" data-found="note">
+                    <dt><span class="block font-semibold text-cream">{{ t('results.found.note') }}</span><span class="block text-muted">{{ t('results.found.noteHow') }}</span></dt>
+                    <dd class="shrink-0 font-semibold text-cream" translate="no">{{ midiName(Math.round(home)) }}</dd>
+                </div>
+                <div class="flex items-center justify-between gap-4 px-4 py-3" data-found="range" :data-measured="range.guess ? 'no' : 'yes'">
+                    <dt><span class="block font-semibold text-cream">{{ t('results.found.range') }}</span><span class="block text-muted">{{ range.guess ? t('results.found.rangeGuess') : t('results.found.rangeMeasured') }}</span></dt>
+                    <dd class="shrink-0 font-semibold text-cream" translate="no">{{ t('results.found.lowHigh', { low: midiName(range.low), high: midiName(range.high) }) }}</dd>
+                </div>
+                <div class="flex items-center justify-between gap-4 px-4 py-3" data-found="span">
+                    <dt class="font-semibold text-cream">{{ t('results.found.span') }}</dt>
+                    <dd class="text-end text-cream">{{ spanText }}</dd>
+                </div>
+            </dl>
+            <button type="button" class="link tap-44 text-sm" data-check-range @click="navigate('/voice?measure=1')">{{ range.guess ? t('results.found.check') : t('results.found.checkAgain') }}</button>
         </div>`,
-    setup: () => ({ midiName, game }),
+    setup: () => ({ midiName, game, navigate }),
+    computed: {
+        /** The span in piano keys and against an octave (plain words; the consultant's review: no "semitones"). */
+        spanText() {
+            return spanWords(this.range.high - this.range.low);
+        },
+    },
     methods: {
         async play() {
             await hearNotes([{ beat: 0, length: 2, pitch: Math.round(this.home) }], { tempo: 60 });

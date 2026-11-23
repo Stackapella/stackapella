@@ -710,6 +710,13 @@
             "question": "¿Qué versión?",
             "us": "EE. UU.",
             "uk": "Reino Unido"
+        },
+        "guides": {
+            "title": "Lo que vas a oír",
+            "part": "{part}: {kind}",
+            "real": "Voz real",
+            "ai": "Voz de IA",
+            "hummed": "Voz de práctica"
         }
     },
     "projects": {
@@ -1267,6 +1274,7 @@
         "hear": {
             "title": "Lo que oyes",
             "melody": "Melodía",
+            "others": "Las demás voces",
             "guide": "Nivel de tu guía",
             "yours": "{part}: tu guía",
             "yoursHint": "Suena según el modo: normal en Escuchar, suave en Cantar a la vez, apagada en Sin guía.",
@@ -1275,8 +1283,9 @@
             "soft": "Suave",
             "medium": "Medio",
             "loud": "Fuerte",
-            "speakers": "Sin auriculares: las demás voces suenan más bajo mientras grabas, para que llegue menos al micrófono. Con auriculares, la toma sale más limpia.",
             "split": "Oídos separados",
+            "speakersLead": "Sin auriculares.",
+            "speakersRest": "Las demás voces suenan más bajo mientras grabas, para que llegue menos al micrófono. Con auriculares, la toma sale más limpia.",
             "splitHint": "Tu parte en el oído izquierdo y las demás en el derecho.",
             "offShort": "Apagado",
             "yourGuide": "tu guía",
@@ -1326,6 +1335,10 @@
             "open": "Ajustes",
             "title": "Ajustes de la sesión",
             "fullSpeedRecording": "Al grabar, siempre a velocidad normal.",
+            "applyNow": "Los cambios se aplican al momento",
+            "tempo": "Tempo {n}",
+            "ringTag": "Con auriculares",
+            "ringHintShort": "En una nota sostenida dentro de un acorde, cuánto te falta para que resuene pura, no solo con la afinación del piano.",
             "names": {
                 "title": "Nombres de notas",
                 "solfege": "do móvil",
@@ -1336,7 +1349,6 @@
             "others": "Otras voces en el carril",
             "othersHint": "Contornos tenues encima y debajo de la tuya.",
             "ring": "Afinación en acordes sostenidos",
-            "ringHint": "En una nota sostenida dentro de un acorde, cuánto te falta para que resuene: afinación pura, no solo la del piano. Con auriculares.",
             "voices": "Voces guía",
             "shortcuts": "Atajos de teclado",
             "shortcutsHint": "Espacio siempre reproduce, aunque los atajos estén desactivados. R también graba en el estudio.",
@@ -1348,6 +1360,8 @@
             "keyboardHint": "Teclas de piano junto al carril, para ver la altura.",
             "keys": {
                 "record": "Grabar",
+                "space": "Espacio",
+                "play": "Reproducir",
                 "loop": "Bucle",
                 "next": "Frase siguiente",
                 "mute": "Guía: sí o no"
@@ -1722,7 +1736,7 @@
             "word": "eliminar",
             "confirm": "Eliminar mi cuenta",
             "done": "Tu cuenta se ha eliminado. Gracias por cantar con nosotros.",
-            "hint": "Elimina para siempre tu cuenta, tus canciones y tus grabaciones."
+            "hint": "Elimina para siempre tu cuenta y las canciones y tomas guardadas en ella. Las canciones de este dispositivo se quedan aquí."
         },
         "device": {
             "skipping": "Pediste que no te volviéramos a preguntar antes de descartar un borrador.",
@@ -1766,7 +1780,11 @@
             "practice": "Práctica y apariencia",
             "plan": "Plan y almacenamiento",
             "data": "Tus datos",
-            "device": "Este dispositivo"
+            "device": "Este dispositivo",
+            "learning": "Aprendizaje",
+            "choir": "Coro y grupos",
+            "sound": "Sonido y cuidado de la voz",
+            "accountDevice": "Cuenta y dispositivo"
         },
         "change": "Cambiar",
         "bioCount": "{count}/{max}",
@@ -2376,7 +2394,10 @@
                 "barbershop": "Barbershop, salón y musicales",
                 "more": "Más canciones"
             },
-            "browseAllCount": "{count, plural, one {Ver la canción} other {Ver las # canciones}}"
+            "browseAllCount": "{count, plural, one {Ver la canción} other {Ver las # canciones}}",
+            "why": {
+                "fits": "La voz de {part} cabe en tu extensión"
+            }
         },
         "projects": {
             "fromCourse": "Del curso"
@@ -2453,7 +2474,8 @@
             },
             "stepLine": "{step}: {what}"
         },
-        "admin": "Admin"
+        "admin": "Admin",
+        "siteHome": "Sitio web de Stackapella"
     },
     "confirm": {
         "dontAsk": "No volver a preguntar",
@@ -2822,7 +2844,6 @@
         "highest": "Más aguda",
         "comfortable": "Más cómoda",
         "span": "Amplitud",
-        "semitones": "{count, plural, one {# semitono} other {# semitonos}}",
         "notYetShort": "Aún no",
         "badgeFilter": "Qué insignias",
         "allBadges": "Todas",
@@ -4829,11 +4850,11 @@
         },
         "note": {
             "yours": "Tu nota cómoda es",
-            "low": "Notas cerca de {note}: buenas para voces de bajo y barítono.",
-            "lowMiddle": "Notas cerca de {note}: buenas para voces de barítono y tenor.",
-            "highMiddle": "Notas cerca de {note}: buenas para voces de tenor y contralto.",
-            "high": "Notas cerca de {note}: buenas para voces de contralto y soprano.",
-            "voice": "Tu extensión va mejor con voces de {voice}.",
+            "low": "Te van las voces de bajo y barítono: sus melodías rondan {note}, tu nota cómoda.",
+            "lowMiddle": "Te van las voces de barítono y tenor: sus melodías rondan {note}, tu nota cómoda.",
+            "highMiddle": "Te van las voces de tenor y contralto: sus melodías rondan {note}, tu nota cómoda.",
+            "high": "Te van las voces de contralto y soprano: sus melodías rondan {note}, tu nota cómoda.",
+            "voice": "Tu extensión va mejor con voces de {voice}: sus notas caben en ella.",
             "startsHere": "A partir de ahora, cada lección empezará aquí."
         },
         "voice": {
@@ -4945,7 +4966,25 @@
         },
         "onPitch": "{percent}% afinado",
         "lessonDone": "Lección completada",
-        "upNextLesson": "Siguiente · Lección {number} · {minutes} min"
+        "upNextLesson": "Siguiente · Lección {number} · {minutes} min",
+        "found": {
+            "note": "Nota cómoda",
+            "noteHow": "Medida: la nota que mantuviste",
+            "range": "Extensión cómoda",
+            "rangeGuess": "Estimada alrededor de tu nota",
+            "rangeMeasured": "Medida con tu prueba de extensión",
+            "lowHigh": "De {low} a {high}",
+            "span": "Amplitud",
+            "check": "Comprobar mi extensión",
+            "checkAgain": "Volver a comprobar mi extensión"
+        },
+        "span": {
+            "under": "Menos de una octava",
+            "octave": "Una octava, más o menos",
+            "octaveHalf": "Una octava y media, más o menos",
+            "two": "Dos octavas, más o menos",
+            "more": "Más de dos octavas"
+        }
     },
     "menu": {
         "file": "Archivo",
@@ -6074,7 +6113,6 @@
         "intro": "Algunas voces de canciones y clips de lecciones aún suenan con una voz sintética. Graba una, y cuando la aceptemos, quien esté aprendiendo oirá ahí tu voz.",
         "point": {
             "unpaid": "No es remunerado y no se garantiza que se use.",
-            "review": "Cada toma se comprueba en tu teléfono y luego la revisamos antes de que nadie la oiga.",
             "yours": "Solo tu propia voz: nunca una muestra ni la grabación de otra persona."
         },
         "agreement": "El acuerdo de \"Presta tu voz\"",
@@ -6181,6 +6219,17 @@
             "vibrato": "Vibrato de {name}",
             "hum": "A boca cerrada: {name}",
             "trill": "Vibración de labios: {name}"
+        },
+        "explain": {
+            "what": "Qué grabas",
+            "whatBody": "Una parte de una canción, o un fragmento corto de una lección, que aún suena con nuestra voz sintetizada. La grabas aquí, en la app.",
+            "who": "Quién la oye",
+            "whoBody": "Tu toma se comprueba en tu teléfono y luego la escucha nuestro equipo. Si la aceptamos, todos los que aprenden esa parte o lección oyen tu voz en lugar de la sintetizada.",
+            "credit": "Cómo apareces",
+            "creditBody": "Con tu nombre o de forma anónima: lo eliges abajo y puedes cambiarlo cuando quieras.",
+            "stop": "Dejar de usarla",
+            "stopBody": "Puedes pedirnos que dejemos de usar una grabación cuando quieras, aquí o por correo; borrar tu cuenta hace lo mismo. Las copias que ya están en proyectos de otras personas se quedan.",
+            "read": "Leer el acuerdo completo"
         }
     },
     "wall": {

@@ -69,6 +69,7 @@
         '/js/sw-update.js',
         '/js/components/install.js',
         '/js/components/controls.js',
+        '/js/hosts.js',
         '/js/stores/account.js',
         '/js/stores/cloud.js',
         '/js/stores/appearance.js',
@@ -218,7 +219,6 @@
         '/js/vibrato.js',
         '/js/pitch-skills.js',
         '/js/just.js',
-        '/js/hosts.js',
         '/js/turnstile.js',
     ];
     // preload_list.py: lesson end
@@ -228,7 +228,6 @@
         // preload_list.py: home begin
     const HOME = [
         '/js/views/projects.js',
-        '/js/hosts.js',
         '/js/home.js',
         '/js/stores/catalogue.js',
         '/js/ai-voices.js',

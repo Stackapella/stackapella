@@ -5,7 +5,7 @@
 
 import { midiName } from './dsp.js';
 import { renderPart } from './synth.js';
-import { tk } from './i18n.js';
+import { t, tk } from './i18n.js';
 
 export const WORDS = { 3: tk('results.word.brilliant'), 2: tk('results.word.great'), close: tk('results.word.close'), keepGoing: tk('results.word.keepGoing') };
 const CLOSE_PERCENT = 50; // one star from this: close; under it, keep going
@@ -129,6 +129,15 @@ export function noteLine(home, voice = null) {
     if (voice && VOICES[voice]) return { key: tk('results.note.voice'), values: {}, voiceKey: VOICES[voice] };
     const suits = home < 48 ? 'low' : home < 53 ? 'lowMiddle' : home < 58 ? 'highMiddle' : 'high';
     return { key: SUITS[suits], values: { note: midiName(Math.round(home)) } };
+}
+
+const SPANS = [[9, tk('results.span.under')], [15, tk('results.span.octave')], [21, tk('results.span.octaveHalf')], [27, tk('results.span.two')]];
+/**
+ * A range's span in plain words (the consultant's UX review, item 3: never "semitones"): against the octave, rounded to a
+ * half ("about an octave and a half"); `semitones` is high minus low.
+ */
+export function spanWords(semitones) {
+    return t((SPANS.find(([under]) => semitones < under) ?? [0, tk('results.span.more')])[1]);
 }
 
 /** About how many minutes a lesson takes, from its steps (a Learn step is quick, a song longer). */

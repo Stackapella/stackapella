@@ -24,6 +24,7 @@ import { checkVersion, newVersionFound, version, watchVersion } from './version.
 import { servedBuild, updateAtLaunch } from './sw-update.js';
 import { listenForInstall } from './components/install.js';
 import { fill, fitSegments, radioArrows } from './components/controls.js';
+import { noteSiteArrival } from './hosts.js';
 import { account, keepLinkToken, loadAccount, loadAuthConfig, rememberRef } from './stores/account.js';
 import { signedInSync, startSync } from './stores/cloud.js';
 import { adoptAccountAppearance, appearance, game } from './stores/appearance.js';
@@ -263,6 +264,7 @@ whenIdle(() => import('./live-beat.js').then((m) => m.startBeat()).catch((error)
 
 // Who's signed in (never needed to learn or record), and what a Google or Apple sign-in came back with.
 rememberRef();
+noteSiteArrival(); // came from the public site: Home offers the way back (hosts.js)
 noteArrival(); // a lesson page's Sing this lesson: its one lesson, granted as it opens (js/page-lesson.js)
 listenForInstall();
 radioArrows();

@@ -54,6 +54,8 @@ return [
     ],
     // Over the four pinned scenes: they are the solo performance.
     'solo_scene' => ['kick' => 'Sing every part', 'title_before' => 'Create your own', 'title_em' => 'a cappella performance.', 'body' => 'Sing each part yourself. As you record, hear your earlier takes play alongside you.'],
+    // Under the home's first-lesson preview (a still card in the app's own words): it's an example.
+    'lesson' => ['caption' => 'An example. In lesson 1, the app finds your own comfortable note as you sing.'],
     // A small optional card holding the real Game mode switch.
     'game_mode' => ['title' => 'Game mode', 'body' => 'Like it playful? Turn on Game mode for an arcade look.', 'tag' => 'Optional'],
     'sung_by' => ':parts sung by :name',

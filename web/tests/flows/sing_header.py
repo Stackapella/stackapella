@@ -40,7 +40,13 @@ def journey(f):
     box = f.js("(() => { const r = document.querySelector('[data-session-settings]').getBoundingClientRect(); return [r.left + r.width / 2, Math.min(innerHeight - 40, r.top + 200)]; })()")
     for _ in range(4):
         f.chrome.send("Input.dispatchMouseEvent", {"type": "mouseWheel", "x": box[0], "y": box[1], "deltaX": 0, "deltaY": 300})
-    f.wait("document.querySelector('[data-session-settings]').closest('[role=dialog], .overflow-y-auto').scrollTop > 0", what="the sheet scrolled")
+    # The sheet scrolls when it's taller than the window; on a wide screen it fits (Hillel's 2026-11-23 panel), and the wheel
+    # must still leave the screen behind alone.
+    sheet = "document.querySelector('[data-session-settings]').closest('[role=dialog], .overflow-y-auto')"
+    if f.js(f"{sheet}.scrollHeight > {sheet}.clientHeight + 1"):
+        f.wait(f"{sheet}.scrollTop > 0", what="the sheet scrolled")
+    else:
+        f.js("new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))")
     assert f.js(f"[scrollY, {stage}]") == before, "the screen behind Settings scrolled"
     assert f.js("document.documentElement.classList.contains('overflow-hidden')"), "the page isn't held while Settings is open"
     f.press("Escape")

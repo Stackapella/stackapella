@@ -9,6 +9,7 @@ import { api } from '../api.js';
 import { listTemplates } from '../templates.js';
 import { midiName } from '../dsp.js';
 import { formatDate, formatNumber, t, tk } from '../i18n.js';
+import { spanWords } from '../results.js';
 import { goBack, navigate } from '../router.js';
 import { levelFor, VOICE_TYPES, voiceType } from '../course.js';
 import { hearNotes } from '../creator-audio.js';
@@ -370,7 +371,7 @@ export const VoiceView = {
                 { label: t('voice.lowest'), value: midiName(r.low) },
                 { label: t('voice.highest'), value: midiName(r.high) },
                 { label: t('voice.comfortable'), value: learning.progress.home !== null && learning.progress.home !== undefined ? midiName(learning.progress.home) : t('voice.notYetShort') },
-                { label: t('voice.span'), value: t('voice.semitones', { count: r.high - r.low }) },
+                { label: t('voice.span'), value: spanWords(r.high - r.low) }, // plain words, never "semitones" (the UX review)
             ];
         },
         shownBadges() {
@@ -410,6 +411,8 @@ export const VoiceView = {
     },
     created() {
         loadLearning();
+        // From a result's "Check my range again" (the consultant's UX review, item 3): the range check opens at once.
+        if (new URLSearchParams(location.search).get('measure') === '1') this.measuring = true;
     },
     methods: {
         async loadHistory() {

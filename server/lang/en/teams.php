@@ -46,4 +46,8 @@ return [
     // /pricing's lede and choir callout (the blueprint).
     'pages.pricing.lede' => 'Every course and every song is free to learn. Plus is for singers who record a lot, keep their arrangements private, or start a choir group.',
     'pages.pricing.choir_callout' => 'Leading a choir? Your singers join free. Starting the group takes Plus, and your first song\'s learning tracks are on us.',
+    // For choir directors (the new page): starting a group takes Plus.
+    'site.for_directors.note' => 'Starting a group takes Plus. Your singers join free.',
+    'site.for_directors.steps' => [0 => [1 => 'Starting a group takes Plus. Groups are for singers 18 and over.']],
+    'site.for_directors.faq' => [0 => [1 => 'Your singers never pay. Starting the group takes Plus, and your first song\'s learning tracks are free.']],
 ];

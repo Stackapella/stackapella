@@ -9,7 +9,7 @@ import { CreditLine } from '../components/credit.js';
 import { api } from '../api.js';
 import { StorageMeter } from '../components/cloud.js';
 import { formatNumber, locale, t, timeAgo, tk } from '../i18n.js';
-import { publicSiteUrl } from '../hosts.js';
+import { publicSiteUrl, cameFromSite } from '../hosts.js';
 import { navigate } from '../router.js';
 import { betaWaiting, homeBands, sangThisWeek } from '../home.js';
 import { aiPartsOf, creditsFor, loadCatalogue, recordingFor } from '../stores/catalogue.js';
@@ -100,13 +100,18 @@ const TemplateDialog = defineAsyncComponent(dialogLoader);
 export const ProjectsView = {
     components: { AiVoiceLabel, LibraryFilters, StorageMeter, CreditLine, PlayerChip, DailyTag, CardMenu, HomeCourses, ChoirPanel, ThemeSwitch, Icon, Logo, TemplateDialog, HomeLead, HomeBand, SongCover, InstallCard, WeekCard, WorkoutStrip, StatusChip, Modal, Notice, RemindAsk, FirstWeek, JoinedChoirs },
     setup: () => ({ sungYet, GROUP_WORDS, templatePartName, ideas, mine, canStart, projects, account, learning, shownTitle, songTitle, formatTime, timeAgo, PART_COLORS, lengthBeats, partsFor, keyLabel, DIFFICULTY, creditsFor, aiPartsOf, navigate, BAND_COLORS, BETA_STATUS, publicSiteUrl, effect, dailyState }),
-    data: () => ({ wide: WIDE.matches, storageUsage: null, locked: false, taste: false, clip: null, templates: [], openTemplate: null, singers: 4, previewing: false, preparingPreview: false, starting: false, groups: null, choirParts: [], startingChoir: null, betaParts: null, avatarFailed: false, making: false, importProblems: null, sheetScore: null, sheetSaving: false, sheetView: null, sessionStore: null, songsOpen: tabStorage.get('stackapella.songsOpen') === '1', libraryFilters: keptFilters(), lookedAt: lastLooked(), newsCounted: null, yoursOpen: false, songColumns: songColumns(), newing: false, showInfo: false, songLoad: null, songNotHere: null, previewOf: null, playingSong: null, renaming: null, newName: '' }),
+    data: () => ({ fromSite: cameFromSite(), wide: WIDE.matches, storageUsage: null, locked: false, taste: false, clip: null, templates: [], openTemplate: null, singers: 4, previewing: false, preparingPreview: false, starting: false, groups: null, choirParts: [], startingChoir: null, betaParts: null, avatarFailed: false, making: false, importProblems: null, sheetScore: null, sheetSaving: false, sheetView: null, sessionStore: null, songsOpen: tabStorage.get('stackapella.songsOpen') === '1', libraryFilters: keptFilters(), lookedAt: lastLooked(), newsCounted: null, yoursOpen: false, songColumns: songColumns(), newing: false, showInfo: false, songLoad: null, songNotHere: null, previewOf: null, playingSong: null, renaming: null, newName: '' }),
     template: `
         <div class="min-h-dvh">
             <!-- The app's top bar on the site header's grid (app-wrap app-top): the logo where the site's is. -->
             <header class="app-wrap app-top justify-between">
                 <!-- The logo goes to the public site's landing page (Hillel's call); this page is the home. -->
-                <a :href="publicSiteUrl()" class="-m-2 flex rounded-xl p-2" :aria-label="t('home.toSite')"><Logo /></a>
+                <div class="flex min-w-0 items-center gap-1 sm:gap-3">
+                <a :href="publicSiteUrl()" class="-m-2 flex shrink-0 rounded-xl p-2" :aria-label="t('home.toSite')"><Logo /></a>
+                <!-- The way back to the website, said in words for someone who came from it (the consultant's UX review:
+                     the logo alone didn't read as a link there). -->
+                <a v-if="fromSite" :href="publicSiteUrl()" class="ms-2 hidden min-h-11 shrink-0 items-center gap-1 rounded-full px-2 text-sm text-muted hover:text-cream sm:inline-flex" data-site-home><Icon name="back" :size="16" class="rtl:-scale-x-100" />{{ t('home.siteHome') }}</a>
+                </div>
                 <div class="flex min-w-0 items-center gap-2 sm:gap-3">
                 <ThemeSwitch v-if="account.loaded" />
                 <a v-if="account.me" href="/settings" data-ui="player" class="flex min-w-0 items-center gap-2 rounded-full glass-bubble p-1 text-sm font-semibold text-cream hover:bg-raised sm:pe-3" :aria-label="plus ? t('home.accountLinkPlus', { name: account.me.name }) : t('home.accountLink', { name: account.me.name })" @click.prevent="navigate('/settings')">
@@ -130,6 +135,8 @@ export const ProjectsView = {
                  the cards share their edges at any width and any browser text size (Hillel, 2026-11-09: "the whole header is
                  narrower"; a 72rem column grew past the 1200 px bar with Chrome's text set larger). -->
             <div class="app-wrap pb-16 pt-4">
+                <!-- A phone's way back to the website, on its own line under the bar (beside the logo it crowded the bar's buttons). -->
+                <a v-if="fromSite" :href="publicSiteUrl()" class="-mt-2 mb-1 inline-flex min-h-11 items-center gap-1 text-sm text-muted hover:text-cream sm:hidden" data-site-home-phone><Icon name="back" :size="16" class="rtl:-scale-x-100" />{{ t('home.siteHome') }}</a>
 
                         <!-- Hillel's Home design: the course card, the workout and your songs share one width, so their edges line up. -->
             <div class="mt-2 space-y-5">
@@ -231,6 +238,8 @@ export const ProjectsView = {
                                         </span>
                                         <span class="px-1 font-bold leading-tight text-cream" translate="no" data-ui="cartridge-title">{{ songTitle(item.tpl) }}</span>
                                         <span class="px-1 text-xs text-muted" :aria-label="singerText(item.tpl) + ' · ' + t(DIFFICULTY[item.tpl.difficulty] ?? DIFFICULTY.beginner)"><span aria-hidden="true">{{ singerCount(item.tpl) }} · {{ t(DIFFICULTY[item.tpl.difficulty] ?? DIFFICULTY.beginner) }}</span></span>
+                                        <!-- Why it's here (the consultant's UX review, item 9): among Home's picks for your range, the part that fits it. -->
+                                        <span v-if="!songsOpen && trimmed && fitPart(item.tpl)" class="px-1 text-xs text-cream/80" data-card-why>{{ t('home.songs.why.fits', { part: fitPart(item.tpl) }) }}</span>
                                     </button>
                                     <!-- Hillel: the preview's Play at the picture's top right, on hover (always on touch); a tap on the card still opens it. -->
                                     <button type="button" class="card-tools tap-44 absolute end-3 top-3 grid size-9 place-items-center rounded-full glass-bubble" :class="songOn(item.tpl.id) ? 'is-on bg-accent text-accent-ink' : 'bg-panel text-cream'" :aria-label="songOn(item.tpl.id) ? t('home.songs.stopNamed', { title: songTitle(item.tpl) }) : t('home.yours.playNamed', { title: songTitle(item.tpl) })" :aria-pressed="songOn(item.tpl.id) ? 'true' : 'false'" data-song-play @click="playLibrary(item.tpl)"><Icon :name="songOn(item.tpl.id) ? 'stop' : 'play'" :size="16" /></button>
@@ -669,6 +678,18 @@ export const ProjectsView = {
         },
         /** Shows every song, or two rows again; remembered for this visit only. */
         /** How far a song's best part sits outside the singer's range, in semitones (0: it fits; no range, 0). */
+        /**
+         * The part of a song that sits inside the singer's range (the one nearest its middle), by name, or '' with no range
+         * or none that fits: why a pick is here (the UX review, item 9).
+         */
+        fitPart(tpl) {
+            const range = learning.progress.range;
+            if (!range) return '';
+            const middle = (range.low + range.high) / 2;
+            const fits = (tpl.parts ?? []).filter((p) => p.range && p.kind !== 'instrument' && p.range.low >= range.low && p.range.high <= range.high);
+            const best = fits.sort((a, b) => Math.abs((a.range.low + a.range.high) / 2 - middle) - Math.abs((b.range.low + b.range.high) / 2 - middle))[0];
+            return best ? templatePartName(best).toLowerCase() : '';
+        },
         outside(tpl) {
             const range = learning.progress.range;
             return range ? Math.min(99, ...(tpl.parts ?? []).filter((p) => p.range).map((p) => Math.max(0, range.low - p.range.low) + Math.max(0, p.range.high - range.high))) : 0;

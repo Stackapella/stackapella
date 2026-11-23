@@ -84,8 +84,8 @@ const RESTORED = 'stackapella.restored'; // a restore's counts, shown once the a
 const CREDIT_SITE = 'stackapella.com'; // i18n-ignore: an address
 
 // The sections, in order (87.png), and their names.
-const SECTIONS = ['profile', 'account', 'game', 'practice', 'plan', 'data', 'device'];
-const SECTION_WORDS = { profile: tk('settings.nav.profile'), account: tk('settings.nav.account'), game: tk('settings.nav.game'), practice: tk('settings.nav.practice'), plan: tk('settings.nav.plan'), data: tk('settings.nav.data'), device: tk('settings.nav.device') };
+const SECTIONS = ['learning', 'choir', 'sound', 'settings-account'];
+const SECTION_WORDS = { learning: tk('settings.nav.learning'), choir: tk('settings.nav.choir'), sound: tk('settings.nav.sound'), 'settings-account': tk('settings.nav.accountDevice') };
 
 export const SettingsView = {
     components: { RangeDialog, SavedVoiceRow, InstallRow, GameElements, GameModeSwitch, AppScreen, ThemeSwitch, Field, Notice, StatusChip, Icon, Logo, Modal, SyncStatus, Switch },
@@ -113,9 +113,9 @@ export const SettingsView = {
         skipping: anySkipped(), // some confirmations turned off on this device
         usage: null, // the storage meter's
         editing: null, // 'email' or 'password': its change open under its row
-        section: 'profile', // the section in view, marked in the sidebar
+        section: 'learning', // the group in view, marked in the sidebar
     }),
-    setup: () => ({ voiceCare, setNotes, ideas, learning, prefs, account, locale, noteNames, NAMINGS, LEGAL, chooseNaming, METHODS, HANDLE_REASONS, EXPORT, formatDate, formatBytes, SECTIONS, SECTION_WORDS, appearanceSummary, selfHosted, CREDIT_SITE, sk, game }),
+    setup: () => ({ publicSiteUrl, voiceCare, setNotes, ideas, learning, prefs, account, locale, noteNames, NAMINGS, LEGAL, chooseNaming, METHODS, HANDLE_REASONS, EXPORT, formatDate, formatBytes, SECTIONS, SECTION_WORDS, appearanceSummary, selfHosted, CREDIT_SITE, sk, game }),
     template: `
         <AppScreen :title="t('settings.title')" back="/" measure="" data-ui="screen" class="bg-ink">
             <!-- How it looks is the header's Theme button, here as on every screen (Hillel's call). -->
@@ -149,9 +149,91 @@ export const SettingsView = {
                         </div>
                     </div>
                 </section>
-                <template v-else-if="profile">
+                <!-- Grouped by goal (the consultant's UX review, item 7): Learning, Choir and groups, Sound and voice care, Account and
+                     device. Each group is one stop in the side nav; the old sections keep their ids inside them. -->
+                <div v-if="account.loaded" id="learning" class="scroll-mt-6 space-y-4" data-section data-group="learning" aria-labelledby="learning-heading">
+                    <h2 id="learning-heading" class="text-xl font-bold text-cream">{{ t('settings.nav.learning') }}</h2>
+                <!-- Game mode (Hillel: "a section in the settings (not at the top)"), signed in or not. -->
+                <section id="game" class="space-y-3" aria-labelledby="game-heading">
+                    <h3 id="game-heading" class="sr-only">{{ t('settings.nav.game') }}</h3><!-- the Game mode row under it says it: no second heading -->
+                    <div class="card px-5 py-3"><GameModeSwitch /></div>
+                    <GameElements v-if="game()" />
+                </section>
+                <section id="practice" class="space-y-3" aria-labelledby="practice-heading">
+                    <h3 id="practice-heading" class="sr-only">{{ t('settings.nav.practice') }}</h3>
+                    <div class="card divide-y divide-line overflow-hidden">
+                        <!-- Language and Note names (docs/languages-plan.md): once a language besides English is switched on
+                             (Admin > Settings > Switches), or one was opened by ?lang= to check a draft. -->
+                        <template v-if="languagesShown">
+                            <label class="flex flex-wrap items-center justify-between gap-4 p-5" data-language><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('settings.language.title') }}</span><span class="block text-sm text-muted" data-language-hint>{{ languageHint }}</span></span>
+                                <select class="input w-auto" :value="locale.lang" @change="pickLanguage($event.target.value)"><option v-for="lang in languages" :key="lang" :value="lang" :lang="lang" translate="no">{{ languageName(lang) }}</option></select>
+                            </label>
+                            <label class="flex flex-wrap items-center justify-between gap-4 p-5" data-note-names><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('settings.noteNames.title') }}</span><span class="block text-sm text-muted">{{ t('settings.noteNames.hint') }}</span></span>
+                                <select class="input w-auto" :value="noteNames.choice" @change="chooseNaming($event.target.value)"><option v-for="n in NAMINGS" :key="n" :value="n">{{ namingLabel(n) }}</option></select>
+                            </label>
+                        </template>
+                        <!-- Your range (Hillel, 2026-11-22: "when my range is set I don't see an option to reset it"): what's kept,
+                             Check my range again (the range check; its answer replaces the old), and a quiet Clear my range. -->
+                        <div class="flex flex-wrap items-center justify-between gap-4 p-5" data-settings-range>
+                            <div class="min-w-0 flex-1">
+                                <p class="font-semibold text-cream">{{ t('settings.range.title') }}</p>
+                                <p class="text-sm text-muted" data-settings-range-value>{{ rangeLine }}</p>
+                                <button v-if="learning.progress.range" type="button" class="link-quiet inline-flex min-h-11 items-center text-sm" data-settings-range-clear @click="clearMyRange">{{ t('settings.range.clear') }}</button>
+                            </div>
+                            <button type="button" class="btn-secondary btn-sm shrink-0 rounded-full" data-settings-range-check @click="checkingRange = true">{{ learning.progress.range ? t('settings.range.again') : t('settings.range.check') }}</button>
+                        </div>
+                        <div class="flex flex-wrap items-center justify-between gap-4 p-5" data-restart>
+                            <div class="min-w-0 flex-1"><p class="font-semibold text-cream">{{ t('settings.course.restart') }}</p><p class="text-sm text-muted">{{ learning.undoUntil ? t('settings.course.restartedUntil', { date: formatDate(learning.undoUntil, { day: 'numeric', month: 'long' }) }) : sk('settings.course.restartHintSerious', 'settings.course.restartHint') }}</p></div>
+                            <button v-if="learning.undoUntil" type="button" class="btn-secondary btn-sm shrink-0" :disabled="restarting" @click="undoRestartCourse">{{ t('common.undo') }}</button>
+                            <button v-else type="button" class="btn-secondary btn-sm shrink-0" :disabled="restarting || !Object.keys(learning.progress.lessons ?? {}).length" @click="restartCourseAsk">{{ t('settings.course.startOver') }}</button>
+                        </div>
+                        <label class="flex flex-wrap items-center justify-between gap-4 p-5" data-sing-way><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('settings.device.singWay') }}</span><span class="block text-sm text-muted">{{ t('settings.device.singWayHint') }}</span></span>
+                            <select v-model="prefs.singWay" class="input w-auto"><option :value="null">{{ t('settings.device.singWayAsk') }}</option><option value="parts">{{ t('settings.device.singWayParts') }}</option><option value="whole">{{ t('settings.device.singWayWhole') }}</option></select>
+                        </label>
+                        <div v-if="skipping" class="flex items-center justify-between gap-4 p-5"><p class="min-w-0 text-sm text-muted">{{ t('settings.device.skipping') }}</p><button type="button" class="btn-secondary btn-sm shrink-0" @click="askAgain">{{ t('settings.device.askAgain') }}</button></div>
+                        <a v-if="account.me" href="/settings/reminders" class="flex items-center justify-between gap-4 p-5 hover:bg-raised/50" @click.prevent="navigate('/settings/reminders')"><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('reminders.title') }}</span><span class="block text-sm text-muted">{{ t('reminders.settingsHint') }}</span></span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" /></a>
+                        <!-- A warm-up for students (docs/warmup-builder-plan.md): made here, shared as a link; no account needed. -->
+                        <a href="/warmup" class="flex items-center justify-between gap-4 p-5 hover:bg-raised/50" data-make-warmup @click.prevent="navigate('/warmup')"><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('warmup.make.title') }}</span><span class="block text-sm text-muted">{{ t('warmup.make.settingsHint') }}</span></span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" /></a>
+                        <!-- The free tools on our site (docs/retention-plan.md, idea 7: "the app never links to the tools"): one row. -->
+                        <a :href="toolsUrl" class="flex items-center justify-between gap-4 p-5 hover:bg-raised/50" data-free-tools @click="toolsOpened"><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('settings.tools.title') }}</span><span class="block text-sm text-muted">{{ t('settings.tools.hint') }}</span></span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" /></a>
+                        <!-- Class codes for teachers (docs/school-offer-plan.md): Plus for a year for their students; adults only. -->
+                        <a v-if="config?.schools && account.me && account.me.isAdult !== false" href="/settings/classes" class="flex items-center justify-between gap-4 p-5 hover:bg-raised/50" data-class-codes @click.prevent="navigate('/settings/classes')"><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('school.classes.title') }}</span><span class="block text-sm text-muted">{{ t('school.settings.teacherHint') }}</span></span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" /></a>
+                    </div>
+                </section>
+                </div>
+
+                <!-- Choir and groups: your groups, the voice kept for Hear yourself as a choir, and Lend your voice. -->
+                <section v-if="account.me" id="choir" class="scroll-mt-6 space-y-3" data-section data-group="choir" aria-labelledby="choir-heading">
+                    <h2 id="choir-heading" class="text-xl font-bold text-cream">{{ t('settings.nav.choir') }}</h2>
+                    <div class="card divide-y divide-line overflow-hidden">
+                        <a v-if="account.me" href="/groups" class="flex items-center justify-between gap-4 p-5 hover:bg-raised/50" @click.prevent="navigate('/groups')"><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('groups.title') }}</span><span class="block text-sm text-muted">{{ t('groups.settingsHint') }}</span></span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" /></a>
+                    </div>
+                <!-- Hear yourself as a choir (js/own-choir.js): the voice kept for their next songs, and Delete; only while one is kept. -->
+                <SavedVoiceRow v-if="account.me" />
+                <!-- Lend your voice (docs/lend-your-voice-plan.md): no new tab, a row here, while its switch is on -->
+                <a v-if="account.me && account.config?.lendVoice" href="/voices" class="card-interactive flex items-center gap-4 p-5" data-lend-voice @click.prevent="navigate('/voices')">
+                    <span class="grid size-10 shrink-0 place-items-center rounded-full bg-raised text-cream" aria-hidden="true"><Icon name="mic" :size="20" /></span>
+                    <span class="min-w-0 flex-1"><span class="block font-bold text-cream">{{ t('voices.title') }}</span><span class="block text-sm text-muted">{{ t('voices.settingsHint') }}</span></span>
+                    <Icon name="arrow" :size="18" class="text-muted" />
+                </a>
+                </section>
+
+                <!-- Sound and voice care: this device's sounds and the voice care notes. -->
+                <section v-if="account.loaded" id="sound" class="scroll-mt-6 space-y-3" data-section data-group="sound" aria-labelledby="sound-heading">
+                    <h2 id="sound-heading" class="text-xl font-bold text-cream">{{ t('settings.nav.sound') }}</h2>
+                    <div class="card divide-y divide-line overflow-hidden">
+                        <div class="py-3 pe-3 ps-5" data-sounds><Switch :on="prefs.sounds" :label="t('settings.device.sounds')" :hint="sk('settings.device.soundsHintSerious', 'settings.device.soundsHint')" @change="(on) => (prefs.sounds = on)" /></div>
+                        <!-- Voice care (docs/voice-care-plan.md): the 20 and 40 minute notes, on by default; the cool-down stays either way. -->
+                        <div class="py-3 pe-3 ps-5" data-voice-notes><Switch :on="voiceCare.notesOn" :label="t('voiceCare.settingsTitle')" :hint="t('voiceCare.settingsHint')" @change="setNotes" /></div>
+                    </div>
+                </section>
+
+                <!-- Account and device: the profile, sign-in, plan, your data, this device; the notices and Contact us. -->
+                <div v-if="account.loaded" id="settings-account" class="scroll-mt-6 space-y-6" data-section data-group="settings-account" aria-labelledby="settings-account-heading">
+                    <h2 id="settings-account-heading" class="text-xl font-bold text-cream">{{ t('settings.nav.accountDevice') }}</h2>
+                <template v-if="account.me && profile">
                     <!-- Profile -->
-                    <form id="profile" ref="profile" class="card scroll-mt-6 space-y-5 p-5 md:p-6" data-section @submit.prevent="saveProfile" :aria-label="t('settings.nav.profile')">
+                    <form id="profile" ref="profile" class="card scroll-mt-6 space-y-5 p-5 md:p-6" @submit.prevent="saveProfile" :aria-label="t('settings.nav.profile')">
                         <div class="flex items-center gap-4">
                             <!-- A photo that won't load (offline, or gone from the store) shows the letter, as Home does. -->
                             <img v-if="account.me.avatarUrl && avatarFailed !== account.me.avatarUrl" :src="account.me.avatarUrl" alt="" class="size-14 rounded-full object-cover" data-avatar @error="avatarFailed = account.me.avatarUrl" />
@@ -198,8 +280,8 @@ export const SettingsView = {
                     </form>
 
                     <!-- Account and sign-in: each a row, its change opening under it -->
-                    <section id="account" class="scroll-mt-6 space-y-3" data-section aria-labelledby="account-heading">
-                        <h2 id="account-heading" class="text-lg font-bold text-cream">{{ t('settings.nav.account') }}</h2>
+                    <section id="account" class="scroll-mt-6 space-y-3" aria-labelledby="account-heading">
+                        <h3 id="account-heading" class="text-lg font-bold text-cream">{{ t('settings.nav.account') }}</h3>
                         <div class="card divide-y divide-line overflow-hidden">
                             <div class="p-5" data-row="email">
                                 <div class="flex items-center justify-between gap-4">
@@ -249,66 +331,10 @@ export const SettingsView = {
                         </div>
                     </section>
                 </template>
-
-                <!-- Game mode (Hillel: "a section in the settings (not at the top)"), signed in or not. -->
-                <section v-if="account.loaded" id="game" class="scroll-mt-6 space-y-3" data-section aria-labelledby="game-heading">
-                    <h2 id="game-heading" class="sr-only">{{ t('settings.nav.game') }}</h2><!-- the Game mode row under it says it: no second heading -->
-                    <div class="card px-5 py-3"><GameModeSwitch /></div>
-                    <GameElements v-if="game()" />
-                </section>
-
-                <!-- Practice and appearance (signed in or not: the appearance and this device's sounds) -->
-                <section v-if="account.loaded" id="practice" class="scroll-mt-6 space-y-3" data-section aria-labelledby="practice-heading">
-                    <h2 id="practice-heading" class="text-lg font-bold text-cream">{{ t('settings.nav.practice') }}</h2>
-                    <div class="card divide-y divide-line overflow-hidden">
-                        <div class="flex items-center justify-between gap-4 p-5"><div class="min-w-0"><p class="font-semibold text-cream">{{ t('appearance.title') }}</p><p class="text-sm text-muted">{{ appearanceSummary() }}</p></div><ThemeSwitch /></div>
-                        <!-- Language and Note names (docs/languages-plan.md): once a language besides English is switched on
-                             (Admin > Settings > Switches), or one was opened by ?lang= to check a draft. -->
-                        <template v-if="languagesShown">
-                            <label class="flex flex-wrap items-center justify-between gap-4 p-5" data-language><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('settings.language.title') }}</span><span class="block text-sm text-muted" data-language-hint>{{ languageHint }}</span></span>
-                                <select class="input w-auto" :value="locale.lang" @change="pickLanguage($event.target.value)"><option v-for="lang in languages" :key="lang" :value="lang" :lang="lang" translate="no">{{ languageName(lang) }}</option></select>
-                            </label>
-                            <label class="flex flex-wrap items-center justify-between gap-4 p-5" data-note-names><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('settings.noteNames.title') }}</span><span class="block text-sm text-muted">{{ t('settings.noteNames.hint') }}</span></span>
-                                <select class="input w-auto" :value="noteNames.choice" @change="chooseNaming($event.target.value)"><option v-for="n in NAMINGS" :key="n" :value="n">{{ namingLabel(n) }}</option></select>
-                            </label>
-                        </template>
-                        <a v-if="account.me" href="/settings/reminders" class="flex items-center justify-between gap-4 p-5 hover:bg-raised/50" @click.prevent="navigate('/settings/reminders')"><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('reminders.title') }}</span><span class="block text-sm text-muted">{{ t('reminders.settingsHint') }}</span></span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" /></a>
-                        <a v-if="account.me" href="/groups" class="flex items-center justify-between gap-4 p-5 hover:bg-raised/50" @click.prevent="navigate('/groups')"><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('groups.title') }}</span><span class="block text-sm text-muted">{{ t('groups.settingsHint') }}</span></span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" /></a>
-                        <!-- A warm-up for students (docs/warmup-builder-plan.md): made here, shared as a link; no account needed. -->
-                        <a href="/warmup" class="flex items-center justify-between gap-4 p-5 hover:bg-raised/50" data-make-warmup @click.prevent="navigate('/warmup')"><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('warmup.make.title') }}</span><span class="block text-sm text-muted">{{ t('warmup.make.settingsHint') }}</span></span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" /></a>
-                        <!-- The free tools on our site (docs/retention-plan.md, idea 7: "the app never links to the tools"): one row. -->
-                        <a :href="toolsUrl" class="flex items-center justify-between gap-4 p-5 hover:bg-raised/50" data-free-tools @click="toolsOpened"><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('settings.tools.title') }}</span><span class="block text-sm text-muted">{{ t('settings.tools.hint') }}</span></span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" /></a>
-                        <!-- Class codes for teachers (docs/school-offer-plan.md): Plus for a year for their students; adults only. -->
-                        <a v-if="config?.schools && account.me && account.me.isAdult !== false" href="/settings/classes" class="flex items-center justify-between gap-4 p-5 hover:bg-raised/50" data-class-codes @click.prevent="navigate('/settings/classes')"><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('school.classes.title') }}</span><span class="block text-sm text-muted">{{ t('school.settings.teacherHint') }}</span></span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" /></a>
-                        <div class="py-3 pe-3 ps-5" data-sounds><Switch :on="prefs.sounds" :label="t('settings.device.sounds')" :hint="sk('settings.device.soundsHintSerious', 'settings.device.soundsHint')" @change="(on) => (prefs.sounds = on)" /></div>
-                        <!-- Your range (Hillel, 2026-11-22: "when my range is set I don't see an option to reset it"): what's kept,
-                             Check my range again (the range check; its answer replaces the old), and a quiet Clear my range. -->
-                        <div class="flex flex-wrap items-center justify-between gap-4 p-5" data-settings-range>
-                            <div class="min-w-0 flex-1">
-                                <p class="font-semibold text-cream">{{ t('settings.range.title') }}</p>
-                                <p class="text-sm text-muted" data-settings-range-value>{{ rangeLine }}</p>
-                                <button v-if="learning.progress.range" type="button" class="link-quiet inline-flex min-h-11 items-center text-sm" data-settings-range-clear @click="clearMyRange">{{ t('settings.range.clear') }}</button>
-                            </div>
-                            <button type="button" class="btn-secondary btn-sm shrink-0 rounded-full" data-settings-range-check @click="checkingRange = true">{{ learning.progress.range ? t('settings.range.again') : t('settings.range.check') }}</button>
-                        </div>
-                        <!-- Voice care (docs/voice-care-plan.md): the 20 and 40 minute notes, on by default; the cool-down stays either way. -->
-                        <div class="py-3 pe-3 ps-5" data-voice-notes><Switch :on="voiceCare.notesOn" :label="t('voiceCare.settingsTitle')" :hint="t('voiceCare.settingsHint')" @change="setNotes" /></div>
-                        <div class="flex flex-wrap items-center justify-between gap-4 p-5" data-restart>
-                            <div class="min-w-0 flex-1"><p class="font-semibold text-cream">{{ t('settings.course.restart') }}</p><p class="text-sm text-muted">{{ learning.undoUntil ? t('settings.course.restartedUntil', { date: formatDate(learning.undoUntil, { day: 'numeric', month: 'long' }) }) : sk('settings.course.restartHintSerious', 'settings.course.restartHint') }}</p></div>
-                            <button v-if="learning.undoUntil" type="button" class="btn-secondary btn-sm shrink-0" :disabled="restarting" @click="undoRestartCourse">{{ t('common.undo') }}</button>
-                            <button v-else type="button" class="btn-secondary btn-sm shrink-0" :disabled="restarting || !Object.keys(learning.progress.lessons ?? {}).length" @click="restartCourseAsk">{{ t('settings.course.startOver') }}</button>
-                        </div>
-                        <label class="flex flex-wrap items-center justify-between gap-4 p-5" data-sing-way><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('settings.device.singWay') }}</span><span class="block text-sm text-muted">{{ t('settings.device.singWayHint') }}</span></span>
-                            <select v-model="prefs.singWay" class="input w-auto"><option :value="null">{{ t('settings.device.singWayAsk') }}</option><option value="parts">{{ t('settings.device.singWayParts') }}</option><option value="whole">{{ t('settings.device.singWayWhole') }}</option></select>
-                        </label>
-                        <div v-if="skipping" class="flex items-center justify-between gap-4 p-5"><p class="min-w-0 text-sm text-muted">{{ t('settings.device.skipping') }}</p><button type="button" class="btn-secondary btn-sm shrink-0" @click="askAgain">{{ t('settings.device.askAgain') }}</button></div>
-                    </div>
-                </section>
-
                 <template v-if="account.me && profile">
                     <!-- Plan and storage: the songs as slots, the space as a bar -->
-                    <section id="plan" class="scroll-mt-6 space-y-3" data-section aria-labelledby="plan-heading">
-                        <h2 id="plan-heading" class="text-lg font-bold text-cream">{{ t('settings.nav.plan') }}</h2>
+                    <section id="plan" class="scroll-mt-6 space-y-3" aria-labelledby="plan-heading">
+                        <h3 id="plan-heading" class="text-lg font-bold text-cream">{{ t('settings.nav.plan') }}</h3>
                         <div class="card space-y-5 p-5">
                             <div class="flex flex-wrap items-start justify-between gap-3">
                                 <div class="min-w-0"><p class="font-bold text-cream">{{ account.me.plan === 'plus' ? t('settings.plan.plusName') : t('settings.plan.freeName') }}</p><p class="text-sm text-muted">{{ selfHosted() ? t('settings.plan.included') : schoolUntil ? t('school.settings.plusUntil', { date: formatDate(schoolUntil) }) : account.me.plan === 'plus' ? t('settings.plan.plus') : t('settings.plan.freeLine') }}</p>
@@ -333,8 +359,8 @@ export const SettingsView = {
                     </section>
 
                     <!-- Your data: download it all; sign out; delete the account -->
-                    <section id="data" class="scroll-mt-6 space-y-3" data-section aria-labelledby="data-heading">
-                        <h2 id="data-heading" class="text-lg font-bold text-cream">{{ t('settings.nav.data') }}</h2>
+                    <section id="data" class="scroll-mt-6 space-y-3" aria-labelledby="data-heading">
+                        <h3 id="data-heading" class="text-lg font-bold text-cream">{{ t('settings.nav.data') }}</h3>
                         <div class="card divide-y divide-line overflow-hidden">
                             <div class="flex flex-wrap items-center justify-between gap-4 p-5">
                                 <div class="min-w-0"><p class="font-semibold text-cream">{{ t('settings.export.title') }}</p><p class="text-sm text-muted">{{ exportState && EXPORT[exportState.status] ? t(EXPORT[exportState.status], { date: exportState.expiresAt ? formatDate(exportState.expiresAt) : '' }) : t('settings.export.intro') }}</p></div>
@@ -356,22 +382,18 @@ export const SettingsView = {
                     </section>
                 </template>
                 <!-- This device: everything kept in this browser, deleted at once; signed in or not (a guest keeps the most here). -->
-                <section v-if="account.loaded" id="device" class="scroll-mt-6 space-y-3" data-section aria-labelledby="device-heading" data-wipe>
-                    <h2 id="device-heading" class="text-lg font-bold text-cream">{{ t('settings.nav.device') }}</h2>
+                <section id="device" class="scroll-mt-6 space-y-3" aria-labelledby="device-heading" data-wipe>
+                    <h3 id="device-heading" class="text-lg font-bold text-cream">{{ t('settings.nav.device') }}</h3>
+                    <!-- How it looks (the header's Theme button too). -->
+                    <div class="card">
+                        <div class="flex items-center justify-between gap-4 p-5"><div class="min-w-0"><p class="font-semibold text-cream">{{ t('appearance.title') }}</p><p class="text-sm text-muted">{{ appearanceSummary() }}</p></div><ThemeSwitch /></div>
+                    </div>
                     <InstallRow />
                     <div class="card flex flex-wrap items-center justify-between gap-4 p-5">
                         <div class="min-w-0 flex-1" data-wipe-text><p class="font-semibold text-cream">{{ t('settings.wipe.title') }}</p><p class="text-sm text-muted">{{ account.me ? t('settings.wipe.hint') : t('settings.wipe.hintGuest') }}</p></div>
                         <button type="button" class="btn-ghost btn-sm shrink-0 text-bad" :disabled="busy === 'wipe'" data-wipe-start @click="wipeDevice">{{ t('settings.wipe.button') }}</button>
                     </div>
                 </section>
-                <!-- Lend your voice (docs/lend-your-voice-plan.md): no new tab, a row here, while its switch is on -->
-                <a v-if="account.me && account.config?.lendVoice" href="/voices" class="card-interactive flex items-center gap-4 p-5" data-lend-voice @click.prevent="navigate('/voices')">
-                    <span class="grid size-10 shrink-0 place-items-center rounded-full bg-raised text-cream" aria-hidden="true"><Icon name="mic" :size="20" /></span>
-                    <span class="min-w-0 flex-1"><span class="block font-bold text-cream">{{ t('voices.title') }}</span><span class="block text-sm text-muted">{{ t('voices.settingsHint') }}</span></span>
-                    <Icon name="arrow" :size="18" class="text-muted" />
-                </a>
-                <!-- Hear yourself as a choir (js/own-choir.js): the voice kept for their next songs, and Delete; only while one is kept. -->
-                <SavedVoiceRow v-if="account.me" />
                 <!-- Statements of reasons (views/notices.js): only for someone who has had one. -->
                 <a v-if="account.me && notices" href="/notices" class="card-interactive flex items-center gap-4 p-5" data-notices-row @click.prevent="navigate('/notices')">
                     <span class="grid size-10 shrink-0 place-items-center rounded-full bg-raised text-cream" aria-hidden="true"><Icon name="alert" :size="20" /></span>
@@ -383,6 +405,9 @@ export const SettingsView = {
                     <span class="min-w-0 flex-1"><span class="block font-bold text-cream">{{ t('contact.title') }}</span><span class="block text-sm text-muted">{{ t('settings.contactHint') }}</span></span>
                     <Icon name="arrow" :size="18" class="text-muted" />
                 </a>
+                </div>
+                <!-- The website, above the legal links (the consultant's UX review: a clear route back to the website). -->
+                <p class="text-center text-sm"><a :href="publicSiteUrl()" class="link-quiet inline-flex min-h-11 items-center text-muted" data-settings-site-home>{{ t('home.siteHome') }}</a></p>
                 <nav :aria-label="t('settings.legal.label')" class="flex flex-wrap justify-center gap-x-5 text-sm" data-legal>
                     <a v-for="page in LEGAL" :key="page.path" :href="siteUrl(page.path)" class="link-quiet inline-flex min-h-6 items-center text-muted">{{ t(page.word) }}</a>
                 </nav>

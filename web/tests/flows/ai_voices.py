@@ -68,6 +68,8 @@ def journey(f):
     assert "AI voices" in line, line
     assert f.js("!!document.querySelector('[data-song-ai-voices] [data-ai-voice-go]')"), "Be the voice beside it"
     assert not f.js("document.querySelector('[data-song-no-voice]')"), "the AI parts aren't said twice as having no voice"
+    # What you'll hear, before playback (the UX review, item 4): every part an AI voice, so one chip says so.
+    assert f.js("[...document.querySelectorAll('[data-song-guides] [data-guide]')].map((c) => c.dataset.guide)") == ["ai"], "not one AI chip"
     f.no_sideways("the song's sheet")
     f.shot("sheet-on")
     f.press("Escape")
@@ -132,6 +134,7 @@ def journey(f):
     past_first_week(f)
     song_sheet(f)
     assert not f.js("document.querySelector('[data-song-ai-voices]') || document.querySelector('[data-ai-voice]')"), "no AI line on the sheet, nor a tag on any card"
+    assert "ai" not in f.js("[...document.querySelectorAll('[data-song-guides] [data-guide]')].map((c) => c.dataset.guide)"), "an AI chip while AI voices are off"
     f.wait("document.querySelector('[data-song-no-voice]')", what="the sheet's usual no-voice line")
     f.shot("sheet-off")
     f.press("Escape")

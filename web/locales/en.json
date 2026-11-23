@@ -733,6 +733,13 @@
             "question": "Which version?",
             "us": "US",
             "uk": "UK"
+        },
+        "guides": {
+            "title": "What you'll hear",
+            "part": "{part}: {kind}",
+            "real": "Real voice",
+            "ai": "AI voice",
+            "hummed": "Practice voice"
         }
     },
     "projects": {
@@ -4365,6 +4372,7 @@
         "hear": {
             "title": "What you hear",
             "melody": "Melody",
+            "others": "Other parts",
             "guide": "Your guide's level",
             "yours": "{part}: your guide",
             "yoursHint": "Plays as the mode says: Listen, Sing along softly, On your own off.",
@@ -4373,8 +4381,9 @@
             "soft": "Soft",
             "medium": "Medium",
             "loud": "Loud",
-            "speakers": "No headphones: the others play softer while you record, so less of them reaches your mic. Headphones give a cleaner take.",
             "split": "Split ears",
+            "speakersLead": "No headphones.",
+            "speakersRest": "The others play softer while you record, so less of them reaches your mic. Headphones give a cleaner take.",
             "splitHint": "Your part in your left ear, the others in your right.",
             "offShort": "Off",
             "yourGuide": "your guide",
@@ -4424,6 +4433,10 @@
             "open": "Settings",
             "title": "Session settings",
             "fullSpeedRecording": "Recording always uses full speed.",
+            "applyNow": "Changes apply right away",
+            "tempo": "Tempo {n}",
+            "ringTag": "Needs headphones",
+            "ringHintShort": "On a note held in a chord, how close you are to ringing pure, not just the piano's pitch.",
             "names": {
                 "title": "Note names",
                 "solfege": "do re mi",
@@ -4434,7 +4447,6 @@
             "others": "Other parts on the lane",
             "othersHint": "Faint outlines above and below yours.",
             "ring": "Tuning in held chords",
-            "ringHint": "On a note held in a chord, how close you are to ringing: pure, not just the piano's pitch. With headphones.",
             "voices": "Guide voices",
             "shortcuts": "Keyboard shortcuts",
             "shortcutsHint": "Space always plays, even with shortcuts off. R records in the studio too.",
@@ -4446,6 +4458,8 @@
             "keyboardHint": "Piano keys beside the lane, so you can see the pitch.",
             "keys": {
                 "record": "Record",
+                "space": "Space",
+                "play": "Play",
                 "loop": "Loop",
                 "next": "Next phrase",
                 "mute": "Guide off or on"
@@ -4820,7 +4834,7 @@
             "word": "delete",
             "confirm": "Delete my account",
             "done": "Your account is deleted. Thank you for singing with us.",
-            "hint": "Deletes your account, your songs and your recordings for good."
+            "hint": "Deletes your account and the songs and takes kept with it, for good. Songs on this device stay here."
         },
         "device": {
             "skipping": "You asked not to be asked again before discarding a draft.",
@@ -4864,7 +4878,11 @@
             "practice": "Practice and appearance",
             "plan": "Plan and storage",
             "data": "Your data",
-            "device": "This device"
+            "device": "This device",
+            "learning": "Learning",
+            "choir": "Choir and groups",
+            "sound": "Sound and voice care",
+            "accountDevice": "Account and device"
         },
         "change": "Change",
         "bioCount": "{count}/{max}",
@@ -5474,7 +5492,10 @@
                 "barbershop": "Barbershop, parlour and stage",
                 "more": "More songs"
             },
-            "browseAllCount": "{count, plural, one {Browse the # song} other {Browse all # songs}}"
+            "browseAllCount": "{count, plural, one {Browse the # song} other {Browse all # songs}}",
+            "why": {
+                "fits": "The {part} fits your range"
+            }
         },
         "projects": {
             "fromCourse": "From the course"
@@ -5551,7 +5572,8 @@
             },
             "stepLine": "{step}: {what}"
         },
-        "admin": "Admin"
+        "admin": "Admin",
+        "siteHome": "Stackapella website"
     },
     "confirm": {
         "dontAsk": "Don't ask again",
@@ -5920,7 +5942,6 @@
         "highest": "Highest",
         "comfortable": "Most comfortable",
         "span": "Span",
-        "semitones": "{count, plural, one {# semitone} other {# semitones}}",
         "notYetShort": "Not yet",
         "badgeFilter": "Which badges",
         "allBadges": "All",
@@ -7927,11 +7948,11 @@
         },
         "note": {
             "yours": "Your comfortable note is",
-            "low": "Notes around {note} suit bass and baritone parts.",
-            "lowMiddle": "Notes around {note} suit baritone and tenor parts.",
-            "highMiddle": "Notes around {note} suit tenor and alto parts.",
-            "high": "Notes around {note} suit alto and soprano parts.",
-            "voice": "Your range suits {voice} parts best.",
+            "low": "Bass and baritone parts suit you: their tunes sit around {note}, your comfortable note.",
+            "lowMiddle": "Baritone and tenor parts suit you: their tunes sit around {note}, your comfortable note.",
+            "highMiddle": "Tenor and alto parts suit you: their tunes sit around {note}, your comfortable note.",
+            "high": "Alto and soprano parts suit you: their tunes sit around {note}, your comfortable note.",
+            "voice": "Your range suits {voice} parts best: their notes fit inside it.",
             "startsHere": "Every lesson will now start here."
         },
         "voice": {
@@ -8043,7 +8064,25 @@
             "dailyTextSerious": "I sang today's song in Stackapella, {title} ({part}): {percent}% on pitch."
         },
         "onPitch": "{percent}% on pitch",
-        "lessonDone": "Lesson done"
+        "lessonDone": "Lesson done",
+        "found": {
+            "note": "Comfortable note",
+            "noteHow": "Measured: the note you held",
+            "range": "Easy range",
+            "rangeGuess": "Estimated around your note",
+            "rangeMeasured": "Measured by your range check",
+            "lowHigh": "{low} to {high}",
+            "span": "How wide",
+            "check": "Check my range",
+            "checkAgain": "Check my range again"
+        },
+        "span": {
+            "under": "Less than an octave",
+            "octave": "About an octave",
+            "octaveHalf": "About an octave and a half",
+            "two": "About two octaves",
+            "more": "More than two octaves"
+        }
     },
     "menu": {
         "file": "File",
@@ -9172,7 +9211,6 @@
         "intro": "Some song parts and lesson clips still play a synth voice. Record one, and once we accept it, everyone learning hears your voice there.",
         "point": {
             "unpaid": "It's unpaid, and nothing is promised to be used.",
-            "review": "Every take is checked on your phone, then reviewed by us before anyone hears it.",
             "yours": "Only your own voice: never a sample or someone else's recording."
         },
         "agreement": "The Lend your voice agreement",
@@ -9279,6 +9317,17 @@
             "vibrato": "Vibrato by {name}",
             "hum": "Hummed by {name}",
             "trill": "Lip trill by {name}"
+        },
+        "explain": {
+            "what": "What you record",
+            "whatBody": "One song part, or a short lesson clip, that still plays our synthesized voice. You record it here in the app.",
+            "who": "Who hears it",
+            "whoBody": "Your take is checked on your phone, then our team listens. Once we accept it, everyone learning that part or lesson hears your voice instead of the synth.",
+            "credit": "How you're credited",
+            "creditBody": "By your name or anonymously: you choose below, and can change it any time.",
+            "stop": "Stopping",
+            "stopBody": "Ask us to stop using a recording any time, here or by email; deleting your account does the same. Copies already in people's projects stay.",
+            "read": "Read the full agreement"
         }
     },
     "wall": {

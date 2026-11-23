@@ -41,6 +41,8 @@ def journey(f):
     f.run("const { learning } = await import('/js/stores/learning.js'); learning.progress.startedAt = Date.now() - 30 * 86400000; learning.progress.range = { low: 36, high: 96 };")
     f.wait(f"{TAGS}.length === 1", what="one pick with news")
     assert f.js("document.querySelectorAll('#home-songs [data-song-card]').length") == 3, "three picks, no new band"
+    # Why each pick is here (the UX review, item 9): the part that fits the range, on every card.
+    assert f.js("[...document.querySelectorAll('#home-songs [data-song-card]')].every((c) => c.querySelector('[data-card-why]'))"), "a pick without its why"
     tag = f.js(f"({{ kind: {TAGS}[0].dataset.news, words: {TAGS}[0].textContent.trim(), title: {TAGS}[0].closest('[data-song-card]').querySelector('[data-ui=cartridge-title]').textContent.trim() }})")
     assert tag == {"kind": "season", "words": t(f, "home.songs.news.carols"), "title": "Silent Night"}, tag
     f.run("document.querySelector('#band-songs').scrollIntoView({ block: 'start' })")
@@ -48,6 +50,7 @@ def journey(f):
     # Out of range: no tag, even in season.
     f.run("(await import('/js/stores/learning.js')).learning.progress.range = { low: 90, high: 96 };")
     f.wait(f"{TAGS}.length === 0", what="no tag on a song out of range")
+    assert not f.js("document.querySelector('#home-songs [data-card-why]')"), "a why on a song no part of which fits"
     f.run("(await import('/js/stores/learning.js')).learning.progress.range = { low: 36, high: 96 };")
     f.wait(f"{TAGS}.length === 1", what="back in range")
     # Browse all is looking at the library: the clock moves on (the season's tag stays while it's in season).

@@ -28,7 +28,7 @@ def journey(f):
     f.run("document.querySelector('[data-settings-open]').click()")
     f.wait("document.querySelector('[data-drone]')", what="Drone in Sing's settings")
     f.run("document.querySelector('[data-drone]').scrollIntoView({ block: 'center' })")
-    assert f.js("document.querySelector('[data-drone] [aria-pressed=true]').textContent.trim()") == f.js("(await import('/js/i18n.js')).t('sing.drone.off')"), "Off until picked"
+    assert f.js("document.querySelector('[data-drone] [aria-checked=true]').textContent.trim()") == f.js("(await import('/js/i18n.js')).t('sing.drone.off')"), "Off until picked"
     assert not f.js(audible), "no drone at first"
     f.js("new Promise((r) => setTimeout(r, 400))")
     f.shot("drone-off")

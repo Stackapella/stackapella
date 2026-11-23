@@ -32,6 +32,12 @@ def journey(f):
     f.go("/settings?scenario=voices.join:account_too_new", "document.querySelector('[data-lend-voice]')")
     f.run("document.querySelector('[data-lend-voice]').click()")
     f.wait("location.pathname === '/voices' && document.querySelector('[data-voices-join] [role=region]')", what="the way in, with the agreement")
+    # Before the ask (the UX review, item 8): what you record, who hears it, credit and stopping, then the agreement a tap away.
+    assert f.js("[...document.querySelectorAll('[data-voices-explainer] [data-explain]')].map((r) => r.dataset.explain)") == ["what", "who", "credit", "stop"]
+    f.run("document.querySelector('[data-voices-read]').click()")
+    f.wait("document.activeElement?.id === 'voices-agreement'", what="the agreement in view, focused")
+    f.no_sideways("Lend your voice")
+    f.shot("explainer")
     f.run("document.querySelector('[data-voices-agree]').click()")
     f.wait(f"document.querySelector('[data-voices-refused]')?.textContent.trim() === {json.dumps(t(f, 'voices.refused.tooNew'))}", what="a week old first")
 

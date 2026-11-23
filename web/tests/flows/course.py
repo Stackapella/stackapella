@@ -47,6 +47,12 @@ def journey(f):
         assert t(f, "results.xp", {"xp": 25}) not in f.js("document.body.innerText"), "XP in serious mode"
     f.wait_text(t(f, "results.note.highMiddle", {"note": "A3"}))
     assert f.js("document.querySelector('[data-note-result] [data-note]').textContent") == "A3", "the note"
+    # What was measured and what estimated, in plain words (the UX review, item 3): a first lesson's range is a guess
+    # round the note, said so, its width against the octave, and the range check a tap away.
+    assert f.js("document.querySelector('[data-found=range]').dataset.measured") == "no", "a first range said to be measured"
+    assert t(f, "results.found.rangeGuess") in f.js("document.querySelector('[data-found=range]').innerText")
+    assert "semitone" not in f.js("document.querySelector('[data-note-result]').innerText").lower(), "semitones on the result"
+    assert f.js("document.querySelector('[data-check-range]').textContent.trim()") == t(f, "results.found.check")
     # Your note in a chord (onboarding item 3), in both skins: the end of the held note with two
     # guide voices, played once by itself after the stars, the lanes lit, then what it means.
     f.wait("document.querySelector('[data-chord-moment]')?.dataset.playing === 'true'", what="the chord moment, playing by itself")

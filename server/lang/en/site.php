@@ -732,7 +732,7 @@ return [
         'lead' => 'Start a group for your choir and ask for one song you\'re rehearsing. We make part-by-part learning tracks for your singers, free. Each singer learns their part at home, and you see who\'s ready.',
         'start' => 'Start a choir group',
         'email' => 'Rather email us the song',
-        'note' => 'Starting a group takes Plus. Your singers join free.',
+        'note' => 'Starting a group is free, and your singers join free.',
         'pricing' => 'See pricing',
         'view' => [
             'when' => 'Rehearsal Thursday',
@@ -742,7 +742,7 @@ return [
         ],
         'steps_title' => 'From your group to a ready choir.',
         'steps' => [
-            ['Start a group', 'Starting a group takes Plus. Groups are for singers 18 and over.'],
+            ['Start a group', 'Starting a group is free. Groups are for singers 18 and over.'],
             ['Invite your singers', 'Send the group\'s invite link. Each singer makes a free account, with no card.'],
             ['Ask for one song, free', 'From the group\'s page, ask for learning tracks of a piece you\'re rehearsing. We build it part by part and share it into your group.'],
             ['Give out parts, see who\'s ready', 'Give each singer a part, then see who has started and who has recorded it.'],
@@ -758,7 +758,7 @@ return [
             ],
         ],
         'faq' => [
-            ['What does it cost?', 'Your singers never pay. Starting the group takes Plus, and your first song\'s learning tracks are free.'],
+            ['What does it cost?', 'Nothing. Starting a group is free, your singers never pay, and your first song\'s learning tracks are free.'],
             ['How do I ask for learning tracks?', 'From your group\'s page: tap Ask us under "Want learning tracks of a piece you\'re rehearsing?". Rather email? Send us the song, your choir\'s parts and when you\'re rehearsing it; a score helps, as a PDF or MusicXML.'],
             ['Can I hear my singers\' recordings?', 'No. You see who has started and who has recorded their part, never the recordings themselves or their contact details.'],
         ],

@@ -13,16 +13,18 @@ let ids = 0;
  * beside the label ("Plus"). Without `label` it's the bare switch, named by `aria-label`.
  */
 export const Switch = {
-    props: { on: Boolean, label: { type: String, default: '' }, hint: { type: String, default: '' }, tag: { type: String, default: '' }, disabled: Boolean },
+    // row: a settings row in the 2026-11-23 language: the title 15 px, the hint the quieter grey under it, a tag outlined,
+    // the switch at the top of the row (Hillel's Session settings design).
+    props: { on: Boolean, label: { type: String, default: '' }, hint: { type: String, default: '' }, tag: { type: String, default: '' }, disabled: Boolean, row: Boolean },
     emits: ['change'],
     data: () => ({ id: `switch-${++ids}` }),
     template: `
-        <button v-if="label" type="button" role="switch" :aria-checked="on ? 'true' : 'false'" :aria-labelledby="id" :aria-describedby="hint ? id + '-hint' : null" :disabled="disabled" class="flex min-h-11 w-full items-center gap-4 text-start disabled:cursor-not-allowed disabled:opacity-[0.42]" @click="$emit('change', !on)">
+        <button v-if="label" type="button" role="switch" :aria-checked="on ? 'true' : 'false'" :aria-labelledby="id" :aria-describedby="hint ? id + '-hint' : null" :disabled="disabled" class="flex w-full gap-4 text-start disabled:cursor-not-allowed disabled:opacity-[0.42]" :class="[row ? 'tap-44 min-h-7' : 'min-h-11', row && hint ? 'items-start' : 'items-center']" @click="$emit('change', !on)">
             <span class="min-w-0 flex-1">
-                <span :id="id" class="flex items-center gap-2 font-semibold text-cream">{{ label }}<span v-if="tag" class="chip">{{ tag }}</span></span>
-                <span v-if="hint" :id="id + '-hint'" class="block text-[0.8125rem] leading-snug text-muted">{{ hint }}</span>
+                <span :id="id" class="flex items-center gap-2" :class="row ? 'set-row-title flex-wrap' : 'font-semibold text-cream'">{{ label }}<span v-if="tag" :class="row ? 'chip-tag' : 'chip'">{{ tag }}</span></span>
+                <span v-if="hint" :id="id + '-hint'" class="block" :class="row ? 't-hint mt-[3px]' : 'text-[0.8125rem] leading-snug text-muted'">{{ hint }}</span>
             </span>
-            <span class="switch-track"><span class="switch-knob"></span></span>
+            <span class="switch-track" :class="row && hint ? 'mt-0.5' : ''"><span class="switch-knob"></span></span>
         </button>
         <button v-else type="button" role="switch" :aria-checked="on ? 'true' : 'false'" :disabled="disabled" class="grid h-11 w-13 shrink-0 place-items-center disabled:cursor-not-allowed disabled:opacity-[0.42]" @click="$emit('change', !on)">
             <span class="switch-track"><span class="switch-knob"></span></span>

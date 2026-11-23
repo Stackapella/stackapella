@@ -12,7 +12,7 @@ import { Modal } from '../ui.js';
 import { Icon } from '../icon.js';
 import { AiVoiceLabel, voiceCredit } from '../../ai-voices.js';
 import { HearingSection } from './hearing.js';
-import { Switch } from '../controls.js';
+import { Segmented, Switch } from '../controls.js';
 
 const SPEEDS = [1, 0.85, 0.7];
 // Letters say themselves as a note in the naming in use (D4, Re4 with fixed Do: note-names.js).
@@ -21,11 +21,11 @@ const STYLE_LABELS = { solfege: tk('sing.settings.names.solfege'), numbers: tk('
 
 // The band's styles (js/band.js), for the chords underneath.
 const BAND_STYLES = [{ value: 'gentle', label: tk('band.style.gentle') }, { value: 'pop', label: tk('band.style.pop') }, { value: 'swing', label: tk('band.style.swing') }];
-// The single-letter shortcuts (Space always plays). i18n-ignore: key names
-const SHORTCUTS = [{ key: 'R', label: tk('sing.settings.keys.record') }, { key: 'L', label: tk('sing.settings.keys.loop') }, { key: 'N', label: tk('sing.settings.keys.next') }, { key: 'M', label: tk('sing.settings.keys.mute') }];
+// The shortcuts, Space first; Space and R work even with shortcuts off (sing.settings.shortcutsHint). i18n-ignore: key names
+const SHORTCUTS = [{ key: tk('sing.settings.keys.space'), label: tk('sing.settings.keys.play'), always: true }, { key: 'R', label: tk('sing.settings.keys.record'), always: true }, { key: 'L', label: tk('sing.settings.keys.loop') }, { key: 'N', label: tk('sing.settings.keys.next') }, { key: 'M', label: tk('sing.settings.keys.mute') }];
 
 export const SettingsSheet = {
-    components: { Modal, Switch, Icon, HearingSection },
+    components: { Modal, Segmented, Switch, Icon, HearingSection },
     props: {
         speed: { type: Number, default: 1 },
         speedNote: { type: String, default: '' }, // the kind note when slowing means the practice voice
@@ -46,75 +46,80 @@ export const SettingsSheet = {
     },
     emits: ['part', 'toggle', 'level', 'speed', 'ladder', 'chords', 'chords-level', 'chords-sound', 'drone', 'drone-level', 'voices', 'split', 'reset', 'close'],
     setup: () => ({ SPEEDS, NOTE_STYLES, styleLabel, SHORTCUTS, prefs, BAND_STYLES, styleOf }),
-    // 67.png: Display (Show, Note names with a sample, the keyboard, the other parts), Practice (Speed
+    // Hillel's Session settings design (2026-11-23, docs/design-rules.md "The 2026-11-23 language"): a panel with its
+    // header over a hairline, then two balanced columns split by a hairline on a wide screen: What you hear (with the
+    // drone) and Practice | Display and Controls. Short choices sit inline at a row's end; longer ones go full width
+    // under their label, its live sample at the label's end. During a take only What you hear shows.
+    // Before it, 67.png: Display (Show, Note names with a sample, the keyboard, the other parts), Practice (Speed
     // with the tempo it plays at, Chords underneath, Guide voices), Controls (shortcuts and their keys).
     template: `
-        <!-- Wide screens (Hillel, 2026-11-22: "make the settings popup wider on desktop"): two columns, What you hear | the rest. -->
-        <Modal :title="t('sing.settings.title')" :wider="!recording" @close="$emit('close')">
-            <template #actions><button v-if="!recording" type="button" class="link-quiet min-h-11 text-sm" @click="$emit('reset')">{{ t('sing.settings.reset') }}</button></template>
-            <div class="-mx-6 divide-y divide-line" :class="recording ? '' : 'lg:grid lg:grid-cols-2 lg:divide-y-0'" data-session-settings>
-                <button v-if="partName && !recording" type="button" class="flex w-full items-center gap-4 px-6 pb-6 text-start sm:hidden" data-part-picker @click="$emit('part')">
-                    <span class="size-3 shrink-0 rounded-full" :style="{ background: partColor }" aria-hidden="true"></span>
-                    <span class="min-w-0 flex-1"><span class="block text-xs font-bold uppercase tracking-[0.14em] text-muted">{{ t('sing.yourPart.title') }}</span><span class="block font-semibold text-cream" translate="no">{{ partName }}</span></span>
-                    <Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" />
-                </button>
-                <HearingSection v-bind="hearing" :recording="recording" :class="partName && !recording ? 'max-sm:pt-6' : ''" @toggle="$emit('toggle', $event)" @level="$emit('level', $event)" @voices="$emit('voices')" @split="$emit('split', $event)" />
-                <div v-if="!recording" class="divide-y divide-line lg:border-s lg:border-line" data-settings-column>
-                <section class="space-y-5 px-6 py-6" :aria-label="t('sing.settings.display')">
-                    <p class="text-xs font-bold uppercase tracking-[0.14em] text-muted" aria-hidden="true">{{ t('sing.settings.display') }}</p>
-                    <fieldset>
-                        <div class="mb-2 flex items-baseline justify-between gap-3"><legend class="font-semibold text-cream">{{ t('sing.settings.names.title') }}</legend><span v-if="sample" class="tabular-nums text-xs text-muted" translate="no">{{ sample }}</span></div>
-                        <div class="grid rounded-2xl border border-line p-1 grid-cols-4">
-                            <button v-for="n in NOTE_STYLES" :key="n" type="button" class="min-h-10 rounded-xl text-sm font-semibold" :class="prefs.noteNames === n ? 'glass-bubble-solid' : 'text-muted hover:text-cream'" :aria-pressed="prefs.noteNames === n ? 'true' : 'false'" @click="prefs.noteNames = n">{{ styleLabel(n) }}</button>
-                        </div>
-                    </fieldset>
-                    <Switch :on="prefs.keyboard" :label="t('sing.settings.keyboard')" :hint="t('sing.settings.keyboardHint')" @change="prefs.keyboard = $event" />
-                    <Switch :on="prefs.showOthers" :label="t('sing.settings.others')" :hint="t('sing.settings.othersHint')" @change="prefs.showOthers = $event" />
-                    <!-- Tune the chord's meter (docs/tune-chord-plan.md): off until turned on -->
-                    <Switch :on="!!prefs.tuningMeter" :label="t('sing.settings.ring')" :hint="t('sing.settings.ringHint')" data-ring-switch @change="prefs.tuningMeter = $event" />
-                </section>
-                <section class="space-y-5 px-6 py-6" :aria-label="t('sing.settings.practice')">
-                    <p class="text-xs font-bold uppercase tracking-[0.14em] text-muted" aria-hidden="true">{{ t('sing.settings.practice') }}</p>
-                    <fieldset>
-                        <div class="mb-2 flex items-baseline justify-between gap-3"><legend class="font-semibold text-cream">{{ t('sing.speed') }}</legend><span v-if="bpm" class="tabular-nums text-xs text-muted">{{ t('studio.meta.bpm', { bpm: Math.round(bpm * speed) }) }}</span></div>
-                        <div class="grid rounded-2xl border border-line p-1 grid-cols-3">
-                            <button v-for="sp in SPEEDS" :key="sp" type="button" class="min-h-10 rounded-xl text-sm font-semibold" :class="speed === sp ? 'glass-bubble-solid' : 'text-muted hover:text-cream'" :aria-pressed="speed === sp ? 'true' : 'false'" @click="$emit('speed', sp)">{{ t('sing.speedPercent', { percent: Math.round(sp * 100) }) }}</button>
-                        </div>
-                        <p class="mt-2 text-xs text-muted">{{ t('sing.settings.fullSpeedRecording') }}</p>
-                        <p v-if="speedNote" class="mt-1 text-sm text-muted">{{ speedNote }}</p>
-                    </fieldset>
-                    <Switch :on="ladder" :label="t('sing.ladder.label')" :hint="t('sing.ladder.hint')" data-ladder @change="$emit('ladder', $event)" />
-                    <div v-if="hasChords" class="space-y-3">
-                        <Switch :on="chords" :label="t('sing.chords.title')" :hint="t('sing.chords.hint')" @change="$emit('chords', $event)" />
-                        <div v-if="chords" class="flex flex-wrap items-center gap-3">
-                            <div class="flex rounded-full border border-line p-0.5" role="group" :aria-label="t('sing.chords.sound')">
-                                <button v-for="snd in BAND_STYLES" :key="snd.value" type="button" class="rounded-full px-3 py-1.5 text-sm" :class="styleOf(chordsSound) === snd.value ? 'bg-raised font-semibold text-cream' : 'text-muted'" :aria-pressed="styleOf(chordsSound) === snd.value ? 'true' : 'false'" @click="$emit('chords-sound', snd.value)">{{ t(snd.label) }}</button>
+        <Modal :title="t('sing.settings.title')" panel :wider="!recording" @close="$emit('close')">
+            <template #actions>
+                <span v-if="!recording" class="hidden text-xs text-subtle md:inline">{{ t('sing.settings.applyNow') }}</span>
+                <button v-if="!recording" type="button" class="btn-secondary btn-sm tap-44" @click="$emit('reset')">{{ t('sing.settings.reset') }}</button>
+            </template>
+            <div class="hairline-grid" :class="recording ? '' : 'lg:grid-cols-2'" data-session-settings>
+                <div class="flex flex-col divide-y divide-edge">
+                    <button v-if="partName && !recording" type="button" class="flex w-full items-center gap-4 px-6 pt-[22px] text-start sm:hidden" data-part-picker @click="$emit('part')">
+                        <span class="size-3 shrink-0 rounded-full" :style="{ background: partColor }" aria-hidden="true"></span>
+                        <span class="min-w-0 flex-1"><span class="t-section block">{{ t('sing.yourPart.title') }}</span><span class="set-row-title mt-1 block" translate="no">{{ partName }}</span></span>
+                        <Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-subtle rtl:rotate-90" />
+                    </button>
+                    <HearingSection v-bind="hearing" :recording="recording" :class="partName && !recording ? 'max-sm:border-t-0' : ''" @toggle="$emit('toggle', $event)" @level="$emit('level', $event)" @voices="$emit('voices')" @split="$emit('split', $event)">
+                        <!-- A drone to tune against (docs/tune-chord-plan.md): the key's note, or each chord tuned pure -->
+                        <div v-if="!recording" class="space-y-3" data-drone>
+                            <div class="space-y-[3px]">
+                                <div class="set-row flex-wrap items-center gap-y-2">
+                                    <p id="ss-drone" class="set-row-title flex-1 whitespace-nowrap">{{ t('sing.drone.title') }}</p>
+                                    <Segmented :model-value="drone" kind="inset" :options="droneChoices" labelledby="ss-drone" @update:model-value="$emit('drone', $event)" />
+                                </div>
+                                <p class="t-hint">{{ drone === 'chord' ? t('sing.drone.chordHint') : drone === 'key' ? t('sing.drone.keyHint') : t('sing.drone.hint') }}</p>
                             </div>
-                            <label class="flex flex-1 items-center gap-2 text-sm text-muted">{{ t('sing.chords.level') }}
-                                <input v-fill type="range" min="0" max="1" step="0.05" :value="chordsLevel" class="range flex-1" @input="$emit('chords-level', Number($event.target.value))" />
+                            <label v-if="drone !== 'off'" class="flex items-center gap-3 text-[0.8125rem] text-subtle">{{ t('sing.drone.level') }}
+                                <input v-fill type="range" min="0" max="1" step="0.05" :value="droneLevel" class="range flex-1" @input="$emit('drone-level', Number($event.target.value))" />
                             </label>
                         </div>
-                    </div>
-                    <!-- A drone to tune against (docs/tune-chord-plan.md): the key's note, or each chord tuned pure -->
-                    <fieldset class="space-y-3" data-drone>
-                        <legend class="mb-2 font-semibold text-cream">{{ t('sing.drone.title') }}</legend>
-                        <div class="grid rounded-2xl border border-line p-1" :class="hasChords ? 'grid-cols-3' : 'grid-cols-2'">
-                            <button v-for="d in droneChoices" :key="d.value" type="button" class="min-h-10 rounded-xl text-sm font-semibold" :class="drone === d.value ? 'glass-bubble-solid' : 'text-muted hover:text-cream'" :aria-pressed="drone === d.value ? 'true' : 'false'" @click="$emit('drone', d.value)">{{ d.label }}</button>
+                    </HearingSection>
+                    <section v-if="!recording" class="flex-1 space-y-[18px] px-6 py-[22px]" :aria-label="t('sing.settings.practice')">
+                        <h3 class="t-section" aria-hidden="true">{{ t('sing.settings.practice') }}</h3>
+                        <div class="space-y-2">
+                            <p class="flex items-baseline gap-3"><span id="ss-speed" class="set-row-title flex-1">{{ t('sing.speed') }}</span><span v-if="bpm" class="tabular-nums text-xs text-subtle">{{ t('sing.settings.tempo', { n: Math.round(bpm * speed) }) }}</span></p>
+                            <Segmented :model-value="speed" kind="inset" full :options="speedChoices" labelledby="ss-speed" @update:model-value="$emit('speed', $event)" />
+                            <p class="t-hint">{{ t('sing.settings.fullSpeedRecording') }}</p>
+                            <p v-if="speedNote" class="t-hint">{{ speedNote }}</p>
                         </div>
-                        <p class="text-xs text-muted">{{ drone === 'chord' ? t('sing.drone.chordHint') : drone === 'key' ? t('sing.drone.keyHint') : t('sing.drone.hint') }}</p>
-                        <label v-if="drone !== 'off'" class="flex items-center gap-2 text-sm text-muted">{{ t('sing.drone.level') }}
-                            <input v-fill type="range" min="0" max="1" step="0.05" :value="droneLevel" class="range flex-1" @input="$emit('drone-level', Number($event.target.value))" />
-                        </label>
-                    </fieldset>
-                </section>
-                <section class="space-y-4 px-6 pt-6" :aria-label="t('sing.settings.controls')">
-                    <p class="text-xs font-bold uppercase tracking-[0.14em] text-muted" aria-hidden="true">{{ t('sing.settings.controls') }}</p>
-                    <Switch :on="prefs.shortcuts" :label="t('sing.settings.shortcuts')" @change="prefs.shortcuts = $event" />
-                    <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm" :class="prefs.shortcuts ? '' : 'opacity-50'">
-                        <div v-for="k in SHORTCUTS" :key="k.key" class="flex items-center gap-2.5"><dt><kbd class="grid size-7 place-items-center rounded-md border border-line bg-raised tabular-nums text-xs font-bold text-cream">{{ k.key }}</kbd></dt><dd class="text-cream">{{ t(k.label) }}</dd></div>
-                    </dl>
-                    <p class="text-xs text-muted">{{ t('sing.settings.shortcutsHint') }}</p>
-                </section>
+                        <Switch row :on="ladder" :label="t('sing.ladder.label')" :hint="t('sing.ladder.hint')" data-ladder @change="$emit('ladder', $event)" />
+                        <div v-if="hasChords" class="space-y-3">
+                            <Switch row :on="chords" :label="t('sing.chords.title')" :hint="t('sing.chords.hint')" @change="$emit('chords', $event)" />
+                            <div v-if="chords" class="flex flex-wrap items-center gap-3">
+                                <Segmented :model-value="styleOf(chordsSound)" kind="inset" :options="bandChoices" :label="t('sing.chords.sound')" @update:model-value="$emit('chords-sound', $event)" />
+                                <label class="flex min-w-40 flex-1 items-center gap-3 text-[0.8125rem] text-subtle">{{ t('sing.chords.level') }}
+                                    <input v-fill type="range" min="0" max="1" step="0.05" :value="chordsLevel" class="range flex-1" @input="$emit('chords-level', Number($event.target.value))" />
+                                </label>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+                <div v-if="!recording" class="flex flex-col divide-y divide-edge" data-settings-column>
+                    <section class="space-y-[18px] px-6 py-[22px]" :aria-label="t('sing.settings.display')">
+                        <h3 class="t-section" aria-hidden="true">{{ t('sing.settings.display') }}</h3>
+                        <div class="space-y-2">
+                            <p class="flex items-baseline gap-3"><span id="ss-names" class="set-row-title flex-1">{{ t('sing.settings.names.title') }}</span><span v-if="sample" class="tabular-nums text-xs text-subtle" translate="no">{{ sample }}</span></p>
+                            <Segmented :model-value="prefs.noteNames" kind="inset" full :options="nameChoices" labelledby="ss-names" @update:model-value="prefs.noteNames = $event" />
+                        </div>
+                        <Switch row :on="prefs.keyboard" :label="t('sing.settings.keyboard')" :hint="t('sing.settings.keyboardHint')" @change="prefs.keyboard = $event" />
+                        <Switch row :on="prefs.showOthers" :label="t('sing.settings.others')" :hint="t('sing.settings.othersHint')" @change="prefs.showOthers = $event" />
+                        <!-- Tune the chord's meter (docs/tune-chord-plan.md): off until turned on -->
+                        <Switch row :on="!!prefs.tuningMeter" :label="t('sing.settings.ring')" :tag="t('sing.settings.ringTag')" :hint="t('sing.settings.ringHintShort')" data-ring-switch @change="prefs.tuningMeter = $event" />
+                    </section>
+                    <section class="flex-1 space-y-3.5 px-6 py-[22px]" :aria-label="t('sing.settings.controls')">
+                        <h3 class="t-section" aria-hidden="true">{{ t('sing.settings.controls') }}</h3>
+                        <Switch row :on="prefs.shortcuts" :label="t('sing.settings.shortcuts')" @change="prefs.shortcuts = $event" />
+                        <dl class="grid grid-cols-2 gap-x-4 gap-y-2.5 text-[0.8125rem]">
+                            <div v-for="k in SHORTCUTS" :key="k.key" class="flex items-center gap-2.5 transition-opacity" :class="prefs.shortcuts || k.always ? '' : 'opacity-35'"><dt><kbd class="kbd-key" translate="no">{{ k.key.length > 1 ? t(k.key) : k.key }}</kbd></dt><dd class="text-cream">{{ t(k.label) }}</dd></div>
+                        </dl>
+                        <p class="t-hint">{{ t('sing.settings.shortcutsHint') }}</p>
+                    </section>
                 </div>
             </div>
         </Modal>`,
@@ -122,6 +127,9 @@ export const SettingsSheet = {
         droneChoices() {
             return [{ value: 'off', label: t('sing.drone.off') }, { value: 'key', label: t('sing.drone.key') }, ...(this.hasChords ? [{ value: 'chord', label: t('sing.drone.chord') }] : [])];
         },
+        speedChoices: () => SPEEDS.map((value) => ({ value, label: t('sing.speedPercent', { percent: Math.round(value * 100) }) })),
+        nameChoices: () => NOTE_STYLES.map((value) => ({ value, label: styleLabel(value) })),
+        bandChoices: () => BAND_STYLES.map((b) => ({ value: b.value, label: t(b.label) })),
     },
 };
 
