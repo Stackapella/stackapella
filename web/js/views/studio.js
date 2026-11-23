@@ -316,7 +316,7 @@ export const StudioView = {
                         </div>
                         <div v-if="preparing" class="pointer-events-none inset-x-0 top-12 mx-auto w-fit rounded-full bg-raised px-4 py-2 text-sm text-cream shadow-lg" :class="pageScroll ? 'fixed z-20' : 'absolute'">{{ t('studio.preparingGuides') }}</div>
                         <div v-if="countIn !== null" class="pointer-events-none inset-0 grid place-items-center bg-ink/40" :class="pageScroll ? 'fixed z-40' : 'absolute'">
-                            <CountIn :key="countIn" :beat="countIn" class="count-pop text-[140px] font-extrabold leading-none text-cream md:text-[200px]" />
+                            <CountIn :key="countIn" :beat="countIn" class="count-pop text-[140px] font-bold leading-none text-cream md:text-[200px]" />
                         </div>
                     </div>
                     <aside v-if="people.length > 1" class="hidden w-64 shrink-0 space-y-3 border-s border-line p-4 lg:block" :aria-label="t('together.who')">

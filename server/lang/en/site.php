@@ -1394,7 +1394,10 @@ return [
     // singing, learning your part, the ethics up front. AI said plainly, never first. No prices until Hillel sets them.
     'your_choir' => [
         'title' => 'Hear yourself as a choir',
-        'description' => 'Sing a song you know for 30 seconds, then hear a real choir arrangement with every part sung by AI in a voice like yours. Free to hear and share; download with Plus.',
+        // The <title> and og:title of /ai-singing, with the words people search for; `title` stays the page's visible name
+        // (marketing, 2026-11-23).
+        'meta_title' => 'AI Singing: Hear Yourself as a Choir',
+        'description' => 'AI singing in a voice like yours: sing 30 seconds of a song you know, then hear a real choir arrangement with every part sung by AI. Your first song is free.',
         'eyebrow' => 'Hear yourself as a choir',
         // The headline in two, its key phrase in the warm accent (design rules, the five pages' headline).
         'headline_before' => 'You, as a',

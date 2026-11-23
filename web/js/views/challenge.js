@@ -25,15 +25,15 @@ export const ChallengeView = {
         <Versus v-if="effect('versus') && challenge && template && part && !failed" :by="challenge.by" :score="challenge.score" :song="template.title" :part="partName"
             :colour="colour" :yours="yours" :me="account.me?.name ?? ''" :heading="heading" :busy="busy" @sing="sing" @later="later" />
         <main v-else class="mx-auto flex min-h-dvh max-w-xl flex-col justify-center gap-5 px-4 py-10" data-challenge>
-            <p v-if="failed" class="card p-6 text-cream" role="alert">{{ failed }}</p>
+            <p v-if="failed" class="alert-inline text-[15px]" style="--alert-c: var(--color-bad)" role="alert"><span>{{ failed }}</span></p>
             <p v-else-if="!challenge || !template" class="text-muted" role="status">{{ t('boards.loading') }}</p>
             <template v-else>
                 <!-- The same layout, calm (serious mode, or the Versus screens switch off): no intro; a score only in game mode. -->
-                <p class="text-sm font-semibold uppercase tracking-widest text-accent">{{ game() ? t('boards.challenge.eyebrow') : t('boards.challenge.eyebrowSerious') }}</p>
-                <h1 class="text-3xl font-extrabold tracking-tight text-cream">{{ heading }}</h1>
+                <p class="eyebrow-step" style="--step-c: var(--color-accent)">{{ game() ? t('boards.challenge.eyebrow') : t('boards.challenge.eyebrowSerious') }}</p>
+                <h1 class="text-3xl font-bold tracking-tight text-cream">{{ heading }}</h1>
                 <dl class="card grid gap-4 p-5 sm:grid-cols-2" data-challenge-card>
-                    <div><dt class="text-xs font-semibold uppercase tracking-widest text-muted">{{ t('game.versus.song') }}</dt><dd class="mt-1 text-xl font-bold text-cream" translate="no">{{ template.title }}</dd><dd class="mt-2"><span class="chip" translate="no">{{ partName }}</span></dd></div>
-                    <div v-if="game()"><dt class="text-xs font-semibold uppercase tracking-widest text-muted">{{ t('game.versus.toBeat') }}</dt><dd class="mt-1 text-3xl font-extrabold tabular-nums text-cream">{{ challenge.score }}</dd></div>
+                    <div><dt class="t-section">{{ t('game.versus.song') }}</dt><dd class="mt-1 text-xl font-bold text-cream" translate="no">{{ template.title }}</dd><dd class="mt-2"><span class="chip" translate="no">{{ partName }}</span></dd></div>
+                    <div v-if="game()"><dt class="t-section">{{ t('game.versus.toBeat') }}</dt><dd class="mt-1 text-3xl font-bold tabular-nums text-cream">{{ challenge.score }}</dd></div>
                 </dl>
                 <p v-if="game()" class="text-muted">{{ t('boards.challenge.how') }}</p>
                 <div class="flex flex-wrap items-center gap-4">

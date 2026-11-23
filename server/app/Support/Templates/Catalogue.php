@@ -195,7 +195,10 @@ final class Catalogue
      */
     public function songCount(): int
     {
-        return $this->open()->count();
+        // Kept under the songs' fingerprint (one cheap row): the landing and the pricing page say the number on every
+        // visit, and counting from self::open() read every song's whole current version (0.3 to 1 s in production,
+        // 2026-11-23), so it's read again only when a song changes.
+        return (int) self::kept('catalogue.song-count.'.$this->fingerprint(), fn (): int => $this->open()->count());
     }
 
     public function mayStart(Template $template, ?User $user): bool

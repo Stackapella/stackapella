@@ -19,7 +19,7 @@ export const GetReady = {
     template: `
         <div class="flex items-center gap-4 rounded-3xl border-2 p-5" :style="{ borderColor: color, background: 'color-mix(in srgb, ' + color + ' 14%, var(--color-panel))' }" role="status">
             <div class="min-w-0 flex-1">
-                <p class="text-2xl font-extrabold text-cream">{{ t('sing.getReady.card') }}</p>
+                <p class="text-2xl font-bold text-cream">{{ t('sing.getReady.card') }}</p>
                 <p class="text-cream">{{ t('sing.getReady.inBeats', { count }) }}</p>
             </div>
             <div class="flex gap-2" aria-hidden="true">
@@ -135,11 +135,11 @@ export const Stage = {
             </template>
             <p v-else-if="comingUp" class="text-sm text-subtle">{{ comingUp }}</p>
             <slot />
-            <KaraokeLine v-if="words && line" :line="line" :position="position" :color="color" :pill="turn" :glow="!!tuning?.lit" :class="staff ? 'text-2xl md:text-4xl' : 'text-5xl leading-[1.08] md:text-7xl'" class="font-extrabold tracking-tight" />
+            <KaraokeLine v-if="words && line" :line="line" :position="position" :color="color" :pill="turn" :glow="!!tuning?.lit" :class="staff ? 'text-2xl md:text-4xl' : 'text-5xl leading-[1.08] md:text-7xl'" class="font-bold tracking-tight" />
             <p v-else-if="!words && !staff" class="text-2xl text-muted">{{ t('sing.noWords') }}</p>
             <p v-if="!turn && sings" class="text-base font-bold md:text-lg" :style="{ color: paintInk(color) }" aria-live="off">{{ sings }}</p>
             <p v-else-if="nowText" class="text-base font-semibold text-cream md:text-lg" aria-live="off">{{ nowText }}</p>
-            <p v-if="words && next" translate="no" class="text-2xl font-extrabold text-cream/45 md:text-4xl">{{ joinSyllables(next.syllables) }}</p>
+            <p v-if="words && next" translate="no" class="text-2xl font-bold text-cream/45 md:text-4xl">{{ joinSyllables(next.syllables) }}</p>
             <p v-if="turn" class="flex min-h-7 items-center gap-2 text-base font-bold text-cream" role="status" :aria-label="tuningLabel">
                 <template v-if="hint"><span class="grid size-7 place-items-center rounded-full text-ink" :style="{ background: color }" aria-hidden="true">{{ hint === 'higher' ? '▲' : '▼' }}</span>{{ hint === 'higher' ? t('sing.hint.higher') : t('sing.hint.lower') }}</template>
                 <template v-else-if="tuning?.lit"><span class="grid size-7 place-items-center rounded-full text-ink" :style="{ background: color }" aria-hidden="true">✓</span>{{ t('sing.tuning.on') }}</template>

@@ -315,7 +315,7 @@ export const JustRecorded = {
                             <li v-for="p in review" :key="p.index">
                                 <button type="button" class="flex w-full items-center gap-3 rounded-2xl border p-3 text-start transition" :class="p.index === pickedIndex ? 'border-cream/50 bg-raised' : 'border-edge hover:border-line'" :aria-pressed="p.index === pickedIndex ? 'true' : 'false'" @click="picked = p.index">
                                     <span class="min-w-0 flex-1"><span class="block text-xs text-muted">{{ t('sing.review.phrase', { number: p.index + 1 }) }}</span><span class="block truncate font-semibold text-cream" translate="no">{{ phraseLabels[p.index] || '' }}</span></span>
-                                    <span class="shrink-0 text-end"><span class="block tabular-nums text-lg font-extrabold" :class="p.percent >= 90 ? 'text-part-ink-2' : 'text-part-ink-1'">{{ t('report.percent', { percent: p.percent }) }}</span><span class="block text-xs text-muted">{{ p.troubles.length ? troubleCount(p) : t('sing.review.steady') }}</span></span>
+                                    <span class="shrink-0 text-end"><span class="block tabular-nums text-lg font-bold" :class="p.percent >= 90 ? 'text-part-ink-2' : 'text-part-ink-1'">{{ t('report.percent', { percent: p.percent }) }}</span><span class="block text-xs text-muted">{{ p.troubles.length ? troubleCount(p) : t('sing.review.steady') }}</span></span>
                                 </button>
                             </li>
                         </ul>

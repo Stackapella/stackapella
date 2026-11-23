@@ -44,7 +44,7 @@ export const TrimSheet = {
                 </div>
                 <div class="grid gap-3 sm:grid-cols-2">
                     <div v-for="edge in ['start', 'end']" :key="edge" class="space-y-3 rounded-2xl border border-line p-3" :data-edge="edge">
-                        <p class="flex items-baseline justify-between"><span class="text-sm font-semibold text-muted">{{ edge === 'start' ? t('trim.start') : t('trim.end') }}</span><span class="text-2xl font-extrabold tabular-nums text-cream">{{ edgeLabel(edge) }}</span></p>
+                        <p class="flex items-baseline justify-between"><span class="text-sm font-semibold text-muted">{{ edge === 'start' ? t('trim.start') : t('trim.end') }}</span><span class="text-2xl font-bold tabular-nums text-cream">{{ edgeLabel(edge) }}</span></p>
                         <canvas :ref="'zoom-' + edge" class="block h-16 w-full rounded-lg bg-ink" aria-hidden="true"></canvas>
                         <div class="grid grid-cols-[auto_1fr_auto] gap-2">
                             <button type="button" class="grid size-11 place-items-center rounded-xl glass-bubble text-cream" :aria-label="t(STEPS[edge][0])" @click="step(edge, -1)"><Icon name="minus" :size="16" /></button>

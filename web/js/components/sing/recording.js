@@ -63,12 +63,12 @@ export const RecordingStage = {
                 <!-- The count-in's big number sits on the lane, clipped to it (the coordinator's review: never over the words). -->
                 <div class="relative h-[38vh] min-h-48 shrink-0 overflow-hidden rounded-[22px] border border-edge bg-panel md:h-[40vh]"><slot />
                     <div v-if="bigCount && countIn" class="pointer-events-none absolute inset-0 z-10 grid place-items-center" aria-hidden="true" data-count-big>
-                        <span :key="countIn" class="count-big text-[min(9rem,30vh)] font-extrabold leading-none text-cream tabular-nums" :style="{ animationDuration: bigCount + 's' }">{{ formatNumber(countIn) }}</span>
+                        <span :key="countIn" class="count-big text-[min(9rem,30vh)] font-bold leading-none text-cream tabular-nums" :style="{ animationDuration: bigCount + 's' }">{{ formatNumber(countIn) }}</span>
                     </div>
                 </div>
                 <div v-if="line" class="space-y-3">
-                    <KaraokeLine :line="line" :position="position" :color="color" class="text-4xl font-extrabold leading-[1.1] tracking-tight md:text-7xl" />
-                    <p v-if="next" translate="no" class="text-xl font-extrabold text-cream/45 md:text-3xl">{{ joinSyllables(next.syllables) }}</p>
+                    <KaraokeLine :line="line" :position="position" :color="color" class="text-4xl font-bold leading-[1.1] tracking-tight md:text-7xl" />
+                    <p v-if="next" translate="no" class="text-xl font-bold text-cream/45 md:text-3xl">{{ joinSyllables(next.syllables) }}</p>
                 </div>
             </div>
 

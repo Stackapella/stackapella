@@ -124,7 +124,7 @@ export const StepDone = {
     template: `
         <div class="m-auto flex max-w-lg flex-col items-center gap-5 p-6 text-center">
             <span class="grid size-16 place-items-center rounded-full" :style="{ background: color, color: paintText(color) }"><Icon name="check" :size="32" /></span>
-            <h1 ref="heading" tabindex="-1" class="text-2xl font-extrabold text-cream outline-none">{{ t(DONE[step], { part: partName }) }}</h1>
+            <h1 ref="heading" tabindex="-1" class="text-2xl font-bold text-cream outline-none">{{ t(DONE[step], { part: partName }) }}</h1>
             <ul class="w-full space-y-1.5 text-start text-sm text-cream">
                 <li v-for="p in phrases" :key="p.index" class="flex items-center gap-2"><Icon name="check" :size="16" :style="{ color }" /> <span translate="no" class="truncate">{{ p.label }}</span></li>
             </ul>
@@ -169,7 +169,7 @@ export const PhraseStage = {
         <section class="m-auto w-full max-w-5xl px-6 py-8 md:px-12" data-phrase-stage>
             <p class="text-sm font-bold uppercase tracking-[0.14em] text-muted">{{ t('sing.coach.phraseReady', { number }) }}</p>
             <div class="mt-1 flex flex-wrap items-baseline gap-x-4">
-                <button type="button" class="text-7xl font-extrabold leading-none tracking-tight md:text-8xl" :style="{ color: paintInk(color) }" :aria-label="start ? t('sing.firstNoteOf', { note: start }) : t('sing.firstNotePlay')" translate="no" @click="$emit('first-note')">{{ start || '♪' }}</button>
+                <button type="button" class="text-7xl font-bold leading-none tracking-tight md:text-8xl" :style="{ color: paintInk(color) }" :aria-label="start ? t('sing.firstNoteOf', { note: start }) : t('sing.firstNotePlay')" translate="no" @click="$emit('first-note')">{{ start || '♪' }}</button>
                 <span class="text-xl text-muted">{{ t('sing.coach.startsHere', { count: notes.length }) }}</span>
             </div>
             <div class="relative mt-6 overflow-hidden rounded-2xl border border-line bg-ink/40" role="img" :aria-label="t('sing.coach.rollLabel', { notes: notes.map((n) => n.name).join(', ') })">

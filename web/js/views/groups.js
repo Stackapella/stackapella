@@ -117,7 +117,7 @@ export const GroupsView = {
             <template #aside><button v-if="account.me" type="button" class="btn-primary btn-sm" @click="making = true"><Icon name="plus" :size="16" /> {{ t('groups.start') }}</button></template>
             <!-- The wall keeps the address, so ?start=1 (the directors' pages link here to start one) opens the start sheet after sign-up. -->
             <AccountWall v-if="account.loaded && !account.me" :reason="wantStart ? 'groupsStart' : 'groups'" :next="here" />
-            <p v-else-if="failed" class="card p-6 text-cream" role="alert">{{ failed }}</p>
+            <p v-else-if="failed" class="alert-inline text-[15px]" style="--alert-c: var(--color-bad)" role="alert"><span>{{ failed }}</span></p>
             <p v-else-if="!groups" class="text-muted" role="status">{{ t('create.loading') }}</p>
             <EmptyState v-else-if="!groups.length" icon="list" :title="t('groups.none')" :body="t('groups.noneHint')">
                 <button type="button" class="btn-primary" @click="making = true">{{ t('groups.start') }}</button>
@@ -229,7 +229,7 @@ export const GroupView = {
     setup: () => ({ account, STATUS, RIGHTS, SCORE_ACCEPT, SCORE_FILES, REQUEST_STATUS, templatePartName, formatDate, navigate, paint, PART_COLORS, songTitle }),
     template: `
         <Frame :title="group?.name ?? t('groups.title')" back="/groups" title-is-content>
-            <p v-if="failed" class="card p-6 text-cream" role="alert">{{ failed }}</p>
+            <p v-if="failed" class="alert-inline text-[15px]" style="--alert-c: var(--color-bad)" role="alert"><span>{{ failed }}</span></p>
             <p v-else-if="!group" class="text-muted" role="status">{{ t('create.loading') }}</p>
             <div v-else class="space-y-8 min-[900px]:grid min-[900px]:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] min-[900px]:items-start min-[900px]:gap-x-8 min-[900px]:gap-y-8 min-[900px]:space-y-0">
                 <!-- Paused (its leader's Plus ended; docs/pricing-plan.md, top): one calm note for everyone, the way back to

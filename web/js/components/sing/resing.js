@@ -39,7 +39,7 @@ export const ResungCard = {
     emits: ['hear', 'keep', 'again', 'whole', 'cancel'],
     template: `
         <section class="flex w-full max-w-lg flex-col items-center gap-5 p-6 text-center" aria-labelledby="resung-title">
-            <h2 id="resung-title" ref="heading" tabindex="-1" class="text-2xl font-extrabold outline-none">{{ t('sing.resing.doneTitle') }}</h2>
+            <h2 id="resung-title" ref="heading" tabindex="-1" class="text-2xl font-bold outline-none">{{ t('sing.resing.doneTitle') }}</h2>
             <p v-if="line" class="text-lg text-cream" translate="no">{{ line }}</p>
             <p v-if="different" class="rounded-2xl border border-part-6/40 bg-part-6/10 p-3 text-sm text-cream" role="note">{{ t('sing.resing.different') }}</p>
             <div class="flex flex-wrap justify-center gap-3">

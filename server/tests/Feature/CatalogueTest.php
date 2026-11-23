@@ -9,6 +9,7 @@ use App\Models\TemplateGuide;
 use App\Models\User;
 use App\Support\Templates\Catalogue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\Support\BetaFixtures;
 use Tests\TestCase;
 
@@ -68,5 +69,24 @@ final class CatalogueTest extends TestCase
     {
         $this->catalogue();
         $this->getJson('/api/templates')->assertOk();
+    }
+
+    public function test_the_song_count_is_read_once_until_a_song_changes(): void
+    {
+        $this->catalogue();
+        $first = app(Catalogue::class)->songCount();
+        $this->assertSame(app(Catalogue::class)->open()->count(), $first);
+
+        // Another visit (a new request's catalogue) says the number without reading the songs' versions again.
+        app()->forgetScopedInstances();
+        DB::enableQueryLog();
+        $this->assertSame($first, app(Catalogue::class)->songCount());
+        $read = collect(DB::getQueryLog())->pluck('query')->filter(static fn (string $q): bool => str_contains($q, 'from `template_versions`'));
+        $this->assertCount(0, $read, 'Only the fingerprint row.');
+
+        // A song closed: the fingerprint changes, and so does the count.
+        app()->forgetScopedInstances();
+        DB::table('template_versions')->whereIn('id', Template::query()->whereNotNull('current_version_id')->pluck('current_version_id'))->update(['reviewed' => false]);
+        $this->assertSame(0, app(Catalogue::class)->songCount());
     }
 }

@@ -29,7 +29,7 @@ export function screenLoading({ title = null, home = false } = {}) {
                 <!-- Every other screen's bar (components/page.js PageHeader), on the same grid, so Back doesn't move when the screen arrives. -->
                 <header v-else class="app-wrap app-bar">
                     <button type="button" class="grid size-11 shrink-0 place-items-center rounded-full glass-bubble text-cream transition" :aria-label="t('common.back')" @click="goBack('/')"><Icon name="back" :size="20" /></button>
-                    <p v-if="name" class="min-w-0 flex-1 truncate text-[1.75rem] font-extrabold leading-tight tracking-tight text-cream" aria-hidden="true">{{ name }}</p>
+                    <p v-if="name" class="min-w-0 flex-1 truncate text-[1.375rem] font-bold leading-tight text-cream sm:text-[1.75rem]" aria-hidden="true">{{ name }}</p>
                     <span v-else class="skeleton h-8 w-2/3" aria-hidden="true"></span>
                     <span class="spinner ms-auto text-accent" aria-hidden="true"></span>
                 </header>

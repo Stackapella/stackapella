@@ -3150,7 +3150,8 @@
                 "acct_course_home": "Course wall: Home's lesson card",
                 "acct_course_lesson": "Course wall: in a lesson",
                 "acct_course_map": "Course wall: the course map",
-                "acct_course_page": "Course wall: a course's page"
+                "acct_course_page": "Course wall: a course's page",
+                "nudge": "Nudge me tomorrow"
             },
             "show": "Show",
             "experimentOption": "Experiment {id} (A and B)",

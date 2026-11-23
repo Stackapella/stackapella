@@ -48,6 +48,7 @@ const ASKS = {
     share: tk('admin.funnel.ask.share'),
     goal: tk('admin.funnel.ask.goal'),
     remind: tk('admin.funnel.ask.remind'),
+    nudge: tk('admin.funnel.ask.nudge'), // the lesson's wrap: Nudge me tomorrow (docs/retention-plan.md, idea 2)
     // The account nudges (docs/account-nudges-plan.md: N1 to N4, Settings) and the course wall, all and by place.
     acct_week: tk('admin.funnel.ask.acct_week'),
     acct_songs: tk('admin.funnel.ask.acct_songs'),

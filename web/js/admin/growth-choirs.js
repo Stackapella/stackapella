@@ -83,7 +83,7 @@ export const GrowthChoirs = {
                 </figure>
 
                 <div>
-                    <button type="button" class="link tap-44 text-sm font-semibold" :aria-expanded="tableOpen ? 'true' : 'false'" aria-controls="growth-choirs-table" data-choirs-table-toggle @click="tableOpen = !tableOpen">{{ tableOpen ? t('admin.growth.choirs.tableHide') : t('admin.growth.choirs.tableShow') }}</button>
+                    <button type="button" class="link inline-flex min-h-11 items-center text-sm font-semibold" :aria-expanded="tableOpen ? 'true' : 'false'" aria-controls="growth-choirs-table" data-choirs-table-toggle @click="tableOpen = !tableOpen">{{ tableOpen ? t('admin.growth.choirs.tableHide') : t('admin.growth.choirs.tableShow') }}</button>
                     <div v-show="tableOpen" id="growth-choirs-table" class="mt-2 overflow-x-auto [scrollbar-width:none]" data-scroll-row>
                         <table class="w-full min-w-[36rem] text-sm tabular-nums" data-choirs-table>
                             <thead><tr class="border-b border-edge text-start">

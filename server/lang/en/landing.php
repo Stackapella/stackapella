@@ -50,7 +50,7 @@ return [
         'label' => 'Find your path.',
         'app' => 'in the app',
         'learn' => ['eyebrow' => 'Learners', 'badge' => 'Always free', 'who' => 'Learn to sing harmony', 'what' => 'Hear each part on its own, then sing yours with a guide voice.', 'go' => 'Explore free courses'],
-        'make' => ['eyebrow' => 'Singers', 'who' => 'Record a whole song yourself', 'what' => 'Record every part yourself, or let AI sing them in a voice like yours.', 'go' => 'See how to layer your voice', 'go_choir' => 'Hear yourself as a choir'],
+        'make' => ['eyebrow' => 'Singers', 'who' => 'Record a whole song yourself', 'what' => 'Record each part over the others, in time, until the whole song is you.', 'go' => 'See how to layer your voice', 'go_choir' => 'Hear yourself as a choir'],
         'lead' => ['eyebrow' => 'Leaders', 'who' => 'Get your choir ready', 'what' => 'Assign parts, give singers a way to practise at home, and see who\'s ready.', 'go' => 'See tools for choir leaders'],
     ],
     // Over the four pinned scenes: they are the solo performance.

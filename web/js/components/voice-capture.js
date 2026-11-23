@@ -106,7 +106,7 @@ export const VoiceCapture = {
                             <circle cx="76" cy="76" r="69" fill="none" :stroke="accent" stroke-width="8" stroke-linecap="round" data-ring :stroke-dasharray="RING" :stroke-dashoffset="RING * (1 - ringFill)" :class="still ? '' : 'transition-[stroke-dashoffset] duration-100 ease-linear'" />
                         </svg>
                         <div class="absolute inset-[0.875rem] flex flex-col items-center justify-center gap-1 rounded-full bg-ink/60">
-                            <span class="text-[2.625rem] font-extrabold leading-none tabular-nums" :style="{ color: noteColor, opacity: noteOpacity }" translate="no" data-note data-ui="capture-note">{{ noteLabel }}</span>
+                            <span class="text-[2.625rem] font-bold leading-none tabular-nums" :style="{ color: noteColor, opacity: noteOpacity }" translate="no" data-note data-ui="capture-note">{{ noteLabel }}</span>
                             <span class="text-[0.8125rem] text-muted" data-ui="capture-note-sub">{{ noteSub }}</span>
                         </div>
                     </div>

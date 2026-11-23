@@ -1664,9 +1664,9 @@ return [
                 'sections' => [
                     ['Open Settings', [
                         'Signed in, tap your name or picture at the top of the home.',
-                        'Settings has seven parts: **Profile**, **Account and sign-in**, **Game mode**, **Practice and appearance**, **Plan and storage**, **Your data** and **This device**. On a bigger screen they\'re listed down the side: tap one to jump to it.',
-                        'Not signed in? Settings asks you to sign in to see your account. **Game mode**, **Practice and appearance** (with how it looks and the sounds) and **This device** are still there.',
-                        ['shot' => 'settings--page', 'alt' => 'Settings on a bigger screen: the seven parts down the side, then the profile card with the photo, Your name, Handle and About you.'],
+                        'Settings is in four groups: **Learning** (game mode, your range, how you sing and reminders), **Choir and groups**, **Sound and voice care**, and **Account and device** (your profile, sign-in, plan and storage, your data and this device). On a bigger screen they\'re listed down the side: tap one to jump to it.',
+                        'Not signed in? Settings says what\'s kept on this device, and offers to make an account. **Learning**, **Sound and voice care** and **This device** are still there.',
+                        ['shot' => 'settings--page', 'alt' => 'Settings on a bigger screen: its groups down the side, and their settings beside them.'],
                     ]],
                     ['Your profile', [
                         'The profile card has your photo (**Choose a photo**: a JPEG, PNG or WebP, up to 2 MB), **Your name**, your **Handle**, **About you**, and your Bluesky and X handles. Tap **Save**. **Hide profile** shows your songs and scores as Anonymous to others, and saves at once.',
@@ -1680,19 +1680,19 @@ return [
                         'For your safety, some changes ask you to sign in again first.',
                     ]],
                     ['How it looks', [
-                        '**Appearance**, under **Practice and appearance**, says your look in a line. Tap the theme button beside it, or the one at the top of the home. On a bigger screen it says **Theme**.',
+                        'Tap the theme button at the top of Settings, or of the home. On a bigger screen it says **Theme**.',
                         '**Mode**: **Light**, **Dark**, or **Auto**, which follows your device.',
                         '**Colour**: four sets, each with a dark and a light look. Until you choose, dark uses Stage and light uses Warm.',
-                        '**Accent**: the colour of links, highlights and the focus ring. Keep your theme\'s own, pick another, or choose your own colour. We keep every choice readable in your theme. **Game mode**, its own part of Settings, switches the arcade look, with XP, stars, badges, combos and high scores; off, it\'s a plain practice tool with just your measures, and nothing you\'ve earned is lost. With it on, its extras turn off one at a time.',
+                        '**Accent**: the colour of links, highlights and the focus ring. Keep your theme\'s own, pick another, or choose your own colour. We keep every choice readable in your theme. **Game mode**, the first row of **Learning**, switches the arcade look, with XP, stars, badges, combos and high scores; off, it\'s a plain practice tool with just your measures, and nothing you\'ve earned is lost. With it on, its extras turn off one at a time.',
                         'Tap **Done**.',
                         ['shot' => 'settings--theme', 'alt' => 'Appearance on a phone: Mode with Light, Dark and Auto, the four themes with a light and a dark preview each, and the accents.'],
                     ]],
                     ['Reminders, choir groups and sounds', [
-                        'Tap **Practice reminders**, then turn on **Remind me to practise**. Pick your **Days** (or **Weekdays** or **Every day**) and a **Time**. Changes save as you make them, and the next reminder is written underneath.',
+                        'Under **Learning**, tap **Practice reminders**, then turn on **Remind me to practise**. Pick your **Days** (or **Weekdays** or **Every day**) and a **Time**. Changes save as you make them, and the next reminder is written underneath.',
                         '**Send a test** shows one on this device straight away. At most one reminder a day, and never anything else. Reminders are set for each device, and the first time your browser asks if it may show notifications.',
                         'On an iPhone or iPad, reminders need Stackapella on your home screen.',
-                        '**Choir groups** opens your groups, to join one or start your own. The page about choir groups has the rest.',
-                        '**Sounds** plays a short sound when your stars land, your mic is heard, or something special happens. Turn it off for quiet. It\'s set for this device.',
+                        'Under **Choir and groups**, **Choir groups** opens your groups, to join one or start your own. The page about choir groups has the rest.',
+                        '**Sounds**, under **Sound and voice care**, plays a short sound when your stars land, your mic is heard, or something special happens. Turn it off for quiet. It\'s set for this device. **Voice-care notes**, beside it, says so quietly after 20 and 40 minutes of singing in a day.',
                         '**How you sing** says what happens when you open a song to sing: **Ask each time**, **Phrase by phrase** or **Whole song**. Ticking **Use this every time** in Sing sets it too.',
                         'If you chose not to be asked before discarding a draft, **Ask before discarding drafts** turns the question back on. Deleting a song always asks, and offers **Undo** for a few seconds after.',
                     ]],
