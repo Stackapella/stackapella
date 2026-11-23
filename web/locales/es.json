@@ -2269,7 +2269,6 @@
             "source": "Fuente: {source}"
         },
         "mapToOpen": "{stars}/{need} ★ para abrir",
-        "stepLabel": "Paso {step}",
         "speakerUnder": "Sin auriculares, el sonido de fondo suena primero y luego descansa mientras cantas, para que solo te oigamos a ti. Con auriculares, sigue sonando debajo de ti.",
         "tap": {
             "listen": "Oír el ejemplo",
@@ -5524,7 +5523,14 @@
         "lanes": "Tu nota con dos voces guía",
         "you": "Tú",
         "guide": "Guía",
-        "line": "Ahí estás tú, y eso es armonía. El curso te enseña a cantar también esas otras voces."
+        "line": "Ahí estás tú, y eso es armonía. El curso te enseña a cantar también esas otras voces.",
+        "ask": "Canta tu nota otra vez y mantenla: dos voces guía se unirán a ti.",
+        "hold": "Mantén tu nota en \"oo\".",
+        "sounding": "Sigue manteniéndola: el acorde suena a tu alrededor.",
+        "quiet": "No oímos una nota mantenida. Toca para intentarlo de nuevo.",
+        "blocked": "El micrófono no está abierto aquí, así que el acorde no puede unirse a ti en vivo.",
+        "liveLine": "Eso es armonía: tu nota es una de las voces del acorde.",
+        "again": "Escúchalo otra vez"
     },
     "wrap": {
         "title": "Primera sesión: tu nota {note}, {lessons} lecciones, {stars} estrellas.",
@@ -5810,7 +5816,9 @@
                 "short": "No hubo suficiente canto. Sigue cantando hasta el final.",
                 "edge": "Oímos respiraciones fuertes justo antes de tus frases. Respira un momento antes, girado un poco del micrófono, y quédate quieto después de tu última nota.",
                 "length": "Algo falló con la duración de la grabación. Vuelve a intentarlo.",
-                "loud": "Tu grabación sonó demasiado alta en algunos momentos. Apártate un poco del micrófono y canta a volumen normal."
+                "loud": "Tu grabación sonó demasiado alta en algunos momentos. Apártate un poco del micrófono y canta a volumen normal.",
+                "noisyQuiet": "Tu canto sonaba bajo junto al ruido de la sala. Canta un poco más fuerte, o un poco más cerca del teléfono, y vuelve a cantar.",
+                "noisyNear": "Hay un zumbido constante en la sala, como un ventilador o una nevera. Apágalo o aléjate de él y vuelve a cantar."
             },
             "lead": {
                 "take": "Con esa toma no pudimos hacer una voz.",

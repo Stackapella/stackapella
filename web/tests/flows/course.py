@@ -53,10 +53,22 @@ def journey(f):
     assert t(f, "results.found.rangeGuess") in f.js("document.querySelector('[data-found=range]').innerText")
     assert "semitone" not in f.js("document.querySelector('[data-note-result]').innerText").lower(), "semitones on the result"
     assert f.js("document.querySelector('[data-check-range]').textContent.trim()") == t(f, "results.found.check")
-    # Your note in a chord (onboarding item 3), in both skins: the end of the held note with two
-    # guide voices, played once by itself after the stars, the lanes lit, then what it means.
-    f.wait("document.querySelector('[data-chord-moment]')?.dataset.playing === 'true'", what="the chord moment, playing by itself")
-    f.wait("document.querySelector('[data-chord-line]')", timeout=10, what="the chord played to its end")
+    # Your note in a chord, live (Hillel, 2026-11-23: lesson 1 delivers "I just sang harmony"), in both skins: Hear it in a
+    # chord, they hold their note again, and two guide voices fade in around it; then what it means.
+    f.wait("document.querySelector('[data-live-chord][data-phase=ready] [data-live-chord-go]')", what="Hear it in a chord")
+    # Straight under the note and its line, above the keyboard (the moment, in view).
+    assert f.js("document.querySelector('[data-live-chord]').compareDocumentPosition(document.querySelector('[data-note-found]')) & Node.DOCUMENT_POSITION_FOLLOWING"), "the chord isn't above the details"
+    f.run("document.querySelector('[data-live-chord]').scrollIntoView({ block: 'center' })")
+    f.shot("chord-ask")
+    f.run("document.querySelector('[data-live-chord-go]').click()")
+    f.wait("document.querySelector('[data-live-chord]')?.dataset.phase === 'listening'", what="listening for the held note")
+    f.run(f"const {{ engine }} = {AUDIO}; const {{ renderPart }} = await import('/js/synth.js'); engine.preview(renderPart([{{ beat: 0, length: 4, pitch: 57 }}], {{ bpm: 60, sampleRate: engine.sampleRate }}), engine.sampleRate);")
+    f.wait("document.querySelector('[data-live-chord]')?.dataset.phase === 'sounding'", timeout=15, what="the chord fading in round the held note")
+    f.run("document.querySelector('[data-live-chord]').scrollIntoView({ block: 'center' })")
+    f.shot("chord-sounding")
+    f.wait("document.querySelector('[data-chord-line]')", timeout=12, what="the chord's line, once it has sounded")
+    f.run("document.querySelector('[data-live-chord]').scrollIntoView({ block: 'center' })")
+    f.shot("chord-heard")
     assert f.js("JSON.parse(localStorage.getItem('stackapella.funnel')).firsts.f_chord") is True, "the chord moment isn't counted"
     f.shot("done")
     # Share my note (onboarding item 6): the note's card, with a name if you type one (kept on this device).

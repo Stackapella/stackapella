@@ -8,6 +8,7 @@
         "failure": null,
         "failureDetail": null,
         "counted": null,
+        "failureHints": null,
         "createdAt": "2026-11-21T09:00:00Z",
         "readyAt": "2026-11-21T09:04:00Z",
         "startsAfter": null,

@@ -417,6 +417,8 @@ async function stateful(operation, params, body, cases, query = {}) {
             if (r.status === 'failed' && tabStorage.get('stackapella.mockFailure')) r.failure = tabStorage.get('stackapella.mockFailure');
             // A failure that counted after all (mockCounted, this tab): the take's own after GPU work.
             if (r.status === 'failed' && tabStorage.get('stackapella.mockCounted')) r.counted = true;
+            // The server's hints on a clip that couldn't be used (mockFailureHints, this tab: a JSON list, as "near").
+            if (r.status === 'failed') r.failureHints = r.failure === 'clip_unusable' ? JSON.parse(tabStorage.get('stackapella.mockFailureHints') || '[]') : null;
             r.settings ??= { sound: { room: 'dry', balance: (r.parts ?? []).map((p) => ({ partKey: p.partKey, db: 0 })) }, sung: { vibrato: 'natural', variation: 'natural', voicing: 'auto', breaths: 'legato', ensembleTiming: 'tight', pitchSpread: 'off', quality: 'standard' } };
             r.remakeMinutes ??= { standard: 2, fine: 4 };
             // Their whole-song take as the lead (mockChoirLead this tab, or a song sung whole here), once it's ready.

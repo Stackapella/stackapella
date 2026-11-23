@@ -54,6 +54,10 @@ def journey(f):
     assert rows == {"capture": "71%", "silent": t(f, "admin.choir.tooFew"), "grace": t(f, "admin.choir.tooFew"), "joy": t(f, "admin.choir.tooFew")}, rows
     assert f.js("document.querySelectorAll('[data-choir-tries] [data-bar-row]').length") == 4
     assert f.js("document.querySelectorAll('[data-choir-gates] [data-bar-row]').length") == 2
+    # The latest unusable clips with the worker's measures (clipNumbers): the reason in words and each measure, never whose.
+    f.wait("document.querySelector('[data-choir-clips] [data-choir-clip]')", what="the clips' measures")
+    row = f.js("document.querySelector('[data-choir-clip]').innerText")
+    assert "snrDb" in row and "6.5" in row, row
     # Every count, grouped.
     assert f.js("!!document.querySelector('[data-choir-group=choir_guide_] [data-kind=choir_guide_off]')"), "the guide counts aren't grouped"
     assert f.js("!!document.querySelector('[data-choir-group=own_choir_] [data-kind=own_choir_ready]')"), "the server's counts aren't grouped"

@@ -298,9 +298,13 @@
                 "songs",
                 "lessonsDone",
                 "streakWeeks",
-                "lastActivity"
+                "lastActivity",
+                "choirs",
+                "coursesStarted",
+                "shares",
+                "takes"
             ],
-            "description": "How much they use the app, as counts and times only, never what's in anything. Every row has the first four; the person page (admin.people.show and its actions) adds the rest.",
+            "description": "How much they use the app, as counts and times only, never what's in anything. Every row has the first eight; the person page (admin.people.show and its actions) adds the rest.",
             "properties": {
                 "songs": {
                     "type": "integer",
@@ -332,7 +336,8 @@
                                 "practice",
                                 "song",
                                 "share",
-                                "sign_in"
+                                "sign_in",
+                                "choir"
                             ]
                         },
                         "at": {
@@ -340,10 +345,11 @@
                             "format": "date-time"
                         }
                     },
-                    "description": "The latest of: recorded a take, practised (a scored run), changed a song, shared a harmony, signed in. No titles."
+                    "description": "The latest of: recorded a take, practised (a scored run), changed a song, shared a harmony, asked for an AI choir song, signed in. No titles."
                 },
                 "takes": {
-                    "type": "integer"
+                    "type": "integer",
+                    "description": "Recordings (takes) ready."
                 },
                 "stars": {
                     "type": "integer"
@@ -373,6 +379,73 @@
                 },
                 "storageBytes": {
                     "type": "integer"
+                },
+                "choirs": {
+                    "type": "integer",
+                    "description": "AI choir songs of their own made (not a friend's parts, not a remake)."
+                },
+                "coursesStarted": {
+                    "type": "integer",
+                    "description": "Courses with at least one lesson done."
+                },
+                "shares": {
+                    "type": "integer",
+                    "description": "Harmonies they shared."
+                },
+                "choir": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "made",
+                        "failed",
+                        "joined",
+                        "partMinutes",
+                        "since",
+                        "savedVoice"
+                    ],
+                    "description": "The person page's AI choir: songs made and failed, choirs of others they're in, the part-minutes their allowance counted since `since` (its window: paid Plus's month, else the last 30 days), and whether they keep a saved voice.",
+                    "properties": {
+                        "made": {
+                            "type": "integer"
+                        },
+                        "failed": {
+                            "type": "integer"
+                        },
+                        "joined": {
+                            "type": "integer"
+                        },
+                        "partMinutes": {
+                            "type": "number"
+                        },
+                        "since": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "savedVoice": {
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "groups": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "led",
+                        "member"
+                    ],
+                    "description": "The person page's choir groups: led (director) and sung in.",
+                    "properties": {
+                        "led": {
+                            "type": "integer"
+                        },
+                        "member": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "lendsVoice": {
+                    "type": "boolean",
+                    "description": "The person page's: they lend their voice (a beta singer who volunteered, not blocked)."
                 }
             }
         },

@@ -32,9 +32,13 @@
                 "lessonsDone": 5,
                 "streakWeeks": 2,
                 "lastActivity": {
-                    "kind": "take",
-                    "at": "2026-10-27T18:04:00Z"
-                }
+                    "kind": "choir",
+                    "at": "2026-11-23T10:15:00Z"
+                },
+                "choirs": 3,
+                "coursesStarted": 1,
+                "shares": 1,
+                "takes": 12
             },
             "country": "GB"
         },
@@ -72,7 +76,11 @@
                 "lastActivity": {
                     "kind": "take",
                     "at": "2026-10-27T18:04:00Z"
-                }
+                },
+                "choirs": 0,
+                "coursesStarted": 1,
+                "shares": 0,
+                "takes": 0
             },
             "country": "GB"
         }

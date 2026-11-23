@@ -2523,7 +2523,11 @@
                     "expired": "Took too long",
                     "reference_gone": "Saved voice deleted"
                 }
-            }
+            },
+            "clips": "Clips that couldn't be used",
+            "clipsHint": "The latest, newest first, with what the worker measured: numbers only, never whose.",
+            "clipsAll": "Show {count} more",
+            "clipsFewer": "Show fewer"
         },
         "sharing": {
             "intro": "The seven days from {from} to {to}, against the seven before. Under {floor}, a number is too few to tell.",
@@ -2718,7 +2722,10 @@
                 "singer": "Beta singers",
                 "tester": "Store testers",
                 "countryLabel": "Country",
-                "anyCountry": "Any country"
+                "anyCountry": "Any country",
+                "usesLabel": "Uses",
+                "anyUse": "Anything",
+                "choir": "AI choir"
             },
             "none": "Nobody matches",
             "plusUntil": "Plus until {date}",
@@ -2796,7 +2803,8 @@
             "sort": {
                 "label": "Sort by",
                 "newest": "Newest",
-                "active": "Last active"
+                "active": "Last active",
+                "choirs": "Most AI choirs"
             },
             "source": {
                 "stripe": "the web (Stripe)",
@@ -2827,7 +2835,6 @@
             "today": "Today",
             "yesterday": "Yesterday",
             "never": "Never",
-            "activity": "{songs, plural, =0 {No songs} one {One song} other {# songs}} · {lessons, plural, =0 {no lessons} one {one lesson} other {# lessons}}",
             "streak": "{weeks}-week streak",
             "lastThing": "{thing} · {when}",
             "last": {
@@ -2835,30 +2842,57 @@
                 "take": "Recorded a take",
                 "song": "Started a song",
                 "share": "Shared a harmony",
-                "sign_in": "Signed in"
+                "sign_in": "Signed in",
+                "choir": "Made an AI choir"
             },
             "stat": {
-                "songs": "Songs",
-                "takes": "Takes",
-                "lessonsDone": "Lessons done",
-                "stars": "Stars",
-                "level": "Level",
-                "practiceMinutes": "Practice",
-                "storageBytes": "Storage",
-                "publicHarmonies": "Public harmonies",
-                "groups": "Groups",
-                "lastActivity": "Last thing they did",
-                "streakWeeks": "Streak"
+                "lendsVoice": "Lends their voice",
+                "savedVoice": "Voice saved"
             },
-            "statLevel": "{level} ({xp} XP)",
-            "statStreak": "{weeks, plural, =0 {None} one {One week} other {# weeks}}",
-            "statMinutes": "{lastWeek, plural, one {One minute} other {# minutes}} last week, {total, plural, one {one} other {#}} in all",
             "activityTitle": "Activity",
             "country": "Country",
             "countryUnknown": "Not known",
             "byCountry": "People by country",
             "boardsReset": "Remove leaderboard entries",
-            "boardsRemoved": "Their leaderboard entries are removed."
+            "boardsRemoved": "Their leaderboard entries are removed.",
+            "act": {
+                "choirs": "{count, plural, one {# AI choir} other {# AI choirs}}",
+                "lessons": "{count, plural, one {# lesson} other {# lessons}}",
+                "courses": "{count, plural, one {# course} other {# courses}}",
+                "songs": "{count, plural, one {# song} other {# songs}}",
+                "takes": "{count, plural, one {# take} other {# takes}}",
+                "shares": "{count, plural, one {# share} other {# shares}}",
+                "none": "Nothing yet"
+            },
+            "area": {
+                "learning": "Learning",
+                "singing": "Singing",
+                "choir": "AI choir",
+                "groups": "Groups"
+            },
+            "strip": {
+                "lessons": "{count, plural, one {lesson} other {lessons}}",
+                "courses": "{count, plural, one {course} other {courses}}",
+                "stars": "{count, plural, one {star} other {stars}}",
+                "level": "Level {level}",
+                "xp": "({xp} XP)",
+                "weeks": "{weeks}-week",
+                "streak": "streak",
+                "min": "{minutes} min",
+                "practice": "last week ({total} min in all)",
+                "songs": "{count, plural, one {song} other {songs}}",
+                "takes": "{count, plural, one {take} other {takes}}",
+                "shares": "{count, plural, one {share} other {shares}}",
+                "public": "{count, plural, one {public harmony} other {public harmonies}}",
+                "stored": "stored",
+                "choirs": "{count, plural, one {choir made} other {choirs made}}",
+                "failed": "failed",
+                "joined": "{count, plural, one {friend's choir sung in} other {friends' choirs sung in}}",
+                "partMinutes": "part-minutes counted",
+                "partMinutesSince": "part-minutes counted since {date}",
+                "led": "{count, plural, one {group led} other {groups led}}",
+                "member": "{count, plural, one {group in} other {groups in}}"
+            }
         },
         "live": {
             "title": "Live",
@@ -5407,7 +5441,6 @@
             "source": "Source: {source}"
         },
         "mapToOpen": "{stars}/{need} ★ to open",
-        "stepLabel": "Step {step}",
         "speakerUnder": "Without headphones, the sound underneath plays first, then rests while you sing, so we hear only you. With headphones, it stays under you.",
         "tap": {
             "listen": "Hear the example",
@@ -8659,7 +8692,14 @@
         "lanes": "Your note with two guide voices",
         "you": "You",
         "guide": "Guide",
-        "line": "That's you, and that's harmony. The course teaches you to sing those other parts too."
+        "line": "That's you, and that's harmony. The course teaches you to sing those other parts too.",
+        "ask": "Sing your note again and hold it: two guide voices will join you.",
+        "hold": "Hold your note on \"oo\".",
+        "sounding": "Keep holding: the chord is around you.",
+        "quiet": "We didn't hear a note held. Tap to try again.",
+        "blocked": "The mic isn't open here, so the chord can't join you live.",
+        "liveLine": "That's harmony: your note is one of the chord's voices.",
+        "again": "Hear it again"
     },
     "wrap": {
         "title": "Session one: your note {note}, {lessons} lessons, {stars} stars.",
@@ -8945,7 +8985,9 @@
                 "short": "There wasn't enough singing. Keep singing to the end.",
                 "edge": "We heard loud breaths right before your lines. Breathe a moment earlier, turned a little away from the mic, and stay still after your last note.",
                 "length": "Something went wrong with the recording's length. Please try again.",
-                "loud": "Your recording was too loud in places. Back off a little from the mic and sing at normal volume."
+                "loud": "Your recording was too loud in places. Back off a little from the mic and sing at normal volume.",
+                "noisyQuiet": "Your singing was quiet next to the room's sound. Sing a little louder, or a little closer to the phone, then sing again.",
+                "noisyNear": "There's a steady hum in the room, like a fan or fridge. Turn it off or move away from it, then sing again."
             },
             "lead": {
                 "take": "That take couldn't make a voice.",

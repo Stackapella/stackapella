@@ -41,6 +41,12 @@ const ROLES = [
 const SORTS = [
     { value: 'newest', label: tk('admin.people.sort.newest') },
     { value: 'active', label: tk('admin.people.sort.active') },
+    { value: 'choirs', label: tk('admin.people.sort.choirs') },
+];
+// What they've used (admin.people.list `uses`): AI choir is the one so far (made, asked for or joined one).
+const USES = [
+    { value: '', label: tk('admin.people.filter.anyUse') },
+    { value: 'choir', label: tk('admin.people.filter.choir') },
 ];
 // How Plus came: the billing state's own sources.
 const SOURCES = { stripe: tk('admin.people.source.stripe'), apple: tk('admin.people.source.apple'), google: tk('admin.people.source.google'), coach: tk('admin.people.source.coach'), invoice: tk('admin.people.source.invoice'), demo: tk('admin.people.source.demo') };
@@ -83,15 +89,34 @@ function listPlan(person) {
 }
 
 // The person's numbers, by the name the server sends them under.
-const STAT_NAMES = { songs: tk('admin.people.stat.songs'), takes: tk('admin.people.stat.takes'), lessonsDone: tk('admin.people.stat.lessonsDone'), stars: tk('admin.people.stat.stars'), level: tk('admin.people.stat.level'), streakWeeks: tk('admin.people.stat.streakWeeks'), practiceMinutes: tk('admin.people.stat.practiceMinutes'), storageBytes: tk('admin.people.stat.storageBytes'), publicHarmonies: tk('admin.people.stat.publicHarmonies'), groups: tk('admin.people.stat.groups'), lastActivity: tk('admin.people.stat.lastActivity') };
+// A person's numbers, said as a strip: each number's words (plural by count), and a yes as a chip.
+const STRIP = { choirs: tk('admin.people.strip.choirs'), courses: tk('admin.people.strip.courses'), failed: tk('admin.people.strip.failed'), joined: tk('admin.people.strip.joined'), led: tk('admin.people.strip.led'), lessons: tk('admin.people.strip.lessons'), member: tk('admin.people.strip.member'), public: tk('admin.people.strip.public'), shares: tk('admin.people.strip.shares'), songs: tk('admin.people.strip.songs'), stars: tk('admin.people.strip.stars'), takes: tk('admin.people.strip.takes') };
+const YES_WORDS = { lendsVoice: tk('admin.people.stat.lendsVoice'), savedVoice: tk('admin.people.stat.savedVoice') };
+// The person page's areas, in this order.
+const AREAS = { learning: tk('admin.people.area.learning'), singing: tk('admin.people.area.singing'), choir: tk('admin.people.area.choir'), groups: tk('admin.people.area.groups') };
 // What someone did last, as the stats name it.
-const LAST_THINGS = { practice: tk('admin.people.last.practice'), take: tk('admin.people.last.take'), song: tk('admin.people.last.song'), share: tk('admin.people.last.share'), sign_in: tk('admin.people.last.sign_in') };
+const LAST_THINGS = { practice: tk('admin.people.last.practice'), take: tk('admin.people.last.take'), song: tk('admin.people.last.song'), share: tk('admin.people.last.share'), choir: tk('admin.people.last.choir'), sign_in: tk('admin.people.last.sign_in') };
+// A row's features, the leading one first (Hillel, 2026-11-23: "easy to glance/parse"): AI choir, then learning, then singing.
+const ACTIVITY = [
+    ['choirs', tk('admin.people.act.choirs')],
+    ['lessonsDone', tk('admin.people.act.lessons')],
+    ['coursesStarted', tk('admin.people.act.courses')],
+    ['songs', tk('admin.people.act.songs')],
+    ['takes', tk('admin.people.act.takes')],
+    ['shares', tk('admin.people.act.shares')],
+];
 
-/** A row's activity in a few words: songs and lessons (when the server sends them). */
-function activityOf(person) {
+/**
+ * A row's activity in one glance: the three biggest of what they've used (none at zero), said in that leading order,
+ * "3 AI choirs · 12 lessons · 2 songs". Pure, for its test. Empty with no stats; "Nothing yet" with all at zero.
+ */
+export function activityOf(person) {
     const s = person.stats;
     if (!s) return '';
-    return t('admin.people.activity', { songs: s.songs ?? 0, lessons: s.lessonsDone ?? 0 });
+    const used = ACTIVITY.map(([key, words], order) => ({ key, words, order, n: s[key] ?? 0 })).filter((a) => a.n > 0);
+    if (!used.length) return t('admin.people.act.none');
+    const top = [...used].sort((a, b) => b.n - a.n || a.order - b.order).slice(0, 3);
+    return top.sort((a, b) => a.order - b.order).map((a) => t(a.words, { count: a.n })).join(' · ');
 }
 
 /** Under it, the weekly goal's streak, or the last thing they did. */
@@ -133,7 +158,7 @@ function ageOf(person) {
 
 const PeopleList = {
     components: { EmptyState, Icon, LoadFailed, StatusChip },
-    data: () => ({ people: null, cursor: null, failed: false, loadingMore: false, q: '', suspended: '', plan: '', adult: '', role: '', sort: 'newest', country: '', countries: null }),
+    data: () => ({ people: null, cursor: null, failed: false, loadingMore: false, q: '', suspended: '', plan: '', adult: '', role: '', uses: '', sort: 'newest', country: '', countries: null }),
     setup: () => ({ SUSPENDED, PLANS, AGES, ROLES, SORTS, COLUMNS, chipsOf, listPlan, shortDay, activityOf, lastThing, countryOf, formatNumber, when }),
     template: `
         <section class="space-y-6" aria-labelledby="people-h">
@@ -182,7 +207,7 @@ const PeopleList = {
                             <span><span class="block text-xs text-muted md:sr-only">{{ t('admin.people.plan') }}</span><span class="text-cream">{{ listPlan(person) }}</span></span>
                             <span class="min-w-0"><span class="block text-xs text-muted md:sr-only">{{ t('admin.people.joinedLabel') }}</span><span class="block whitespace-nowrap text-cream">{{ shortDay(person.createdAt) }}</span><span v-if="'country' in person" class="block truncate text-muted" :title="countryOf(person.country)">{{ countryOf(person.country) }}</span></span>
                             <span><span class="block text-xs text-muted md:sr-only">{{ t('admin.people.lastActiveLabel') }}</span><span class="whitespace-nowrap text-cream">{{ (person.lastActiveAt ?? person.lastSignInAt) ? shortDay(person.lastActiveAt ?? person.lastSignInAt) : t('admin.people.never') }}</span></span>
-                            <span class="min-w-0"><span class="block text-xs text-muted md:sr-only">{{ t('admin.people.col.activity') }}</span><span class="block truncate text-cream">{{ activityOf(person) }}</span><span v-if="lastThing(person)" class="block truncate text-muted">{{ lastThing(person) }}</span></span>
+                            <span class="min-w-0"><span class="block text-xs text-muted md:sr-only">{{ t('admin.people.col.activity') }}</span><span class="block truncate whitespace-nowrap text-cream" :title="activityOf(person)" data-person-activity>{{ activityOf(person) }}</span><span v-if="lastThing(person)" class="block truncate text-muted">{{ lastThing(person) }}</span></span>
                             <span class="col-span-2 flex flex-wrap gap-1.5 md:col-span-1"><span class="sr-only">{{ t('admin.people.col.status') }}</span><StatusChip v-for="c in chipsOf(person)" :key="c.label" :tone="c.tone" :label="c.label" /></span>
                         </a>
                     </li>
@@ -202,6 +227,7 @@ const PeopleList = {
             { name: 'plan', label: tk('admin.people.filter.planLabel'), options: PLANS },
             { name: 'adult', label: tk('admin.people.filter.ageLabel'), options: AGES },
             { name: 'role', label: tk('admin.people.filter.roleLabel'), options: ROLES },
+            { name: 'uses', label: tk('admin.people.filter.usesLabel'), options: USES },
             { name: 'country', label: tk('admin.people.filter.countryLabel'), options: [{ value: '', label: t('admin.people.filter.anyCountry'), plain: true }, ...(this.countries ?? []).filter((c) => c.country).map((c) => ({ value: c.country, label: countryOf(c.country), plain: true }))] },
             { name: 'sort', label: tk('admin.people.sort.label'), options: SORTS },
             ];
@@ -225,7 +251,7 @@ const PeopleList = {
             this.load();
         },
         load(more = false) {
-            const query = { q: this.q, suspended: this.suspended, plan: this.plan, adult: this.adult, role: this.role, country: this.country, sort: this.sort === 'newest' ? '' : this.sort };
+            const query = { q: this.q, suspended: this.suspended, plan: this.plan, adult: this.adult, role: this.role, uses: this.uses, country: this.country, sort: this.sort === 'newest' ? '' : this.sort };
             const asked = Object.fromEntries(Object.entries(query).filter(([, v]) => v !== ''));
             return loadInto(this, 'people', () => api.admin.people.list({ ...asked, cursor: more ? this.cursor : undefined }), { more });
         },
@@ -239,7 +265,7 @@ const PersonPage = {
     components: { ChangeSheet, Field, Icon, LoadFailed, Notice, StatusChip },
     props: { id: { type: String, required: true }, me: { type: Object, required: true } },
     data: () => ({ person: null, failed: null, events: null, audit: null, sheet: null, busy: false, errors: null, level: '', email: '', amount: '', copiedGiven: null, songFile: null, songFileName: '', rights: { confirmedBy: '', confirmedAt: '', wording: '', source: '' } }),
-    setup: () => ({ TRUST, EVENT_LABELS, STAT_NAMES, chipsOf, planOf, ageOf, countryOf, day, when }),
+    setup: () => ({ TRUST, EVENT_LABELS, AREAS, chipsOf, planOf, ageOf, countryOf, day, when }),
     template: `
         <section class="space-y-6" aria-labelledby="person-h">
             <a href="/admin/people" class="btn-ghost btn-sm -ms-3" @click.prevent="back"><Icon name="back" :size="16" /> {{ t('admin.people.title') }}</a>
@@ -269,11 +295,25 @@ const PersonPage = {
                     <div v-if="person.heardFrom || person.ref"><dt class="text-sm text-muted">{{ t('admin.people.heardFrom') }}</dt><dd class="text-cream" translate="no">{{ [person.heardFrom, person.ref].filter(Boolean).join(' · ') }}</dd></div>
                 </dl>
 
-                <section v-if="statTiles.length" class="space-y-3" aria-labelledby="activity-h">
-                    <h2 id="activity-h" class="text-lg font-bold text-cream">{{ t('admin.people.activityTitle') }}</h2>
-                    <dl class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4" data-person-stats>
-                        <div v-for="tile in statTiles" :key="tile.key" class="rounded-2xl bg-panel p-4"><dt class="text-sm text-muted">{{ t(STAT_NAMES[tile.key]) }}</dt><dd class="mt-1 text-xl font-bold text-cream">{{ tile.value }}</dd></div>
-                    </dl>
+                <!-- Their numbers by area (Hillel, 2026-11-23: "easy to glance/parse"): Learning, Singing, AI choir, Groups, each
+                     a small caps label over its tiles; a zero or a no isn't shown, nor an area with nothing in it. -->
+                <section v-if="statAreas.length || lastLine" class="space-y-4" aria-labelledby="activity-h" data-person-stats>
+                    <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                        <h2 id="activity-h" class="text-lg font-bold text-cream">{{ t('admin.people.activityTitle') }}</h2>
+                        <p v-if="lastLine" class="text-sm text-muted" data-person-last>{{ lastLine }}</p>
+                    </div>
+                    <!-- One strip an area (the coordinator's review: glanceable, not a wall of tiles): its small caps label, then
+                         each number bold with its words quiet, wrapping as needed; a yes is a small chip in the strip. -->
+                    <div v-for="area in statAreas" :key="area.key" class="space-y-1.5" :data-person-area="area.key">
+                        <h3 class="t-section">{{ t(AREAS[area.key]) }}</h3>
+                        <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-cream">
+                            <template v-for="(entry, i) in area.items" :key="entry.key">
+                                <span v-if="i" class="text-subtle" aria-hidden="true">·</span>
+                                <span v-if="entry.chip" class="chip-tag" :data-person-stat="entry.key">{{ entry.chip }}</span>
+                                <span v-else class="whitespace-nowrap" :data-person-stat="entry.key"><b class="font-semibold tabular-nums">{{ entry.n }}</b> <span class="text-muted">{{ entry.words }}</span></span>
+                            </template>
+                        </p>
+                    </div>
                 </section>
 
                 <section class="space-y-3" aria-labelledby="actions-h">
@@ -372,23 +412,49 @@ const PersonPage = {
         givenSongs() {
             return (this.person?.given ?? []).map((song) => ({ ...song, link: song.url.startsWith('/') ? location.origin + song.url : song.url }));
         },
-        /** The person's numbers, each only when the server sends it (counts and totals, never contents). */
-        statTiles() {
-            const s = { ...(this.person?.stats ?? {}), ...(this.person?.counts ?? {}) };
-            const shown = {
-                songs: (v) => formatNumber(v),
-                takes: (v) => formatNumber(v),
-                lessonsDone: (v) => formatNumber(v),
-                stars: (v) => formatNumber(v),
-                level: (v) => t('admin.people.statLevel', { level: v, xp: formatNumber(s.xp ?? 0) }),
-                streakWeeks: (v) => t('admin.people.statStreak', { weeks: v }),
-                practiceMinutes: (v) => t('admin.people.statMinutes', { lastWeek: v.lastWeek ?? 0, total: v.total ?? 0 }),
-                storageBytes: (v) => formatNumber(v / 1e6, { maximumFractionDigits: 1, style: 'unit', unit: 'megabyte' }),
-                publicHarmonies: (v) => formatNumber(v),
-                groups: (v) => formatNumber(v),
-                lastActivity: (v) => (LAST_THINGS[v.kind] ? t('admin.people.lastThing', { thing: t(LAST_THINGS[v.kind]), when: shortDay(v.at) }) : shortDay(v.at)),
-            };
-            return Object.entries(shown).filter(([key]) => s[key] !== undefined && s[key] !== null).map(([key, show]) => ({ key, value: show(s[key]) }));
+        /** What they did last, beside the Activity heading. */
+        lastLine() {
+            const v = this.person?.stats?.lastActivity;
+            if (!v?.at) return '';
+            return LAST_THINGS[v.kind] ? t('admin.people.lastThing', { thing: t(LAST_THINGS[v.kind]), when: shortDay(v.at) }) : shortDay(v.at);
+        },
+        /** The person's numbers by area, each only when the server sends it and it isn't zero (counts and totals, never contents). */
+        statAreas() {
+            const s = this.person?.stats ?? {};
+            const counts = this.person?.counts ?? {};
+            const choir = s.choir ?? {};
+            // Groups: led and in, from the stats; an older server's single count otherwise.
+            const groups = typeof s.groups === 'object' && s.groups ? s.groups : { member: s.groups ?? counts.groups };
+            // A strip item (the coordinator's review: glanceable): a bold number and its quiet words, none at zero; a yes as a chip.
+            const item = (key, value, words, show = (v) => formatNumber(v)) => (value ? { key, n: show(value), words: typeof words === 'function' ? words(value) : t(words, { count: value }) } : null);
+            const yes = (key, value, words) => (value ? { key, chip: t(words) } : null);
+            const areas = [
+                { key: 'learning', items: [
+                    item('lessonsDone', s.lessonsDone, STRIP.lessons),
+                    item('coursesStarted', s.coursesStarted, STRIP.courses),
+                    item('stars', s.stars, STRIP.stars),
+                    item('level', s.level, () => t('admin.people.strip.xp', { xp: formatNumber(s.xp ?? 0) }), (v) => t('admin.people.strip.level', { level: formatNumber(v) })),
+                    item('streakWeeks', s.streakWeeks, () => t('admin.people.strip.streak'), (v) => t('admin.people.strip.weeks', { weeks: formatNumber(v) })),
+                    item('practiceMinutes', s.practiceMinutes?.total, () => t('admin.people.strip.practice', { total: formatNumber(s.practiceMinutes.total) }), () => t('admin.people.strip.min', { minutes: formatNumber(s.practiceMinutes.lastWeek ?? 0) })),
+                ] },
+                { key: 'singing', items: [
+                    item('songs', s.songs, STRIP.songs),
+                    item('takes', s.takes, STRIP.takes),
+                    item('shares', s.shares, STRIP.shares),
+                    item('publicHarmonies', s.publicHarmonies ?? counts.publicHarmonies, STRIP.public),
+                    item('storageBytes', s.storageBytes, () => t('admin.people.strip.stored'), (v) => formatNumber(v / 1e6, { maximumFractionDigits: 1, style: 'unit', unit: 'megabyte' })),
+                    yes('lendsVoice', s.lendsVoice, YES_WORDS.lendsVoice),
+                ] },
+                { key: 'choir', items: [
+                    item('choirMade', choir.made, STRIP.choirs),
+                    item('choirFailed', choir.failed, STRIP.failed),
+                    item('choirJoined', choir.joined, STRIP.joined),
+                    item('partMinutes', choir.partMinutes, () => (choir.since ? t('admin.people.strip.partMinutesSince', { date: shortDay(choir.since) }) : t('admin.people.strip.partMinutes')), (v) => formatNumber(v, { maximumFractionDigits: 1 })),
+                    yes('savedVoice', choir.savedVoice, YES_WORDS.savedVoice),
+                ] },
+                { key: 'groups', items: [item('groupsLed', groups.led, STRIP.led), item('groupsMember', groups.member, STRIP.member)] },
+            ];
+            return areas.map((area) => ({ ...area, items: area.items.filter(Boolean) })).filter((area) => area.items.length);
         },
         methods() {
             const m = this.person?.methods ?? {};

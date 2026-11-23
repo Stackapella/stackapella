@@ -620,7 +620,7 @@ final class OwnChoirTest extends TestCase
         // Stored as JSON, a whole number reads back without its ".0".
         $this->assertEquals([['name' => 'snrDb', 'value' => 6.5], ['name' => 'rmsDb', 'value' => -31]], $song->refresh()->failure_numbers);
 
-        $this->getJson('/api/own-choir')->assertJsonPath('data.requests.0.failureDetail', 'noisy');
+        $this->getJson('/api/own-choir')->assertJsonPath('data.requests.0.failureDetail', 'noisy')->assertJsonPath('data.requests.0.failureHints', []);
         $counts = DB::table('usage_counts')->pluck('count', 'kind')->all();
         $this->assertSame([1, 1, 1, 1], [$counts['choir_clip_fail_silent'] ?? 0, $counts['choir_clip_noisy'] ?? 0, $counts['choir_take_level_quiet'] ?? 0, $counts['choir_guide_on'] ?? 0]);
         // The take's failure, not ours; its part-minutes were taken on all the same.
@@ -727,5 +727,35 @@ final class OwnChoirTest extends TestCase
         $bad = $read();
         $bad->sungRespelling = [(object) ['syllable' => 'ma', 'sung' => 'mah', 'shown' => true]];
         $this->assertNotSame([], $checker->check($bad, 'template.json'));
+    }
+
+    public function test_an_unusable_takes_hints_come_from_its_measures_and_never_the_numbers_themselves(): void
+    {
+        $user = $this->singer();
+        $song = fn (?string $detail, array $numbers, string $failure = 'clip_unusable'): OwnChoirRequest => OwnChoirRequest::factory()->create([
+            'user_id' => $user->id, 'status' => OwnChoirStatus::Failed, 'failure' => $failure, 'failure_detail' => $detail,
+            'failure_numbers' => array_map(static fn (string $name, float $value): array => ['name' => $name, 'value' => $value], array_keys($numbers), array_values($numbers)),
+        ]);
+
+        // A fan or a fridge, sung quietly: close, and louder or closer may fix it.
+        $this->assertSame(['near', 'quietSinger'], OwnChoir::failureHints($song('noisy', ['noiseMargin' => -3.5, 'levelDb' => -33.0])));
+        // A noisy room, sung out: neither.
+        $this->assertSame([], OwnChoir::failureHints($song('noisy', ['noiseMargin' => -15.0, 'levelDb' => -18.0])));
+        // The edge of each rule: -6 is near, -30 is not quiet.
+        $this->assertSame(['near'], OwnChoir::failureHints($song('noisy', ['noiseMargin' => -6.0, 'levelDb' => -30.0])));
+        $this->assertSame(['near'], OwnChoir::failureHints($song('quiet', ['levelMargin' => -4.0, 'levelDb' => -39.0])));
+        $this->assertSame([], OwnChoir::failureHints($song('notes', ['fitMargin' => -0.27])));
+        $this->assertSame(['near'], OwnChoir::failureHints($song('notes', ['fitMargin' => -0.05])));
+        // No measure sent, no rule for loud, another failure.
+        $this->assertSame([], OwnChoir::failureHints($song('noisy', [])));
+        $this->assertSame([], OwnChoir::failureHints($song('loud', ['levelMargin' => -1.0])));
+        $this->assertNull(OwnChoir::failureHints($song(null, ['noiseMargin' => -1.0], 'render_failed')));
+
+        // Their own song shows the hints; a friend's view of it never does.
+        $mine = $song('noisy', ['noiseMargin' => -2.0]);
+        $mine->forceFill(['voicing' => 'written'])->save();
+        $this->assertSame(['near'], OwnChoir::request($mine->refresh()->load(OwnChoir::SHOWN), null, $user)['failureHints']);
+        $this->assertNull(OwnChoir::request($mine, null, User::factory()->create())['failureHints']);
+        $this->assertStringNotContainsString('noiseMargin', (string) json_encode(OwnChoir::request($mine, null, $user)));
     }
 }

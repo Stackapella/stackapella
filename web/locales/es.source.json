@@ -2269,7 +2269,6 @@
             "source": "Source: {source}"
         },
         "mapToOpen": "{stars}/{need} ★ to open",
-        "stepLabel": "Step {step}",
         "speakerUnder": "Without headphones, the sound underneath plays first, then rests while you sing, so we hear only you. With headphones, it stays under you.",
         "tap": {
             "listen": "Hear the example",
@@ -5524,7 +5523,14 @@
         "lanes": "Your note with two guide voices",
         "you": "You",
         "guide": "Guide",
-        "line": "That's you, and that's harmony. The course teaches you to sing those other parts too."
+        "line": "That's you, and that's harmony. The course teaches you to sing those other parts too.",
+        "ask": "Sing your note again and hold it: two guide voices will join you.",
+        "hold": "Hold your note on \"oo\".",
+        "sounding": "Keep holding: the chord is around you.",
+        "quiet": "We didn't hear a note held. Tap to try again.",
+        "blocked": "The mic isn't open here, so the chord can't join you live.",
+        "liveLine": "That's harmony: your note is one of the chord's voices.",
+        "again": "Hear it again"
     },
     "wrap": {
         "title": "Session one: your note {note}, {lessons} lessons, {stars} stars.",
@@ -5810,7 +5816,9 @@
                 "short": "There wasn't enough singing. Keep singing to the end.",
                 "edge": "We heard loud breaths right before your lines. Breathe a moment earlier, turned a little away from the mic, and stay still after your last note.",
                 "length": "Something went wrong with the recording's length. Please try again.",
-                "loud": "Your recording was too loud in places. Back off a little from the mic and sing at normal volume."
+                "loud": "Your recording was too loud in places. Back off a little from the mic and sing at normal volume.",
+                "noisyQuiet": "Your singing was quiet next to the room's sound. Sing a little louder, or a little closer to the phone, then sing again.",
+                "noisyNear": "There's a steady hum in the room, like a fan or fridge. Turn it off or move away from it, then sing again."
             },
             "lead": {
                 "take": "That take couldn't make a voice.",

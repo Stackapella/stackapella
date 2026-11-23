@@ -75,4 +75,13 @@ return [
     // What one song may cost the renderer (the security review): its parts at most, and each part's length in seconds.
     'max_parts' => 8,
     'max_part_seconds' => 300,
+    // What an unusable take's measures say about fixing it (OwnChoir::failureHints; worker.choir.jobs.finish's
+    // detailNumbers, signed margins: the measure less its threshold, negative missed). The singer's app shows the hint,
+    // never the numbers (ai-modal, 2026-11-23): near passing, or noise with quiet singing (louder or closer may fix it).
+    'failure_hints' => [
+        ['detail' => 'noisy', 'hint' => 'near', 'measure' => 'noiseMargin', 'atLeast' => -6.0],
+        ['detail' => 'noisy', 'hint' => 'quietSinger', 'measure' => 'levelDb', 'below' => -30.0],
+        ['detail' => 'quiet', 'hint' => 'near', 'measure' => 'levelMargin', 'atLeast' => -5.0],
+        ['detail' => 'notes', 'hint' => 'near', 'measure' => 'fitMargin', 'atLeast' => -0.10],
+    ],
 ];

@@ -58,6 +58,9 @@ function failRunOf(id, kind) {
     local.set(FAIL_RUN, JSON.stringify(next));
     return next;
 }
+// Noise with the server's hints (failureHints, worked out from the worker's measures; the app never sees the numbers):
+// sung quietly beside the room, the easier fix first (sing louder or closer); close to passing, a steady hum like a fan.
+const NOISY_HINTS = { quietSinger: tk('ownChoir.failed.detail.noisyQuiet'), near: tk('ownChoir.failed.detail.noisyNear') };
 // The second take problem in a row: the next fix, headphones if they sang without, else another tune.
 const NEXT_FIX = { headphones: tk('ownChoir.failed.next.headphones'), tune: tk('ownChoir.failed.next.tune') };
 const FAILURES = { clip_unusable: tk('ownChoir.failed.clip_unusable'), bad_clip: tk('ownChoir.failed.bad_clip'), gates_failed: tk('ownChoir.failed.gates_failed'), render_failed: tk('ownChoir.failed.render_failed'), expired: tk('ownChoir.failed.expired'), reference_gone: tk('ownChoir.failed.reference_gone') };
@@ -311,6 +314,11 @@ export const OwnChoirView = {
         fixKey() {
             if (this.failKind !== 'take') return null;
             if (this.failRepeat) return rememberedHeadphones() === 'no' ? NEXT_FIX.headphones : NEXT_FIX.tune;
+            const hints = this.request.failureHints ?? [];
+            if (this.request.failureDetail === 'noisy') {
+                const hint = ['quietSinger', 'near'].find((h) => hints.includes(h));
+                if (hint) return NOISY_HINTS[hint];
+            }
             return FAILURE_DETAILS[this.request.failureDetail] ?? FAILURES.clip_unusable;
         },
         /** The alert's one line: the fix for this take (the next fix the second time), or what happens now. */

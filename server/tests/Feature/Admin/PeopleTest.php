@@ -4,11 +4,19 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Admin;
 
+use App\Enums\OwnChoirStatus;
 use App\Enums\SecurityEventType;
 use App\Mail\Account\RecoveredBySupport;
 use App\Mail\Account\ResetPassword;
 use App\Models\AuditLog;
+use App\Models\BetaSinger;
+use App\Models\Group;
+use App\Models\GroupMember;
+use App\Models\OwnChoirMember;
+use App\Models\OwnChoirRequest;
+use App\Models\TemplateVersion;
 use App\Models\User;
+use App\Models\UserLearning;
 use App\Support\Trust\SecurityLog;
 use App\Support\Trust\TrustLevel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -139,7 +147,7 @@ final class PeopleTest extends TestCase
         $this->assertNotContains($adult->sqid(), $ids('plan=free'));
         $listed = $this->getJson('/api/admin/people?sort=active');
         $this->assertMatchesContract($listed, 'admin.people.list', 200);
-        $this->assertSame(['songs', 'lessonsDone', 'streakWeeks', 'lastActivity'], array_keys((array) $listed->json('data.0.stats')));
+        $this->assertSame(['songs', 'lessonsDone', 'streakWeeks', 'lastActivity', 'choirs', 'coursesStarted', 'shares', 'takes'], array_keys((array) $listed->json('data.0.stats')));
 
         // An account's own audit entries: about them, or done by them.
         $this->putJson('/api/admin/people/'.$young->sqid().'/trust', ['level' => 2, 'note' => 'Known to us.'])->assertOk();
@@ -149,17 +157,75 @@ final class PeopleTest extends TestCase
         $this->assertNotNull($admin);
     }
 
-    public function test_every_sort_pages_on(): void
+    public function test_the_activity_counts_ai_choirs_courses_shares_and_groups_and_lists_by_choirs(): void
     {
         $this->actingAsAdmin();
-        User::factory()->count(55)->create();
+        $version = TemplateVersion::factory()->create();
+        $ana = User::factory()->create(['name' => 'Ana']);
+        $ben = User::factory()->create(['name' => 'Ben']);
+        $cal = User::factory()->create(['name' => 'Cal']);
+        $song = static fn (User $user, array $with = []): OwnChoirRequest => OwnChoirRequest::factory()->create(['user_id' => $user->id, 'template_version_id' => $version->id, 'status' => OwnChoirStatus::Ready, 'ready_at' => now(), 'tries' => 1, 'first_claimed_at' => now(), 'part_minutes' => 4.0, ...$with]);
 
-        foreach (['', 'sort=active'] as $sort) {
-            $first = $this->getJson('/api/admin/people?'.$sort)->assertOk();
-            $this->assertCount(50, $first->json('data'));
-            $next = $this->getJson('/api/admin/people?'.$sort.'&cursor='.urlencode((string) $first->json('meta.nextCursor')))->assertOk();
-            $this->assertCount(6, $next->json('data'), "The admin and the 55 across two pages ({$sort}).");
-            $this->assertSame([], array_intersect(array_column((array) $first->json('data'), 'id'), array_column((array) $next->json('data'), 'id')));
+        // Ana: three songs made (one deleted since), one failed on her take, a remake and a friend's parts not hers.
+        $first = $song($ana);
+        $song($ana);
+        $song($ana, ['status' => OwnChoirStatus::Deleted]);
+        $song($ana, ['status' => OwnChoirStatus::Failed, 'ready_at' => null, 'failure' => 'clip_unusable', 'gpu_seconds' => 20]);
+        $song($ana, ['parent_request_id' => $first->id, 'remake' => true]);
+        // Ben: one song made, and Ana's choir joined.
+        $song($ben);
+        OwnChoirMember::factory()->create(['own_choir_request_id' => $first->id, 'user_id' => $ben->id]);
+        // Ana leads a group Ben sings in; Ana lends her voice; Ana started two courses and shared once.
+        $group = Group::factory()->create(['director_id' => $ana->id]);
+        GroupMember::factory()->create(['group_id' => $group->id, 'user_id' => $ben->id]);
+        BetaSinger::factory()->create(['user_id' => $ana->id, 'volunteer' => true]);
+        UserLearning::factory()->create(['user_id' => $ana->id, 'progress' => ['lessons' => ['l1' => ['stars' => 2]], 'courses' => ['rounds' => ['lessons' => ['r1' => ['stars' => 1]]], 'blend' => ['lessons' => ['b1' => ['stars' => 0]]]]]]);
+
+        $listed = $this->getJson('/api/admin/people?sort=choirs');
+        $this->assertMatchesContract($listed, 'admin.people.list', 200);
+        $rows = collect($listed->json('data'))->keyBy('id');
+        $this->assertSame([$ana->sqid(), $ben->sqid()], array_slice(array_column((array) $listed->json('data'), 'id'), 0, 2), 'Most choirs first.');
+        $this->assertSame([3, 2, 'choir'], [$rows[$ana->sqid()]['stats']['choirs'], $rows[$ana->sqid()]['stats']['coursesStarted'], $rows[$ana->sqid()]['stats']['lastActivity']['kind']]);
+
+        $ids = fn (string $query): array => array_column((array) $this->getJson('/api/admin/people?'.$query)->assertOk()->json('data'), 'id');
+        $this->assertEqualsCanonicalizing([$ana->sqid(), $ben->sqid()], $ids('uses=choir'));
+        $this->assertNotContains($cal->sqid(), $ids('uses=choir'));
+        $this->getJson('/api/admin/people?sort=loudest')->assertUnprocessable();
+
+        $ana_ = $this->getJson('/api/admin/people/'.$ana->sqid());
+        $this->assertMatchesContract($ana_, 'admin.people.show', 200);
+        $ana_->assertJsonPath('data.stats.choir.made', 3)->assertJsonPath('data.stats.choir.failed', 1)->assertJsonPath('data.stats.choir.joined', 0)
+            ->assertJsonPath('data.stats.choir.savedVoice', false)->assertJsonPath('data.stats.groups', ['led' => 1, 'member' => 0])->assertJsonPath('data.stats.lendsVoice', true);
+        // The free window counts what reached the renderer: the made, the deleted and the take's failure after GPU work.
+        $this->assertEquals(16.0, $ana_->json('data.stats.choir.partMinutes'));
+        $this->getJson('/api/admin/people/'.$ben->sqid())->assertJsonPath('data.stats.choir.joined', 1)->assertJsonPath('data.stats.groups', ['led' => 0, 'member' => 1])->assertJsonPath('data.stats.lendsVoice', false);
+    }
+
+    public function test_every_sort_pages_on_and_a_full_page_reads_without_a_query_per_person(): void
+    {
+        $this->actingAsAdmin();
+        $version = TemplateVersion::factory()->create();
+
+        foreach (User::factory()->count(55)->create() as $i => $user) {
+            if ($i % 3 === 0) {
+                OwnChoirRequest::factory()->create(['user_id' => $user->id, 'template_version_id' => $version->id, 'status' => OwnChoirStatus::Ready, 'ready_at' => now()]);
+            }
         }
+
+        // Newest first, the default, pages on too.
+        $newest = $this->getJson('/api/admin/people')->assertOk();
+        $this->getJson('/api/admin/people?cursor='.urlencode((string) $newest->json('meta.nextCursor')))->assertOk()->assertJsonCount(6, 'data');
+
+        // And last seen first: its cursor names a computed column too.
+        $active = $this->getJson('/api/admin/people?sort=active')->assertOk();
+        $this->getJson('/api/admin/people?sort=active&cursor='.urlencode((string) $active->json('meta.nextCursor')))->assertOk()->assertJsonCount(6, 'data');
+
+        $first = $this->getJson('/api/admin/people?sort=choirs')->assertOk();
+        $this->assertCount(50, $first->json('data'));
+        $cursor = (string) $first->json('meta.nextCursor');
+        $this->assertNotSame('', $cursor);
+        $next = $this->getJson('/api/admin/people?sort=choirs&cursor='.urlencode($cursor))->assertOk();
+        $this->assertCount(6, $next->json('data'), 'The admin and the 55 across two pages, none twice.');
+        $this->assertSame([], array_intersect(array_column((array) $first->json('data'), 'id'), array_column((array) $next->json('data'), 'id')));
     }
 }

@@ -279,6 +279,7 @@
                 "remake",
                 "failureDetail",
                 "counted",
+                "failureHints",
                 "leadTake",
                 "canUseRecordingAsLead"
             ],
@@ -562,6 +563,19 @@
                         null
                     ],
                     "description": "Why its clip couldn't be used (with failure clip_unusable), for its singer alone; null otherwise."
+                },
+                "failureHints": {
+                    "type": [
+                        "array",
+                        "null"
+                    ],
+                    "items": {
+                        "enum": [
+                            "near",
+                            "quietSinger"
+                        ]
+                    },
+                    "description": "With failure clip_unusable, for its singer alone: what the measures say about fixing it ([] when nothing applies). near: it came close to passing; quietSinger: noise was the reason, but they sang quietly. Null otherwise."
                 },
                 "counted": {
                     "type": [

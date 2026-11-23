@@ -29,7 +29,8 @@ final class ListPeopleRequest extends FormRequest
             'country' => ['nullable', 'string', 'regex:/^[A-Za-z]{2}$/'],
             'plan' => ['nullable', 'in:plus,free'],
             'role' => ['nullable', 'in:singer,tester'],
-            'sort' => ['nullable', 'in:newest,active'],
+            'uses' => ['nullable', 'in:choir'],
+            'sort' => ['nullable', 'in:newest,active,choirs'],
             'cursor' => ['nullable', 'string', 'max:500', new ValidCursor],
         ];
     }

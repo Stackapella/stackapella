@@ -181,8 +181,11 @@ def journey(f):
             return
         time.sleep(1.4)
         j.look_at("lesson 1's result", "note-result")
-        if q("the chord moment playing by itself", "document.querySelector('[data-chord-moment]')?.dataset.playing === 'true'", timeout=8):
-            j.look_at("the chord moment", "chord-playing")
+        if q("Hear it in a chord", "document.querySelector('[data-live-chord-go]')", timeout=8):
+            f.run("document.querySelector('[data-live-chord-go]').click()")
+            f.run(f"const {{ engine }} = {AUDIO}; const {{ renderPart }} = await import('/js/synth.js'); engine.preview(renderPart([{{ beat: 0, length: 4, pitch: 57 }}], {{ bpm: 60, sampleRate: engine.sampleRate }}), engine.sampleRate);")
+            if q("the chord round the held note", "document.querySelector('[data-live-chord]')?.dataset.phase === 'sounding'", timeout=15):
+                j.look_at("the chord moment", "chord-playing")
             if q("the chord moment's line", "document.querySelector('[data-chord-line]')", timeout=12):
                 f.run("document.querySelector('[data-chord-line]').scrollIntoView({ block: 'center' })")
                 j.look_at("the chord moment", "chord-line")

@@ -33,7 +33,7 @@ import { session as tabStorage } from '../storage.js';
 import { InAppCard } from '../components/mic-help.js';
 import { CoursePart } from '../components/course-part.js';
 import { LearnVisual } from '../components/learn-visual.js';
-import { BossBar, BossEnd, BossIntro, ChordMoment, CourseWall, Exercise, KeepSong, LessonEnd, NoteResult, prefetchLesson, TakeResult, ThenAndNow, VoiceCard } from '../components/lazy-lesson.js';
+import { BossBar, BossEnd, BossIntro, CourseWall, LiveChord, Exercise, KeepSong, LessonEnd, NoteResult, prefetchLesson, TakeResult, ThenAndNow, VoiceCard } from '../components/lazy-lesson.js';
 // The note finder stays with the lesson (measured 2026-11-13: loaded on use, the mic step after Continue opened 1.8 s
 // later on Slow 4G, where most new singers leave; with the lesson, at once).
 import { VoiceCapture } from '../components/voice-capture.js';
@@ -99,7 +99,7 @@ function celebrateAt(stars, el) {
 }
 
 export const LearnView = {
-    components: { SkillLine, LoadingBlock, HearFirst, VoiceCapture, BossBar, BossEnd, BossIntro, VoiceCareLine, ChordMoment, SessionWrap, ThenAndNow, CoursePart, CourseWall, VoiceCard, FactCard, Exercise, InAppCard, KeepSong, LearnVisual, LessonEnd, NoteResult, TakeResult, Icon, Logo, ShareResult, TitleCard },
+    components: { SkillLine, LoadingBlock, HearFirst, VoiceCapture, BossBar, BossEnd, BossIntro, VoiceCareLine, LiveChord, SessionWrap, ThenAndNow, CoursePart, CourseWall, VoiceCard, FactCard, Exercise, InAppCard, KeepSong, LearnVisual, LessonEnd, NoteResult, TakeResult, Icon, Logo, ShareResult, TitleCard },
     props: { id: { type: String, required: true } },
     // `kept`: this visit's sung steps, their results and takes by step index (a later step may build on
     // one: js/lesson-steps.js's `earlier`), emptied on replay and gone when the lesson closes.
@@ -166,11 +166,14 @@ export const LearnView = {
                 <!-- Your comfortable note (ux-spec 5.8, 48.png): the note, big, with the keyboard round it -->
                 <section v-else-if="done && noteDone" class="flex flex-col items-center gap-6" aria-labelledby="done-title">
                     <h1 id="done-title" ref="heading" tabindex="-1" class="sr-only">{{ t(done.word) }}</h1>
-                    <NoteResult ref="noteResult" :home="learning.progress.home" :range="easyRange(learning.progress.home, learning.progress.range)" :line="noteLine(learning.progress.home, voiceType(learning.progress.range))" :stars="done.stars" :xp="done.xp" :fresh="done.fresh" />
+                    <NoteResult ref="noteResult" :home="learning.progress.home" :range="easyRange(learning.progress.home, learning.progress.range)" :line="noteLine(learning.progress.home, voiceType(learning.progress.range))" :stars="done.stars" :xp="done.xp" :fresh="done.fresh">
+                        <!-- Your note in a chord, live (Hillel, 2026-11-23: lesson 1 must deliver "I just sang harmony"), straight under
+                             the note, in view: they hold it and two guide voices fade in around it. Where the mic can't open, the end
+                             of the note they held, played back. -->
+                        <template #after-line><LiveChord v-if="chordMoment" :note="learning.progress.home" :color="color" :clip="noteClip" /></template>
+                    </NoteResult>
                     <!-- Their note beside the friend's who sent the card (docs/improvement-log.md, row 4). -->
                     <p v-if="friendNote && learning.progress.home !== null" class="text-center text-cream" translate="no" data-friend-compare>{{ t('course.friendNote.both', { theirs: friendNote, yours: midiName(Math.round(learning.progress.home)) }) }}</p>
-                    <!-- Your note in a chord (onboarding item 3): the end of the note you held, with two guide voices. -->
-                    <ChordMoment v-if="noteClip && chordMoment" :clip="noteClip" :note="learning.progress.home" :color="color" />
                     <div v-if="askHeard" class="w-full space-y-3 border-t border-line pt-5 text-center">
                         <p class="text-sm text-muted">{{ t('results.heard') }}</p>
                         <div class="flex flex-wrap justify-center gap-2">
@@ -248,7 +251,7 @@ export const LearnView = {
                     <div class="flex flex-col gap-5">
                     <BossBar v-if="entry.boss && effect('boss')" :total="bossTotal" :scored="bossScored" :live="result ? 0 : bossLive" :round="bossRound" :rounds="bossRounds" :said="bossSaid" />
                     <p v-if="step === 0 && entry.lesson.findsHome && chordMoment && !hearFirst" class="-mb-2 text-[15px] font-medium text-cream/85" data-chord-promise>{{ t('chordMoment.promise') }}</p>
-                    <p v-if="current.kind === 'home'" class="eyebrow-step -mb-3" translate="no">{{ localized(entry.unit.title) }} · {{ t('course.stepLabel', { step: step + 1 }) }}</p>
+                    <!-- No eyebrow here: the header already names the unit, the lesson and the step (the no-repetition rule). -->
                     <!-- mic2's arm b (docs/improvement-log.md row 11): hear it first, one tip, and the mic ask below; no reading screen. -->
                     <template v-if="hearFirst">
                         <h1 ref="heading" tabindex="-1" class="t-title text-cream outline-none" data-step-line>{{ t('mic2.title') }}</h1>

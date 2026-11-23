@@ -51,7 +51,23 @@
                 "lastWeek": 38,
                 "total": 212
             },
-            "storageBytes": 48230000
+            "storageBytes": 48230000,
+            "choirs": 0,
+            "coursesStarted": 1,
+            "shares": 0,
+            "choir": {
+                "made": 0,
+                "failed": 0,
+                "joined": 0,
+                "partMinutes": 0,
+                "since": "2026-10-24T00:00:00Z",
+                "savedVoice": false
+            },
+            "groups": {
+                "led": 0,
+                "member": 0
+            },
+            "lendsVoice": false
         },
         "country": "GB"
     }

@@ -89,4 +89,7 @@ rm -f "$TICKET"
 ( while [ -d "$LOCK" ]; do touch "$LOCK" 2> /dev/null; sleep 60; done ) > /dev/null 2>&1 &
 BEAT=$!
 trap 'kill $BEAT 2> /dev/null; rm -rf "$LOCK"' EXIT
+# The turn is held: a landing script refuses its ff-merge without this (2026-11-23: one ran straight, outside the lock),
+#   [ "${LAND_LOCK_HELD:-}" = 1 ] || { echo "not inside land-lock"; exit 1; }
+export LAND_LOCK_HELD=1
 "$@"

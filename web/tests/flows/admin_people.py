@@ -34,6 +34,10 @@ def journey(f):
         lined = f.js("""(() => { const head = [...document.querySelector('[data-people] > div').children].map((c) => Math.round(c.getBoundingClientRect().left));
             return [...document.querySelectorAll('[data-people] li a')].every((row) => [...row.children].map((c) => Math.round(c.getBoundingClientRect().left)).join() === head.join()); })()""")
         assert lined, "every row lines up with the header"
+        # Activity in one glance (Hillel: "easy to glance/parse"): the biggest few, AI choir first, on one line.
+        cell = f.js("document.querySelector('[data-person-activity]').textContent.trim()")
+        assert cell.startswith("3 AI choirs") and cell.count(" · ") <= 2, cell
+        assert f.js("[...document.querySelectorAll('[data-person-activity]')].every((c) => c.getClientRects().length === 1 && c.getBoundingClientRect().height < 24)"), "an activity cell wraps"
     nav = json.dumps(t(f, "admin.nav.people"))
     assert f.js(f"[...document.querySelectorAll('nav a')].some((a) => a.textContent.trim() === {nav} && a.getAttribute('aria-current') === 'page')"), "People in the nav, current"
     f.shot("list")
@@ -41,6 +45,10 @@ def journey(f):
     f.run("const { api } = await import('/js/api.js'); const list = api.admin.people.list; api.admin.people.list = (query) => { window.peopleQuery = query; return list(query); };")
     f.run("const s = [...document.querySelectorAll('form[role=search] select')]; s[2].value = '0'; s[2].dispatchEvent(new Event('change')); s.at(-1).value = 'active'; s.at(-1).dispatchEvent(new Event('change'));")
     f.wait("window.peopleQuery?.adult === '0' && window.peopleQuery?.sort === 'active'", what="under 18 and last active asked")
+    # Uses AI choir, most AI choirs first (admin.people.list ?uses=choir&sort=choirs).
+    f.run("const uses = document.querySelector('form[role=search] select[name=uses], form[role=search] [data-filter=uses] select') ?? [...document.querySelectorAll('form[role=search] select')].find((s) => [...s.options].some((o) => o.value === 'choir')); uses.value = 'choir'; uses.dispatchEvent(new Event('change')); const s = [...document.querySelectorAll('form[role=search] select')].at(-1); s.value = 'choirs'; s.dispatchEvent(new Event('change'));")
+    f.wait("window.peopleQuery?.uses === 'choir' && window.peopleQuery?.sort === 'choirs'", what="AI choir users, most choirs first, asked")
+    f.wait("document.querySelector('[data-people] a')", what="the list again")
     f.wait("document.querySelector('[data-people] a')", what="the list again")
     # People by country: the top countries with their flags and counts, and Not known; a country narrows the list.
     uk = f.js("new Intl.DisplayNames(['en'], { type: 'region' }).of('GB')")
@@ -59,7 +67,19 @@ def journey(f):
     f.wait_text(t(f, "admin.people.country"))
     f.wait_text(t(f, "admin.people.audit"))
     f.wait("document.querySelector('[data-person-audit] li')", what="what was done about them")
-    f.wait("document.querySelectorAll('[data-person-stats] > div').length >= 8", what="their activity: songs, takes, lessons, stars, level, streak, practice, storage")
+    f.wait("document.querySelectorAll('[data-person-stat]').length >= 8", what="their activity: songs, takes, lessons, stars, level, streak, practice, storage")
+    # By area (Hillel: "easy to glance/parse"): Learning, Singing, AI choir, Groups, none with a zero in it.
+    areas = f.js("[...document.querySelectorAll('[data-person-area]')].map((a) => a.dataset.personArea)")
+    assert areas == ["learning", "singing", "choir", "groups"], areas
+    assert f.js("document.querySelector('[data-person-area=choir] [data-person-stat=choirMade] b').textContent.trim()") == "3"
+    # A strip an area (the coordinator's review): the numbers inline, a yes as a chip, the page short enough to glance.
+    assert f.js("document.querySelector('[data-person-stat=savedVoice]').classList.contains('chip-tag')"), "a yes isn't a chip"
+    assert f.js("document.querySelector('[data-person-stats]').getBoundingClientRect().height") < 420, "the activity is too tall to glance"
+    assert not f.js("document.querySelector('[data-person-stat=groupsLed], [data-person-stat=lendsVoice]')"), "a zero or a no shown"
+    assert f.js("!!document.querySelector('[data-person-last]')"), "what they did last isn't said"
+    f.run("document.querySelector('[data-person-stats]').scrollIntoView({ block: 'start' })")
+    f.shot("person-areas")
+    f.run("window.scrollTo(0, 0)")
     text = f.js("document.querySelector('main').innerText")
     assert "audio" not in text.lower() and "recording" not in text.lower(), "no recordings shown"
     f.shot("person")

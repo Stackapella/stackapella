@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Admin;
 
+use App\Enums\OwnChoirStatus;
 use App\Enums\SecurityEventType;
 use App\Models\AuditLog;
 use App\Models\BetaSinger;
 use App\Models\Group;
 use App\Models\Harmony;
+use App\Models\OwnChoirMember;
+use App\Models\OwnChoirRequest;
 use App\Models\Project;
 use App\Models\Score;
 use App\Models\SecurityEvent;
@@ -19,6 +22,7 @@ use App\Models\UserLearning;
 use App\Support\Billing\BillingState;
 use App\Support\Gallery\Gallery;
 use App\Support\Http\Hosts;
+use App\Support\OwnChoir\OwnChoir;
 use App\Support\Trust\TrustLevel;
 use App\Support\Usage\Plans;
 use Illuminate\Database\Eloquent\Builder;
@@ -58,8 +62,24 @@ final class AccountAdminResource extends JsonResource
             'last_take_at' => Take::query()->selectRaw('max(created_at)')->whereColumn('takes.user_id', 'users.id'),
             'last_practice_at' => Score::query()->selectRaw('max(recorded_at)')->whereColumn('scores.user_id', 'users.id'),
             'last_song_at' => Project::query()->selectRaw('max(updated_at)')->whereColumn('projects.user_id', 'users.id'),
-            'last_share_at' => Harmony::query()->selectRaw('max(created_at)')->whereColumn('harmonies.user_id', 'users.id')])
+            'last_share_at' => Harmony::query()->selectRaw('max(created_at)')->whereColumn('harmonies.user_id', 'users.id'),
+            // Their AI choir songs (Hillel, 2026-11-23: "include AI choir and any other relevant features"): their own
+            // songs made, not a friend's parts or a remake; and when they last asked for any.
+            'choirs_made_count' => self::choirsMade()->selectRaw('count(*)')->whereColumn('own_choir_requests.user_id', 'users.id'),
+            'last_choir_at' => OwnChoirRequest::query()->selectRaw('max(created_at)')->whereColumn('own_choir_requests.user_id', 'users.id'),
+            // Shares made (a replacement on its way is the same share).
+            'shares_count' => Harmony::query()->selectRaw('count(*)')->whereColumn('harmonies.user_id', 'users.id')->whereNull('replaces_id')])
             ->with('learning');
+    }
+
+    /**
+     * A person's own AI choir songs made: not a friend's parts, not a remake, whatever became of them after.
+     *
+     * @return Builder<OwnChoirRequest>
+     */
+    public static function choirsMade(): Builder
+    {
+        return OwnChoirRequest::query()->whereNull('parent_request_id')->where('remake', false)->whereNotNull('ready_at');
     }
 
     /** The songs staff gave on the person page, newest first, at most this many. */
@@ -130,7 +150,7 @@ final class AccountAdminResource extends JsonResource
         // Weeks in a row as the app shows them: a run that ended before last week is none.
         $monday = now()->startOfWeek();
         $streak = in_array($weeks['last'] ?? null, [$monday->toDateString(), $monday->copy()->subWeek()->toDateString()], true) ? (int) ($weeks['streak'] ?? 0) : 0;
-        $times = array_filter(['take' => $user->getAttribute('last_take_at'), 'practice' => $user->getAttribute('last_practice_at'), 'song' => $user->getAttribute('last_song_at'), 'share' => $user->getAttribute('last_share_at'), 'sign_in' => $user->getAttribute('last_sign_in_at')]);
+        $times = array_filter(['take' => $user->getAttribute('last_take_at'), 'practice' => $user->getAttribute('last_practice_at'), 'song' => $user->getAttribute('last_song_at'), 'share' => $user->getAttribute('last_share_at'), 'choir' => $user->getAttribute('last_choir_at'), 'sign_in' => $user->getAttribute('last_sign_in_at')]);
         arsort($times);
         $kind = array_key_first($times);
 
@@ -139,6 +159,10 @@ final class AccountAdminResource extends JsonResource
             'lessonsDone' => count(array_filter($lessons, static fn (array $lesson): bool => (int) ($lesson['stars'] ?? 0) > 0)),
             'streakWeeks' => $streak,
             'lastActivity' => $kind !== null ? ['kind' => $kind, 'at' => Carbon::parse((string) $times[$kind])->utc()->toIso8601ZuluString()] : null,
+            'choirs' => (int) $user->getAttribute('choirs_made_count'),
+            'coursesStarted' => self::coursesStarted($progress),
+            'shares' => (int) $user->getAttribute('shares_count'),
+            'takes' => (int) $user->getAttribute('ready_takes_count'),
         ];
 
         if (! $this->detail) {
@@ -151,7 +175,13 @@ final class AccountAdminResource extends JsonResource
 
         return [
             ...$stats,
-            'takes' => (int) $user->getAttribute('ready_takes_count'),
+            'choir' => self::choir($user),
+            'groups' => [
+                'led' => Group::query()->where('director_id', $user->id)->count(),
+                'member' => Group::query()->where('director_id', '!=', $user->id)->whereHas('members', fn ($q) => $q->where('user_id', $user->id))->count(),
+            ],
+            // Lend your voice: a beta singer who volunteered, not blocked.
+            'lendsVoice' => BetaSinger::query()->where('user_id', $user->id)->where('volunteer', true)->whereNull('volunteer_blocked_at')->exists(),
             'stars' => array_sum(array_map(static fn (array $lesson): int => (int) ($lesson['stars'] ?? 0), $lessons)),
             'xp' => $xp,
             // The app's voice level: level n starts at 50 x (n - 1) x n XP (web/js/course.js).
@@ -161,6 +191,41 @@ final class AccountAdminResource extends JsonResource
                 'total' => intdiv(array_sum($practice), 60),
             ],
             'storageBytes' => app(Plans::class)->storageUsed($user),
+        ];
+    }
+
+    /**
+     * Courses with a lesson done: the first course's lessons (progress.lessons) and each other course's own.
+     *
+     * @param  array<mixed>  $progress
+     */
+    private static function coursesStarted(array $progress): int
+    {
+        $done = static fn (mixed $lessons): bool => collect(is_array($lessons) ? $lessons : [])->contains(static fn (mixed $l): bool => is_array($l) && (int) ($l['stars'] ?? 0) > 0);
+        $others = array_filter((array) ($progress['courses'] ?? []), static fn (mixed $course): bool => is_array($course) && $done($course['lessons'] ?? []));
+
+        return ($done($progress['lessons'] ?? []) ? 1 : 0) + count($others);
+    }
+
+    /**
+     * The person page's AI choir: songs made and failed, others' choirs they're in, the part-minutes their allowance
+     * counted in its window (paid Plus's month, else the last 30 days), and whether they keep a saved voice.
+     *
+     * @return array{made: int, failed: int, joined: int, partMinutes: float, since: string, savedVoice: bool}
+     */
+    private static function choir(User $user): array
+    {
+        $paid = OwnChoir::tier($user) === 'paid';
+        $since = $paid ? OwnChoir::paidMonthStart($user) : now()->subDays((int) config('own_choir.window_days'));
+        $window = ($paid ? OwnChoir::charged($user) : OwnChoir::counted($user))->where(DB::raw('coalesce(first_claimed_at, created_at)'), '>=', $since);
+
+        return [
+            'made' => self::choirsMade()->where('user_id', $user->id)->count(),
+            'failed' => OwnChoirRequest::query()->where('user_id', $user->id)->whereNull('parent_request_id')->where('remake', false)->where('status', OwnChoirStatus::Failed->value)->count(),
+            'joined' => OwnChoirMember::query()->where('user_id', $user->id)->whereNull('left_at')->count(),
+            'partMinutes' => round((float) $window->sum('part_minutes'), 1),
+            'since' => $since->utc()->toIso8601ZuluString(),
+            'savedVoice' => OwnChoir::voice($user) !== null,
         ];
     }
 

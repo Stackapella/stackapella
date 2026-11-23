@@ -196,6 +196,45 @@ final class OwnChoir
     }
 
     /**
+     * An unusable take's hints (config own_choir.failure_hints): each rule for its reason whose measure the worker sent
+     * and that holds, in the config's order; [] when none does, null for any other song.
+     *
+     * @return list<string>|null
+     */
+    public static function failureHints(OwnChoirRequest $request): ?array
+    {
+        if ($request->failure !== 'clip_unusable') {
+            return null;
+        }
+
+        $measures = [];
+
+        foreach ((array) $request->failure_numbers as $number) {
+            if (is_array($number) && is_string($number['name'] ?? null) && is_numeric($number['value'] ?? null)) {
+                $measures[$number['name']] = (float) $number['value'];
+            }
+        }
+
+        $hints = [];
+
+        foreach ((array) config('own_choir.failure_hints') as $rule) {
+            $value = $measures[(string) ($rule['measure'] ?? '')] ?? null;
+
+            if (($rule['detail'] ?? null) !== $request->failure_detail || $value === null) {
+                continue;
+            }
+
+            $holds = (! isset($rule['atLeast']) || $value >= (float) $rule['atLeast']) && (! isset($rule['below']) || $value < (float) $rule['below']);
+
+            if ($holds) {
+                $hints[] = (string) $rule['hint'];
+            }
+        }
+
+        return array_values(array_unique($hints));
+    }
+
+    /**
      * A failed song's place against its singer's allowances, for the app's "It didn't count toward your minutes" (null:
      * not failed).
      */
@@ -483,6 +522,8 @@ final class OwnChoir
             'failureDetail' => $viewer->id === $request->user_id ? $request->failure_detail : null,
             // A failed song: whether it counted toward their songs or minutes (false: given back).
             'counted' => self::countedAgainst($request),
+            // What its measures say about fixing an unusable take (2026-11-23), for its singer alone: never the numbers.
+            'failureHints' => $viewer->id === $request->user_id ? self::failureHints($request) : null,
             'createdAt' => $request->created_at?->utc()->toIso8601ZuluString(),
             'readyAt' => $request->ready_at?->utc()->toIso8601ZuluString(),
             'startsAfter' => $request->starts_after?->utc()->toIso8601ZuluString(),

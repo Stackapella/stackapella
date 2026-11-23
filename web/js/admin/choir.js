@@ -44,6 +44,7 @@ const TRENDS = [
     { kind: 'own_choir_ready', label: tk('admin.choir.trend.made') },
 ];
 
+const CLIPS_SHOWN = 10;
 const day = (d, options = { day: 'numeric', month: 'short' }) => formatDate(`${d}T12:00:00Z`, { ...options, timeZone: 'UTC' });
 const percent = (v) => formatNumber(v, { style: 'percent', maximumFractionDigits: 0 });
 
@@ -352,7 +353,7 @@ export const ChoirSection = {
     components: { BarRows, ChoirLive, DayColumns, LoadFailed, Segmented },
     mixins: [remembers('choir', { period: PERIODS })],
     props: { me: { type: Object, required: true } },
-    data: () => ({ report: null, failed: false, period: '30d', ticket: 0 }),
+    data: () => ({ report: null, failed: false, period: '30d', ticket: 0, clipsAll: false }),
     setup: () => ({ formatNumber, TRENDS }),
     computed: {
         periods: () => [
@@ -387,6 +388,17 @@ export const ChoirSection = {
                 const ok = shareOf(s.ok, tried, this.report.floor);
                 return { key: s.song, name: SONGS[s.song] ?? s.song, ok: s.ok, failed: s.failed, tried, share: ok === null ? t('admin.choir.tooFew') : percent(ok) };
             });
+        },
+        /**
+         * The latest clips that couldn't be used, with the worker's measures (clipNumbers, newest first; never whose): ten,
+         * then all on asking. Each row its day, its reason in words, and each measure as name and value.
+         */
+        clips() {
+            const rows = (this.report?.clipNumbers ?? []).map((c, i) => ({ key: i, date: day(c.date), reason: t(REASONS[c.detail] ?? REASONS.other), numbers: (c.numbers ?? []).map((m) => ({ name: m.name, value: formatNumber(m.value, { maximumFractionDigits: 2 }) })) }));
+            return this.clipsAll ? rows : rows.slice(0, CLIPS_SHOWN);
+        },
+        clipsMore() {
+            return (this.report?.clipNumbers ?? []).length - CLIPS_SHOWN;
         },
         gates() {
             return (this.report?.gates ?? []).map((g) => ({ key: `${g.part}-${g.voicing}`, label: t('admin.choir.gate', { part: PARTS[g.part] ? t(PARTS[g.part]) : g.part, voicing: VOICINGS[g.voicing] ? t(VOICINGS[g.voicing]) : g.voicing }), n: g.n }));
@@ -507,6 +519,22 @@ export const ChoirSection = {
                     </div>
                     <p v-if="!gates.length" class="text-sm text-muted">{{ t('admin.choir.noGates') }}</p>
                     <BarRows v-else :rows="gates" :label="t('admin.choir.gates')" />
+                </section>
+
+                <!-- The latest unusable clips' measures (the worker's detailNumbers), to tune the checks: numbers only. -->
+                <section v-if="report.clipNumbers?.length" class="card min-w-0 space-y-3 p-4 sm:p-5" aria-labelledby="choir-clips-h" data-choir-clips>
+                    <div>
+                        <h2 id="choir-clips-h" class="text-lg font-bold text-cream">{{ t('admin.choir.clips') }}</h2>
+                        <p class="mt-0.5 text-sm text-muted">{{ t('admin.choir.clipsHint') }}</p>
+                    </div>
+                    <ul class="divide-y divide-line">
+                        <li v-for="c in clips" :key="c.key" class="flex flex-wrap items-baseline gap-x-4 gap-y-1 py-2 text-sm" data-choir-clip>
+                            <span class="w-16 shrink-0 tabular-nums text-muted">{{ c.date }}</span>
+                            <span class="w-32 shrink-0 text-cream">{{ c.reason }}</span>
+                            <span class="flex min-w-0 flex-wrap gap-x-4 gap-y-1 tabular-nums"><span v-for="m in c.numbers" :key="m.name"><span class="font-mono text-xs text-muted" translate="no">{{ m.name }}</span> <span class="text-cream">{{ m.value }}</span></span></span>
+                        </li>
+                    </ul>
+                    <button v-if="clipsMore > 0" type="button" class="link tap-44 text-sm" :aria-expanded="clipsAll ? 'true' : 'false'" data-choir-clips-more @click="clipsAll = !clipsAll">{{ clipsAll ? t('admin.choir.clipsFewer') : t('admin.choir.clipsAll', { count: clipsMore }) }}</button>
                 </section>
 
                 <section class="space-y-3" aria-labelledby="choir-all-h" data-choir-all>

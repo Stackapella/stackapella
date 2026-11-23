@@ -76,6 +76,8 @@ export const NoteResult = {
                 <button type="button" class="grid size-16 shrink-0 place-items-center bubble bubble-lg bubble-primary" data-disc="play" :aria-label="t('listening.playIt')" @click="play"><Icon name="play" :size="26" /></button>
             </div>
             <p class="max-w-prose text-cream">{{ t(line.key, line.voiceKey ? { voice: t(line.voiceKey) } : line.values) }} {{ t('results.note.startsHere') }}</p>
+            <!-- What comes straight after the note (lesson 1: hear it in a chord), above the keyboard and the details. -->
+            <slot name="after-line" />
             <NoteKeyboard :home="home" :range="range" class="max-w-2xl" />
             <!-- What was measured and what estimated, in plain words (the consultant's UX review, item 3): the note they held,
                  the range (a guess round the note until a range check), its span in piano keys, never "semitones". -->

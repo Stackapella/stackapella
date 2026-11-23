@@ -17,17 +17,17 @@ from flow import run  # noqa: E402
 from help_shots import clear_projects  # noqa: E402
 
 PAGE = "/t/amazing-grace/choir?api=mock&scenario=&as=member"
-FLAGS = ["stackapella.mockFailure", "stackapella.mockFailureDetail", "stackapella.mockNoVoice", "stackapella.mockCounted", "stackapella.mockChoir", "stackapella.mockChoirState"]
+FLAGS = ["stackapella.mockFailure", "stackapella.mockFailureDetail", "stackapella.mockNoVoice", "stackapella.mockCounted", "stackapella.mockFailureHints", "stackapella.mockChoir", "stackapella.mockChoirState"]
 
 
 def t(f, key, params=None):
     return f.js(f"(await import('/js/i18n.js')).t({json.dumps(key)}, {json.dumps(params or {})})")
 
 
-def failed(f, failure=None, detail=None, voice=True, run_of=None, counted=False):
+def failed(f, failure=None, detail=None, voice=True, run_of=None, counted=False, hints=None):
     """The example's failed Amazing Grace, as `failure` (its detail), with or without the older voice; `run_of` a kind
     whose failure came just before this one on this device."""
-    sets = "".join(f"sessionStorage.setItem({json.dumps(k)}, {json.dumps(v)});" for k, v in (("stackapella.mockFailure", failure), ("stackapella.mockFailureDetail", detail), ("stackapella.mockNoVoice", None if voice else "1"), ("stackapella.mockCounted", "1" if counted else None)) if v)
+    sets = "".join(f"sessionStorage.setItem({json.dumps(k)}, {json.dumps(v)});" for k, v in (("stackapella.mockFailure", failure), ("stackapella.mockFailureDetail", detail), ("stackapella.mockNoVoice", None if voice else "1"), ("stackapella.mockCounted", "1" if counted else None), ("stackapella.mockFailureHints", json.dumps(hints) if hints is not None else None)) if v)
     clears = "".join(f"sessionStorage.removeItem({json.dumps(k)});" for k in FLAGS)
     run = f"localStorage.setItem('stackapella.choirFailRun', JSON.stringify({{ kind: {json.dumps(run_of)}, ids: ['RqBefore'] }}));" if run_of else "localStorage.removeItem('stackapella.choirFailRun');"
     f.run(f"{clears} sessionStorage.setItem('stackapella.mockOwnChoir', '1'); {sets} {run}")
@@ -89,6 +89,15 @@ def journey(f):
     # A failure that counted (the server's `counted`): nothing said about what it cost.
     failed(f, detail="notes", counted=True)
     assert not f.js("document.querySelector('[data-choir-fail-cost]')"), "it didn't count, said of one that did"
+
+    # Noise, with the server's hints (failureHints): close to passing, a steady hum like a fan; sung quietly beside the
+    # room, sing louder or closer first (both at once: the easier fix leads); no hint, the quieter room as before.
+    for hints, words in ((["near"], "ownChoir.failed.detail.noisyNear"), (["near", "quietSinger"], "ownChoir.failed.detail.noisyQuiet"), ([], "ownChoir.failed.detail.noisy")):
+        failed(f, detail="noisy", hints=hints)
+        fix = f.js("document.querySelector('[data-choir-fail-fix]').textContent.trim()")
+        assert fix == t(f, words), f"{hints}: {fix}"
+        if hints == ["near"]:
+            f.shot("noisy-hum")
 
     # No older voice: Sing again alone.
     failed(f, detail="quiet", voice=False)

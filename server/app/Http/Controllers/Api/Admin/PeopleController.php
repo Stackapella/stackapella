@@ -41,12 +41,17 @@ final class PeopleController extends Controller
             ->when($request->validated('role') === 'tester', fn ($query) => $query->whereNotNull('store_tester_at'))
             ->when($request->validated('role') === 'singer', fn ($query) => $query->whereExists(fn ($q) => $q->selectRaw('1')->from('beta_singers')->whereColumn('beta_singers.user_id', 'users.id')))
             ->when($request->validated('plan') !== null, fn ($query) => $request->validated('plan') === 'plus' ? $query->where(self::plus(...)) : $query->whereNot(self::plus(...)))
+            // Made, asked for or joined an AI choir song.
+            ->when($request->validated('uses') === 'choir', fn ($query) => $query->where(fn ($any) => $any
+                ->whereExists(fn ($q) => $q->selectRaw('1')->from('own_choir_requests')->whereColumn('own_choir_requests.user_id', 'users.id'))
+                ->orWhereExists(fn ($q) => $q->selectRaw('1')->from('own_choir_members')->whereColumn('own_choir_members.user_id', 'users.id'))))
             ->toBase();
 
         // Sorted and paged over the computed columns as a table of their own, so a page's cursor can name them (a sort by
-        // last seen pages on like the newest).
+        // last seen or by choirs pages on like the newest).
         $page = User::query()->fromSub($people, 'users')->select('users.*')->with('learning')
             ->when($request->validated('sort') === 'active', fn ($query) => $query->orderByDesc('active_order'))
+            ->when($request->validated('sort') === 'choirs', fn ($query) => $query->orderByDesc('choirs_made_count'))
             ->orderByDesc('users.id')
             ->cursorPaginate(50);
 

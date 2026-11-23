@@ -763,8 +763,9 @@ staff_account`): that's the console's. A person's sign-in history is
 
 Accounts, newest first, 50 a page. **Request:** `?q=` (part of an email, a handle or a name),
 `?suspended=1` (or `0`), `?adult=1` (or `0`: under 18; no birth date matches neither), `?plan=plus`
-(or `free`), `?role=singer` (a beta singer) or `tester` (a store tester), `?sort=newest` (or
-`active`: last seen first) and `?cursor=`, all optional. Each row has `adult` (true, false, or
+(or `free`), `?role=singer` (a beta singer) or `tester` (a store tester), `?uses=choir` (made, asked for or joined
+an AI choir song), `?sort=newest` (or `active`: last seen first; `choirs`: most AI choir songs made first) and
+`?cursor=`, all optional. Each row has `adult` (true, false, or
 null with no birth date; never the date), `betaSinger` and `lastActiveAt`; the person page
 (`admin.people.show` and its actions) adds `plan` (`plus`, `source`, `until`), `counts`
 (`publicHarmonies`, `groups`) and `given`, never their recordings or private songs. `given` is the
@@ -773,9 +774,11 @@ songs staff gave them through `admin.people.songs.create` and still in their acc
 and `givenBy` (`id`, `name`; null once that staff account is gone). These are ours, made and given by
 staff: found by the give itself, so a copy the person makes of a given song (their own song, though
 it carries the rights record) never appears. `stats` is how much they use
-the app, as counts and times only: every row has `songs`, `lessonsDone`, `streakWeeks` and
-`lastActivity` (`kind`: `take`, `practice`, `song`, `share` or `sign_in`, and `at`; no titles); the
-person page adds `takes`, `stars`, `xp`, `level`, `practiceMinutes` (`lastWeek`, `total`) and
+the app, as counts and times only: every row has `songs`, `lessonsDone`, `streakWeeks`, `choirs` (AI choir songs of
+their own made), `coursesStarted`, `shares`, `takes` and `lastActivity` (`kind`: `take`, `practice`, `song`, `share`,
+`choir` or `sign_in`, and `at`; no titles); the person page adds `choir` (`made`, `failed`, `joined`: others' choirs
+they're in, `partMinutes` their allowance counted since `since`, `savedVoice`), `groups` (`led`, `member`),
+`lendsVoice`, `stars`, `xp`, `level`, `practiceMinutes` (`lastWeek`, `total`) and
 `storageBytes`. `country` is the country they last signed in from (Cloudflare's two letters, null
 when not known); `?country=GB` lists one country's people.
 
@@ -7686,7 +7689,11 @@ free song. Each song's `failureDetail`: why its clip couldn't be used (with `cli
 song's `counted` (since 2026-11-23): whether it counted toward the singer's free song, Plus songs or Plus minutes; false
 when it was given back (it never reached the renderer, failed before any GPU work, or failed on our side, `render_failed`
 or `gates_failed`, except a gates failure on their own song), so the app says "It didn't count toward your minutes" only
-then; null for a song not failed. The daily cap counts every song the renderer worked on either way. `voicing` may
+then; null for a song not failed. The daily cap counts every song the renderer worked on either way. Each song's
+`failureHints` (since 2026-11-23), with `clip_unusable` and for its singer alone: what the worker's measures say about
+fixing it, worked out by the server (config `own_choir.failure_hints`), never the measures: `near` (it came close to
+passing: a steady hum, a little quiet, nearly in tune) and `quietSinger` (noise was the reason, but they sang quietly:
+louder or closer may fix it); `[]` when nothing applies, null otherwise. `voicing` may
 be `full`: both octaves, each treble part beside its `-low` twin ("Soprano (low)"), six parts, the pairs 3 dB down in
 `settings.sound.balance`; `remakeMinutes.fullStandard` and `fullFine` what a remake in both octaves would use. The clip stops at `stopBeat` (null: the
 whole tune): the app sings, and the worker's `clip.data` holds, only the notes starting before it, each unchanged.

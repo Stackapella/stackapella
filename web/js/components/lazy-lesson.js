@@ -42,6 +42,7 @@ export const KeepSong = lazyPart(() => import('./keep-song.js').then((m) => m.Ke
 const boss = () => import('./boss.js');
 export const CourseWall = lazyPart(() => import('./course-wall.js').then((m) => m.CourseWall));
 export const ChordMoment = lazyPart(() => import('./chord-moment.js').then((m) => m.ChordMoment));
+export const LiveChord = lazyPart(() => import('./chord-moment.js').then((m) => m.LiveChord));
 export const ThenAndNow = lazyPart(() => import('./then-and-now.js').then((m) => m.ThenAndNow));
 export const VoiceCard = lazyPart(() => import('./voice-card.js').then((m) => m.VoiceCard));
 export const BossBar = lazyPart(() => boss().then((m) => m.BossBar));
