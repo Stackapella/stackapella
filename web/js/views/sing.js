@@ -131,7 +131,7 @@ export const SingView = {
                 <template #hearing><span class="relative block"><button type="button" class="relative grid size-11 shrink-0 place-items-center rounded-full glass-bubble text-cream" :aria-label="t('sing.settings.open')" data-settings-open @click="dialog = 'settings'"><Icon name="sliders" :size="20" /><span v-if="hearingChanged" class="absolute end-0 top-0 size-3 rounded-full bg-accent ring-2 ring-ink" data-hearing-changed aria-hidden="true"></span></button>
                     <!-- Game mode's bonus pop-ups (docs/game-elements-plan.md): under the header's end, never on the lane -->
                     <PopupSlot v-if="effect('popups')" class="ge-slot--float" :queue="hud" /></span></template>
-                <Lane :notes="notes" :words="hasWords ? [] : laneWords" :transpose="project.transpose || 0" :beat-seconds="beatSeconds" :position="position" :color="paint(focusPart.color)" state="recording" :note-name="laneName"
+                <Lane flat :per-bar="perBar" :notes="notes" :words="hasWords ? [] : laneWords" :transpose="project.transpose || 0" :beat-seconds="beatSeconds" :position="position" :color="paint(focusPart.color)" state="recording" :note-name="laneName"
                     :keyboard="prefs.keyboard" :voice="voice.points" :lit="voice.lit" :hits="voice.hits" :trail="onFire ? 'var(--ge-fire)' : null" :ghost="ghostLine" :hint="hintState.hint" :hint-text="hintChip" :data-voice="voice.points.length" :data-lit="voice.lit.size" />
             </RecordingStage>
             <template v-else>

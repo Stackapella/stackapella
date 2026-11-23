@@ -128,7 +128,7 @@ export const TurnBand = {
     template: `
         <div class="flex items-center gap-3 px-5 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] min-[900px]:px-6" :style="{ background: color, color: paintText(color) }" role="status">
             <div class="min-w-0 flex-1">
-                <p class="text-3xl font-extrabold tracking-tight">{{ t('sing.turn.title') }}</p>
+                <p class="t-title">{{ t('sing.turn.title') }}</p>
                 <p class="text-sm font-semibold">{{ others ? t('sing.turn.band') : t('sing.turn.bandAlone') }}</p>
             </div>
             <button type="button" class="relative grid size-11 shrink-0 place-items-center rounded-full border-2" :style="{ borderColor: paintText(color) }" :aria-label="t('sing.settings.open')" data-settings-open @click="$emit('settings')">
@@ -190,13 +190,13 @@ export const Transport = {
             <div v-if="!recording" class="flex flex-1 items-start justify-between md:justify-center md:gap-14" :class="turn ? '' : 'md:hidden'">
                 <div class="flex w-20 flex-col items-center gap-1">
                     <button type="button" class="grid size-14 place-items-center rounded-full border transition" :class="loop ? 'border-cream bg-raised text-cream' : 'border-line text-cream hover:bg-raised'" :aria-pressed="loop" :aria-label="t('practice.loop')" @click="$emit('loop')"><Icon name="loop" :size="22" /></button>
-                    <span class="text-xs font-semibold text-muted">{{ t('practice.loop') }}</span>
+                    <span class="text-xs font-semibold text-subtle">{{ t('practice.loop') }}</span>
                 </div>
                 <button type="button" class="grid size-[4.5rem] place-items-center transition disabled:opacity-40 bubble bubble-lg bubble-primary" data-disc="play" :disabled="busy" :aria-label="playing ? t('studio.pause') : t('studio.play')" data-play :aria-busy="spinning('play') ? 'true' : null" @click="press('play')"><span v-if="spinning('play')" class="spinner size-7" aria-hidden="true"></span><Icon v-else :name="playing ? 'pause' : 'play'" :size="30" /></button>
                 <div class="flex w-20 flex-col items-center gap-1">
                     <button v-if="turn" type="button" class="grid size-14 place-items-center rounded-full glass-bubble text-cream" :aria-label="t('sing.turn.again')" @click="$emit('again')"><Icon name="repeat" :size="22" /></button>
                     <button v-else type="button" class="grid size-14 place-items-center transition disabled:opacity-40 bubble bubble-lg bubble-record" data-record-disc :disabled="busy" :aria-label="t('sing.recordPart', { name: partName })" :aria-busy="spinning('record') ? 'true' : null" @click="press('record')"><span v-if="spinning('record')" class="spinner size-5" aria-hidden="true"></span><Icon v-else name="record" :size="22" /></button>
-                    <span class="text-xs font-semibold text-muted">{{ turn ? t('sing.turn.again') : t('sing.transport.record') }}</span>
+                    <span class="text-xs font-semibold text-subtle">{{ turn ? t('sing.turn.again') : t('sing.transport.record') }}</span>
                 </div>
             </div>
         </div>`,

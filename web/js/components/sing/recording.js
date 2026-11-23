@@ -41,24 +41,24 @@ export const RecordingStage = {
             <h1 ref="heading" tabindex="-1" class="sr-only">{{ t('sing.recordingStage.heading', { title }) }}</h1>
             <div class="h-1 shrink-0 bg-record" aria-hidden="true"></div>
             <header class="grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))] md:pt-5 min-[900px]:px-8">
-                <span class="flex items-center gap-1.5 justify-self-start rounded-full glass-record px-3.5 py-1.5 text-sm font-bold tabular-nums" role="status">
+                <span class="flex items-center gap-1.5 justify-self-start rounded-full bg-record px-3.5 py-1.5 text-sm font-bold tabular-nums text-record-label" role="status">
                     <span class="size-2 animate-pulse rounded-full bg-record-label" aria-hidden="true"></span>
                     <CountIn v-if="countIn !== null" :beat="countIn" /><template v-else>{{ t('sing.recordingStage.recording') }}</template>
                 </span>
                 <div class="min-w-0 text-center">
-                    <p class="truncate text-sm font-bold md:text-base" :class="named ? 'text-cream' : 'italic text-muted'" :translate="named ? 'no' : null">{{ title }}</p>
-                    <p data-ui="facts" class="flex items-center justify-center gap-1.5 text-xs text-muted md:text-sm">
+                    <p class="truncate text-[17px] font-semibold" :class="named ? 'text-cream' : 'italic text-muted'" :translate="named ? 'no' : null">{{ title }}</p>
+                    <p data-ui="facts" class="flex items-center justify-center gap-1.5 text-[13px] text-subtle">
                         <span class="size-2 shrink-0 rounded-full" :style="{ background: color }" aria-hidden="true"></span>
                         <span class="truncate"><template v-if="partName"><span translate="no" data-sing-part-name>{{ partName }}</span> · {{ t('sing.recordingStage.take', { number: take }) }}</template></span>
                     </p>
                 </div>
                 <span class="justify-self-end"><slot name="hearing" /></span>
             </header>
-            <p v-if="hearing" class="px-4 text-center text-sm text-muted md:px-8" data-hear-line>{{ hearing }}</p>
+            <p v-if="hearing" class="px-4 text-center text-sm text-subtle md:px-8" data-hear-line>{{ hearing }}</p>
 
             <div class="flex min-h-0 flex-1 flex-col justify-center gap-5 px-4 pb-4 text-cream md:gap-8 md:px-8">
                 <!-- The count-in's big number sits on the lane, clipped to it (the coordinator's review: never over the words). -->
-                <div class="relative h-[38vh] min-h-48 shrink-0 overflow-hidden rounded-3xl border border-edge bg-panel md:h-[40vh]"><slot />
+                <div class="relative h-[38vh] min-h-48 shrink-0 overflow-hidden rounded-[22px] border border-edge bg-panel md:h-[40vh]"><slot />
                     <div v-if="bigCount && countIn" class="pointer-events-none absolute inset-0 z-10 grid place-items-center" aria-hidden="true" data-count-big>
                         <span :key="countIn" class="count-big text-[min(9rem,30vh)] font-extrabold leading-none text-cream tabular-nums" :style="{ animationDuration: bigCount + 's' }">{{ formatNumber(countIn) }}</span>
                     </div>
@@ -69,17 +69,17 @@ export const RecordingStage = {
                 </div>
             </div>
 
-            <footer class="shrink-0 border-t border-line px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 md:px-8">
+            <footer class="shrink-0 border-t border-edge px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 md:px-8">
                 <div class="h-1 overflow-hidden rounded-full bg-raised" aria-hidden="true" data-take-progress><span class="block h-full rounded-full bg-record" :style="{ width: share * 100 + '%' }"></span></div>
                 <!-- A phone: the time and the pitch share on a row, the buttons under them -->
                 <div class="grid grid-cols-2 items-center gap-x-3 gap-y-2 pt-3 md:grid-cols-[1fr_auto_1fr]">
-                    <span class="whitespace-nowrap text-base tabular-nums text-cream md:text-2xl" data-take-time>{{ formatTime(position) }} <span class="text-xs text-muted md:text-sm">/ {{ formatTime(length) }}</span></span>
+                    <span class="flex items-baseline gap-1.5 whitespace-nowrap text-cream" data-take-time><span class="t-clock max-md:text-base">{{ formatTime(position) }}</span><span class="t-clock-of max-md:text-xs">/ {{ formatTime(length) }}</span></span>
                     <div class="order-3 col-span-2 flex items-center justify-center gap-3 md:order-none md:col-span-1 md:gap-4">
-                        <button type="button" class="btn-secondary btn-sm" :disabled="busy" @click="$emit('again')">{{ t('sing.recordingStage.startOver') }}</button>
+                        <button type="button" class="btn-pill" :disabled="busy" @click="$emit('again')">{{ t('sing.recordingStage.startOver') }}</button>
                         <button type="button" class="grid size-16 place-items-center transition disabled:opacity-40 md:size-20 bubble bubble-lg bubble-record bubble-now" data-recording-disc :disabled="busy" :aria-label="t('sing.recordingStage.stopKeep')" data-stop @click="$emit('stop')"><Icon name="stop" :size="28" /></button>
-                        <span class="hidden text-sm text-muted md:inline">{{ t('sing.recordingStage.stopKeep') }}</span>
+                        <span class="hidden text-sm text-subtle md:inline">{{ t('sing.recordingStage.stopKeep') }}</span>
                     </div>
-                    <span class="justify-self-end text-end text-xs text-muted md:text-sm" aria-live="off">{{ onPitch === null ? '' : t('sing.recordingStage.onPitch', { percent: onPitch }) }}</span>
+                    <span class="justify-self-end text-end text-[13px] text-subtle" aria-live="off">{{ onPitch === null ? '' : t('sing.recordingStage.onPitch', { percent: onPitch }) }}</span>
                 </div>
             </footer>
         </div>`,

@@ -154,16 +154,16 @@ export const PartSheet = {
     template: `
         <Modal :title="t('sing.yourPart.title')" @close="$emit('close')">
             <div class="space-y-4">
-                <p class="text-sm text-muted">{{ t('sing.yourPart.intro') }}</p>
+                <p class="t-hint text-sm">{{ t('sing.yourPart.intro') }}</p>
                 <ul class="space-y-2">
-                    <li v-for="p in parts" :key="p.slot.id" class="rounded-2xl border" :class="p.slot.id === focusId ? 'bg-raised/40' : 'border-line'" :style="p.slot.id === focusId ? { borderColor: paint(p.slot.color) } : null">
+                    <li v-for="p in parts" :key="p.slot.id" class="rounded-2xl border" :class="p.slot.id === focusId ? 'bg-raised/40' : 'border-edge'" :style="p.slot.id === focusId ? { borderColor: paint(p.slot.color) } : null">
                         <button type="button" class="flex w-full items-center gap-3 p-3 text-start disabled:opacity-60" :disabled="disabled" :aria-pressed="p.slot.id === focusId" @click="$emit('select', p.slot.id)">
                             <span class="grid size-9 shrink-0 place-items-center rounded-full border-2 text-sm font-bold" :style="p.slot.id === focusId ? { background: paint(p.slot.color), borderColor: paint(p.slot.color), color: 'var(--color-ink)' } : { borderColor: paint(p.slot.color) }" translate="no">{{ p.name.slice(0, 1) }}</span>
                             <span class="min-w-0 flex-1">
-                                <span class="block font-semibold text-cream"><span translate="no">{{ p.name }}</span><span v-if="p.slot.id === focusId" class="ms-2 rounded-full bg-raised px-2 py-0.5 text-xs text-muted">{{ t('sing.yourPart.yours') }}</span></span>
-                                <span class="block truncate text-sm text-muted">{{ p.range }}</span>
+                                <span class="block font-semibold text-cream"><span translate="no">{{ p.name }}</span><span v-if="p.slot.id === focusId" class="chip-tag ms-2 align-middle">{{ t('sing.yourPart.yours') }}</span></span>
+                                <span class="block truncate text-[13px] text-subtle">{{ p.range }}</span>
                             </span>
-                            <span class="hidden max-w-40 truncate text-xs text-muted sm:block" translate="no">{{ p.voiceLabel }}</span>
+                            <span class="hidden max-w-40 truncate text-xs text-subtle sm:block" translate="no">{{ p.voiceLabel }}</span>
                         </button>
                         <fieldset v-if="p.slot.id === focusId && voice?.versions?.length" class="space-y-2 px-3 pb-3" :disabled="disabled">
                             <legend class="mb-1 text-sm font-semibold text-cream">{{ t('sing.yourPart.voiceOf', { part: p.name }) }}</legend>
@@ -176,10 +176,10 @@ export const PartSheet = {
                                 <input type="radio" name="singVoice" class="radio mt-px" :checked="voice.chosen.includes('synth') || blocked" @change="$emit('voice', 'synth')" />
                                 <span class="min-w-0 flex-1 text-sm"><span class="block font-semibold text-cream">{{ blocked ? t('studio.badge.practiceInKey') : t('part.practiceVoice') }}</span><span class="text-muted">{{ t('part.practiceVoiceHint') }}</span></span>
                             </label>
-                            <div v-if="keyNote" class="space-y-1 rounded-xl bg-ink/60 p-3 text-sm text-cream" role="note">
-                                <p>{{ keyNote.text }}</p>
+                            <div v-if="keyNote" class="space-y-1" role="note">
+                                <p class="alert-inline" style="--alert-c: var(--color-accent)"><span>{{ keyNote.text }}</span></p>
                                 <button v-if="keyNote.action" type="button" class="btn-ghost btn-sm" @click="keyNote.action.run(); $emit('close')">{{ keyNote.action.label }}</button>
-                                <p v-if="keyNote.fit" class="text-muted">{{ keyNote.fit }}</p>
+                                <p v-if="keyNote.fit" class="t-hint ps-4">{{ keyNote.fit }}</p>
                             </div>
                         </fieldset>
                         <p v-if="p.slot.id === focusId && lend" class="px-3 pb-3 text-sm text-muted" data-lend-line>{{ t('voices.partLine') }} <button type="button" class="link min-h-11" @click="$emit('lend')">{{ t('voices.partLineLink') }}</button></p>
