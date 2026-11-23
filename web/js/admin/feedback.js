@@ -17,7 +17,7 @@ export const FeedbackSection = {
     template: `
         <div class="space-y-6">
             <div class="flex flex-wrap items-end justify-between gap-3">
-                <h1 class="text-2xl font-extrabold tracking-tight text-cream">{{ t('admin.nav.feedback') }}</h1>
+                <h1 class="text-2xl font-bold text-cream">{{ t('admin.nav.feedback') }}</h1>
                 <label class="check-row"><input v-model="unread" type="checkbox" class="checkbox" @change="load()" /> {{ t('admin.feedback.unreadOnly') }}</label>
             </div>
             <LoadFailed v-if="failed" :message="failed" @retry="load()" />

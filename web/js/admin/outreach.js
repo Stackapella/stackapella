@@ -278,7 +278,7 @@ const OutreachTarget = {
             <template v-else>
                 <header class="space-y-2">
                     <div class="flex flex-wrap items-start justify-between gap-3">
-                        <h1 class="text-2xl font-extrabold tracking-tight text-cream" translate="no">{{ target.name }}</h1>
+                        <h1 class="text-2xl font-bold text-cream" translate="no">{{ target.name }}</h1>
                         <span class="flex flex-wrap gap-2"><StatusChip :tone="STATUS[target.status]?.tone ?? 'muted'" :label="t(STATUS[target.status]?.label ?? STATUS.ready.label)" /><StatusChip v-if="target.followUpDue" tone="warn" :label="t('admin.outreach.status.followUpDue')" /></span>
                     </div>
                     <p class="text-sm text-muted" translate="no">{{ [target.group, target.country, target.reach, t(ANGLES[target.angle] ?? ANGLES.course)].filter(Boolean).join(' · ') }}</p>
@@ -306,7 +306,7 @@ const OutreachTarget = {
                                 <p v-else-if="target.followUpFrom && !followUpSent" class="text-sm text-muted">{{ t('admin.outreach.followUpFrom', { date: day(target.followUpFrom) }) }}</p>
                             </div>
                             <article v-for="m in drafts" :key="m.id" class="card space-y-3 p-5" :data-draft="m.id">
-                                <p class="text-xs font-bold uppercase tracking-[0.14em] text-muted">{{ m.kind === 'follow_up' ? t('admin.outreach.followUpDraft') : t('admin.outreach.firstDraft') }}</p>
+                                <p class="t-section">{{ m.kind === 'follow_up' ? t('admin.outreach.followUpDraft') : t('admin.outreach.firstDraft') }}</p>
                                 <label class="block space-y-1.5"><span class="label">{{ t('admin.outreach.subject') }}</span><input v-model="edit(m).subject" class="input" maxlength="300" data-draft-subject /></label>
                                 <label class="block space-y-1.5"><span class="label">{{ t('admin.outreach.body') }}</span><textarea v-model="edit(m).body" class="input min-h-64 font-[inherit] leading-relaxed" rows="14" maxlength="10000" data-draft-body></textarea></label>
                                 <p class="help">{{ t('admin.outreach.plainText') }}</p>
@@ -700,7 +700,7 @@ export const OutreachSection = {
         <OutreachTarget v-if="route.params.id" :id="route.params.id" :me="me" />
         <div v-else class="space-y-6">
             <div>
-                <h1 class="text-3xl font-extrabold tracking-tight text-cream">{{ t('admin.outreach.title') }}</h1>
+                <h1 class="t-title text-cream">{{ t('admin.outreach.title') }}</h1>
                 <p class="mt-1 max-w-prose text-sm text-muted">{{ t('admin.outreach.intro') }}</p>
             </div>
             <div class="seg w-fit" role="tablist" :aria-label="t('admin.outreach.title')">

@@ -23,7 +23,7 @@ export const AuditSection = {
     template: `
         <div class="space-y-6">
             <div class="flex flex-wrap items-end justify-between gap-3">
-                <h1 class="text-2xl font-extrabold tracking-tight text-cream">{{ t('admin.nav.audit') }}</h1>
+                <h1 class="text-2xl font-bold text-cream">{{ t('admin.nav.audit') }}</h1>
                 <div>
                     <label class="sr-only" for="audit-filter">{{ t('admin.audit.filter') }}</label>
                     <select id="audit-filter" v-model="action" class="input !w-auto !py-2" @change="load()">

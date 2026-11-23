@@ -67,7 +67,7 @@ export const SharingPanel = {
                 <dt class="text-sm text-muted">{{ t(m.label) }}</dt>
                 <dd class="mt-2 flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
                     <template v-if="measureText(m, report.headline, report.floor) !== null">
-                        <span class="text-3xl font-extrabold tabular-nums tracking-tight text-cream" data-value>{{ measureText(m, report.headline, report.floor) }}</span>
+                        <span class="text-3xl font-bold tabular-nums tracking-tight text-cream" data-value>{{ measureText(m, report.headline, report.floor) }}</span>
                         <span v-if="measureMove(m, report.headline, report.before, report.floor)" class="text-sm font-semibold tabular-nums" :class="moveClass(m)" data-move :data-dir="measureMove(m, report.headline, report.before, report.floor).dir"><span v-if="measureMove(m, report.headline, report.before, report.floor).dir !== 'same'" class="me-0.5" aria-hidden="true">{{ measureMove(m, report.headline, report.before, report.floor).dir === 'up' ? '↑' : '↓' }}</span>{{ measureMove(m, report.headline, report.before, report.floor).text }}<span class="sr-only"> {{ t('admin.sharing.onLastWeek') }}</span></span>
                     </template>
                     <span v-else class="text-sm text-muted" data-too-few>{{ t('admin.sharing.tooFew') }}</span>
@@ -90,7 +90,7 @@ export const SharingSection = {
     template: `
         <section class="space-y-6" aria-labelledby="sharing-h" data-sharing>
             <div>
-                <h1 id="sharing-h" class="text-2xl font-extrabold tracking-tight text-cream">{{ t('admin.nav.sharing') }}</h1>
+                <h1 id="sharing-h" class="text-2xl font-bold text-cream">{{ t('admin.nav.sharing') }}</h1>
                 <p class="mt-1 max-w-prose text-sm text-muted">{{ report ? t('admin.sharing.intro', { from: day(report.from), to: day(report.to), floor: report.floor }) : t('admin.sharing.introShort') }}</p>
             </div>
             <LoadFailed v-if="failed" :message="t('admin.sharing.failed')" @retry="load" />

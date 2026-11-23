@@ -127,7 +127,7 @@ export const UsageSection = {
         <section class="space-y-8" aria-labelledby="usage-h">
             <div class="flex flex-wrap items-end justify-between gap-4">
                 <div>
-                    <h1 id="usage-h" class="text-3xl font-extrabold tracking-tight text-cream">{{ t('admin.usage.title') }}</h1>
+                    <h1 id="usage-h" class="t-title text-cream">{{ t('admin.usage.title') }}</h1>
                     <p class="mt-1 max-w-prose text-muted">{{ t('admin.usage.intro') }}</p>
                 </div>
                 <div class="flex flex-col items-start gap-2 sm:items-end">

@@ -43,7 +43,7 @@ export const DropoffsSection = {
     template: `
         <section class="space-y-6" aria-labelledby="dropoffs-h" data-dropoffs>
             <div>
-                <h1 id="dropoffs-h" class="text-2xl font-extrabold tracking-tight text-cream">{{ t('admin.nav.dropoffs') }}</h1>
+                <h1 id="dropoffs-h" class="text-2xl font-bold text-cream">{{ t('admin.nav.dropoffs') }}</h1>
                 <p class="mt-1 max-w-prose text-sm text-muted">{{ latest ? t('admin.dropoffs.intro', { from: day(latest.weekStart), to: day(latest.weekEnd), floor: latest.floor }) : t('admin.dropoffs.introNone') }}</p>
             </div>
             <LoadFailed v-if="failed" :message="t('admin.dropoffs.failed')" @retry="load" />

@@ -79,14 +79,13 @@ const GROUPS = [
         { what: tk('plus.row.wav'), free: tk('plus.yes'), plus: tk('plus.yes'), note: tk('plus.row.wavNote') },
     ] },
 ];
-const HIGHLIGHT_COLORS = ['var(--color-part-2)', 'var(--color-part-3)', 'var(--color-part-4)'];
 const CURRENCIES = ['usd', 'eur', 'gbp'];
 const STATUS = { trialing: tk('plus.status.trialing'), active: tk('plus.status.active'), past_due: tk('plus.status.pastDue'), canceled: tk('plus.status.canceled'), pending: tk('plus.status.pending') };
 
 export const PlusView = {
     components: { AccountWall, AppScreen, Notice, Icon, Logo },
     data: () => ({ interval: 'year', currency: guessCurrency(), busy: false, notice: null, failed: false, everything: false, next: keptNext() }),
-    setup: () => ({ account, selfHosted, plan, navigate, goBack, MOMENTS, NEXT_WORDS, CARRY_ON, GROUPS, CURRENCIES, STATUS, HIGHLIGHT_COLORS, formatDate, formatNumber }),
+    setup: () => ({ account, selfHosted, plan, navigate, goBack, MOMENTS, NEXT_WORDS, CARRY_ON, GROUPS, CURRENCIES, STATUS, formatDate, formatNumber }),
     template: `
         <AppScreen :title="t('plus.title')" back="/" measure="" content-class="gap-8 md:gap-12" data-ui="screen" class="bg-ink">
                 <!-- A self-hosted install: everything is included, nothing to buy. -->
@@ -94,14 +93,16 @@ export const PlusView = {
                 <div v-if="!selfHosted()" class="mt-4 grid gap-8 md:mt-6 md:grid-cols-[minmax(0,1fr)_minmax(0,25rem)] md:gap-12">
                     <section class="space-y-6" aria-labelledby="plus-heading">
                         <p v-if="moment" class="font-semibold text-accent-strong">{{ t(MOMENTS[moment]) }}</p>
-                        <h2 id="plus-heading" class="text-4xl font-extrabold tracking-tight text-cream md:text-5xl">{{ choirOn && teamsOn ? t('plus.headlineChoir') : teamsOn ? t('plus.headline') : t('plus.headlineSolo') }}</h2>
-                        <p class="text-lg text-muted">{{ choirOn && teamsOn ? t('plus.storyChoir') : teamsOn ? t('plus.story') : t('plus.storySolo') }}</p>
-                        <ul class="space-y-5">
-                            <li v-for="(h, i) in highlights" :key="h.title" class="flex gap-4">
-                                <span class="gem grid size-10 shrink-0 place-items-center rounded-xl" :style="{ '--gem': HIGHLIGHT_COLORS[i], '--gem-ink': 'var(--color-ink)' }" aria-hidden="true"><Icon :name="h.icon" :size="20" /></span>
+                        <!-- The site's own words (ai-marketing: lang/en/plus.php's items, so app and site never drift): the headline,
+                             then each point as its gain and its fact, the AI choir first. No lede: it could only say the headline
+                             again or list the points under it (the no-repetition rule; the coordinator and ai-marketing). -->
+                        <h2 id="plus-heading" class="t-title-lg text-cream">{{ t('plus.page.headline') }}</h2>
+                        <ul class="card divide-y divide-line overflow-hidden" data-plus-points>
+                            <li v-for="p in points" :key="p.key" class="flex gap-4 px-5 py-4" :data-plus-point="p.key">
+                                <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-raised text-cream" aria-hidden="true"><Icon :name="p.icon" :size="20" /></span>
                                 <span class="min-w-0">
-                                    <span class="block font-bold text-cream">{{ h.title }}</span>
-                                    <span class="block text-muted">{{ h.text }}</span>
+                                    <span class="block font-semibold text-cream">{{ p.title }}</span>
+                                    <span class="block text-muted">{{ p.text }}</span>
                                 </span>
                             </li>
                         </ul>
@@ -116,7 +117,7 @@ export const PlusView = {
                         </section>
                         <!-- On Plus: the plan as it stands -->
                         <section v-else-if="onPlus" class="card space-y-3 p-6" aria-labelledby="yours-heading">
-                            <h2 id="yours-heading" class="text-lg font-bold text-cream">{{ t('plus.yours') }}</h2>
+                            <h2 id="yours-heading" class="text-lg font-semibold text-cream">{{ t('plus.yours') }}</h2>
                             <p v-if="billing" class="text-cream">{{ statusText }}</p>
                             <Notice v-if="billing?.notice === 'payment_failed'" tone="warn">{{ t('plus.notice.paymentFailed', { date: formatDate(billing.pastDueUntil) }) }}</Notice>
                             <button v-if="next" type="button" class="btn-primary self-start" data-plus-next @click="goNext">{{ t(NEXT_WORDS[next.from] ?? CARRY_ON) }}</button>
@@ -131,12 +132,12 @@ export const PlusView = {
                                 <label v-for="choice in ['year', 'month']" :key="choice" class="radio-card items-center p-4">
                                     <input v-model="interval" type="radio" :value="choice" class="radio" />
                                     <span class="min-w-0 flex-1">
-                                        <span class="flex flex-wrap items-center gap-2 font-bold text-cream">{{ choice === 'year' ? t('plus.yearly') : t('plus.monthly') }}<span v-if="choice === 'year' && saving" class="rounded-full bg-good/15 px-2 py-0.5 text-xs font-bold text-good">{{ t('plus.save', { percent: saving }) }}</span></span>
+                                        <span class="flex flex-wrap items-center gap-2 font-semibold text-cream">{{ choice === 'year' ? t('plus.yearly') : t('plus.monthly') }}<span v-if="choice === 'year' && saving" class="rounded-full bg-good/15 px-2 py-0.5 text-xs font-bold text-good">{{ t('plus.save', { percent: saving }) }}</span></span>
                                         <span v-if="priceOf(choice)" class="block text-sm text-muted">{{ choice === 'year' ? t('plus.perMonthYearly', { price: money(priceOf(choice).amountCents / 12) }) : t('plus.billedMonthly') }}</span>
                                     </span>
                                     <span v-if="priceOf(choice)" class="shrink-0 text-end">
-                                        <span class="block text-xl font-extrabold text-cream tabular-nums">{{ money(priceOf(choice).amountCents) }}</span>
-                                        <span class="block text-xs text-muted">{{ choice === 'year' ? t('plus.perYear') : t('plus.perMonthShort') }}</span>
+                                        <span class="block text-xl font-bold text-cream tabular-nums">{{ money(priceOf(choice).amountCents) }}</span>
+                                        <span class="t-hint block">{{ choice === 'year' ? t('plus.perYear') : t('plus.perMonthShort') }}</span>
                                     </span>
                                 </label>
                             </div>
@@ -157,7 +158,7 @@ export const PlusView = {
 
                 <section class="space-y-4" aria-labelledby="compare-heading">
                     <div class="flex flex-wrap items-center justify-between gap-3">
-                        <h2 id="compare-heading" class="text-2xl font-extrabold tracking-tight text-cream">{{ t('plus.compare') }}</h2>
+                        <h2 id="compare-heading" class="text-lg font-semibold text-cream">{{ t('plus.compare') }}</h2>
                         <div class="seg inline-flex" role="radiogroup" :aria-label="t('plus.show')">
                             <button v-for="all in [false, true]" :key="String(all)" type="button" role="radio" :aria-checked="everything === all ? 'true' : 'false'" class="seg-option" @click="everything = all">{{ all ? t('plus.everything') : t('plus.differences') }}</button>
                         </div>
@@ -167,9 +168,9 @@ export const PlusView = {
                             <table class="w-full min-w-[20rem] text-sm">
                                 <thead><tr class="border-b border-line"><th class="px-5 py-3 text-start font-semibold text-muted" scope="col"><span class="sr-only">{{ t('plus.what') }}</span></th><th class="px-3 py-3 text-start font-semibold text-muted" scope="col">{{ t('plus.free.title') }}</th><th class="px-3 py-3 pe-5 text-start font-bold text-accent" scope="col">{{ t('plus.plus.title') }}</th></tr></thead>
                                 <tbody v-for="group in shownGroups" :key="group.name">
-                                    <tr><th colspan="3" class="px-5 pt-5 pb-2 text-start text-xs font-bold tracking-widest text-muted uppercase" scope="colgroup">{{ t(group.name) }}</th></tr>
+                                    <tr><th colspan="3" class="t-section px-5 pt-5 pb-2 text-start" scope="colgroup">{{ t(group.name) }}</th></tr>
                                     <tr v-for="row in group.rows" :key="row.what" class="border-t border-line">
-                                        <th class="px-5 py-3 text-start font-semibold text-cream" scope="row">{{ t(row.what) }}<span v-if="row.note" class="block text-xs font-normal text-muted">{{ t(row.note, { polished: t('polish.name') }) }}</span></th>
+                                        <th class="px-5 py-3 text-start font-semibold text-cream" scope="row">{{ t(row.what) }}<span v-if="row.note" class="t-hint block font-normal">{{ t(row.note, { polished: t('polish.name') }) }}</span></th>
                                         <td class="px-3 py-3 text-muted"><template v-if="row.free">{{ t(row.free) }}</template><template v-else><span aria-hidden="true">–</span><span class="sr-only">{{ t('plus.no') }}</span></template></td>
                                         <td class="px-3 py-3 pe-5 font-semibold text-cream">{{ t(row.plus) }}</td>
                                     </tr>
@@ -183,13 +184,22 @@ export const PlusView = {
     computed: {
         teamsOn: () => teams.on,
         billing: () => plan.billing,
-        /** What Plus gets you (the room and the extras), and what stays free for every singer. */
-        highlights() {
-            // Sing together leads only while teaming up is Plus (the plus_teams switch); until then it's in what's free.
+        /** Plus's numbers, from the server's config (auth.config plusLimits; an older server: none, the lines without them). */
+        limits: () => account.config?.plusLimits ?? null,
+        /**
+         * What Plus is for, the site's list in its order and by the same switches (PlusFeatures): your own AI choir (while
+         * own_choir is on), choir groups (plus_teams), room for every take, every part as its own file, and private
+         * arrangements (plus_private, only when the AI choir isn't listed: three or four points, never five).
+         */
+        points() {
+            const limits = this.limits;
+            const gb = limits ? formatNumber(Math.round(limits.storageBytes / 1073741824), { style: 'unit', unit: 'gigabyte' }) : null;
             return [
-                this.teamsOn ? { icon: 'mic', title: t('plus.highlight.together'), text: t('plus.highlight.togetherText') } : null,
-                { icon: 'list', title: t('plus.highlight.extras'), text: t('plus.highlight.extrasText') },
-                { icon: 'note', title: t('plus.highlight.free'), text: this.teamsOn ? t('plus.highlight.freeText') : t('plus.highlight.freeTextSolo') },
+                this.choirOn ? { key: 'choir', icon: 'sparkle', title: t('plus.page.choir'), text: limits ? t('plus.page.choirFact', { minutes: formatNumber(limits.choirMinutes), songs: formatNumber(limits.choirSongs) }) : t('plus.page.choirFactPlain') } : null,
+                this.teamsOn ? { key: 'together', icon: 'mic', title: t('plus.page.together'), text: account.config?.choirSeats ? t('plus.page.togetherSeats') : t('plus.page.togetherFact') } : null,
+                { key: 'storage', icon: 'list', title: t('plus.page.storage'), text: gb ? t('plus.page.storageFact', { storage: gb }) : t('plus.page.storageFactPlain') },
+                { key: 'stems', icon: 'note', title: t('plus.page.stems'), text: t('plus.page.stemsFact') },
+                !this.choirOn && teams.private ? { key: 'private', icon: 'lock', title: t('plus.page.private'), text: t('plus.page.privateFact') } : null,
             ].filter(Boolean);
         },
         /** Yearly's saving over twelve months of Monthly, in the currency shown. */

@@ -122,7 +122,7 @@ const HomeSection = {
             <header class="flex flex-wrap items-end justify-between gap-x-4 gap-y-2" data-home-head>
                 <div class="min-w-0">
                     <p class="text-sm text-muted" data-home-date><time :datetime="todayIso">{{ today }}</time></p>
-                    <h1 class="mt-1 text-2xl font-extrabold tracking-tight text-cream sm:text-3xl" data-home-greeting>{{ greeting }}</h1>
+                    <h1 class="mt-1 text-2xl font-bold text-cream sm:text-3xl" data-home-greeting>{{ greeting }}</h1>
                 </div>
                 <div class="flex min-w-0 flex-wrap items-center gap-2.5 text-sm text-muted">
                     <span class="min-w-0 break-all" translate="no">{{ me.email }}</span>
@@ -149,7 +149,7 @@ const HomeSection = {
                     <div v-for="tile in growthTiles" :key="tile.key" class="-mb-px -me-px min-w-0 border-b border-e border-line p-4 sm:p-5" :data-tile="tile.key">
                         <dt class="text-sm text-muted">{{ tile.label }}</dt>
                         <dd class="mt-2 flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-                            <span class="text-3xl font-extrabold tabular-nums tracking-tight text-cream sm:text-4xl" data-tile-value>{{ formatNumber(tile.value) }}</span>
+                            <span class="text-3xl font-bold tabular-nums tracking-tight text-cream sm:text-4xl" data-tile-value>{{ formatNumber(tile.value) }}</span>
                             <span v-if="tile.week" class="text-sm font-semibold tabular-nums" :class="tile.dir === 'up' ? 'text-up' : tile.dir === 'down' ? 'text-down' : 'text-muted'" :title="tile.against" data-change :data-dir="tile.dir"><span v-if="tile.dir === 'up' || tile.dir === 'down'" class="me-0.5" aria-hidden="true">{{ tile.dir === 'up' ? '↑' : '↓' }}</span>{{ tile.text }}<span class="sr-only"> {{ tile.against }}</span></span>
                             <span v-else class="text-xs text-muted" data-all-time>{{ tile.against }}</span>
                         </dd>
@@ -159,7 +159,7 @@ const HomeSection = {
             <section v-if="overview" class="card p-6" aria-labelledby="beta-heading">
                 <h2 id="beta-heading" class="text-lg font-bold text-cream">{{ t('admin.home.beta') }}</h2>
                 <dl class="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
-                    <div v-for="stat in stats" :key="stat.label"><dt class="text-sm text-muted">{{ stat.label }}</dt><dd class="text-2xl font-extrabold text-cream"><a v-if="stat.path" :href="stat.path" class="tap-44 hover:text-accent" @click.prevent="navigate(stat.path)">{{ stat.value }}</a><template v-else>{{ stat.value }}</template></dd></div>
+                    <div v-for="stat in stats" :key="stat.label"><dt class="text-sm text-muted">{{ stat.label }}</dt><dd class="text-2xl font-bold text-cream"><a v-if="stat.path" :href="stat.path" class="tap-44 hover:text-accent" @click.prevent="navigate(stat.path)">{{ stat.value }}</a><template v-else>{{ stat.value }}</template></dd></div>
                 </dl>
             </section>
             <StoreTestersCard v-if="me.role === 'admin'" />

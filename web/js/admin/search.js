@@ -35,7 +35,7 @@ export const SearchSection = {
     template: `
         <section class="space-y-6" aria-labelledby="search-h" data-search>
             <div>
-                <h1 id="search-h" class="text-3xl font-extrabold tracking-tight text-cream">{{ t('admin.search.title') }}</h1>
+                <h1 id="search-h" class="t-title text-cream">{{ t('admin.search.title') }}</h1>
                 <p class="mt-1 text-sm text-muted">{{ report?.from ? t('admin.search.intro', { from: day(report.from), to: day(report.to) }) : t('admin.search.introPlain') }}</p>
             </div>
             <LoadFailed v-if="failed" :message="failed" @retry="load" />
@@ -50,7 +50,7 @@ export const SearchSection = {
                 <ul class="grid gap-3 sm:grid-cols-3">
                     <li v-for="tile in tiles" :key="tile.key" class="card p-5" :data-tile="tile.key">
                         <p class="text-sm text-muted">{{ t(tile.label) }}</p>
-                        <p class="mt-2 text-4xl font-extrabold tabular-nums text-cream">{{ tile.value }}</p>
+                        <p class="mt-2 text-4xl font-bold tabular-nums text-cream">{{ tile.value }}</p>
                     </li>
                 </ul>
 
@@ -61,7 +61,7 @@ export const SearchSection = {
                     <p v-if="!report.toImprove.length" class="mt-3 text-sm text-muted">{{ t('admin.search.improveNone') }}</p>
                     <div v-else class="-mx-1 mt-4 overflow-x-auto px-1">
                         <table class="w-full text-sm">
-                            <thead class="text-xs font-semibold uppercase tracking-wider text-muted">
+                            <thead class="t-section">
                                 <tr>
                                     <th scope="col" class="pb-2 text-start font-semibold">{{ t('admin.search.col.page') }}</th>
                                     <th scope="col" class="pb-2 ps-3 text-end font-semibold">{{ t('admin.search.col.impressions') }}</th>
@@ -96,7 +96,7 @@ export const SearchSection = {
                     <p v-if="!rows.length" class="mt-3 text-sm text-muted">{{ t('admin.search.none') }}</p>
                     <div v-else class="-mx-1 mt-4 overflow-x-auto px-1">
                         <table class="w-full text-sm">
-                            <thead class="text-xs font-semibold uppercase tracking-wider text-muted">
+                            <thead class="t-section">
                                 <tr>
                                     <th scope="col" class="pb-2 text-start font-semibold">{{ view === 'pages' ? t('admin.search.col.page') : t('admin.search.col.query') }}</th>
                                     <th scope="col" class="pb-2 ps-3 text-end font-semibold">{{ t('admin.search.col.clicks') }}</th>

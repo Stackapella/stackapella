@@ -3033,9 +3033,6 @@
         "warmUpOurs": "El habitual"
     },
     "plus": {
-        "storyChoir": "Aprender a cantar es gratis. Plus es para lo que creas: unas 15 canciones al mes cantadas por IA con una voz como la tuya, tuyas para descargar; crear un grupo de coro o invitar a amigos a tus canciones (quien invites entra gratis); más espacio para tus grabaciones; y MP3 y cada parte por separado.",
-        "headlineChoir": "Canciones con una voz como la tuya. Cantad juntos. Más espacio.",
-        "storySolo": "Aprender a cantar es gratis, también con tus amigos y tu coro. Plus es para trabajarlo a fondo: más espacio para tus grabaciones, y MP3 y cada voz por separado.",
         "next": {
             "choirDownload": "Volver a tu coro",
             "inviteFriend": "Volver a tu canción",
@@ -3043,9 +3040,7 @@
             "carryOn": "Seguir"
         },
         "momentPrice": "Plus cuesta {year} al año o {month} al mes.",
-        "headlineSolo": "Más espacio. Todos los formatos.",
         "title": "Stackapella Plus",
-        "story": "Aprender a cantar es gratis. Plus es para formar equipo y para trabajarlo a fondo: crea un grupo de coro o invita a amigos a tu canción (todas las personas que invites se unen gratis), más espacio para tus grabaciones, y MP3 y cada voz por separado.",
         "moment": {
             "choirFriendsUsed": "Tu coro gratis incluye a una persona, y {name} ya está en él. Más personas vienen con Plus.",
             "choirFriends": "Más personas en tus coros vienen con Plus, igual que unas 15 canciones al mes con una voz como la tuya.",
@@ -3134,16 +3129,6 @@
         "failed": "No se pudo abrir la página de pago ahora. Vuelve a intentarlo en un momento.",
         "pendingHint": "Tarda un momento después del pago. La página se actualiza sola cuando termina.",
         "noSubscription": "Esta cuenta no tiene ninguna suscripción que gestionar.",
-        "headline": "Cantar juntos. Más espacio. Todos los formatos.",
-        "highlight": {
-            "togetherText": "Crea un grupo de coro o invita a amigos a cantar tu canción. Todas las personas que invites se unen gratis.",
-            "together": "Cantar juntos",
-            "freeTextSolo": "Todas las canciones y cursos, todos los entrenamientos que quieras, tu historial, y cantar con amigos y con tu coro, sin pagar nada.",
-            "extras": "Más espacio y extras",
-            "extrasText": "50 GB para grabaciones, y MP3 y cada voz por separado.",
-            "free": "Gratis para cada cantante",
-            "freeText": "Todas las canciones y cursos, todos los entrenamientos que quieras, tu historial, y unirte a cualquier coro o canción a la que te inviten, sin pagar nada."
-        },
         "save": "Ahorra un {percent}%",
         "billedMonthly": "Pago mensual",
         "perYear": "al año",
@@ -3161,7 +3146,23 @@
             "free": "Gratis para todos"
         },
         "footnote": "Los grupos de coro y Enviar a mi docente son para mayores de 18 años. Los coaches tienen Plus gratis mientras estén activos.",
-        "included": "Todo lo que añade Plus está incluido aquí: este Stackapella funciona en su propio servidor, así que todas las cuentas lo tienen todo. No hay nada que comprar."
+        "included": "Todo lo que añade Plus está incluido aquí: este Stackapella funciona en su propio servidor, así que todas las cuentas lo tienen todo. No hay nada que comprar.",
+        "page": {
+            "headline": "Aprender es gratis. Plus, para lo que creas.",
+            "choir": "Tu propio coro con IA.",
+            "choirFact": "Cada voz de una canción cantada por IA con una voz como la tuya: {minutes} minutos al mes, unas {songs} canciones, cada una tuya para descargar.",
+            "choirFactPlain": "Cada voz de una canción cantada por IA con una voz como la tuya, cada una tuya para descargar.",
+            "together": "Crea grupos de coro.",
+            "togetherFact": "Invita a amigos a tus canciones y da a cada cantante de un grupo una parte. Todas las personas que invites se unen gratis.",
+            "togetherSeats": "Invita a amigos a cantar en tus canciones, y se unen gratis. Plus también es tu plaza en cualquier grupo de coro.",
+            "storage": "Espacio para cada toma.",
+            "storageFact": "{storage} para tus grabaciones.",
+            "storageFactPlain": "Más espacio para tus grabaciones.",
+            "stems": "Cada voz en su propio archivo.",
+            "stemsFact": "Cada voz en su propio archivo de audio, y la mezcla en MP3.",
+            "private": "Arreglos privados ilimitados.",
+            "privateFact": "Compartidos por enlace o con tu coro."
+        }
     },
     "reminders": {
         "title": "Recordatorios de práctica",

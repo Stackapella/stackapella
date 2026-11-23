@@ -40,6 +40,7 @@ use App\Support\Languages\Languages;
 use App\Support\Media\Instruments;
 use App\Support\OwnChoir\OwnChoir;
 use App\Support\Rights\RightsHere;
+use App\Support\Site\PlusFeatures;
 use App\Support\Templates\SheetImport;
 use App\Support\Trust\Blocklist;
 use App\Support\Trust\Country;
@@ -129,6 +130,8 @@ final class AuthController extends Controller
             'ownChoirTogether' => ChoirTogether::on($request->user() instanceof User ? $request->user() : null),
             // The AI marking the app writes into its own exports holding an AI voice (EU AI Act Article 50).
             'aiMark' => AiMark::forApp(),
+            // Plus's numbers as the site's Plus words give them, so the app's Plus page never types its own.
+            'plusLimits' => PlusFeatures::limits(),
             // Song requests (the song_requests switch); staff see them before (account.songRequests).
             'songRequests' => $flags->on('song_requests'),
             'schools' => $flags->on('schools'),

@@ -163,7 +163,7 @@ const PeopleList = {
     template: `
         <section class="space-y-6" aria-labelledby="people-h">
             <div>
-                <h1 id="people-h" class="text-3xl font-extrabold tracking-tight text-cream">{{ t('admin.people.title') }}</h1>
+                <h1 id="people-h" class="t-title text-cream">{{ t('admin.people.title') }}</h1>
                 <p class="mt-1 text-muted">{{ t('admin.people.intro') }}</p>
             </div>
             <section v-if="countries && countries.length" aria-labelledby="countries-h" class="space-y-2" data-countries>
@@ -193,7 +193,7 @@ const PeopleList = {
             <EmptyState v-else-if="!people.length" icon="list" :title="t('admin.people.none')" />
             <!-- One grid for the header and every row, so the columns line up whatever a row holds; a phone stacks each row as a card, each value with its label. -->
             <div v-else class="overflow-hidden rounded-2xl border border-line" data-people>
-                <div class="hidden gap-x-4 border-b border-line bg-panel px-4 py-2 text-xs font-semibold uppercase tracking-wider text-muted md:grid" :class="COLUMNS" aria-hidden="true">
+                <div class="hidden gap-x-4 border-b border-line bg-panel px-4 py-2 t-section md:grid" :class="COLUMNS" aria-hidden="true">
                     <span>{{ t('admin.people.col.person') }}</span><span>{{ t('admin.people.plan') }}</span><span>{{ t('admin.people.joinedLabel') }}</span><span>{{ t('admin.people.lastActiveLabel') }}</span><span>{{ t('admin.people.col.activity') }}</span><span>{{ t('admin.people.col.status') }}</span>
                 </div>
                 <ul class="divide-y divide-line">
@@ -274,7 +274,7 @@ const PersonPage = {
             <template v-else>
                 <div class="flex flex-wrap items-start gap-3">
                     <div class="min-w-0 flex-1">
-                        <h1 id="person-h" class="text-3xl font-extrabold tracking-tight text-cream" translate="no">{{ person.name }}</h1>
+                        <h1 id="person-h" class="t-title text-cream" translate="no">{{ person.name }}</h1>
                         <p class="mt-1 text-muted" translate="no">{{ person.email }}<span v-if="person.handle"> · @{{ person.handle }}</span></p>
                     </div>
                     <span class="flex flex-wrap gap-1.5"><StatusChip v-for="c in chipsOf(person)" :key="c.label" :tone="c.tone" :label="c.label" /></span>

@@ -57,7 +57,7 @@ export const BreadthSection = {
     template: `
         <section class="space-y-6" aria-labelledby="breadth-h" data-breadth>
             <div>
-                <h1 id="breadth-h" class="text-2xl font-extrabold tracking-tight text-cream">{{ t('admin.nav.breadth') }}</h1>
+                <h1 id="breadth-h" class="text-2xl font-bold text-cream">{{ t('admin.nav.breadth') }}</h1>
                 <p class="mt-1 max-w-prose text-sm text-muted">{{ report ? t('admin.breadth.intro', { from: day(report.from), to: day(report.to), floor: report.floor }) : t('admin.breadth.introShort') }}</p>
             </div>
             <LoadFailed v-if="failed" :message="t('admin.breadth.failed')" @retry="load" />
@@ -67,7 +67,7 @@ export const BreadthSection = {
                 <dl class="card grid grid-cols-2 overflow-hidden min-[900px]:grid-cols-4" data-breadth-headline>
                     <div class="-mb-px -me-px min-w-0 border-b border-e border-line p-4 sm:p-5" data-measure="threePlus">
                         <dt class="text-sm text-muted">{{ t('admin.breadth.threePlus') }}</dt>
-                        <dd class="mt-2 text-3xl font-extrabold tabular-nums tracking-tight text-cream"><span v-if="readable" data-value>{{ pct(report.headline.threePlus) }}</span><span v-else class="text-sm font-normal text-muted">{{ t('admin.breadth.tooFew') }}</span></dd>
+                        <dd class="mt-2 text-3xl font-bold tabular-nums tracking-tight text-cream"><span v-if="readable" data-value>{{ pct(report.headline.threePlus) }}</span><span v-else class="text-sm font-normal text-muted">{{ t('admin.breadth.tooFew') }}</span></dd>
                     </div>
                     <div v-for="m in moves" :key="m.key" class="-mb-px -me-px min-w-0 border-b border-e border-line p-4 sm:p-5" :data-measure="m.key">
                         <dt class="text-sm text-muted">{{ m.label }}</dt>

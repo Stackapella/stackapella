@@ -61,6 +61,11 @@
             "text": "AI-generated singing voice (synthetic). Made by Stackapella with the SoulX-Singer model. Marked under EU AI Act Article 50.",
             "generator": "Stackapella voices (SoulX-Singer)",
             "digitalSourceType": "http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia"
+        },
+        "plusLimits": {
+            "choirMinutes": 60,
+            "choirSongs": 15,
+            "storageBytes": 53687091200
         }
     }
 }

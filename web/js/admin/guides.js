@@ -23,7 +23,7 @@ export const GuidesSection = {
     template: `
         <div class="space-y-6">
             <div>
-                <h1 class="text-2xl font-extrabold tracking-tight text-cream">{{ t('admin.nav.guides') }}</h1>
+                <h1 class="text-2xl font-bold text-cream">{{ t('admin.nav.guides') }}</h1>
                 <p class="mt-1 max-w-prose text-sm text-muted">{{ t('admin.guides.intro') }}</p>
             </div>
             <LoadFailed v-if="failed" :message="failed" @retry="load" />

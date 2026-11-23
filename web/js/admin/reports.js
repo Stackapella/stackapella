@@ -29,7 +29,7 @@ export const ReportsSection = {
     template: `
         <div class="space-y-6">
             <div class="flex flex-wrap items-end justify-between gap-3">
-                <h1 class="text-2xl font-extrabold tracking-tight text-cream">{{ t('admin.nav.reports') }}</h1>
+                <h1 class="text-2xl font-bold text-cream">{{ t('admin.nav.reports') }}</h1>
                 <div class="seg flex" role="radiogroup" :aria-label="t('admin.reports.show')">
                     <button v-for="s in ['open', 'closed']" :key="s" type="button" role="radio" :aria-checked="status === s" class="seg-option" @click="status = s; load()">{{ s === 'open' ? t('admin.reports.open') : t('admin.reports.closed') }}</button>
                 </div>

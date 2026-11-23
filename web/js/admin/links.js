@@ -9,7 +9,7 @@ export const LinksSection = {
     props: { me: { type: Object, required: true } },
     template: `
         <div class="space-y-6">
-            <h1 class="text-2xl font-extrabold tracking-tight text-cream">{{ t('admin.nav.links') }}</h1>
+            <h1 class="text-2xl font-bold text-cream">{{ t('admin.nav.links') }}</h1>
             <BetaLinkCard kind="invite" :me="me" />
             <BetaLinkCard kind="preview" :me="me" />
         </div>`,

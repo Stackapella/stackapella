@@ -35,7 +35,7 @@ export const SourcesSection = {
         <section class="space-y-6" aria-labelledby="sources-h" data-sources>
             <div class="flex flex-wrap items-end justify-between gap-4">
                 <div>
-                    <h1 id="sources-h" class="text-3xl font-extrabold tracking-tight text-cream">{{ t('admin.sources.title') }}</h1>
+                    <h1 id="sources-h" class="t-title text-cream">{{ t('admin.sources.title') }}</h1>
                     <p class="mt-1 text-sm text-muted">{{ report ? t('admin.sources.intro', { from: day(report.from), to: day(report.to), zone: zoneName(report.timezone) }) : t('admin.sources.introLoading') }}</p>
                 </div>
                 <div class="seg flex" role="radiogroup" :aria-label="t('admin.usage.range')">

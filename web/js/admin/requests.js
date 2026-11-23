@@ -25,7 +25,7 @@ export const RequestsSection = {
     template: `
         <section class="space-y-6" aria-labelledby="requests-h" data-admin-requests>
             <div>
-                <h1 id="requests-h" class="text-3xl font-extrabold tracking-tight text-cream">{{ t('admin.requests.title') }}</h1>
+                <h1 id="requests-h" class="t-title text-cream">{{ t('admin.requests.title') }}</h1>
                 <p class="mt-1 max-w-prose text-sm text-muted">{{ t('admin.requests.intro') }}</p>
             </div>
             <LoadFailed v-if="failed" :message="failed" @retry="load" />

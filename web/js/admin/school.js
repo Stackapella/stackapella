@@ -23,7 +23,7 @@ export const SchoolSection = {
     template: `
         <section class="space-y-6" aria-labelledby="school-h" data-admin-school>
             <div>
-                <h1 id="school-h" class="text-3xl font-extrabold tracking-tight text-cream">{{ t('admin.school.title') }}</h1>
+                <h1 id="school-h" class="t-title text-cream">{{ t('admin.school.title') }}</h1>
                 <p class="mt-1 max-w-prose text-sm text-muted">{{ t('admin.school.intro') }}</p>
             </div>
             <LoadFailed v-if="failed" :message="t('admin.school.failed')" @retry="load" />
@@ -50,7 +50,7 @@ export const SchoolSection = {
             </ul>
             <div v-else class="card -mx-1 overflow-x-auto p-5 md:p-6">
                 <table class="w-full text-sm">
-                    <thead class="text-xs font-semibold uppercase tracking-wider text-muted">
+                    <thead class="t-section">
                         <tr>
                             <th scope="col" class="pb-2 text-start font-semibold">{{ t('admin.school.col.code') }}</th>
                             <th scope="col" class="pb-2 ps-3 text-start font-semibold">{{ t('admin.school.col.teacher') }}</th>

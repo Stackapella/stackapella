@@ -15694,7 +15694,8 @@ a.cp-ll-block:focus-visible { outline: 3px solid var(--color-cream); outline-off
 @media (max-width: 25rem) { :root[data-skin='game'][data-gs] #app header [data-ui='wordmark'] { font-size-adjust: 0.35; --arc-ex: 0.35; } :root[data-skin='game'][data-gs] #app header .ge-p1 > span:not(.ge-p1-tag) { display: none; } }
 @media (max-width: 374px) { :root[data-skin='game'][data-gs] #app header [data-ui='wordmark'] { font-size-adjust: 0.3; --arc-ex: 0.3; } } /* as the site's .s-word */
 @media (max-width: 21.5rem) { :root[data-skin='game'][data-gs] #app header .ge-p1 { display: none; } }
-:root[data-skin='game'][data-gs] #app header .glass-bubble { border-radius: 0; background: transparent; background-image: none; box-shadow: inset 0 0 0 var(--arc-edge-w) var(--arc-purple); font-family: var(--arc-pixel); font-weight: 400; font-size-adjust: 0.5; --arc-ex: 0.5; }
+/* The flat round header buttons (Back, the Studio's settings: the 2026-11-23 language) keep the game's purple box, as the glass ones did. */
+:root[data-skin='game'][data-gs] #app header :is(.glass-bubble, [data-header-btn]) { border-radius: 0; background: transparent; background-image: none; box-shadow: inset 0 0 0 var(--arc-edge-w) var(--arc-purple); font-family: var(--arc-pixel); font-weight: 400; font-size-adjust: 0.5; --arc-ex: 0.5; }
 :root[data-skin='game'][data-gs] #app header .glass-bubble::before, :root[data-skin='game'][data-gs] #app header .glass-bubble::after { display: none; }
 :root[data-skin='game'][data-gs] #app header [data-ui='player'] { box-shadow: inset 0 0 0 var(--arc-edge-w) var(--color-accent); border-radius: 0; padding: 0.3rem; }
 :root[data-skin='game'][data-gs] #app header [data-ui='player'] > img { width: 1.75rem; height: 1.75rem; flex-shrink: 0; object-fit: cover; border-radius: 0; box-shadow: none; }

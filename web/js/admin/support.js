@@ -229,7 +229,7 @@ export const SupportSection = {
     template: `
         <div class="space-y-6">
             <div class="flex flex-wrap items-end justify-between gap-3">
-                <h1 class="text-2xl font-extrabold tracking-tight text-cream">{{ t('admin.nav.support') }}</h1>
+                <h1 class="text-2xl font-bold text-cream">{{ t('admin.nav.support') }}</h1>
                 <div class="flex flex-wrap items-center gap-2">
                     <div class="seg flex" role="radiogroup" :aria-label="t('admin.support.show')">
                         <button v-for="(word, key) in FILTERS" :key="key" type="button" role="radio" :aria-checked="filter === key ? 'true' : 'false'" class="seg-option" @click="pick(key)">{{ t(word) }}</button>

@@ -25,8 +25,7 @@ final class LearningController extends Controller
 
     public function update(LearningRequest $request, SaveLearning $save, #[CurrentUser] User $user): JsonResponse
     {
-        /** @var array<string, mixed> $progress */
-        $progress = $request->validated('progress');
+        $progress = $request->progress();
 
         return response()->json(['data' => SaveLearning::fields($save->handle($user, (int) $request->validated('version'), (string) $request->validated('changeId'), $progress, (int) ($request->validated('epoch') ?? 0)))]);
     }

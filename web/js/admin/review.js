@@ -106,7 +106,7 @@ const QueueList = {
     template: `
         <div class="space-y-6">
             <div class="flex flex-wrap items-end justify-between gap-3">
-                <h1 class="text-2xl font-extrabold tracking-tight text-cream">{{ t('admin.nav.review') }}</h1>
+                <h1 class="text-2xl font-bold text-cream">{{ t('admin.nav.review') }}</h1>
                 <div class="flex flex-wrap gap-2">
                     <label class="sr-only" for="review-status">{{ t('admin.review.filter.status') }}</label>
                     <select id="review-status" v-model="status" class="input !w-auto !py-2" @change="load()"><option v-for="f in FILTERS" :key="f.value" :value="f.value">{{ t(f.label) }}</option></select>
@@ -314,7 +314,7 @@ const ReviewTake = {
             <template v-else>
                 <header class="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                        <h1 ref="heading" tabindex="-1" class="text-2xl font-extrabold tracking-tight text-cream outline-none" translate="no">{{ takeTitle(item) }}</h1>
+                        <h1 ref="heading" tabindex="-1" class="text-2xl font-bold text-cream outline-none" translate="no">{{ takeTitle(item) }}</h1>
                         <p class="text-sm text-muted">{{ t('admin.review.sungBy', { name: singerName(item.singer) }) }}<template v-if="item.singer.credit"> · {{ t('admin.review.creditAs', { credit: item.singer.credit }) }}</template> · {{ when(item.createdAt) }}</p>
                     </div>
                     <div class="flex flex-wrap gap-2">

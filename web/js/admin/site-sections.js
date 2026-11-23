@@ -58,7 +58,7 @@ export const SiteSectionsCard = {
             <p v-if="failed" class="mt-4 text-sm text-muted">{{ t('admin.growth.sections.failed') }} <button type="button" class="link" @click="load">{{ t('common.tryAgain') }}</button></p>
             <p v-else-if="!report" class="mt-4 text-sm text-muted" role="status">{{ t('admin.loading') }}</p>
             <table v-else class="mt-4 w-full text-sm" data-growth-site-table>
-                <thead class="text-xs font-semibold uppercase tracking-wider text-muted">
+                <thead class="t-section">
                     <tr class="border-b border-line">
                         <th scope="col" class="pb-2 pe-2 text-start font-semibold">{{ t('admin.growth.sections.section') }}</th>
                         <th scope="col" class="pb-2 px-2 text-start font-semibold">{{ t('admin.growth.sections.byDay') }}</th>

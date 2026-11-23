@@ -39,7 +39,8 @@
                 "plusPrivate",
                 "choirSeats",
                 "ownChoirTogether",
-                "aiMark"
+                "aiMark",
+                "plusLimits"
             ],
             "properties": {
                 "methods": {
@@ -315,6 +316,27 @@
                         },
                         "digitalSourceType": {
                             "type": "string"
+                        }
+                    }
+                },
+                "plusLimits": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "choirMinutes",
+                        "choirSongs",
+                        "storageBytes"
+                    ],
+                    "description": "Plus's numbers, as the site's Plus words give them: the AI choir's part-minutes a month, about how many songs that is (minutes over 4), and the storage in bytes.",
+                    "properties": {
+                        "choirMinutes": {
+                            "type": "integer"
+                        },
+                        "choirSongs": {
+                            "type": "integer"
+                        },
+                        "storageBytes": {
+                            "type": "integer"
                         }
                     }
                 }

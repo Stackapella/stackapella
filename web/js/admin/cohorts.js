@@ -28,7 +28,7 @@ export const CohortsSection = {
     template: `
         <section class="space-y-6" aria-labelledby="cohorts-h" data-cohorts>
             <div>
-                <h1 id="cohorts-h" class="text-3xl font-extrabold tracking-tight text-cream">{{ t('admin.cohorts.title') }}</h1>
+                <h1 id="cohorts-h" class="t-title text-cream">{{ t('admin.cohorts.title') }}</h1>
                 <p class="mt-1 max-w-prose text-sm text-muted">{{ t('admin.cohorts.intro', { zone: zoneName(report?.timezone) }) }}</p>
             </div>
             <LoadFailed v-if="failed" :message="t('admin.cohorts.failed')" @retry="load" />
@@ -46,7 +46,7 @@ export const CohortsSection = {
             </ul>
             <div v-else class="card -mx-1 overflow-x-auto p-5 md:p-6">
                 <table class="w-full text-sm">
-                    <thead class="text-xs font-semibold uppercase tracking-wider text-muted">
+                    <thead class="t-section">
                         <tr>
                             <th scope="col" class="pb-2 text-start font-semibold">{{ t('admin.cohorts.col.month') }}</th>
                             <th scope="col" class="pb-2 ps-3 text-end font-semibold">{{ t('admin.cohorts.col.signedUp') }}</th>

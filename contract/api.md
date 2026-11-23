@@ -1781,7 +1781,9 @@ that differs first shows, if the device fits `audience` and isn't in one it `exc
 the arm label on the device (never an id). `experiment` stays onb1's until it ends.
 **Request:** none.
 
-`aiMark` (since 2026-11-23, EU AI Act Article 50): `{ "text", "generator", "digitalSourceType" }`, the one wording
+`plusLimits` (since 2026-11-23): Plus's numbers as the site's Plus words give them, `{ "choirMinutes", "choirSongs",
+"storageBytes" }`: the AI choir's part-minutes a month, about how many songs that is (minutes over 4, at least 1), and
+the storage, from the server's config, so the app never types them. `aiMark` (since 2026-11-23, EU AI Act Article 50): `{ "text", "generator", "digitalSourceType" }`, the one wording
 of the machine-readable marking every file holding an AI voice carries. The app writes it into its own exports that
 hold one (WAV: `LIST`/`INFO` `ICMT` the text and `ISFT` the generator, and a `bext` description; MP3: ID3 `COMM` the
 text and `TXXX` `AI_GENERATED` "true" and `AI_GENERATOR`); the server writes it into every AAC it makes from AI audio
@@ -2710,6 +2712,19 @@ The server keeps `progress` as sent (it never merges or drops a key). `progress.
 kept warm-ups (docs/warmup-builder-plan.md): `[{ code, name, keptAt, removedAt? }]`, at most 40,
 merged by the app by `code`, the newest of `keptAt` and `removedAt` winning; starting the course
 over keeps them.
+`progress.rehearsals` (since 2026-11-23, docs/rehearsal-ready-plan.md) is a part's plan for a rehearsal date:
+`[{ songId, partKey, date: "YYYY-MM-DD", madeAt, removedAt?, groupId?, readyAt?, days: [{ date, phrases: [first, last],
+whole?, doneAt? }] }]` (the times in milliseconds, as `warmups`), at most 20 (each at most 60 days): each practice day's phrases (0-based indexes, inclusive, kept as made even if the
+song's phrasing changes) and `whole: true` on the last day (the whole part with the others); `groupId` when it came from
+a choir group's date (it follows that date, and goes when the group's date does). Merged by the app by `songId` and
+`partKey`: the newest of `madeAt` and `removedAt` wins the plan (its days and phrases with it), a day's `doneAt` kept
+when either side has it, `readyAt` the later. The date is the singer's own: never sent anywhere but here.
+`progress.chordAgain` (since 2026-11-23, docs/first-week-plan.md change 2) is the first week's "your note inside the
+chord": `[{ date: "YYYY-MM-DD", inTuneSeconds, centsOff }]`, day one's included, at most 14, numbers only (seconds in
+tune of 5, 0 to 5; the mean cents off, 0 to 1200), never audio. Merged by the app keeping every date from both sides,
+one entry a date (the same date on both keeps the greater `inTuneSeconds`). The server refuses either key malformed
+(`422`).
+Starting the course over keeps both.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|

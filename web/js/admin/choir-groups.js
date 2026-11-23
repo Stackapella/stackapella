@@ -44,7 +44,7 @@ export const ChoirGroupsSection = {
     template: `
         <section class="space-y-6" aria-labelledby="choir-groups-h" data-choir-groups>
             <div>
-                <h1 id="choir-groups-h" class="text-3xl font-extrabold tracking-tight text-cream">{{ t('admin.choirGroups.title') }}</h1>
+                <h1 id="choir-groups-h" class="t-title text-cream">{{ t('admin.choirGroups.title') }}</h1>
                 <p class="mt-1 text-sm text-muted">{{ report ? t('admin.choirGroups.intro', { shown: groups.length, total: report.total, zone: zoneName(report.timezone) }) : t('admin.choirGroups.introLoading') }}<template v-if="report?.paused"> {{ t('admin.choirGroups.pausedCount', { count: report.paused }) }}</template></p>
             </div>
             <LoadFailed v-if="failed" :message="failed" @retry="load" />

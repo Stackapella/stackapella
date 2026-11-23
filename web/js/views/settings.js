@@ -133,7 +133,7 @@ export const SettingsView = {
                 <p v-if="!account.loaded" class="text-muted" role="status">{{ t('settings.loading') }}</p>
                 <!-- A guest (docs/account-nudges-plan.md, card D): what's on this device, what an account adds, and the way in. -->
                 <section v-else-if="!account.me" class="card space-y-4 p-5 md:p-6" aria-labelledby="guest-heading" data-guest-settings>
-                    <h2 id="guest-heading" class="text-xl font-bold text-cream">{{ t('settings.guest.title') }}</h2>
+                    <h2 id="guest-heading" class="text-lg font-semibold text-cream">{{ t('settings.guest.title') }}</h2>
                     <p class="text-cream" data-guest-tally>{{ guestTally }}</p>
                     <p class="text-muted">{{ t('settings.guest.adds') }}</p>
                     <div class="flex flex-wrap items-center gap-x-5 gap-y-3">
@@ -152,7 +152,7 @@ export const SettingsView = {
                 <!-- Grouped by goal (the consultant's UX review, item 7): Learning, Choir and groups, Sound and voice care, Account and
                      device. Each group is one stop in the side nav; the old sections keep their ids inside them. -->
                 <div v-if="account.loaded" id="learning" class="scroll-mt-6 space-y-4" data-section data-group="learning" aria-labelledby="learning-heading">
-                    <h2 id="learning-heading" class="text-xl font-bold text-cream">{{ t('settings.nav.learning') }}</h2>
+                    <h2 id="learning-heading" class="t-section">{{ t('settings.nav.learning') }}</h2>
                 <!-- Game mode (Hillel: "a section in the settings (not at the top)"), signed in or not. -->
                 <section id="game" class="space-y-3" aria-labelledby="game-heading">
                     <h3 id="game-heading" class="sr-only">{{ t('settings.nav.game') }}</h3><!-- the Game mode row under it says it: no second heading -->
@@ -204,7 +204,7 @@ export const SettingsView = {
 
                 <!-- Choir and groups: your groups, the voice kept for Hear yourself as a choir, and Lend your voice. -->
                 <section v-if="account.me" id="choir" class="scroll-mt-6 space-y-3" data-section data-group="choir" aria-labelledby="choir-heading">
-                    <h2 id="choir-heading" class="text-xl font-bold text-cream">{{ t('settings.nav.choir') }}</h2>
+                    <h2 id="choir-heading" class="t-section">{{ t('settings.nav.choir') }}</h2>
                     <div class="card divide-y divide-line overflow-hidden">
                         <a v-if="account.me" href="/groups" class="flex items-center justify-between gap-4 p-5 hover:bg-raised/50" @click.prevent="navigate('/groups')"><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('groups.title') }}</span><span class="block text-sm text-muted">{{ t('groups.settingsHint') }}</span></span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" /></a>
                     </div>
@@ -213,14 +213,14 @@ export const SettingsView = {
                 <!-- Lend your voice (docs/lend-your-voice-plan.md): no new tab, a row here, while its switch is on -->
                 <a v-if="account.me && account.config?.lendVoice" href="/voices" class="card-interactive flex items-center gap-4 p-5" data-lend-voice @click.prevent="navigate('/voices')">
                     <span class="grid size-10 shrink-0 place-items-center rounded-full bg-raised text-cream" aria-hidden="true"><Icon name="mic" :size="20" /></span>
-                    <span class="min-w-0 flex-1"><span class="block font-bold text-cream">{{ t('voices.title') }}</span><span class="block text-sm text-muted">{{ t('voices.settingsHint') }}</span></span>
+                    <span class="min-w-0 flex-1"><span class="block font-semibold text-cream">{{ t('voices.title') }}</span><span class="block text-sm text-muted">{{ t('voices.settingsHint') }}</span></span>
                     <Icon name="arrow" :size="18" class="text-muted" />
                 </a>
                 </section>
 
                 <!-- Sound and voice care: this device's sounds and the voice care notes. -->
                 <section v-if="account.loaded" id="sound" class="scroll-mt-6 space-y-3" data-section data-group="sound" aria-labelledby="sound-heading">
-                    <h2 id="sound-heading" class="text-xl font-bold text-cream">{{ t('settings.nav.sound') }}</h2>
+                    <h2 id="sound-heading" class="t-section">{{ t('settings.nav.sound') }}</h2>
                     <div class="card divide-y divide-line overflow-hidden">
                         <div class="py-3 pe-3 ps-5" data-sounds><Switch :on="prefs.sounds" :label="t('settings.device.sounds')" :hint="sk('settings.device.soundsHintSerious', 'settings.device.soundsHint')" @change="(on) => (prefs.sounds = on)" /></div>
                         <!-- Voice care (docs/voice-care-plan.md): the 20 and 40 minute notes, on by default; the cool-down stays either way. -->
@@ -230,7 +230,7 @@ export const SettingsView = {
 
                 <!-- Account and device: the profile, sign-in, plan, your data, this device; the notices and Contact us. -->
                 <div v-if="account.loaded" id="settings-account" class="scroll-mt-6 space-y-6" data-section data-group="settings-account" aria-labelledby="settings-account-heading">
-                    <h2 id="settings-account-heading" class="text-xl font-bold text-cream">{{ t('settings.nav.accountDevice') }}</h2>
+                    <h2 id="settings-account-heading" class="t-section">{{ t('settings.nav.accountDevice') }}</h2>
                 <template v-if="account.me && profile">
                     <!-- Profile -->
                     <form id="profile" ref="profile" class="card scroll-mt-6 space-y-5 p-5 md:p-6" @submit.prevent="saveProfile" :aria-label="t('settings.nav.profile')">
@@ -239,7 +239,7 @@ export const SettingsView = {
                             <img v-if="account.me.avatarUrl && avatarFailed !== account.me.avatarUrl" :src="account.me.avatarUrl" alt="" class="size-14 rounded-full object-cover" data-avatar @error="avatarFailed = account.me.avatarUrl" />
                             <span v-else class="bubble bubble-lg grid size-14 place-items-center text-xl font-extrabold" style="--bubble: var(--color-part-1); --bubble-ink: var(--color-part-text-1)" aria-hidden="true" data-avatar>{{ (account.me.name || '?').slice(0, 1) }}</span>
                             <div class="min-w-0 space-y-1.5">
-                                <p class="truncate font-bold text-cream" translate="no">{{ account.me.name }}</p>
+                                <p class="truncate font-semibold text-cream" translate="no">{{ account.me.name }}</p>
                                 <div class="flex flex-wrap gap-2">
                                     <label class="btn-secondary btn-sm cursor-pointer">{{ t('settings.avatar.choose') }}<input type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" @change="avatar" /></label>
                                     <button v-if="account.me.avatarUrl" type="button" class="btn-ghost btn-sm" @click="removeAvatar">{{ t('settings.avatar.remove') }}</button>
@@ -265,7 +265,7 @@ export const SettingsView = {
                                 <input :id="f.id" v-model="profile.xHandle" class="input" spellcheck="false" :aria-describedby="f.describedby" />
                             </Field>
                         </div>
-                        <p class="text-xs text-muted">{{ t('settings.profileNote') }}</p>
+                        <p class="t-hint">{{ t('settings.profileNote') }}</p>
                         <Notice v-if="notice.profile" tone="bad">{{ notice.profile }}</Notice>
                         <!-- The worldwide boards (components/boards.js): 18 and over, saved at once -->
                         <div class="divide-y divide-line rounded-2xl border border-line">
@@ -281,11 +281,11 @@ export const SettingsView = {
 
                     <!-- Account and sign-in: each a row, its change opening under it -->
                     <section id="account" class="scroll-mt-6 space-y-3" aria-labelledby="account-heading">
-                        <h3 id="account-heading" class="text-lg font-bold text-cream">{{ t('settings.nav.account') }}</h3>
+                        <h3 id="account-heading" class="text-lg font-semibold text-cream">{{ t('settings.nav.account') }}</h3>
                         <div class="card divide-y divide-line overflow-hidden">
                             <div class="p-5" data-row="email">
                                 <div class="flex items-center justify-between gap-4">
-                                    <div class="min-w-0"><p class="text-xs text-muted">{{ t('auth.email') }}</p><p class="truncate font-semibold text-cream" translate="no">{{ account.me.email }}</p></div>
+                                    <div class="min-w-0"><p class="t-hint">{{ t('auth.email') }}</p><p class="truncate font-semibold text-cream" translate="no">{{ account.me.email }}</p></div>
                                     <button type="button" class="btn-secondary btn-sm" :aria-expanded="editing === 'email' ? 'true' : 'false'" @click="editing = editing === 'email' ? null : 'email'">{{ t('settings.change') }}</button>
                                 </div>
                                 <Notice v-if="account.me.pendingEmail" tone="info" class="mt-3">{{ t('settings.email.pending', { email: account.me.pendingEmail }) }}</Notice>
@@ -302,7 +302,7 @@ export const SettingsView = {
                             </div>
                             <div class="p-5" data-row="password">
                                 <div class="flex items-center justify-between gap-4">
-                                    <div class="min-w-0"><p class="text-xs text-muted">{{ t('auth.password') }}</p><p class="font-semibold text-cream">{{ account.me.methods.password ? t('settings.password.isSet') : t('settings.password.notSet') }}</p></div>
+                                    <div class="min-w-0"><p class="t-hint">{{ t('auth.password') }}</p><p class="font-semibold text-cream">{{ account.me.methods.password ? t('settings.password.isSet') : t('settings.password.notSet') }}</p></div>
                                     <button type="button" class="btn-secondary btn-sm" :aria-expanded="editing === 'password' ? 'true' : 'false'" @click="editing = editing === 'password' ? null : 'password'">{{ account.me.methods.password ? t('settings.change') : t('settings.methods.add') }}</button>
                                 </div>
                                 <form v-if="editing === 'password'" class="mt-4 space-y-4" @submit.prevent="changePassword">
@@ -318,7 +318,7 @@ export const SettingsView = {
                                 </form>
                             </div>
                             <div class="p-5">
-                                <p class="text-xs text-muted">{{ t('settings.methods.title') }}</p>
+                                <p class="t-hint">{{ t('settings.methods.title') }}</p>
                                 <ul class="mt-2 space-y-1">
                                     <li v-for="(label, method) in METHODS" :key="method" class="flex min-h-11 items-center justify-between gap-3">
                                         <span class="flex items-center gap-2.5" :class="account.me.methods[method] ? 'font-semibold text-cream' : 'text-muted'"><span class="size-2 rounded-full" :class="account.me.methods[method] ? 'bg-good' : 'bg-line'" aria-hidden="true"></span>{{ t(label) }}<span class="sr-only"> · {{ account.me.methods[method] ? t('settings.methods.on') : t('settings.methods.off') }}</span></span>
@@ -334,10 +334,10 @@ export const SettingsView = {
                 <template v-if="account.me && profile">
                     <!-- Plan and storage: the songs as slots, the space as a bar -->
                     <section id="plan" class="scroll-mt-6 space-y-3" aria-labelledby="plan-heading">
-                        <h3 id="plan-heading" class="text-lg font-bold text-cream">{{ t('settings.nav.plan') }}</h3>
+                        <h3 id="plan-heading" class="text-lg font-semibold text-cream">{{ t('settings.nav.plan') }}</h3>
                         <div class="card space-y-5 p-5">
                             <div class="flex flex-wrap items-start justify-between gap-3">
-                                <div class="min-w-0"><p class="font-bold text-cream">{{ account.me.plan === 'plus' ? t('settings.plan.plusName') : t('settings.plan.freeName') }}</p><p class="text-sm text-muted">{{ selfHosted() ? t('settings.plan.included') : schoolUntil ? t('school.settings.plusUntil', { date: formatDate(schoolUntil) }) : account.me.plan === 'plus' ? t('settings.plan.plus') : t('settings.plan.freeLine') }}</p>
+                                <div class="min-w-0"><p class="font-semibold text-cream">{{ account.me.plan === 'plus' ? t('settings.plan.plusName') : t('settings.plan.freeName') }}</p><p class="text-sm text-muted">{{ selfHosted() ? t('settings.plan.included') : schoolUntil ? t('school.settings.plusUntil', { date: formatDate(schoolUntil) }) : account.me.plan === 'plus' ? t('settings.plan.plus') : t('settings.plan.freeLine') }}</p>
                                     <a v-if="config?.schools && account.me.plan !== 'plus' && !selfHosted()" href="/class" class="link mt-1 inline-flex min-h-6 items-center text-sm" data-have-code @click.prevent="navigate('/class')">{{ t('school.settings.haveCode') }}</a></div>
                                 <a v-if="!selfHosted() && !schoolUntil" href="/plus?from=settings" class="btn-sm shrink-0" :class="account.me.plan === 'plus' ? 'btn-secondary' : 'btn-primary'" @click.prevent="navigate('/plus?from=settings')">{{ account.me.plan === 'plus' ? t('plus.manage') : t('settings.plan.seePlus') }}</a>
                             </div>
@@ -345,12 +345,12 @@ export const SettingsView = {
                                 <div v-if="usage.projects.limit !== null" class="space-y-2">
                                     <p data-ui="facts" class="flex justify-between text-sm"><span class="font-semibold text-cream">{{ t('settings.plan.songs') }}</span><span class="tabular-nums text-muted">{{ t('settings.plan.ofLimit', { used: usage.projects.used, limit: usage.projects.limit }) }}</span></p>
                                     <div class="flex gap-1" aria-hidden="true"><span v-for="i in usage.projects.limit" :key="i" class="h-1.5 flex-1 rounded-full" :class="i <= usage.projects.used ? 'bg-good' : 'bg-raised'"></span></div>
-                                    <p class="text-xs text-muted">{{ songsLeftLine }}</p>
+                                    <p class="t-hint">{{ songsLeftLine }}</p>
                                 </div>
                                 <div class="space-y-2">
                                     <p data-ui="facts" class="flex justify-between text-sm"><span class="font-semibold text-cream">{{ t('settings.plan.storage') }}</span><span class="tabular-nums text-muted">{{ t('settings.plan.ofLimit', { used: formatBytes(usage.storage.usedBytes), limit: formatBytes(usage.storage.limitBytes) }) }}</span></p>
                                     <div class="h-1.5 overflow-hidden rounded-full bg-raised" role="meter" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="storagePercent" :aria-label="t('cloud.meter.label')"><div class="h-full rounded-full" :class="storagePercent >= 80 ? 'bg-warn' : 'bg-good'" :style="{ width: Math.max(2, storagePercent) + '%' }"></div></div>
-                                    <a href="/storage" class="link text-xs" @click.prevent="navigate('/storage')">{{ t('cloud.meter.see') }}</a>
+                                    <a href="/storage" class="link text-[13px]" @click.prevent="navigate('/storage')">{{ t('cloud.meter.see') }}</a>
                                 </div>
                             </div>
                             <a v-else href="/storage" class="btn-go" @click.prevent="navigate('/storage')">{{ t('cloud.meter.see') }}</a>
@@ -360,7 +360,7 @@ export const SettingsView = {
 
                     <!-- Your data: download it all; sign out; delete the account -->
                     <section id="data" class="scroll-mt-6 space-y-3" aria-labelledby="data-heading">
-                        <h3 id="data-heading" class="text-lg font-bold text-cream">{{ t('settings.nav.data') }}</h3>
+                        <h3 id="data-heading" class="text-lg font-semibold text-cream">{{ t('settings.nav.data') }}</h3>
                         <div class="card divide-y divide-line overflow-hidden">
                             <div class="flex flex-wrap items-center justify-between gap-4 p-5">
                                 <div class="min-w-0"><p class="font-semibold text-cream">{{ t('settings.export.title') }}</p><p class="text-sm text-muted">{{ exportState && EXPORT[exportState.status] ? t(EXPORT[exportState.status], { date: exportState.expiresAt ? formatDate(exportState.expiresAt) : '' }) : t('settings.export.intro') }}</p></div>
@@ -383,7 +383,7 @@ export const SettingsView = {
                 </template>
                 <!-- This device: everything kept in this browser, deleted at once; signed in or not (a guest keeps the most here). -->
                 <section id="device" class="scroll-mt-6 space-y-3" aria-labelledby="device-heading" data-wipe>
-                    <h3 id="device-heading" class="text-lg font-bold text-cream">{{ t('settings.nav.device') }}</h3>
+                    <h3 id="device-heading" class="text-lg font-semibold text-cream">{{ t('settings.nav.device') }}</h3>
                     <!-- How it looks (the header's Theme button too). -->
                     <div class="card">
                         <div class="flex items-center justify-between gap-4 p-5"><div class="min-w-0"><p class="font-semibold text-cream">{{ t('appearance.title') }}</p><p class="text-sm text-muted">{{ appearanceSummary() }}</p></div><ThemeSwitch /></div>
@@ -397,12 +397,12 @@ export const SettingsView = {
                 <!-- Statements of reasons (views/notices.js): only for someone who has had one. -->
                 <a v-if="account.me && notices" href="/notices" class="card-interactive flex items-center gap-4 p-5" data-notices-row @click.prevent="navigate('/notices')">
                     <span class="grid size-10 shrink-0 place-items-center rounded-full bg-raised text-cream" aria-hidden="true"><Icon name="alert" :size="20" /></span>
-                    <span class="min-w-0 flex-1"><span class="block font-bold text-cream">{{ t('notices.title') }}</span><span class="block text-sm text-muted">{{ t('notices.settingsHint', { count: notices }) }}</span></span>
+                    <span class="min-w-0 flex-1"><span class="block font-semibold text-cream">{{ t('notices.title') }}</span><span class="block text-sm text-muted">{{ t('notices.settingsHint', { count: notices }) }}</span></span>
                     <Icon name="arrow" :size="18" class="text-muted" />
                 </a>
                 <a href="/contact?from=/settings" class="card-interactive flex items-center gap-4 p-5" data-contact-row @click.prevent="navigate('/contact?from=/settings')">
                     <span class="grid size-10 shrink-0 place-items-center rounded-full bg-raised text-cream" aria-hidden="true"><Icon name="info" :size="20" /></span>
-                    <span class="min-w-0 flex-1"><span class="block font-bold text-cream">{{ t('contact.title') }}</span><span class="block text-sm text-muted">{{ t('settings.contactHint') }}</span></span>
+                    <span class="min-w-0 flex-1"><span class="block font-semibold text-cream">{{ t('contact.title') }}</span><span class="block text-sm text-muted">{{ t('settings.contactHint') }}</span></span>
                     <Icon name="arrow" :size="18" class="text-muted" />
                 </a>
                 </div>
@@ -412,7 +412,7 @@ export const SettingsView = {
                     <a v-for="page in LEGAL" :key="page.path" :href="siteUrl(page.path)" class="link-quiet inline-flex min-h-6 items-center text-muted">{{ t(page.word) }}</a>
                 </nav>
                 <!-- The licence's credit (the AAL): on a self-hosted install, the name, Stackapella and the address, never changed. -->
-                <p v-if="selfHosted()" class="text-center text-xs text-muted" data-credit><span translate="no">{{ t('settings.credit') }}</span> · <a href="https://stackapella.com" class="link-quiet" rel="noopener" translate="no">{{ CREDIT_SITE }}</a></p>
+                <p v-if="selfHosted()" class="t-hint text-center" data-credit><span translate="no">{{ t('settings.credit') }}</span> · <a href="https://stackapella.com" class="link-quiet" rel="noopener" translate="no">{{ CREDIT_SITE }}</a></p>
                     </div>
                 </div>
             <Modal v-if="confirmDelete" :title="t('settings.delete.title')" :dismissable="busy !== 'delete'" @close="confirmDelete = false">

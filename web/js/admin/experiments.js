@@ -67,7 +67,7 @@ export const ExperimentsSection = {
         <section class="space-y-6" aria-labelledby="experiments-h" data-experiments>
             <div class="flex flex-wrap items-end justify-between gap-4">
                 <div>
-                    <h1 id="experiments-h" class="text-3xl font-extrabold tracking-tight text-cream">{{ t('admin.experiments.title') }}</h1>
+                    <h1 id="experiments-h" class="t-title text-cream">{{ t('admin.experiments.title') }}</h1>
                     <p class="mt-1 max-w-prose text-muted">{{ t('admin.experiments.intro') }}</p>
                 </div>
                 <div class="flex flex-wrap items-end gap-3">

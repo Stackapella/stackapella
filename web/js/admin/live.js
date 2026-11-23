@@ -70,7 +70,7 @@ export const LiveSection = {
         <section class="space-y-6" aria-labelledby="live-h" data-live>
             <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
                 <div class="min-w-0">
-                    <h1 id="live-h" class="text-3xl font-extrabold tracking-tight text-cream">{{ t('admin.live.title') }}</h1>
+                    <h1 id="live-h" class="t-title text-cream">{{ t('admin.live.title') }}</h1>
                     <p class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
                         <span class="inline-flex items-center gap-1.5 font-semibold" :class="state === 'live' ? 'text-cream' : ''" role="status" :data-live-state="state"><span class="size-2 rounded-full" :class="STATE_DOT[state]" aria-hidden="true"></span>{{ t(STATE_WORDS[state]) }}</span>
                         <template v-if="updatedAt"><span aria-hidden="true">·</span><span data-live-updated>{{ t('admin.usage.updated', { when: updated }) }}</span></template>
@@ -89,7 +89,7 @@ export const LiveSection = {
                     <section class="-mb-px -me-px min-w-0 border-b border-e border-line p-4 sm:p-5" aria-labelledby="live-now-h" data-live-now>
                         <h2 id="live-now-h" class="text-sm text-muted">{{ t('admin.live.rightNow') }}</h2>
                         <p class="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                            <span class="text-4xl font-extrabold tabular-nums tracking-tight text-cream" data-live-total>{{ formatNumber(live.now.total) }}</span>
+                            <span class="text-4xl font-bold tabular-nums tracking-tight text-cream" data-live-total>{{ formatNumber(live.now.total) }}</span>
                             <span class="text-sm text-muted" data-live-split>{{ t('admin.live.split', { signedIn: formatNumber(live.now.signedIn), guests: formatNumber(live.now.guests) }) }}</span>
                         </p>
                         <p class="mt-4 flex flex-wrap items-baseline justify-between gap-x-3 text-sm"><span class="font-semibold text-cream">{{ t('admin.live.viewsPerMinute') }}</span><span class="tabular-nums text-muted" data-live-views30>{{ t('admin.live.views30', { count: live.views.last30 }) }}</span></p>
@@ -99,7 +99,7 @@ export const LiveSection = {
                         <h2 id="live-active-h" class="text-sm text-muted">{{ t('admin.live.active7d') }}</h2>
                         <template v-if="pulse">
                             <p class="mt-2 flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-                                <span class="text-4xl font-extrabold tabular-nums tracking-tight text-cream" data-live-active-n>{{ formatNumber(pulse.active.signedIn7d) }}</span>
+                                <span class="text-4xl font-bold tabular-nums tracking-tight text-cream" data-live-active-n>{{ formatNumber(pulse.active.signedIn7d) }}</span>
                                 <span class="text-sm font-semibold tabular-nums" :class="activeChange.dir === 'up' ? 'text-up' : activeChange.dir === 'down' ? 'text-down' : 'text-muted'" data-change :data-dir="activeChange.dir"><span v-if="activeChange.dir === 'up' || activeChange.dir === 'down'" class="me-0.5" aria-hidden="true">{{ activeChange.dir === 'up' ? '↑' : '↓' }}</span>{{ activeChange.text }}<span class="sr-only"> {{ t('admin.live.vsWeekBefore') }}</span></span>
                             </p>
                             <p class="mt-1 text-sm text-muted" data-live-active30>{{ t('admin.live.active30d', { count: pulse.active.active30d }) }}</p>
@@ -115,7 +115,7 @@ export const LiveSection = {
                     <section class="-mb-px -me-px min-w-0 border-b border-e border-line p-4 sm:p-5" aria-labelledby="live-revenue-h" data-live-revenue>
                         <h2 id="live-revenue-h" class="flex items-baseline justify-between gap-2 text-sm text-muted">{{ t('admin.live.mrr') }}<a href="/admin/revenue" class="link tap-44 inline-flex min-h-6 items-center gap-1" @click.prevent="navigate('/admin/revenue')">{{ t('admin.live.openRevenue') }}<span aria-hidden="true" class="rtl:-scale-x-100">→</span></a></h2>
                         <template v-if="revenue">
-                            <p v-for="m in mrr" :key="m.currency" class="mt-2 text-4xl font-extrabold tabular-nums tracking-tight text-cream" :data-currency="m.currency">{{ money(m.cents, m.currency) }}</p>
+                            <p v-for="m in mrr" :key="m.currency" class="mt-2 text-4xl font-bold tabular-nums tracking-tight text-cream" :data-currency="m.currency">{{ money(m.cents, m.currency) }}</p>
                             <dl class="mt-3 space-y-1.5 text-sm">
                                 <div class="flex flex-wrap justify-between gap-x-3"><dt class="text-muted">{{ t('admin.live.arr') }}</dt><dd class="tabular-nums text-cream" data-live-arr>{{ moneyList(revenue.arr) }}</dd></div>
                                 <div v-if="revenue.ifAllConvert" class="flex flex-wrap justify-between gap-x-3"><dt class="text-muted">{{ t('admin.live.ifAllConvert') }}</dt><dd class="tabular-nums text-cream" data-live-convert>{{ t('admin.live.perMonth', { money: moneyList(revenue.ifAllConvert.mrr) }) }}</dd></div>
@@ -132,7 +132,7 @@ export const LiveSection = {
                         <li v-for="area in areas" :key="area.key" class="card min-w-0 p-4" :class="area.now ? '' : 'opacity-80'" :data-area="area.key">
                             <div class="flex items-baseline justify-between gap-3">
                                 <h3 class="font-semibold text-cream">{{ areaName(area.key) }}</h3>
-                                <p class="text-sm tabular-nums text-muted"><span class="text-2xl font-extrabold text-cream" data-area-now>{{ formatNumber(area.now) }}</span> {{ t('admin.live.here') }}</p>
+                                <p class="text-sm tabular-nums text-muted"><span class="text-2xl font-bold text-cream" data-area-now>{{ formatNumber(area.now) }}</span> {{ t('admin.live.here') }}</p>
                             </div>
                             <p class="mt-0.5 text-sm text-muted">{{ t('admin.live.areaViews', { count: area.views30 }) }}</p>
                             <ol v-if="area.top?.length" class="mt-3 space-y-1 border-t border-line pt-3 text-sm">

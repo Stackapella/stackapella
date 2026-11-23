@@ -529,7 +529,7 @@ export const SingersSection = {
         <div class="space-y-6">
             <div class="flex flex-wrap items-end justify-between gap-3">
                 <div>
-                    <h1 class="text-2xl font-extrabold tracking-tight text-cream">{{ t('admin.nav.singers') }}</h1>
+                    <h1 class="text-2xl font-bold text-cream">{{ t('admin.nav.singers') }}</h1>
                     <p class="mt-1 max-w-prose text-sm text-muted">{{ t('admin.singers.intro') }}</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">

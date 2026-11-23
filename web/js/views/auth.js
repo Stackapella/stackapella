@@ -113,7 +113,7 @@ export const AuthView = {
 
                 <!-- Check your email -->
                 <template v-if="sentTo">
-                    <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ t('auth.sent.title') }}</h1>
+                    <h1 ref="heading" tabindex="-1" class="t-title text-cream outline-none">{{ t('auth.sent.title') }}</h1>
                     <p class="text-cream">{{ t(sentText, { email: sentTo }) }}</p>
                     <p class="text-sm text-muted">{{ t('auth.sent.spam') }}</p>
                     <TurnstileBox v-if="config?.turnstileSiteKey" :key="turnstileKey" :site-key="config.turnstileSiteKey" @token="turnstile = $event" @failed="turnstileFailed" />
@@ -127,7 +127,7 @@ export const AuthView = {
                 <!-- A sign-in link for another account than this browser's, or asked for elsewhere (login CSRF): ask first. -->
                 <section v-else-if="confirming" class="flex flex-col gap-5" data-confirm-sign-in>
                     <div>
-                        <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ t('auth.confirm.title', { email: confirming.email }) }}</h1>
+                        <h1 ref="heading" tabindex="-1" class="t-title text-cream outline-none">{{ t('auth.confirm.title', { email: confirming.email }) }}</h1>
                         <p class="mt-2 text-muted">{{ account.me ? t('auth.confirm.switch', { current: account.me.email ?? account.me.name, email: confirming.email }) : t('auth.confirm.elsewhere') }}</p>
                     </div>
                     <div class="flex flex-col gap-3 sm:flex-row">
@@ -138,7 +138,7 @@ export const AuthView = {
                 <!-- A bit about you: a new account from a link (or one that started fresh in another browser) -->
                 <form v-else-if="profile && (page === 'signin/link' || page === 'verify')" class="flex flex-col gap-5" novalidate @submit.prevent="saveProfile">
                     <div>
-                        <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ t('auth.profile.title') }}</h1>
+                        <h1 ref="heading" tabindex="-1" class="t-title text-cream outline-none">{{ t('auth.profile.title') }}</h1>
                         <p class="mt-2 text-muted">{{ t('auth.profile.intro') }}</p>
                     </div>
                     <Field :label="t('auth.name')" :help="t('auth.nameHelp')" :error="errors?.name" required v-slot="f">
@@ -152,17 +152,17 @@ export const AuthView = {
                 <template v-else-if="page === 'signin/link'">
                     <p v-if="busy" class="text-muted" role="status">{{ t('auth.checkingLink') }}</p>
                     <template v-else-if="linkProblem === 'expired'">
-                        <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ t('auth.link.expiredTitle') }}</h1>
+                        <h1 ref="heading" tabindex="-1" class="t-title text-cream outline-none">{{ t('auth.link.expiredTitle') }}</h1>
                         <p class="text-muted">{{ t('auth.link.expiredBody') }}</p>
                         <InviteAccept next="/" :button="t('auth.link.sendNew')" />
                     </template>
                     <template v-else-if="linkProblem === 'used'">
-                        <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ t('auth.link.usedTitle') }}</h1>
+                        <h1 ref="heading" tabindex="-1" class="t-title text-cream outline-none">{{ t('auth.link.usedTitle') }}</h1>
                         <p class="text-muted">{{ t('auth.link.usedBody') }}</p>
                         <button type="button" class="btn-primary btn-lg w-full" @click="navigate('/signin')">{{ t('auth.signIn') }}</button>
                     </template>
                     <template v-else-if="refusal">
-                        <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ t('auth.linkProblem') }}</h1>
+                        <h1 ref="heading" tabindex="-1" class="t-title text-cream outline-none">{{ t('auth.linkProblem') }}</h1>
                         <Notice tone="bad">{{ refusal }}</Notice>
                         <button type="button" class="btn-secondary" @click="navigate('/signin')">{{ t('auth.signIn') }}</button>
                     </template>
@@ -172,7 +172,7 @@ export const AuthView = {
                 <template v-else-if="page === 'verify' || page === 'email/confirm' || page === 'email/revert'">
                     <p v-if="busy" class="text-muted" role="status">{{ t('auth.checkingLink') }}</p>
                     <template v-else-if="done">
-                        <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ t(DONE[done].title) }}</h1>
+                        <h1 ref="heading" tabindex="-1" class="t-title text-cream outline-none">{{ t(DONE[done].title) }}</h1>
                         <p class="text-muted">{{ t(DONE[done].body, { email: revertedEmail ?? '' }) }}</p>
                         <TurnstileBox v-if="done === 'reverted' && config?.turnstileSiteKey" :key="turnstileKey" :site-key="config.turnstileSiteKey" @token="turnstile = $event" @failed="turnstileFailed" />
                         <Notice v-if="done === 'reverted' && refusal" tone="bad">{{ refusal }}</Notice>
@@ -180,7 +180,7 @@ export const AuthView = {
                         <button v-else type="button" class="btn-primary" @click="go">{{ t('auth.continue') }}</button>
                     </template>
                     <template v-else-if="refusal">
-                        <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ t('auth.linkProblem') }}</h1>
+                        <h1 ref="heading" tabindex="-1" class="t-title text-cream outline-none">{{ t('auth.linkProblem') }}</h1>
                         <Notice tone="bad">{{ refusal }}</Notice>
                         <button type="button" class="btn-secondary" @click="navigate('/signin')">{{ t('auth.signIn') }}</button>
                     </template>
@@ -188,7 +188,7 @@ export const AuthView = {
 
                 <!-- A new password, from the reset link -->
                 <form v-else-if="page === 'reset'" class="flex flex-col gap-5" @submit.prevent="reset">
-                    <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ t('auth.reset.title') }}</h1>
+                    <h1 ref="heading" tabindex="-1" class="t-title text-cream outline-none">{{ t('auth.reset.title') }}</h1>
                     <p class="text-muted" translate="no">{{ linkEmail }}</p>
                     <Field :label="t('auth.newPassword')" :help="t('auth.passwordHelp', { count: config?.passwordMinLength ?? 10 })" :error="errors?.password" required v-slot="f">
                         <PasswordInput :id="f.id" v-model="form.password" autocomplete="new-password" :minlength="config?.passwordMinLength ?? 10" :describedby="f.describedby" :invalid="f.invalid" />
@@ -199,7 +199,7 @@ export const AuthView = {
 
                 <!-- Forgot the password -->
                 <form v-else-if="mode === 'forgot'" class="flex flex-col gap-5" @submit.prevent="forgot">
-                    <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ t('auth.forgot.title') }}</h1>
+                    <h1 ref="heading" tabindex="-1" class="t-title text-cream outline-none">{{ t('auth.forgot.title') }}</h1>
                     <p class="text-muted">{{ t('auth.forgot.intro') }}</p>
                     <Field :label="t('auth.email')" :error="errors?.email" required v-slot="f">
                         <input :id="f.id" v-model="form.email" type="email" inputmode="email" autocomplete="email" required class="input" :placeholder="t('auth.emailPlaceholder')" :aria-describedby="f.describedby" :aria-invalid="f.invalid" />
@@ -213,13 +213,13 @@ export const AuthView = {
                 <!-- Sign in, or sign up -->
                 <template v-else>
                     <div>
-                        <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ mode === 'signup' ? (forPart ? t('auth.reason.voicePart', { part: forPart }) : t(REASONS[reason] ?? SIGN_UP)) : t('auth.signInTitle') }}</h1>
+                        <h1 ref="heading" tabindex="-1" class="t-title text-cream outline-none">{{ mode === 'signup' ? (forPart ? t('auth.reason.voicePart', { part: forPart }) : t(REASONS[reason] ?? SIGN_UP)) : t('auth.signInTitle') }}</h1>
                         <p class="mt-2 text-muted">{{ invite ? t('auth.inviteIntro') : early ? t('auth.earlyIntro') : t(INTROS[reason] ?? INTRO) }}</p>
                     </div>
                     <Notice v-if="config?.signups === 'paused' && mode === 'signup' && !invite && !early" tone="warn">{{ t('auth.error.paused') }}</Notice>
                     <div v-if="mode === 'signup' || step === 'email'" class="flex flex-col gap-3">
                         <button v-for="p in providers" :key="p" type="button" class="btn-secondary btn-lg w-full justify-center" @click="provider(p)">
-                            {{ t(PROVIDERS[p]) }}<span v-if="p === last" class="ms-2 text-xs font-normal text-muted">{{ t('auth.lastUsed') }}</span>
+                            {{ t(PROVIDERS[p]) }}<span v-if="p === last" class="t-hint ms-2 font-normal">{{ t('auth.lastUsed') }}</span>
                         </button>
                     </div>
                     <p v-if="hasPassword && providers.length && (mode === 'signup' || step === 'email')" data-ui="facts" class="flex items-center gap-3 text-sm text-muted"><span class="h-px flex-1 bg-line"></span>{{ t('auth.orEmail') }}<span class="h-px flex-1 bg-line"></span></p>

@@ -25,7 +25,7 @@ export const IdeasSection = {
     template: `
         <div class="space-y-6">
             <div>
-                <h1 class="text-2xl font-extrabold tracking-tight text-cream">{{ t('admin.nav.ideas') }}</h1>
+                <h1 class="text-2xl font-bold text-cream">{{ t('admin.nav.ideas') }}</h1>
                 <p class="text-sm text-muted">{{ t('admin.ideas.intro') }}</p>
             </div>
             <LoadFailed v-if="failed" :message="failed" @retry="load()" />

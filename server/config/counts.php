@@ -29,6 +29,11 @@ return [
         'app_open', 'lesson_start', 'lesson_done', 'unit_done', 'song_created', 'take_recorded', 'share_created', 'harmonise_used', 'export_done', 'sign_up', 'result_shared', 'leaderboard_viewed', 'challenge_accepted',
         // Lesson 1's live chord (2026-11-23, Hillel's "I just sang harmony"): asked to hear their note in a chord, and the chord sounded round it.
         'chord_live_start', 'chord_live_heard',
+        // Ready by rehearsal (build plan brief A, docs/rehearsal-ready-plan.md): a part page's date picked, a plan made, a
+        // practice day done, a ready check, the days added to a calendar.
+        'rr_page_pick', 'rr_plan_made', 'rr_day_done', 'rr_ready_check', 'rr_cal_add',
+        // Learning tracks to take away (brief C): the song sheet's Take it with you, and a track made, louder or without.
+        'tracks_take', 'tracks_made:louder', 'tracks_made:without',
         // Game mode: the day's challenge seen and sung.
         'daily_viewed', 'daily_sung',
         // Growth: the landing's own script, once a page load (a bot that runs no script isn't counted).

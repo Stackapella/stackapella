@@ -31,7 +31,7 @@ export const AppealsSection = {
     template: `
         <div class="space-y-6" data-appeals>
             <div class="space-y-1">
-                <h1 class="text-2xl font-extrabold tracking-tight text-cream">{{ t('admin.nav.appeals') }}</h1>
+                <h1 class="text-2xl font-bold text-cream">{{ t('admin.nav.appeals') }}</h1>
                 <p class="max-w-prose text-sm text-muted">{{ t('admin.appeals.intro') }}</p>
             </div>
             <div class="flex flex-wrap gap-2" role="radiogroup" :aria-label="t('admin.appeals.statusLabel')">

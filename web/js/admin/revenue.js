@@ -44,7 +44,7 @@ export const RevenueSection = {
     template: `
         <section class="space-y-6" aria-labelledby="revenue-h" data-revenue>
             <div>
-                <h1 id="revenue-h" class="text-3xl font-extrabold tracking-tight text-cream">{{ t('admin.revenue.title') }}</h1>
+                <h1 id="revenue-h" class="t-title text-cream">{{ t('admin.revenue.title') }}</h1>
                 <p class="mt-1 text-sm text-muted">{{ t('admin.revenue.intro') }}</p>
             </div>
             <LoadFailed v-if="failed" :message="failed" @retry="load" />
@@ -53,8 +53,8 @@ export const RevenueSection = {
                 <ul class="grid gap-3 sm:grid-cols-2">
                     <li class="card flex flex-col p-4 sm:p-5" data-tile="mrr">
                         <p class="text-sm text-muted">{{ t('admin.revenue.mrr') }}</p>
-                        <p v-if="!changes.length" class="mt-2 text-3xl font-extrabold tabular-nums text-cream sm:text-4xl">{{ money(0, 'usd') }}</p>
-                        <p v-for="c in changes" :key="c.currency" class="mt-2 text-3xl font-extrabold tabular-nums text-cream sm:text-4xl" :data-currency="c.currency">{{ money(c.now, c.currency) }}</p>
+                        <p v-if="!changes.length" class="mt-2 text-3xl font-bold tabular-nums text-cream sm:text-4xl">{{ money(0, 'usd') }}</p>
+                        <p v-for="c in changes" :key="c.currency" class="mt-2 text-3xl font-bold tabular-nums text-cream sm:text-4xl" :data-currency="c.currency">{{ money(c.now, c.currency) }}</p>
                         <p v-if="report.unpriced" class="mt-1 text-sm text-muted" data-unpriced>{{ t('admin.revenue.unpriced', { count: report.unpriced }) }}</p>
                         <div v-if="changes.length" class="mt-auto pt-4"><dl class="space-y-1 border-t border-line pt-3 text-sm">
                             <div v-for="c in changes" :key="c.currency" class="flex items-center justify-between gap-3" data-change :data-dir="dir(c.diff)">
@@ -65,8 +65,8 @@ export const RevenueSection = {
                     </li>
                     <li class="card flex flex-col p-4 sm:p-5" data-tile="arr">
                         <p class="text-sm text-muted">{{ t('admin.revenue.arr') }}</p>
-                        <p v-if="!report.arr.length" class="mt-2 text-3xl font-extrabold tabular-nums text-cream sm:text-4xl">{{ money(0, 'usd') }}</p>
-                        <p v-for="a in report.arr" :key="a.currency" class="mt-2 text-3xl font-extrabold tabular-nums text-cream sm:text-4xl" :data-currency="a.currency">{{ money(a.cents, a.currency) }}</p>
+                        <p v-if="!report.arr.length" class="mt-2 text-3xl font-bold tabular-nums text-cream sm:text-4xl">{{ money(0, 'usd') }}</p>
+                        <p v-for="a in report.arr" :key="a.currency" class="mt-2 text-3xl font-bold tabular-nums text-cream sm:text-4xl" :data-currency="a.currency">{{ money(a.cents, a.currency) }}</p>
                         <p class="mt-auto pt-4 text-sm text-muted">{{ t('admin.revenue.arrHow') }}</p>
                     </li>
                 </ul>
@@ -115,7 +115,7 @@ export const RevenueSection = {
                     <p class="text-sm text-muted">{{ t('admin.revenue.churnSub') }}</p>
                     <div class="-mx-1 mt-4 overflow-x-auto px-1">
                         <table class="w-full text-sm">
-                            <thead class="text-xs font-semibold uppercase tracking-wider text-muted">
+                            <thead class="t-section">
                                 <tr>
                                     <th scope="col" class="pb-2 text-start font-semibold">{{ t('admin.revenue.col.month') }}</th>
                                     <th scope="col" class="pb-2 ps-3 text-end font-semibold">{{ t('admin.revenue.col.payingAtStart') }}</th>
@@ -141,7 +141,7 @@ export const RevenueSection = {
                     <p v-if="!report.oneOff.length" class="mt-3 text-sm text-muted">{{ t('admin.revenue.noOneOff') }}</p>
                     <div v-else class="-mx-1 mt-4 overflow-x-auto px-1">
                         <table class="w-full text-sm">
-                            <thead class="text-xs font-semibold uppercase tracking-wider text-muted">
+                            <thead class="t-section">
                                 <tr>
                                     <th scope="col" class="pb-2 text-start font-semibold">{{ t('admin.revenue.col.month') }}</th>
                                     <th scope="col" class="pb-2 ps-3 text-start font-semibold">{{ t('admin.revenue.col.kind') }}</th>

@@ -305,24 +305,24 @@ export const ChoirLive = {
                 <dl class="grid grid-cols-2 gap-3 min-[900px]:grid-cols-4" data-live-tiles>
                     <div class="rounded-2xl border border-line p-3" data-live-tile="queue">
                         <dt class="text-sm text-muted">{{ t('admin.choir.live.queued') }}</dt>
-                        <dd class="mt-1 text-2xl font-extrabold tabular-nums text-cream">{{ formatNumber(live.queue.queued) }}</dd>
+                        <dd class="mt-1 text-2xl font-bold tabular-nums text-cream">{{ formatNumber(live.queue.queued) }}</dd>
                         <dd class="text-xs text-muted">{{ live.queue.queued ? t('admin.choir.live.oldest', { wait: waitWords(live.queue.oldestWaitSeconds) }) : t('admin.choir.live.nothingWaiting') }}</dd>
                         <dd v-if="live.queue.remakes || live.queue.friends || live.queue.waitingForTomorrow" class="text-xs text-muted">{{ t('admin.choir.live.among', { remakes: live.queue.remakes, friends: live.queue.friends, tomorrow: live.queue.waitingForTomorrow }) }}</dd>
                     </div>
                     <div class="rounded-2xl border border-line p-3" data-live-tile="rendering">
                         <dt class="text-sm text-muted">{{ t('admin.choir.live.rendering') }}</dt>
-                        <dd class="mt-1 text-2xl font-extrabold tabular-nums text-cream">{{ formatNumber(live.queue.rendering) }}</dd>
+                        <dd class="mt-1 text-2xl font-bold tabular-nums text-cream">{{ formatNumber(live.queue.rendering) }}</dd>
                         <dd class="text-xs text-muted">{{ t('admin.choir.live.madeFailed', { made: live.today.made, failed: live.today.failed }) }}</dd>
                     </div>
                     <div class="rounded-2xl border border-line p-3" data-live-tile="today">
                         <dt class="text-sm text-muted">{{ t('admin.choir.live.today') }}</dt>
-                        <dd class="mt-1 text-2xl font-extrabold tabular-nums text-cream">{{ formatNumber(live.today.partMinutes, { maximumFractionDigits: 1 }) }}</dd>
+                        <dd class="mt-1 text-2xl font-bold tabular-nums text-cream">{{ formatNumber(live.today.partMinutes, { maximumFractionDigits: 1 }) }}</dd>
                         <dd class="text-xs text-muted">{{ t('admin.choir.live.ofDaily', { daily: formatNumber(live.today.dailyPartMinutes) }) }}</dd>
                         <dd class="mt-2 h-1.5 overflow-hidden rounded-full bg-raised" role="meter" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="meterNow" :aria-label="t('admin.choir.live.meter')"><span class="block h-full rounded-full" :class="meter >= 80 ? 'bg-warn' : 'bg-cream/85'" :style="{ width: Math.max(2, meter) + '%' }"></span></dd>
                     </div>
                     <div class="rounded-2xl border border-line p-3" data-live-tile="month">
                         <dt class="text-sm text-muted">{{ t('admin.choir.live.month') }}</dt>
-                        <dd class="mt-1 text-2xl font-extrabold tabular-nums text-cream">{{ money }}</dd>
+                        <dd class="mt-1 text-2xl font-bold tabular-nums text-cream">{{ money }}</dd>
                         <dd class="text-xs text-muted">{{ t('admin.choir.live.gpu', { today: hours(live.today.gpuSeconds), month: hours(live.month.gpuSeconds) }) }}</dd>
                     </div>
                 </dl>
@@ -444,7 +444,7 @@ export const ChoirSection = {
         <section class="space-y-8" aria-labelledby="choir-h" data-admin-choir>
             <div class="flex flex-wrap items-end justify-between gap-4">
                 <div>
-                    <h1 id="choir-h" class="text-2xl font-extrabold tracking-tight text-cream">{{ t('admin.nav.choir') }}</h1>
+                    <h1 id="choir-h" class="text-2xl font-bold text-cream">{{ t('admin.nav.choir') }}</h1>
                     <p class="mt-1 max-w-prose text-sm text-muted" data-choir-range>{{ report ? t('admin.choir.intro', { from: day(report.from), to: day(report.to), floor: formatNumber(report.floor) }) : t('admin.choir.introShort') }}</p>
                 </div>
                 <Segmented :model-value="period" :options="periods" :label="t('admin.choir.period.label')" data-choir-period @update:model-value="period = $event" />
@@ -460,7 +460,7 @@ export const ChoirSection = {
                         <dt class="text-sm text-muted">{{ t(tile.label) }}</dt>
                         <dd class="mt-2 flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
                             <template v-if="tile.value !== null">
-                                <span class="text-3xl font-extrabold tabular-nums tracking-tight text-cream" data-value>{{ tile.value }}</span>
+                                <span class="text-3xl font-bold tabular-nums tracking-tight text-cream" data-value>{{ tile.value }}</span>
                                 <span v-if="tile.move" class="text-sm font-semibold tabular-nums" :class="moveClass(tile.move.dir)" data-move :data-dir="tile.move.dir"><span v-if="tile.move.dir !== 'same'" class="me-0.5" aria-hidden="true">{{ tile.move.dir === 'up' ? '↑' : '↓' }}</span>{{ tile.move.text }}<span class="sr-only"> {{ t('admin.choir.onBefore') }}</span></span>
                             </template>
                             <span v-else class="text-sm text-muted" data-too-few>{{ t('admin.choir.tooFew') }}</span>

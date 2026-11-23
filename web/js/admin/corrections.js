@@ -37,7 +37,7 @@ export const CorrectionsSection = {
     template: `
         <div class="space-y-6" data-corrections>
             <div class="space-y-1">
-                <h1 class="text-2xl font-extrabold tracking-tight text-cream">{{ t('admin.nav.corrections') }}</h1>
+                <h1 class="text-2xl font-bold text-cream">{{ t('admin.nav.corrections') }}</h1>
                 <p class="max-w-prose text-sm text-muted">{{ t('admin.corrections.intro') }}</p>
             </div>
             <!-- State as a compact menu; Kind as chips from sm up, and on a phone a menu too (five options: design rules). -->

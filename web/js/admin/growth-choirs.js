@@ -53,6 +53,8 @@ export const GrowthChoirs = {
                         <dt class="t-section">{{ t(tile.label) }}</dt>
                         <dd class="text-3xl font-bold tabular-nums text-cream" data-n>{{ tile.n }}</dd>
                         <dd v-if="tile.split" class="t-hint" data-split>{{ tile.split }}</dd>
+                        <!-- Made beside what was tried (Hillel saw "0" and thought it broken): a zero never reads as missing data. -->
+                        <dd v-if="tile.tried" class="text-sm text-cream" data-tried>{{ tile.tried }}</dd>
                         <dd class="mt-auto pt-1 text-sm tabular-nums" data-change :data-dir="tile.change.dir" :class="tile.tone">
                             <span v-if="tile.change.dir !== 'same'" class="me-1" aria-hidden="true">{{ tile.change.dir === 'up' ? '↑' : '↓' }}</span>{{ t('admin.growth.choirs.vsBefore', { change: tile.change.text, before: tile.before }) }}
                         </dd>
@@ -118,8 +120,13 @@ export const GrowthChoirs = {
                 const tone = worse || moved.dir === 'same' ? 'text-muted' : moved.dir === 'up' ? 'text-up' : 'text-down';
                 return { key, label, n: format(total.n), before: format(total.before), split, change: moved, tone };
             };
+            // Tried: every song that finished, made or not (made, ours failed, the take failed); in-progress ones aren't yet.
+            const tried = totals.made.n + totals.failedOurs.n + totals.failedTake.n;
+            const triedLine = failed.n
+                ? t('admin.growth.choirs.triedFailed', { tried: formatNumber(tried), failed: formatNumber(failed.n), take: formatNumber(totals.failedTake.n), ours: formatNumber(totals.failedOurs.n) })
+                : t('admin.growth.choirs.tried', { tried: formatNumber(tried) });
             return [
-                tile('made', WORDS.made, totals.made, { split: t('admin.growth.choirs.split', { free: formatNumber(totals.free.n), plus: formatNumber(totals.plus.n), comped: formatNumber(totals.comped.n) }) }),
+                { ...tile('made', WORDS.made, totals.made, { split: t('admin.growth.choirs.split', { free: formatNumber(totals.free.n), plus: formatNumber(totals.plus.n), comped: formatNumber(totals.comped.n) }) }), tried: triedLine },
                 tile('together', WORDS.together, totals.together, { split: t('admin.growth.choirs.togetherSub') }),
                 tile('partMinutes', WORDS.partMinutes, totals.partMinutes, { format: minutes }),
                 tile('failed', WORDS.failed, failed, { worse: true, split: t('admin.growth.choirs.failedSplit', { ours: formatNumber(totals.failedOurs.n), take: formatNumber(totals.failedTake.n) }) }),

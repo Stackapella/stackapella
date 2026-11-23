@@ -31,7 +31,8 @@ def journey(f):
             f.wait("document.querySelector('[data-needs-account]')", what="lesson 2 asks a guest for a free account")
             text = f.js("document.querySelector('[data-needs-account]').innerText")
             assert "Plus" not in text and "$" not in text and "£" not in text and "€" not in text, f"no Plus or price: {text}"
-            href = f.js("document.querySelector('[data-needs-account] a.btn-primary').getAttribute('href')")
+            # The wall's sign-up (its email link, or the one main button where the providers aren't shown): one hook.
+            href = f.js("document.querySelector('[data-needs-account] [data-needs-account-yes]').getAttribute('href')")
             assert href.startswith("/signin?mode=signup&for=course&next="), href
             f.shot("lesson-2-account")
     f.go("/learn/c/perfect-your-pitch", "document.querySelector('[data-up-next]')")

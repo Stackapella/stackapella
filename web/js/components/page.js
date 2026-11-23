@@ -30,7 +30,7 @@ export const PageHeader = {
     template: `
         <header v-if="column" class="app-wrap pt-[calc(28px+env(safe-area-inset-top))]" data-ui="page-header" data-header-column>
             <div class="mx-auto flex w-full flex-col gap-5" :class="column">
-                <button type="button" class="grid size-11 shrink-0 place-items-center rounded-full glass-bubble text-cream transition" :aria-label="backLabel ?? t('common.back')" @click="leave ? leave() : goBack(back)"><Icon name="back" :size="20" /></button>
+                <button type="button" class="grid size-11 shrink-0 place-items-center rounded-full bg-raised text-cream transition hover:bg-line" data-header-btn :aria-label="backLabel ?? t('common.back')" @click="leave ? leave() : goBack(back)"><Icon name="back" :size="20" /></button>
                 <div class="flex flex-col gap-2">
                     <p v-if="eyebrow" class="text-[13px] font-semibold uppercase tracking-[0.14em] text-accent" :translate="eyebrowIsContent ? 'no' : null" data-header-eyebrow>{{ eyebrow }}</p>
                     <h1 class="text-[34px] font-bold leading-[1.1] tracking-[-0.01em] text-cream" :translate="titleIsContent ? 'no' : null"><slot name="title">{{ title }}</slot></h1>
@@ -38,14 +38,15 @@ export const PageHeader = {
             </div>
         </header>
         <header v-else class="app-wrap app-bar" data-ui="page-header">
-            <button type="button" class="grid size-11 shrink-0 place-items-center rounded-full glass-bubble text-cream transition" :aria-label="backLabel ?? t('common.back')" @click="leave ? leave() : goBack(back)"><Icon name="back" :size="20" /></button>
+            <button type="button" class="grid size-11 shrink-0 place-items-center rounded-full bg-raised text-cream transition hover:bg-line" data-header-btn :aria-label="backLabel ?? t('common.back')" @click="leave ? leave() : goBack(back)"><Icon name="back" :size="20" /></button>
             <div v-if="eyebrow" class="min-w-min flex-1">
-                <p class="text-sm text-muted">{{ eyebrow }}</p>
+                <p class="text-sm text-subtle">{{ eyebrow }}</p>
                 <p v-if="compact" class="text-[17px] font-semibold leading-tight text-cream" :translate="titleIsContent ? 'no' : null" data-header-compact><slot name="title">{{ title }}</slot></p>
                 <h1 v-else class="text-xl font-bold leading-tight text-cream" :translate="titleIsContent ? 'no' : null"><slot name="title">{{ title }}</slot></h1>
             </div>
             <p v-else-if="compact" class="min-w-min flex-1 text-[17px] font-semibold leading-tight text-cream" :translate="titleIsContent ? 'no' : null" data-header-compact><slot name="title">{{ title }}</slot></p>
-            <h1 v-else class="min-w-min flex-1 text-[1.75rem] font-extrabold leading-tight tracking-tight text-cream" :translate="titleIsContent ? 'no' : null"><slot name="title">{{ title }}</slot></h1>
+            <!-- Bold, not extrabold, and smaller on a phone, so a title like Choir groups stays on one line beside its button; never narrower than its longest word (widths, game mode at 320 px) (the 2026-11-23 language). -->
+            <h1 v-else class="min-w-min flex-1 text-[1.375rem] font-bold leading-tight text-cream sm:text-[1.75rem]" :translate="titleIsContent ? 'no' : null"><slot name="title">{{ title }}</slot></h1>
             <slot name="aside" />
         </header>`,
 };

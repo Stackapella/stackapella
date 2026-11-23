@@ -414,7 +414,7 @@ export const SafetySection = {
     setup: () => ({ TABS }),
     template: `
         <div class="space-y-6">
-            <h1 id="safety-heading" class="text-2xl font-extrabold tracking-tight text-cream">{{ t('admin.nav.safety') }}</h1>
+            <h1 id="safety-heading" class="text-2xl font-bold text-cream">{{ t('admin.nav.safety') }}</h1>
             <div class="flex gap-1 overflow-x-auto overflow-y-hidden border-b border-line" role="tablist" aria-labelledby="safety-heading" @keydown="move">
                 <button v-for="item in TABS" :id="'tab-' + item.name" :key="item.name" type="button" role="tab" :aria-selected="tab === item.name" :aria-controls="'panel-' + item.name" :tabindex="tab === item.name ? 0 : -1"
                     class="-mb-px shrink-0 border-b-2 px-3 py-2.5 text-sm font-semibold transition sm:px-4" :class="tab === item.name ? 'border-accent text-cream' : 'border-transparent text-muted hover:text-cream'"
@@ -452,7 +452,7 @@ export const SwitchesSection = {
     props: { me: { type: Object, required: true } },
     template: `
         <div class="space-y-6" data-switches>
-            <h1 class="text-2xl font-extrabold tracking-tight text-cream">{{ t('admin.nav.switches') }}</h1>
+            <h1 class="text-2xl font-bold text-cream">{{ t('admin.nav.switches') }}</h1>
             <FlagsList :me="me" which="features" />
         </div>`,
 };

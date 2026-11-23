@@ -78,13 +78,30 @@ final class PlusFeatures
      */
     private static function numbers(): array
     {
+        $limits = self::limits();
+
+        return [
+            ':storage' => round($limits['storageBytes'] / 1024 ** 3).' GB',
+            ':minutes' => (string) $limits['choirMinutes'],
+            ':songs' => (string) $limits['choirSongs'],
+        ];
+    }
+
+    /**
+     * Plus's numbers, the site's words and the app's alike (auth.config `plusLimits`): the AI choir's part-minutes a
+     * month, about how many songs that is, and the storage in bytes.
+     *
+     * @return array{choirMinutes: int, choirSongs: int, storageBytes: int}
+     */
+    public static function limits(): array
+    {
         $minutes = (int) config('own_choir.plus_minutes');
 
         return [
-            ':storage' => round((int) config('usage.plans.plus.storage_bytes') / 1024 ** 3).' GB',
-            ':minutes' => (string) $minutes,
+            'choirMinutes' => $minutes,
             // A song is about four minutes of singing across its parts (marketing's estimate).
-            ':songs' => (string) max(1, intdiv($minutes, 4)),
+            'choirSongs' => max(1, intdiv($minutes, 4)),
+            'storageBytes' => (int) config('usage.plans.plus.storage_bytes'),
         ];
     }
 }

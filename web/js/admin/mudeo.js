@@ -152,7 +152,7 @@ export const MudeoSection = {
     template: `
         <div class="space-y-6">
             <div>
-                <h1 class="text-2xl font-extrabold tracking-tight text-cream">{{ t('admin.nav.mudeo') }}</h1>
+                <h1 class="text-2xl font-bold text-cream">{{ t('admin.nav.mudeo') }}</h1>
                 <p class="mt-1 text-muted">{{ t('admin.mudeo.intro') }}</p>
             </div>
             <LoadFailed v-if="failed" :message="failed" @retry="load" />
@@ -164,7 +164,7 @@ export const MudeoSection = {
                 <section class="card space-y-4 p-5" aria-labelledby="mudeo-counts">
                     <h2 id="mudeo-counts" class="text-lg font-bold text-cream">{{ t('admin.mudeo.countsTitle') }}</h2>
                     <dl class="grid grid-cols-2 gap-3 sm:grid-cols-5">
-                        <div v-for="c in counts" :key="c.label" class="rounded-2xl bg-raised p-3"><dt class="text-xs text-muted">{{ c.label }}</dt><dd class="text-2xl font-extrabold tabular-nums text-cream">{{ formatNumber(c.value) }}</dd></div>
+                        <div v-for="c in counts" :key="c.label" class="rounded-2xl bg-raised p-3"><dt class="text-xs text-muted">{{ c.label }}</dt><dd class="text-2xl font-bold tabular-nums text-cream">{{ formatNumber(c.value) }}</dd></div>
                     </dl>
                     <!-- Since the email went out (the last 60 days, daily totals): the site opened from it, singing started, and accounts through the old early-access link. -->
                     <p v-if="since.visits || since.used || since.joined" class="text-sm text-cream" data-mudeo-since>{{ t('admin.mudeo.since', { visits: formatNumber(since.visits), used: formatNumber(since.used), joined: formatNumber(since.joined) }) }}</p>

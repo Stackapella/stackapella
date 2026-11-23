@@ -42,7 +42,7 @@ export const AiReviewSection = {
     template: `
         <div class="space-y-6">
             <div>
-                <h1 class="text-2xl font-extrabold tracking-tight text-cream">{{ t('admin.nav.aiReview') }}</h1>
+                <h1 class="text-2xl font-bold text-cream">{{ t('admin.nav.aiReview') }}</h1>
                 <p class="mt-1 max-w-prose text-sm text-muted">{{ t('admin.aiReview.intro') }}</p>
             </div>
             <div class="flex flex-wrap items-center justify-between gap-3">

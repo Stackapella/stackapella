@@ -174,7 +174,7 @@ export const ThemePanel = {
                         <Icon :name="MODE_ICONS[m]" :size="16" />{{ t(MODE_WORDS[m]) }}
                     </button>
                 </div>
-                <p class="text-xs text-muted" data-mode-said>{{ t(modeSaid(mode, system)) }}</p>
+                <p class="t-hint" data-mode-said>{{ t(modeSaid(mode, system)) }}</p>
             </div>
           </div>
           <div class="space-y-5">
@@ -185,8 +185,8 @@ export const ThemePanel = {
                         class="min-w-0 rounded-2xl border p-2 text-start transition" :class="colour === f ? 'border-transparent ring-2 ring-accent' : 'border-edge hover:border-line'" @click="pickColour(f)">
                         <span v-if="mode === 'system'" class="grid grid-cols-2 gap-1"><MiniScreen :theme="f + '-light'" :accent="accent" :custom="customFor(f + '-light')" /><MiniScreen :theme="f + '-dark'" :accent="accent" :custom="customFor(f + '-dark')" /></span>
                         <MiniScreen v-else :theme="f + '-' + shown" :accent="accent" :custom="customFor(f + '-' + shown)" />
-                        <span class="mt-2 block truncate px-1 text-sm font-bold text-cream">{{ mode === 'system' ? t('appearance.colour.pair', { light: t(familyWords()[f].light), dark: t(familyWords()[f].dark) }) : t(familyWords()[f][shown]) }}</span>
-                        <span class="block truncate px-1 pb-0.5 text-xs text-muted">{{ mode === 'system' ? t('appearance.colour.pair', { light: t(familySays()[f].light), dark: t(familySays()[f].dark) }) : t(familySays()[f][shown]) }}</span>
+                        <span class="mt-2 block truncate px-1 text-sm font-semibold text-cream">{{ mode === 'system' ? t('appearance.colour.pair', { light: t(familyWords()[f].light), dark: t(familyWords()[f].dark) }) : t(familyWords()[f][shown]) }}</span>
+                        <span class="t-hint block truncate px-1 pb-0.5">{{ mode === 'system' ? t('appearance.colour.pair', { light: t(familySays()[f].light), dark: t(familySays()[f].dark) }) : t(familySays()[f][shown]) }}</span>
                     </button>
                 </div>
             </div>
@@ -211,7 +211,7 @@ export const ThemePanel = {
                     </button>
                     <input ref="custom" type="color" class="sr-only" tabindex="-1" aria-hidden="true" :value="appearance.customAccent || '#e8a87c'" @input="previewCustom($event.target.value)" @change="pickCustom($event.target.value)" />
                 </div>
-                <p class="text-xs text-muted">{{ t('appearance.accent.hint') }}</p>
+                <p class="t-hint">{{ t('appearance.accent.hint') }}</p>
                 <div v-if="accentShown === 'custom' && customColour" class="space-y-2" data-custom-preview>
                     <div class="grid grid-cols-2 gap-2">
                         <div v-for="m in ['dark', 'light']" :key="m" class="rounded-xl p-3" :style="{ background: SURFACES[colour + '-' + m].panel }">
@@ -219,7 +219,7 @@ export const ThemePanel = {
                             <span class="ms-2 text-xs font-semibold underline decoration-2 underline-offset-4" :style="{ color: SURFACES[colour + '-' + m].cream, textDecorationColor: fitted(m).accent }">{{ t('appearance.accent.previewLink') }}</span>
                         </div>
                     </div>
-                    <p v-if="customNote" class="text-xs text-muted" role="status">{{ t(customNote) }}</p>
+                    <p v-if="customNote" class="t-hint" role="status">{{ t(customNote) }}</p>
                 </div>
             </div>
             <div class="flex items-center justify-between gap-3 border-t border-edge pt-4">
@@ -329,13 +329,13 @@ export const ThemeSwitch = {
                 <span>{{ t('appearance.theme') }}</span>
             </button>
             <Modal v-if="open && phone" :title="t('appearance.title')" @close="close">
-                <p class="-mt-3 mb-4 text-xs text-muted">{{ t('appearance.instant') }}</p>
+                <p class="t-hint -mt-3 mb-4">{{ t('appearance.instant') }}</p>
                 <ThemePanel @done="close" />
             </Modal>
             <section v-else-if="open" ref="panel" role="dialog" :aria-labelledby="'appearance-title-' + $.uid" class="absolute end-0 top-full z-40 mt-2 w-[44rem] max-w-[calc(100vw-2rem)] rounded-3xl border border-edge bg-panel p-6 shadow-2xl" data-theme-menu data-ui="stage">
                 <header class="mb-4 flex items-baseline justify-between gap-3">
-                    <h2 :id="'appearance-title-' + $.uid" class="text-lg font-extrabold text-cream">{{ t('appearance.title') }}</h2>
-                    <span class="text-xs text-muted">{{ t('appearance.instant') }}</span>
+                    <h2 :id="'appearance-title-' + $.uid" class="text-lg font-semibold text-cream">{{ t('appearance.title') }}</h2>
+                    <span class="t-hint">{{ t('appearance.instant') }}</span>
                 </header>
                 <ThemePanel wide @done="close" />
             </section>

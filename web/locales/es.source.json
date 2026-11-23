@@ -3033,9 +3033,6 @@
         "warmUpOurs": "Today's usual"
     },
     "plus": {
-        "storyChoir": "Learning to sing is free. Plus is for what you make: about 15 songs a month sung by AI in a voice like yours, yours to download; starting a choir group or inviting friends onto your songs (everyone you invite joins free); more room for your recordings; and MP3 and each part on its own.",
-        "headlineChoir": "Songs in a voice like yours. Sing together. More room.",
-        "storySolo": "Learning to sing is free, with your friends and your choir too. Plus is for working at it: more room for your recordings, and MP3 and each part on its own.",
         "next": {
             "choirDownload": "Back to your choir",
             "inviteFriend": "Back to your song",
@@ -3043,9 +3040,7 @@
             "carryOn": "Carry on"
         },
         "momentPrice": "Plus is {year} a year or {month} a month.",
-        "headlineSolo": "More room. Every format.",
         "title": "Stackapella Plus",
-        "story": "Learning to sing is free. Plus is for teaming up and for working at it: start a choir group or invite friends onto your song (everyone you invite joins free), more room for your recordings, and MP3 and each part on its own.",
         "moment": {
             "choirFriendsUsed": "Your free choir includes one friend, and {name} is in it. More friends come with Plus.",
             "choirFriends": "More friends in your choirs come with Plus, and so do about 15 songs a month in a voice like yours.",
@@ -3134,16 +3129,6 @@
         "failed": "Couldn't open Checkout just now. Try again in a moment.",
         "pendingHint": "This takes a moment after Checkout. The page updates by itself when it's done.",
         "noSubscription": "There's no subscription to manage on this account.",
-        "headline": "Sing together. More room. Every format.",
-        "highlight": {
-            "togetherText": "Start a choir group or invite friends to sing your song. Everyone you invite joins free.",
-            "together": "Sing together",
-            "freeTextSolo": "Every song and course, as many workouts as you like, your history, and singing with friends and your choir, with nothing to pay.",
-            "extras": "More room, and the extras",
-            "extrasText": "50 GB for recordings, and MP3 and each part on its own.",
-            "free": "Free for every singer",
-            "freeText": "Every song and course, as many workouts as you like, your history, and joining any choir or song you're invited to, with nothing to pay."
-        },
         "save": "Save {percent}%",
         "billedMonthly": "Billed monthly",
         "perYear": "per year",
@@ -3161,7 +3146,23 @@
             "free": "Free for everyone"
         },
         "footnote": "Choir groups and Send to my teacher are for ages 18 and over. Coaches get Plus free while they're active.",
-        "included": "Everything Plus adds is included here: this Stackapella runs on its own server, so every account has it all. There is nothing to buy."
+        "included": "Everything Plus adds is included here: this Stackapella runs on its own server, so every account has it all. There is nothing to buy.",
+        "page": {
+            "headline": "Free to learn. Plus for what you make.",
+            "choir": "Your own AI choir.",
+            "choirFact": "Every part of a song sung by AI in a voice like yours: {minutes} minutes a month, about {songs} songs, each one yours to download.",
+            "choirFactPlain": "Every part of a song sung by AI in a voice like yours, each one yours to download.",
+            "together": "Start choir groups.",
+            "togetherFact": "Invite friends to your songs, and give each singer in a group a part. Everyone you invite joins free.",
+            "togetherSeats": "Invite friends to sing on your songs, and they join free. Plus is also your seat in any choir group.",
+            "storage": "Room for every take.",
+            "storageFact": "{storage} for your recordings.",
+            "storageFactPlain": "More room for your recordings.",
+            "stems": "Every part as its own file.",
+            "stemsFact": "Each voice as its own audio file, and the mix as MP3.",
+            "private": "Unlimited private arrangements.",
+            "privateFact": "Shared by link or with your choir."
+        }
     },
     "reminders": {
         "title": "Practice reminders",

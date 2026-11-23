@@ -126,10 +126,10 @@ export const GroupsView = {
                 <ul class="grid gap-3 min-[640px]:grid-cols-2">
                     <li v-for="g in groups" :key="g.id" class="min-w-0">
                         <a :href="'/groups/' + g.id" class="card-interactive flex h-full items-center gap-4 p-4" data-group-card @click.prevent="navigate('/groups/' + g.id)">
-                            <span class="bubble grid size-11 shrink-0 place-items-center text-lg font-extrabold" style="--bubble: var(--color-part-6); --bubble-ink: var(--color-part-text-6)" aria-hidden="true" data-avatar>{{ g.name.slice(0, 1) }}</span>
+                            <span class="bubble grid size-11 shrink-0 place-items-center text-lg font-bold" style="--bubble: var(--color-part-6); --bubble-ink: var(--color-part-text-6)" aria-hidden="true" data-avatar>{{ g.name.slice(0, 1) }}</span>
                             <span class="min-w-0 flex-1">
-                                <span class="block truncate font-bold text-cream" translate="no">{{ g.name }}</span>
-                                <span class="text-sm text-muted">{{ g.role === 'director' ? t('groups.youDirectCount', { count: Math.max(0, g.members - 1) }) : t('groups.directedBy', { name: g.director.name }) + ' · ' + t('groups.memberCount', { count: g.members }) }} · {{ t('groups.songCount', { count: g.songs }) }}</span>
+                                <span class="block truncate text-[17px] font-semibold text-cream" translate="no">{{ g.name }}</span>
+                                <span class="text-sm text-subtle">{{ g.role === 'director' ? t('groups.youDirectCount', { count: Math.max(0, g.members - 1) }) : t('groups.directedBy', { name: g.director.name }) + ' · ' + t('groups.memberCount', { count: g.members }) }} · {{ t('groups.songCount', { count: g.songs }) }}</span>
                                 <span v-if="teams.on && g.readOnly === true" class="mt-1 flex w-fit items-center gap-1 text-xs font-semibold text-muted" data-group-paused><Icon name="pause" :size="12" />{{ t('groups.paused.tag') }}</span>
                             </span>
                             <Icon name="arrow" :size="18" class="text-muted" />
@@ -247,7 +247,7 @@ export const GroupView = {
                 <!-- Invite singers: the group's link, to send however you like. Just after the group is made it's already open,
                      the next thing in front of the director, to send to the choir (docs/improvement-log.md, row 2). -->
                 <section v-if="director && (inviting || justMade) && !paused" id="group-link" class="card space-y-3 p-5 min-[900px]:col-span-2" :aria-label="t('groups.linkTitle')" :data-group-made="justMade ? '' : null">
-                    <h2 v-if="justMade" class="text-lg font-bold text-cream">{{ t('groups.made.title') }}</h2>
+                    <h2 v-if="justMade" class="text-lg font-semibold text-cream">{{ t('groups.made.title') }}</h2>
                     <p class="text-cream">{{ justMade ? t('groups.made.hint', { name: group.name }) : t('groups.linkHint') }}</p>
                     <div v-if="shownLink" class="flex flex-wrap items-center gap-2">
                         <input class="input min-w-0 flex-1 basis-56" :value="shownLink" readonly :aria-label="t('groups.linkTitle')" translate="no" @focus="$event.target.select()" />
@@ -265,7 +265,7 @@ export const GroupView = {
                 <div class="space-y-8">
                 <section class="space-y-3" aria-labelledby="group-songs">
                     <div class="flex items-center justify-between gap-3">
-                        <h2 id="group-songs" class="text-xl font-extrabold tracking-tight text-cream">{{ t('groups.songsTitle') }}</h2>
+                        <h2 id="group-songs" class="t-section">{{ t('groups.songsTitle') }}</h2>
                         <!-- A new group's first step is a song, so its singers find something to learn when they join: Share a song is the page's primary until there is one. -->
                         <button v-if="director && !paused" type="button" class="btn-sm" :class="group.songs.length || justMade ? 'btn-secondary' : 'btn-primary'" data-share-song @click="openShare"><Icon name="plus" :size="16" /> {{ t('groups.shareSong') }}</button>
                     </div>
@@ -275,11 +275,11 @@ export const GroupView = {
                             <!-- The title and its line take the card's width; on a phone the buttons go under them, full width (beside them they squeezed the title to a word a line). -->
                             <div class="flex flex-col gap-3 sm:flex-row sm:items-start" data-group-song>
                                 <div class="min-w-0 flex-1">
-                                    <p class="font-bold text-cream" translate="no">{{ songTitle({ id: song.templateId, title: song.title }) }}</p>
+                                    <p class="text-[17px] font-semibold text-cream" translate="no">{{ songTitle({ id: song.templateId, title: song.title }) }}</p>
                                     <p v-if="director && !anyAssigned(song)" class="text-sm text-warn">{{ t('groups.nobodyYet') }}</p>
                                     <!-- Assigning a choir song by song is one dropdown per singer: the parts they have in the group's last song, in one tap. -->
                                     <button v-if="director && copyPlan(song).length && (editing === song.templateId || !anyAssigned(song))" type="button" class="btn-secondary btn-sm mt-2" :disabled="busy" data-same-parts @click="copyParts(song)">{{ t('groups.sameParts', { title: copySource(song).title }) }}</button>
-                                    <p v-else-if="director" class="text-sm text-muted">{{ summary(song) }}</p>
+                                    <p v-else-if="director" class="text-sm text-subtle">{{ summary(song) }}</p>
                                     <p v-else-if="myPart(song)" class="text-sm text-cream" data-my-part>{{ t('groups.yourPart', { part: partName(song, myPart(song).partKey) }) }} · <span class="font-semibold" :class="STATUS[myPart(song).status]?.tone ?? STATUS.none.tone">{{ t(STATUS[myPart(song).status]?.label ?? STATUS.none.label) }}</span><span v-if="soon(myPart(song))" data-rehearsal-soon> · {{ soon(myPart(song)) }}</span></p>
                                 </div>
                                 <div class="grid gap-2 sm:flex sm:shrink-0" :class="director ? 'grid-cols-2' : ''">
@@ -321,7 +321,7 @@ export const GroupView = {
                 <component :is="directorImport" v-if="directorImport" ref="directorImport" :group="{ id: group.id, name: group.name }" @send="openTracks" />
                 <!-- The songs the director sent us, newest first, with where each has got to; a delivered one is in the group, ready to open (the director's in-app note: no email). -->
                 <section v-if="director && requests?.length" class="space-y-3" aria-labelledby="group-requests" data-tracks-requests>
-                    <h2 id="group-requests" class="text-sm font-bold text-muted">{{ t('groups.tracks.requestsTitle') }}</h2>
+                    <h2 id="group-requests" class="t-section">{{ t('groups.tracks.requestsTitle') }}</h2>
                     <ul class="card divide-y divide-line">
                         <li v-for="r in requests" :key="r.id" class="flex flex-wrap items-center gap-3 px-4 py-3" :data-tracks-request="r.status">
                             <span class="min-w-0 flex-1">
@@ -338,23 +338,23 @@ export const GroupView = {
                 <div class="space-y-8">
 
                 <section class="space-y-3" aria-labelledby="group-singers">
-                    <h2 id="group-singers" class="text-xl font-extrabold tracking-tight text-cream">{{ t('groups.membersTitle') }}</h2>
+                    <h2 id="group-singers" class="t-section">{{ t('groups.membersTitle') }}</h2>
                     <ul class="card divide-y divide-line">
                         <li v-for="m in members" :key="m.id" class="flex items-center gap-3 px-4 py-3">
                             <img v-if="m.avatarUrl" :src="m.avatarUrl" alt="" class="size-10 shrink-0 rounded-full object-cover" data-avatar />
                             <span v-else class="bubble grid size-10 shrink-0 place-items-center font-bold" :class="m.role === 'director' ? '' : 'bubble-clear'" :style="m.role === 'director' ? { '--bubble': 'var(--color-part-1)', '--bubble-ink': 'var(--color-part-text-1)' } : { '--bubble-ink': 'var(--color-cream)' }" data-avatar aria-hidden="true">{{ m.name.slice(0, 1) }}</span>
                             <span class="min-w-0 flex-1">
                                 <span class="block truncate font-semibold text-cream"><span translate="no">{{ m.name }}</span><span v-if="m.id === account.me?.id" class="ms-1 font-normal text-muted">{{ t('together.you') }}</span></span>
-                                <span class="block text-sm text-muted">{{ aboutMember(m) }}</span>
+                                <span class="block text-sm text-subtle">{{ aboutMember(m) }}</span>
                             </span>
-                            <span v-if="m.role === 'director'" class="text-sm text-muted">{{ t('groups.director') }}</span>
+                            <span v-if="m.role === 'director'" class="chip-tag">{{ t('groups.director') }}</span>
                             <button v-else-if="director" type="button" class="btn-secondary btn-sm" @click="remove(m)">{{ t('together.remove') }}</button>
                         </li>
                     </ul>
                 </section>
 
                 <section class="space-y-3" aria-labelledby="group-group">
-                    <h2 id="group-group" class="text-xl font-extrabold tracking-tight text-cream">{{ t('groups.groupTitle') }}</h2>
+                    <h2 id="group-group" class="t-section">{{ t('groups.groupTitle') }}</h2>
                     <div class="card divide-y divide-line">
                         <button v-if="director" type="button" class="flex min-h-14 w-full items-center justify-between gap-3 px-4 text-start font-semibold text-cream hover:bg-raised/60" @click="rename">{{ t('groups.renameRow') }} <Icon name="chevron" :size="18" class="-rotate-90 text-muted rtl:rotate-90" /></button>
                         <!-- The next rehearsal: tucked in here, never a step in starting a group (the coordinator, 2026-11-08). -->

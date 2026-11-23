@@ -35,7 +35,7 @@ export const ActivitySection = {
     template: `
         <section class="space-y-6" aria-labelledby="activity-h" data-activity>
             <div>
-                <h1 id="activity-h" class="text-3xl font-extrabold tracking-tight text-cream">{{ t('admin.activity.title') }}</h1>
+                <h1 id="activity-h" class="t-title text-cream">{{ t('admin.activity.title') }}</h1>
                 <p class="mt-1 max-w-prose text-sm text-muted">{{ t('admin.activity.intro', { zone: zoneName(report?.timezone) }) }}</p>
             </div>
             <LoadFailed v-if="failed" :message="t('admin.activity.failed')" @retry="load" />
@@ -64,9 +64,9 @@ export const ActivitySection = {
                     <section class="card p-5 md:p-6" aria-labelledby="activity-limits-h" data-activity-limits>
                         <h2 id="activity-limits-h" class="text-lg font-bold text-cream">{{ t('admin.activity.limits') }}</h2>
                         <dl class="mt-4 grid grid-cols-3 gap-4">
-                            <div><dt class="text-xs text-muted">{{ t('admin.activity.freeAccounts') }}</dt><dd class="text-2xl font-extrabold tabular-nums text-cream">{{ formatNumber(report.limits.freeAccounts) }}</dd></div>
-                            <div><dt class="text-xs text-muted">{{ t('admin.activity.atLimit', { limit: report.limits.projectLimit }) }}</dt><dd class="text-2xl font-extrabold tabular-nums text-cream" data-at-limit>{{ formatNumber(report.limits.projectsAtLimit) }}</dd></div>
-                            <div><dt class="text-xs text-muted">{{ t('admin.activity.nearLimit') }}</dt><dd class="text-2xl font-extrabold tabular-nums text-cream">{{ formatNumber(report.limits.projectsNearLimit) }}</dd></div>
+                            <div><dt class="text-xs text-muted">{{ t('admin.activity.freeAccounts') }}</dt><dd class="text-2xl font-bold tabular-nums text-cream">{{ formatNumber(report.limits.freeAccounts) }}</dd></div>
+                            <div><dt class="text-xs text-muted">{{ t('admin.activity.atLimit', { limit: report.limits.projectLimit }) }}</dt><dd class="text-2xl font-bold tabular-nums text-cream" data-at-limit>{{ formatNumber(report.limits.projectsAtLimit) }}</dd></div>
+                            <div><dt class="text-xs text-muted">{{ t('admin.activity.nearLimit') }}</dt><dd class="text-2xl font-bold tabular-nums text-cream">{{ formatNumber(report.limits.projectsNearLimit) }}</dd></div>
                         </dl>
                         <p class="mt-3 text-sm text-muted">{{ t('admin.activity.limitsHint') }}</p>
                     </section>

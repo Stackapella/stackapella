@@ -84,7 +84,7 @@ export const OverviewSection = {
         <section class="space-y-6" aria-labelledby="growth-h" data-growth>
             <div class="flex flex-wrap items-start justify-between gap-4">
                 <div class="min-w-0">
-                    <h1 id="growth-h" class="text-3xl font-extrabold tracking-tight text-cream">{{ t('admin.growth.title') }}</h1>
+                    <h1 id="growth-h" class="t-title text-cream">{{ t('admin.growth.title') }}</h1>
                     <p class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
                         <span v-if="growth?.period" data-growth-clock>{{ t('admin.growth.clock', { zone: zoneName(growth.timezone), cut: growth.period.cut }) }}</span>
                         <span v-else>{{ days === 1 ? t('admin.growth.introToday', { zone: zoneName(growth?.timezone) }) : t('admin.growth.introDays', { from: day(growth?.from), to: day(growth?.to), zone: zoneName(growth?.timezone) }) }}</span>
@@ -165,7 +165,7 @@ export const OverviewSection = {
                             <span v-if="lowSample(tile)" class="shrink-0 rounded-md border border-line px-1.5 py-0.5 text-xs text-muted" data-few>{{ t('admin.growth.lowSample') }}</span>
                         </div>
                         <p class="mt-2 flex flex-wrap items-baseline gap-x-2.5">
-                            <span class="text-3xl font-extrabold tabular-nums text-cream sm:text-4xl">{{ formatNumber(count(tile)) }}</span>
+                            <span class="text-3xl font-bold tabular-nums text-cream sm:text-4xl">{{ formatNumber(count(tile)) }}</span>
                             <span v-if="shareOfArrivals(tile)" class="text-sm text-muted" data-share><b class="font-semibold text-cream">{{ shareOfArrivals(tile) }}</b> {{ t('admin.growth.ofArrivals') }}</span>
                         </p>
                         <div class="mt-auto pt-4"><dl class="space-y-1 border-t border-line pt-3 text-sm">
@@ -195,7 +195,7 @@ export const OverviewSection = {
                         </div>
                         <div class="-mx-1 mt-4 overflow-x-auto px-1">
                             <table class="w-full text-sm">
-                                <thead class="text-xs font-semibold uppercase tracking-wider text-muted">
+                                <thead class="t-section">
                                     <tr>
                                         <th scope="col" class="pb-2 text-start font-semibold">{{ t('admin.growth.col.step') }}</th>
                                         <th scope="col" class="pb-2"><span class="sr-only">{{ t('admin.growth.col.bar') }}</span></th>
@@ -234,7 +234,7 @@ export const OverviewSection = {
                             <p v-if="!sources" class="mt-4 text-sm text-muted" role="status">{{ t('admin.loading') }}</p>
                             <div v-else class="-mx-1 mt-4 overflow-x-auto px-1">
                                 <table class="w-full text-sm">
-                                    <thead class="text-xs font-semibold uppercase tracking-wider text-muted">
+                                    <thead class="t-section">
                                         <tr class="border-b border-line">
                                             <th scope="col" class="pb-2 pe-2 text-start font-semibold">{{ t('admin.growth.col.source') }}</th>
                                             <th v-for="(label, key) in COLUMNS" :key="key" scope="col" class="pb-2 ps-3 text-end font-semibold" :aria-sort="sortBy === key ? 'descending' : 'none'">

@@ -27,10 +27,20 @@ def journey(f):
     # The Plus page: while the plus_teams switch is off (the mock's auth.config), singing together is among what's free;
     # switched on, it leads (docs/pricing-plan.md, top).
     f.go("/plus?api=mock&as=member&from=invite_friend", "document.querySelector('h1')")
-    f.wait_text(t(f, "plus.headlineSolo"))
-    assert t(f, "plus.highlight.together") not in f.js("document.body.innerText"), "Sing together isn't sold while the switch is off"
+    # The site's own words (ai-marketing): the headline, one line naming the points shown, each point a gain and a fact.
+    f.wait_text(t(f, "plus.page.headline"))
+    points = lambda: f.js("[...document.querySelectorAll('[data-plus-point]')].map((li) => li.dataset.plusPoint)")
+    assert "together" not in points(), "Sing together isn't sold while the switch is off"
+    assert points()[:2] == ["storage", "stems"], points()
     f.run("await (await import('/js/stores/account.js')).loadAuthConfig(); (await import('/js/teams.js')).teams.on = true")
-    f.wait_text(t(f, "plus.highlight.together"))
+    f.wait("document.querySelector('[data-plus-point=together]')", what="Start choir groups, switched on")
+    # The AI choir leads while own_choir is on, and the private arrangements point gives way (three or four, never five).
+    f.run("(await import('/js/stores/account.js')).account.config.ownChoir = true; (await import('/js/teams.js')).teams.private = true")
+    f.wait("document.querySelector('[data-plus-points] li')?.dataset.plusPoint === 'choir'", what="your own AI choir first")
+    assert "private" not in points() and len(points()) <= 4, points()
+    assert not f.js("document.querySelector('[data-plus-lede]')"), "a lede saying the headline or the points again"
+    assert f.js("document.body.innerText").count(t(f, "plus.page.togetherFact")) == 1, "joins free said more than once"
+    f.shot("plus-points")
     f.wait_text(t(f, "plus.moment.inviteFriend"))
     groups = f.js("[...document.querySelectorAll('table tbody th[colspan], table caption, h3')].map((e) => e.textContent.trim())")
     print(f"    the table's groups: {groups}")

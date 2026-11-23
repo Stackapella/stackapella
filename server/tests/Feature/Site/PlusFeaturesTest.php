@@ -65,4 +65,18 @@ final class PlusFeaturesTest extends TestCase
             array_values(PlusFeatures::replacements()),
         );
     }
+
+    public function test_the_app_reads_the_same_plus_numbers_as_the_sites_words(): void
+    {
+        config(['own_choir.plus_minutes' => 60, 'usage.plans.plus.storage_bytes' => 50 * 1024 ** 3]);
+        $this->assertSame(['choirMinutes' => 60, 'choirSongs' => 15, 'storageBytes' => 53687091200], PlusFeatures::limits());
+
+        $shown = $this->getJson('/api/auth/config');
+        $this->assertMatchesContract($shown, 'auth.config', 200);
+        $shown->assertJsonPath('data.plusLimits', ['choirMinutes' => 60, 'choirSongs' => 15, 'storageBytes' => 53687091200]);
+
+        // A month too short for a song still says one.
+        config(['own_choir.plus_minutes' => 3]);
+        $this->assertSame(1, PlusFeatures::limits()['choirSongs']);
+    }
 }

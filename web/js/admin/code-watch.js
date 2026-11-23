@@ -19,7 +19,7 @@ export const CodeWatchSection = {
     template: `
         <section class="space-y-6" aria-labelledby="codewatch-h" data-code-watch>
             <div>
-                <h1 id="codewatch-h" class="text-3xl font-extrabold tracking-tight text-cream">{{ t('admin.codeWatch.title') }}</h1>
+                <h1 id="codewatch-h" class="t-title text-cream">{{ t('admin.codeWatch.title') }}</h1>
                 <p class="mt-1 max-w-prose text-sm text-muted">{{ t('admin.codeWatch.intro') }}</p>
             </div>
             <LoadFailed v-if="failed" :message="t('admin.codeWatch.failed')" @retry="load" />
@@ -33,7 +33,7 @@ export const CodeWatchSection = {
                         <li v-for="h in list.hits" :key="h.id" class="card space-y-2 p-5" :data-hit="h.key" :data-kind="h.kind">
                             <div class="flex flex-wrap items-start justify-between gap-3">
                                 <div class="min-w-0">
-                                    <p class="text-xs font-semibold uppercase tracking-wider text-muted">{{ t(KINDS[h.kind] ?? KINDS.domain) }}</p>
+                                    <p class="t-section">{{ t(KINDS[h.kind] ?? KINDS.domain) }}</p>
                                     <a v-if="h.url" :href="h.url" target="_blank" rel="noopener noreferrer" class="link tap-44 break-all font-semibold" translate="no">{{ h.key }}</a>
                                     <p v-else class="break-all font-semibold text-cream" translate="no">{{ h.key }}</p>
                                 </div>

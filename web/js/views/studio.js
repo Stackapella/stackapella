@@ -113,7 +113,7 @@ export const StudioView = {
                      from 1024 px the title is never narrower than 12rem (the buttons take their own row first; app_audit, 2026-11-12). A phone's
                      header is as it was. -->
                 <header class="flex flex-wrap items-center gap-x-3 gap-y-2 overflow-hidden px-3 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))] md:py-3 min-[900px]:px-5">
-                    <button type="button" class="grid size-11 shrink-0 place-items-center rounded-full text-cream hover:bg-raised" :aria-label="t('common.backToProjects')" @click="leave"><Icon name="back" :size="20" /></button>
+                    <button type="button" class="grid size-11 shrink-0 place-items-center rounded-full text-cream hover:bg-raised" data-header-btn :aria-label="t('common.backToProjects')" @click="leave"><Icon name="back" :size="20" /></button>
                     <div class="min-w-0 flex-1 lg:min-w-48">
                         <label class="sr-only" for="song-name">{{ t('project.nameLabel') }}</label>
                         <input id="song-name" :value="project.title" maxlength="80" autocomplete="off" translate="no" :placeholder="t('project.namePlaceholder')" :readonly="!!project.shared"
@@ -133,7 +133,7 @@ export const StudioView = {
                         </button>
                         <button v-if="!project.beta && !fromSheetMusic && sharedParts.length" type="button" class="btn-ghost btn-sm hidden lg:flex" @click="dialog = 'share'">{{ t('share.title') }}</button>
                         <button v-if="!project.beta" type="button" class="btn-ghost btn-sm hidden items-center gap-1.5 lg:flex" :disabled="!parts.length" @click="dialog = 'export'"><Icon name="download" :size="16" /> {{ t('studio.export') }}</button>
-                        <button v-if="!project.shared" type="button" class="hidden size-11 place-items-center rounded-full bg-raised text-cream hover:bg-line lg:grid" :aria-label="t('studio.menu.settings')" :title="t('studio.menu.settings')" @click="dialog = 'settings'"><Icon name="sliders" :size="18" /></button>
+                        <button v-if="!project.shared" type="button" class="hidden size-11 place-items-center rounded-full bg-raised text-cream hover:bg-line lg:grid" data-header-btn :aria-label="t('studio.menu.settings')" :title="t('studio.menu.settings')" @click="dialog = 'settings'"><Icon name="sliders" :size="18" /></button>
                         <!-- Share in plain sight on a phone too (a newcomer couldn't find it in the More menu: Hillel's dad, 2026-11-23). -->
                         <button v-if="!project.beta && !fromSheetMusic && sharedParts.length" type="button" class="btn-secondary btn-sm lg:hidden" data-studio-share @click="dialog = 'share'">{{ t('share.title') }}</button>
                         <button v-if="isTemplate && !project.beta" type="button" class="btn-secondary btn-sm flex items-center gap-1.5" @click="navigate('/p/' + id + '/sing')"><Icon name="note" :size="16" /> {{ t('sing.open') }}</button>

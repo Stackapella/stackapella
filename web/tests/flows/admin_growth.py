@@ -616,6 +616,9 @@ api.admin.growth.choirs = async (q) => { window.choirQueries.push(q.period); con
     assert bars == days, f"{bars} bars for {days} days"
     assert made > 4 and f.js("document.querySelector('[data-choirs-total=made] [data-change]').dataset.dir") == "up", "more made than before, said as up"
     assert f.js("document.querySelector('[data-choirs-total=failed] [data-change]').classList.contains('text-muted')"), "failures said in colour"
+    # Made beside what was tried and why the rest failed (Hillel read "0 made" as broken): a zero never looks like no data.
+    tried = f.js("document.querySelector('[data-choirs-total=made] [data-tried]')?.textContent ?? ''")
+    assert "tried" in tried and "failed" in tried and "the take" in tried, tried
     split = f.js("document.querySelector('[data-choirs-total=made] [data-split]').textContent")
     assert "free" in split and "Plus" in split, split
     assert f.js("!!document.querySelector('[data-choirs-funnel] [data-rate]')"), "the rate isn't said"

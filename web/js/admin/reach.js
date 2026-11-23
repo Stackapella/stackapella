@@ -74,8 +74,8 @@ export const ReachChart = {
                     <p class="text-sm text-muted">{{ t(MEASURES[measure].title) }}</p>
                 </div>
                 <dl v-if="latest" class="flex gap-6 text-end">
-                    <div><dt class="text-xs text-muted">{{ t('admin.reach.account') }}</dt><dd class="text-2xl font-extrabold tabular-nums text-cream" data-latest-account>{{ number(latest.account) }}</dd></div>
-                    <div><dt class="text-xs text-muted">{{ t('admin.reach.guest') }}</dt><dd class="text-2xl font-extrabold tabular-nums text-cream" data-latest-guest>{{ number(latest.guest) }}</dd></div>
+                    <div><dt class="text-xs text-muted">{{ t('admin.reach.account') }}</dt><dd class="text-2xl font-bold tabular-nums text-cream" data-latest-account>{{ number(latest.account) }}</dd></div>
+                    <div><dt class="text-xs text-muted">{{ t('admin.reach.guest') }}</dt><dd class="text-2xl font-bold tabular-nums text-cream" data-latest-guest>{{ number(latest.guest) }}</dd></div>
                 </dl>
             </div>
             <LoadFailed v-if="failed" class="mt-4" :message="failed" @retry="load" />

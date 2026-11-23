@@ -113,7 +113,7 @@ export const MetricCard = {
                 <VerdictChip :verdict="headline" />
             </div>
             <p class="flex flex-wrap items-baseline gap-x-2">
-                <span class="text-3xl font-extrabold text-cream md:text-4xl" data-now>{{ formatNumber(metric.now) }}</span>
+                <span class="text-3xl font-bold text-cream md:text-4xl" data-now>{{ formatNumber(metric.now) }}</span>
                 <span class="text-sm text-muted">{{ periodWords(period) }}</span>
                 <span v-if="share" class="text-sm text-muted" data-share>{{ share }}</span>
             </p>
@@ -175,7 +175,7 @@ export const TrackingPanel = {
                         <p class="text-sm text-muted">{{ label(m) }}</p>
                         <VerdictChip :verdict="m.usual?.verdict ?? 'none'" />
                     </div>
-                    <p class="mt-1 text-3xl font-extrabold text-cream" data-now>{{ formatNumber(m.now) }}</p>
+                    <p class="mt-1 text-3xl font-bold text-cream" data-now>{{ formatNumber(m.now) }}</p>
                     <p v-if="m.rate && Number.isFinite(m.rate.now)" class="text-xs text-muted">{{ t('admin.growth.compare.ofArrivals', { share: (Math.round(m.rate.now * 1000) / 10) + '%' }) }}</p>
                     <div v-if="m.usual && Number.isFinite(m.usual.low) && Number.isFinite(m.usual.high)" class="mt-2 space-y-1">
                         <RangeStrip :value="m.now" :low="m.usual.low" :high="m.usual.high" :verdict="m.usual.verdict" :label="rangeText(m.usual)" />
