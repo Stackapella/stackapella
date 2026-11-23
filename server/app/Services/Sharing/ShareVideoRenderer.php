@@ -60,37 +60,45 @@ final class ShareVideoRenderer
             $words = $job['lines'] !== [] ? $this->words($job['lines'], $look, $section, $dir) : null;
             $progress(0.1);
 
-            $inputs = ['-loop', '1', '-framerate', (string) $fps, '-t', (string) $total, '-i', "{$dir}/background.png", '-i', "{$dir}/strip.png", '-i', "{$dir}/front.png", '-i', "{$dir}/end.png"];
+            // Each still read once and repeated in memory (`loop`): an image input looped by the reader is decoded again
+            // for every frame, the full-size background most of all.
+            $inputs = ['-i', "{$dir}/background.png", '-i', "{$dir}/strip.png", '-i', "{$dir}/front.png", '-i', "{$dir}/end.png"];
             $speed = self::PIXELS_PER_SECOND;
             $filters = [
-                "[1:v]loop=loop=-1:size=1:start=0,setpts=N/{$fps}/TB[strip]",
-                "[2:v]loop=loop=-1:size=1:start=0,setpts=N/{$fps}/TB[front]",
-                "[3:v]loop=loop=-1:size=1:start=0,setpts=N/{$fps}/TB[end]",
-                "[0:v][strip]overlay=x='-t*{$speed}':y=".self::WAVE_TOP.':shortest=0:eof_action=repeat[a]',
-                '[a][front]overlay=x=0:y='.self::WAVE_TOP.'[b]',
+                // Each still converted to the video's colour format once, before it's repeated, not on every frame.
+                "[0:v]format=yuv420p,loop=loop=-1:size=1:start=0,setpts=N/{$fps}/TB,trim=duration={$total}[bg]",
+                "[1:v]format=yuva420p,loop=loop=-1:size=1:start=0,setpts=N/{$fps}/TB[strip]",
+                "[2:v]format=yuva420p,loop=loop=-1:size=1:start=0,setpts=N/{$fps}/TB[front]",
+                "[3:v]format=yuva420p,loop=loop=-1:size=1:start=0,setpts=N/{$fps}/TB[end]",
+                "[bg][strip]overlay=x='-t*{$speed}':y=".self::WAVE_TOP.':format=yuv420:shortest=0:eof_action=repeat[a]',
+                '[a][front]overlay=x=0:y='.self::WAVE_TOP.':format=yuv420[b]',
             ];
             $last = 'b';
             $audio = 4;
 
             if ($words !== null) {
                 $inputs = [...$inputs, '-f', 'concat', '-safe', '0', '-i', $words];
-                $filters[] = "[4:v]fps={$fps}[words]";
-                $filters[] = '[b][words]overlay=x=0:y='.self::WORDS_TOP.":eof_action=pass:enable='lt(t,{$section})'[c]";
+                $filters[] = "[4:v]format=yuva420p,fps={$fps}[words]";
+                $filters[] = '[b][words]overlay=x=0:y='.self::WORDS_TOP.":format=yuv420:eof_action=pass:enable='lt(t,{$section})'[c]";
                 $last = 'c';
                 $audio = 5;
             }
 
             $fadeOut = round(max(0, $section - 0.6), 3);
-            $filters[] = "[{$last}][end]overlay=x=0:y=0:enable='gte(t,{$section})'[video]";
+            $filters[] = "[{$last}][end]overlay=x=0:y=0:format=yuv420:enable='gte(t,{$section})'[video]";
             $filters[] = "[{$audio}:a]afade=t=in:d=0.05,afade=t=out:st={$fadeOut}:d=0.6,apad=whole_dur={$total}[audio]";
 
+            // The `long` worker's cores (0: ffmpeg's own choice); set to 1 to measure it as the one-vCPU worker runs.
+            $threads = (int) config('sharing.videos.threads', 0);
             $command = [
                 'ffmpeg', '-hide_banner', '-nostats', '-loglevel', 'error', '-y',
+                ...($threads > 0 ? ['-filter_complex_threads', (string) $threads, '-filter_threads', (string) $threads] : []),
                 ...$inputs,
                 '-ss', (string) $job['start'], '-t', (string) $section, '-i', $job['audio'],
                 '-filter_complex', implode(';', $filters),
                 '-map', '[video]', '-map', '[audio]', '-t', (string) $total,
-                '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23', '-maxrate', '1600k', '-bufsize', '3200k', '-pix_fmt', 'yuv420p', '-r', (string) $fps,
+                ...($threads > 0 ? ['-threads', (string) $threads] : []),
+                '-c:v', 'libx264', '-preset', 'superfast', '-crf', '23', '-maxrate', '1600k', '-bufsize', '3200k', '-pix_fmt', 'yuv420p', '-r', (string) $fps,
                 '-c:a', 'aac', '-b:a', '128k', '-ac', '2', '-movflags', '+faststart',
                 '-progress', 'pipe:1',
                 $job['out'],

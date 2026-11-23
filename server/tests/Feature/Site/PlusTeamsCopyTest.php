@@ -32,7 +32,6 @@ final class PlusTeamsCopyTest extends TestCase
             'the plan cards' => ['/pricing', 'Sing with friends, and choir groups', 'Join any song or choir group you&#039;re invited to'],
             'pricing\'s choir question' => ['/pricing', 'Nothing for you or your singers: choir groups are free.', 'Nothing for your singers: they join free. Starting the group takes Plus.'],
             'pricing\'s table' => ['/pricing', 'Friends singing on one of your songs', 'Inviting friends to sing on your songs'],
-            'the landing\'s question' => ['/', 'and singing with friends. You can start without an account.', 'lets you invite friends to sing and start choir groups'],
             'help on groups' => ['/help/groups', 'Groups are free.', 'Starting a group takes Plus; every singer joins free.'],
             'the choirs feature' => ['/features/choirs', 'Choir groups are free, for the director and every member.', 'Starting a choir group takes Plus; every member joins free.'],
             'for choir directors' => ['/for/choir-directors', 'your singers never pay: learning on Stackapella is free.', 'they join your group free. Starting the group takes Plus.'],
@@ -48,19 +47,20 @@ final class PlusTeamsCopyTest extends TestCase
         $this->assertStringNotContainsString($on, $off);
 
         app(Flags::class)->set('plus_teams', 'on', null, 'test');
-        $html = (string) $this->get($path)->assertOk()->getContent();
+        // /pricing bolds each answer's short answer: read the words without that markup.
+        $html = str_replace(['<b>', '</b>'], '', (string) $this->get($path)->assertOk()->getContent());
         $this->assertStringContainsString($on, $html, $path.': the new words with the switch on');
         $this->assertStringNotContainsString($today, $html);
     }
 
     public function test_plus_lists_singing_together_once_the_switch_is_on(): void
     {
-        $line = 'Invite friends to sing on your songs and start choir groups. Everyone you invite joins free.';
+        $line = e(__('plus.items.together.1'));
         $this->assertStringNotContainsString($line, (string) $this->get('/pricing')->getContent());
         app(Flags::class)->set('plus_teams', 'on', null, 'test');
         $html = (string) $this->get('/pricing')->assertOk()->getContent();
         $this->assertStringContainsString($line, $html);
-        $this->assertStringContainsString('Private arrangements.', $html, 'the other gains stay');
+        $this->assertStringContainsString(e(__('plus.items.private.0')), $html, 'the other gains stay');
     }
 
     public function test_the_spanish_pages_say_it_in_spanish(): void

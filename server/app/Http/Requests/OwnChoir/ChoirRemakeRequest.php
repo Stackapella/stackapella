@@ -21,7 +21,10 @@ final class ChoirRemakeRequest extends FormRequest
     {
         return [
             'sung' => ['required', 'array'],
-            'sung.humanize' => ['required', 'integer', 'between:0,3'],
+            // Vibrato and natural variation (2026-11-23); an older app's humanize alone still works, read as both.
+            'sung.vibrato' => ['required_without:sung.humanize', 'in:none,light,natural,strong'],
+            'sung.variation' => ['required_without:sung.humanize', 'in:steady,natural,loose'],
+            'sung.humanize' => ['sometimes', 'integer', 'between:0,3'],
             'sung.voicing' => ['required', 'in:auto,low,full,high,written'],
             'sung.breaths' => ['required', 'in:legato,natural'],
             'sung.quality' => ['required', 'in:standard,fine'],

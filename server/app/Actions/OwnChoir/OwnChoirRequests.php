@@ -487,7 +487,7 @@ final class OwnChoirRequests
      * Choir settings' singing (Plus): the song made again in their saved voice, its owner's parts only, charged like a
      * song (fine at its real GPU cost); the song plays as it is until the new parts replace the old.
      *
-     * @param  array{humanize: int, voicing: string, breaths: string, quality: string, ensembleTiming: string, pitchSpread: string}  $sung
+     * @param  array{vibrato: string, variation: string, humanize: int, voicing: string, breaths: string, quality: string, ensembleTiming: string, pitchSpread: string}  $sung
      */
     public function remake(User $user, OwnChoirRequest $song, array $sung): OwnChoirRequest
     {

@@ -233,6 +233,7 @@
         '/js/stores/catalogue.js',
         '/js/ai-voices.js',
         '/js/own-choir.js',
+        '/js/components/choir-panel.js',
         '/js/components/joined-choirs.js',
         '/js/recorded-guides.js',
         '/js/stores/ideas.js',

@@ -14,7 +14,8 @@ import { navigate } from '../router.js';
 import { betaWaiting, homeBands, sangThisWeek } from '../home.js';
 import { aiPartsOf, creditsFor, loadCatalogue, recordingFor } from '../stores/catalogue.js';
 import { AiVoiceLabel } from '../ai-voices.js';
-import { loadOwnChoir, ownChoir, ownChoirOn, readyUnseen, togetherOn } from '../own-choir.js';
+import { loadOwnChoir, ownChoirOn } from '../own-choir.js';
+import { ChoirPanel, choirReady } from '../components/choir-panel.js';
 import { JoinedChoirs } from '../components/joined-choirs.js';
 import { guideKey, keepAhead } from '../recorded-guides.js';
 import { defineAsyncComponent, markRaw, toRaw } from 'vue';
@@ -78,6 +79,10 @@ function keptFilters() {
 }
 /** The songs grid's columns (as its classes: 3 from md, 4 from xl), or 0 on a phone, where the band scrolls. */
 // Hillel: three songs a row from a tablet up (Your songs and the library alike); a phone's band scrolls.
+/** A wide screen (the course card's side column shows from here: HomeLead's lg). */
+const WIDE = window.matchMedia('(min-width: 1024px)');
+/** The words function, by another name where a method's local `t` (a template) hides it. */
+const say = (key, values) => t(key, values);
 const songColumns = () => (window.matchMedia('(min-width: 1024px)').matches ? 4 : window.matchMedia('(min-width: 768px)').matches ? 3 : 0);
 // Learn a harmony's filters (42.png): every song, yours, drafts (not yet checked), on Plus.
 // The library is the catalogue only (docs/home-create-plan.md): your own songs and drafts are in Your songs.
@@ -93,9 +98,9 @@ const dialogLoader = lazyView(() => import('../components/dialogs.js').then((m) 
 const TemplateDialog = defineAsyncComponent(dialogLoader);
 
 export const ProjectsView = {
-    components: { AiVoiceLabel, LibraryFilters, StorageMeter, CreditLine, PlayerChip, DailyTag, CardMenu, HomeCourses, ThemeSwitch, Icon, Logo, TemplateDialog, HomeLead, HomeBand, SongCover, InstallCard, WeekCard, WorkoutStrip, StatusChip, Modal, Notice, RemindAsk, FirstWeek, JoinedChoirs },
+    components: { AiVoiceLabel, LibraryFilters, StorageMeter, CreditLine, PlayerChip, DailyTag, CardMenu, HomeCourses, ChoirPanel, ThemeSwitch, Icon, Logo, TemplateDialog, HomeLead, HomeBand, SongCover, InstallCard, WeekCard, WorkoutStrip, StatusChip, Modal, Notice, RemindAsk, FirstWeek, JoinedChoirs },
     setup: () => ({ sungYet, GROUP_WORDS, templatePartName, ideas, mine, canStart, projects, account, learning, shownTitle, songTitle, formatTime, timeAgo, PART_COLORS, lengthBeats, partsFor, keyLabel, DIFFICULTY, creditsFor, aiPartsOf, navigate, BAND_COLORS, BETA_STATUS, publicSiteUrl, effect, dailyState }),
-    data: () => ({ storageUsage: null, locked: false, taste: false, clip: null, templates: [], openTemplate: null, singers: 4, previewing: false, preparingPreview: false, starting: false, groups: null, choirParts: [], startingChoir: null, betaParts: null, avatarFailed: false, making: false, importProblems: null, sheetScore: null, sheetSaving: false, sheetView: null, sessionStore: null, songsOpen: tabStorage.get('stackapella.songsOpen') === '1', libraryFilters: keptFilters(), lookedAt: lastLooked(), newsCounted: null, yoursOpen: false, songColumns: songColumns(), newing: false, showInfo: false, songLoad: null, songNotHere: null, previewOf: null, playingSong: null, renaming: null, newName: '' }),
+    data: () => ({ wide: WIDE.matches, storageUsage: null, locked: false, taste: false, clip: null, templates: [], openTemplate: null, singers: 4, previewing: false, preparingPreview: false, starting: false, groups: null, choirParts: [], startingChoir: null, betaParts: null, avatarFailed: false, making: false, importProblems: null, sheetScore: null, sheetSaving: false, sheetView: null, sessionStore: null, songsOpen: tabStorage.get('stackapella.songsOpen') === '1', libraryFilters: keptFilters(), lookedAt: lastLooked(), newsCounted: null, yoursOpen: false, songColumns: songColumns(), newing: false, showInfo: false, songLoad: null, songNotHere: null, previewOf: null, playingSong: null, renaming: null, newName: '' }),
     template: `
         <div class="min-h-dvh">
             <!-- The app's top bar on the site header's grid (app-wrap app-top): the logo where the site's is. -->
@@ -128,20 +133,14 @@ export const ProjectsView = {
 
                         <!-- Hillel's Home design: the course card, the workout and your songs share one width, so their edges line up. -->
             <div class="mt-2 space-y-5">
-                <!-- Hear yourself as a choir (js/own-choir.js): a song made in a voice like theirs and not yet heard is one quiet
-                     card until it's opened, the in-app notice (never email, a pop-up or a badge). -->
-                <!-- One quiet card, a row a ready song (a friend's parts just made in it say so by name). A song they sing in
-                     isn't here twice: its own row below says Ready. -->
-                <section v-if="choirReady.length" class="card divide-y divide-line px-4" role="status" :aria-label="together ? t('ownChoir.together.home.readyTitle') : null" data-choir-ready>
-                    <h2 v-if="together" class="py-3 text-sm font-semibold text-muted">{{ t('ownChoir.together.home.readyTitle') }}</h2>
-                    <div v-for="r in choirReady" :key="r.id" class="flex flex-wrap items-center gap-3 py-3" data-choir-notice>
-                        <p class="min-w-0 flex-1 text-cream">{{ leftOf(r) ? t('ownChoir.together.friendLeft', { name: leftOf(r).name, song: r.title }) : friendReady(r) ? t('ownChoir.together.home.owner', { name: friendReady(r).name, song: r.title }) : together ? t('ownChoir.together.joined.mine', { song: r.title }) : t('ownChoir.ready.notice', { song: r.title }) }}</p>
-                        <button type="button" class="btn-secondary btn-sm" @click="navigate('/t/' + encodeURIComponent(r.templateId) + '/choir')">{{ t('ownChoir.ready.button') }}</button>
-                    </div>
-                </section>
+                <!-- Hear yourself as a choir (components/choir-panel.js; Hillel: "a main panel on the app page ... in the top
+                     right"): in the course card's side column on a wide screen, else its own card right after the course
+                     (never above the main learning entry). One place only, so a choir is never said twice. -->
                 <HomeLead :compact="order.compactCourse">
                     <template #week><WeekCard v-if="learning.loaded && courseStarted" bare /></template>
+                    <template v-if="choirInLead" #side><ChoirPanel side /></template>
                 </HomeLead>
+                <ChoirPanel v-if="!choirInLead" />
                 <InstallCard :songs="songsOnlyHere" :here="songsHere" />
                 <RemindAsk />
                 <FirstWeek :songs="songsOnlyHere" />
@@ -350,13 +349,9 @@ export const ProjectsView = {
             </div>
         </div>`,
     computed: {
-        /** Songs made in a voice like theirs, ready and not yet heard (Hear yourself as a choir): Home's notice. */
-        together: () => togetherOn(),
-        choirReady() {
-            // A song ready and not yet heard, or one a friend left since (its shares came down; said whatever the switch).
-            const left = (ownChoir.data?.requests ?? []).filter((r) => (r.left ?? []).some((l) => !l.seen));
-            const ready = ownChoirOn() ? readyUnseen() : [];
-            return [...ready, ...left.filter((r) => !ready.includes(r))];
+        /** The choir panel in the course card's side column: a wide screen, once the course has loaded, when there's a panel. */
+        choirInLead() {
+            return this.wide && learning.loaded && !learning.failed && (ownChoirOn() || choirReady().length > 0);
         },
         /** Make your own's ways in, each with its own icon; Hum a tune only for staff or once the server switches it on. */
         makeWays() {
@@ -592,7 +587,10 @@ export const ProjectsView = {
         else idle(() => dialogLoader.prefetch(), { timeout: 5000 });
         // A first look at Home's picks starts the library's clock: nothing is "new" the first time (song-news.js).
         if (!this.lookedAt) lookedNow();
-        this.onResize = () => (this.songColumns = songColumns());
+        this.onResize = () => {
+            this.songColumns = songColumns();
+            this.wide = WIDE.matches;
+        };
         window.addEventListener('resize', this.onResize);
     },
     beforeUnmount() {
@@ -640,14 +638,6 @@ export const ProjectsView = {
         },
     },
     methods: {
-        /** A friend who left this song since it was last seen (a choir with friends), if any. */
-        leftOf(request) {
-            return (request.left ?? []).find((l) => !l.seen) ?? null;
-        },
-        /** The friend whose parts just came into this ready song, if any (a choir with friends). */
-        friendReady(request) {
-            return togetherOn() ? (request.members ?? []).find((m) => m.status === 'ready' && !m.seen) ?? null : null;
-        },
         /**
          * A link to a song (a shared harmony's "Learn this harmony", a song page's Start, What's next) opens it here, once.
          * A song part page's link names the part too (&part=alto): Start then gives you that part.
@@ -827,9 +817,23 @@ export const ProjectsView = {
                 this.previewing = true;
                 return;
             }
-            const t = this.openTemplate;
+            let t = this.openTemplate;
             await unlock();
             this.preparingPreview = true;
+            // A card's Play on a library song not opened yet: the library's summary has no notes, so the song's file first
+            // (Sentry JAVASCRIPT-C: a summary's part reached the guide's renderer).
+            if (t.summary || t.parts.some((part) => !part.guide)) {
+                try {
+                    const song = await loadTemplate(t.id);
+                    if (this.openTemplate !== t) return; // another song meanwhile
+                    t = this.openTemplate = t.songVersions?.length ? { ...song, songVersions: t.songVersions } : song;
+                } catch (error) {
+                    console.warn('The song did not load to play', error);
+                    this.preparingPreview = false;
+                    toast(say(error?.code === 'offline' ? 'common.offline' : 'templates.loadFailed'), { tone: 'error' }); // say: t, which the template's `t` hides here
+                    return;
+                }
+            }
             // Each part's real voice where the song has one, as Sing and the landing play it (guide-voice.js), else the
             // synth; one after another, as decoding every real voice at once can use hundreds of MB on a phone.
             const guides = [];

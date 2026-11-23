@@ -65,9 +65,9 @@ export const HeadphonesPick = {
         },
     },
     template: `
-        <div class="space-y-2" data-headphones-pick :data-answer="answer">
-            <p class="text-xs font-bold uppercase tracking-[0.14em] text-muted">{{ t('ownChoir.headphones.label') }}</p>
-            <Segmented :model-value="answer" :options="options" :label="t('ownChoir.headphones.label')" full class="[&_.seg-option]:min-h-11" @update:model-value="pick" />
+        <div class="flex flex-col gap-2.5" data-headphones-pick :data-answer="answer">
+            <p id="headphones-pick-label" class="text-sm font-semibold text-cream/80">{{ t('ownChoir.headphones.label') }}</p>
+            <Segmented :model-value="answer" :options="options" labelledby="headphones-pick-label" full class="[&_.seg-option]:min-h-11 [&_.seg-option]:text-[15px]" @update:model-value="pick" />
             <p class="text-sm text-muted">{{ answer === 'no' ? t('ownChoir.headphones.noHint') : t('ownChoir.headphones.yesHint') }}</p>
         </div>`,
 };

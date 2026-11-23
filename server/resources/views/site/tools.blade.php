@@ -86,8 +86,9 @@
                         @foreach ($group['tools'] as $tool)
                             <li data-tools-card data-search="{{ mb_strtolower($tool['name'].' '.$tool['summary'].' '.$tool['tag'].' '.$words['groups'][$group['key']]) }}">
                                 <a href="{{ $tool['url'] }}" class="s-th-card">
-                                    <span class="s-th-card-top"><b>{{ $tool['name'] }}</b>@if ($tool['mic'])<span class="s-th-mic" title="{{ $words['mic_label'] }}"><span aria-hidden="true">{{ $words['mic'] }}</span><span class="sr-only">{{ $words['mic_label'] }}</span></span>@endif<x-site.icon name="arrow" size="16" /></span>
+                                    <span class="s-th-card-top"><b>{{ $tool['name'] }}</b>@if ($tool['mic'])<span class="s-th-mic" title="{{ $words['mic_label'] }}"><span aria-hidden="true">{{ $words['mic'] }}</span><span class="sr-only">{{ $words['mic_label'] }}</span></span>@endif</span>
                                     <span class="s-th-line">{{ $tool['summary'] }}</span>
+                                    <span class="s-th-go" aria-hidden="true">{{ $words['open'] }} <x-site.icon name="arrow" size="16" /></span>
                                 </a>
                             </li>
                         @endforeach

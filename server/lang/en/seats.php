@@ -16,7 +16,6 @@ return [
     'pages.landing.plans_free_list' => [3 => 'Join any song you\'re invited to'],
     'pages.landing.plans_choirs_link' => 'a seat for each singer, and learning tracks for your choir',
     // The landing's questions.
-    'pages.landing.faq' => ['free' => [1 => 'Yes. Learning is free, with no card and no time limit: every course, every song with a free account, unlimited workouts, your history, recording every part, and joining any song you\'re invited to. You can start without an account. Plus, :price_month a month or :price_year a year, lets you invite friends to sing, is your seat in any choir group, and adds more storage, MP3 and stems, and unlimited private arrangements. A choir\'s director can buy a seat for each singer instead.']],
     // /pricing.
     'pages.pricing.rows' => [
         'groups' => ['Choir groups (18 and over)', 'A seat from your director', 'A seat in any group'],
@@ -45,4 +44,10 @@ return [
     'site.compare.pages.smule' => ['faq' => [2 => [1 => 'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, and joining any song you\'re invited to. Plus, for :price_month a month or :price_year a year, lets you invite friends to sing, is your seat in any choir group, and adds more storage, MP3 and stems, and unlimited private arrangements.']]],
     'site.compare.pages.choirmate' => ['faq' => [2 => [1 => 'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, and joining any song you\'re invited to. Plus, for :price_month a month or :price_year a year, lets you invite friends to sing, is your seat in any choir group, and adds more storage, MP3 and stems, and unlimited private arrangements.']]],
     'site.compare.pages.cyberbass-and-choralia' => ['faq' => [2 => [1 => 'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, and joining any song you\'re invited to. Plus, for :price_month a month or :price_year a year, lets you invite friends to sing, is your seat in any choir group, and adds more storage, MP3 and stems, and unlimited private arrangements.']]],
+    // For choir directors (the new page).
+    'site.for_directors.note' => 'Each singer needs a seat, which you buy for the choir from 10 seats. A singer with Plus already has one.',
+    'site.for_directors.steps' => [0 => [1 => 'Starting a group takes Plus, and each singer needs a seat, bought for the choir from 10 seats. Groups are for singers 18 and over.']],
+    'site.for_directors.faq' => [0 => [1 => 'Each singer needs a seat, which you buy for the choir from 10 seats; a singer with Plus already has one. Your first song\'s learning tracks are free.']],
+    // /pricing's choir callout.
+    'pages.pricing.choir_callout' => 'Leading a choir? Each singer needs a seat, which you buy for the choir from 10 seats, and your first song\'s learning tracks are on us.',
 ];

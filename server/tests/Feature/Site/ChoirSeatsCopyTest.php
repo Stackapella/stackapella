@@ -47,7 +47,8 @@ final class ChoirSeatsCopyTest extends TestCase
         // Over teaming up's words too: no "join free" for a choir's members.
         app(Flags::class)->set('plus_teams', 'on', null, 'test');
         app(Flags::class)->set('choir_seats', 'on', null, 'test');
-        $html = (string) $this->get($path)->assertOk()->getContent();
+        // /pricing bolds each answer's short answer: read the words without that markup.
+        $html = str_replace(['<b>', '</b>'], '', (string) $this->get($path)->assertOk()->getContent());
         $this->assertStringContainsString($on, $html, $path.': the seat words with the switch on');
         $this->assertStringNotContainsString('your singers join free', $html);
         $this->assertStringNotContainsString('every member joins free', $html);

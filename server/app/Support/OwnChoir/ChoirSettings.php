@@ -15,7 +15,8 @@ use App\Models\OwnChoirRequest;
 final class ChoirSettings
 {
     // "natural" timing unless chosen (voices, 2026-11-23: what the worker sings when none is chosen).
-    public const SUNG = ['humanize' => 0, 'voicing' => 'auto', 'breaths' => 'legato', 'quality' => 'standard', 'ensembleTiming' => 'natural', 'pitchSpread' => 'off'];
+    // Vibrato and natural variation (Hillel, 2026-11-23) replace humanize, kept one release for older apps, derived.
+    public const SUNG = ['vibrato' => 'natural', 'variation' => 'natural', 'humanize' => 2, 'voicing' => 'auto', 'breaths' => 'legato', 'quality' => 'standard', 'ensembleTiming' => 'natural', 'pitchSpread' => 'off'];
 
     public const ROOMS = ['dry', 'small', 'hall', 'chapel'];
 
@@ -50,12 +51,30 @@ final class ChoirSettings
     /**
      * How it's sung.
      *
-     * @return array{humanize: int, voicing: string, breaths: string, quality: string, ensembleTiming: string, pitchSpread: string}
+     * @return array{vibrato: string, variation: string, humanize: int, voicing: string, breaths: string, quality: string, ensembleTiming: string, pitchSpread: string}
      */
     public static function sung(OwnChoirRequest $request): array
     {
-        $sung = array_replace(self::SUNG, array_intersect_key((array) ($request->sung ?? []), self::SUNG));
-        $sung['humanize'] = (int) $sung['humanize'];
+        return self::normalise((array) ($request->sung ?? []));
+    }
+
+    /**
+     * Settings as given, the defaults filled in; an older app's humanize alone read as vibrato and variation, and
+     * humanize derived from vibrato for it.
+     *
+     * @param  array<string, mixed>  $given
+     * @return array{vibrato: string, variation: string, humanize: int, voicing: string, breaths: string, quality: string, ensembleTiming: string, pitchSpread: string}
+     */
+    public static function normalise(array $given): array
+    {
+        $fromHumanize = [0 => ['none', 'steady'], 1 => ['light', 'natural'], 2 => ['natural', 'natural'], 3 => ['strong', 'loose']];
+
+        if (! isset($given['vibrato']) && isset($given['humanize']) && isset($fromHumanize[(int) $given['humanize']])) {
+            [$given['vibrato'], $given['variation']] = $fromHumanize[(int) $given['humanize']];
+        }
+
+        $sung = array_replace(self::SUNG, array_intersect_key($given, self::SUNG));
+        $sung['humanize'] = (int) (array_search($sung['vibrato'], ['none', 'light', 'natural', 'strong'], true) ?: 0);
 
         return $sung;
     }

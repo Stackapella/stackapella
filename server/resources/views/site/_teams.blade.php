@@ -52,7 +52,8 @@
         @if ($landing)
             @include('site._who', ['whoCompact' => true])
         @else
-            <p class="s-actions-l s-teams-actions"><a href="/features/choirs" class="btn-primary btn-lg">{{ __('site.teams.groups') }}</a> <a href="/for/choir-directors" class="btn-secondary btn-lg">{{ __('site.teams.directors') }}</a></p>
+            {{-- Never a link to the page it's on (Hillel, 2026-11-23: "For directors" on For choir directors went back to its top). --}}
+            <p class="s-actions-l s-teams-actions">@unless (request()->is('features/choirs'))<a href="/features/choirs" class="btn-primary btn-lg">{{ __('site.teams.groups') }}</a>@endunless @unless (request()->is('for/choir-directors'))<a href="/for/choir-directors" class="btn-secondary btn-lg">{{ __('site.teams.directors') }}</a>@endunless</p>
         @endif
     </div>
     <p class="s-teams-continue s-skin-g"><span>{{ __('site.teams.continue') }}</span></p>

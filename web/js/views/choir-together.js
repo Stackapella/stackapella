@@ -165,7 +165,7 @@ export const ChoirTogetherJoinView = {
             this.loadingTrack = true;
             try {
                 const voices = await loadChoir({ templateId: this.invite.templateId, version: 'listen', parts: this.invite.listen ?? [] });
-                await playChoir(voices);
+                await playChoir(voices, null, 0, { tune: tunePart(this.template) });
                 this.playing = true;
             } catch (error) {
                 console.warn('The song did not play', error);

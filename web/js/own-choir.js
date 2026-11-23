@@ -139,7 +139,11 @@ export function clipLine() {
     return choice.templateId === CLIP_TEMPLATE ? t('ownChoir.intro.one', { song }) : t('ownChoir.intro.oneSong', { song });
 }
 
-/** The four tunes to sing for the 30 seconds, as one quiet row of choices (the choice is remembered). */
+/**
+ * The four tunes to sing for the 30 seconds (the choice is remembered), as Hillel's start design draws them: a card each,
+ * 60 px tall, its name and what of it is sung (Happy Birthday, twice through), two across where they fit.
+ * One radio group: arrows move the choice, as the app's Segmented does.
+ */
 export const ClipChoice = {
     // songId: the choir's own song; when it's the tune chosen, they may sing the whole of it (it becomes the lead).
     props: { songId: { type: String, default: null } },
@@ -153,18 +157,31 @@ export const ClipChoice = {
         loadClipTitles();
     },
     template: `
-        <div v-if="songs.length > 1" class="space-y-2" data-clip-choice>
-            <p class="text-xs font-bold uppercase tracking-[0.14em] text-muted">{{ t('ownChoir.intro.choose') }}</p>
-            <div class="grid grid-cols-2 gap-2" role="group" :aria-label="t('ownChoir.intro.choose')">
-                <button v-for="song in songs" :key="song.templateId" type="button" class="min-h-11 rounded-2xl border px-4 py-2.5 text-start"
-                    :class="picked === song.templateId ? 'border-accent bg-raised' : 'border-line hover:border-muted'" :aria-pressed="picked === song.templateId ? 'true' : 'false'"
+        <div v-if="songs.length > 1" class="flex flex-col gap-2.5" data-clip-choice>
+            <p id="clip-choice-label" class="text-sm font-semibold text-cream/80">{{ t('ownChoir.intro.choose') }}</p>
+            <div class="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-2" role="radiogroup" aria-labelledby="clip-choice-label" @keydown="key">
+                <button v-for="(song, i) in songs" :key="song.templateId" ref="option" type="button" role="radio" class="flex min-h-[60px] flex-col justify-center gap-0.5 rounded-xl border-[1.5px] px-4 py-2.5 text-start transition-colors"
+                    :class="picked === song.templateId ? 'border-accent bg-accent/10' : 'border-line hover:border-muted hover:bg-raised'" :aria-checked="picked === song.templateId ? 'true' : 'false'" :tabindex="picked === song.templateId ? 0 : -1"
                     :data-clip-song="song.templateId" @click="chooseClip(song.templateId)">
-                    <span class="block text-[15px] font-semibold text-cream">{{ clipPick.titles[song.templateId] ?? '' }}</span>
+                    <span class="text-[15px] text-cream" :class="picked === song.templateId ? 'font-semibold' : 'font-medium'">{{ clipPick.titles[song.templateId] ?? '' }}</span>
+                    <span class="text-[13px]" :class="picked === song.templateId ? 'text-cream/75' : 'text-muted'">{{ song.templateId === CLIP_TEMPLATE ? t('ownChoir.intro.subTwice') : t('ownChoir.intro.subFirst') }}</span>
                 </button>
             </div>
             <Switch v-if="songId && picked === songId && !clipPick.noHeadphones" :on="clipPick.whole" :label="t('ownChoir.intro.whole')" :hint="t('ownChoir.intro.wholeHint')" class="pt-2" data-clip-whole @change="clipPick.whole = $event" />
         </div>`,
-    methods: { chooseClip },
+    methods: {
+        chooseClip,
+        key(event) {
+            const rtl = getComputedStyle(this.$el).direction === 'rtl';
+            const step = { ArrowRight: rtl ? -1 : 1, ArrowDown: 1, ArrowLeft: rtl ? 1 : -1, ArrowUp: -1 }[event.key];
+            if (!step) return;
+            event.preventDefault();
+            const ids = this.songs.map((song) => song.templateId);
+            const to = (ids.indexOf(this.picked) + step + ids.length) % ids.length;
+            chooseClip(ids[to]);
+            this.$refs.option[to]?.focus();
+        },
+    },
 };
 
 /** The chosen tune as Sing plays it for the choir's 30 seconds (and a friend's join): cut at its stop, unless sung whole. */

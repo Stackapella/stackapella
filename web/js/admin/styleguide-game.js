@@ -5,6 +5,7 @@
 // Shown on this machine or to a signed-in admin, like /styleguide. While it is open the page shows the game skin
 // with the arcade layer on, whatever this device's own choice; nothing is saved, and leaving puts the look back.
 
+import { PatternsSection } from './styleguide-patterns.js';
 import { api } from '../api.js';
 import { t, tk } from '../i18n.js';
 import { appearance } from '../stores/appearance.js';
@@ -15,6 +16,7 @@ import { Modal, toast } from '../components/ui.js';
 import { arcadeOn } from '../game/arcade.js';
 import { HomeBand, SongCover } from '../components/home.js';
 import { sendToSignIn } from './auth.js';
+import { LanguageSection } from './styleguide-language.js';
 
 const KINDS = { primary: tk('styleguide.kind.primary'), secondary: tk('styleguide.kind.secondary'), ghost: tk('styleguide.kind.ghost'), danger: tk('styleguide.kind.danger') };
 // The tokens, by group (each a CSS variable from the arcade-tokens block).
@@ -37,7 +39,7 @@ const CHIPS = { soprano: tk('parts.soprano'), alto: tk('parts.alto'), tenor: tk(
 const RULES = [tk('styleguideGame.ruleSkins'), tk('styleguideGame.ruleTokens'), tk('styleguideGame.ruleGlass'), tk('styleguideGame.rulePeople'), tk('styleguideGame.ruleWords')];
 
 export const StyleguideGameView = {
-    components: { Checkbox, HomeBand, Icon, Logo, Modal, Notice, Range, Segmented, SongCover, StatusChip, Stepper, Switch },
+    components: { LanguageSection, PatternsSection, Checkbox, HomeBand, Icon, Logo, Modal, Notice, Range, Segmented, SongCover, StatusChip, Stepper, Switch },
     // Sample content, as people would type it (not our words). i18n-ignore
     data: () => ({ allowed: false, sheet: false, mode: 'dark', view: 'all', sounds: true, others: false, level: 60, bpm: 96, chips: ['alto'], was: null }), // i18n-ignore
     setup: () => ({ KINDS, COLOURS, FACES, SHAPES, RULES, CHIPS }),
@@ -241,6 +243,8 @@ export const StyleguideGameView = {
                     </div>
                 </section>
 
+                <LanguageSection />
+
                 <section aria-labelledby="sg-messages">
                     <h2 id="sg-messages" class="text-2xl text-cream">{{ t('styleguide.messages') }}</h2>
                     <div class="mt-6 grid gap-3 md:grid-cols-2">
@@ -252,6 +256,9 @@ export const StyleguideGameView = {
                         <button type="button" class="btn-secondary" @click="toast(t('styleguide.toast'))">{{ t('styleguide.showToast') }}</button>
                     </div>
                 </section>
+
+                <!-- The composed patterns the app reuses (styleguide-patterns.js), in this skin. -->
+                <PatternsSection />
 
                 <Modal v-if="sheet" :title="t('styleguide.sheetTitle')" @close="sheet = false">
                     <p class="text-cream">{{ t('styleguide.sheetBody') }}</p>

@@ -42,6 +42,7 @@ import { FunnelSection } from './funnel.js';
 import { DropoffsSection } from './dropoffs.js';
 import { SharingSection } from './sharing.js';
 import { BreadthSection } from './breadth.js';
+import { ChoirSection } from './choir.js';
 import { SupportSection } from './support.js';
 import { LinksSection } from './links.js';
 import { PostsSection } from './posts.js';
@@ -95,6 +96,7 @@ export const SECTIONS = [
     { name: 'sources', group: 'numbers', path: '/admin/sources', label: tk('admin.nav.sources'), hint: tk('admin.nav.sourcesHint'), icon: 'arrow', role: 'admin' },
     { name: 'breadth', group: 'numbers', path: '/admin/breadth', label: tk('admin.nav.breadth'), hint: tk('admin.nav.breadthHint'), icon: 'sparkle', role: 'admin' },
     { name: 'sharing', group: 'numbers', path: '/admin/sharing', label: tk('admin.nav.sharing'), hint: tk('admin.nav.sharingHint'), icon: 'arrow', role: 'admin' },
+    { name: 'choir', group: 'numbers', path: '/admin/choir', label: tk('admin.nav.choir'), hint: tk('admin.nav.choirHint'), icon: 'wave', role: 'admin' },
     { name: 'cohorts', group: 'numbers', path: '/admin/cohorts', label: tk('admin.nav.cohorts'), hint: tk('admin.nav.cohortsHint'), icon: 'list', role: 'admin' },
     { name: 'experiments', group: 'numbers', path: '/admin/experiments', label: tk('admin.nav.experiments'), hint: tk('admin.nav.experimentsHint'), icon: 'split', role: 'admin' },
     { name: 'revenue', group: 'numbers', path: '/admin/revenue', label: tk('admin.nav.revenue'), hint: tk('admin.nav.revenueHint'), icon: 'sparkle', role: 'admin' },
@@ -218,7 +220,7 @@ const HomeSection = {
 };
 
 export const AdminView = {
-    components: { Icon, Logo, Notice, RequestsSection, HomeSection, SafetySection, SwitchesSection, AuditSection, ReviewSection, SingersSection, GuidesSection, AiVoicesSection, AiReviewSection, FeedbackSection, ReportsSection, IdeasSection, MudeoSection, SupportSection, LinksSection, PeopleSection, PostsSection, OverviewSection, SourcesSection, ChoirGroupsSection, RevenueSection, CorrectionsSection, AppealsSection, LiveSection, SearchSection, SchoolSection, CohortsSection, ActivitySection, CodeWatchSection, ExperimentsSection, OutreachSection, UsageSection, FunnelSection, DropoffsSection, SharingSection, BreadthSection },
+    components: { Icon, Logo, Notice, RequestsSection, HomeSection, SafetySection, SwitchesSection, AuditSection, ReviewSection, SingersSection, GuidesSection, AiVoicesSection, AiReviewSection, FeedbackSection, ReportsSection, IdeasSection, MudeoSection, SupportSection, LinksSection, PeopleSection, PostsSection, OverviewSection, SourcesSection, ChoirGroupsSection, RevenueSection, CorrectionsSection, AppealsSection, LiveSection, SearchSection, SchoolSection, CohortsSection, ActivitySection, CodeWatchSection, ExperimentsSection, OutreachSection, UsageSection, FunnelSection, DropoffsSection, SharingSection, BreadthSection, ChoirSection },
     data: () => ({ me: null, failed: false, overview: null, overviewFailed: false }),
     setup: () => ({ route, formatNumber }),
     template: `
@@ -294,6 +296,7 @@ export const AdminView = {
                 <DropoffsSection v-else-if="current === 'dropoffs'" :me="me" />
                 <SharingSection v-else-if="current === 'sharing'" :me="me" />
                 <BreadthSection v-else-if="current === 'breadth'" :me="me" />
+                <ChoirSection v-else-if="current === 'choir'" :me="me" />
                 <GuidesSection v-else-if="current === 'guides'" :me="me" />
                 <AiVoicesSection v-else-if="current === 'ai-voices'" :me="me" />
                 <AiReviewSection v-else-if="current === 'ai-review'" :me="me" />

@@ -413,7 +413,7 @@ async function stateful(operation, params, body, cases, query = {}) {
             r.voicing = tabStorage.get('stackapella.mockChoirLow') ? 'low' : 'written';
             // Why a clip couldn't make a voice (mockFailureDetail, this tab), as the server says it, owner-only.
             if (r.status === 'failed') r.failureDetail = tabStorage.get('stackapella.mockFailureDetail') || null;
-            r.settings ??= { sound: { room: 'dry', balance: (r.parts ?? []).map((p) => ({ partKey: p.partKey, db: 0 })) }, sung: { humanize: 0, voicing: 'auto', breaths: 'legato', ensembleTiming: 'tight', pitchSpread: 'off', quality: 'standard' } };
+            r.settings ??= { sound: { room: 'dry', balance: (r.parts ?? []).map((p) => ({ partKey: p.partKey, db: 0 })) }, sung: { vibrato: 'natural', variation: 'natural', voicing: 'auto', breaths: 'legato', ensembleTiming: 'tight', pitchSpread: 'off', quality: 'standard' } };
             r.remakeMinutes ??= { standard: 2, fine: 4 };
             // Their whole-song take as the lead (mockChoirLead this tab, or a song sung whole here), once it's ready.
             r.leadTake = r.status === 'ready' && (r.wholeTake || tabStorage.get('stackapella.mockChoirLead')) && r.parts?.length ? { ...r.parts[0], id: `${r.parts[0].id}-lead`, url: `${location.origin}/tests/fixtures/guide-48000.m4a?lead=1` } : null;

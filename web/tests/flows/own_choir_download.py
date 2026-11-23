@@ -42,6 +42,10 @@ def journey(f):
     f.run("sessionStorage.setItem('stackapella.mockFailureDetail', 'quiet'); sessionStorage.removeItem('stackapella.mockChoir');")
     f.go("/t/amazing-grace/choir?api=mock&scenario=&as=member", "document.querySelector('[data-choir-failed]')")
     assert t(f, "ownChoir.failed.detail.quiet") in f.js("document.querySelector('[data-choir-failed]').textContent"), "the reason isn't said"
+    # Hillel's start design: an amber alert, said first (before the steps), that says how to fix it.
+    assert f.js("document.querySelector('[data-choir-failed]').getAttribute('role')") == "alert"
+    assert f.js("document.querySelector('[data-choir-failed]').compareDocumentPosition(document.querySelector('[data-choir-steps]')) & Node.DOCUMENT_POSITION_FOLLOWING"), "the alert isn't over the steps"
+    f.no_sideways("the failed start")
     f.shot("failed-quiet")
     f.run("sessionStorage.removeItem('stackapella.mockFailureDetail'); sessionStorage.removeItem('stackapella.mockChoir');")
 

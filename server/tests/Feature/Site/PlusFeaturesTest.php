@@ -20,7 +20,7 @@ final class PlusFeaturesTest extends TestCase
     public function test_with_nothing_switched_on_plus_is_storage_stems_and_private_arrangements(): void
     {
         $this->assertSame(['storage', 'stems', 'private'], PlusFeatures::keys());
-        $this->assertSame('Plus adds more storage, stems and private arrangements.', PlusFeatures::sentence());
+        $this->assertSame('Plus adds more storage, each voice as its own file and private arrangements.', PlusFeatures::sentence());
         $this->assertSame(['Room for every take.', '50 GB for your recordings.'], PlusFeatures::items()[0]);
     }
 
@@ -31,8 +31,8 @@ final class PlusFeaturesTest extends TestCase
         config(['own_choir.plus_minutes' => 60]);
 
         $this->assertSame(['choir', 'together', 'storage', 'stems', 'private'], PlusFeatures::keys());
-        $this->assertSame('Plus adds about 15 songs a month in a voice like yours, singing together, more storage, stems and private arrangements.', PlusFeatures::sentence());
-        $this->assertSame('About 15 songs a month (60 minutes of AI singing), each one yours to download.', PlusFeatures::items()[0][1]);
+        $this->assertSame('Plus adds about 15 songs a month in a voice like yours, singing together, more storage, each voice as its own file and private arrangements.', PlusFeatures::sentence());
+        $this->assertSame('Every part of a song sung by AI in a voice like yours: 60 minutes a month, about 15 songs, each one yours to download.', PlusFeatures::items()[0][1]);
 
         app(Flags::class)->set('choir_seats', 'on', null, 'test');
         $this->assertStringContainsString('your seat in any choir group', PlusFeatures::items()[1][1]);
@@ -42,26 +42,26 @@ final class PlusFeaturesTest extends TestCase
     {
         app()->setLocale('es');
 
-        $this->assertSame('Plus añade más almacenamiento, pistas por separado y arreglos privados.', PlusFeatures::sentence());
+        $this->assertSame('Plus añade más almacenamiento, cada voz en su propio archivo y arreglos privados.', PlusFeatures::sentence());
     }
 
     public function test_the_plan_cards_read_the_one_list(): void
     {
         $off = (string) $this->get('/pricing')->assertOk()->getContent();
         $this->assertStringContainsString(e('Room for every take.'), $off);
-        $this->assertStringNotContainsString(e('More songs in a voice like yours.'), $off);
+        $this->assertStringNotContainsString(e('Your own AI choir.'), $off);
 
         app(Flags::class)->set('own_choir', 'on', null, 'test');
         $on = (string) $this->get('/pricing')->assertOk()->getContent();
-        $this->assertStringContainsString(e('More songs in a voice like yours.'), $on);
-        $this->assertSame(1, substr_count($on, e('More songs in a voice like yours.')), 'Once, never twice.');
-        $this->assertLessThan(strpos($on, e('Room for every take.')), strpos($on, e('More songs in a voice like yours.')), 'In marketing\'s order.');
+        $this->assertStringContainsString(e('Your own AI choir.'), $on);
+        $this->assertSame(1, substr_count($on, e('Your own AI choir.')), 'Once, never twice.');
+        $this->assertLessThan(strpos($on, e('Room for every take.')), strpos($on, e('Your own AI choir.')), 'In marketing\'s order.');
     }
 
     public function test_a_surfaces_own_words_fill_from_the_list(): void
     {
         $this->assertSame(
-            ['Plus adds more storage, stems and private arrangements.', 'more storage, stems and private arrangements', '15', '60'],
+            ['Plus adds more storage, each voice as its own file and private arrangements.', 'more storage, each voice as its own file and private arrangements', '15', '60'],
             array_values(PlusFeatures::replacements()),
         );
     }

@@ -347,7 +347,7 @@ return [
         'read' => 'Read the guide',
         'groups' => [
             ['The basics', ['what-is-harmony', 'satb-explained', 'choir-voicings', 'what-is-a-descant', 'find-your-voice-type']],
-            ['Learn your part', ['find-your-part', 'find-your-starting-note', 'hold-your-part', 'practise-a-choir-part', 'a-round-for-beginners']],
+            ['Learn your part', ['find-your-part', 'find-your-starting-note', 'hold-your-part', 'practise-a-choir-part', 'a-round-for-beginners', 'sing-harmony-with-yourself']],
             ['Skills', ['ear-training', 'sight-reading-for-singers', 'singing-in-tune', 'how-to-sing-with-vibrato', 'breathing-basics', 'arranging-a-cappella', 'vocal-percussion']],
             ['Singing together', ['how-to-blend-in-a-choir', 'how-to-run-a-sectional', 'how-to-start-an-a-cappella-group', 'barbershop-tags']],
         ],
@@ -434,7 +434,7 @@ return [
         // a line with its key phrase in colour, Start singing (lesson 1), a caption true of what it says, then the other
         // four pages with their counts (x-site.close-band, App\Support\Site\Explore).
         'close' => [
-            'home' => ['title' => 'Your first voice is the hardest.', 'em' => 'Let\'s find it together.', 'line' => 'Lesson 1 starts with one comfortable note. No account needed.'],
+            'home' => ['title' => 'Sing', 'em' => 'your first note.', 'line' => 'Try the first lesson without an account.'],
             'songs' => ['title' => 'Pick a part', 'em' => 'and start.', 'line' => 'Free, in your browser. Hear every song without an account.'],
             'courses' => ['title' => 'Not sure where to begin?', 'em' => 'Start with lesson 1.', 'line' => 'Try the first lesson of any course without an account.'],
             'tools' => ['title' => 'Tuned up?', 'em' => 'Now sing a part.', 'line' => 'Lesson 1 is free in your browser, with no account and nothing to install.'],
@@ -817,7 +817,7 @@ return [
         'facts' => ['No account to start', 'Nothing to install', 'Every course, free', 'Every song, free with an account'],
         'steps' => [
             'learn' => ['label' => 'Soprano · learn', 'title' => 'Start with the tune you know.', 'body' => 'Short lessons take you from finding your first note to holding a part on your own. Your notes light up as you hit them.', 'lesson' => 'Lesson 1 · Find your note', 'nice' => 'Nice!', 'points' => ['Every lesson is free', 'Stars and a weekly goal you choose', 'No music reading needed']],
-            'voice' => ['label' => 'Alto · a real voice', 'title' => 'Learn your harmony from a real singer.', 'body' => 'A singer sings your part first. Listen, sing along with them, then sing it on your own. Most songs start with a clear practice voice, and real voices join them part by part.', 'listen' => 'Listen', 'along' => 'Sing along', 'alone' => 'On your own', 'singer' => 'Singer', 'you' => 'You'],
+            'voice' => ['label' => 'Alto · a real voice', 'title' => 'Learn your harmony from a real singer.', 'body' => 'A guide voice sings your part first. Listen, sing along, then sing it on your own.', 'listen' => 'Listen', 'along' => 'Sing along', 'alone' => 'On your own', 'singer' => 'Singer', 'you' => 'You'],
             'record' => ['label' => 'Tenor · record', 'title' => 'Record each part over the others, in time.', 'body' => 'Sing the next part while you hear the ones before. A quick timing check measures your headphones, so each take lands right where you sang it.', 'recording' => 'Recording the tenor', 'checked' => 'Timing checked'],
             'share' => ['label' => 'Bass · share', 'title' => 'Share the whole harmony.', 'body' => 'Polish it with one switch, then send a link anyone can open, or a short video with the words. Nothing is public until you share it.', 'every' => ':song, stacked', 'link' => 'Share a link', 'video' => 'Share a video'],
         ],
@@ -869,7 +869,7 @@ return [
         'plans_free_note' => 'Free forever. No card.',
         'plans_free_includes' => 'What you get',
         'plans_free_for' => 'For every singer.',
-        'plans_free_list' => ['Every course, from your first note to barbershop', 'Every song in the library, with a free account', 'Unlimited workouts, and your history', 'Sing with friends, and choir groups', ':free_storage for your recordings'],
+        'plans_free_list' => ['Every course and every song, to learn', 'Record every part, and share it', ':free_storage for your recordings', 'Sing with friends, and choir groups'],
         // With own_choir (the marketing review, 2026-11-22): the free song on Free. Plus's own list is lang/en/plus.php
         // (App\Support\Site\PlusFeatures), every page's.
         'plans_free_choir' => 'Your first song sung by AI in a voice like yours, to play and share',
@@ -931,15 +931,13 @@ return [
             'privacy' => ['Who hears my recordings?', 'Only you, until you choose. Your singing stays on your device until you save it to your account or share it, and a shared harmony can be heard only by people with its link. If you make a song public, its parts may become guide voices for other singers, credited to you; making it private again stops that.'],
             'guide' => ['Can my voice become a guide voice?', 'Yes, if you\'d like it to. Most songs start with a practice voice. When you share a harmony and say yes to featuring it, it\'s public, and we may choose your part as the voice everyone learns from, credited to you by your profile name. Public harmonies are for singers 18 and over. Untick featuring any time, and your voice stops being a guide.'],
             'coach' => ['Can an app replace a vocal coach?', 'No. No app can replace a real vocal coach. Only a person can hear everything and guide you. That\'s why Stackapella is built to work with coaches: soon you\'ll be able to send a coach your takes and learn with them right here. Until then, Stackapella is for practising between lessons, or for starting out.'],
-            'free' => ['Is it really free?', 'Yes. Learning is free, with no card and no time limit: every course, every song with a free account, unlimited workouts, your history, recording every part, and singing with friends. You can start without an account. Plus, :price_month a month or :price_year a year, adds more storage, MP3 and stems, and unlimited private arrangements.'],
+            'free' => ['Is it really free?', 'Yes. Every course and every song is free to learn, with no card and no time limit. Plus, :price_month a month or :price_year a year, is only for what you make.'],
             'read_music' => ['Do I need to read music?', 'No. You learn each part by ear from a guide voice, with the notes drawn as shapes you can follow.'],
             'instruments' => ['Can I add an instrument?', 'Yes. Singing comes first here, but any part can be an instrument: record a ukulele, a guitar or a beatbox in the studio, name the part, and stack it with the voices.'],
         ],
         // Once Stackapella is open source (the open_source flag): one more question, and a line after
         // the privacy answer.
         'faq_open_source' => ['Is Stackapella open source?', 'Yes. Its code is open source under the Attribution Assurance License: read it, run it on your own server or build on it. The songs and the course are shared too, under CC BY-SA 4.0; only the singers\' recorded voices aren\'t.'],
-        // Joined to "Is it really free?" while own_choir is on.
-        'faq_free_choir' => 'Your first song sung by AI in a voice like yours is free too; Plus adds about :plus_songs songs a month, each yours to download.',
         'faq_privacy_check' => 'The code is open source, so you can check this yourself.',
         // Shown only to people who came from mudeo (App\Support\Pages\MudeoArrival): a line at the
         // top, and a short letter after the hero.
@@ -1022,6 +1020,25 @@ return [
             'The bin never counts toward storage.',
             'Coaches set their own prices for reviews and lessons.',
         ],
+        // /pricing, the approved blueprint kept short (Hillel, 2026-11-23; Saul: "radically shorter and simpler"): a lede, a
+        // note under each plan's button, the choir callout, a short glossary, the rows people decide on.
+        'lede' => 'Every course and every song is free to learn. Plus is for singers who record a lot or keep their arrangements private.',
+        'free_note' => 'Lesson 1 needs no account. A free account opens the rest.',
+        'plus_note' => 'Opens the app. Cancel online any time.',
+        'choir_callout' => 'Leading a choir? Your singers join free, and your first song\'s learning tracks are on us.',
+        'choir_link' => 'See how choir groups work',
+        'compare_short' => 'The difference, in short',
+        'compare_all' => 'See every detail',
+        'courses_browse' => 'Browse all courses',
+        'glossary_title' => 'Words on this page',
+        'glossary' => [
+            ['Each part on its own (stems)', 'Every voice of your song as a separate audio file, so you can balance or edit them yourself.'],
+            ['WAV', 'Full-quality audio, the kind music software works with.'],
+            ['Private arrangement', 'Your own version of a song that only you, or people you share it with, can open.'],
+            ['Choir group', 'A space where a leader shares songs and gives each singer a part. For singers 18 and over.'],
+        ],
+        // First among the questions: the one everyone asks.
+        'faq_free' => ['Is it really free?', 'Yes. Every course and every song is free to learn, with no card and no time limit. Plus is only for what you make.'],
         'faq_title' => 'Questions',
         'faq' => [
             ['If I stop Plus, do I lose what I made?', 'No. Nothing is deleted, and you can play and export all of it. If your recordings are over the free storage, clear some space before you record more.'],
@@ -1038,7 +1055,7 @@ return [
         'faq_share_choir' => 'A song sung by AI says so wherever you share it.',
         'choir_row' => ['Download a song in a voice like yours', 'No', 'Yes'],
         // How many songs in your own voice (Hillel delegated, 2026-11-21: 60 minutes a month with Plus, one free song per email).
-        'choir_songs_row' => ['Songs sung by AI in a voice like yours', 'Your first one', 'About 15 a month'],
+        'choir_songs_row' => ['Your own AI choir, sung in a voice like yours', 'Your first choir, once', ':plus_minutes minutes a month'],
         'faq_private' => ['Can I share a private arrangement?', 'Yes, with Plus. Once a private arrangement has a link or other singers on it, everyone in it needs their own Plus, you too. On your own, one private arrangement stays free. Choir groups are covered by their leader\'s Plus, and finished mixes and videos stay free to hear.'],
         // Once Stackapella is open source (the open_source flag).
         'faq_selfhost' => ['Can I run it myself?', 'Yes. Stackapella is open source, so you can run it on your own server with every Plus feature, free. Most singers don\'t need to: stackapella.com is free to start.'],

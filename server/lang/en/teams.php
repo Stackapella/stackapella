@@ -11,10 +11,8 @@ declare(strict_types=1);
 return [
     // The plan cards (landing and /pricing).
     'pages.landing.plans_free_list' => [3 => 'Join any song or choir group you\'re invited to'],
-    'landing.plans.body' => 'Learning never needs a card. Plus is for what you make: singing together, your files and private arrangements.',
     'pages.landing.plans_choirs_link' => 'singers join free, and learning tracks for your choir',
     // The landing's questions.
-    'pages.landing.faq' => ['free' => [1 => 'Yes. Learning is free, with no card and no time limit: every course, every song with a free account, unlimited workouts, your history, recording every part, and joining any song or choir group you\'re invited to. You can start without an account. Plus, :price_month a month or :price_year a year, lets you invite friends to sing and start choir groups, and adds more storage, MP3 and stems, and unlimited private arrangements.']],
     // /pricing.
     'pages.pricing.rows' => [
         'singers' => ['Inviting friends to sing on your songs', 'No', ':plus'],
@@ -45,4 +43,7 @@ return [
     'site.compare.pages.smule' => ['faq' => [2 => [1 => 'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, and joining any song or choir group you\'re invited to. Plus, for :price_month a month or :price_year a year, lets you invite friends to sing and start choir groups, and adds more storage, MP3 and stems, and unlimited private arrangements.']]],
     'site.compare.pages.choirmate' => ['faq' => [2 => [1 => 'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, and joining any song or choir group you\'re invited to. Plus, for :price_month a month or :price_year a year, lets you invite friends to sing and start choir groups, and adds more storage, MP3 and stems, and unlimited private arrangements.']]],
     'site.compare.pages.cyberbass-and-choralia' => ['faq' => [2 => [1 => 'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, and joining any song or choir group you\'re invited to. Plus, for :price_month a month or :price_year a year, lets you invite friends to sing and start choir groups, and adds more storage, MP3 and stems, and unlimited private arrangements.']]],
+    // /pricing's lede and choir callout (the blueprint).
+    'pages.pricing.lede' => 'Every course and every song is free to learn. Plus is for singers who record a lot, keep their arrangements private, or start a choir group.',
+    'pages.pricing.choir_callout' => 'Leading a choir? Your singers join free. Starting the group takes Plus, and your first song\'s learning tracks are on us.',
 ];

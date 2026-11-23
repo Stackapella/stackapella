@@ -959,7 +959,9 @@
             "groupsLabel": "Admin sections",
             "pagesLabel": "{group} pages",
             "experiments": "Experiments",
-            "experimentsHint": "A/B tests: what each one changes, how it is read, and the verdict once it can be read."
+            "experimentsHint": "A/B tests: what each one changes, how it is read, and the verdict once it can be read.",
+            "choir": "Choir",
+            "choirHint": "Hear yourself as a choir: the funnel, why clips fail, each capture song and part, day by day."
         },
         "reach": {
             "title": "People using the app",
@@ -2368,6 +2370,153 @@
                 "tool": "A free tool"
             }
         },
+        "choir": {
+            "intro": "{from} to {to}, against the same number of days before. Anonymous daily counts only; a share of under {floor} reads as too few to tell.",
+            "introShort": "The choir's anonymous daily counts, against the period before.",
+            "failed": "The choir's numbers didn't load.",
+            "tooFew": "Too few to tell",
+            "onBefore": "on the period before",
+            "points": "{n} pts",
+            "beforeWas": "(the period before: {n})",
+            "beforeLegend": "The period before",
+            "asTable": "Show as a table",
+            "asChart": "Show as a chart",
+            "trendSummary": "{label}, day by day from {from} to {to}: {total} in all.",
+            "passTip": "{share} of the step before",
+            "period": {
+                "label": "Period",
+                "7d": "7 days",
+                "30d": "30 days"
+            },
+            "tile": {
+                "made": "Choirs made",
+                "sent": "Takes sent",
+                "madeShare": "Takes that made a choir",
+                "firstTry": "First choirs on the first try",
+                "gpu": "GPU hours",
+                "plus": "Plus from a choir"
+            },
+            "trend": {
+                "sent": "Takes sent",
+                "made": "Choirs made"
+            },
+            "funnel": "From the intro to a first play",
+            "funnelHint": "Each step's count, and its share of those who saw the intro.",
+            "step": {
+                "intro": "Saw the intro",
+                "take": "Recorded a take",
+                "sent": "Sent it",
+                "requested": "Choir asked for",
+                "ready": "Choir made",
+                "seen": "Opened it",
+                "played": "Played it"
+            },
+            "reasons": "Why clips failed",
+            "reasonsHint": "{count, plural, =0 {No failed clips.} one {1 failed clip, by the server's reason.} other {# failed clips, by the server's reason.}}",
+            "reason": {
+                "notes": "Couldn't follow the tune",
+                "quiet": "Too quiet",
+                "noisy": "Too noisy",
+                "loud": "Too loud",
+                "short": "Too little singing",
+                "edge": "A bump at the start or end",
+                "length": "The wrong length",
+                "other": "Another reason"
+            },
+            "songs": "Each capture song",
+            "col": {
+                "day": "Day",
+                "kind": "Count",
+                "count": "Number",
+                "move": "Against before"
+            },
+            "firstSuccess": "Tries to a first choir",
+            "firstSuccessHint": "How many clips a singer sent before their first choir was made.",
+            "tries": "{count, plural, one {First try} other {# tries}}",
+            "triesMore": "4 or more",
+            "gates": "Parts that failed their checks",
+            "gatesHint": "By part and voicing, most first: where the AI parts come out wrong.",
+            "noGates": "No part failed its checks.",
+            "gate": "{part}, {voicing}",
+            "part": {
+                "soprano": "Soprano",
+                "alto": "Alto",
+                "tenor": "Tenor",
+                "bass": "Bass"
+            },
+            "voicing": {
+                "auto": "auto",
+                "low": "low",
+                "full": "full",
+                "written": "as written"
+            },
+            "all": "Every count",
+            "noCounts": "Nothing counted yet.",
+            "group": {
+                "server": "Made on the server",
+                "level": "Take level",
+                "take": "Takes",
+                "guide": "Guide",
+                "headphones": "Headphones",
+                "song": "Tune chosen",
+                "transpose": "Moved to their note",
+                "octave": "Octave",
+                "view": "Listen to",
+                "settings": "Settings opened",
+                "remake": "Remakes",
+                "plus": "Plus sheets",
+                "tries": "Part tries",
+                "other": "Other counts"
+            },
+            "songLine": "{tried} clips: {ok} made a voice, {failed} failed",
+            "live": {
+                "title": "Live",
+                "asOf": "Updated {when}",
+                "failed": "The live numbers didn't load.",
+                "workerNever": "The worker hasn't asked for work yet.",
+                "workerQuiet": "Worker quiet for {wait}, with songs waiting",
+                "workerPolled": "Worker asked for work {wait} ago",
+                "queued": "Queued",
+                "oldest": "Oldest waiting {wait}",
+                "nothingWaiting": "Nothing waiting",
+                "among": "Remakes {remakes} · friends {friends} · tomorrow {tomorrow}",
+                "rendering": "Rendering",
+                "madeFailed": "Today: {made} made, {failed} failed",
+                "today": "Part-minutes today",
+                "ofDaily": "of {daily} a day",
+                "meter": "Today's part-minutes against the daily meter",
+                "month": "GPU this month",
+                "gpu": "{today} h today · {month} h this month",
+                "failures": "Failures, last 24 hours",
+                "recent": "Latest requests",
+                "noneRecent": "No requests yet.",
+                "paid": "Plus",
+                "facts": "{minutes} min · {gpu} GPU s",
+                "took": "rendered in {wait}",
+                "seconds": "{n} s",
+                "minutes": "{n} min",
+                "hours": "{h} h {m} min",
+                "kind": {
+                    "own": "Own",
+                    "friend": "Friend's parts",
+                    "remake": "Remake"
+                },
+                "status": {
+                    "queued": "Queued",
+                    "rendering": "Rendering",
+                    "ready": "Ready",
+                    "failed": "Failed"
+                },
+                "failure": {
+                    "clip_unusable": "Clip couldn't make a voice",
+                    "bad_clip": "Clip arrived broken",
+                    "gates_failed": "Parts failed their checks",
+                    "render_failed": "Render failed",
+                    "expired": "Took too long",
+                    "reference_gone": "Saved voice deleted"
+                }
+            }
+        },
         "sharing": {
             "intro": "The seven days from {from} to {to}, against the seven before. Under {floor}, a number is too few to tell.",
             "introShort": "How often singers pass the app on, and what comes of it.",
@@ -3509,6 +3658,56 @@
         "libraryHelp": "A band's title in its tone, songs as cartridges (a hover lifts one and a cursor blinks), their tags in tones, and rows in a frame with player slots. Scanlines have their own switch in Settings."
     },
     "styleguide": {
+        "lang": {
+            "title": "The 2026-11-23 language",
+            "line": "Hillel's redesign: a quiet graphite studio. Size, weight and small caps labels make the order; one card per job, rows split by hairlines, a quiet footer bar for the way on.",
+            "eyebrow": "Step 1 of 2 · Recorded",
+            "titleLg": "Your singing is recorded",
+            "titleSm": "Sing one easy note",
+            "lead": "Listen back if you like, then turn it into a four-part choir.",
+            "section": "What you hear",
+            "sectionTwo": "Practice",
+            "counter": "Line 1 of 8",
+            "hint": "A steady note underneath to tune against.",
+            "clockNow": "0:00",
+            "clockOf": "/ 0:31",
+            "viewLabel": "How the song shows",
+            "loop": "Loop line",
+            "record": "Record",
+            "micOn": "Mic on",
+            "primaryXl": "Sing it from F♯2",
+            "secondary": "Try another note",
+            "stepsLabel": "Steps",
+            "step1": "1 · Find your note",
+            "step2": "2 · Sing 30 seconds",
+            "step3": "3 · Hear your choir",
+            "guide": "Your guide",
+            "guideHint": "Your part, played along with you.",
+            "level": "Guide level",
+            "soft": "Soft",
+            "medium": "Medium",
+            "loud": "Loud",
+            "alertLead": "No headphones detected.",
+            "alertRest": "Other parts play softer while you record, so less reaches your mic.",
+            "speed": "Speed",
+            "speedNow": "{n}%",
+            "percent": "{n}%",
+            "tuning": "Tuning in held chords",
+            "tag": "Needs headphones",
+            "keySpace": "Space",
+            "keyPlay": "Play",
+            "keyRecord": "Record",
+            "keyLoop": "Loop",
+            "keyNext": "Next phrase",
+            "laneYou": "Your take",
+            "stateYou": "You",
+            "stateReady": "Ready",
+            "stateMaking": "Making…",
+            "stateWaiting": "Waiting",
+            "footerNote": "Saved automatically. You can come back to it later.",
+            "again": "Record again",
+            "make": "Make my choir"
+        },
         "bubbles": "Bubbles",
         "bubblesLine": "Serious mode's circles that stand for a thing: a lesson on a path, a done day, a person, a disc to press. Lit above the icon, so the icon keeps its contrast.",
         "bubbleDone": "Done",
@@ -3632,7 +3831,31 @@
         "fieldLink": "Link",
         "fieldLinkHelp": "Anyone with the link can listen.",
         "copy": "Copy",
-        "fieldDisabledHelp": "Templates are set when the song is made."
+        "fieldDisabledHelp": "Templates are set when the song is made.",
+        "patterns": {
+            "title": "Patterns",
+            "intro": "The pieces the app composes again and again, drawn with its own classes, so each skin shows them its own way.",
+            "reference": "The Reference layout",
+            "sectionLabel": "A section label",
+            "optionTitle": "Option {n}",
+            "optionHint": "One muted line on what it does",
+            "rowHint": "Text on the left, one action on the right",
+            "rowAction": "Try it",
+            "keep": "Keep it",
+            "stepper": "The stepper",
+            "stepBody": "The step you're on holds its choices and the one main action.",
+            "stepTwo": "What happens next",
+            "alert": "The alert that says how to fix it",
+            "ai": "AI, always said",
+            "parts": "A choir's parts while it's made",
+            "countIn": "The count-in",
+            "countInHint": "One big number at a time, fading as the next comes",
+            "guides": "What you'll hear",
+            "guideReal": "Real voice",
+            "guideAi": "AI voice",
+            "guidePractice": "Practice voice",
+            "segmented": "A setting with its hint"
+        }
     },
     "beta": {
         "ai": {
@@ -8537,12 +8760,14 @@
         "intro": {
             "one": "Sing {song} twice, in whatever octave feels comfortable.",
             "oneSong": "Sing {song} for 30 seconds, in whatever octave feels comfortable.",
-            "oneBody": "It needn't be good singing: we only listen for what your voice sounds like, and keep it privately for your next songs.",
-            "choose": "Song to sing",
-            "two": "We make every part of {song} in a voice like yours, labelled as AI.",
-            "three": "Then learn your part: each one you record takes the place of its AI version.",
+            "oneBody": "Any octave that feels comfortable. It needn't be good: we only listen for what your voice sounds like, and keep it private for your next songs.",
+            "choose": "What will you sing?",
             "whole": "Sing the whole song",
-            "wholeHint": "Sing it all, and hear yours beside the AI choir."
+            "wholeHint": "Sing it all, and hear yours beside the AI choir.",
+            "subFirst": "The first 30 seconds",
+            "buildTitle": "We build the choir",
+            "buildBody": "Every part of {song} in a voice like yours, labelled as AI.",
+            "subTwice": "Twice through"
         },
         "record": {
             "title": "Sing for 30 seconds",
@@ -8579,14 +8804,14 @@
             "onOo": "Sung on “oo”: the AI voices can only sing English words for now."
         },
         "failed": {
-            "title": "We couldn't make your choir this time",
+            "title": "We couldn't make your choir",
             "body": "Your recording has been deleted. Try again with a new one, somewhere quiet, singing a little louder.",
             "clip_unusable": "We couldn't hear enough singing to make a voice. Try again, singing both songs clearly.",
             "bad_clip": "Your recording didn't arrive as it should. Try again.",
             "gates_failed": "Some parts didn't come out in tune. Try again with a new recording.",
             "render_failed": "Something went wrong on our side. Try again.",
             "expired": "It took too long and stopped. Try again.",
-            "reference_gone": "Your saved voice was deleted before this song was made. Sing 30 seconds again to make it.",
+            "reference_gone": "Your saved voice was deleted before this song was made. Sing for 30 seconds below and we'll try again.",
             "detail": {
                 "quiet": "Your recording was too quiet. Move closer to the mic (about a hand's width) and sing at normal volume.",
                 "noisy": "There was too much background noise. Try a quieter room.",
@@ -8612,13 +8837,14 @@
             "month": "You've made your songs for these 30 days. More soon.",
             "day": "That's today's choirs. Try again tomorrow.",
             "free_used": "You've had your free song. More songs in a voice like yours come with Plus.",
-            "minutesLeft": "{minutes} minutes left this month, {songs, plural, =0 {not quite enough for this song} one {about 1 song like this one} other {about # songs like this one}}.",
             "minutesOnly": "{minutes} minutes left this month.",
             "minutes": "This song needs about {needed} minutes, and you have {left} left this month.",
-            "minutesLeftMore": "{minutes} minutes left this month, {songs, plural, =0 {not quite enough for this song} one {about 1 song like this one} other {about # songs like this one}}; {more} more on {date}.",
-            "minutesOnlyMore": "{minutes} minutes left this month; {more} more on {date}.",
             "minutesMore": "This song needs about {needed} minutes, and you have {left} left this month; {more} more on {date}.",
-            "monthMore": "You've made your songs for these 30 days. More from {date}."
+            "monthMore": "You've made your songs for these 30 days. More from {date}.",
+            "shortLead": "{minutes} minutes left this month",
+            "shortSongs": ": {songs, plural, =0 {not quite enough for this song} one {about 1 song like this one} other {about # songs like this one}}. Resets {date}.",
+            "shortSongsNoDate": ": {songs, plural, =0 {not quite enough for this song} one {about 1 song like this one} other {about # songs like this one}}.",
+            "shortResets": ". Resets {date}."
         },
         "delete": {
             "button": "Delete this choir",
@@ -8647,8 +8873,10 @@
             "deleteAction": "Delete my voice",
             "deleted": "Your voice is deleted.",
             "again": "Make my choir",
-            "againLine": "From your saved voice, no need to sing again.",
-            "record": "Sing again instead"
+            "record": "Sing again instead",
+            "savedTitle": "Your voice is saved",
+            "savedBody": "No need to sing again: we'll use the recording you already made.",
+            "useSaved": "Use my saved voice"
         },
         "songs": {
             "entry": "Hear it in a voice like yours",
@@ -8778,8 +9006,7 @@
             },
             "home": {
                 "owner": "{name}'s parts are in your choir: {song}",
-                "listen": "Listen",
-                "readyTitle": "Ready for you"
+                "listen": "Listen"
             },
             "words": {
                 "changed": "The words changed since you opened this. Here they are again."
@@ -8809,9 +9036,9 @@
             "yesHint": "You'll hear the tune while you sing.",
             "noHint": "Nothing plays; follow the words as they light up.",
             "silentLine": "Nothing plays. Follow the words as they light up.",
-            "label": "Headphones",
-            "noShort": "No headphones",
-            "yesShort": "Headphones"
+            "label": "Wearing headphones?",
+            "noShort": "No",
+            "yesShort": "Yes"
         },
         "settings": {
             "title": "Choir settings",
@@ -8827,9 +9054,6 @@
             },
             "balance": "Balance",
             "balanceHint": "How loud each part sits.",
-            "humanize": "Feel",
-            "clean": "Studio clean",
-            "real": "Real choir",
             "voicing": "Which octave",
             "voicingOptions": {
                 "auto": "Auto",
@@ -8870,7 +9094,6 @@
             "roomHint": "Where it sounds like it's sung.",
             "softer": "Softer",
             "louder": "Louder",
-            "humanizeHint": "How human the singing sounds.",
             "voicingHint": "Auto fits your voice.",
             "breathsHint": "How the singers breathe between phrases.",
             "timingHint": "How together they start.",
@@ -8884,7 +9107,22 @@
             "recordingLevel": "Your recording, mixed in",
             "off": "Off",
             "sungHintMonthly": "Remade by AI. Plus includes {n} AI-singing minutes a month.",
-            "leadBlendHint": "Who sings the tune."
+            "leadBlendHint": "Who sings the tune.",
+            "vibrato": "Vibrato",
+            "vibratoHint": "How much the voices wobble on long notes.",
+            "vibratoOptions": {
+                "none": "None",
+                "light": "Light",
+                "natural": "Natural",
+                "strong": "Strong"
+            },
+            "variation": "Natural variation",
+            "variationHint": "How much each note and singer differs, like real people.",
+            "variationOptions": {
+                "steady": "Steady",
+                "natural": "Natural",
+                "loose": "Loose"
+            }
         },
         "level": {
             "low": "A bit quiet. Move closer to the mic, or turn the mic up.",
@@ -8900,6 +9138,13 @@
             "recording": "Your recording",
             "youChoir": "You + choir",
             "fullChoir": "Full choir"
+        },
+        "home": {
+            "label": "New",
+            "body": "Sing a song you know for 30 seconds; AI sings a whole choir in a voice like yours.",
+            "try": "Try it",
+            "making": "Your {song} choir is being made. We'll show it here when it's ready.",
+            "see": "See it"
         }
     },
     "aiVoice": {

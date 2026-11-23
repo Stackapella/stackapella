@@ -19,7 +19,7 @@ import { loadTemplate, partsFor, templatePartName } from '../templates.js';
 import { songTitle } from '../song-titles.js';
 import { Agreement } from './beta.js';
 import { TurnstileBox } from '../turnstile.js';
-import { ClipChoice, clipLine, clipPick, clipTemplate, pickedClip, tooLong } from '../own-choir.js';
+import { ClipChoice, clipPick, clipTemplate, pickedClip, tooLong } from '../own-choir.js';
 import { FirstNoteStep, HeadphonesPick, rememberedHeadphones } from '../components/first-note.js';
 import { ChoirSettings } from '../components/choir-settings.js';
 import { Segmented } from '../components/controls.js';
@@ -41,7 +41,7 @@ const FAILURES = { clip_unusable: tk('ownChoir.failed.clip_unusable'), bad_clip:
 export const OwnChoirView = {
     components: { Segmented, Agreement, AppScreen, ChoirSettings, ClipChoice, FirstNoteStep, HeadphonesPick, Icon, PlusMoment, TurnstileBox },
     props: { id: { type: String, required: true } },
-    data: () => ({ listenTo: 'choir', plusSettings: false, shift: null, hearingClip: false, firstNote: null, leftNames: [], plusFriends: false, sentInvite: null, copied: false, plusFor: false, emailSent: false, sending: false, checkToken: null, checkRound: 0, state: 'loading', offReason: 'unavailable', canStart: false, template: null, terms: null, busy: false, playing: false, loadingTrack: false, hum: null, own: false }),
+    data: () => ({ resing: false, listenTo: 'choir', plusSettings: false, shift: null, hearingClip: false, firstNote: null, leftNames: [], plusFriends: false, sentInvite: null, copied: false, plusFor: false, emailSent: false, sending: false, checkToken: null, checkRound: 0, state: 'loading', offReason: 'unavailable', canStart: false, template: null, terms: null, busy: false, playing: false, loadingTrack: false, hum: null, own: false }),
     setup: () => ({ rememberedHeadphones, isPlus, ownChoir, account, isOpen, templatePartName, savedVoice, formatNumber, navigate }),
     computed: {
         /** Back here from the Plus page, once Plus is on. */
@@ -56,17 +56,13 @@ export const OwnChoirView = {
         clipUrl() {
             return ownChoir.data?.voice?.clipListen?.url ?? null;
         },
+        /** The one-column header: the start, and the loading, sign-in or terms before it. */
+        columnHead() {
+            return this.state !== 'ready' || this.intro;
+        },
         /** The start: nothing made yet, or it failed (not on its way, not ready). */
         intro() {
             return this.request?.status !== 'ready' && !isOpen(this.request);
-        },
-        /** Start singing itself is offered (not the email ask, Plus, a too-long song or a saved voice's one tap). */
-        plainStart() {
-            return this.canStart && !this.songTooLong && !this.needEmail && !this.freeHad && !savedVoice() && !this.hum;
-        },
-        /** The design's one card holds the actions whenever they are Start singing, a saved voice's or a hum's. */
-        goCard() {
-            return this.canStart && !this.songTooLong && !this.needEmail && !this.freeHad;
         },
         /** While it's being made: each part's real state from the server (ready, making, waiting); never an estimate. */
         progress() {
@@ -98,25 +94,39 @@ export const OwnChoirView = {
             const voice = (p) => (this.request?.voices ?? []).find((v) => v.partKey === p.key);
             return (this.together && open.find((p) => voice(p)?.whose !== 'friend' && !voice(p)?.fit)) || open[0] || null;
         },
-        /** The quota, said only when it matters (marketing's rule): the free one, a few left, or none. */
+        /**
+         * The quota, said only when it matters (marketing's rule): the free one, a few left, or none. Hillel's start design
+         * keeps it short in the footer, its minutes in bold: `lead` (bold, may be empty) then `rest`.
+         */
         quotaLine() {
             const q = ownChoir.data?.quota;
-            if (!q) return '';
-            // The free offer, said once under Start; it names the song when it isn't this page's (the song they sing).
-            if (!q.plus && q.freeLeft > 0) return this.freeSongId && this.freeSongId !== this.id ? t('ownChoir.free.yourSong', { song: this.clipTitle }) : t('ownChoir.limit.free');
-            // Plus counts singing minutes (part-minutes); the songs are an estimate for this song, so "about".
+            if (!q) return null;
+            // The free offer; it names the song when it isn't this page's (the song they sing).
+            if (!q.plus && q.freeLeft > 0) return { lead: '', rest: this.freeSongId && this.freeSongId !== this.id ? t('ownChoir.free.yourSong', { song: this.clipTitle }) : t('ownChoir.limit.free') };
+            // Plus counts singing minutes (part-minutes); the songs are an estimate for this song, so "about". `resetsAt`
+            // is when the subscription's month turns and the full allowance comes back.
             if (q.unit === 'minutes' && q.minutesLeft != null) {
-                // Each month of the subscription, from its renewal day: `resetsAt` is when the month turns and the full
-                // allowance comes back (marketing's words: "47 minutes left this month, about 10 songs; 60 more on 14 December").
                 const songs = songsLeft(q, this.template);
                 const minutes = formatNumber(Math.max(0, Math.floor(q.minutesLeft)));
-                const more = formatNumber(Math.round(q.minutesPerMonth ?? 0));
                 const date = q.resetsAt ? formatDate(q.resetsAt, { day: 'numeric', month: 'long' }) : '';
-                if (songs == null) return date ? t('ownChoir.limit.minutesOnlyMore', { minutes, more, date }) : t('ownChoir.limit.minutesOnly', { minutes });
-                return date ? t('ownChoir.limit.minutesLeftMore', { minutes, songs, more, date }) : t('ownChoir.limit.minutesLeft', { minutes, songs });
+                const lead = t('ownChoir.limit.shortLead', { minutes });
+                if (songs == null) return date ? { lead, rest: t('ownChoir.limit.shortResets', { date }) } : { lead: '', rest: t('ownChoir.limit.minutesOnly', { minutes }) };
+                return { lead, rest: date ? t('ownChoir.limit.shortSongs', { songs, date }) : t('ownChoir.limit.shortSongsNoDate', { songs }) };
             }
-            if (q.plus && q.monthLeft > 0 && q.monthLeft <= 3) return t('ownChoir.limit.left', { n: q.monthLeft });
-            return '';
+            if (q.plus && q.monthLeft > 0 && q.monthLeft <= 3) return { lead: '', rest: t('ownChoir.limit.left', { n: q.monthLeft }) };
+            return null;
+        },
+        /** Step 1 with a saved voice (not singing again): Make my choir is the one action. */
+        savedStep() {
+            return !!savedVoice() && !this.resing;
+        },
+        /** Step 1's choices (the tune, headphones) and Start singing: singing is the way and nothing stops it. */
+        singing() {
+            return this.canStart && !this.songTooLong && !this.needEmail && !this.freeHad && !this.savedStep && !(this.hum && !this.resing);
+        },
+        /** The song the choir is made of: the free song is the one they sing (Hillel), else this page's. */
+        choirSong() {
+            return this.freeSongId && this.freeSongId !== this.id ? this.clipTitle : this.song;
         },
         /** A song the server won't make (more than 8 parts, or a part over 5 minutes). */
         songTooLong() {
@@ -180,15 +190,14 @@ export const OwnChoirView = {
         wordlessNote() {
             return !!savedVoice()?.wordless && hasWords(this.template);
         },
-        /** The model sings English: a song with words in another language is said once, never blocked (ai-modal's finding). */
+        /**
+         * The model sings English: a song with words in another language is said once, never blocked (ai-modal's finding).
+         * Not when the song carries a sung respelling (Hillel approved them for Hebrew and Yiddish): the AI sings its real words.
+         */
         notEnglish() {
             const language = this.template?.language ?? 'en';
-            return hasWords(this.template) && !language.toLowerCase().startsWith('en');
-        },
-        steps() {
-            // Hillel's intro design (split step 1): the first step's title, and what it needn't be under it, muted.
-            // Step 1 names the tune they chose to sing (Hillel: four to choose from), the choice under it.
-            return [{ title: clipLine(), body: t('ownChoir.intro.oneBody'), choose: true }, { title: t('ownChoir.intro.two', { song: this.freeSongId && this.freeSongId !== this.id ? this.clipTitle : this.song }) }, { title: t('ownChoir.intro.three') }];
+            const respelled = Object.keys(this.template?.sungRespelling ?? {}).length > 0;
+            return hasWords(this.template) && !language.toLowerCase().startsWith('en') && !respelled;
         },
         /** What there is to listen to: their recording (while kept), them with the choir (a whole-song take), the full choir. */
         viewOptions() {
@@ -229,7 +238,9 @@ export const OwnChoirView = {
         },
     },
     template: `
-        <AppScreen :title="t('ownChoir.title')" :back="'/?song=' + encodeURIComponent(id)" measure="max-w-2xl">
+        <!-- The start (and what comes before it) in Hillel's one 520 px column, its header on that column too: the song
+             over the title. A song on its way or ready keeps the app's bar. -->
+        <AppScreen :title="t('ownChoir.title')" :back="'/?song=' + encodeURIComponent(id)" :column="columnHead ? 'max-w-[520px]' : null" :eyebrow="columnHead ? song || null : null" eyebrow-is-content :measure="columnHead ? 'max-w-[520px]' : 'max-w-2xl'">
             <p v-if="state === 'loading'" class="text-muted" role="status">{{ t('common.loading') }}</p>
             <!-- Why it can't open, each in its own words: signed out (sign in), offline (Try again), or not open to them. -->
             <div v-else-if="state === 'off'" class="card space-y-3 p-5" :data-choir-off="offReason">
@@ -248,7 +259,7 @@ export const OwnChoirView = {
 
             <!-- The start (nothing yet, or it failed) follows Hillel's intro design to its values: a 600 px column, the
                  eyebrow 12 px over a big heading, the stepper, one card for the headphones and the actions, a quiet footer. -->
-            <section v-else :class="intro ? 'mx-auto w-full max-w-[600px] pb-12 pt-6 md:pt-16' : 'space-y-5'" data-choir-page :data-choir-state="request?.status ?? 'none'">
+            <section v-else :class="intro ? 'flex flex-col gap-7 pt-7' : 'space-y-5'" data-choir-page :data-choir-state="request?.status ?? 'none'">
                 <p v-if="!intro && request?.status !== 'ready'" class="eyebrow" translate="no">{{ song }}</p>
                 <!-- Ready: the finished track first (Hillel: "some people will just want a finished track"): play it here and
                      download it, labelled AI; learning a part is one quiet option, never the main button. -->
@@ -339,81 +350,90 @@ export const OwnChoirView = {
                     <p v-if="request.startsAfter" class="text-cream" data-choir-tomorrow>{{ t('ownChoir.busy.tomorrow') }}</p>
                     <p class="text-sm text-muted">{{ t('ownChoir.wait.kept') }}</p>
                 </div>
-                <!-- Nothing yet, or it failed: what happens, Start singing. -->
+                <!-- Nothing yet, or it failed: Hillel's start design (2026-11-22). A 520 px column, 28 px apart: the alert when
+                     the last song failed, saying how to fix it; two steps, the first holding the choices and the ONE main
+                     action (Start singing, or with a saved voice Make my choir); the quota and Stop in a quiet footer. -->
                 <template v-else>
-                    <div v-if="request?.status === 'failed'" class="card mt-3 space-y-2 p-5" role="alert" data-choir-failed>
-                        <h2 class="text-lg font-bold text-cream">{{ t('ownChoir.failed.title') }}</h2>
-                        <p class="text-cream">{{ failure }}</p>
-                    </div>
-                    <h1 v-else class="mt-3 text-[2.25rem] font-extrabold leading-[1.05] tracking-[-0.02em] text-cream sm:text-[44px]">{{ t('ownChoir.record.title') }}</h1>
-                    <!-- Hillel's intro design: a vertical stepper. Numbered dots joined by a thin line (none after the last), the
-                         first (where they are) filled with the accent, the others ringed; game mode's dots are its chips. -->
                     <!-- After Start singing: the first note they'd like (Hillel), in place of the steps; then Sing, in that key. -->
-                    <!-- Headphones were chosen beside the tune (Hillel: two choices, then one button to start). -->
-                    <FirstNoteStep v-if="firstNote" class="mt-10" :first="firstNote.pitch" :song="firstNote.song" @go="record($event, rememberedHeadphones() === 'no')" />
+                    <FirstNoteStep v-if="firstNote" :first="firstNote.pitch" :song="firstNote.song" @go="record($event, rememberedHeadphones() === 'no')" />
                     <template v-else>
-                    <ol class="mt-10" data-choir-steps>
-                        <li v-for="(step, i) in steps" :key="i" class="grid grid-cols-[32px_1fr] gap-x-[18px]" :data-choir-step="i + 1">
+                    <div v-if="request?.status === 'failed'" class="flex gap-3.5 rounded-[14px] border border-warn/35 bg-warn/10 px-[18px] py-4" role="alert" data-choir-failed :data-choir-failed-reason="request.failureDetail || request.failure || null">
+                        <span class="mt-px grid size-[22px] flex-none place-items-center rounded-full bg-warn text-[14px] font-bold text-ink" aria-hidden="true">!</span>
+                        <div class="flex min-w-0 flex-col gap-1">
+                            <h2 class="text-base font-semibold text-cream">{{ t('ownChoir.failed.title') }}</h2>
+                            <p class="text-[15px] leading-[1.45] text-cream/85">{{ failure }}</p>
+                        </div>
+                    </div>
+                    <ol data-choir-steps>
+                        <li class="grid grid-cols-[32px_minmax(0,1fr)] gap-x-3.5" data-choir-step="1">
                             <span class="flex flex-col items-center" aria-hidden="true">
-                                <span :class="dotClass(i)" data-ui="step-dot">{{ formatNumber(i + 1) }}</span>
-                                <span v-if="i < steps.length - 1" class="my-1.5 w-px flex-1 bg-line"></span>
+                                <span :class="dotClass(0)" :style="game ? { fontSize: '14px' } : null" data-ui="step-dot"><Icon v-if="savedStep" name="check" :size="16" /><template v-else>{{ formatNumber(1) }}</template></span>
+                                <span class="my-1.5 w-px flex-1 bg-line"></span>
                             </span>
-                            <span class="min-w-0 pt-[5px]" :class="i < steps.length - 1 ? 'pb-7' : ''">
-                                <span class="block text-[17px] font-semibold leading-[1.35]" :class="i === 0 ? 'text-cream' : 'text-cream/80'">{{ step.title }}</span>
-                                <span v-if="step.body" class="mt-1 block text-[15px] leading-[1.55] text-muted" data-step-body>{{ step.body }}</span>
-                                <ClipChoice v-if="step.choose && canStart" class="mt-4" :song-id="id" />
-                                <!-- The free choir is the song they sing (Hillel): said when that isn't this page's song. -->
-                                <HeadphonesPick v-if="step.choose && canStart" class="mt-5" />
-                            </span>
+                            <div class="flex min-w-0 flex-col pb-8 pt-1" :class="savedStep ? 'gap-[18px]' : 'gap-[22px]'" :data-choir-step-state="savedStep ? 'saved' : hum && !resing ? 'hum' : 'sing'">
+                                <div class="flex flex-col gap-1.5">
+                                    <h2 class="text-lg font-semibold leading-[1.3] text-cream">{{ savedStep ? t('ownChoir.voice.savedTitle') : t('ownChoir.record.title') }}</h2>
+                                    <p class="text-[15px] leading-[1.45] text-muted" data-step-body>{{ savedStep ? t('ownChoir.voice.savedBody') : t('ownChoir.intro.oneBody') }}</p>
+                                    <p v-if="savedStep && wordlessNote" class="text-sm text-muted" data-choir-wordless>{{ t('ownChoir.songs.wordless') }}</p>
+                                </div>
+                                <!-- The choices, only while singing is the way (a saved voice needs none). -->
+                                <ClipChoice v-if="singing" :song-id="id" />
+                                <HeadphonesPick v-if="singing" />
+                                <p v-if="ownChoir.data?.busyToday && canStart" class="text-sm text-cream" data-choir-busy>{{ t('ownChoir.busy.today') }}</p>
+                                <p v-if="notEnglish && canStart" class="text-sm text-muted" data-choir-english>{{ t('ownChoir.songs.notEnglish') }}</p>
+                                <!-- What stops a song before any singing takes the action's place: too long, an email to confirm, the free song used. -->
+                                <p v-if="!canStart"></p>
+                                <p v-else-if="songTooLong" class="card p-5 text-cream" data-choir-too-long>{{ t('ownChoir.songs.tooLong') }}</p>
+                                <div v-else-if="needEmail" class="card space-y-3 p-5" data-choir-email>
+                                    <h3 class="text-lg font-bold text-cream">{{ t('ownChoir.email.title') }}</h3>
+                                    <p class="text-cream" role="status">{{ emailSent ? t('ownChoir.email.sent', { email: account.me.email }) : t('ownChoir.email.body') }}</p>
+                                    <button type="button" :class="emailSent ? 'btn-secondary' : 'btn-primary'" class="self-start" :disabled="sending" :aria-busy="sending ? 'true' : null" data-choir-email-send @click="sendEmail">{{ emailSent ? t('ownChoir.email.again') : t('ownChoir.email.send') }}</button>
+                                </div>
+                                <div v-else-if="freeHad" class="card space-y-3 p-5" data-choir-free-had>
+                                    <p class="text-cream">{{ t('ownChoir.limit.free_used') }}</p>
+                                    <!-- What Plus unlocks here, and what it costs (the tagline: Plus is for what you make). -->
+                                    <p class="text-sm text-muted">{{ t('ownChoir.limit.unlocks') }}</p>
+                                    <p v-if="priceLine" class="font-semibold text-cream" data-plus-price>{{ priceLine }}</p>
+                                    <button type="button" class="btn-primary self-start" data-choir-plus @click="getPlus">{{ t('plus.subscribe') }}</button>
+                                </div>
+                                <!-- A voice kept from before (Hillel: "store a model to make it easier"): one tap; singing again is the quiet link. -->
+                                <div v-else-if="savedStep" class="flex flex-wrap items-center gap-x-5 gap-y-2">
+                                    <button type="button" class="btn-primary h-[52px] px-[26px] text-[17px] font-bold max-sm:w-full" :disabled="busy" :aria-busy="busy ? 'true' : null" data-choir-again @click="again">{{ t('ownChoir.voice.again') }}</button>
+                                    <button type="button" class="link inline-flex min-h-11 items-center py-3 text-[15px] font-medium" :disabled="busy" data-choir-resing @click="resing = true">{{ wordlessNote ? t('ownChoir.songs.wordlessGo') : t('ownChoir.voice.record') }}</button>
+                                </div>
+                                <!-- Their own hummed song, no voice saved yet: the humming itself becomes the voice (Hillel: "have their voice
+                                     replace their humming"); singing it is the quiet other way. -->
+                                <div v-else-if="hum && !resing" class="flex flex-col gap-3">
+                                    <p class="text-sm text-cream">{{ t('ownChoir.songs.fromHumLine') }}</p>
+                                    <TurnstileBox v-if="siteKey" :key="checkRound" :site-key="siteKey" @token="checkToken = $event" @failed="checkToken = null" data-choir-check />
+                                    <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
+                                        <button type="button" class="btn-primary h-[52px] px-[26px] text-[17px] font-bold max-sm:w-full" :disabled="busy || (!!siteKey && !checkToken)" :aria-busy="busy ? 'true' : null" data-choir-hum @click="fromHum">{{ t('ownChoir.songs.fromHum') }}</button>
+                                        <button type="button" class="link inline-flex min-h-11 items-center py-3 text-[15px] font-medium" :disabled="busy" data-choir-resing @click="resing = true">{{ t('ownChoir.songs.singInstead') }}</button>
+                                    </div>
+                                </div>
+                                <div v-else class="flex flex-wrap items-center gap-x-5 gap-y-2">
+                                    <button type="button" class="btn-primary h-[52px] gap-2.5 px-[26px] text-[17px] font-bold max-sm:w-full" :disabled="busy" data-choir-start @click="start"><span class="size-2.5 shrink-0 rounded-full bg-current" aria-hidden="true"></span>{{ t('ownChoir.record.start') }}</button>
+                                    <button v-if="resing && (savedVoice() || hum)" type="button" class="link inline-flex min-h-11 items-center py-3 text-[15px] font-medium" :disabled="busy" data-choir-use-saved @click="resing = false">{{ savedVoice() ? t('ownChoir.voice.useSaved') : t('ownChoir.songs.fromHum') }}</button>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="grid grid-cols-[32px_minmax(0,1fr)] gap-x-3.5" data-choir-step="2">
+                            <span class="flex flex-col items-center" aria-hidden="true"><span :class="dotClass(1)" :style="game ? { fontSize: '14px' } : null" data-ui="step-dot">{{ formatNumber(2) }}</span></span>
+                            <div class="flex min-w-0 flex-col gap-1 pt-[5px]">
+                                <h2 class="text-base font-semibold text-cream/80">{{ t('ownChoir.intro.buildTitle') }}</h2>
+                                <p class="text-[15px] leading-[1.45] text-muted" data-step-body>{{ t('ownChoir.intro.buildBody', { song: choirSong }) }}</p>
+                            </div>
                         </li>
                     </ol>
-                    <!-- One card: the headphones line, then Start singing with the free line beside it (stacked on a phone). -->
-                    <div class="mt-10 space-y-5" :class="goCard ? (game ? 'card p-6' : 'card rounded-[20px] p-6') : ''" data-choir-go>
-                    <p v-if="ownChoir.data?.busyToday && canStart" class="text-sm text-cream" data-choir-busy>{{ t('ownChoir.busy.today') }}</p>
-                    <!-- A voice kept from before (Hillel: "store a model to make it easier"): the next song is one tap; singing again
-                         is a quiet option that replaces it. Without one, Start singing. -->
-                    <p v-if="notEnglish" class="text-sm text-muted" data-choir-english>{{ t('ownChoir.songs.notEnglish') }}</p>
-                    <template v-if="!canStart"></template>
-                    <!-- More parts, or a longer part, than a song may have: said here, before any singing. -->
-                    <p v-else-if="songTooLong" class="card p-5 text-cream" data-choir-too-long>{{ t('ownChoir.songs.tooLong') }}</p>
-                    <!-- The free song needs a confirmed email: asked here, before any singing; it clears once they come back. -->
-                    <div v-else-if="needEmail" class="card space-y-3 p-5" data-choir-email>
-                        <h2 class="text-lg font-bold text-cream">{{ t('ownChoir.email.title') }}</h2>
-                        <p class="text-cream" role="status">{{ emailSent ? t('ownChoir.email.sent', { email: account.me.email }) : t('ownChoir.email.body') }}</p>
-                        <button type="button" :class="emailSent ? 'btn-secondary' : 'btn-primary'" class="self-start" :disabled="sending" :aria-busy="sending ? 'true' : null" data-choir-email-send @click="sendEmail">{{ emailSent ? t('ownChoir.email.again') : t('ownChoir.email.send') }}</button>
-                    </div>
-                    <div v-else-if="freeHad" class="card space-y-3 p-5" data-choir-free-had>
-                        <p class="text-cream">{{ t('ownChoir.limit.free_used') }}</p>
-                        <!-- What Plus unlocks here, and what it costs (the tagline: Plus is for what you make). -->
-                        <p class="text-sm text-muted">{{ t('ownChoir.limit.unlocks') }}</p>
-                        <p v-if="priceLine" class="font-semibold text-cream" data-plus-price>{{ priceLine }}</p>
-                        <button type="button" class="btn-primary self-start" data-choir-plus @click="getPlus">{{ t('plus.subscribe') }}</button>
-                    </div>
-                    <template v-else-if="savedVoice()">
-                        <p class="text-sm text-cream">{{ t('ownChoir.voice.againLine') }}</p>
-                        <p v-if="wordlessNote" class="text-sm text-muted" data-choir-wordless>{{ t('ownChoir.songs.wordless') }}</p>
-                        <button type="button" class="btn-primary btn-lg" :disabled="busy" :aria-busy="busy ? 'true' : null" data-choir-again @click="again">{{ t('ownChoir.voice.again') }}</button>
-                        <button type="button" class="link tap-44 self-start text-sm" :disabled="busy" data-choir-start @click="start">{{ wordlessNote ? t('ownChoir.songs.wordlessGo') : t('ownChoir.voice.record') }}</button>
-                    </template>
-                    <!-- Their own hummed song, no voice saved yet: the humming itself becomes the voice (Hillel: "have their voice
-                         replace their humming"); singing it is the quiet other way. -->
-                    <template v-else-if="hum">
-                        <p class="text-sm text-cream">{{ t('ownChoir.songs.fromHumLine') }}</p>
-                        <TurnstileBox v-if="siteKey" :key="checkRound" :site-key="siteKey" @token="checkToken = $event" @failed="checkToken = null" data-choir-check />
-                        <button type="button" class="btn-primary btn-lg" :disabled="busy || (!!siteKey && !checkToken)" :aria-busy="busy ? 'true' : null" data-choir-hum @click="fromHum">{{ t('ownChoir.songs.fromHum') }}</button>
-                        <button type="button" class="link tap-44 self-start text-sm" :disabled="busy" data-choir-start @click="start">{{ t('ownChoir.songs.singInstead') }}</button>
-                    </template>
-                    <div v-else-if="canStart" class="flex flex-wrap items-center gap-x-5 gap-y-3">
-                        <button type="button" class="btn-primary h-[52px] px-7 text-[17px] font-bold max-sm:w-full" :disabled="busy" data-choir-start @click="start">{{ request?.status === 'failed' ? t('ownChoir.record.again') : t('ownChoir.record.start') }}</button>
-                        <p v-if="quotaLine" class="text-sm text-muted" data-choir-quota>{{ quotaLine }}</p>
-                    </div>
-                    <p v-if="quotaLine && !plainStart" class="text-sm text-muted" data-choir-quota>{{ quotaLine }}</p>
-                    </div>
                     </template>
                 </template>
-                <!-- Not on a ready song (the coordinator for Hillel: a destructive account action stays off a celebratory
-                     screen; the voice's own delete is the saved voice row in Settings). -->
-                <p v-if="request?.status !== 'ready' && stopShown" :class="intro ? 'mt-10 border-t border-line pt-4' : 'pt-4'"><button type="button" class="inline-flex min-h-11 items-center" :class="intro ? 'text-[13px] text-muted underline underline-offset-4 hover:text-cream' : 'link-quiet text-sm'" data-choir-stop @click="stopAll">{{ t('ownChoir.stop.button') }}</button></p>
+                <!-- The intro's quiet footer: the quota (only when it matters) and Stop. Stop is not on a ready song (the
+                     coordinator for Hillel: a destructive account action stays off a celebratory screen). -->
+                <footer v-if="intro && !firstNote && (quotaLine || stopShown)" class="flex flex-col gap-3.5 border-t border-line pt-5" data-choir-foot>
+                    <p v-if="quotaLine" class="text-sm leading-normal text-muted" data-choir-quota><strong v-if="quotaLine.lead" class="font-semibold text-cream">{{ quotaLine.lead }}</strong>{{ quotaLine.rest }}</p>
+                    <button v-if="stopShown" type="button" class="inline-flex min-h-11 items-center self-start text-sm text-muted underline underline-offset-4 hover:text-cream" data-choir-stop @click="stopAll">{{ t('ownChoir.stop.button') }}</button>
+                </footer>
+                <p v-else-if="!intro && request?.status !== 'ready' && stopShown" class="pt-4"><button type="button" class="link-quiet inline-flex min-h-11 items-center text-sm" data-choir-stop @click="stopAll">{{ t('ownChoir.stop.button') }}</button></p>
             </section>
         </AppScreen>`,
     unmounted() {
@@ -488,7 +508,7 @@ export const OwnChoirView = {
         /** A step's dot: the first filled with the accent, the rest ringed (game: its chips, the first its accent chip). */
         dotClass(i) {
             if (this.game) return i === 0 ? 'chip-accent size-8 justify-center p-0 tabular-nums' : 'chip size-8 justify-center p-0 tabular-nums';
-            return i === 0 ? 'flex size-8 items-center justify-center rounded-full bg-accent text-[14px] font-bold text-accent-ink tabular-nums' : 'flex size-8 items-center justify-center rounded-full border border-line text-[14px] font-bold text-muted tabular-nums';
+            return i === 0 ? 'flex size-8 items-center justify-center rounded-full bg-accent text-[14px] font-bold text-accent-ink tabular-nums' : 'flex size-8 items-center justify-center rounded-full border-[1.5px] border-line text-[14px] font-semibold text-muted tabular-nums';
         },
         statusWord(status) {
             return status === 'ready' ? t('ownChoir.wait.part.ready') : status === 'making' ? t('ownChoir.wait.part.making') : t('ownChoir.wait.part.waiting');
@@ -825,7 +845,7 @@ export const OwnChoirView = {
             if (this.playing) {
                 const at = choirPosition()?.seconds ?? 0;
                 const shaped = await this.version(await this.voices(), sound);
-                await playChoir(shaped.voices, shaped.sound, at).catch((error) => console.warn('The choir did not play', error));
+                await playChoir(shaped.voices, shaped.sound, at, { tune: tunePart(this.template) }).catch((error) => console.warn('The choir did not play', error));
             }
             try {
                 const { data } = await api.ownChoir.requests.sound(request.id, sound);
@@ -887,7 +907,7 @@ export const OwnChoirView = {
             try {
                 const { voices, sound } = await this.version(await this.voices(), this.request.settings?.sound ?? null);
                 if (!this.loadingTrack) return; // stopped while it loaded
-                await playChoir(voices, sound);
+                await playChoir(voices, sound, 0, { tune: tunePart(this.template) });
                 this.playing = true;
                 countChoir('own_choir_heard');
                 count('choir_listen_played');
@@ -927,7 +947,7 @@ export const OwnChoirView = {
             try {
                 // The full-quality parts (the page plays the lighter listening copy).
                 const full = await this.version(await loadChoirFull(await downloadParts(this.request)), this.request.settings?.sound ?? null);
-                const wav = await mixChoirShaped(full.voices, full.sound);
+                const wav = await mixChoirShaped(full.voices, full.sound, { tune: tunePart(this.template) });
                 const url = URL.createObjectURL(wav);
                 const link = Object.assign(document.createElement('a'), { href: url, download: `${t('ownChoir.ready.fileName', { song: this.song })}.wav` });
                 document.body.append(link);

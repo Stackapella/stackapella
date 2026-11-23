@@ -54,7 +54,8 @@ def journey(f):
     songs = f.js("(async () => { const { partMinutes } = await import('/js/own-choir.js'); const { loadTemplate } = await import('/js/templates.js'); return Math.floor(47 / partMinutes(await loadTemplate('silent-night'))); })()")
     # Each month of the subscription: the line says when the month turns and the 60 come back (the server's resetsAt).
     date = f.js("(async () => { const { formatDate } = await import('/js/i18n.js'); const { ownChoir } = await import('/js/own-choir.js'); return formatDate(ownChoir.data.quota.resetsAt, { day: 'numeric', month: 'long' }); })()")
-    expected = t(f, "ownChoir.limit.minutesLeftMore", {"minutes": "47", "songs": songs, "more": "60", "date": date})
+    # Hillel's start design: the short line in the footer, its minutes in bold.
+    expected = t(f, "ownChoir.limit.shortLead", {"minutes": "47"}) + t(f, "ownChoir.limit.shortSongs", {"songs": songs, "date": date})
     assert f.js("document.querySelector('[data-choir-quota]').textContent.trim()") == expected, f.js("document.querySelector('[data-choir-quota]').textContent")
     assert not f.js("document.querySelector('[data-choir-busy]')"), "busy said on a quiet day"
     f.no_sideways("the choir page")

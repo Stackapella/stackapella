@@ -566,6 +566,7 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `admin.dropoffs.show` | `GET /api/admin/dropoffs` | An admin | L |
 | `admin.sharing.show` | `GET /api/admin/sharing` | An admin | L |
 | `admin.choir.show` | `GET /api/admin/choir` | An admin | L |
+| `admin.choir.live` | `GET /api/admin/choir/live` | An admin | L |
 | `admin.breadth.show` | `GET /api/admin/breadth` | An admin | L |
 | `admin.experiments.list` | `GET /api/admin/experiments` | An admin | L |
 | `admin.experiments.create` | `POST /api/admin/experiments` | An admin, in sudo | L |
@@ -6739,6 +6740,21 @@ A number over a total under `floor` reads as too few to tell. Numbers only, noth
 |---|---|---|---|
 | 200 | | `admin.choir.show.json` | `admin.choir.show.200.json` |
 
+#### `admin.choir.live`
+
+Admin > Choir's Live panel (the coordinator, 2026-11-23): operations numbers, read fresh, nothing about anyone (a request
+is its song and its facts, never its singer). `queue`: songs queued (`waitingForTomorrow` apart: a busy day's song waits
+for the next), `rendering`, the oldest queued's wait, and remakes and friends' jobs among them; `today`: the part-minutes
+claimed beside the daily meter (`own_choir.daily_part_minutes`), GPU seconds, songs made and failed; `month`: GPU
+seconds and their `cost` (`own_choir.gpu_cost_per_second`, in `currency`); `failures`: the last 24 hours by `failure`
+and `failureDetail`, most first; `recent`: the latest 30 (`kind` own, friend or remake; `paid` its priority; `seconds`
+from its first claim to ready, the render apart from its wait); `worker`: its last claim and its last call for work
+(`lastPollAt`, every few seconds while it runs). **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.choir.live.json` | `admin.choir.live.200.json` |
+
 #### `admin.sharing.show`
 
 How often singers pass the app on, and what comes of it (docs/retention-plan.md, "Sharing"), over the
@@ -7781,7 +7797,8 @@ The song as it now is. `403 plus_required` without Plus; the owner's songs only 
 #### `ownChoir.requests.remake`
 
 Choir settings' singing, applied by making the song again in the singer's saved voice. **Request:** `{ "sung": {
-"humanize": 0..3, "voicing": "auto" | "low" | "high" | "written", "breaths": "legato" | "natural", "quality": "standard"
+"vibrato": "none" | "light" | "natural" | "strong", "variation": "steady" | "natural" | "loose" (since 2026-11-23, Hillel:
+in place of humanize; an older app's `humanize` 0..3 alone is still read as both, one release), "voicing": "auto" | "low" | "high" | "written", "breaths": "legato" | "natural", "quality": "standard"
 | "fine", "ensembleTiming": "tight" | "natural" | "loose", "pitchSpread": "off" | "subtle" | "wide" } }` (`auto` voicing:
 the low-voice version when their range suits it). It's charged like a new song, its part-minutes, and `fine` at its
 real GPU cost (config `own_choir.fine_factor`, 2; Hillel: "make sure limits align with our costs"): `remakeMinutes`
@@ -8030,7 +8047,7 @@ prepared before, with your own `meta`). `claim` is this claim's token: every cal
 "<token>"`), and one with a missing or stale token is `409 job_not_claimed` (another worker may have it now). A claim lasts 20 minutes; a job not
 finished by then goes back to the queue, at most twice, then fails (`render_failed`). The clip's link lasts 30 minutes;
 delete everything you held once you post `finish`. `own`: the singer's own song (no gates re-render: finish
-`gates_failed`). `settings` (Plus's choir settings; unset, `ensembleTiming` is `natural` since 2026-11-23 and the rest today's sound): `humanize` 0 to 3, `breaths`, `quality`
+`gates_failed`). `settings` (Plus's choir settings; unset, `ensembleTiming`, `vibrato` and `variation` are `natural` since 2026-11-23 and the rest today's sound): `vibrato`, `variation` (natural variation: the wander, glides into notes, how each part's singer differs), `humanize` 0 to 3 (older workers only, one release, derived from vibrato), `breaths`, `quality`
 (`fine`: 64 steps), `ensembleTiming`, `pitchSpread`; seeded from the song and part, so a remake comes out the same. `voicing` (`written` or `low`) and `shifts` (`[{ "partKey", "shift" }]`, each part's octave shift, −12 or 0): a low-voice song's
 `data` is already transformed (treble parts an octave down, octaves only so every chord tone is kept, a moved note that
 would fall below the bass sounding with it kept at pitch); render `data` as given, and the gates check it as given. A `clip` names the template its singer sang (since 2026-11-23 voice-capture by default, whatever song

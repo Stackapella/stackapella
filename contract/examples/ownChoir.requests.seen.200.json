@@ -133,7 +133,9 @@
                 "recordingLevel": null
             },
             "sung": {
-                "humanize": 0,
+                "vibrato": "natural",
+                "variation": "natural",
+                "humanize": 2,
                 "voicing": "auto",
                 "breaths": "legato",
                 "quality": "standard",

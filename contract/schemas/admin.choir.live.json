@@ -1,0 +1,242 @@
+{
+    "$id": "admin.choir.live.json",
+    "title": "Admin > Choir's Live panel: the queue, today's spend, the month, failures, the latest requests, the worker",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "asOf",
+                "queue",
+                "today",
+                "month",
+                "failures",
+                "recent",
+                "worker"
+            ],
+            "properties": {
+                "asOf": {
+                    "type": "string"
+                },
+                "queue": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "queued",
+                        "rendering",
+                        "waitingForTomorrow",
+                        "oldestWaitSeconds",
+                        "remakes",
+                        "friends"
+                    ],
+                    "properties": {
+                        "queued": {
+                            "type": "integer"
+                        },
+                        "rendering": {
+                            "type": "integer"
+                        },
+                        "waitingForTomorrow": {
+                            "type": "integer"
+                        },
+                        "oldestWaitSeconds": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        },
+                        "remakes": {
+                            "type": "integer"
+                        },
+                        "friends": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "today": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "partMinutes",
+                        "dailyPartMinutes",
+                        "gpuSeconds",
+                        "made",
+                        "failed"
+                    ],
+                    "properties": {
+                        "partMinutes": {
+                            "type": "number"
+                        },
+                        "dailyPartMinutes": {
+                            "type": "integer"
+                        },
+                        "gpuSeconds": {
+                            "type": "number"
+                        },
+                        "made": {
+                            "type": "integer"
+                        },
+                        "failed": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "month": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "gpuSeconds",
+                        "cost",
+                        "currency"
+                    ],
+                    "properties": {
+                        "gpuSeconds": {
+                            "type": "number"
+                        },
+                        "cost": {
+                            "type": "number"
+                        },
+                        "currency": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "failures": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "failure",
+                            "failureDetail",
+                            "n"
+                        ],
+                        "properties": {
+                            "failure": {
+                                "type": "string"
+                            },
+                            "failureDetail": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "n": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                "recent": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "songId",
+                            "kind",
+                            "status",
+                            "failure",
+                            "failureDetail",
+                            "minutes",
+                            "gpuSeconds",
+                            "voicing",
+                            "quality",
+                            "paid",
+                            "createdAt",
+                            "readyAt",
+                            "seconds"
+                        ],
+                        "properties": {
+                            "songId": {
+                                "type": "string"
+                            },
+                            "kind": {
+                                "enum": [
+                                    "own",
+                                    "friend",
+                                    "remake"
+                                ]
+                            },
+                            "status": {
+                                "type": "string"
+                            },
+                            "failure": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "failureDetail": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "minutes": {
+                                "type": "number"
+                            },
+                            "gpuSeconds": {
+                                "type": "number"
+                            },
+                            "voicing": {
+                                "type": "string"
+                            },
+                            "quality": {
+                                "type": "string"
+                            },
+                            "paid": {
+                                "type": "boolean"
+                            },
+                            "createdAt": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "readyAt": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "seconds": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "worker": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "lastClaimAt",
+                        "lastPollAt"
+                    ],
+                    "properties": {
+                        "lastClaimAt": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "lastPollAt": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

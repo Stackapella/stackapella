@@ -1,8 +1,8 @@
 // Choir settings, on the ready choir page (the coordinator for Hillel, 2026-11-22; contract: ownChoir.show's
 // `settings`, requests.sound, requests.remake). Two sections in the take review's layout (docs/design-rules.md,
 // Reference layout): Sound, free and instant (the room and each part's balance, played at once through the app's mix,
-// polish.js, and kept with requests.sound), and How it's sung, a remake (feel, voicing, breaths, timing and pitch
-// between singers, quality) with Remake my choir saying the exact minutes it will use. The old version plays until the
+// polish.js, and kept with requests.sound), and How it's sung, a remake (vibrato, natural variation, voicing, breaths, timing
+// and pitch between singers, quality) with Remake my choir saying the exact minutes it will use. The old version plays until the
 // new one is ready. Everyone sees it; without Plus every control opens the Plus sheet instead.
 
 import { formatNumber, t, tk } from '../i18n.js';
@@ -13,6 +13,9 @@ import { count } from '../usage.js';
 
 const ROOMS = ['dry', 'small', 'hall', 'chapel'];
 const SUNG = {
+    // Hillel via the coordinator, 2026-11-22: Vibrato and Natural variation in place of the old Humanize slider.
+    vibrato: ['none', 'light', 'natural', 'strong'],
+    variation: ['steady', 'natural', 'loose'],
     voicing: ['auto', 'low', 'full', 'written'], // "full": both octaves, six parts (a low twin for soprano and alto)
     breaths: ['legato', 'natural'],
     ensembleTiming: ['tight', 'natural', 'loose'],
@@ -20,11 +23,13 @@ const SUNG = {
     quality: ['standard', 'fine'],
 };
 const DEFAULT_SOUND = { room: 'dry', balance: [] };
-// Today's sound (ai-modal's worker): a clean line, legato, together, in tune, standard.
-const DEFAULT_SUNG = { humanize: 0, voicing: 'auto', breaths: 'legato', ensembleTiming: 'tight', pitchSpread: 'off', quality: 'standard' };
+// The server's sound when unset (ai-backend): natural vibrato and variation, a clean line, legato, together, in tune, standard.
+const DEFAULT_SUNG = { vibrato: 'natural', variation: 'natural', voicing: 'auto', breaths: 'legato', ensembleTiming: 'tight', pitchSpread: 'off', quality: 'standard' };
 
 // The words for each choice (`off` is said "Exact"), and each row's label.
 const WORDS = {
+    vibrato: { none: tk('ownChoir.settings.vibratoOptions.none'), light: tk('ownChoir.settings.vibratoOptions.light'), natural: tk('ownChoir.settings.vibratoOptions.natural'), strong: tk('ownChoir.settings.vibratoOptions.strong') },
+    variation: { steady: tk('ownChoir.settings.variationOptions.steady'), natural: tk('ownChoir.settings.variationOptions.natural'), loose: tk('ownChoir.settings.variationOptions.loose') },
     room: { dry: tk('ownChoir.settings.rooms.dry'), small: tk('ownChoir.settings.rooms.small'), hall: tk('ownChoir.settings.rooms.hall'), chapel: tk('ownChoir.settings.rooms.chapel') },
     voicing: { auto: tk('ownChoir.settings.voicingOptions.auto'), low: tk('ownChoir.settings.voicingOptions.low'), full: tk('ownChoir.settings.voicingOptions.full'), written: tk('ownChoir.settings.voicingOptions.written') },
     breaths: { legato: tk('ownChoir.settings.breathsOptions.smooth'), natural: tk('ownChoir.settings.breathsOptions.natural') },
@@ -32,9 +37,9 @@ const WORDS = {
     pitchSpread: { off: tk('ownChoir.settings.pitchOptions.exact'), subtle: tk('ownChoir.settings.pitchOptions.subtle'), wide: tk('ownChoir.settings.pitchOptions.wide') },
     quality: { standard: tk('ownChoir.settings.qualityOptions.standard'), fine: tk('ownChoir.settings.qualityOptions.fine') },
 };
-const LABEL = { voicing: tk('ownChoir.settings.voicing'), breaths: tk('ownChoir.settings.breaths'), ensembleTiming: tk('ownChoir.settings.timing'), pitchSpread: tk('ownChoir.settings.pitch'), quality: tk('ownChoir.settings.quality') };
+const LABEL = { vibrato: tk('ownChoir.settings.vibrato'), variation: tk('ownChoir.settings.variation'), voicing: tk('ownChoir.settings.voicing'), breaths: tk('ownChoir.settings.breaths'), ensembleTiming: tk('ownChoir.settings.timing'), pitchSpread: tk('ownChoir.settings.pitch'), quality: tk('ownChoir.settings.quality') };
 // One muted line under each row (the coordinator's review).
-const HINT = { voicing: tk('ownChoir.settings.voicingHint'), breaths: tk('ownChoir.settings.breathsHint'), ensembleTiming: tk('ownChoir.settings.timingHint'), pitchSpread: tk('ownChoir.settings.pitchHint'), quality: tk('ownChoir.settings.fineHint') };
+const HINT = { vibrato: tk('ownChoir.settings.vibratoHint'), variation: tk('ownChoir.settings.variationHint'), voicing: tk('ownChoir.settings.voicingHint'), breaths: tk('ownChoir.settings.breathsHint'), ensembleTiming: tk('ownChoir.settings.timingHint'), pitchSpread: tk('ownChoir.settings.pitchHint'), quality: tk('ownChoir.settings.fineHint') };
 const same = (a, b) => Object.keys(DEFAULT_SUNG).every((key) => a[key] === b[key]);
 
 export const ChoirSettings = {
@@ -51,7 +56,9 @@ export const ChoirSettings = {
     components: { Segmented, Icon },
     emits: ['sound', 'remake', 'plus'],
     data() {
-        return { sung: { ...DEFAULT_SUNG, ...(this.request.settings?.sung ?? {}) }, opened: false };
+        // Only the fields the app sends (an older song's `humanize` is read by the server as vibrato and variation).
+        const saved = this.request.settings?.sung ?? {};
+        return { sung: Object.fromEntries(Object.keys(DEFAULT_SUNG).map((key) => [key, saved[key] ?? DEFAULT_SUNG[key]])), opened: false };
     },
     setup: () => ({ ROOMS, SUNG, WORDS, LABEL, HINT }),
     computed: {
@@ -145,13 +152,6 @@ export const ChoirSettings = {
             if (!this.gate()) return;
             this.sung = { ...this.sung, [name]: value };
         },
-        setHumanize(event) {
-            if (!this.gate()) {
-                event.target.value = this.sung.humanize;
-                return;
-            }
-            this.sung = { ...this.sung, humanize: Number(event.target.value) };
-        },
         reset() {
             if (!this.gate()) return;
             this.$emit('sound', { ...DEFAULT_SOUND, balance: this.parts.map((partKey) => ({ partKey, db: 0 })) });
@@ -209,12 +209,6 @@ export const ChoirSettings = {
                     <p class="text-sm text-muted">{{ monthly ? t('ownChoir.settings.sungHintMonthly', { n: monthly }) : t('ownChoir.settings.sungHint') }}</p>
                 </div>
                 <div class="card divide-y divide-line px-5">
-                    <div class="space-y-1 py-4">
-                        <div><p class="font-semibold text-cream">{{ t('ownChoir.settings.humanize') }}</p><p class="text-sm text-muted">{{ t('ownChoir.settings.humanizeHint') }}</p></div>
-                        <input type="range" min="0" max="3" step="1" class="block min-h-11 w-full accent-[var(--color-accent)]" :value="sung.humanize" :aria-label="t('ownChoir.settings.humanize')" data-humanize @change="setHumanize" />
-                        <span class="flex justify-between px-1" aria-hidden="true"><span v-for="n in 4" :key="n" class="h-1.5 w-px bg-muted"></span></span>
-                        <div class="flex justify-between text-xs text-muted"><span>{{ t('ownChoir.settings.clean') }}</span><span>{{ t('ownChoir.settings.real') }}</span></div>
-                    </div>
                     <div v-for="(options, name) in SUNG" :key="name" class="space-y-2 py-4" :data-sung="name">
                         <div><p class="font-semibold text-cream">{{ t(LABEL[name]) }}</p><p class="text-sm text-muted">{{ t(HINT[name]) }}</p></div>
                         <Segmented :model-value="sung[name]" :options="sungOptions(name)" :label="t(LABEL[name])" full class="[&_.seg-option]:min-h-11" @update:model-value="setSung(name, $event)" />

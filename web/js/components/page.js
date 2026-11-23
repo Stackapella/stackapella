@@ -18,10 +18,23 @@ export const PageHeader = {
         leave: { type: Function, default: null }, // instead of going back (a screen that asks first)
         backLabel: { type: String, default: null }, // the button's name, when it isn't Back
         eyebrow: { type: String, default: null }, // a small line over a smaller title (a course's hub, a lesson-like step)
+        eyebrowIsContent: Boolean, // the eyebrow is a song's name, not our words
+        // A screen with one narrow column (its width class, as 'max-w-[520px]'): Back, then the eyebrow and a large title,
+        // all on that column's left edge rather than the bar's (Hillel's choir start design, 2026-11-22).
+        column: { type: String, default: null },
     },
     setup: () => ({ goBack }),
     template: `
-        <header class="app-wrap app-bar" data-ui="page-header">
+        <header v-if="column" class="app-wrap pt-[calc(28px+env(safe-area-inset-top))]" data-ui="page-header" data-header-column>
+            <div class="mx-auto flex w-full flex-col gap-5" :class="column">
+                <button type="button" class="grid size-11 shrink-0 place-items-center rounded-full glass-bubble text-cream transition" :aria-label="backLabel ?? t('common.back')" @click="leave ? leave() : goBack(back)"><Icon name="back" :size="20" /></button>
+                <div class="flex flex-col gap-2">
+                    <p v-if="eyebrow" class="text-[13px] font-semibold uppercase tracking-[0.14em] text-accent" :translate="eyebrowIsContent ? 'no' : null" data-header-eyebrow>{{ eyebrow }}</p>
+                    <h1 class="text-[34px] font-bold leading-[1.1] tracking-[-0.01em] text-cream" :translate="titleIsContent ? 'no' : null"><slot name="title">{{ title }}</slot></h1>
+                </div>
+            </div>
+        </header>
+        <header v-else class="app-wrap app-bar" data-ui="page-header">
             <button type="button" class="grid size-11 shrink-0 place-items-center rounded-full glass-bubble text-cream transition" :aria-label="backLabel ?? t('common.back')" @click="leave ? leave() : goBack(back)"><Icon name="back" :size="20" /></button>
             <div v-if="eyebrow" class="min-w-min flex-1">
                 <p class="text-sm text-muted">{{ eyebrow }}</p>
@@ -47,6 +60,8 @@ export const AppScreen = {
         leave: { type: Function, default: null },
         backLabel: { type: String, default: null },
         eyebrow: { type: String, default: null },
+        eyebrowIsContent: Boolean,
+        column: { type: String, default: null }, // PageHeader's one-column header, at this width
         measure: { type: String, default: 'max-w-3xl' },
         contentClass: { type: [String, Array, Object], default: '' },
         foot: { type: String, default: 'pb-16' }, // the space under the content (a screen with a pinned foot has its own)
@@ -56,7 +71,7 @@ export const AppScreen = {
     },
     template: `
         <div class="flex min-h-dvh flex-col">
-            <PageHeader :title="title" :back="back" :title-is-content="titleIsContent" :leave="leave" :back-label="backLabel" :eyebrow="eyebrow">
+            <PageHeader :title="title" :back="back" :title-is-content="titleIsContent" :leave="leave" :back-label="backLabel" :eyebrow="eyebrow" :eyebrow-is-content="eyebrowIsContent" :column="column">
                 <template v-if="$slots.title" #title><slot name="title" /></template>
                 <template #aside><slot name="aside" /></template>
             </PageHeader>

@@ -301,9 +301,6 @@ final class Landing
     public static function faq(int $freeSongs, array $price, bool $openSource = false): array
     {
         $faq = (array) Teams::words('pages.landing.faq');
-        if (isset($faq['free'][1]) && SongParts::switchedOn('own_choir')) {
-            $faq['free'][1] .= ' '.strtr((string) __('pages.landing.faq_free_choir'), PlusFeatures::replacements());
-        }
         if ($openSource) {
             $faq['privacy'][1] .= ' '.__('pages.landing.faq_privacy_check');
             $faq['open_source'] = (array) Lang::get('pages.landing.faq_open_source');

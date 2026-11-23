@@ -723,6 +723,52 @@ return [
         'continue' => 'Press start to continue',
     ],
 
+    // For choir directors, redone from the consultant's concept (Hillel, 2026-11-23; Saul: "radically shorter"): hero, the
+    // director's view, four steps, no group yet, three questions. True to the live switches: plus_teams on (starting a
+    // group takes Plus), choir_seats off (seats.php says it for seats), groups 18 and over, the first song's tracks free.
+    'for_directors' => [
+        'eyebrow' => 'For choir directors',
+        'headline' => 'Rehearsals that start with the notes learned.',
+        'lead' => 'Start a group for your choir and ask for one song you\'re rehearsing. We make part-by-part learning tracks for your singers, free. Each singer learns their part at home, and you see who\'s ready.',
+        'start' => 'Start a choir group',
+        'email' => 'Rather email us the song',
+        'note' => 'Starting a group takes Plus. Your singers join free.',
+        'pricing' => 'See pricing',
+        'view' => [
+            'when' => 'Rehearsal Thursday',
+            'nobody' => 'Nobody yet',
+            'caption' => 'Illustration of the director\'s view, with made-up singers. You see where each singer is, never their recordings or contact details.',
+            'demo' => 'Try the live demo',
+        ],
+        'steps_title' => 'From your group to a ready choir.',
+        'steps' => [
+            ['Start a group', 'Starting a group takes Plus. Groups are for singers 18 and over.'],
+            ['Invite your singers', 'Send the group\'s invite link. Each singer makes a free account, with no card.'],
+            ['Ask for one song, free', 'From the group\'s page, ask for learning tracks of a piece you\'re rehearsing. We build it part by part and share it into your group.'],
+            ['Give out parts, see who\'s ready', 'Give each singer a part, then see who has started and who has recorded it.'],
+        ],
+        'nogroup' => [
+            'title' => 'No group yet? Send each section its part.',
+            'body' => 'Most songs in the library, the Christmas carols included, have a page for each part that anyone can play without an account.',
+            'browse' => 'Browse the songs',
+            'steps' => [
+                'Open the song you\'re rehearsing and copy each part\'s link: the soprano page for your sopranos, and so on.',
+                'Send each section its own link by email or in your group chat, a week or so ahead.',
+                'Each singer plays their part alone or with the others, and sings along as each note lights up.',
+            ],
+        ],
+        'faq' => [
+            ['What does it cost?', 'Your singers never pay. Starting the group takes Plus, and your first song\'s learning tracks are free.'],
+            ['How do I ask for learning tracks?', 'From your group\'s page: tap Ask us under "Want learning tracks of a piece you\'re rehearsing?". Rather email? Send us the song, your choir\'s parts and when you\'re rehearsing it; a score helps, as a PDF or MusicXML.'],
+            ['Can I hear my singers\' recordings?', 'No. You see who has started and who has recorded their part, never the recordings themselves or their contact details.'],
+        ],
+        'end' => [
+            'title' => 'Ask for one song you\'re rehearsing.',
+            'body' => 'Public domain, or an arrangement that\'s your choir\'s own. A score helps, as a PDF or MusicXML.',
+            'email' => 'Email us instead',
+        ],
+    ],
+
     'for' => [
         // The languages a "for" page's :languages names (App\Support\Languages\Languages::offered, ForPagesController),
         // so a line about them follows the switches instead of going stale.
@@ -8389,7 +8435,7 @@ return [
             'group_meta' => '{1} :count course|[2,*] :count courses',
             'group_soon' => ':count coming soon',
             'try' => 'Try lesson 1',
-            'soon' => 'Soon',
+            'soon' => 'Coming soon',
             'empty' => 'No courses match “:q”',
             'show_all' => 'Show all courses',
             'shown' => '{0} No courses shown|{1} :count course shown|[2,*] :count courses shown',

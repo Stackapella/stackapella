@@ -57,22 +57,31 @@ def journey(f):
     f.wait("document.querySelector('[data-choir-start]')", what="Start singing")
     assert "free" in f.js("document.querySelector('[data-choir-quota]')?.textContent ?? ''"), "the free one is said"
     f.no_sideways("the choir page")
-    # Hillel's intro design: a stepper of three, the first step split (title, then a muted body), the first dot filled.
-    assert f.js("document.querySelectorAll('[data-choir-step]').length") == 3
-    assert f.js("document.querySelector('[data-choir-step=\"1\"] [data-step-body]')?.textContent.includes('good singing')"), "step 1 has no muted body"
-    assert f.js("!!document.querySelector('[data-choir-start]') && document.querySelector('[data-choir-start]').compareDocumentPosition(document.querySelector('[data-choir-quota]')) & Node.DOCUMENT_POSITION_FOLLOWING"), "the free line isn't under Start singing"
+    # Hillel's start design (2026-11-22): the song over the title, on the content's column; two steps, the first holding
+    # the choices and the one main action; the free line in the footer under it.
+    assert f.js("document.querySelector('[data-header-column] [data-header-eyebrow]')?.textContent.trim()") == "Amazing Grace", "the song isn't over the title"
+    left = f.js("[document.querySelector('[data-header-column] h1'), document.querySelector('[data-choir-steps]')].map((e) => Math.round(e.getBoundingClientRect().left))")
+    assert left[0] <= left[1] <= left[0] + 1, f"the header isn't on the content's column: {left}"
+    assert f.js("document.querySelectorAll('[data-choir-step]').length") == 2
+    assert f.js("document.querySelector('[data-choir-step=\"1\"] [data-choir-start]') && document.querySelectorAll('.btn-primary').length === 1"), "one main action, inside step 1"
+    assert f.js("document.querySelector('[data-choir-step=\"1\"] [data-step-body]')?.textContent.includes(\"needn't be good\")"), "step 1 has no muted body"
+    assert f.js("!!document.querySelector('[data-choir-foot] [data-choir-quota]')"), "the free line isn't in the footer"
+    # The smallest words are 13 px (Hillel).
+    small = f.js("[...document.querySelectorAll('[data-choir-page] *, [data-header-column] *')].filter((e) => [...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()) && e.offsetParent && parseFloat(getComputedStyle(e).fontSize) < 13).map((e) => getComputedStyle(e).fontSize + ' ' + e.tagName + '.' + e.className + ' ' + e.textContent.trim().slice(0, 30))")
+    assert not small, f"words under 13 px: {small}"
     f.no_sideways("the choir's start")
     f.shot("start")
 
     # Hillel: four tunes to choose from for the 30 seconds (Happy Birthday the default); step 1 names the one chosen, and
     # the choice is remembered.
     assert f.js("document.querySelectorAll('[data-clip-song]').length") == 4
-    assert f.js("document.querySelector('[data-clip-song=\"voice-capture\"]').getAttribute('aria-pressed')") == "true", "Happy Birthday isn't the default"
+    assert f.js("document.querySelector('[data-clip-song=\"voice-capture\"]').getAttribute('aria-checked')") == "true", "Happy Birthday isn't the default"
+    assert f.js("Math.round(document.querySelector('[data-clip-song]').getBoundingClientRect().height)") >= 60, "the tune cards are under 60 px"
     f.run("document.querySelector('[data-clip-song=\"amazing-grace\"]').click()")
-    f.wait("document.querySelector('[data-choir-step=\"1\"]').textContent.includes('Amazing Grace')", what="step 1 names the tune chosen")
+    f.wait("document.querySelector('[data-clip-song=\"amazing-grace\"]').getAttribute('aria-checked') === 'true'", what="the tune chosen")
     f.shot("start-choice")
     f.go("/t/amazing-grace/choir?api=mock&scenario=&as=member", "document.querySelector('[data-clip-song]')")
-    assert f.js("document.querySelector('[data-clip-song=\"amazing-grace\"]').getAttribute('aria-pressed')") == "true", "the choice wasn't remembered"
+    assert f.js("document.querySelector('[data-clip-song=\"amazing-grace\"]').getAttribute('aria-checked')") == "true", "the choice wasn't remembered"
     # The free choir is the song they sing (Hillel): Happy Birthday's tune makes Happy Birthday, and the page says so.
     f.run("document.querySelector('[data-clip-song=\"voice-capture\"]').click()")
     f.wait("document.querySelector('[data-choir-quota]')?.textContent.includes('Happy Birthday')", what="the free choir named, once, under Start")
@@ -220,8 +229,19 @@ def journey(f):
     f.shot("delete")
     f.run("document.querySelector('[role=dialog] form').requestSubmit()")
     # The voice is kept (Hillel: "store a model to make it easier"): the next song is one tap, no singing.
-    f.wait("document.querySelector('[data-choir-again]') && document.querySelector('[data-choir-start]')", what="Make my choir from the saved voice")
+    # Hillel's start design: a saved voice is step 1 done (a check), Make my choir its one action, Sing again instead a
+    # link that opens the singing choices, with Use my saved voice to go back. The link never touches the button.
+    f.wait("document.querySelector('[data-choir-again]') && document.querySelector('[data-choir-resing]')", what="Make my choir from the saved voice")
+    assert not f.js("document.querySelector('[data-choir-start]') || document.querySelector('[data-clip-song]')"), "the singing choices beside a saved voice"
+    assert f.js("document.querySelector('[data-choir-step-state]').dataset.choirStepState") == "saved", "step 1 isn't the saved voice"
+    gap = f.js("(() => { const a = document.querySelector('[data-choir-again]').getBoundingClientRect(), b = document.querySelector('[data-choir-resing]').getBoundingClientRect(); return Math.max(b.left - a.right, b.top - a.bottom); })()")
+    assert gap >= 8, f"the button and the link touch: {gap}"
     f.shot("again")
+    f.run("document.querySelector('[data-choir-resing]').click()")
+    f.wait("document.querySelector('[data-choir-start]') && document.querySelector('[data-choir-use-saved]') && document.querySelector('[data-clip-song]')", what="singing again, with Use my saved voice")
+    f.shot("again-resing")
+    f.run("document.querySelector('[data-choir-use-saved]').click()")
+    f.wait("document.querySelector('[data-choir-again]') && !document.querySelector('[data-choir-start]')", what="back to the saved voice")
     # Hillel's 1b: while it's made, each part's real state and how many are ready (the mock holds it being made here).
     f.run("sessionStorage.setItem('stackapella.mockChoirMaking', '1')")
     f.run("document.querySelector('[data-choir-again]').click()")

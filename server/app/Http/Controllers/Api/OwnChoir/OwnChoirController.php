@@ -12,6 +12,7 @@ use App\Http\Requests\OwnChoir\OwnChoirConsentRequest;
 use App\Http\Requests\OwnChoir\StartOwnChoirRequest;
 use App\Models\OwnChoirRequest;
 use App\Models\User;
+use App\Support\OwnChoir\ChoirSettings;
 use App\Support\OwnChoir\OwnChoir;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\JsonResponse;
@@ -75,11 +76,10 @@ final class OwnChoirController extends Controller
 
     public function remake(OwnChoirRequest $song, ChoirRemakeRequest $request, OwnChoirRequests $choir, #[CurrentUser] User $user): JsonResponse
     {
-        /** @var array{sung: array{humanize: int, voicing: string, breaths: string, quality: string, ensembleTiming: string, pitchSpread: string}} $data */
+        /** @var array{sung: array<string, mixed>} $data */
         $data = $request->validated();
-        $data['sung']['humanize'] = (int) $data['sung']['humanize'];
 
-        return response()->json(['data' => OwnChoir::request($choir->remake($user, $song, $data['sung'])->load(['templateVersion.template', 'parts']), null, $user)], 202);
+        return response()->json(['data' => OwnChoir::request($choir->remake($user, $song, ChoirSettings::normalise($data['sung']))->load(['templateVersion.template', 'parts']), null, $user)], 202);
     }
 
     public function download(OwnChoirRequest $song, OwnChoirRequests $choir, #[CurrentUser] User $user): JsonResponse

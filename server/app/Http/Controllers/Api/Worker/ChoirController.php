@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Worker;
 
+use App\Actions\Growth\ChoirLive;
 use App\Actions\OwnChoir\ChoirJobs;
 use App\Actions\OwnChoir\RecordChoirWorkerStatus;
 use App\Http\Controllers\Controller;
@@ -21,6 +22,7 @@ use App\Support\Ids;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * worker.choir.*: the renderer's side of Hear yourself as a choir (track B phase 3).
@@ -29,6 +31,8 @@ final class ChoirController extends Controller
 {
     public function claim(ChoirJobs $jobs): JsonResponse|Response
     {
+        // The worker's sign of life for Admin > Choir: it asks for work every few seconds, a job or not.
+        Cache::put(ChoirLive::POLL, now()->utc()->toIso8601ZuluString(), now()->addDay());
         $job = $jobs->claim();
 
         if ($job === null) {

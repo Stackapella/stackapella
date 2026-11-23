@@ -55,6 +55,12 @@ def journey(f):
     minutes = f.js("(async () => (await import('/js/own-choir.js')).ownChoir.data.requests.find((r) => r.templateId === 'silent-night').remakeMinutes.fine)()")
     assert fine == t(f, "ownChoir.settings.remakeOf", {"minutes": minutes, "left": left}), fine
     f.run("document.querySelector('[data-sung=pitchSpread] [role=radio]:nth-child(3)').click()")
+    # Vibrato and Natural variation in place of Humanize (Hillel via the coordinator), both at Natural unset.
+    assert not f.js("document.querySelector('[data-humanize]')"), "the old Humanize slider is back"
+    for name, natural in (("vibrato", 3), ("variation", 2)):
+        assert f.js(f"document.querySelector('[data-sung={name}] [role=radio]:nth-child({natural})').getAttribute('aria-checked')") == "true", f"{name} isn't Natural"
+    f.run("document.querySelector('[data-sung=vibrato] [role=radio]:nth-child(4)').click()")
+    f.run("document.querySelector('[data-sung=variation] [role=radio]:nth-child(1)').click()")
     f.run("document.querySelector('[data-remake]').scrollIntoView({ block: 'end' })")
     f.no_sideways("Choir settings")
     f.shot("settings")
@@ -62,6 +68,7 @@ def journey(f):
     f.wait("document.querySelector('[data-remaking]')", what="remaking, the old version still playing")
     sung = f.js("globalThis.mockChoirRemake")
     assert sung["quality"] == "fine" and sung["pitchSpread"] == "wide", sung
+    assert sung["vibrato"] == "strong" and sung["variation"] == "steady" and "humanize" not in sung, sung
     assert f.js("!!document.querySelector('[data-choir-play]')"), "the current version can't be played while remaking"
     f.shot("remaking")
     # A song whose words aren't English: its AI parts are sung on "oo", and the page says so (and not otherwise).

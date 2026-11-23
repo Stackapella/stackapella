@@ -2,6 +2,7 @@
 // every state, so the two agents' screens look like one product (docs/conventions.md). Shown on
 // this machine, or to a signed-in admin.
 
+import { PatternsSection } from './styleguide-patterns.js';
 import { api } from '../api.js';
 import { formatNumber, t, tk } from '../i18n.js';
 import { PART_COLORS } from '../theme.js';
@@ -12,6 +13,7 @@ import { Icon, Logo } from '../components/icon.js';
 import { Modal, toast } from '../components/ui.js';
 import { confirmAction } from '../components/confirm.js';
 import { sendToSignIn } from './auth.js';
+import { LanguageSection } from './styleguide-language.js';
 
 const TOKENS = ['bg-ink', 'bg-panel', 'bg-raised', 'bg-line', 'bg-cream', 'bg-muted', 'bg-accent', 'bg-good', 'bg-warn', 'bg-bad'];
 const KINDS = { primary: tk('styleguide.kind.primary'), secondary: tk('styleguide.kind.secondary'), ghost: tk('styleguide.kind.ghost'), danger: tk('styleguide.kind.danger') };
@@ -36,7 +38,7 @@ const BUBBLE_STATES = [
 ];
 
 export const StyleguideView = {
-    components: { BirthDate, Checkbox, EmptyState, Field, Icon, Logo, Modal, Notice, Range, Segmented, StatusChip, Stepper, Switch },
+    components: { LanguageSection, PatternsSection, BirthDate, Checkbox, EmptyState, Field, Icon, Logo, Modal, Notice, Range, Segmented, StatusChip, Stepper, Switch },
     // Sample content, as people would type it (not our words). i18n-ignore
     data: () => ({ allowed: false, sheet: false, name: 'Amazing Grace', email: 'not an email', about: 'I sing alto in a community choir.', handle: 'sam.sings', link: 'https://stackapella.com/s/k3v9qa', choice: 'two', songs: ['Amazing Grace', 'Silent Night'], sounds: true, others: false, view: 'notes', singers: 4, bpm: 96, level: 70, adult: true, beats: 4, chips: ['alto'], month: 3, year: new Date().getFullYear() - 9 }), // i18n-ignore
     setup: () => ({ TOKENS, ICONS, PART_COLORS, KINDS, CHIPS, BUBBLE_SIZES, BUBBLE_STATES, SPECIMEN_INITIALS, SPECIMEN_PRIMARY, SPECIMEN_RECORD, formatNumber }),
@@ -242,12 +244,17 @@ export const StyleguideView = {
                     </div>
                 </section>
 
+                <LanguageSection />
+
                 <section aria-labelledby="sg-icons">
                     <h2 id="sg-icons" class="text-2xl font-bold text-cream">{{ t('styleguide.icons') }}</h2>
                     <ul class="mt-6 grid grid-cols-4 gap-2 sm:grid-cols-8 lg:grid-cols-12">
                         <li v-for="icon in ICONS" :key="icon" class="card flex flex-col items-center gap-2 p-3 text-cream"><Icon :name="icon" /><span class="tabular-nums text-[0.65rem] text-muted" translate="no">{{ icon }}</span></li>
                     </ul>
                 </section>
+
+                <!-- The composed patterns the app reuses (styleguide-patterns.js), in this skin. -->
+                <PatternsSection />
 
                 <Modal v-if="sheet" :title="t('styleguide.sheetTitle')" @close="sheet = false">
                     <p class="text-cream">{{ t('styleguide.sheetBody') }}</p>

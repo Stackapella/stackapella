@@ -51,6 +51,9 @@ final class DocumentPagesController extends Controller
         // Singing together (docs/search-content-plan.md, item 5, marketing2 2026-11-13), each checked for demand first
         // and fact-checked by the courses lead: blend, a sectional, starting a group, barbershop tags.
         'how-to-blend-in-a-choir', 'how-to-run-a-sectional', 'how-to-start-an-a-cappella-group', 'barbershop-tags',
+        // Singing every part yourself (docs/search-content-plan.md, 2026-11-23): "sing harmony with yourself", "one-person
+        // a cappella", "layering your own voice" have demand, answered today only by music-software tutorials.
+        'sing-harmony-with-yourself',
     ];
 
     /**

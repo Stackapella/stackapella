@@ -1,0 +1,73 @@
+{
+    "data": {
+        "asOf": "2026-11-23T09:30:00Z",
+        "queue": {
+            "queued": 3,
+            "rendering": 1,
+            "waitingForTomorrow": 0,
+            "oldestWaitSeconds": 240,
+            "remakes": 1,
+            "friends": 0
+        },
+        "today": {
+            "partMinutes": 48.6,
+            "dailyPartMinutes": 600,
+            "gpuSeconds": 2710.4,
+            "made": 9,
+            "failed": 2
+        },
+        "month": {
+            "gpuSeconds": 98340.5,
+            "cost": 34.42,
+            "currency": "usd"
+        },
+        "failures": [
+            {
+                "failure": "clip_unusable",
+                "failureDetail": "notes",
+                "n": 2
+            },
+            {
+                "failure": "gates_failed",
+                "failureDetail": null,
+                "n": 1
+            }
+        ],
+        "recent": [
+            {
+                "songId": "silent-night",
+                "kind": "own",
+                "status": "ready",
+                "failure": null,
+                "failureDetail": null,
+                "minutes": 6.4,
+                "gpuSeconds": 372.1,
+                "voicing": "low",
+                "quality": "standard",
+                "paid": true,
+                "createdAt": "2026-11-23T09:01:12Z",
+                "readyAt": "2026-11-23T09:08:40Z",
+                "seconds": 402
+            },
+            {
+                "songId": "happy-birthday",
+                "kind": "own",
+                "status": "failed",
+                "failure": "clip_unusable",
+                "failureDetail": "notes",
+                "minutes": 1.9,
+                "gpuSeconds": 0.0,
+                "voicing": "written",
+                "quality": "standard",
+                "paid": false,
+                "createdAt": "2026-11-23T08:52:03Z",
+                "readyAt": null,
+                "seconds": null
+            }
+        ],
+        "worker": {
+            "lastClaimAt": "2026-11-23T09:26:44Z",
+            "lastPollAt": "2026-11-23T09:29:58Z"
+        }
+    }
+}

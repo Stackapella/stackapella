@@ -105,10 +105,11 @@
             <div class="s-two">
                 <h2 id="faq-h" class="s-title">{{ __('pages.pricing.faq_title') }}</h2>
                 <div class="s-faq s-faq-round">
-                    @foreach ($faq as [$question, $answer])
+                    @foreach ($faq as [$question, $short, $rest])
                         <details @if ($loop->first) open @endif>
                             <summary>{{ $question }}<span class="s-faq-btn" aria-hidden="true"><span class="s-faq-plus"><x-site.icon name="plus" size="16" /></span><span class="s-faq-minus"><x-site.icon name="minus" size="16" /></span></span></summary>
-                            <p>{{ $answer }}</p>
+                            {{-- The short answer first, in bold (the UX review, 2026-11-23). --}}
+                            <p><b>{{ $short }}</b>@if ($rest !== '') {{ $rest }}@endif</p>
                         </details>
                     @endforeach
                 </div>

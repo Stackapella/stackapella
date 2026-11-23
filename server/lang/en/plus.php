@@ -8,11 +8,11 @@ declare(strict_types=1);
 // :songs are filled from config. Prices stay outside the list.
 return [
     'items' => [
-        'choir' => ['More songs in a voice like yours.', 'About :songs songs a month (:minutes minutes of AI singing), each one yours to download.'],
-        'together' => ['Sing together.', 'Invite friends to sing on your songs and start choir groups. Everyone you invite joins free.'],
+        'choir' => ['Your own AI choir.', 'Every part of a song sung by AI in a voice like yours: :minutes minutes a month, about :songs songs, each one yours to download.'],
+        'together' => ['Start choir groups.', 'Invite friends to your songs, and give each singer in a group a part. Everyone you invite joins free.'],
         'storage' => ['Room for every take.', ':storage for your recordings.'],
-        'stems' => ['Every part as its own file.', 'Each part as a WAV for your DAW, the mix as MP3.'],
-        'private' => ['Private arrangements.', 'As many as you like, shared by link or with your choir.'],
+        'stems' => ['Every part as its own file.', 'Each voice as its own audio file, and the mix as MP3.'],
+        'private' => ['Unlimited private arrangements.', 'Shared by link or with your choir.'],
     ],
     // With choir seats on, a seat in any choir group comes with Plus (seats.php's words).
     'together_seats' => 'Invite friends to sing on your songs, and they join free. Plus is also your seat in any choir group.',
@@ -20,7 +20,7 @@ return [
         'choir' => 'about :songs songs a month in a voice like yours',
         'together' => 'singing together',
         'storage' => 'more storage',
-        'stems' => 'stems',
+        'stems' => 'each voice as its own file',
         'private' => 'private arrangements',
     ],
     'sentence' => 'Plus adds :list.',

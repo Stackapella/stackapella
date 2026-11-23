@@ -55,7 +55,9 @@
             }
         ],
         "settings": {
-            "humanize": 0,
+            "vibrato": "natural",
+            "variation": "natural",
+            "humanize": 2,
             "breaths": "legato",
             "quality": "standard",
             "ensembleTiming": "natural",

@@ -28,8 +28,34 @@ return [
     'learn_part' => 'I sing this: learn the :part part in the app',
     // The way to learn the voice last heard alone (the melody's until one is).
     'learn' => 'Learn the :part part',
+    // The label over the home page's seasonal link (the carols), so it reads as featured, not as a stray link.
+    'seasonal' => 'This season',
     'dock' => ':song, the player',
     'alone' => 'Heard alone',
+    // The demo's lanes (the UX review, 2026-11-23): a visible Solo toggle, and a link into the app to learn that part.
+    'solo' => 'Solo',
+    'solo_on' => 'Solo on',
+    'learn_lane' => 'Learn it',
+    // The hero (the approved blueprint, Hillel, 2026-11-23): the H1, its lede, and the first lesson, which needs no account.
+    'hero' => [
+        'before' => 'Make harmony',
+        'em' => 'with your voice.',
+        'lede' => 'Learn to sing harmony, record a solo a cappella performance, or help your choir prepare for rehearsal.',
+        'try' => 'Try the first lesson',
+        'try_note' => 'No account needed',
+    ],
+    // Three ways in (the blueprint): who, the benefit, one next step. Make's go_choir shows while own_choir is on.
+    'paths' => [
+        'label' => 'Find your path.',
+        'app' => 'in the app',
+        'learn' => ['eyebrow' => 'Learners', 'badge' => 'Always free', 'who' => 'Learn to sing harmony', 'what' => 'Follow a guide voice and practise one part at a time.', 'go' => 'Explore free courses'],
+        'make' => ['eyebrow' => 'Singers', 'who' => 'Record a whole song yourself', 'what' => 'Record every part yourself, or let AI sing them in a voice like yours.', 'go' => 'See how to layer your voice', 'go_choir' => 'Hear yourself as a choir'],
+        'lead' => ['eyebrow' => 'Leaders', 'who' => 'Get your choir ready', 'what' => 'Assign parts, give singers a way to practise at home, and see who\'s ready.', 'go' => 'See tools for choir leaders'],
+    ],
+    // Over the four pinned scenes: they are the solo performance.
+    'solo_scene' => ['kick' => 'Sing every part', 'title_before' => 'Create your own', 'title_em' => 'a cappella performance.', 'body' => 'Sing each part yourself. As you record, hear your earlier takes play alongside you.'],
+    // A small optional card holding the real Game mode switch.
+    'game_mode' => ['title' => 'Game mode', 'body' => 'Like it playful? Turn on Game mode for an arcade look.', 'tag' => 'Optional'],
     'sung_by' => ':parts sung by :name',
     'and' => ' and ',
     'time' => 'Time',
@@ -62,23 +88,23 @@ return [
     // Each scene's heading in three pieces: before its key phrase, the key phrase, after it.
     'hear' => [
         'name' => 'Hear',
-        'before' => 'Hear',
-        'em' => 'your part',
-        'after' => 'on its own.',
+        'before' => 'Find',
+        'em' => 'your part.',
+        'after' => '',
         'body' => 'Tap a voice and the others step back. Tap it again and all four return, from the same spot.',
         'true' => 'Every song in the library opens this way.',
     ],
     'sing' => [
         'name' => 'Sing along',
-        'before' => 'Learn it from a',
-        'em' => 'real singer.',
+        'before' => 'Learn it',
+        'em' => 'by ear.',
         'after' => '',
         'chip' => 'You, singing along',
     ],
     'record' => [
         'name' => 'Record',
-        'before' => 'Record each part over the others,',
-        'em' => 'in time.',
+        'before' => 'Build',
+        'em' => 'your performance.',
         'after' => '',
     ],
     'share' => [
@@ -91,10 +117,10 @@ return [
         'choir' => 'Hear yourself as a choir: your first song is free',
     ],
     'free' => [
-        'before' => 'Every course',
-        'em' => 'is free.',
+        'before' => 'New to harmony?',
+        'em' => 'Start here.',
         'after' => '',
-        'body' => 'Short lessons with a guide voice, from your first note to barbershop. Hear every song without an account.',
+        'body' => 'Every course is always free. Learn by ear with short lessons and a guide voice to follow.',
         'courses' => ['Courses, every one free', 'Pitch, harmony, vibrato, barbershop and more.'],
         'songs' => ['Songs to learn, part by part', 'Hymns, carols, folk songs and rounds.'],
         'tools' => ['Free tools, no account', 'A tuner, a metronome, a range test, a drone.'],
@@ -116,6 +142,9 @@ return [
         'singers' => ['Priya Shah', 'Sam Lee', 'Kim Ode', 'Tom Okafor'],
     ],
     'plans' => [
-        'body' => 'Learning never needs a card. Plus is for what you make: your files and private arrangements.',
+        // The home's plans band (the blueprint): its own heading; /pricing keeps Free to learn, Plus for what you make.
+        'title' => 'Learning is always free.',
+        'title_more' => 'Plus for more ways to create.',
+        'body' => 'Take any course for free. Plus adds more ways to create and collaborate.',
     ],
 ];

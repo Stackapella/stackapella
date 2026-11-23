@@ -17,6 +17,7 @@ use App\Models\Template;
 use App\Models\TemplateVersion;
 use App\Models\User;
 use App\Services\Audio\Ffmpeg;
+use App\Support\Contract\SchemaChecker;
 use App\Support\Flags;
 use App\Support\OwnChoir\ClipTune;
 use App\Support\OwnChoir\OwnChoir;
@@ -668,5 +669,44 @@ final class OwnChoirTest extends TestCase
         $made = (array) $song->refresh()->lead['made'];
         $this->assertSame(24000 + (int) round((25 * 0.6 + 1) * 48000), $made['frames'], 'To its last beat and a second.');
         $this->getJson('/api/own-choir')->assertJsonPath('data.requests.0.leadTake.frames', $made['frames']);
+    }
+
+    public function test_vibrato_and_variation_replace_humanize_and_an_older_app_still_works(): void
+    {
+        $user = $this->singer();
+        $user->forceFill(['store_plus_until' => now()->addDays(10)])->save();
+        OwnChoirVoice::factory()->create(['user_id' => $user->id, 'status' => 'ready']);
+        $this->catalogue();
+        $song = OwnChoirRequest::factory()->create(['user_id' => $user->id, 'template_version_id' => (int) Template::query()->where('slug', 'amazing-grace')->value('current_version_id'), 'status' => OwnChoirStatus::Ready, 'tries' => 1]);
+        $base = ['voicing' => 'written', 'breaths' => 'legato', 'quality' => 'standard', 'ensembleTiming' => 'natural', 'pitchSpread' => 'off'];
+
+        // Unset: natural and natural, humanize derived for older apps.
+        $this->getJson('/api/own-choir')->assertJsonPath('data.requests.0.settings.sung.vibrato', 'natural')->assertJsonPath('data.requests.0.settings.sung.variation', 'natural')->assertJsonPath('data.requests.0.settings.sung.humanize', 2);
+
+        $this->postJson("/api/own-choir/requests/{$song->sqid()}/remake", ['sung' => $base + ['vibrato' => 'wobbly', 'variation' => 'natural']])->assertStatus(422);
+        $made = $this->postJson("/api/own-choir/requests/{$song->sqid()}/remake", ['sung' => $base + ['vibrato' => 'strong', 'variation' => 'loose']]);
+        $this->assertMatchesContract($made, 'ownChoir.requests.remake', 202);
+        $made->assertJsonPath('data.remake.settings.vibrato', 'strong')->assertJsonPath('data.remake.settings.humanize', 3);
+        $remake = OwnChoirRequest::query()->where('remake', true)->sole();
+        $settings = (new ChoirJobResource($remake->load('templateVersion.template')))->resolve()['settings'];
+        $this->assertSame(['strong', 'loose'], [$settings->vibrato, $settings->variation]);
+
+        // An older app sends humanize alone: read as both.
+        $remake->forceFill(['status' => OwnChoirStatus::Deleted])->save();
+        $this->postJson("/api/own-choir/requests/{$song->sqid()}/remake", ['sung' => $base + ['humanize' => 0]])->assertStatus(202)->assertJsonPath('data.remake.settings.vibrato', 'none')->assertJsonPath('data.remake.settings.variation', 'steady');
+    }
+
+    public function test_a_template_may_say_how_a_song_not_in_english_is_sung(): void
+    {
+        $checker = new SchemaChecker((string) config('templates.schemas'));
+        $read = static fn (): object => json_decode((string) file_get_contents(base_path('database/templates/maoz-tzur.json')));
+
+        $good = $read();
+        $good->sungRespelling = [(object) ['syllable' => 'ma', 'sung' => 'mah'], (object) ['syllable' => 'tzur', 'sung' => 'tsoor']];
+        $this->assertSame([], $checker->check($good, 'template.json'));
+
+        $bad = $read();
+        $bad->sungRespelling = [(object) ['syllable' => 'ma', 'sung' => 'mah', 'shown' => true]];
+        $this->assertNotSame([], $checker->check($bad, 'template.json'));
     }
 }

@@ -5662,12 +5662,14 @@
         "intro": {
             "one": "Canta {song} dos veces, en la octava que te resulte cómoda.",
             "oneSong": "Canta {song} durante 30 segundos, en la octava que te resulte cómoda.",
-            "oneBody": "No hace falta cantar bien: solo escuchamos cómo suena tu voz, y la guardamos en privado para tus próximas canciones.",
-            "choose": "Canción para cantar",
-            "two": "Hacemos cada parte de {song} con una voz como la tuya, marcada como IA.",
-            "three": "Luego aprende tu parte: cada una que grabas ocupa el lugar de su versión de IA.",
+            "oneBody": "En la octava que te resulte cómoda. No hace falta cantar bien: solo escuchamos cómo suena tu voz, y la guardamos en privado para tus próximas canciones.",
+            "choose": "¿Qué vas a cantar?",
             "whole": "Cantar la canción entera",
-            "wholeHint": "Cántala entera y oye la tuya junto al coro de IA."
+            "wholeHint": "Cántala entera y oye la tuya junto al coro de IA.",
+            "subFirst": "Los primeros 30 segundos",
+            "buildTitle": "Creamos el coro",
+            "buildBody": "Cada parte de {song} con una voz como la tuya, marcada como IA.",
+            "subTwice": "Dos veces"
         },
         "record": {
             "title": "Canta 30 segundos",
@@ -5704,14 +5706,14 @@
             "onOo": "Cantada con “uu”: por ahora, las voces de IA solo cantan letras en inglés."
         },
         "failed": {
-            "title": "Esta vez no pudimos hacer tu coro",
+            "title": "No pudimos hacer tu coro",
             "body": "Tu grabación se ha borrado. Inténtalo de nuevo con una nueva, en un sitio tranquilo y cantando un poco más fuerte.",
             "clip_unusable": "No pudimos oír suficiente canto para hacer una voz. Vuelve a intentarlo cantando las dos canciones con claridad.",
             "bad_clip": "Tu grabación no llegó como debía. Inténtalo de nuevo.",
             "gates_failed": "Algunas partes no salieron afinadas. Inténtalo de nuevo con una grabación nueva.",
             "render_failed": "Algo falló por nuestra parte. Inténtalo de nuevo.",
             "expired": "Tardó demasiado y se detuvo. Inténtalo de nuevo.",
-            "reference_gone": "Tu voz guardada se borró antes de hacer esta canción. Canta 30 segundos otra vez para hacerla.",
+            "reference_gone": "Tu voz guardada se borró antes de hacer esta canción. Canta 30 segundos abajo y lo intentaremos de nuevo.",
             "detail": {
                 "quiet": "Tu grabación se oía muy baja. Acércate al micrófono (a un palmo) y canta a volumen normal.",
                 "noisy": "Había demasiado ruido de fondo. Prueba en un sitio más tranquilo.",
@@ -5737,13 +5739,14 @@
             "month": "Ya hiciste tus canciones de estos 30 días. Pronto habrá más.",
             "day": "Esos son los coros de hoy. Inténtalo mañana.",
             "free_used": "Ya tuviste tu canción gratis. Más canciones con una voz como la tuya vienen con Plus.",
-            "minutesLeft": "Te quedan {minutes} minutos este mes, {songs, plural, =0 {no llega para esta canción} one {una canción como esta} other {unas # canciones como esta}}.",
             "minutesOnly": "Te quedan {minutes} minutos este mes.",
             "minutes": "Esta canción necesita unos {needed} minutos, y te quedan {left} este mes.",
-            "minutesLeftMore": "Te quedan {minutes} minutos este mes, {songs, plural, =0 {no llega para esta canción} one {una canción como esta} other {unas # canciones como esta}}; {more} más el {date}.",
-            "minutesOnlyMore": "Te quedan {minutes} minutos este mes; {more} más el {date}.",
             "minutesMore": "Esta canción necesita unos {needed} minutos, y te quedan {left} este mes; {more} más el {date}.",
-            "monthMore": "Ya hiciste tus canciones de estos 30 días. Más a partir del {date}."
+            "monthMore": "Ya hiciste tus canciones de estos 30 días. Más a partir del {date}.",
+            "shortLead": "{minutes} minutos este mes",
+            "shortSongs": ": {songs, plural, =0 {no llega para esta canción} one {más o menos 1 canción como esta} other {unas # canciones como esta}}. Se renuevan el {date}.",
+            "shortSongsNoDate": ": {songs, plural, =0 {no llega para esta canción} one {más o menos 1 canción como esta} other {unas # canciones como esta}}.",
+            "shortResets": ". Se renuevan el {date}."
         },
         "delete": {
             "button": "Borra este coro",
@@ -5771,9 +5774,11 @@
             "deleteBody": "Borramos sin demora la voz hecha con tu canto. Las canciones ya hechas se quedan. Para tu próxima canción, cantarás 30 segundos otra vez.",
             "deleteAction": "Borrar mi voz",
             "deleted": "Tu voz está borrada.",
-            "again": "Haz mi coro",
-            "againLine": "Con tu voz guardada, sin cantar otra vez.",
-            "record": "Mejor canto otra vez"
+            "again": "Hacer mi coro",
+            "record": "Mejor vuelvo a cantar",
+            "savedTitle": "Tu voz está guardada",
+            "savedBody": "No hace falta volver a cantar: usaremos la grabación que ya hiciste.",
+            "useSaved": "Usar mi voz guardada"
         },
         "songs": {
             "entry": "Óyela con una voz como la tuya",
@@ -5903,8 +5908,7 @@
             },
             "home": {
                 "owner": "Las partes de {name} ya están en tu coro: {song}",
-                "listen": "Escuchar",
-                "readyTitle": "Listo para ti"
+                "listen": "Escuchar"
             },
             "words": {
                 "changed": "La letra cambió desde que abriste esto. Aquí está de nuevo."
@@ -5934,9 +5938,9 @@
             "yesHint": "Oirás la melodía mientras cantas.",
             "noHint": "No suena nada; sigue la letra a medida que se ilumina.",
             "silentLine": "No suena nada. Sigue la letra a medida que se ilumina.",
-            "label": "Auriculares",
-            "noShort": "Sin auriculares",
-            "yesShort": "Auriculares"
+            "label": "¿Llevas auriculares?",
+            "noShort": "No",
+            "yesShort": "Sí"
         },
         "settings": {
             "title": "Ajustes del coro",
@@ -5952,9 +5956,6 @@
             },
             "balance": "Equilibrio",
             "balanceHint": "Lo fuerte que suena cada parte.",
-            "humanize": "Carácter",
-            "clean": "Limpio de estudio",
-            "real": "Coro de verdad",
             "voicing": "Qué octava",
             "voicingOptions": {
                 "auto": "Automático",
@@ -5995,7 +5996,6 @@
             "roomHint": "Dónde suena como si se cantara.",
             "softer": "Más suave",
             "louder": "Más fuerte",
-            "humanizeHint": "Lo humano que suena el canto.",
             "voicingHint": "Automático se ajusta a tu voz.",
             "breathsHint": "Cómo respiran las voces entre frases.",
             "timingHint": "Cuánto coinciden las voces al empezar.",
@@ -6009,7 +6009,22 @@
             "recordingLevel": "Tu grabación, mezclada",
             "off": "Desactivada",
             "sungHintMonthly": "Lo rehace la IA. Plus incluye {n} minutos de canto con IA al mes.",
-            "leadBlendHint": "Quién canta la melodía."
+            "leadBlendHint": "Quién canta la melodía.",
+            "vibrato": "Vibrato",
+            "vibratoHint": "Cuánto vibran las voces en las notas largas.",
+            "vibratoOptions": {
+                "none": "Ninguno",
+                "light": "Ligero",
+                "natural": "Natural",
+                "strong": "Intenso"
+            },
+            "variation": "Variación natural",
+            "variationHint": "Cuánto cambia cada nota y cada voz, como en personas reales.",
+            "variationOptions": {
+                "steady": "Estable",
+                "natural": "Natural",
+                "loose": "Suelta"
+            }
         },
         "level": {
             "low": "Algo bajo. Acércate al micrófono, o sube su volumen.",
@@ -6025,6 +6040,13 @@
             "recording": "Tu grabación",
             "youChoir": "Tú + coro",
             "fullChoir": "Coro completo"
+        },
+        "home": {
+            "label": "Nuevo",
+            "body": "Canta 30 segundos de una canción que conozcas; la IA canta un coro entero con una voz como la tuya.",
+            "try": "Pruébalo",
+            "making": "Estamos haciendo tu coro de {song}. Lo verás aquí cuando esté listo.",
+            "see": "Ver mi coro"
         }
     },
     "aiVoice": {

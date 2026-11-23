@@ -42,6 +42,9 @@ return [
     // A remake at fine quality (64 steps) costs its real GPU time: 1.92x measured, rounded (Hillel, 2026-11-23: "make
     // sure limits align with our costs").
     'fine_factor' => 2.0,
+    // What a GPU second costs us, in US dollars (Modal's A10: about 57 s for a 63 s part, about 2 cents; voices,
+    // 2026-11-23), for Admin > Choir's month.
+    'gpu_cost_per_second' => 0.00035,
     // An own song's singing across all its parts, at most (so one song fits one claim).
     'max_total_seconds' => 1200,
     // A claim kept alive by the worker (worker.choir.jobs.extend) never lasts past this from when it was claimed.

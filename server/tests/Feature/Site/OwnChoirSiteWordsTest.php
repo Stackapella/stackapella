@@ -39,7 +39,6 @@ final class OwnChoirSiteWordsTest extends TestCase
         foreach (['/', '/pricing', '/songs/amazing-grace'] as $page) {
             $html = (string) $this->get($page)->assertOk()->getContent();
             $this->assertStringNotContainsString(e(__('pages.landing.plans_free_choir')), $html, $page);
-            $this->assertStringNotContainsString(e(strtr((string) __('pages.landing.faq_free_choir'), [':plus_songs' => '15'])), $html, $page);
             $this->assertStringNotContainsString(e(__('pages.pricing.faq_share_choir')), $html, $page);
             $this->assertStringNotContainsString('/your-choir', $html, $page);
             $this->assertStringNotContainsString('choir=1', $html, $page);
@@ -53,12 +52,11 @@ final class OwnChoirSiteWordsTest extends TestCase
         $home = (string) $this->get('/')->assertOk()->getContent();
         $this->assertStringContainsString(e(__('pages.landing.plans_free_choir')), $home);
         $this->assertStringContainsString(e(__('plus.items.choir.0')), $home);
-        $this->assertStringContainsString(e(strtr((string) __('pages.landing.faq_free_choir'), [':plus_songs' => '15'])), $home);
         $this->assertStringContainsString('href="/your-choir?ref=choir-home"', $home);
         $this->assertStringContainsString(e(__('landing.share.choir')), $home);
 
         $pricing = (string) $this->get('/pricing')->assertOk()->getContent();
-        $this->assertStringContainsString('About 15 songs a month (60 minutes of AI singing)', $pricing);
+        $this->assertStringContainsString('60 minutes a month, about 15 songs', $pricing);
         $this->assertStringContainsString(e(__('pages.pricing.faq_share_choir')), $pricing);
         $this->assertStringContainsString(e(__('pages.pricing.choir_songs_row.0')), $pricing);
         $this->assertStringContainsString(e(__('pages.pricing.choir_row.0')), $pricing);

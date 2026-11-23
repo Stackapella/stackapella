@@ -789,6 +789,8 @@
             "type": "object",
             "additionalProperties": false,
             "required": [
+                "vibrato",
+                "variation",
                 "humanize",
                 "voicing",
                 "breaths",
@@ -797,9 +799,26 @@
                 "pitchSpread"
             ],
             "properties": {
+                "vibrato": {
+                    "enum": [
+                        "none",
+                        "light",
+                        "natural",
+                        "strong"
+                    ],
+                    "description": "Vibrato (natural unless chosen)."
+                },
+                "variation": {
+                    "enum": [
+                        "steady",
+                        "natural",
+                        "loose"
+                    ],
+                    "description": "Natural variation: the wander, glides into notes, how each part's singer differs (natural unless chosen)."
+                },
                 "humanize": {
                     "type": "integer",
-                    "description": "0 to 3: 0 the clean line, each step more vibrato and variation."
+                    "description": "Older apps only (one release): derived from vibrato, 0 to 3."
                 },
                 "voicing": {
                     "enum": [

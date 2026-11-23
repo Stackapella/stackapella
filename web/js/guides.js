@@ -73,7 +73,8 @@ export function renderGuide({ templateId, templateVersion, part, tempo, transpos
     // Plain copies: Vue's reactive objects can't be posted to a worker. Each note ends where its
     // singing does: before a new line (`br`) the voice breathes, the gap scoring forgives (a beta
     // singer: "in the tones, there is no place for breath"). Instruments play on.
-    const notes = part.guide.notes.map((n, i, all) => ({ beat: n.beat, length: sungEnd(all, i) - n.beat, pitch: n.pitch }));
+    // A part with no notes (never from the server; a guard all the same) sings nothing rather than throwing.
+    const notes = (part.guide?.notes ?? []).map((n, i, all) => ({ beat: n.beat, length: sungEnd(all, i) - n.beat, pitch: n.pitch }));
     return rendered(key, { notes, options }, () => renderPart(notes, options));
 }
 
@@ -84,13 +85,13 @@ export function renderGuide({ templateId, templateVersion, part, tempo, transpos
 async function renderInstrument({ templateId, templateVersion, part, tempo, transpose, speed, sampleRate }) {
     const [{ instrumentOf, PIECES, synthGroove }, { loadInstrument, renderNotes }] = await Promise.all([import('./instrument-parts.js'), import('./instruments.js')]); // app-only: never on a public page
     const instrument = instrumentOf(part);
-    if (!instrument) return renderPart(part.guide.notes.map((n) => ({ beat: n.beat, length: n.length, pitch: n.pitch })), { bpm: tempo, sampleRate, transpose, speed });
+    if (!instrument) return renderPart((part.guide?.notes ?? []).map((n) => ({ beat: n.beat, length: n.length, pitch: n.pitch })), { bpm: tempo, sampleRate, transpose, speed });
     const drums = instrument.role === 'groove';
     const shift = drums ? 0 : transpose;
     const played = (await loadInstrument(instrument.sample)) ? 'samples' : 'synth';
     const key = `${templateId}@${templateVersion}:${part.key}:instrument:${instrument.sample}:${played}:${shift}:${speed}:${sampleRate}`;
     if (!cache.has(key)) {
-        const notes = part.guide.notes.map((n) => (drums ? { beat: n.beat, length: n.length, pitch: n.pitch, piece: PIECES[n.pitch] ?? 'hat-closed' } : { beat: n.beat, length: n.length, pitch: n.pitch }));
+        const notes = (part.guide?.notes ?? []).map((n) => (drums ? { beat: n.beat, length: n.length, pitch: n.pitch, piece: PIECES[n.pitch] ?? 'hat-closed' } : { beat: n.beat, length: n.length, pitch: n.pitch }));
         const options = { bpm: tempo, sampleRate, transpose: shift, speed };
         cache.set(
             key,

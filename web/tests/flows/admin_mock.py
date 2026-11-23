@@ -96,6 +96,7 @@ def journey(f):
     f.wait("document.activeElement.id === 'tab-limits' && location.search.includes('tab=limits')", what="ArrowRight to the next tab")
     # The styleguide, every word through t().
     f.go("/styleguide?lang=pseudo&scenario=", "document.querySelector('h1')")
+    assert f.js("document.querySelectorAll('[data-sg-patterns] [data-sg-pattern]').length") == 8, "the Patterns aren't all on the styleguide"
     f.shot("styleguide")
     left = f.js(UNTRANSLATED)
     assert not left, f"styleguide: not translated: {left}"

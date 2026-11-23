@@ -38,6 +38,18 @@ use Illuminate\Support\Facades\Lang;
 final class InfoPagesController extends Controller
 {
     /**
+     * An answer as its short answer (the first sentence) and the rest.
+     *
+     * @return array{string, string}
+     */
+    private static function shortFirst(string $answer): array
+    {
+        $parts = preg_split('/(?<=[.!?])\s+/u', $answer, 2) ?: [$answer];
+
+        return [(string) $parts[0], (string) ($parts[1] ?? '')];
+    }
+
+    /**
      * /pricing's own questions; while own_choir is on, "Can I share what I make?" adds that a song sung by AI says so
      * wherever it's shared, and with choir seats, the choir question that a seat doesn't cover songs sung by AI (the
      * marketing review, 2026-11-22).
@@ -46,7 +58,7 @@ final class InfoPagesController extends Controller
      */
     private static function pricingFaq(): array
     {
-        $faq = (array) Teams::words('pages.pricing.faq');
+        $faq = [(array) Lang::get('pages.pricing.faq_free'), ...(array) Teams::words('pages.pricing.faq')];
         if (SongParts::switchedOn('own_choir')) {
             $share = (string) __('pages.pricing.faq.1.0');
             $choir = SongParts::switchedOn('choir_seats') ? (string) __('pages.pricing.faq.2.0') : null;
@@ -132,7 +144,8 @@ final class InfoPagesController extends Controller
         }
         // A song in your own voice downloads with Plus, while own_choir is on (Hillel, 2026-11-21).
         if (SongParts::switchedOn('own_choir')) {
-            $rows['choir_songs'] = (array) Lang::get('pages.pricing.choir_songs_row');
+            // Plus's minutes from config (own_choir.plus_minutes), as the Plus card says them.
+            $rows['choir_songs'] = array_map(static fn (mixed $cell): mixed => is_string($cell) ? strtr($cell, PlusFeatures::replacements()) : $cell, (array) Lang::get('pages.pricing.choir_songs_row'));
             $rows['choir_download'] = (array) Lang::get('pages.pricing.choir_row');
             $groups['share'] = [...$groups['share'], 'choir_songs', 'choir_download'];
         }
@@ -152,7 +165,8 @@ final class InfoPagesController extends Controller
             'compare' => self::compare($groups, $rows, $limits),
             'plans' => Landing::plans(),
             'smallPrint' => (array) Lang::get('pages.pricing.small_print'),
-            'faq' => array_map(static fn (array $qa): array => [$qa[0], str_replace(':days', (string) config('billing.trial_days'), (string) $qa[1])], [
+            // Each answer's first sentence is its short answer, shown first in bold (the UX review, 2026-11-23).
+            'faq' => array_map(static fn (array $qa): array => [(string) $qa[0], ...self::shortFirst(str_replace(':days', (string) config('billing.trial_days'), (string) $qa[1]))], [
                 ...self::pricingFaq(),
                 ...($private ? [(array) Lang::get('pages.pricing.faq_private')] : []),
                 ...(OpenSource::on() ? [(array) Lang::get('pages.pricing.faq_selfhost')] : []),
@@ -178,7 +192,10 @@ final class InfoPagesController extends Controller
                 if (! is_array($rows[$key] ?? null)) {
                     continue;
                 }
-                $cells = $limits[$key] ?? [(string) $rows[$key][1], (string) $rows[$key][2]];
+                // A plan's number fills only its placeholder (:free, :plus): a row whose words say "No" (inviting friends
+                // while plus_teams is on, Free can't) keeps saying so (the UX review, 2026-11-23).
+                $cells = [(string) $rows[$key][1], (string) $rows[$key][2]];
+                $cells = [$cells[0] === ':free' && isset($limits[$key]) ? $limits[$key][0] : $cells[0], $cells[1] === ':plus' && isset($limits[$key]) ? $limits[$key][1] : $cells[1]];
                 $lines[] = ['label' => (string) $rows[$key][0], 'cells' => $cells, 'same' => $cells[0] === $cells[1]];
             }
             $out[] = ['key' => $group, 'same' => $lines !== [] && array_filter($lines, static fn (array $l): bool => ! $l['same']) === [], 'rows' => $lines];

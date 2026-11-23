@@ -473,6 +473,28 @@
                     }
                 }
             }
+        },
+        "sungRespelling": {
+            "type": "array",
+            "description": "How a song not in English is sung by the AI voices (Hillel approved, 2026-11-23): each lyric syllable as written (lowercase, without its trailing '-' or punctuation) and an English-phonetic respelling the voices read; without it such a song is sung on 'oo'. Sung only, never shown.",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "syllable",
+                    "sung"
+                ],
+                "properties": {
+                    "syllable": {
+                        "type": "string",
+                        "description": "As written, lowercase, without its trailing '-' or punctuation (a-z and ', 1 to 20; the content checks enforce it)."
+                    },
+                    "sung": {
+                        "type": "string",
+                        "description": "English-like words the voices read (a-z, ' and spaces, 1 to 40)."
+                    }
+                }
+            }
         }
     },
     "$defs": {

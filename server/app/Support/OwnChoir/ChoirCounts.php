@@ -44,7 +44,7 @@ final class ChoirCounts
             }
         }
 
-        foreach (['humanize', 'voicing', 'breaths', 'quality', 'ensembleTiming', 'pitchSpread'] as $setting) {
+        foreach (['vibrato', 'variation', 'humanize', 'voicing', 'breaths', 'quality', 'ensembleTiming', 'pitchSpread'] as $setting) {
             $kinds[] = 'choir_remake_'.strtolower($setting);
         }
 

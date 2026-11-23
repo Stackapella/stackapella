@@ -32,13 +32,15 @@ export const Switch = {
 /**
  * A segmented control: one choice of a few, as a radiogroup on a tinted track. `options` are
  * `{ value, label }`; the arrow keys move the choice (and the focus), Home and End go to the ends.
- * `full` stretches it across its row, each segment an equal share.
+ * `full` stretches it across its row, each segment an equal share. `kind` picks the track: '' the everyday tint, 'inset'
+ * the well in a panel (settings), 'header' the raised pill in a screen's header (Words, Notes, Staff); the 2026-11-23
+ * language, css/input.css seg-inset and seg-header.
  */
 export const Segmented = {
-    props: { modelValue: { type: [String, Number, Boolean], default: null }, options: { type: Array, required: true }, label: { type: String, default: '' }, labelledby: { type: String, default: '' }, full: Boolean, disabled: Boolean },
+    props: { modelValue: { type: [String, Number, Boolean], default: null }, options: { type: Array, required: true }, label: { type: String, default: '' }, labelledby: { type: String, default: '' }, full: Boolean, disabled: Boolean, kind: { type: String, default: '' } },
     emits: ['update:modelValue'],
     template: `
-        <div class="seg" :class="[full ? 'flex w-full' : '', disabled ? 'pointer-events-none opacity-45' : '']" role="radiogroup" :aria-label="label || null" :aria-labelledby="labelledby || null" :aria-disabled="disabled ? 'true' : null" @keydown="key">
+        <div class="seg" :class="[full ? 'flex w-full' : '', disabled ? 'pointer-events-none opacity-45' : '', kind === 'inset' ? 'seg-inset' : kind === 'header' ? 'seg-header' : '']" role="radiogroup" :aria-label="label || null" :aria-labelledby="labelledby || null" :aria-disabled="disabled ? 'true' : null" @keydown="key">
             <button v-for="(option, i) in options" :key="String(option.value)" ref="option" type="button" role="radio" class="seg-option" :class="full ? 'flex-1 px-2.5' : ''" :aria-checked="option.value === modelValue ? 'true' : 'false'" :tabindex="i === current ? 0 : -1" :disabled="disabled" @click="$emit('update:modelValue', option.value)">{{ option.label }}</button>
         </div>`,
     computed: {

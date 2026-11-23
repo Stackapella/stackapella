@@ -35,7 +35,10 @@ return [
         'min_seconds' => 3,
         'max_seconds' => 60,
         'end_card_seconds' => 2,
-        'fps' => 30,
+        // 24 frames a second: smooth for a scrolling strip, and a fifth less to encode on the one-vCPU worker (2026-11-23).
+        'fps' => 24,
+        // ffmpeg's threads (0: its own choice; 1 measures it as the one-vCPU worker runs).
+        'threads' => 0,
     ],
 
     // Our font, for the share card and the video (resources/fonts, SIL Open Font License).

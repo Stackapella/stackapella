@@ -223,6 +223,7 @@ const SHELL = [
     '/js/own-choir.js',
     '/js/own-choir-player.js',
     '/js/components/joined-choirs.js',
+    '/js/components/choir-panel.js',
     '/js/ai-voices.js',
     '/js/voice-take.js',
     '/js/components/share-voice.js',

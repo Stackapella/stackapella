@@ -177,7 +177,8 @@ export const HomeLead = {
                 <button type="button" class="btn-secondary" @click="retry">{{ t('common.tryAgain') }}</button>
             </div>
 
-            <template v-else-if="!started">
+            <div v-else-if="!started" :class="$slots.side ? 'grid gap-x-10 gap-y-6 lg:grid-cols-[minmax(0,1fr)_20rem]' : ''">
+              <div class="min-w-0">
                 <h1 id="lead-title" class="max-w-md text-3xl font-extrabold leading-tight tracking-tight text-cream md:text-4xl">{{ t('home.lead.title') }}</h1>
                 <!-- The arcade screen (game/arcade.js): the stage and your real high score, as Hillel's design has them; hidden until its layer's CSS shows it -->
                 <p v-if="effect('arcade')" class="gs-hi hidden"><span class="gs-hi-stage" aria-hidden="true">{{ t('game.arcade.stage', { number: '01' }) }}</span><span class="gs-hi-score" aria-hidden="true">{{ t('game.arcade.hi', { score: String(learning.progress.xp.total).padStart(6, '0') }) }}</span><span class="sr-only">{{ t('game.arcade.hiLabel', { stage: 1, xp: learning.progress.xp.total }) }}</span></p>
@@ -192,7 +193,10 @@ export const HomeLead = {
                 <p class="mt-4 text-sm text-muted">{{ t('home.lead.body') }}</p>
                 <button type="button" class="btn-primary btn-lg mt-5 w-full sm:w-auto" :disabled="starting || !learning.course" @click="begin">{{ t('course.start') }} <Icon name="arrow" :size="18" /></button>
                 <p class="mt-3 text-xs text-muted">{{ t('home.lead.free') }}</p>
-            </template>
+              </div>
+              <!-- A wide screen's side column (Hear yourself as a choir, from Home). -->
+              <div v-if="$slots.side" class="hidden border-s border-line ps-10 lg:block"><slot name="side" /></div>
+            </div>
 
             <div v-else-if="next && !short" class="grid gap-x-10 gap-y-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
               <div class="min-w-0">
@@ -228,7 +232,11 @@ export const HomeLead = {
                 </div>
               </div>
               <!-- A wide screen: the week beside the lesson, inside the card, so every band below lines up with it. -->
-              <div class="hidden border-s border-line ps-10 lg:block"><slot name="week" /></div>
+              <div class="hidden border-s border-line ps-10 lg:block">
+                <slot name="week" />
+                <!-- Under the week, the choir panel (Hillel: "a main panel ... in the top right"). -->
+                <div v-if="$slots.side" class="mt-6 border-t border-line pt-6"><slot name="side" /></div>
+              </div>
             </div>
 
             <template v-else-if="next">
