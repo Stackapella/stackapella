@@ -278,7 +278,7 @@ export const OwnChoirView = {
                         <!-- Words not in English: the AI parts are sung on "oo" (ai-modal, via Hillel), from the song's language. -->
                         <p v-if="notEnglish" class="text-sm text-muted" data-choir-on-oo>{{ t('ownChoir.ready.onOo') }}</p>
                         <!-- Hillel: "compare your original, to you with choir around, or full choir" (for everyone). -->
-                        <Segmented v-if="viewOptions.length > 1" :model-value="listenTo" :options="viewOptions" :label="t('ownChoir.version.label')" full class="overflow-x-auto [&_.seg-option]:min-h-11 [&_.seg-option]:shrink-0" data-scroll-row data-listen-to @update:model-value="chooseView" />
+                        <Segmented v-if="viewOptions.length > 1" :model-value="listenTo" :options="viewOptions" :label="t('ownChoir.version.label')" full class="overflow-x-auto [scrollbar-width:none] [&_.seg-option]:min-h-11 [&_.seg-option]:shrink-0" data-scroll-row data-listen-to @update:model-value="chooseView" />
                         <div class="grid gap-2.5 sm:grid-cols-2">
                             <button type="button" class="btn-primary btn-lg justify-center" :aria-busy="loadingTrack ? 'true' : null" data-choir-play @click="togglePlay"><span v-if="loadingTrack" class="spinner" aria-hidden="true"></span>{{ playing || hearingClip ? t('studio.stop') : t('ownChoir.ready.button') }}</button>
                             <button type="button" class="btn-secondary btn-lg justify-center" :disabled="loadingTrack" data-choir-download @click="download">{{ t('ownChoir.ready.download') }}<span v-if="!request.canDownload" class="chip-accent ms-2 text-xs" data-download-plus>{{ t('ownChoir.settings.plusBadge') }}</span></button>

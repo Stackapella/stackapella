@@ -253,7 +253,7 @@ export const ProjectsView = {
                                 </li>
                             </ul>
                             <!-- The end of the full library: ask for the song that isn't here (song requests, N7; while it's on, and staff before). -->
-                            <p v-if="songsOpen && requestsOn" class="mt-4 text-center text-sm text-muted" data-request-song>{{ t('requests.notHere') }} <a href="/requests?ask" class="link tap-44" @click.prevent="navigate('/requests?ask')">{{ t('requests.askLink') }}</a></p>
+                            <p v-if="songsOpen && requestsOn" class="t-hint mt-4 text-center" data-request-song>{{ t('requests.notHere') }} <a href="/requests?ask" class="link tap-44" @click.prevent="navigate('/requests?ask')">{{ t('requests.askLink') }}</a></p>
                             <div v-if="songsOpen" class="mt-3 flex justify-center">
                                 <button type="button" class="btn-secondary btn-sm" aria-controls="home-songs" :aria-expanded="songsOpen ? 'true' : 'false'" @click="openSongs(!songsOpen)">{{ t('home.songs.showFewer') }}</button>
                             </div>

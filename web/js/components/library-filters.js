@@ -37,7 +37,7 @@ export const LibraryFilters = {
                     <input type="search" class="input ps-11" :value="filters.query" :placeholder="t('home.songs.filter.search', { count: total })" autocomplete="off" enterkeyhint="search" data-library-search @input="set({ query: $event.target.value })" />
                 </label>
                 <label class="flex shrink-0 items-center gap-2">
-                    <span class="text-sm font-semibold text-muted">{{ t('home.songs.filter.iSing') }}</span>
+                    <span class="text-sm font-medium text-muted">{{ t('home.songs.filter.iSing') }}</span>
                     <select class="input w-auto" :value="filters.voice ?? ''" data-library-voice @change="set({ voice: $event.target.value || null })">
                         <option value="">{{ t('home.songs.filter.anyPart') }}</option>
                         <option v-for="(words, voice) in VOICE_WORDS" :key="voice" :value="voice">{{ t(words) }}</option>

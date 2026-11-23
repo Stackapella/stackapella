@@ -3,8 +3,8 @@ step opens. Before it, the way on says "Turn on my mic" with why we listen; the 
 mic, the first hum is the mic check as well ("Got you", while it goes on finding the note); a reload straight into the step waits for
 a tap anywhere (browsers start no audio before one); nothing heard brings a gentle word while it keeps listening, with the mic picker right
 there; "Skip for now" goes on with a typical note (the lesson counts with one star) and later
-lessons remind gently. Sung for real (an A3 into the mic), the marker glides on the wide bar, the
-scale zooms in on it (Wide, Closer, Locked), and the note is shown big in its ring, with what it means
+lessons remind gently. Sung for real (an A3 into the mic), a pulse while it listens, a dot that fills as the note is
+held (Hillel's Find your note design, option B, 2026-11-23: no ring, no scale), and the note shown large, with what it means
 (components/voice-capture.js, the one capture everywhere: Hillel's Comfortable Note v2).
 """
 import sys
@@ -88,7 +88,7 @@ def journey(f):
     f.wait_text(t(f, "course.home.reminder"))
     f.shot("reminder")
     # Back to find it for real: a held A3 (played into the mic by loopback). The mic is allowed and
-    # the audio running, so it listens at once: the marker on the wide bar, the zoom, then the note.
+    # the audio running, so it listens at once: the pulse, the dot filling as it's held, then the note.
     f.go("/learn/1-comfortable", "document.querySelector('main h1')")
     f.js(f"{AUDIO}.unlock()")
     f.js(f"{AUDIO}.engine.setLoopback(true)")
@@ -96,18 +96,20 @@ def journey(f):
     f.wait("['listening', 'hearing', 'holding'].includes(document.querySelector('[data-listening]')?.dataset.phase)", what="listening by itself")
     f.js("(await import('/js/creator-audio.js')).hearNotes([{ beat: 0, length: 6, pitch: 57 }], { tempo: 60 })")
     f.wait("['hearing', 'holding'].includes(document.querySelector('[data-listening]')?.dataset.phase)", what="hearing the voice")
-    # No letter while the voice settles (Hillel, 2026-11-02: "letters keep flashing"): not in the ring, not on the scale.
-    UNNAMED = "document.querySelector('[data-note]').textContent.trim() === '·' && !document.querySelector('[data-scale] [data-tick] span + span')"
+    # No letter while the voice settles (Hillel, 2026-11-02: "letters keep flashing"). Since his Find your note design
+    # (option B, 2026-11-23) a comfortable note has no ring and no scale: a pulse, then a dot that fills as it's held.
+    UNNAMED = "document.querySelector('[data-note]').textContent.trim() === '·' && !document.querySelector('[data-voice-capture] [data-scale]')"
     assert f.js(UNNAMED), "a note named while it's still settling"
     f.shot("hearing")
     f.wait("document.querySelector('[data-listening]')?.dataset.phase === 'holding'", what="holding")
-    f.wait("Number(document.querySelector('[data-scale]')?.dataset.zoom) >= 1", what="the bar zoomed in")
+    # The clear holding sign Hillel asked to keep: the dot fills as the note is held, and is ringed while it holds.
+    f.wait("parseFloat(document.querySelector('[data-hold-fill]')?.style.height) > 0 && document.querySelector('[data-ui=capture-pulse-only]')?.hasAttribute('data-holding')", what="the dot filling as it's held")
     assert f.js(UNNAMED), "a note named while it's held, before it's found"
-    f.shot("zoomed")
+    f.shot("holding")
     f.wait("document.querySelector('[data-listening]')?.dataset.phase === 'found'", timeout=15, what="the note found")
     note = f.js("document.querySelector('[data-note]').textContent")
     assert note == "A3", f"found {note}"
-    assert f.js("[...document.querySelectorAll('[data-scale] [data-tick] span + span')].some((s) => s.textContent === 'A3')"), "the scale names the note once found"
+    assert f.js("document.querySelector('[data-ui=capture-pulse-only] [data-note]')?.offsetHeight > 40"), "the note found, large"
     f.wait_text(t(f, "listening.suits.highMiddle"))
     f.shot("found")
     if f.skin == "game":

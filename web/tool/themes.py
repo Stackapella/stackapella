@@ -7,7 +7,7 @@ palettes change:
 
     python3 -I web/tool/themes.py web/tool/palettes.json
 
-Standard library only (no npm). The default theme (stage-dark, the unchosen dark) is also @theme's values in input.css,
+Standard library only (no npm). The default theme (graphite-dark, calm's unchosen dark since 2026-11-23) is also @theme's values in input.css,
 so a page that hasn't chosen yet looks as it always has.
 """
 import json
@@ -102,8 +102,8 @@ def main(source):
         twin = {k: v for k, v in token_sets[f"{family}-dark"].items() if k not in ("accent", "record", "record-label")}
         lines = "\n".join(f"    --color-{name}: {value.lower()};" for name, value in twin.items())
         blocks.append(f':root[data-theme="{pid}"] .s-ink {{\n    color-scheme: dark;\n    --s-ink-bg: {twin["ink"].lower()};\n{lines}\n}}')
-    # The default (Stage dark) is also @theme's values, so the app looks right before a theme is set.
-    default = next(b for b in blocks if 'data-theme="stage-dark"' in b)
+    # The default (Graphite dark, calm's unchosen dark) is also @theme's values, so a page looks right before a theme is set.
+    default = next(b for b in blocks if 'data-theme="graphite-dark"' in b)
     values = "\n".join(line for line in default.splitlines() if line.strip().startswith("--color-"))
     source = WEB / "css/input.css"
     css = source.read_text()

@@ -63,6 +63,8 @@ final class DocumentPagesController extends Controller
         'easy-christmas-carols-for-choir',
         // Discovering and understanding harmony (Hillel's message, 2026-11-23): "how to hear harmony in a song" has demand.
         'how-to-hear-harmony',
+        // "what is a cappella" / "a cappella meaning" (2026-11-23): a large search, and a way into hearing harmony.
+        'what-is-a-cappella',
     ];
 
     /**

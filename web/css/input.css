@@ -361,49 +361,49 @@
 @theme {
     --font-sans: 'Figtree', 'Figtree Fallback', ui-sans-serif, system-ui, -apple-system, sans-serif;
 
-    /* The default theme's colours, Stage dark (tool/themes.py writes these, and css/themes.css). What a
+    /* The default theme's colours, Graphite dark (calm's unchosen dark since 2026-11-23; tool/themes.py writes these, and css/themes.css). What a
        colour means (status chips, messages) is never colour alone: always an icon and words too. */
     /* theme:start */
-    --color-ink: #000000;
-    --color-panel: #0e0e0e;
-    --color-raised: #1c1c1c;
-    --color-line: #5a5a5a;
-    --color-edge: #303030;
-    --color-cream: #ffffff;
-    --color-muted: #cfcfcf;
-    --color-accent: #ff79da;
-    --color-good: #62f07c;
-    --color-warn: #ffc762;
-    --color-bad: #ff5a52;
-    --color-record: #ff5a52;
-    --color-record-label: #000000;
-    --color-subtle: #939393;
-    --color-faint: #6c6c6c;
-    --color-well: #000000;
-    --color-part-1: #ff9139;
-    --color-part-text-1: #000000;
-    --color-part-ink-1: #ff9139;
-    --color-part-2: #ffea6b;
-    --color-part-text-2: #000000;
-    --color-part-ink-2: #ffea6b;
-    --color-part-3: #45eca4;
-    --color-part-text-3: #000000;
-    --color-part-ink-3: #45eca4;
-    --color-part-4: #968dfd;
-    --color-part-text-4: #000000;
-    --color-part-ink-4: #968dfd;
-    --color-part-5: #0a999f;
-    --color-part-text-5: #000000;
-    --color-part-ink-5: #0a999f;
-    --color-part-6: #65c1fe;
-    --color-part-text-6: #000000;
-    --color-part-ink-6: #65c1fe;
-    --color-part-7: #9f6acb;
-    --color-part-text-7: #000000;
-    --color-part-ink-7: #9f6acb;
-    --color-part-8: #d66798;
-    --color-part-text-8: #000000;
-    --color-part-ink-8: #d66798;    /* theme:end */
+    --color-ink: #151617;
+    --color-panel: #1d1e20;
+    --color-raised: #27292c;
+    --color-line: #34363a;
+    --color-edge: #27292c;
+    --color-cream: #f1f1ef;
+    --color-muted: #b4b6b8;
+    --color-accent: #c99bff;
+    --color-good: #62d38f;
+    --color-warn: #f2af48;
+    --color-bad: #ff6359;
+    --color-record: #ff6359;
+    --color-record-label: #151617;
+    --color-subtle: #9e9fa1;
+    --color-faint: #757678;
+    --color-well: #101112;
+    --color-part-1: #f47b31;
+    --color-part-text-1: #151617;
+    --color-part-ink-1: #f47b31;
+    --color-part-2: #fddc5b;
+    --color-part-text-2: #151617;
+    --color-part-ink-2: #fddc5b;
+    --color-part-3: #2cdcaf;
+    --color-part-text-3: #151617;
+    --color-part-ink-3: #2cdcaf;
+    --color-part-4: #4f91f2;
+    --color-part-text-4: #151617;
+    --color-part-ink-4: #4f91f2;
+    --color-part-5: #09b4bb;
+    --color-part-text-5: #151617;
+    --color-part-ink-5: #09b4bb;
+    --color-part-6: #3cb5fe;
+    --color-part-text-6: #151617;
+    --color-part-ink-6: #3cb5fe;
+    --color-part-7: #8e71d6;
+    --color-part-text-7: #151617;
+    --color-part-ink-7: #9175d7;
+    --color-part-8: #b761b1;
+    --color-part-text-8: #151617;
+    --color-part-ink-8: #ba68b4;    /* theme:end */
     /* Admin's up and down (Growth's fair comparisons, docs/growth-compare-spec.md 4.3): blue and orange, not green and red,
        so they part for every common colour blindness and an ordinary dip doesn't read as an alarm. Always with an arrow
        and a word. Checked with the dataviz validator against each theme's panel (dark pair on #0e0e0e, #141b2d, #1d1e20,

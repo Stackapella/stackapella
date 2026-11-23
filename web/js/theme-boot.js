@@ -165,8 +165,9 @@
         }
         const wanted = game ? choice.gameMode || 'dark' : choice.mode || 'system';
         const mode = wanted === 'light' || wanted === 'dark' ? wanted : wanted === 'system' ? (system.matches ? 'dark' : 'light') : 'dark';
-        // A colour not chosen is the mode's own: Stage in dark, Warm in light (docs/decisions.md).
-        const colour = FAMILIES.includes(choice.colour) ? choice.colour : mode === 'dark' ? 'stage' : 'warm';
+        // A colour not chosen is the mode's own: in dark, Graphite in calm (Hillel, 2026-11-23: his designs' quiet graphite
+        // studio) and Stage in game mode; Warm in light (docs/decisions.md). A stored choice always wins.
+        const colour = FAMILIES.includes(choice.colour) ? choice.colour : mode === 'dark' ? (game ? 'stage' : 'graphite') : 'warm';
         const id = colour + '-' + mode;
         document.documentElement.dataset.theme = id;
         const root = document.documentElement;

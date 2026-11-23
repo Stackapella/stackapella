@@ -85,7 +85,19 @@ export const VoiceCapture = {
                 </div>
                 <div v-else class="flex flex-col items-center gap-4 text-center">
                     <!-- The note, live, in a ring that fills as it's held. -->
-                    <div class="relative size-[9.5rem]" aria-hidden="true" data-ui="capture-hold">
+                    <!-- A comfortable note in Hillel's Find your note design (option B, his yes, 2026-11-23): a pulse while it
+                         listens; once a voice holds, the dot fills in the live colour, honestly, as the note is held (the clear
+                         holding sign he asked to keep), and the status says so; found, the note large. No ring and no scale. The
+                         range check (lowest, highest) keeps its ring and scale. -->
+                    <div v-if="mode === 'note'" class="flex flex-col items-center gap-3" aria-hidden="true" data-ui="capture-pulse-only" :data-holding="phase === 'holding' ? '' : null">
+                        <div v-if="phase !== 'found'" class="relative grid size-[8.75rem] place-items-center">
+                            <span v-for="d in (searching && !still ? [0, 1] : [])" :key="d" class="capture-pulse absolute inset-0 rounded-full border-2 border-cream" :style="{ animationDelay: d + 's' }" data-ui="capture-pulse"></span>
+                            <span class="relative size-[4.5rem] overflow-hidden rounded-full bg-cream/90 transition-[box-shadow] duration-200" :style="phase === 'holding' ? { boxShadow: '0 0 0 4px var(--color-ink), 0 0 0 6px ' + accent } : null"><span class="absolute inset-x-0 bottom-0" :class="still ? '' : 'transition-[height] duration-100 ease-linear'" :style="{ height: ringFill * 100 + '%', background: accent }" data-hold-fill></span></span>
+                            <span class="sr-only" data-note data-ui="capture-note">{{ noteLabel }}</span>
+                        </div>
+                        <p v-else class="t-hero" :style="{ color: accent }" translate="no" data-note data-ui="capture-note">{{ noteLabel }}</p>
+                    </div>
+                    <div v-else class="relative size-[9.5rem]" aria-hidden="true" data-ui="capture-hold">
                         <!-- Hillel's Find your note design: while it listens for a voice, two soft rings breathe out from the ring
                              (a pulse, no note named); once a voice holds, the ring itself fills, honestly, as it's held. -->
                         <span v-for="d in (searching && !still ? [0, 1] : [])" :key="d" class="capture-pulse absolute inset-0 rounded-full border-2" :style="{ borderColor: accent, animationDelay: d + 's' }" data-ui="capture-pulse"></span>
@@ -109,7 +121,7 @@ export const VoiceCapture = {
                     <!-- The first voice on a new mic is the mic check too: one hum, not two asks. -->
                     <p v-else-if="micWorks" data-ui="facts" class="flex items-center gap-2 text-sm text-good" role="status" data-mic-works><Icon name="check" :size="16" />{{ t('micCheck.gotYou') }}</p>
                     <!-- Lower to Higher under a fixed needle: wide until the voice settles, then close on the note held, and locked on it once found. -->
-                    <div class="w-full space-y-1.5">
+                    <div v-if="mode !== 'note'" class="w-full space-y-1.5">
                         <div class="relative h-16 overflow-hidden" :style="{ maskImage: 'linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent)', WebkitMaskImage: 'linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent)' }" role="img" :aria-label="scaleLabel" data-scale :data-zoom="zoom" data-ui="capture-strip">
                             <div class="absolute inset-x-0 top-5 h-px bg-edge"></div>
                             <div class="absolute top-0 h-10 -translate-x-1/2 rounded-md" :style="{ left: '50%', width: band + '%', background: accent, opacity: 0.12 }"></div>

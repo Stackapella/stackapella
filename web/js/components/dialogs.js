@@ -854,7 +854,7 @@ export const TemplateDialog = {
              the credits last, folded into one row, a draft said only as its badge until it opens. -->
         <Modal :title="songTitle(template)" :lead="description" title-is-content wide sheet @close="$emit('close')">
             <div class="space-y-5">
-                <p v-if="locked" class="font-semibold text-part-2">{{ template.previewUrl ? t('templates.needsAccount') : t('templates.needsAccountNoClip') }}</p>
+                <p v-if="locked" class="font-medium text-cream" data-song-locked>{{ template.previewUrl ? t('templates.needsAccount') : t('templates.needsAccountNoClip') }}</p>
                 <p data-ui="facts" class="flex flex-wrap gap-2" data-song-facts>
                     <span v-for="fact in facts" :key="fact" class="chip min-h-8 px-3 text-sm font-medium text-cream">{{ fact }}</span>
                 </p>
@@ -862,34 +862,34 @@ export const TemplateDialog = {
                     <!-- Its versions (song-versions.js; Hillel's US and UK switch, 2026-11-18): where the UK sings it another way,
                          a small switch, the one open chosen; it opened on the one kept on this device, else the one sung where you are. -->
                     <div v-if="versionsOf(template).length" class="flex flex-wrap items-center justify-between gap-3 py-3.5" data-song-versions>
-                        <span :id="'versions-' + $.uid" class="font-semibold text-cream">{{ t('templates.versions.question') }}</span>
-                        <div class="seg" role="radiogroup" :aria-labelledby="'versions-' + $.uid">
-                            <button v-for="v in versionsOf(template)" :key="v.id" type="button" role="radio" class="seg-option tap-44" :aria-checked="v.id === template.id ? 'true' : 'false'" :data-version="v.name" translate="no" @click="v.id !== template.id && $emit('version', v.id)">{{ v.name === 'uk' ? t('templates.versions.uk') : v.name === 'us' ? t('templates.versions.us') : v.name.toUpperCase() }}</button>
+                        <span :id="'versions-' + $.uid" class="set-row-title">{{ t('templates.versions.question') }}</span>
+                        <div class="seg seg-inset" role="radiogroup" :aria-labelledby="'versions-' + $.uid">
+                            <button v-for="v in versionsOf(template)" :key="v.id" type="button" role="radio" class="seg-option min-w-11" :aria-checked="v.id === template.id ? 'true' : 'false'" :data-version="v.name" translate="no" @click="v.id !== template.id && $emit('version', v.id)">{{ v.name === 'uk' ? t('templates.versions.uk') : v.name === 'us' ? t('templates.versions.us') : v.name.toUpperCase() }}</button>
                         </div>
                     </div>
                     <!-- Hillel: "add back the 2/3/4 part toggle": how many sing it, from the song's own voicings; Start sings that many.
                          A first visit (fresh: no song sung yet; the first-session review, Hillel: yes): it waits until a first song is sung. -->
                     <div v-if="singersShown" class="flex flex-wrap items-center justify-between gap-3 py-3.5" data-song-singers>
-                        <span :id="'singers-' + $.uid" class="font-semibold text-cream">{{ t('templates.singers.question') }}</span>
-                        <div class="seg" role="radiogroup" :aria-labelledby="'singers-' + $.uid">
-                            <button v-for="n in singerOptions(template)" :key="n" type="button" role="radio" class="seg-option tap-44" :aria-checked="singers === n ? 'true' : 'false'" @click="$emit('singers', n)">{{ formatNumber(n) }}</button>
+                        <span :id="'singers-' + $.uid" class="set-row-title">{{ t('templates.singers.question') }}</span>
+                        <div class="seg seg-inset" role="radiogroup" :aria-labelledby="'singers-' + $.uid">
+                            <button v-for="n in singerOptions(template)" :key="n" type="button" role="radio" class="seg-option min-w-11" :aria-checked="singers === n ? 'true' : 'false'" @click="$emit('singers', n)">{{ formatNumber(n) }}</button>
                         </div>
                     </div>
                     <!-- What you'll hear for each part, before any playback (the consultant's UX review, item 4): a real voice, an
                          AI voice or the hummed guide; one chip when every part has the same, else a chip a part. -->
                     <div v-if="guides.length" class="py-3.5" data-song-guides>
-                        <p :id="'guides-' + $.uid" class="text-sm font-semibold text-cream">{{ t('templates.guides.title') }}</p>
+                        <p :id="'guides-' + $.uid" class="set-row-title">{{ t('templates.guides.title') }}</p>
                         <ul class="mt-2 flex flex-wrap gap-2" :aria-labelledby="'guides-' + $.uid">
                             <li v-for="g in guides" :key="g.key" class="chip min-h-8 px-3 text-sm" :data-guide="g.kind" :data-guide-part="g.key"><span class="size-2 shrink-0 rounded-full" :class="g.kind === 'ai' ? 'bg-accent' : g.kind === 'real' ? 'bg-good' : 'bg-muted'" aria-hidden="true"></span><span class="text-cream">{{ g.name ? t('templates.guides.part', { part: g.name, kind: t(GUIDE_WORDS[g.kind]) }) : t(GUIDE_WORDS[g.kind]) }}</span></li>
                         </ul>
                     </div>
-                    <p v-if="credits.length" class="py-3.5 text-sm text-cream" data-song-real-voices>{{ t('templates.sungBy', { names: formatList(credits) }) }}</p>
+                    <p v-if="credits.length" class="py-3.5 text-[15px] text-cream" data-song-real-voices>{{ t('templates.sungBy', { names: formatList(credits) }) }}</p>
                     <!-- AI voices (js/ai-voices.js): one quiet row, a small dot, Be the voice inline once the call is open. -->
                     <p v-if="aiParts.length" class="py-3.5 text-sm text-muted" data-song-ai-voices><AiVoiceLabel :parts="aiParts" :cta="voiceOpen" dot @voice="$emit('voice')" /></p>
                     <!-- Hear yourself as a choir (js/own-choir.js, behind own_choir): one row, its words and the way in. -->
                     <div v-if="choirShown" class="py-3.5" data-song-choir>
                         <button type="button" class="link tap-44 font-semibold" data-song-choir-go @click="$emit('choir')">{{ t('ownChoir.entry.button') }}</button>
-                        <p class="text-sm text-muted">{{ t('ownChoir.entry.line', { song: songTitle(template) }) }}</p>
+                        <p class="t-hint">{{ t('ownChoir.entry.line', { song: songTitle(template) }) }}</p>
                     </div>
                     <!-- Be the voice (be-the-voice.js): the parts no one has sung yet, past the first week, one quiet row. -->
                     <p v-if="voiceless.length" class="py-3.5 text-sm text-muted" data-song-no-voice>{{ t('voices.be.sheet', { parts: formatList(voiceless) }) }} <button type="button" class="link tap-44 font-semibold" data-be-the-voice-go @click="$emit('voice')">{{ t('voices.be.go') }}</button></p>
@@ -903,13 +903,13 @@ export const TemplateDialog = {
                          Start full width first, then Play and Edit (Edit makes a copy), quieter, side by side. -->
                     <!-- Instant feedback (Hillel, 2026-11-12): Start is busy at once while the notes come or the song opens; a line after
                          a few seconds, and Retry if they don't come. -->
-                    <button type="button" :class="[primary, 'w-full justify-center']" :disabled="!!load || starting" :aria-busy="load === 'loading' || starting ? 'true' : null" data-song-start @click="$emit('start')"><span v-if="load === 'loading' || starting" class="spinner" aria-hidden="true"></span>{{ taste ? t('templates.taste.start') : t('templates.start') }}</button>
+                    <button type="button" :class="[primary, 'btn-xl w-full justify-center']" :disabled="!!load || starting" :aria-busy="load === 'loading' || starting ? 'true' : null" data-song-start @click="$emit('start')"><span v-if="load === 'loading' || starting" class="spinner" aria-hidden="true"></span>{{ taste ? t('templates.taste.start') : t('templates.start') }}</button>
                     <!-- A guest on a library song sings its first line now, and is asked after it (Hillel, 2026-11-15). -->
-                    <p v-if="taste" class="text-center text-sm text-muted" data-song-taste>{{ t('templates.taste.note') }}</p>
-                    <p v-if="load === 'loading' && slow" class="text-center text-sm text-muted" role="status" data-song-slow>{{ t('common.stillLoading') }}</p>
+                    <p v-if="taste" class="t-hint text-center" data-song-taste>{{ t('templates.taste.note') }}</p>
+                    <p v-if="load === 'loading' && slow" class="t-hint text-center" role="status" data-song-slow>{{ t('common.stillLoading') }}</p>
                     <!-- Not available where the singer is (geo rights): said calmly, with nothing to retry or buy. -->
-                    <p v-else-if="load === 'withheld'" class="text-center text-sm text-muted" role="status" data-song-not-here>{{ notHere }}</p>
-                    <p v-else-if="load === 'failed' || load === 'offline'" class="flex flex-wrap items-center justify-center gap-2 text-sm text-warn" role="alert" data-song-load-failed>{{ load === 'offline' ? t('common.offline') : t('templates.loadFailed') }} <button type="button" class="link tap-44" @click="$emit('retry')">{{ t('common.tryAgain') }}</button></p>
+                    <p v-else-if="load === 'withheld'" class="t-hint text-center" role="status" data-song-not-here>{{ notHere }}</p>
+                    <p v-else-if="load === 'failed' || load === 'offline'" class="alert-inline flex-wrap justify-center" role="alert" data-song-load-failed>{{ load === 'offline' ? t('common.offline') : t('templates.loadFailed') }} <button type="button" class="link tap-44" @click="$emit('retry')">{{ t('common.tryAgain') }}</button></p>
                     <!-- Hear it and Edit: two equal secondaries under the one primary (Hillel's design). -->
                     <div class="grid gap-2.5" :class="!fresh && !taste ? 'grid-cols-2' : 'grid-cols-1'">
                         <button type="button" :class="[secondary, 'w-full justify-center']" :aria-pressed="previewing ? 'true' : 'false'" data-song-play @click="$emit('preview')"><span class="inline-flex items-center gap-2"><Icon :name="previewing ? 'stop' : 'play'" :size="16" />{{ preparing ? t('templates.preparing') : previewing ? t('studio.stop') : t('templates.play') }}</span></button>
@@ -919,12 +919,12 @@ export const TemplateDialog = {
                 </div>
                 <!-- The credits, last and folded: one row, a draft said only as its badge until it opens. -->
                 <div v-if="template.credits">
-                    <button type="button" class="flex min-h-11 w-full items-center gap-2 text-sm font-semibold text-muted hover:text-cream" :aria-expanded="creditsOpen ? 'true' : 'false'" :aria-controls="'credits-' + $.uid" data-song-credits-toggle @click="creditsOpen = !creditsOpen">
+                    <button type="button" class="t-section flex min-h-11 w-full items-center gap-2 hover:text-cream" :aria-expanded="creditsOpen ? 'true' : 'false'" :aria-controls="'credits-' + $.uid" data-song-credits-toggle @click="creditsOpen = !creditsOpen">
                         <span>{{ t('templates.creditsRow') }}</span>
-                        <span v-if="!template.reviewed" class="chip text-warn" data-song-draft>{{ t('projects.draft') }}</span>
+                        <span v-if="!template.reviewed" class="chip-tag normal-case tracking-normal text-warn" data-song-draft>{{ t('projects.draft') }}</span>
                         <Icon name="chevron" :size="16" class="ms-auto transition-transform" :class="creditsOpen ? 'rotate-180' : ''" />
                     </button>
-                    <p v-if="creditsOpen" :id="'credits-' + $.uid" class="mt-2 text-xs text-muted" data-song-credits>{{ [t('templates.credits', { words: template.credits.words, tune: template.credits.tune, arrangement: template.credits.arrangement }), template.reviewed ? '' : t('templates.draftNote')].filter(Boolean).join(' ') }}</p>
+                    <p v-if="creditsOpen" :id="'credits-' + $.uid" class="t-hint mt-1" data-song-credits>{{ [t('templates.credits', { words: template.credits.words, tune: template.credits.tune, arrangement: template.credits.arrangement }), template.reviewed ? '' : t('templates.draftNote')].filter(Boolean).join(' ') }}</p>
                 </div>
             </div>
         </Modal>`,

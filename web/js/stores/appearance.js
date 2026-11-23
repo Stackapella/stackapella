@@ -15,7 +15,8 @@ import { count } from '../usage.js';
 export const MODES = ['light', 'dark', 'system'];
 export const FAMILIES = ['stage', 'warm', 'midnight', 'graphite'];
 /** The colour of each mode until one is chosen (docs/decisions.md, "themes and songs, adjusted"). */
-export const DEFAULT_COLOUR = { dark: 'stage', light: 'warm' };
+// The mode's own colour when none is chosen (js/theme-boot.js): Graphite in calm dark since 2026-11-23, Stage in game mode's dark.
+export const DEFAULT_COLOUR = { dark: 'graphite', light: 'warm', gameDark: 'stage' };
 const KEY = 'stackapella.appearance';
 
 /** The choice the boot script applied (this address's, or the other host's if newer), or null. */

@@ -25,12 +25,15 @@ def theme(f):
 
 # What the page shows as <body> first arrives (before any of it can paint): the theme and the browser bar's colour.
 FIRST_PAINT = "new MutationObserver((_, o) => { if (document.body) { window.__firstPaint = [document.documentElement.dataset.theme, document.querySelector('meta[name=theme-color]')?.content]; o.disconnect(); } }).observe(document, { childList: true, subtree: true });"
-BAR = {"stage-dark": "#000000", "warm-light": "#faf5ee"}  # theme-boot.js COLOURS
+BAR = {"stage-dark": "#000000", "graphite-dark": "#151617", "warm-light": "#faf5ee"}  # theme-boot.js COLOURS
 
 
 def unchosen(f, device):
-    """The theme with no light or dark chosen, on a device set to `device`."""
-    return "stage-dark" if f.skin == "game" or device == "dark" else "warm-light"
+    """The theme with no light or dark chosen, on a device set to `device`: calm's dark is Graphite since 2026-11-23 (Hillel),
+    game mode's stays Stage."""
+    if f.skin == "game":
+        return "stage-dark"
+    return "graphite-dark" if device == "dark" else "warm-light"
 
 
 PANEL = "document.querySelector('#app header [role=dialog], [role=dialog]')"
@@ -87,7 +90,8 @@ def journey(f):
     f.run("window.stackapellaTheme.choose({ mode: 'light', colour: 'plum' });")
     assert theme(f) == "warm-light", f"plum light shows as Warm: {theme(f)}"
     f.run("window.stackapellaTheme.choose({ mode: 'dark', colour: 'plum' });")
-    assert theme(f) == "stage-dark", f"plum dark shows as Stage: {theme(f)}"
+    mine = "stage-dark" if f.skin == "game" else "graphite-dark"
+    assert theme(f) == mine, f"plum dark shows as the mode's own ({mine}): {theme(f)}"
     f.run("window.stackapellaTheme.choose({ mode: 'light', colour: 'graphite' });")
     theme_card(f, "stage")  # back to the panel's own choosing: Stage, in light
     f.wait("document.documentElement.dataset.theme === 'stage-light'", what="Spotlight (Stage light)")
