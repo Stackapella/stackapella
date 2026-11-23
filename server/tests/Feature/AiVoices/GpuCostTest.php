@@ -300,7 +300,8 @@ final class GpuCostTest extends TestCase
         // The app is told which failed songs counted, to say "It didn't count toward your minutes" only then.
         $this->assertSame([false, true, false, null], [OwnChoir::countedAgainst($ours), OwnChoir::countedAgainst($own), OwnChoir::countedAgainst($unspent), OwnChoir::countedAgainst($made)]);
         OwnChoirRequest::query()->update(['voicing' => 'written']);
-        $shown = array_map(static fn (OwnChoirRequest $song): mixed => OwnChoir::request($song->refresh()->load(['templateVersion.template', 'parts']), null, $paid)['counted'], [$ours, $own, $unspent, $made]);
-        $this->assertSame([false, true, false, null], $shown);
+        // Five songs on the choir page, read without a query per song (the N+1 guard).
+        $shown = collect($this->getJson('/api/own-choir')->assertOk()->json('data.requests'))->keyBy('id');
+        $this->assertSame([false, true, false, null], [$shown[$ours->sqid()]['counted'], $shown[$own->sqid()]['counted'], $shown[$unspent->sqid()]['counted'], $shown[$made->sqid()]['counted']]);
     }
 }

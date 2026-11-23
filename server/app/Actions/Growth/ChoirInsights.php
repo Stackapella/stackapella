@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Growth;
 
 use App\Models\CheckoutSession;
+use App\Models\OwnChoirRequest;
 use App\Support\OwnChoir\ChoirCounts;
 use App\Support\Stats\GrowthStart;
 use App\Support\Stats\ReportDay;
@@ -77,6 +78,7 @@ final class ChoirInsights
             'firstSuccess' => array_map(static fn (int $t): array => ['tries' => $t === 4 ? '4+' : (string) $t, 'n' => $now["choir_tries_{$t}"] ?? 0], [1, 2, 3, 4]),
             'renderSeconds' => $pair('choir_render_seconds'),
             'plusFromChoir' => ['n' => self::plusFrom($from, $to), 'before' => self::plusFrom($beforeFrom, $beforeTo)],
+            'clipNumbers' => self::clipNumbers($from, $to),
         ];
     }
 
@@ -90,6 +92,24 @@ final class ChoirInsights
         $named = static fn (array $list): array => array_values(array_filter(array_map('strval', $list), static fn (string $k): bool => str_starts_with($k, 'choir_') || str_starts_with($k, 'own_choir_')));
 
         return array_values(array_unique([...ChoirCounts::kinds(), ...$named((array) config('counts.kinds')), ...$named((array) config('counts.server_kinds'))]));
+    }
+
+    /**
+     * The period's latest clips that couldn't be used, with the worker's measures (detailNumbers): the reason, the day
+     * and the numbers, never whose.
+     *
+     * @return list<array{detail: string|null, date: string, numbers: list<array{name: string, value: float}>}>
+     */
+    private static function clipNumbers(Carbon $from, Carbon $to): array
+    {
+        return array_values(OwnChoirRequest::query()->where('failure', 'clip_unusable')->whereNotNull('failure_numbers')
+            ->whereBetween('updated_at', [ReportDay::start($from->toDateString()), ReportDay::end($to->toDateString())])->latest('updated_at')->latest('id')->limit(50)
+            ->get(['id', 'failure_detail', 'failure_numbers', 'updated_at'])
+            ->map(static fn (OwnChoirRequest $r): array => [
+                'detail' => $r->failure_detail,
+                'date' => $r->updated_at?->copy()->setTimezone(ReportDay::zone())->toDateString() ?? $to->toDateString(),
+                'numbers' => array_values(array_map(static fn (array $n): array => ['name' => (string) $n['name'], 'value' => (float) $n['value']], (array) $r->failure_numbers)),
+            ])->all());
     }
 
     /** Plus started from a choir moment: Checkouts completed in those days whose moment was a choir one. */

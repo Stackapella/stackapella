@@ -305,7 +305,7 @@ final class ChoirJobs
     }
 
     /**
-     * @param  array{detail?: string|null, level?: string|null, partTries?: list<array{partKey: string, tries: int}>|null, gateFailures?: list<array{partKey: string, reason?: string|null}>|null}  $report
+     * @param  array{detail?: string|null, level?: string|null, partTries?: list<array{partKey: string, tries: int}>|null, gateFailures?: list<array{partKey: string, reason?: string|null}>|null, detailNumbers?: list<array{name: string, value: float|int|string}>|null}  $report
      */
     public function finish(OwnChoirRequest $request, string $claim, ?string $failed, ?float $gpuSeconds = null, array $report = []): OwnChoirRequest
     {
@@ -314,6 +314,11 @@ final class ChoirJobs
         // Why its clip couldn't be used, for its singer alone (Hillel, 2026-11-23).
         if ($failed === 'clip_unusable' && $done->status === OwnChoirStatus::Failed && ($report['detail'] ?? null) !== null) {
             $done->forceFill(['failure_detail' => $report['detail']])->save();
+        }
+
+        // Its measures, for Admin > Choir to tune the checks: numbers only (2026-11-23).
+        if ($failed === 'clip_unusable' && $done->status === OwnChoirStatus::Failed && ($report['detailNumbers'] ?? []) !== []) {
+            $done->forceFill(['failure_numbers' => array_map(static fn (array $n): array => ['name' => (string) $n['name'], 'value' => (float) $n['value']], (array) $report['detailNumbers'])])->save();
         }
 
         ChoirCounts::finished($done->loadMissing(['clipTemplateVersion.template', 'voice']), $report);

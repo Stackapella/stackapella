@@ -23,7 +23,8 @@
                 "gates",
                 "firstSuccess",
                 "renderSeconds",
-                "plusFromChoir"
+                "plusFromChoir",
+                "clipNumbers"
             ],
             "properties": {
                 "period": {
@@ -276,6 +277,48 @@
                         },
                         "before": {
                             "type": "integer"
+                        }
+                    }
+                },
+                "clipNumbers": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "detail",
+                            "date",
+                            "numbers"
+                        ],
+                        "properties": {
+                            "detail": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "date": {
+                                "type": "string"
+                            },
+                            "numbers": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "name",
+                                        "value"
+                                    ],
+                                    "properties": {
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "value": {
+                                            "type": "number"
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }

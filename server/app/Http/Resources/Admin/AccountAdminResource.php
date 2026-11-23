@@ -50,6 +50,8 @@ final class AccountAdminResource extends JsonResource
             ->limit(1),
             // Last seen on any of their browsers or devices (each request touches it at most daily).
             'last_active_at' => DB::table('user_devices')->selectRaw('max(last_seen_at)')->whereColumn('user_devices.user_id', 'users.id'),
+            // The same for Admin > People's "last seen first", never null (a list pages on by it): never seen is last.
+            'active_order' => DB::table('user_devices')->selectRaw("coalesce(max(last_seen_at), '1970-01-01 00:00:00')")->whereColumn('user_devices.user_id', 'users.id'),
             'beta_singer_id' => BetaSinger::query()->select('id')->whereColumn('beta_singers.user_id', 'users.id')->limit(1),
             // Usage, as counts and times only (Hillel's "stats about each person"): never what's in them.
             'songs_count' => Project::query()->selectRaw('count(*)')->whereColumn('projects.user_id', 'users.id')->whereNull('binned_at'),

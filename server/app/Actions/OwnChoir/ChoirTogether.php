@@ -372,6 +372,20 @@ final class ChoirTogether
     }
 
     /**
+     * A song's friends still in it, in the order they joined, each with their user and job's parts: the song's members,
+     * read once for the song (the choir page, OwnChoir::state, loads them for every song at once; a song shown after a
+     * change is loaded afresh, OwnChoir::SHOWN).
+     *
+     * @return Collection<int, OwnChoirMember>
+     */
+    public static function activeList(OwnChoirRequest $song): Collection
+    {
+        $song->loadMissing(['members.user', 'members.job.parts']);
+
+        return $song->members->whereNull('left_at')->each(static fn (OwnChoirMember $m) => $m->setRelation('song', $song))->sortBy('id')->values()->toBase();
+    }
+
+    /**
      * How many friends a song may have: a free song's one, Plus's 7, never more than its parts minus one.
      *
      * @return array{limit: int, withPlus: int}
@@ -450,9 +464,11 @@ final class ChoirTogether
      */
     public static function activeParts(OwnChoirRequest $song): Collection
     {
-        $active = $song->parts()->where('status', 'ready')->whereNotNull('media_key')->get()->keyBy('part_key');
+        $active = ($song->relationLoaded('parts') ? $song->parts : $song->parts()->get())->where('status', 'ready')->whereNotNull('media_key')->keyBy('part_key')->toBase();
+        $jobs = $song->relationLoaded('friendJobs') ? $song->friendJobs->where('status', OwnChoirStatus::Ready)->sortBy('id')
+            : OwnChoirRequest::query()->with('parts')->where('parent_request_id', $song->id)->where('status', OwnChoirStatus::Ready->value)->get();
 
-        foreach (OwnChoirRequest::query()->with('parts')->where('parent_request_id', $song->id)->where('status', OwnChoirStatus::Ready->value)->get() as $job) {
+        foreach ($jobs as $job) {
             foreach ($job->parts->where('status', 'ready')->whereNotNull('media_key') as $part) {
                 $active[$part->part_key] = $part;
             }
@@ -472,14 +488,14 @@ final class ChoirTogether
     public static function voices(OwnChoirRequest $song, User $viewer): array
     {
         // With the switch on, or whenever friends are in it (a singer can always see what they're in).
-        if ($song->status !== OwnChoirStatus::Ready || (! self::on($viewer) && ! self::activeMembers($song)->exists())) {
+        if ($song->status !== OwnChoirStatus::Ready || (! self::on($viewer) && self::activeList($song)->isEmpty())) {
             return [];
         }
 
         $notes = self::partNotes($song);
         $owner = $song->user_id === $viewer->id;
         $ownerRange = $owner ? self::ownerRange($song, $notes) : null;
-        $members = self::activeMembers($song)->with(['user', 'job.parts'])->get();
+        $members = self::activeList($song);
         $voices = [];
 
         foreach ($notes as $key => $partNotes) {
@@ -510,7 +526,7 @@ final class ChoirTogether
             return [];
         }
 
-        return array_values(self::activeMembers($song)->with(['user', 'job', 'song.user'])->orderBy('id')->get()->map(static fn (OwnChoirMember $m): array => self::member($m))->all());
+        return array_values(self::activeList($song)->map(static fn (OwnChoirMember $m): array => self::member($m))->all());
     }
 
     /**
@@ -524,7 +540,7 @@ final class ChoirTogether
             return [];
         }
 
-        return array_values(OwnChoirMember::query()->where('own_choir_request_id', $song->id)->whereNotNull('left_at')->orderBy('left_at')->get()
+        return array_values($song->loadMissing('members')->members->whereNotNull('left_at')->sortBy('left_at')
             ->map(static fn (OwnChoirMember $m): array => ['name' => $m->name, 'at' => $m->left_at?->utc()->toIso8601ZuluString() ?? '', 'seen' => $m->owner_seen_at !== null])->all());
     }
 
@@ -574,7 +590,8 @@ final class ChoirTogether
         $limit = min(count($notes) - 1, (int) config($free ? 'own_choir.together.free_friends' : 'own_choir.together.plus_friends'));
         $withPlus = min(count($notes) - 1, (int) config('own_choir.together.plus_friends'));
         // Friends in it, and invites still open: each open link is a place a friend may take.
-        $have = self::activeMembers($song)->count() + OwnChoirInvite::query()->where('own_choir_request_id', $song->id)->whereNull('used_at')->whereNull('revoked_at')->where('expires_at', '>', now())->count();
+        $open = $song->getAttributes()['open_invites_count'] ?? null;
+        $have = self::activeList($song)->count() + (is_numeric($open) ? (int) $open : self::openInvites($song->id)->count());
         $left = max(0, $limit - $have);
         $reason = match (true) {
             $left > 0 && $leaning === [] => 'all_fit',
@@ -587,6 +604,16 @@ final class ChoirTogether
     }
 
     /**
+     * A song's invites still open (not used, revoked or expired): each a place a friend may take.
+     *
+     * @return Builder<OwnChoirInvite>
+     */
+    public static function openInvites(?int $songId = null): Builder
+    {
+        return OwnChoirInvite::query()->when($songId !== null, static fn (Builder $q) => $q->where('own_choir_request_id', $songId))->whereNull('used_at')->whereNull('revoked_at')->where('expires_at', '>', now());
+    }
+
+    /**
      * The songs this person sings in (contract ownChoir.json `joined`).
      *
      * @return list<array{member: array<string, mixed>, song: array<string, mixed>}>
@@ -594,7 +621,7 @@ final class ChoirTogether
     public static function joined(User $user): array
     {
         // Whatever the switch: a singer can always see the choirs they're in.
-        return array_values(OwnChoirMember::query()->with(['user', 'job', 'song.templateVersion.template', 'song.user'])->where('user_id', $user->id)->whereNull('left_at')->latest('joined_at')->get()
+        return array_values(OwnChoirMember::query()->with(['user', 'job', ...array_map(static fn (string $r): string => 'song.'.$r, OwnChoir::SHOWN_MANY)])->where('user_id', $user->id)->whereNull('left_at')->latest('joined_at')->get()
             ->filter(static fn (OwnChoirMember $m): bool => $m->song->status !== OwnChoirStatus::Deleted)
             ->map(static fn (OwnChoirMember $m): array => ['member' => self::member($m), 'song' => OwnChoir::request($m->song, false, $user)])->all());
     }
@@ -628,6 +655,16 @@ final class ChoirTogether
     }
 
     /**
+     * A singer's learning progress, read once a request (the choir page asks for the owner's range on every song).
+     *
+     * @return array<string, mixed>
+     */
+    private static function learning(int $userId): array
+    {
+        return once(static fn (): array => (array) (UserLearning::query()->where('user_id', $userId)->first()->progress ?? []));
+    }
+
+    /**
      * A singer's range: their measured range from the range check, or the part they sang along to widened two
      * semitones (a clip's part, or the one their saved voice was made from).
      *
@@ -636,7 +673,7 @@ final class ChoirTogether
      */
     public static function range(User $user, ?string $sangAlong, array $notes, int $octave = 0): ?array
     {
-        $progress = (array) (UserLearning::query()->where('user_id', $user->id)->first()->progress ?? []);
+        $progress = self::learning($user->id);
         $range = $progress['range'] ?? null;
 
         if (($progress['rangeSource'] ?? null) === 'measured' && is_array($range) && is_numeric($range['low'] ?? null) && is_numeric($range['high'] ?? null)) {

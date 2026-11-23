@@ -6733,7 +6733,9 @@ timezone), each beside the period before. `totals`: every choir kind with a coun
 `choir_remade`, `choir_part_tries_*`); `daily`: each day's kinds with a count, for the trends; `funnel`: intro, take,
 sent, requested, ready, seen, played; `reasons`: why clips failed, most first; `songs`: each capture song's made and
 failed clips; `gates`: part gate failures by part and voicing, most first; `firstSuccess`: the tries a first song took;
-`renderSeconds`: the GPU seconds of made songs and remakes; `plusFromChoir`: Checkouts completed from a choir moment.
+`renderSeconds`: the GPU seconds of made songs and remakes; `plusFromChoir`: Checkouts completed from a choir moment;
+`clipNumbers`: the period's latest 50 clips that couldn't be used with the measures the worker sent (`detailNumbers`),
+newest first, each its `detail`, its day (`date`) and its `numbers` (`[{ "name", "value" }]`), never whose.
 A number over a total under `floor` reads as too few to tell. Numbers only, nothing about anyone. **Request:** none.
 
 | Status | Code | Schema | Example |
@@ -8097,7 +8099,11 @@ The job is done (with the job's `claim`): `{ "failed": null }` once every part i
 "clip_unusable" }`, `gates_failed`, `render_failed` or `reference_gone`. With `gpuSeconds` (optional, 0 or more): this
 claim's GPU time so far, every render counted whatever its outcome (the largest sent for a claim is kept; a job's
 claims are summed). The server deletes the clip at once either way
-(a reference sent with the job stays as their saved voice).
+(a reference sent with the job stays as their saved voice). With `failed: "clip_unusable"` only, `detailNumbers`
+(optional, since 2026-11-23): the measures behind its `detail`, for Admin > Choir to tune the checks, as
+`[{ "name": "snrDb", "value": 8.5 }]`: at most 16, each `name` a short identifier (a letter, then letters, digits or
+`_`, 32 at most, each once) and `value` a finite number; 2 KB at most in all. Numbers only, never audio or text from the
+take. Sent with any other `failed`, or malformed: `422`.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|

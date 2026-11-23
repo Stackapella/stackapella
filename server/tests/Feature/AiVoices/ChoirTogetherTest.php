@@ -727,4 +727,50 @@ final class ChoirTogetherTest extends TestCase
         $this->worker('POST', "/api/worker/choir/parts/{$part->sqid()}/complete");
         $this->assertSame(['failed', 'unmarked'], [$part->refresh()->status, $part->failure]);
     }
+
+    public function test_the_choir_page_reads_many_songs_with_friends_and_remakes_without_a_query_per_song(): void
+    {
+        $version = (int) Template::query()->where('slug', 'amazing-grace')->value('current_version_id');
+        $songs = [$this->song];
+
+        for ($i = 0; $i < 5; $i++) {
+            $songs[] = OwnChoirRequest::factory()->create(['user_id' => $this->ann->id, 'template_version_id' => $version, 'status' => OwnChoirStatus::Ready, 'tries' => 1, 'part_key' => 'bass', 'voicing' => 'written', 'first_claimed_at' => now(), 'seen_at' => now()]);
+        }
+
+        foreach ($songs as $song) {
+            foreach (['soprano', 'alto', 'tenor', 'bass'] as $key) {
+                if (! $song->is($this->song)) {
+                    OwnChoirPart::factory()->create(['own_choir_request_id' => $song->id, 'part_key' => $key, 'listen_key' => "choir/parts/{$song->id}-{$key}-listen.m4a"]);
+                }
+            }
+
+            // A friend in it with their parts made, a friend who left, and a remake on its way.
+            $member = OwnChoirMember::factory()->create(['own_choir_request_id' => $song->id, 'user_id' => $this->ben->id, 'parts' => ['soprano']]);
+            $job = OwnChoirRequest::factory()->create(['user_id' => $this->ben->id, 'template_version_id' => $version, 'parent_request_id' => $song->id, 'own_choir_member_id' => $member->id, 'status' => OwnChoirStatus::Ready, 'tries' => 1, 'only_parts' => ['soprano']]);
+            OwnChoirPart::factory()->create(['own_choir_request_id' => $job->id, 'part_key' => 'soprano', 'listen_key' => "choir/parts/{$job->id}-soprano-listen.m4a"]);
+            OwnChoirMember::factory()->create(['own_choir_request_id' => $song->id, 'user_id' => User::factory()->create()->id, 'parts' => ['alto'], 'left_at' => now()]);
+            OwnChoirRequest::factory()->create(['user_id' => $this->ann->id, 'template_version_id' => $version, 'parent_request_id' => $song->id, 'remake' => true, 'status' => OwnChoirStatus::Queued]);
+        }
+
+        OwnChoirRequest::query()->whereKey(array_map(static fn (OwnChoirRequest $s): int => $s->id, $songs))->update(['voicing' => 'written']);
+        $this->as($this->ann);
+        $shown = $this->getJson('/api/own-choir')->assertOk();
+        $this->assertMatchesContract($shown, 'ownChoir.show', 200);
+
+        $first = collect($shown->json('data.requests'))->firstWhere('id', $this->song->sqid());
+        $this->assertSame('queued', $first['remake']['status'] ?? null);
+        $this->assertCount(1, $first['members']);
+        $this->assertCount(1, $first['left']);
+        $this->assertSame(['alto', 'tenor', 'bass'], $this->remakeParts($first));
+        $this->assertCount(4, $first['parts']);
+    }
+
+    /**
+     * @param  array<string, mixed>  $song
+     * @return list<string>
+     */
+    private function remakeParts(array $song): array
+    {
+        return array_values(array_map(static fn (array $voice): string => (string) $voice['partKey'], array_filter((array) $song['voices'], static fn (array $voice): bool => $voice['whose'] === 'you')));
+    }
 }

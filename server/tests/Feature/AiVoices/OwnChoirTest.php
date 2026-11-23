@@ -602,7 +602,18 @@ final class OwnChoirTest extends TestCase
         $claim = $this->worker('POST', '/api/worker/choir/claim')->assertOk();
 
         $this->worker('POST', "/api/worker/choir/jobs/{$song->sqid()}/finish", ['failed' => 'clip_unusable', 'claim' => (string) $claim->json('data.claim'), 'detail' => 'octave'])->assertStatus(422);
-        $this->worker('POST', "/api/worker/choir/jobs/{$song->sqid()}/finish", ['failed' => 'clip_unusable', 'claim' => (string) $claim->json('data.claim'), 'detail' => 'noisy', 'level' => 'quiet'])->assertOk();
+        // Its measures: numbers only, with clip_unusable only, short names each once, 16 at most.
+        $finish = fn (array $body) => $this->worker('POST', "/api/worker/choir/jobs/{$song->sqid()}/finish", ['failed' => 'clip_unusable', 'claim' => (string) $claim->json('data.claim'), 'detail' => 'noisy', ...$body]);
+        $finish(['failed' => 'render_failed', 'detailNumbers' => [['name' => 'snrDb', 'value' => 6.5]]])->assertStatus(422);
+        $finish(['detailNumbers' => [['name' => 'snrDb', 'value' => 'loud']]])->assertStatus(422);
+        $finish(['detailNumbers' => [['name' => 'a take said this', 'value' => 1]]])->assertStatus(422);
+        $finish(['detailNumbers' => [['name' => 'snrDb', 'value' => 1], ['name' => 'snrDb', 'value' => 2]]])->assertStatus(422);
+        $finish(['detailNumbers' => [['name' => 'snrDb', 'value' => 1, 'words' => 'happy birthday']]])->assertStatus(422);
+        $finish(['detailNumbers' => ['snrDb' => 6.5]])->assertStatus(422);
+        $finish(['detailNumbers' => array_map(static fn (int $i): array => ['name' => "m{$i}", 'value' => $i], range(1, 17))])->assertStatus(422);
+        $this->assertMatchesContract($finish(['level' => 'quiet', 'detailNumbers' => [['name' => 'snrDb', 'value' => 6.5], ['name' => 'rmsDb', 'value' => -31]]]), 'worker.choir.jobs.finish', 200);
+        // Stored as JSON, a whole number reads back without its ".0".
+        $this->assertEquals([['name' => 'snrDb', 'value' => 6.5], ['name' => 'rmsDb', 'value' => -31]], $song->refresh()->failure_numbers);
 
         $this->getJson('/api/own-choir')->assertJsonPath('data.requests.0.failureDetail', 'noisy');
         $counts = DB::table('usage_counts')->pluck('count', 'kind')->all();

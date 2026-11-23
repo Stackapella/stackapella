@@ -86,7 +86,7 @@ final class ChoirSettings
      */
     public static function remakeParts(OwnChoirRequest $song, string $voicing = 'written'): array
     {
-        $friends = ChoirTogether::activeMembers($song)->pluck('parts')->flatten()->map(static fn (mixed $p): string => (string) $p)->all();
+        $friends = ChoirTogether::activeList($song)->pluck('parts')->flatten()->map(static fn (mixed $p): string => (string) $p)->all();
         $keys = VoicingTransform::keys((array) ($song->templateVersion->data ?? []), $voicing);
 
         // A friend's part is never remade, nor its low twin.
@@ -113,8 +113,18 @@ final class ChoirSettings
     public static function remakeOf(OwnChoirRequest $song): ?OwnChoirRequest
     {
         // Only the latest: one made (folded in, emptied) clears an earlier failure.
-        $latest = OwnChoirRequest::query()->where('parent_request_id', $song->id)->where('remake', true)->latest('id')->first();
+        $latest = $song->relationLoaded('friendJobs') ? $song->friendJobs->where('remake', true)->sortByDesc('id')->first()
+            : OwnChoirRequest::query()->where('parent_request_id', $song->id)->where('remake', true)->latest('id')->first();
 
-        return $latest !== null && $latest->status !== OwnChoirStatus::Deleted ? $latest : null;
+        if ($latest === null || $latest->status === OwnChoirStatus::Deleted) {
+            return null;
+        }
+
+        // A remake sings its song's version: the one already read.
+        if ($latest->template_version_id === $song->template_version_id && $song->relationLoaded('templateVersion')) {
+            $latest->setRelation('templateVersion', $song->templateVersion);
+        }
+
+        return $latest;
     }
 }

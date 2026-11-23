@@ -33,7 +33,7 @@ final class PeopleController extends Controller
         $q = trim((string) $request->validated('q'));
         $like = '%'.addcslashes($q, '%_\\').'%';
 
-        $page = AccountAdminResource::query()
+        $people = AccountAdminResource::query()
             ->when($q !== '', fn ($query) => $query->where(fn ($where) => $where->where('email', 'like', $like)->orWhere('handle', 'like', $like)->orWhere('name', 'like', $like)))
             ->when($request->validated('suspended') !== null, fn ($query) => $request->boolean('suspended') ? $query->whereNotNull('suspended_at') : $query->whereNull('suspended_at'))
             ->when($request->validated('adult') !== null, fn ($query) => $request->boolean('adult') ? $query->whereNotNull('adult_confirmed_at') : $query->whereNull('adult_confirmed_at')->whereNotNull('birth_year'))
@@ -41,7 +41,12 @@ final class PeopleController extends Controller
             ->when($request->validated('role') === 'tester', fn ($query) => $query->whereNotNull('store_tester_at'))
             ->when($request->validated('role') === 'singer', fn ($query) => $query->whereExists(fn ($q) => $q->selectRaw('1')->from('beta_singers')->whereColumn('beta_singers.user_id', 'users.id')))
             ->when($request->validated('plan') !== null, fn ($query) => $request->validated('plan') === 'plus' ? $query->where(self::plus(...)) : $query->whereNot(self::plus(...)))
-            ->when($request->validated('sort') === 'active', fn ($query) => $query->orderByDesc('last_active_at'))
+            ->toBase();
+
+        // Sorted and paged over the computed columns as a table of their own, so a page's cursor can name them (a sort by
+        // last seen pages on like the newest).
+        $page = User::query()->fromSub($people, 'users')->select('users.*')->with('learning')
+            ->when($request->validated('sort') === 'active', fn ($query) => $query->orderByDesc('active_order'))
             ->orderByDesc('users.id')
             ->cursorPaginate(50);
 

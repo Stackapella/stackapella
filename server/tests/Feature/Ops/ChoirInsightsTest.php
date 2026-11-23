@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Ops;
 
+use App\Enums\OwnChoirStatus;
 use App\Models\CheckoutSession;
+use App\Models\OwnChoirRequest;
 use App\Models\User;
 use App\Support\Stats\ReportDay;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -62,6 +64,15 @@ final class ChoirInsightsTest extends TestCase
         $this->assertNotContains('not_choir', collect($shown->json('data.totals'))->pluck('kind')->all());
         $this->assertContains('choir_view_with_choir', collect($shown->json('data.totals'))->pluck('kind')->all());
         $this->assertCount(2, $shown->json('data.daily'));
+
+        // The latest unusable clips' measures: the reason, the day and the numbers, never whose.
+        $singer = User::factory()->create(['name' => 'Ann Lee']);
+        OwnChoirRequest::factory()->create(['user_id' => $singer->id, 'status' => OwnChoirStatus::Failed, 'failure' => 'clip_unusable', 'failure_detail' => 'noisy', 'failure_numbers' => [['name' => 'snrDb', 'value' => 6.5]]]);
+        OwnChoirRequest::factory()->create(['user_id' => $singer->id, 'status' => OwnChoirStatus::Failed, 'failure' => 'clip_unusable', 'failure_detail' => 'quiet']);
+        $numbers = $this->getJson('/api/admin/choir');
+        $this->assertMatchesContract($numbers, 'admin.choir.show', 200);
+        $numbers->assertJsonPath('data.clipNumbers', [['detail' => 'noisy', 'date' => ReportDay::now()->toDateString(), 'numbers' => [['name' => 'snrDb', 'value' => 6.5]]]]);
+        $this->assertStringNotContainsString('Ann Lee', (string) $numbers->getContent());
 
         $this->getJson('/api/admin/choir?period=7d')->assertJsonPath('data.period', '7d')->assertJsonPath('data.funnel.2.before', 0);
         $this->getJson('/api/admin/choir?period=year')->assertUnprocessable();

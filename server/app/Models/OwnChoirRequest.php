@@ -33,6 +33,7 @@ use Illuminate\Support\Carbon;
  * @property array<string, mixed>|null $sung how it's sung
  * @property bool $remake a remake: its parts replace its song's (parent_request_id) when made
  * @property string|null $failure_detail why its clip couldn't be used (length, quiet, loud, noisy, edge, short, notes)
+ * @property list<array{name: string, value: float}>|null $failure_numbers an unusable clip's measures from the worker, numbers only
  * @property array<string, mixed>|null $lead the song's lead: the whole song sung (take), or a stretch of its clip (fromClip)
  * @property string|null $lead_upload_key the whole song's WAV while it's on its way
  * @property string|null $lead_key the lead, levelled, as AAC
@@ -112,6 +113,7 @@ final class OwnChoirRequest extends Model
             'sung' => 'array',
             'remake' => 'boolean',
             'lead' => 'array',
+            'failure_numbers' => 'array',
             'key_shift' => 'integer',
             'held_for_minutes' => 'boolean',
             'clip_checked_at' => 'datetime',
@@ -173,6 +175,14 @@ final class OwnChoirRequest extends Model
     public function members(): HasMany
     {
         return $this->hasMany(OwnChoirMember::class);
+    }
+
+    /**
+     * @return HasMany<OwnChoirInvite, $this>
+     */
+    public function invites(): HasMany
+    {
+        return $this->hasMany(OwnChoirInvite::class);
     }
 
     /**

@@ -324,6 +324,12 @@ final class OwnChoir
             ->where(fn (Builder $theirs) => $theirs->where('own', false)->orWhere('failure', '!=', 'gates_failed')));
     }
 
+    /** What a song shown reads (OwnChoir::request), loaded afresh for it, or for all of a page's songs at once. */
+    public const SHOWN = ['templateVersion.template', 'parts', 'user', 'members.user', 'members.job.parts', 'friendJobs.parts'];
+
+    /** And for many songs at once: the tune each clip sang (a single song reads it only when it's needed). */
+    public const SHOWN_MANY = [...self::SHOWN, 'clipTemplateVersion'];
+
     /** Failures that are ours, not the singer's: their song is given back to the free and monthly allowances and the minutes. */
     public const OURS = ['render_failed', 'gates_failed'];
 
@@ -373,7 +379,10 @@ final class OwnChoir
             'quota' => $quota = self::quota($user),
             'busyToday' => self::busyToday(),
             'checkNeeded' => self::checkNeeded($user),
-            'requests' => array_values(OwnChoirRequest::query()->with(['templateVersion.template', 'parts'])->where('user_id', $user->id)->whereNull('parent_request_id')->where('status', '!=', OwnChoirStatus::Deleted->value)->orderByDesc('id')->get()
+            // Everything each song shows, loaded once for all of them (no query per song): its versions, parts, friends
+            // (in it or gone, with their jobs' parts) and the jobs made on it (friends' parts and remakes).
+            'requests' => array_values(OwnChoirRequest::query()->with(self::SHOWN_MANY)
+                ->withCount(['invites as open_invites_count' => static fn (Builder $q) => $q->whereNull('used_at')->whereNull('revoked_at')->where('expires_at', '>', now())])->where('user_id', $user->id)->whereNull('parent_request_id')->where('status', '!=', OwnChoirStatus::Deleted->value)->orderByDesc('id')->get()
                 ->map(static fn (OwnChoirRequest $r): array => self::request($r, $quota['plus'], $user))->all()),
             // Choirs they sing in (another singer's song they joined).
             'joined' => ChoirTogether::joined($user),
@@ -525,7 +534,8 @@ final class OwnChoir
         }
 
         $keys = $request->only_parts ?? array_column(array_filter((array) ($request->templateVersion->data['parts'] ?? []), 'is_array'), 'key');
-        $ready = $request->status === OwnChoirStatus::Rendering ? OwnChoirPart::query()->where('own_choir_request_id', $request->id)->where('status', 'ready')->pluck('part_key')->all() : [];
+        $ready = $request->status !== OwnChoirStatus::Rendering ? [] : ($request->relationLoaded('parts') ? $request->parts->where('status', 'ready')->pluck('part_key')->all()
+            : OwnChoirPart::query()->where('own_choir_request_id', $request->id)->where('status', 'ready')->pluck('part_key')->all());
 
         return array_values(array_map(static fn (mixed $key): array => ['partKey' => (string) $key, 'status' => $request->status === OwnChoirStatus::Queued ? 'waiting' : (in_array($key, $ready, true) ? 'ready' : 'making')], $keys));
     }

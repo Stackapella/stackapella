@@ -148,4 +148,18 @@ final class PeopleTest extends TestCase
         $this->assertSame([], (array) $this->getJson('/api/admin/audit?user='.$unknown->sqid())->json('data'));
         $this->assertNotNull($admin);
     }
+
+    public function test_every_sort_pages_on(): void
+    {
+        $this->actingAsAdmin();
+        User::factory()->count(55)->create();
+
+        foreach (['', 'sort=active'] as $sort) {
+            $first = $this->getJson('/api/admin/people?'.$sort)->assertOk();
+            $this->assertCount(50, $first->json('data'));
+            $next = $this->getJson('/api/admin/people?'.$sort.'&cursor='.urlencode((string) $first->json('meta.nextCursor')))->assertOk();
+            $this->assertCount(6, $next->json('data'), "The admin and the 55 across two pages ({$sort}).");
+            $this->assertSame([], array_intersect(array_column((array) $first->json('data'), 'id'), array_column((array) $next->json('data'), 'id')));
+        }
+    }
 }

@@ -197,6 +197,22 @@
         "plusFromChoir": {
             "n": 3,
             "before": 1
-        }
+        },
+        "clipNumbers": [
+            {
+                "detail": "noisy",
+                "date": "2026-11-23",
+                "numbers": [
+                    {
+                        "name": "snrDb",
+                        "value": 6.5
+                    },
+                    {
+                        "name": "rmsDb",
+                        "value": -31.2
+                    }
+                ]
+            }
+        ]
     }
 }

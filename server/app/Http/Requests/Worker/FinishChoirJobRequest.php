@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Worker;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 /**
  * worker.choir.jobs.finish: null when every part is in, else why it failed.
@@ -36,6 +37,27 @@ final class FinishChoirJobRequest extends FormRequest
             'gateFailures' => ['sometimes', 'nullable', 'array', 'max:64'],
             'gateFailures.*.partKey' => ['required', 'string', 'max:40'],
             'gateFailures.*.reason' => ['sometimes', 'nullable', 'string', 'max:40'],
+            // An unusable clip's measures (2026-11-23): numbers only, never audio or text from the take.
+            'detailNumbers' => ['sometimes', 'nullable', 'prohibited_unless:failed,clip_unusable', 'array', 'list', 'max:16'],
+            'detailNumbers.*' => ['array:name,value'],
+            'detailNumbers.*.name' => ['required', 'string', 'regex:/^[A-Za-z][A-Za-z0-9_]{0,31}$/', 'distinct'],
+            'detailNumbers.*.value' => ['required', 'numeric', 'between:-1000000000,1000000000'],
+        ];
+    }
+
+    /**
+     * @return list<callable(Validator): void>
+     */
+    public function after(): array
+    {
+        return [
+            static function (Validator $validator): void {
+                $numbers = $validator->getData()['detailNumbers'] ?? null;
+
+                if (is_array($numbers) && strlen((string) json_encode($numbers)) > 2048) {
+                    $validator->errors()->add('detailNumbers', 'At most 2 KB.');
+                }
+            },
         ];
     }
 }

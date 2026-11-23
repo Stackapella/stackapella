@@ -19,7 +19,9 @@ final class ValidCursor implements ValidationRule
     {
         try {
             $cursor = is_string($value) ? Cursor::fromEncoded($value) : null;
-            $valid = $cursor !== null && is_numeric($cursor->parameter('id'));
+            // Its last row's id: plain, or with its table when the list orders by one (Admin > People's users.id).
+            $id = collect($cursor?->toArray() ?? [])->first(static fn (mixed $value, string $key): bool => $key === 'id' || str_ends_with($key, '.id'));
+            $valid = $cursor !== null && is_numeric($id);
         } catch (Throwable) {
             // Any cursor that can't be read is simply not one of ours.
             $valid = false;

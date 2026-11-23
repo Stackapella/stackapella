@@ -50,7 +50,7 @@ final class OwnChoirController extends Controller
         ['request' => $song, 'put' => $put, 'leadPut' => $leadPut] = $choir->start($user, $clip, $request->ip());
 
         return response()->json([
-            'data' => OwnChoir::request($song->load(['templateVersion.template', 'parts']), null, $user),
+            'data' => OwnChoir::request($song->load(OwnChoir::SHOWN), null, $user),
             'upload' => $put === null ? null : [...$put, 'expiresAt' => Carbon::instance($put['expiresAt'])->utc()->toIso8601ZuluString()],
             'leadUpload' => $leadPut === null ? null : [...$leadPut, 'expiresAt' => Carbon::instance($leadPut['expiresAt'])->utc()->toIso8601ZuluString()],
         ], 201);
@@ -58,12 +58,12 @@ final class OwnChoirController extends Controller
 
     public function complete(OwnChoirRequest $song, OwnChoirRequests $choir, #[CurrentUser] User $user): JsonResponse
     {
-        return response()->json(['data' => OwnChoir::request($choir->complete($user, $song)->load(['templateVersion.template', 'parts']), null, $user)]);
+        return response()->json(['data' => OwnChoir::request($choir->complete($user, $song)->load(OwnChoir::SHOWN), null, $user)]);
     }
 
     public function seen(OwnChoirRequest $song, OwnChoirRequests $choir, #[CurrentUser] User $user): JsonResponse
     {
-        return response()->json(['data' => OwnChoir::request($choir->seen($user, $song)->load(['templateVersion.template', 'parts']), null, $user)]);
+        return response()->json(['data' => OwnChoir::request($choir->seen($user, $song)->load(OwnChoir::SHOWN), null, $user)]);
     }
 
     public function sound(OwnChoirRequest $song, ChoirSoundRequest $request, OwnChoirRequests $choir, #[CurrentUser] User $user): JsonResponse
@@ -71,7 +71,7 @@ final class OwnChoirController extends Controller
         /** @var array{sound: array{room: string, balance?: list<array{partKey: string, db: float|int}>, leadBlend?: float|int|null, recordingLevel?: float|int|null}} $data */
         $data = $request->validated();
 
-        return response()->json(['data' => OwnChoir::request($choir->setSound($user, $song, $data['sound'])->load(['templateVersion.template', 'parts']), null, $user)]);
+        return response()->json(['data' => OwnChoir::request($choir->setSound($user, $song, $data['sound'])->load(OwnChoir::SHOWN), null, $user)]);
     }
 
     public function remake(OwnChoirRequest $song, ChoirRemakeRequest $request, OwnChoirRequests $choir, #[CurrentUser] User $user): JsonResponse
@@ -79,7 +79,7 @@ final class OwnChoirController extends Controller
         /** @var array{sung: array<string, mixed>} $data */
         $data = $request->validated();
 
-        return response()->json(['data' => OwnChoir::request($choir->remake($user, $song, ChoirSettings::normalise($data['sung']))->load(['templateVersion.template', 'parts']), null, $user)], 202);
+        return response()->json(['data' => OwnChoir::request($choir->remake($user, $song, ChoirSettings::normalise($data['sung']))->load(OwnChoir::SHOWN), null, $user)], 202);
     }
 
     public function download(OwnChoirRequest $song, OwnChoirRequests $choir, #[CurrentUser] User $user): JsonResponse
