@@ -30,11 +30,14 @@ final class HelpGuide
     public const GROUPS = [
         'start' => ['getting-started'],
         'learn' => ['your-voice', 'learn-a-part', 'your-part-and-key'],
-        'make' => ['studio', 'create'],
+        'make' => ['studio', 'create', 'your-choir'],
         'share' => ['sharing', 'groups'],
         'account' => ['plus-and-billing', 'settings', 'privacy', 'guides'],
         'fixes' => ['troubleshooting', 'mic', 'headphones', 'timing', 'iphone', 'install'],
     ];
+
+    /** A whole page behind a switch: listed, searched and found only while it's on. */
+    public const FLAGGED = ['your-choir' => 'own_choir'];
 
     /** Old addresses, sent on to the page that took them over. */
     public const MOVED = ['first-harmony' => 'getting-started'];
@@ -60,6 +63,10 @@ final class HelpGuide
 
     public static function written(string $slug): bool
     {
+        if (isset(self::FLAGGED[$slug]) && ! app(Flags::class)->on(self::FLAGGED[$slug])) {
+            return false;
+        }
+
         return Lang::has('pages.help.pages.'.$slug.'.title');
     }
 

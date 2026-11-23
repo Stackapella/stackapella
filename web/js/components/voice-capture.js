@@ -64,7 +64,8 @@ export const VoiceCapture = {
         <div class="space-y-4" data-voice-capture data-listening :data-mode="mode" :data-phase="phase">
             <!-- The arcade's hooks (the game agent's): data-ui capture and its parts, the phase as searching, holding or done,
                  --hold and --level, and the colours as --capture-live and --capture-done, so the skin re-points tokens only. -->
-            <div class="relative overflow-hidden rounded-3xl border border-line bg-panel px-5 pb-4 pt-5 sm:px-6" data-ui="capture" :data-phase="skinPhase" :style="{ '--capture-live': color, '--capture-done': 'var(--color-accent)', '--hold': ringFill, '--level': level }">
+            <!-- The 2026-11-23 language: no box round it (the page's ground), unless something's wrong (no sound). -->
+            <div class="relative rounded-3xl px-5 pb-4 pt-5 sm:px-6" :class="noSound ? 'border border-line bg-panel' : ''" data-ui="capture" :data-phase="skinPhase" :style="{ '--capture-live': color, '--capture-done': 'var(--color-accent)', '--hold': ringFill, '--level': level }">
                 <!-- No sound, or very little (Hillel's Scarlett mockup): what's wrong, the level, the mic, what to check, Try again. It keeps listening underneath. -->
                 <div v-if="noSound" class="flex flex-col gap-5" data-no-sound :data-why="why">
                     <p class="flex items-center gap-2.5 font-bold text-cream" role="status"><span class="size-2.5 shrink-0 rounded-full bg-warn" aria-hidden="true"></span>{{ why === 'silent' ? t('micCheck.noSound', { name: micName }) : t('micCheck.quietly', { name: micName }) }}</p>
@@ -85,6 +86,9 @@ export const VoiceCapture = {
                 <div v-else class="flex flex-col items-center gap-4 text-center">
                     <!-- The note, live, in a ring that fills as it's held. -->
                     <div class="relative size-[9.5rem]" aria-hidden="true" data-ui="capture-hold">
+                        <!-- Hillel's Find your note design: while it listens for a voice, two soft rings breathe out from the ring
+                             (a pulse, no note named); once a voice holds, the ring itself fills, honestly, as it's held. -->
+                        <span v-for="d in (searching && !still ? [0, 1] : [])" :key="d" class="capture-pulse absolute inset-0 rounded-full border-2" :style="{ borderColor: accent, animationDelay: d + 's' }" data-ui="capture-pulse"></span>
                         <svg viewBox="0 0 152 152" class="absolute inset-0 size-full -rotate-90">
                             <circle cx="76" cy="76" r="69" fill="none" stroke="var(--color-raised)" stroke-width="8" />
                             <circle cx="76" cy="76" r="69" fill="none" :stroke="accent" stroke-width="8" stroke-linecap="round" data-ring :stroke-dasharray="RING" :stroke-dashoffset="RING * (1 - ringFill)" :class="still ? '' : 'transition-[stroke-dashoffset] duration-100 ease-linear'" />
@@ -95,8 +99,8 @@ export const VoiceCapture = {
                         </div>
                     </div>
                     <div class="flex min-h-11 flex-col gap-1" data-ui="capture-status">
-                        <p class="text-lg font-bold text-cream" data-status>{{ statusTitle }}</p>
-                        <p class="text-sm text-muted">{{ statusSub }}</p>
+                        <p class="text-[17px] font-semibold text-cream" data-status>{{ statusTitle }}</p>
+                        <p class="text-sm text-subtle">{{ statusSub }}</p>
                     </div>
                     <!-- Said to a screen reader once a phase has held a moment: a wavering voice flips between
                          Hearing and Holding many times a second, and saying each would drown the lesson. -->
@@ -107,15 +111,15 @@ export const VoiceCapture = {
                     <!-- Lower to Higher under a fixed needle: wide until the voice settles, then close on the note held, and locked on it once found. -->
                     <div class="w-full space-y-1.5">
                         <div class="relative h-16 overflow-hidden" :style="{ maskImage: 'linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent)', WebkitMaskImage: 'linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent)' }" role="img" :aria-label="scaleLabel" data-scale :data-zoom="zoom" data-ui="capture-strip">
-                            <div class="absolute inset-x-0 top-5 h-px bg-line"></div>
+                            <div class="absolute inset-x-0 top-5 h-px bg-edge"></div>
                             <div class="absolute top-0 h-10 -translate-x-1/2 rounded-md" :style="{ left: '50%', width: band + '%', background: accent, opacity: 0.12 }"></div>
                             <div v-for="tick in ticks" :key="tick.midi" class="absolute top-0 flex -translate-x-1/2 flex-col items-center gap-1.5" :style="{ left: tick.at * 100 + '%' }" data-tick :data-active="tick.active ? '' : null">
-                                <span class="w-0.5 rounded-full" :class="tick.active ? 'mt-1.5 h-7' : tick.natural ? 'mt-3 h-[1.125rem] bg-muted/70' : 'mt-4 h-2.5 bg-line'" :style="tick.active ? { background: accent } : null"></span>
-                                <span v-if="tick.label" class="whitespace-nowrap font-semibold tabular-nums" :class="tick.active ? 'text-[0.9375rem]' : 'text-[0.6875rem] text-muted'" :style="tick.active ? { color: accent } : null" translate="no">{{ tick.label }}</span>
+                                <span class="w-0.5 rounded-full" :class="tick.active ? 'mt-1.5 h-7' : tick.natural ? 'mt-3 h-[1.125rem] bg-subtle/60' : 'mt-4 h-2.5 bg-line'" :style="tick.active ? { background: accent } : null"></span>
+                                <span v-if="tick.label" class="whitespace-nowrap font-semibold tabular-nums" :class="tick.active ? 'text-[0.9375rem]' : 'text-[0.6875rem] text-subtle'" :style="tick.active ? { color: accent } : null" translate="no">{{ tick.label }}</span>
                             </div>
                             <div class="absolute top-0 h-10 w-0.5 -translate-x-1/2 rounded-full" :style="{ left: '50%', background: accent, opacity: shown === null ? 0.35 : 1 }"></div>
                         </div>
-                        <div v-if="!calm" class="flex items-center justify-between text-xs text-muted" aria-hidden="true" data-ui="capture-zoom">
+                        <div v-if="!calm" class="flex items-center justify-between text-xs text-subtle" aria-hidden="true" data-ui="capture-zoom">
                             <span>{{ t('capture.lower') }}</span>
                             <span class="flex items-center gap-1" data-zoom-dots><span v-for="i in 3" :key="i" class="size-1.5 rounded-full" :class="i - 1 <= zoom ? '' : 'bg-line'" :style="i - 1 <= zoom ? { background: accent } : null"></span><span class="ms-1">{{ t(zoomWord) }}</span></span>
                             <span>{{ t('capture.higher') }}</span>
@@ -124,9 +128,9 @@ export const VoiceCapture = {
                     <p v-if="phase === 'found' && mode === 'note'" class="max-w-sm text-cream" data-suits>{{ t(partsFor(found)) }}</p>
                     <button v-if="phase === 'blocked'" type="button" class="btn-secondary" @click="start"><Icon name="mic" :size="18" /> {{ t('listening.micAgain') }}</button>
                     <!-- The mic, named, with its level and Change. -->
-                    <div v-if="!calm || phase === 'blocked'" class="flex w-full items-center gap-2.5 border-t border-line pt-3" data-mic-row data-ui="capture-mic">
+                    <div v-if="!calm || phase === 'blocked'" class="flex w-full items-center gap-2.5 border-t border-edge pt-3" data-mic-row data-ui="capture-mic">
                         <span class="flex h-4 shrink-0 items-end gap-[3px]" aria-hidden="true" data-ui="capture-level"><span v-for="bar in LEVEL_BARS" :key="bar" class="w-[3px] rounded-full" :class="level >= bar * 0.9 ? 'bg-cream' : 'bg-line'" :style="{ height: 4 + bar * 12 + 'px' }"></span></span>
-                        <span class="min-w-0 flex-1 truncate text-start text-[0.8125rem] text-muted" translate="no">{{ micName }}</span>
+                        <span class="min-w-0 flex-1 truncate text-start text-[0.8125rem] text-subtle" translate="no">{{ micName }}</span>
                         <button type="button" class="link-quiet min-h-11 text-[0.8125rem] font-semibold" :aria-expanded="showMic ? 'true' : 'false'" @click="showMic = !showMic">{{ t('capture.change') }}</button>
                     </div>
                 </div>
@@ -139,6 +143,10 @@ export const VoiceCapture = {
         </div>`,
     computed: {
         still,
+        /** Listening for a voice, nothing held yet: the pulse. */
+        searching() {
+            return this.phase === 'listening' || this.phase === 'hearing';
+        },
         listeningNow: (vm) => ['listening', 'hearing', 'holding'].includes(vm.phase),
         noSound: (vm) => vm.listeningNow && (vm.why === 'silent' || vm.why === 'quiet'),
         micName: () => audio.mic?.label || t('micHelp.yourMic'),

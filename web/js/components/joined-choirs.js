@@ -10,7 +10,7 @@ import { toast } from './ui.js';
 import { confirmAction } from './confirm.js';
 import { startFromTemplate } from '../stores/projects.js';
 import { loadTemplate, templatePartName } from '../templates.js';
-import { choirOf, loadOwnChoir, ownChoir, partList, savedVoice } from '../own-choir.js';
+import { choirOf, loadOwnChoir, ownChoir, partList, savedVoice } from '../own-choir-state.js';
 import { loadChoir, playChoir, stopChoir } from '../own-choir-player.js';
 import { HomeBand } from './home.js';
 

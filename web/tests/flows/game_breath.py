@@ -22,7 +22,7 @@ def journey(f):
     # On to the hold, unless the lesson has already moved there itself (a race under load: it can resume on step 2
     # between this check and the press).
     words = f.js("(await import('/js/i18n.js')).t('course.continue')")
-    f.run(f"if (!document.querySelector('[data-breath-goal]')) [...document.querySelectorAll('button')].find((b) => b.textContent.trim() === {words!r})?.click()")
+    f.run(f"if (!document.querySelector('[data-breath-goal]')) (document.querySelector('[data-go-on]:not([disabled])') ?? [...document.querySelectorAll('button')].find((b) => b.textContent.trim() === {words!r}))?.click()")
     f.wait("document.querySelector('[data-breath-goal]')", what="the goal mark")
     if f.skin == "serious":
         assert f.js(f"!{LABEL}"), "serious mode: today's bar"

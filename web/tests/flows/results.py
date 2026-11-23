@@ -5,6 +5,7 @@ lesson's end (the gems, the chips, the unit's path, the level, the Up next card 
 lesson's own picture).
 """
 import json
+import re
 import time
 import sys
 from pathlib import Path
@@ -114,6 +115,13 @@ def journey(f):
         assert f.js("!!document.querySelector('[data-lesson-end] ol li[data-state=now]')"), "this lesson, just done"
         f.wait("document.querySelector('[data-lesson-end] aside .learn-visual svg')", what="the next lesson's own picture")
         time.sleep(1.6)  # the gems have popped in
+        # One measured skill and one next exercise (the UX review, item 6), once two scored takes are in; no stars or XP
+        # words in it, in either skin.
+        f.run("const { learning } = await import('/js/stores/learning.js'); learning.progress.recent = [{ at: Date.now(), percent: 80, insights: ['flatHigh'] }, { at: Date.now() - 1, percent: 60, insights: ['flatHigh'] }, ...(learning.progress.recent ?? [])].slice(0, 5)")
+        f.wait("document.querySelector('[data-lesson-end] ~ * [data-skill-line], [data-skill-line]')", what="the measured skill")
+        line = f.js("document.querySelector('[data-skill-line]').innerText")
+        assert not re.search(r"\b(stars?|xp|streaks?)\b", line.lower()), line
+        assert f.js("!!document.querySelector('[data-skill-next]')"), "no next exercise"
         f.shot(f"end-{name}")
         if name == "stage-dark":
             # The first session's wrap (onboarding item 5): not after two lessons; after a third, on

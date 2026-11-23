@@ -258,7 +258,10 @@ final class InfoPagesController extends Controller
     {
         $prices = Prices::of(Prices::currency($request));
 
-        return ['price' => $prices['yearAsMonth'], 'price_month' => $prices['month'], 'price_year' => $prices['year'], 'days' => (string) config('billing.trial_days'), 'email' => (string) config('site.contact_email')];
+        // Hear yourself as a choir's numbers, from config (own_choir), as the help page says them.
+        $choir = ['plus_minutes' => (string) config('own_choir.plus_minutes'), 'plus_songs' => ltrim(PlusFeatures::replacements()[':plus_songs'], ':'), 'comped_songs' => (string) config('own_choir.comped_songs'), 'window_days' => (string) config('own_choir.window_days'), 'daily' => (string) config('own_choir.daily'), 'voice_months' => (string) config('own_choir.voice_months'), 'free_friends' => (string) config('own_choir.together.free_friends'), 'plus_friends' => (string) config('own_choir.together.plus_friends')];
+
+        return [...$choir, 'price' => $prices['yearAsMonth'], 'price_month' => $prices['month'], 'price_year' => $prices['year'], 'days' => (string) config('billing.trial_days'), 'email' => (string) config('site.contact_email')];
     }
 
     /**

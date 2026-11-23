@@ -15,3 +15,9 @@ test('site referrer: the site on its own host', () => {
 test('site referrer: one host for both is never "from the site"', () => {
     assert(!siteReferrer('http://localhost:8000/', '/?landing', 'http://localhost:8000'), 'one host');
 });
+
+test('site help: the page on the site, Spanish under /es', async () => {
+    const { siteHelpUrl } = await import('/js/hosts.js');
+    assert(siteHelpUrl('your-choir').endsWith('/help/your-choir') && !siteHelpUrl('your-choir').includes('/es/'), siteHelpUrl('your-choir'));
+    assert(siteHelpUrl('your-choir', 'es').endsWith('/es/help/your-choir'), siteHelpUrl('your-choir', 'es'));
+});

@@ -7,6 +7,7 @@
 // hub, where a tap sets it, so the wrap gained nothing in length. "Not now" is a real answer, kept in the ask ledger (js/asks.js):
 // every ask waits 14 days, and after three Not nows they stop.
 
+import { SkillLine } from './skill-line.js';
 import { navigate } from '../router.js';
 import { formatList, t } from '../i18n.js';
 import { midiName } from '../dsp.js';
@@ -217,6 +218,7 @@ const WEEK_SEEN = 'stackapella.firstWeekSeen'; // the first week's card, put awa
  * card away (in place of Got it). Within the ask ledger's caps; never in week one.
  */
 export const FirstWeek = {
+    components: { SkillLine },
     props: { songs: { type: Boolean, default: false } }, // a song recorded on this device
     data: () => ({ seen: local.get(WEEK_SEEN) === '1' }),
     setup: () => ({ learning, sk }),
@@ -229,6 +231,8 @@ export const FirstWeek = {
                 </div>
                 <button v-if="!keep" type="button" class="tap-44 btn-ghost btn-sm" data-first-week-done @click="done">{{ t('wrap.week.done') }}</button>
             </div>
+            <!-- What the week measured, and the one exercise for it (the consultant's UX review, item 6). -->
+            <SkillLine class="mt-4" />
             <div v-if="keep" class="mt-4 space-y-3 border-t border-line pt-4" data-first-week-keep>
                 <p class="text-cream">{{ keepLine }}</p>
                 <div class="flex flex-wrap items-center gap-3">

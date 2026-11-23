@@ -2063,7 +2063,7 @@
             "look": "Mira: {seconds}",
             "names": "Nombres",
             "label": "La línea que leer: {notes}",
-            "hearFirst": "Escuchar primero",
+            "hearFirst": "Oír el ejemplo",
             "hearing": "Sonando la línea",
             "heardFirst": "Ya la oíste: la puntuación máxima pide leer sin oír.",
             "counting": "Cuenta: {beat}",
@@ -2250,9 +2250,9 @@
         "stepLabel": "Paso {step}",
         "speakerUnder": "Sin auriculares, el sonido de fondo suena primero y luego descansa mientras cantas, para que solo te oigamos a ti. Con auriculares, sigue sonando debajo de ti.",
         "tap": {
-            "listen": "Toca para escuchar",
-            "try": "Toca para probar",
-            "sing": "Toca para cantar"
+            "listen": "Oír el ejemplo",
+            "try": "Empezar el ejercicio",
+            "sing": "Grabar"
         },
         "skip": "Omitir",
         "singToFinish": "Cántala una vez para terminar",
@@ -2274,7 +2274,9 @@
             "inAppTitle": "Cantar requiere micrófono",
             "inApp": "El navegador de {app} no suele poder compartirlo. Abre esta página en {browser}: toca el menú (··· o el botón de compartir) y luego Abrir en el navegador. O copia el enlace y pégalo allí.",
             "carryOn": "Seguir de todos modos",
-            "openInChrome": "Abrir en Chrome"
+            "openInChrome": "Abrir en Chrome",
+            "nextNote": "Después verás tu nota y dónde queda en el teclado.",
+            "nextNotes": "Después tus notas se iluminan cuando las aciertas, y verás lo cerca que estuviste."
         },
         "mapLessons": "{done} de {total} lecciones",
         "mapOpensAfter": "Se abre al terminar la unidad {number}",
@@ -2303,7 +2305,13 @@
         },
         "lockedSerious": "Esta lección se abre cuando hayas cantado las anteriores.",
         "resultSerious": "{percent}% afinado",
-        "nextUp": "Siguiente: lección {number}, {title}, {minutes, plural, one {cerca de 1 minuto} other {unos # minutos}}."
+        "nextUp": "Siguiente: lección {number}, {title}, {minutes, plural, one {cerca de 1 minuto} other {unos # minutos}}.",
+        "goOn": {
+            "try": "Probarlo",
+            "play": "Cantarlo",
+            "record": "A grabar",
+            "home": "Encontrar tu nota"
+        }
     },
     "install": {
         "title": "Instalar Stackapella",
@@ -2473,7 +2481,13 @@
                 "early": "Esperar al pulso",
                 "wavering": "Respiración con apoyo estable"
             },
-            "stepLine": "{step}: {what}"
+            "stepLine": "{step}: {what}",
+            "why": "{count, plural, one {Un paso elegido para ti} other {# pasos elegidos para ti}}: {reasons}.",
+            "whyWarmUp": "un calentamiento en tu extensión",
+            "whyInsight": "lo que mostraron tus últimas tomas",
+            "whyWeakSpot": "una habilidad que reforzar",
+            "whyReview": "una lección que toca repasar",
+            "whyRead": "lectura a primera vista a tu nivel"
         },
         "admin": "Admin",
         "siteHome": "Sitio web de Stackapella"
@@ -5981,13 +5995,23 @@
             "friendLeft": "{name} salió de {song}. Sus enlaces compartidos dejaron de funcionar: vuelve a compartirla cuando quieras."
         },
         "firstNote": {
-            "title": "Canta tu primera nota, donde te resulte cómodo",
-            "hint": "Sostén una nota fácil un momento. Moveremos {song} para que empiece ahí.",
-            "heard": "Cantaste {note}. {song} empezará ahí.",
+            "title": "Canta una nota fácil",
+            "hint": "Sostenla un momento, donde te resulte cómoda. Moveremos {song} para que empiece ahí.",
             "use": "Cantarla desde {note}",
             "again": "Probar otra nota",
-            "usual": "Usar la tonalidad habitual",
-            "noMic": "No pudimos oír una nota. Vuelve a intentarlo un poco más fuerte, o usa la tonalidad habitual."
+            "usual": "Saltar esto y usar la tonalidad habitual",
+            "noMic": "No pudimos oír una nota. Vuelve a intentarlo un poco más fuerte, o usa la tonalidad habitual.",
+            "youSang": "Cantaste",
+            "startsHere": "{song} empezará en esta nota, así toda la canción queda donde tu voz está cómoda.",
+            "low": "Grave",
+            "high": "Agudo",
+            "lower": "Tu nota está más grave que la tonalidad habitual",
+            "higher": "Tu nota está más aguda que la tonalidad habitual",
+            "near": "Tu nota está cerca de la tonalidad habitual",
+            "stepFind": "1 · Encuentra tu nota",
+            "stepSing": "2 · Canta 30 segundos",
+            "stepHear": "3 · Escucha tu coro",
+            "steps": "Tus pasos"
         },
         "headphones": {
             "yesHint": "Oirás la melodía mientras cantas.",
@@ -6083,8 +6107,7 @@
         },
         "level": {
             "low": "Algo bajo. Acércate al micrófono, o sube su volumen.",
-            "loud": "Algo alto. Apártate un poco.",
-            "ok": "Suena bien."
+            "loud": "Algo alto. Apártate un poco."
         },
         "free": {
             "yourSong": "Tu coro gratis es la canción que cantas: {song}.",
@@ -6102,6 +6125,10 @@
             "try": "Pruébalo",
             "making": "Estamos haciendo tu coro de {song}. Lo verás aquí cuando esté listo.",
             "see": "Ver mi coro"
+        },
+        "help": {
+            "link": "Cómo funciona y tus preguntas",
+            "failed": "Qué hacer si una canción no sale bien"
         }
     },
     "aiVoice": {
@@ -6340,5 +6367,11 @@
     },
     "songTitles": {
         "areYouSleeping": "Frère Jacques"
+    },
+    "skillLine": {
+        "title": "Lo que muestran tus tomas",
+        "onPitch": "Afinado un {percent}% en tus últimas {count, plural, one {toma} other {# tomas}}.",
+        "next": "Siguiente: {what}, en el entrenamiento de hoy.",
+        "go": "Empezarlo"
     }
 }

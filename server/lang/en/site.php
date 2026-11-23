@@ -1480,6 +1480,8 @@ return [
         'faq_hum' => ['Does my humming need to be in tune?', 'No. The app writes down what you hum, and you can fix any note before the parts are made.'],
         'own_songs_hum' => 'Yes. Hum a tune and type its words in English, and every part sings them; without words it sings "oo". A song from our library keeps its own English words; one in another language is sung on "oo" for now, apart from the Jewish songs. Songs you make are private to you unless you share them, and anything shared says it was made with AI.',
         'more' => 'About AI voices',
+        // Beside it: the help page, every detail (limits, your voice, deleting).
+        'help' => 'Every detail, in Help',
         // You + choir (ai-choir-page's scene, 2026-11-23): your own recording as the lead, the AI choir around it.
         'lead_scene' => [
             'kick' => '',

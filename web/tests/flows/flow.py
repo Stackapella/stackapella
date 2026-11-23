@@ -150,6 +150,13 @@ class Flow:
     def click_t(self, key, values=None):
         """Clicks the button whose words are t(key) in the page's language, so a flow works in
         the pseudo-language (and any other) as it does in English."""
+        # A lesson's main button names what comes next (the UX review, item 5b: Try it, Sing it, On to recording), so a
+        # flow's Continue in a lesson presses that button by its hook; elsewhere Continue is found by its words.
+        if key == "course.continue" and self.js("(() => { const b = document.querySelector('[data-go-on]'); return !!b && !!b.getClientRects().length; })()"):
+            # As click() does, a moment for it to enable (a slower phone's take).
+            self.wait("document.querySelector('[data-go-on]') && !document.querySelector('[data-go-on]').disabled", timeout=5, what="the lesson's main button")
+            self.run("document.querySelector('[data-go-on]').click()")
+            return self
         label = self.js(f"(await import('/js/i18n.js')).t({json.dumps(key)}, {json.dumps(values or {})})")
         return self.click(label)
 

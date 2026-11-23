@@ -9,7 +9,7 @@ import { reactive } from 'vue';
 import { local } from './storage.js';
 import { api, uploadTo } from './api.js';
 import * as db from './db.js';
-import { account, loadAccount, loadAuthConfig } from './stores/account.js';
+import { account, loadAuthConfig } from './stores/account.js';
 import { guideKey } from './recorded-guides.js';
 import { encodeWav } from './wav.js';
 import { count } from './usage.js';
@@ -19,20 +19,15 @@ import { confirmAction } from './components/confirm.js';
 import { toast } from './components/ui.js';
 import { Icon } from './components/icon.js';
 import { Switch } from './components/controls.js';
+import { ownChoirOn, ownChoirSongsOn, CLIP_TEMPLATE, clipSongs, ownChoir, loadOwnChoir, togetherOn, partList, isOpen, readyUnseen, choirOf, savedVoice } from './own-choir-state.js';
+
+// The state Home and a song's sheet need lives in own-choir-state.js (kept off the first screen's weight); the rest of
+// the app imports it from here as before.
+export { ownChoirOn, ownChoirSongsOn, CLIP_TEMPLATE, clipSongs, ownChoir, loadOwnChoir, togetherOn, partList, isOpen, readyUnseen, choirOf, savedVoice };
 
 export const MIN_SECONDS = 15; // shorter, the card asks for a little longer (ownChoir.record.short)
 export const MAX_SECONDS = 35; // the contract's most (and at least 5): the voice-capture song runs about 30 s
-const OPEN = ['uploading', 'queued', 'rendering'];
 
-/** Whether it's on for this account: auth.config `ownChoir`, known to be true. */
-export function ownChoirOn() {
-    return account.config?.ownChoir === true;
-}
-
-/** Whether their own songs can be heard in their voice too (auth.config `ownChoirSongs`, the own_choir_songs switch). */
-export function ownChoirSongsOn() {
-    return ownChoirOn() && account.config?.ownChoirSongs === true;
-}
 
 /** Whether a song has words to sing (any note with a lyric). */
 export function hasWords(template) {
@@ -48,14 +43,8 @@ export function tunePart(template) {
 // Silent Night, Amazing Grace, Happy Birthday or Joy to the World"), whatever song the choir is for. Happy Birthday is
 // the hidden `voice-capture` song (v4: Happy Birthday twice, "dear friend", in F). The server lists them, in order,
 // the first the default, each with where the take stops (`stopBeat`, a phrase start; null for the whole tune).
-export const CLIP_TEMPLATE = 'voice-capture';
 const CLIP_CHOICE = 'stackapella.clipSong';
 
-/** The tunes a clip may sing, as the server lists them (the default alone until it has said). */
-export function clipSongs() {
-    const listed = ownChoir.data?.clipSongs;
-    return listed?.length ? listed : [{ templateId: CLIP_TEMPLATE, stopBeat: null }];
-}
 
 /** The tune chosen (remembered on this device), else the default. */
 export function chosenClip() {
@@ -225,31 +214,6 @@ export async function dropHum(id) {
     await db.remove('audio', humKey(id)).catch((error) => console.warn('A kept hum was not removed', error));
 }
 
-/** The singer's consent, quota and songs (ownChoir.show), once loaded; null while off or unknown. */
-export const ownChoir = reactive({ data: null, loaded: false });
-
-/** Loads (or reloads) where things stand; quietly nothing while it's off. */
-export async function loadOwnChoir({ force = false } = {}) {
-    // `force`: even with the switch off, so someone with a kept voice or songs can still see and delete them. A guest has
-    // no choir: nothing is asked for (it would only answer 401, a page error on every guest page). Who's signed in is
-    // known first (the app's own account check, shared, never a second request).
-    if (!account.loaded) await loadAccount().catch((error) => console.warn('The account was not checked', error));
-    if ((!ownChoirOn() && !force) || !account.me) {
-        ownChoir.data = null;
-        ownChoir.loaded = true;
-        return null;
-    }
-    try {
-        ownChoir.data = (await api.ownChoir.show()).data;
-        forgetGone().catch((error) => console.warn('Old choir parts were not cleared', error));
-    } catch (error) {
-        if (error?.code !== 'not_found') console.warn('Hear yourself as a choir did not load', error);
-        if (error?.code === 'not_found') ownChoir.data = null; // off for this person: nothing of theirs to show
-    } finally {
-        ownChoir.loaded = true;
-    }
-    return ownChoir.data;
-}
 
 /** Every choir part this device keeps, from the projects that kept them: `[{ project, request }]`. */
 async function keptChoirs() {
@@ -259,7 +223,7 @@ async function keptChoirs() {
 }
 
 /** Drops the parts of songs the server no longer has (deleted on another device, or with the account). */
-async function forgetGone() {
+export async function forgetGone() {
     // The songs this account may still hear: its own, and those it sings in (a friend's Learn copy plays the owner's).
     const live = new Map((ownChoir.data?.requests ?? []).map((r) => [r.id, r]));
     for (const entry of ownChoir.data?.joined ?? []) if (entry.song?.id) live.set(entry.song.id, entry.song);
@@ -374,23 +338,7 @@ export async function downloadParts(request) {
 
 // ---- A choir with friends (docs/choir-together-plan.md, behind own_choir_together) ---------------------------------
 
-/** Whether a choir with friends is on for this account (auth.config `ownChoirTogether`, only when known to be true). */
-export function togetherOn() {
-    return account.config?.ownChoirTogether === true;
-}
 
-/** Part keys as the page's language lists them, lower case: "soprano and alto", "soprano y contralto". */
-export function partList(keys, template = null) {
-    const names = (keys ?? []).map((key) => {
-        const part = template?.parts?.find((p) => p.key === key) ?? { key, name: key };
-        return templatePartName(part).toLocaleLowerCase(locale.lang);
-    });
-    try {
-        return new Intl.ListFormat(locale.lang, { style: 'long', type: 'conjunction' }).format(names);
-    } catch {
-        return names.join(', ');
-    }
-}
 
 /** Whether every one of these voices sits `fit` ('high' or 'low') for the owner. */
 function allFit(request, keys, fit) {
@@ -531,13 +479,7 @@ export async function joinWithClip(token, { partKey, clipTemplateId = null, clip
     return member;
 }
 
-/** Whether a request is still being made. */
-export const isOpen = (request) => !!request && OPEN.includes(request.status);
 
-/** The ready songs not yet heard: Home's one quiet notice each. */
-export function readyUnseen() {
-    return (ownChoir.data?.requests ?? []).filter((r) => r.status === 'ready' && !r.seen);
-}
 
 /**
  * The project's guides when it's a choir project (`project.choir`): the song's parts made from the singer's voice, as
@@ -550,13 +492,6 @@ export function choirVoices(project, partKey) {
     return part ? { versions: [{ ...part, default: true, choir: true }], version: request.version } : null;
 }
 
-/** What a choir project keeps of its song: the request, its version and parts (to play offline). */
-export function choirOf(request, { lead = false } = {}) {
-    // `lead`: their whole-song take sings the tune (You + choir; shared as their real voice, `realVoice: ["take"]`).
-    const take = lead ? request.leadTake : null;
-    const parts = request.parts.map((p) => (take && p.partKey === take.partKey ? { ...take } : { ...p }));
-    return { requestId: request.id, templateId: request.templateId, version: request.version, parts, ...(take ? { lead: true } : {}) };
-}
 
 /**
  * The clip from a take (`samples` at `sampleRate`, its frame 0 at `startSeconds` of the song, latency already out):
@@ -642,10 +577,6 @@ export function termsNeeded() {
     return !c || c.version < (ownChoir.data?.termsVersion ?? 0);
 }
 
-/** The voice kept for their next songs (Hillel: "store a model to make it easier"), or null. */
-export function savedVoice() {
-    return ownChoir.data?.voice ?? null;
-}
 
 /** A song from the saved voice: one tap, no recording (the request comes back queued). */
 export async function makeFromVoice(templateId, { turnstileToken = null } = {}) {

@@ -10,6 +10,7 @@ mode links its own right after the page's sheet, before the first paint.
 """
 import re
 import subprocess
+import os
 import sys
 import time
 import urllib.request
@@ -115,6 +116,21 @@ def compare(f, path, base, whole, skin, width, failed):
             failed.append(f"{skin} {width} {path} {tag[:60]}: {', '.join(changed[:3])}")
 
 
+# Motion off on both sides of the comparison: the device prefers reduced motion, and every CSS animation and transition
+# settles at once, from the first paint. An animation mid-way (a course page's held-breath bar, its vibrato line) caught at
+# a different moment on each side read as a difference that isn't one (2026-11-23).
+STILL = """(() => { const s = document.createElement('style'); s.dataset.stillForCheck = '';
+    s.textContent = '*, *::before, *::after { animation-duration: 0s !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; transition-duration: 0s !important; transition-delay: 0s !important; }';
+    document.documentElement.appendChild(s); })();"""
+
+
+def still(f):
+    # setEmulatedMedia replaces the list: the scheme the Flow set (FLOW_SCHEME, dark by default) goes in again.
+    scheme = {"name": "prefers-color-scheme", "value": os.environ.get("FLOW_SCHEME", "dark")}
+    f.chrome.send("Emulation.setEmulatedMedia", {"features": [scheme, {"name": "prefers-reduced-motion", "value": "reduce"}]})
+    f.chrome.send("Page.addScriptToEvaluateOnNewDocument", {"source": STILL})
+
+
 def look(f, skin, colour, mode):
     f.run(f"window.stackapellaTheme.choose({{ colour: '{colour}', mode: '{mode}', skin: '{skin}' }})")
     time.sleep(0.3)
@@ -134,6 +150,7 @@ def main():
                     f = Flow(site, size, "game-css", skin)
                     try:
                         f.chrome.send("Emulation.setDeviceMetricsOverride", {"width": width, "height": 900, "deviceScaleFactor": 1, "mobile": width < 768})
+                        still(f)
                         f.go("/", "document.querySelector('body')")
                         look(f, skin, colour, mode)
                         for path in dict.fromkeys(PAGES + EXTRA):
@@ -157,6 +174,7 @@ def main():
                     f = Flow(app, size, "game-css", skin)
                     try:
                         f.chrome.send("Emulation.setDeviceMetricsOverride", {"width": width, "height": 900, "deviceScaleFactor": 1, "mobile": width < 768})
+                        still(f)
                         f.go("/?api=mock&as=admin", "document.querySelector('#app header')")
                         look(f, skin, colour, mode)
                         studio = f.js("(async () => { const { startFromTemplate } = await import('/js/stores/projects.js'); const { loadTemplate } = await import('/js/templates.js'); return (await startFromTemplate(await loadTemplate('amazing-grace'), { singers: 4 })).id; })()")

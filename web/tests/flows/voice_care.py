@@ -34,7 +34,7 @@ def through(f):
         finish = t(f, "course.finish")
         f.run(f"""const b = [...document.querySelectorAll('main button')].filter((b) => b.getClientRects().length && !b.disabled);
             const want = [{json.dumps(go)}, {json.dumps(finish)}, {json.dumps(t(f, 'course.skip'))}, {json.dumps(t(f, 'course.home.skip'))}];
-            (want.map((w) => b.find((x) => x.textContent.trim() === w)).find(Boolean))?.click();""")
+            (want.map((w) => b.find((x) => x.textContent.trim() === w)).find(Boolean) ?? b.find((x) => x.matches('[data-go-on]')))?.click();""")
         f.js("new Promise((r) => setTimeout(r, 500))")
 
 

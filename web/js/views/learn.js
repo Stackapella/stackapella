@@ -7,6 +7,7 @@
 import { LoadingBlock } from '../components/screen-loading.js';
 import { markUsable } from '../first-screen.js';
 import { VoiceCareLine } from '../components/voice-care.js';
+import { SkillLine } from '../components/skill-line.js';
 import { markRaw } from 'vue';
 import { game, sk } from '../skin.js';
 import { arrivedToday, askShown, askYes, first, variant } from '../funnel.js';
@@ -68,6 +69,7 @@ const CONFIG_WAIT_MS = 1500; // the most a first visit's lesson waits for the wi
 
 // The song step's key line, in Sing's own words for the part that fits (views/sing.js FIT_WORDS).
 const FIT_WORDS = { real: tk('sing.realKey'), fits: tk('sing.fitsYourRange'), lower: tk('sing.fitsYourRangeLower'), higher: tk('sing.fitsYourRangeHigher'), closest: tk('course.fitClosest') };
+const GO_ON = { learn: tk('course.continue'), try: tk('course.goOn.try'), play: tk('course.goOn.play'), use: tk('course.goOn.play'), record: tk('course.goOn.record'), home: tk('course.goOn.home') };
 const STEP_KIND = { learn: tk('course.step.learn'), try: tk('course.step.try'), play: tk('course.step.play'), use: tk('course.step.use'), record: tk('course.step.record'), home: tk('course.step.home') };
 // Words for the scorer's tips (js/scoring.js TIPS).
 const TIP_WORDS = { breathSupport: tk('course.tip.breathSupport'), relaxHigh: tk('course.tip.relaxHigh'), listenFirst: tk('course.tip.listenFirst'), onsets: tk('course.tip.onsets'), breatheEarly: tk('course.tip.breatheEarly'), waitForBeat: tk('course.tip.waitForBeat') };
@@ -97,7 +99,7 @@ function celebrateAt(stars, el) {
 }
 
 export const LearnView = {
-    components: { LoadingBlock, HearFirst, VoiceCapture, BossBar, BossEnd, BossIntro, VoiceCareLine, ChordMoment, SessionWrap, ThenAndNow, CoursePart, CourseWall, VoiceCard, FactCard, Exercise, InAppCard, KeepSong, LearnVisual, LessonEnd, NoteResult, TakeResult, Icon, Logo, ShareResult, TitleCard },
+    components: { SkillLine, LoadingBlock, HearFirst, VoiceCapture, BossBar, BossEnd, BossIntro, VoiceCareLine, ChordMoment, SessionWrap, ThenAndNow, CoursePart, CourseWall, VoiceCard, FactCard, Exercise, InAppCard, KeepSong, LearnVisual, LessonEnd, NoteResult, TakeResult, Icon, Logo, ShareResult, TitleCard },
     props: { id: { type: String, required: true } },
     // `kept`: this visit's sung steps, their results and takes by step index (a later step may build on
     // one: js/lesson-steps.js's `earlier`), emptied on replay and gone when the lesson closes.
@@ -210,6 +212,8 @@ export const LearnView = {
                         <p class="text-sm text-cream" translate="no">{{ effect('boss') ? t('boss.unlocked.game', { title: localized(entry.unit.boss.title) }) : t('boss.unlocked.review', { title: localized(entry.unit.boss.title) }) }}</p>
                         <button type="button" class="btn-secondary btn-sm" @click="navigate('/learn/' + entry.unit.boss.id)">{{ effect('boss') ? t('boss.takeItOn') : t('boss.review.start') }}</button>
                     </div>
+                    <!-- One measured skill and one next exercise (the consultant's UX review, item 6), in both skins. -->
+                    <SkillLine class="mx-auto mt-6 w-full max-w-prose" />
                     <!-- Voice care (docs/voice-care-plan.md): one quiet line after a long day's singing, the cool-down a tap away. -->
                     <VoiceCareLine class="mx-auto mt-4 max-w-prose text-center" />
                     <!-- Keep the finale (js/keep-song.js): a finale that opts in, kept as a song in Sing. -->
@@ -351,8 +355,11 @@ export const LearnView = {
                         <!-- A sung step (Hillel, as the warm-up): what's left to do beside the way on, which lights up once it's done. -->
                         <div v-else class="ms-auto flex items-center gap-3 max-sm:flex-1 max-sm:justify-end">
                             <span v-if="sungStep && !canGoOn" class="text-end text-sm text-muted" data-go-on-hint>{{ registered?.hint ? t(last ? registered.hint.finish : registered.hint.goOn) : last ? t('course.singToFinish') : t('course.singToGoOn') }}</span>
-                            <button type="button" class="btn-primary max-sm:grow" :disabled="!canGoOn" data-go-on @click="goOn"><Icon v-if="askMic && !inApp" name="mic" :size="18" /> {{ askMic ? (inApp ? t('course.mic.carryOn') : t('course.mic.turnOn')) : takesUsed && takeResult ? t('course.goodEnough') : last ? t('course.finish') : t('course.continue') }}</button>
+                            <button type="button" class="btn-primary max-sm:grow" :disabled="!canGoOn" data-go-on @click="goOn"><Icon v-if="askMic && !inApp" name="mic" :size="18" /> {{ askMic ? (inApp ? t('course.mic.carryOn') : t('course.mic.turnOn')) : takesUsed && takeResult ? t('course.goodEnough') : last ? t('course.finish') : goOnWords }}</button>
                         </div>
+                        <!-- Before the mic: what comes back once you sing (the consultant's UX review, item 5c): finding your note,
+                             the note itself, big, and where it sits; any other step, the notes lighting up and how close you were. -->
+                        <p v-if="askMic && !inApp" class="order-first basis-full text-sm text-cream sm:text-end" data-mic-next>{{ current.kind === 'home' || entry.lesson.findsHome ? t('course.mic.nextNote') : t('course.mic.nextNotes') }}</p>
                         <!-- Before the browser asks for the mic: why we listen, in one line (docs/onboarding-review.md, step 2). -->
                         <p v-if="askMic && mic2b" class="flex basis-full items-start justify-center gap-2 text-cream sm:justify-end" data-mic-why><Icon name="lock" :size="18" class="mt-0.5 shrink-0 text-accent-strong" />{{ t('mic2.privacy') }}</p>
                         <p v-else-if="askMic" class="basis-full text-center text-xs text-muted sm:text-end" data-mic-why>{{ t('course.mic.why') }}</p>
@@ -559,6 +566,14 @@ export const LearnView = {
             return { lesson, number, minutes: lessonMinutes(lesson), visual: learn?.visual ?? null, line: said?.headline ?? null };
         },
         last: (vm) => !!vm.entry && vm.step === vm.entry.lesson.steps.length - 1,
+        /**
+         * The main button names what comes next (the consultant's UX review, item 5b): Try it before an exercise, Sing
+         * it before a song, On to recording before a recorded take, Find your note before the note; Continue before more reading.
+         */
+        goOnWords(vm) {
+            const next = vm.entry?.lesson.steps[vm.step + 1]?.kind;
+            return t(GO_ON[next] ?? GO_ON.learn);
+        },
         color: (vm) => vm.paint(PART_COLORS[((vm.entry?.unit.colour ?? 4) - 1) % PART_COLORS.length]),
         /**
          * How far Lower and Higher may move this lesson's key: KEY_REACH either way, or less where a step's exercise

@@ -49,3 +49,13 @@ export function cameFromSite() {
         return false; // storage blocked: the logo still goes there
     }
 }
+
+/**
+ * A help page on the public site (/help/<slug>), in the app's language where the site has it (Spanish at /es/help/...):
+ * the site's own host, or this one's when one host serves both. `lang` is the app's language.
+ */
+export function siteHelpUrl(slug, lang = 'en') {
+    const site = publicSiteUrl();
+    const base = site.startsWith('/') ? location.origin : site.replace(/\/$/, '');
+    return `${base}${lang === 'es' ? '/es' : ''}/help/${slug}`;
+}

@@ -366,7 +366,7 @@
                                     <li>{{ $fact }}</li>
                                 @endforeach
                             </ul>
-                            <p class="yc-more"><a href="/about/ai-voices" class="yc-lk">{{ __('site.your_choir.more') }}</a></p>
+                            <p class="yc-more"><a href="/about/ai-voices" class="yc-lk">{{ __('site.your_choir.more') }}</a> · <a href="/help/your-choir" class="yc-lk">{{ __('site.your_choir.help') }}</a></p>
                         </div>
                     </div>
                     <div class="yc-floor" aria-hidden="true"><span><i></i><i></i><i></i><i></i></span></div>

@@ -57,6 +57,8 @@ final class DocumentPagesController extends Controller
         // Choirs search for SATB learning and practice tracks, answered mostly by paid tracks (2026-11-23): what they
         // are, how to use them, and the library's part pages as free ones.
         'free-satb-learning-tracks',
+        // "choir audition tips" / "how to prepare for a choir audition" (2026-11-23), answered mostly by single schools' pages.
+        'choir-audition-tips',
     ];
 
     /**

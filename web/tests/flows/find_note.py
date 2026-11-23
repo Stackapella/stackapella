@@ -40,6 +40,8 @@ def journey(f):
     f.wait("document.querySelector('[data-go-on]')", what="the lesson again")
     f.wait_text(t(f, "course.mic.turnOn"))
     f.wait("document.querySelector('[data-mic-why]')", what="why we listen")
+    # And what comes back once you sing (the UX review, item 5c): finding your note shows the note, big, on a keyboard.
+    assert f.js("document.querySelector('[data-mic-next]')?.textContent.trim()") == t(f, "course.mic.nextNote"), "what comes back isn't said before the mic"
     f.shot("turn-on-mic")
     # In an app's own browser (Instagram here), a card first: how to open it in Safari, Copy link,
     # and the way on says "Carry on anyway".

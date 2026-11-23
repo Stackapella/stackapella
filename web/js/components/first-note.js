@@ -85,6 +85,20 @@ export const FirstNoteStep = {
         note() {
             return this.sung == null ? '' : nameNote(Math.round(this.sung));
         },
+        /** The note as read on the screen, with the music's own sharp and flat (F♯2, B♭2, Si♭4). */
+        shown() {
+            return this.note.replace('#', '\u266f').replace(/b(?=-?\d)/, '\u266d');
+        },
+        /** The move to the sung note, in semitones (-7 to +7). */
+        shift() {
+            return this.sung == null ? 0 : shiftTo(this.sung, this.first);
+        },
+        markerAt() {
+            return 50 + (this.shift / 7) * 42;
+        },
+        where() {
+            return this.shift < -1 ? t('ownChoir.firstNote.lower') : this.shift > 1 ? t('ownChoir.firstNote.higher') : t('ownChoir.firstNote.near');
+        },
     },
     methods: {
         /** The note held, and how loud it was (ai-modal: a quiet take never reaches the worker): low, loud or ok. */
@@ -103,21 +117,52 @@ export const FirstNoteStep = {
         use() {
             this.$emit('go', shiftTo(this.sung, this.first));
         },
+        skip() {
+            count('choir_first_note_skipped');
+            this.$emit('go', 0);
+        },
     },
+    // Hillel's "Find your note" design (2026-11-23, the newer of his two): the journey's three steps across the top, the
+    // ask and the shared capture; once heard, "You sang" over the note large and left-aligned, one line on what it does,
+    // where it sits against the usual key, then the three ways on stacked (the primary, an outline, a text link).
     template: `
-        <section class="space-y-5" data-first-note>
-            <div class="space-y-1">
-                <h2 class="text-xl font-bold text-cream">{{ t('ownChoir.firstNote.title') }}</h2>
-                <p class="text-muted">{{ t('ownChoir.firstNote.hint', { song }) }}</p>
+        <section class="mx-auto flex w-full max-w-[480px] flex-col gap-8" data-first-note>
+            <ol class="step-progress" :aria-label="t('ownChoir.firstNote.steps')">
+                <li aria-current="step">{{ t('ownChoir.firstNote.stepFind') }}</li>
+                <li>{{ t('ownChoir.firstNote.stepSing') }}</li>
+                <li>{{ t('ownChoir.firstNote.stepHear') }}</li>
+            </ol>
+            <template v-if="sung == null">
+                <div class="space-y-2 text-center">
+                    <h2 class="t-title text-cream">{{ t('ownChoir.firstNote.title') }}</h2>
+                    <p class="t-lead">{{ t('ownChoir.firstNote.hint', { song }) }}</p>
+                </div>
+                <VoiceCapture :key="round" mode="note" color="var(--color-accent)" @found="found" @no-sound="(now) => (silent = now)" />
+                <p v-if="silent" class="text-center text-sm text-cream" role="status" data-first-note-silent>{{ t('ownChoir.firstNote.noMic') }}</p>
+                <button type="button" class="mx-auto inline-flex min-h-11 items-center text-[15px] font-medium text-muted underline decoration-current underline-offset-[3px] hover:text-cream" data-first-note-usual @click="skip">{{ t('ownChoir.firstNote.usual') }}</button>
+            </template>
+            <div v-else class="flex flex-col gap-6" role="status" data-first-note-heard>
+                <div class="space-y-2">
+                    <p class="text-sm text-subtle">{{ t('ownChoir.firstNote.youSang') }}</p>
+                    <p class="t-hero text-cream" translate="no" data-first-note-sung>{{ shown }}</p>
+                    <p class="t-lead">{{ t('ownChoir.firstNote.startsHere', { song }) }}</p>
+                    <!-- Only a level worth acting on (too quiet or too loud); fine says nothing (the coordinator's review). -->
+                    <p v-if="level && level !== 'ok'" class="text-sm text-cream" :data-first-note-level="level">{{ level === 'low' ? t('ownChoir.level.low') : t('ownChoir.level.loud') }}</p>
+                </div>
+                <!-- Where the note sits against the usual key: the usual start ticked in the middle, their note on the track. -->
+                <div v-if="first != null" class="card space-y-2.5 rounded-2xl px-5 py-[18px]" data-first-note-range>
+                    <div class="relative h-5" aria-hidden="true">
+                        <span class="absolute inset-x-0 top-2 h-1 rounded-full bg-line"></span>
+                        <span class="absolute top-1 h-3 w-0.5 -translate-x-1/2 bg-subtle" style="left: 50%"></span>
+                        <span class="absolute top-0 size-5 -translate-x-1/2 rounded-full border-4 border-panel bg-cream" :style="{ left: markerAt + '%' }"></span>
+                    </div>
+                    <p class="flex justify-between gap-3 text-[0.8125rem] text-subtle"><span aria-hidden="true">{{ t('ownChoir.firstNote.low') }}</span><span class="text-center">{{ where }}</span><span aria-hidden="true">{{ t('ownChoir.firstNote.high') }}</span></p>
+                </div>
+                <div class="flex flex-col gap-3">
+                    <button type="button" class="btn-primary btn-xl w-full" data-first-note-use @click="use">{{ t('ownChoir.firstNote.use', { note: shown }) }}</button>
+                    <button type="button" class="btn-secondary min-h-[52px] w-full text-base" data-first-note-again @click="again">{{ t('ownChoir.firstNote.again') }}</button>
+                    <button type="button" class="mx-auto inline-flex min-h-11 items-center text-[15px] font-medium text-muted underline decoration-current underline-offset-[3px] hover:text-cream" data-first-note-usual @click="skip">{{ t('ownChoir.firstNote.usual') }}</button>
+                </div>
             </div>
-            <VoiceCapture v-if="sung == null" :key="round" mode="note" color="var(--color-accent)" @found="found" @no-sound="(now) => (silent = now)" />
-            <p v-if="sung == null && silent" class="text-sm text-cream" role="status" data-first-note-silent>{{ t('ownChoir.firstNote.noMic') }}</p>
-            <div v-else-if="sung != null" class="card space-y-4 p-5" role="status" data-first-note-heard>
-                <p class="text-cream">{{ t('ownChoir.firstNote.heard', { note, song }) }}</p>
-                <p v-if="level" class="text-sm" :class="level === 'ok' ? 'text-muted' : 'text-cream'" :data-first-note-level="level">{{ level === 'low' ? t('ownChoir.level.low') : level === 'loud' ? t('ownChoir.level.loud') : t('ownChoir.level.ok') }}</p>
-                <button type="button" class="btn-primary w-full sm:w-auto" data-first-note-use @click="use">{{ t('ownChoir.firstNote.use', { note }) }}</button>
-                <button type="button" class="link inline-flex min-h-11 items-center text-sm" data-first-note-again @click="again">{{ t('ownChoir.firstNote.again') }}</button>
-            </div>
-            <button type="button" class="link-quiet inline-flex min-h-11 items-center text-sm" data-first-note-usual @click="count('choir_first_note_skipped'); $emit('go', 0)">{{ t('ownChoir.firstNote.usual') }}</button>
         </section>`,
 };

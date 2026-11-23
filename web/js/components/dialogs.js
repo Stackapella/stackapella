@@ -28,7 +28,7 @@ import { aiPartsOf, catalogue, recordingFor } from '../stores/catalogue.js';
 import { SLOW_MS } from './screen-loading.js';
 import { pastFirstWeek, voiceAskOpen, voicelessParts } from '../be-the-voice.js';
 import { AiVoiceLabel, voiceCredit } from '../ai-voices.js';
-import { ownChoirOn } from '../own-choir.js';
+import { ownChoirOn } from '../own-choir-state.js';
 import { versionsOf } from '../song-versions.js';
 
 // A song's pace in words for a new singer (no BPM: the design rules' first-week words).

@@ -349,7 +349,7 @@ return [
             ['The basics', ['what-is-harmony', 'satb-explained', 'choir-voicings', 'what-is-a-descant', 'find-your-voice-type']],
             ['Learn your part', ['find-your-part', 'find-your-starting-note', 'hold-your-part', 'practise-a-choir-part', 'a-round-for-beginners', 'sing-harmony-with-yourself', 'free-satb-learning-tracks']],
             ['Skills', ['ear-training', 'sight-reading-for-singers', 'singing-in-tune', 'how-to-sing-with-vibrato', 'breathing-basics', 'arranging-a-cappella', 'vocal-percussion']],
-            ['Singing together', ['how-to-blend-in-a-choir', 'how-to-run-a-sectional', 'how-to-start-an-a-cappella-group', 'barbershop-tags']],
+            ['Singing together', ['how-to-blend-in-a-choir', 'how-to-run-a-sectional', 'how-to-start-an-a-cappella-group', 'barbershop-tags', 'choir-audition-tips']],
         ],
         // A panel of the four choir parts' usual ranges, each to hear (site._guide-ranges, js/public/guide-ranges.js),
         // after the section a guide names here.
@@ -1935,6 +1935,59 @@ return [
                             'To leave, tap "Leave the group". Your songs stay yours.',
                         ],
                     ],
+                ],
+            ],
+            // Hear yourself as a choir (the coordinator, 2026-11-23): the whole page while own_choir is on
+            // (HelpGuide::FLAGGED); every number from config (InfoPagesController::numbers).
+            'your-choir' => [
+                'title' => 'Hear yourself as a choir',
+                'summary' => 'Sing about 30 seconds and hear a whole choir in a voice like yours: how it works, what\'s free, your voice, and deleting.',
+                'sections' => [
+                    ['How it works', [
+                        'Open **Hear yourself as a choir** from Home, or from a song\'s page.',
+                        'Choose what to sing for your voice: Happy Birthday twice through, or about 30 seconds of Silent Night, Amazing Grace or Joy to the World. Any octave is fine, and it needn\'t be good singing.',
+                        'With headphones, you hear the tune as you sing. Without, nothing plays: follow the words as they light up.',
+                        'Every part of the song is then made in a voice like yours, using AI, usually within a few minutes. You can leave the app while it\'s made.',
+                        'When it\'s ready, listen to your own recording, you with the choir, or the full choir, and share it.',
+                    ], 'steps' => true],
+                    ['What\'s free, and what Plus adds', [
+                        'Your first choir is free, once per email address: the song you sing for your voice.',
+                        'Plus (:price_month a month or :price_year a year) includes :plus_minutes minutes of AI singing in each month of your subscription, about :plus_songs songs, counted from your renewal day. Every part counts: four one-minute parts are four minutes. Unused minutes don\'t carry over.',
+                        'Plus given to you free, through a school, a partner or a coach, includes :comped_songs songs in any :window_days days.',
+                        'Listening to a choir and sharing it are always free. Downloading it needs Plus.',
+                        'Everyone can make up to :daily songs a day.',
+                    ]],
+                    ['Which songs, and which languages', [
+                        'Most songs in the library: a song\'s page shows **Hear yourself as a choir** where it can be made.',
+                        'The AI sings English words. A song in another language is sung on "oo" for now, apart from the Jewish songs, which sing their own words.',
+                    ]],
+                    ['Your voice', [
+                        'We keep your recording, and a short reference of your voice made from it, privately in your account: your next songs need no new recording, and you can compare your own singing with the choir.',
+                        'Only you can use them, and only for your own choirs. They\'re never used to train an AI model, or to make a voice for anyone else.',
+                        'Unused for :voice_months months, they\'re deleted by themselves.',
+                        'Songs are made on our GPU provider\'s servers, which keep your recording, the voice made from it and the parts made in it encrypted for up to 7 days, then delete them.',
+                    ]],
+                    ['Deleting', [
+                        '**Delete this choir** removes one song. It still counts toward your songs, and it can\'t be undone.',
+                        '**Delete my voice**, under **Your voice**, deletes your saved voice and your recording. Songs already made stay; for your next song, you sing again.',
+                        '**Stop making songs from my singing** deletes your saved voice and every song made from your singing. You can turn it on again any time.',
+                        'Deleting your account deletes all of it. To keep the free choir to one per person, a one-way code made from your email address is kept: it can\'t be turned back into your address, and it\'s used for nothing else.',
+                    ]],
+                    ['Always labelled as AI', [
+                        'Every part made this way is labelled as AI, in the app and on anything you share.',
+                        'A file you download carries the AI marking inside it too.',
+                    ]],
+                    ['With friends', [
+                        'Invite a friend whose voice sits higher or lower than yours. They sing for 30 seconds, and the parts that suit their voice are sung in a voice like theirs.',
+                        'Your friend needs a free account and must be 18 or over. Joining costs them nothing: their parts use your minutes. Your free choir includes :free_friends friend; with Plus, up to :plus_friends.',
+                        'A friend can leave any time: their parts are deleted from the song and from any page it\'s shared on, and yours play again.',
+                    ], 'flag' => 'own_choir_together'],
+                    ['If a song doesn\'t come out', [
+                        'The app says what went wrong and how to fix it: too quiet, too loud, too much background noise, a tune it couldn\'t follow, or too little singing.',
+                        'Sing again somewhere quiet, about a hand\'s width from the mic, at normal volume.',
+                        'A song that fails on our side, or before any work was done on it, doesn\'t count toward your songs.',
+                        'Still stuck? Tap **Contact us** at the bottom of **Settings**.',
+                    ]],
                 ],
             ],
             'create' => [

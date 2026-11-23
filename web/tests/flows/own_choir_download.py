@@ -44,6 +44,9 @@ def journey(f):
     assert t(f, "ownChoir.failed.detail.quiet") in f.js("document.querySelector('[data-choir-failed]').textContent"), "the reason isn't said"
     # Hillel's start design: an amber alert, said first (before the steps), that says how to fix it.
     assert f.js("document.querySelector('[data-choir-failed]').getAttribute('role')") == "alert"
+    # More help for a song that didn't come out: the site's help page (ai-marketing's /help/your-choir), beside the app.
+    assert f.js("document.querySelector('[data-choir-failed] [data-choir-help-failed]').getAttribute('href').endsWith('/help/your-choir#if-a-song-doesnt-come-out')"), "the alert's help link isn't to its section"
+    assert f.js("document.querySelector('[data-choir-help-failed]').getAttribute('target')") == "_blank"
     assert f.js("document.querySelector('[data-choir-failed]').compareDocumentPosition(document.querySelector('[data-choir-steps]')) & Node.DOCUMENT_POSITION_FOLLOWING"), "the alert isn't over the steps"
     f.no_sideways("the failed start")
     f.shot("failed-quiet")

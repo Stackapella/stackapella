@@ -19,7 +19,7 @@ import { lengthBeats, partsFor, singerOptions, templatePartName, validateTemplat
 import { formatTime, keyLabel } from '../theme.js';
 import { newSinger, startFromTemplate } from '../stores/projects.js';
 import { deleteTemplate, loadMine, mine, ownTemplate, saveTemplate, setVisibility } from '../stores/templates.js';
-import { ownChoirSongsOn } from '../own-choir.js';
+import { ownChoirSongsOn } from '../own-choir-state.js';
 import { knownRange, learning, loadLearning, pickRange } from '../stores/learning.js';
 import { account } from '../stores/account.js';
 import { confirmAction, UNDO_SECONDS } from '../components/confirm.js';

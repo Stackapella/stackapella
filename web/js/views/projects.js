@@ -14,7 +14,7 @@ import { navigate } from '../router.js';
 import { betaWaiting, homeBands, sangThisWeek } from '../home.js';
 import { aiPartsOf, creditsFor, loadCatalogue, recordingFor } from '../stores/catalogue.js';
 import { AiVoiceLabel } from '../ai-voices.js';
-import { loadOwnChoir, ownChoirOn } from '../own-choir.js';
+import { loadOwnChoir, ownChoirOn } from '../own-choir-state.js';
 import { ChoirPanel, choirReady } from '../components/choir-panel.js';
 import { JoinedChoirs } from '../components/joined-choirs.js';
 import { guideKey, keepAhead } from '../recorded-guides.js';

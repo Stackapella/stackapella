@@ -20,7 +20,7 @@ y tu atención vaya a la armonía. Los himnos, los cánones y los villancicos va
 [Amazing Grace](/songs/amazing-grace) es una buena primera.
 
 Mira dónde está cada voz. Una voz muy por encima o por debajo de tu extensión cómoda te forzará, así
-que mide primero tu extensión con la [prueba de extensión vocal](/tools/vocal-range-test) gratis. La
+que mide primero tu extensión con la [test de extensión vocal](/tools/vocal-range-test) gratis. La
 mayoría puede cantar con comodidad dos o tres de las cuatro voces; las demás, cántalas una octava
 más arriba o más abajo, siempre que sigan sonando bien con las otras.
 

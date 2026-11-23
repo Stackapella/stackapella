@@ -2063,7 +2063,7 @@
             "look": "Look: {seconds}",
             "names": "Names",
             "label": "The line to read: {notes}",
-            "hearFirst": "Hear it first",
+            "hearFirst": "Hear the example",
             "hearing": "Playing the line",
             "heardFirst": "Heard first: the top score needs a cold read.",
             "counting": "Count: {beat}",
@@ -2250,9 +2250,9 @@
         "stepLabel": "Step {step}",
         "speakerUnder": "Without headphones, the sound underneath plays first, then rests while you sing, so we hear only you. With headphones, it stays under you.",
         "tap": {
-            "listen": "Tap to listen",
-            "try": "Tap to try",
-            "sing": "Tap to sing"
+            "listen": "Hear the example",
+            "try": "Start the exercise",
+            "sing": "Record"
         },
         "skip": "Skip",
         "singToFinish": "Sing it once to finish",
@@ -2274,7 +2274,9 @@
             "inAppTitle": "Singing needs your mic",
             "inApp": "{app}'s browser usually can't share it. Open this page in {browser}: tap the menu (··· or the share button), then Open in browser. Or copy the link and paste it there.",
             "carryOn": "Carry on anyway",
-            "openInChrome": "Open in Chrome"
+            "openInChrome": "Open in Chrome",
+            "nextNote": "Then you'll see your note and where it sits on the keyboard.",
+            "nextNotes": "Then your notes light up as you match them, and you'll see how close you were."
         },
         "mapLessons": "{done} of {total} lessons",
         "mapOpensAfter": "Opens as you finish unit {number}",
@@ -2303,7 +2305,13 @@
         },
         "lockedSerious": "This lesson opens once you've sung the ones before it.",
         "resultSerious": "{percent}% on pitch",
-        "nextUp": "Next: Lesson {number}, {title}, {minutes, plural, one {about 1 minute} other {about # minutes}}."
+        "nextUp": "Next: Lesson {number}, {title}, {minutes, plural, one {about 1 minute} other {about # minutes}}.",
+        "goOn": {
+            "try": "Try it",
+            "play": "Sing it",
+            "record": "On to recording",
+            "home": "Find your note"
+        }
     },
     "install": {
         "title": "Install Stackapella",
@@ -2473,7 +2481,13 @@
                 "early": "Waiting for the beat",
                 "wavering": "Steady breath support"
             },
-            "stepLine": "{step}: {what}"
+            "stepLine": "{step}: {what}",
+            "why": "{count, plural, one {One step} other {# steps}}, picked for you: {reasons}.",
+            "whyWarmUp": "a warm-up in your range",
+            "whyInsight": "what your last takes showed",
+            "whyWeakSpot": "a skill to strengthen",
+            "whyReview": "a lesson due for a refresher",
+            "whyRead": "sight-reading at your level"
         },
         "admin": "Admin",
         "siteHome": "Stackapella website"
@@ -5981,13 +5995,23 @@
             "friendLeft": "{name} left {song}. Its shared links stopped working: share it again when you like."
         },
         "firstNote": {
-            "title": "Sing your first note, wherever feels comfortable",
-            "hint": "Hold an easy note for a moment. We'll move {song} so it starts there.",
-            "heard": "You sang {note}. {song} will start there.",
+            "title": "Sing one easy note",
+            "hint": "Hold it for a moment, wherever feels comfortable. We'll move {song} so it starts there.",
             "use": "Sing it from {note}",
             "again": "Try another note",
-            "usual": "Use the usual key",
-            "noMic": "We couldn't hear a note. Try again, a little louder, or use the usual key."
+            "usual": "Skip this and use the usual key",
+            "noMic": "We couldn't hear a note. Try again, a little louder, or use the usual key.",
+            "youSang": "You sang",
+            "startsHere": "{song} will start on this note, so the whole song sits where your voice is comfortable.",
+            "low": "Low",
+            "high": "High",
+            "lower": "Your note is lower than the usual key",
+            "higher": "Your note is higher than the usual key",
+            "near": "Your note is close to the usual key",
+            "stepFind": "1 · Find your note",
+            "stepSing": "2 · Sing 30 seconds",
+            "stepHear": "3 · Hear your choir",
+            "steps": "Your steps"
         },
         "headphones": {
             "yesHint": "You'll hear the tune while you sing.",
@@ -6083,8 +6107,7 @@
         },
         "level": {
             "low": "A bit quiet. Move closer to the mic, or turn the mic up.",
-            "loud": "A bit loud. Back off a little.",
-            "ok": "Sounds good."
+            "loud": "A bit loud. Back off a little."
         },
         "free": {
             "yourSong": "Your free choir is the song you sing: {song}.",
@@ -6102,6 +6125,10 @@
             "try": "Try it",
             "making": "Your {song} choir is being made. We'll show it here when it's ready.",
             "see": "See it"
+        },
+        "help": {
+            "link": "How it works, and your questions",
+            "failed": "What to do when a song doesn't come out"
         }
     },
     "aiVoice": {
@@ -6340,5 +6367,11 @@
     },
     "songTitles": {
         "areYouSleeping": "Are You Sleeping (Frère Jacques)"
+    },
+    "skillLine": {
+        "title": "What your takes show",
+        "onPitch": "On pitch {percent}% across your last {count, plural, one {take} other {# takes}}.",
+        "next": "Next: {what}, in today's workout.",
+        "go": "Start it"
     }
 }

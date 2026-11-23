@@ -67,9 +67,11 @@ final class YourChoirPageTest extends TestCase
         // No stage without the demo's voices: the page still reads, and plays nothing.
         $this->assertStringNotContainsString('data-yc-play', $html);
         $this->assertStringNotContainsString('data-stage', $html);
-        foreach (['/songs', '/about', '/sitemap.xml'] as $path) {
+        foreach (['/songs', '/about'] as $path) {
             $this->assertStringNotContainsString('/your-choir', (string) $this->get($path)->getContent(), $path);
         }
+        // The page itself isn't in the sitemap (its help page, /help/your-choir, is).
+        $this->assertDoesNotMatchRegularExpression('#<loc>[^<]*(?<!/help)/your-choir</loc>#', (string) $this->get('/sitemap.xml')->getContent());
         // The home's "The whole song is you" is its one way in (the marketing review, 2026-11-22).
         $this->assertSame(1, substr_count((string) $this->get('/')->getContent(), 'href="/your-choir'));
     }

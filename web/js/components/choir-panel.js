@@ -6,7 +6,7 @@
 
 import { t } from '../i18n.js';
 import { navigate } from '../router.js';
-import { clipSongs, isOpen, ownChoir, ownChoirOn, readyUnseen, togetherOn } from '../own-choir.js';
+import { clipSongs, isOpen, ownChoir, ownChoirOn, readyUnseen, togetherOn } from '../own-choir-state.js';
 
 /** A friend who left this song since it was last seen (a choir with friends), if any. */
 function leftOf(request) {

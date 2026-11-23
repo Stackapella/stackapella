@@ -24,6 +24,12 @@ def journey(f):
     # A member who started weeks ago, before launch: every course is still to come.
     f.run("const db = await import('/js/db.js'); const { emptyProgress } = await import('/js/course.js'); await db.put('learning', { ...emptyProgress(), startedAt: Date.now() - 30 * 86400000 }, 'progress');")
     f.go("/?api=mock&scenario=&as=member", "document.querySelector('[data-home-courses]')")
+    # Today's workout says how many steps and why each (the UX review, item 5d).
+    f.wait("document.querySelector('[data-workout-why]')?.textContent.trim()", what="the workout's why")
+    why = f.js("document.querySelector('[data-workout-why]').textContent.trim()")
+    assert why.endswith(".") and ":" in why, why
+    f.run("document.querySelector('[data-workout-why]').scrollIntoView({ block: 'center' })")
+    f.shot("workout-why")
     title = t(f, "courses.homeTitleGame" if f.skin == "game" else "courses.homeTitle")
     assert f.js("document.querySelector('#band-courses').textContent.trim()") == title, "the band's name in this skin"
     soon = t(f, "courses.soon")

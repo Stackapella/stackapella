@@ -3,7 +3,7 @@
 // logo's stacked parts. The course band carries its unit's colour in the path, the ring and a soft
 // glow, never as a stripe down an edge (Hillel's rule).
 
-import { localized, t, tk } from '../i18n.js';
+import { formatList, localized, t, tk } from '../i18n.js';
 import { navigate } from '../router.js';
 import { dayOf, levelFor, nextLesson, weekDays, weekOf, weekRing, weeksInARow } from '../course.js';
 import { allLessons, learning, loadLearning, loadPlusCatalogue, loadPlusCourse, setGoal, startCourse } from '../stores/learning.js';
@@ -398,6 +398,8 @@ export const WeekCard = {
 
 const STEP_WORDS = { warmUp: tk('home.workout.warmUp'), weakSpot: tk('home.workout.focus'), review: tk('home.workout.review'), read: tk('home.workout.read') };
 const STEP_MINUTES = { warmUp: 2, weakSpot: 3, review: 2, read: 2 };
+// Why each step is in today's workout (the UX review, item 5d).
+const WHY = { warmUp: tk('home.workout.whyWarmUp'), insight: tk('home.workout.whyInsight'), weakSpot: tk('home.workout.whyWeakSpot'), review: tk('home.workout.whyReview'), read: tk('home.workout.whyRead') };
 const WHAT = { warmUp: tk('home.workout.warmUpWhat'), weakSpot: tk('home.workout.focusWhat'), read: tk('home.workout.readWhat') };
 const INSIGHT_WHAT = {
     flatHigh: tk('home.workout.insight.flatHigh'), sharpHigh: tk('home.workout.insight.sharpHigh'), flatOverall: tk('home.workout.insight.flatOverall'), sharpOverall: tk('home.workout.insight.sharpOverall'),
@@ -415,6 +417,8 @@ export const WorkoutStrip = {
             <div class="min-w-0 flex-1">
                 <h2 id="band-workout" class="text-xl font-extrabold tracking-tight text-cream">{{ sk('workout.title', 'game.workout.title') }} <span class="font-semibold text-muted">· {{ t('home.workout.minutes', { minutes: total }) }}</span></h2>
                 <p class="mt-1 text-sm text-muted" data-workout-line>{{ line }}</p>
+                <!-- How many and why (the consultant's UX review, item 5d): each step's reason, from what the workout was made of. -->
+                <p class="mt-1 text-sm text-cream/80" data-workout-why>{{ why }}</p>
             </div>
             <!-- The course card's Continue is Home's one primary; this is the second way in. -->
             <button type="button" class="btn-secondary shrink-0" data-start-workout @click="navigate('/workout')">{{ t('home.workout.start') }} <Icon name="arrow" :size="16" /></button>
@@ -424,6 +428,7 @@ export const WorkoutStrip = {
                 <h2 id="band-workout" class="text-2xl font-extrabold tracking-tight text-cream">{{ sk('workout.title', 'game.workout.title') }}</h2>
                 <span class="text-sm text-muted">{{ t('home.workout.total', { minutes: total }) }}</span>
             </div>
+            <p class="mt-1 text-sm text-muted" data-workout-why>{{ why }}</p>
             <!-- Hillel's design: each step numbered with its own length, each a quarter of the row, and
                  Start workout the fourth ("each section takes up a third of the space and put start
                  workout in the 4th column"), as the courses' rows end on Show more. A phone stacks them. -->
@@ -453,6 +458,14 @@ export const WorkoutStrip = {
         firstDay() {
             const started = learning.progress.startedAt;
             return !started || dayOf(started) === dayOf();
+        },
+        /**
+         * Why it's these (the UX review, item 5d): "3 steps, picked for you: a warm-up for your range, what your last takes
+         * showed, and a lesson due for a refresher." From the steps themselves, never a guess.
+         */
+        why() {
+            const reasons = this.steps.map((step) => t(step.kind === 'weakSpot' ? (step.insight ? WHY.insight : WHY.weakSpot) : WHY[step.kind] ?? WHY.weakSpot));
+            return t('home.workout.why', { count: this.steps.length, reasons: formatList([...new Set(reasons)]) });
         },
         /** The steps in one line: "Warm-up: Up and down, then hold · Focus: A steady long note · Review: Hold a note". */
         line() {

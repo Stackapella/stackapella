@@ -8,7 +8,8 @@ import { loadPrices } from '../stores/plan.js';
 import { api } from '../api.js';
 import { count } from '../usage.js';
 import { local, session as tabStorage } from '../storage.js';
-import { formatDate, formatNumber, t, tk } from '../i18n.js';
+import { formatDate, formatNumber, locale, t, tk } from '../i18n.js';
+import { siteHelpUrl } from '../hosts.js';
 import { navigate } from '../router.js';
 import { AppScreen } from '../components/page.js';
 import { confirmAction } from '../components/confirm.js';
@@ -56,6 +57,8 @@ export const OwnChoirView = {
         clipUrl() {
             return ownChoir.data?.voice?.clipListen?.url ?? null;
         },
+        /** The help page for Hear yourself as a choir, on the public site, in the app's language. */
+        helpUrl: () => siteHelpUrl('your-choir', locale.lang),
         /** The one-column header: the start, and the loading, sign-in or terms before it. */
         columnHead() {
             return this.state !== 'ready' || this.intro;
@@ -240,7 +243,7 @@ export const OwnChoirView = {
     template: `
         <!-- The start (and what comes before it) in Hillel's one 520 px column, its header on that column too: the song
              over the title. A song on its way or ready keeps the app's bar. -->
-        <AppScreen :title="t('ownChoir.title')" :back="'/?song=' + encodeURIComponent(id)" :column="columnHead ? 'max-w-[520px]' : null" :eyebrow="columnHead ? song || null : null" eyebrow-is-content :measure="columnHead ? 'max-w-[520px]' : 'max-w-2xl'">
+        <AppScreen :title="t('ownChoir.title')" :back="'/?song=' + encodeURIComponent(id)" :column="columnHead && !firstNote ? 'max-w-[520px]' : null" :eyebrow="columnHead && !firstNote ? song || null : null" eyebrow-is-content :measure="columnHead ? 'max-w-[520px]' : 'max-w-2xl'">
             <p v-if="state === 'loading'" class="text-muted" role="status">{{ t('common.loading') }}</p>
             <!-- Why it can't open, each in its own words: signed out (sign in), offline (Try again), or not open to them. -->
             <div v-else-if="state === 'off'" class="card space-y-3 p-5" :data-choir-off="offReason">
@@ -362,6 +365,8 @@ export const OwnChoirView = {
                         <div class="flex min-w-0 flex-col gap-1">
                             <h2 class="text-base font-semibold text-cream">{{ t('ownChoir.failed.title') }}</h2>
                             <p class="text-[15px] leading-[1.45] text-cream/85">{{ failure }}</p>
+                            <!-- More help when a song doesn't come out (ai-marketing's help page, /help/your-choir). -->
+                            <a :href="helpUrl + '#if-a-song-doesnt-come-out'" target="_blank" rel="noopener" class="link inline-flex min-h-11 items-center self-start text-sm" data-choir-help-failed>{{ t('ownChoir.help.failed') }}</a>
                         </div>
                     </div>
                     <ol data-choir-steps>
@@ -429,9 +434,15 @@ export const OwnChoirView = {
                 </template>
                 <!-- The intro's quiet footer: the quota (only when it matters) and Stop. Stop is not on a ready song (the
                      coordinator for Hillel: a destructive account action stays off a celebratory screen). -->
-                <footer v-if="intro && !firstNote && (quotaLine || stopShown)" class="flex flex-col gap-3.5 border-t border-line pt-5" data-choir-foot>
+                <footer v-if="intro && !firstNote" class="flex flex-col gap-3.5 border-t border-line pt-5" data-choir-foot>
                     <p v-if="quotaLine" class="text-sm leading-normal text-muted" data-choir-quota><strong v-if="quotaLine.lead" class="font-semibold text-cream">{{ quotaLine.lead }}</strong>{{ quotaLine.rest }}</p>
+                    <!-- How it works, and the questions (ai-marketing's help page on the site), opened beside the app. -->
+                    <a :href="helpUrl" target="_blank" rel="noopener" class="inline-flex min-h-11 items-center self-start text-sm text-muted underline underline-offset-4 hover:text-cream" data-choir-help>{{ t('ownChoir.help.link') }}</a>
                     <button v-if="stopShown" type="button" class="inline-flex min-h-11 items-center self-start text-sm text-muted underline underline-offset-4 hover:text-cream" data-choir-stop @click="stopAll">{{ t('ownChoir.stop.button') }}</button>
+                </footer>
+                <!-- Find your note's foot (Hillel's design): the opt-out alone, centred over a hairline. -->
+                <footer v-else-if="intro && firstNote && stopShown" class="mx-auto mt-4 w-full max-w-[480px] border-t border-edge pt-5 text-center" data-choir-foot>
+                    <button type="button" class="inline-flex min-h-11 items-center text-sm text-subtle underline decoration-current underline-offset-[3px] hover:text-cream" data-choir-stop @click="stopAll">{{ t('ownChoir.stop.button') }}</button>
                 </footer>
                 <p v-else-if="!intro && request?.status !== 'ready' && stopShown" class="pt-4"><button type="button" class="link-quiet inline-flex min-h-11 items-center text-sm" data-choir-stop @click="stopAll">{{ t('ownChoir.stop.button') }}</button></p>
             </section>

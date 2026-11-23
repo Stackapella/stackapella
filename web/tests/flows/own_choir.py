@@ -66,6 +66,7 @@ def journey(f):
     assert f.js("document.querySelector('[data-choir-step=\"1\"] [data-choir-start]') && document.querySelectorAll('.btn-primary').length === 1"), "one main action, inside step 1"
     assert f.js("document.querySelector('[data-choir-step=\"1\"] [data-step-body]')?.textContent.includes(\"needn't be good\")"), "step 1 has no muted body"
     assert f.js("!!document.querySelector('[data-choir-foot] [data-choir-quota]')"), "the free line isn't in the footer"
+    assert f.js("document.querySelector('[data-choir-foot] [data-choir-help]')?.getAttribute('href')?.endsWith('/help/your-choir')"), "no help link in the footer"
     # The smallest words are 13 px (Hillel).
     small = f.js("[...document.querySelectorAll('[data-choir-page] *, [data-header-column] *')].filter((e) => [...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()) && e.offsetParent && parseFloat(getComputedStyle(e).fontSize) < 13).map((e) => getComputedStyle(e).fontSize + ' ' + e.tagName + '.' + e.className + ' ' + e.textContent.trim().slice(0, 30))")
     assert not small, f"words under 13 px: {small}"
