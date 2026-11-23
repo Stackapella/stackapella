@@ -1395,6 +1395,15 @@
             "sharp": "alto",
             "flat": "bajo"
         },
+        "chip": {
+            "now": "Ahora",
+            "next": "Luego",
+            "then": "Después",
+            "up": "↑ sube",
+            "down": "↓ baja",
+            "same": "igual",
+            "nextLine": "Siguiente línea"
+        },
         "card": {
             "now": "ahora",
             "word": "“{word}”",

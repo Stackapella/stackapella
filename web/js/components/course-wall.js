@@ -36,7 +36,7 @@ export const CourseWall = {
     },
     template: `
         <section :class="compact ? 'space-y-3' : 'card space-y-5 p-6'" :aria-labelledby="uid" data-needs-account>
-            <component :is="'h' + (level ?? (compact ? 3 : 2))" :id="uid" class="font-bold text-cream" :class="compact ? 'text-base' : 'text-2xl tracking-tight'">{{ t('courses.wall.title') }}</component>
+            <component :is="'h' + (level ?? (compact ? 3 : 2))" :id="uid" class="font-semibold text-cream" :class="compact ? 'text-base' : 'text-xl'">{{ t('courses.wall.title') }}</component>
             <!-- What waits, named (docs/retention-plan.md, idea 2): the lesson this wall opens. -->
             <p v-if="nextUp" class="text-sm text-cream" translate="no" data-wall-next>{{ nextUp }}</p>
             <ul class="space-y-2" data-wall-keeps>

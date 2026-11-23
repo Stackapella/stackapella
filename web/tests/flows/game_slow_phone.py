@@ -71,6 +71,12 @@ def frames(f, ms, start=None):
 
 
 def journey(f):
+    # Game mode's pages and bursts only (the title card, the HUD's pop-ups and combo, the stars, the boss intro and the
+    # part boards, which serious mode never shows: boards since a7ad8212c). In the serious skin this flow waited for a
+    # board that never comes; that skin's own slow-phone tripwire is slow_phone.py.
+    if f.skin == "serious":
+        print("    serious skin: game mode's pages only; slow_phone.py covers this skin")
+        return
     f.chrome.send("Page.addScriptToEvaluateOnNewDocument", {"source": OBSERVE})
     report = {"size": f.size, "cpu": CPU}
     f.go("/?api=mock&scenario=&as=member", "document.querySelector('#app header')")

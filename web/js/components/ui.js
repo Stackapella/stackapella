@@ -36,7 +36,7 @@ export const Modal = {
                             <span v-if="dot" class="mt-2 size-3 shrink-0 rounded-full" :style="{ background: dot }" aria-hidden="true"></span>
                             <div class="min-w-0">
                                 <h2 :id="headingId" class="text-cream" :class="panel ? 'text-lg font-semibold' : sheet ? 'text-2xl font-bold leading-tight tracking-tight' : 'text-xl font-bold'" :translate="titleIsContent ? 'no' : null">{{ title }}</h2>
-                                <p v-if="lead" class="mt-1.5 text-cream/85" translate="no" data-sheet-lead>{{ lead }}</p>
+                                <p v-if="lead" class="t-lead mt-1.5" translate="no" data-sheet-lead>{{ lead }}</p>
                                 <p v-if="subtitle" class="mt-1 text-sm text-cream/85" aria-live="polite">{{ subtitle }}</p>
                             </div>
                         </div>

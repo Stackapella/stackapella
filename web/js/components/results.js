@@ -72,7 +72,7 @@ export const NoteResult = {
             </div>
             <p class="text-muted">{{ t('results.note.yours') }}</p>
             <div class="flex items-center gap-5">
-                <p class="text-8xl font-extrabold leading-none tracking-tight text-accent-strong md:text-9xl" translate="no" data-note>{{ midiName(Math.round(home)) }}</p>
+                <p class="t-hero text-accent-strong" translate="no" data-note>{{ midiName(Math.round(home)) }}</p>
                 <button type="button" class="grid size-16 shrink-0 place-items-center bubble bubble-lg bubble-primary" data-disc="play" :aria-label="t('listening.playIt')" @click="play"><Icon name="play" :size="26" /></button>
             </div>
             <p class="max-w-prose text-cream">{{ t(line.key, line.voiceKey ? { voice: t(line.voiceKey) } : line.values) }} {{ t('results.note.startsHere') }}</p>
@@ -127,7 +127,7 @@ export const TakeResult = {
             <div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4 md:col-span-2">
                 <div class="min-w-0">
                     <!-- Serious mode: the measure, not the praise (docs/skins-plan.md). -->
-                    <h2 tabindex="-1" class="text-4xl font-extrabold tracking-tight text-cream outline-none" data-result-heading>{{ game() || result.percent == null ? t(result.word) : t(result.label?.key ?? ON_PITCH, { percent: Math.round(result.percent) }) }}</h2>
+                    <h2 tabindex="-1" class="t-title-lg text-cream outline-none" data-result-heading>{{ game() || result.percent == null ? t(result.word) : t(result.label?.key ?? ON_PITCH, { percent: Math.round(result.percent) }) }}</h2>
                     <p class="mt-1 text-cream">{{ t(result.line.key, result.line.values) }}</p>
                 </div>
                 <StarDiscs :stars="result.stars" :fresh="result.stars >= 2" class="shrink-0 self-start" />
@@ -136,7 +136,7 @@ export const TakeResult = {
                 <div class="flex items-center gap-3">
                     <button v-if="result.take" type="button" class="grid size-11 shrink-0 place-items-center bubble bubble-primary" data-disc="play" :aria-label="playing ? t('studio.stop') : t(listenKey)" @click="listen"><Icon :name="playing ? 'stop' : 'play'" :size="18" /></button>
                     <div class="min-w-0 flex-1">
-                        <p class="font-bold text-cream">{{ t(listenKey) }}</p>
+                        <p class="font-semibold text-cream">{{ t(listenKey) }}</p>
                         <p v-if="result.take" class="text-sm tabular-nums text-muted">{{ formatTime(elapsed) }} / {{ formatTime(duration) }}</p>
                     </div>
                     <span class="text-sm text-muted" translate="no">{{ targetLabel }}</span>
@@ -162,10 +162,10 @@ export const TakeResult = {
             <div class="space-y-4">
                 <!-- One panel (design rules), each figure on one line -->
                 <dl class="grid grid-cols-3 divide-x divide-line overflow-hidden rounded-2xl border border-edge bg-panel rtl:divide-x-reverse" data-ui="result-stats">
-                    <div class="min-w-0 p-3" data-stat-percent><dt class="sr-only">{{ t(result.label?.stat ?? ON_PITCH_STAT) }}</dt><dd><span class="block text-xl font-extrabold tabular-nums text-cream sm:whitespace-nowrap sm:text-2xl">{{ t('results.stat.percent', { percent: result.percent }) }}</span><span class="block break-words text-xs text-muted">{{ t(result.label?.stat ?? ON_PITCH_STAT) }}</span></dd></div>
-                    <div v-if="result.hold && result.target.length === 1" class="min-w-0 p-3"><dt class="sr-only">{{ t('results.stat.hold') }}</dt><dd><span class="block text-xl font-extrabold tabular-nums text-cream sm:whitespace-nowrap sm:text-2xl">{{ t('results.stat.seconds', { seconds: result.hold }) }}</span><span class="block break-words text-xs text-muted">{{ t('results.stat.hold') }}</span></dd></div>
-                    <div v-else-if="result.lit !== undefined && result.target.length > 1" class="min-w-0 p-3"><dt class="sr-only">{{ t('results.stat.lit') }}</dt><dd><span class="block text-xl font-extrabold tabular-nums text-cream sm:whitespace-nowrap sm:text-2xl">{{ t('results.stat.litOf', { lit: result.lit, count: result.target.length }) }}</span><span class="block break-words text-xs text-muted">{{ t('results.stat.lit') }}</span></dd></div>
-                    <div v-if="xp && game()" class="min-w-0 p-3"><dt class="sr-only">{{ t('results.stat.xpEarned') }}</dt><dd><span class="block text-xl font-extrabold tabular-nums text-cream sm:whitespace-nowrap sm:text-2xl">{{ t('results.stat.plus', { xp }) }}</span><span class="block break-words text-xs text-muted">{{ t('results.stat.xpEarned') }}</span></dd></div>
+                    <div class="min-w-0 p-3" data-stat-percent><dt class="sr-only">{{ t(result.label?.stat ?? ON_PITCH_STAT) }}</dt><dd><span class="block text-xl font-extrabold tabular-nums text-cream sm:whitespace-nowrap sm:text-2xl">{{ t('results.stat.percent', { percent: result.percent }) }}</span><span class="block break-words t-hint">{{ t(result.label?.stat ?? ON_PITCH_STAT) }}</span></dd></div>
+                    <div v-if="result.hold && result.target.length === 1" class="min-w-0 p-3"><dt class="sr-only">{{ t('results.stat.hold') }}</dt><dd><span class="block text-xl font-extrabold tabular-nums text-cream sm:whitespace-nowrap sm:text-2xl">{{ t('results.stat.seconds', { seconds: result.hold }) }}</span><span class="block break-words t-hint">{{ t('results.stat.hold') }}</span></dd></div>
+                    <div v-else-if="result.lit !== undefined && result.target.length > 1" class="min-w-0 p-3"><dt class="sr-only">{{ t('results.stat.lit') }}</dt><dd><span class="block text-xl font-extrabold tabular-nums text-cream sm:whitespace-nowrap sm:text-2xl">{{ t('results.stat.litOf', { lit: result.lit, count: result.target.length }) }}</span><span class="block break-words t-hint">{{ t('results.stat.lit') }}</span></dd></div>
+                    <div v-if="xp && game()" class="min-w-0 p-3"><dt class="sr-only">{{ t('results.stat.xpEarned') }}</dt><dd><span class="block text-xl font-extrabold tabular-nums text-cream sm:whitespace-nowrap sm:text-2xl">{{ t('results.stat.plus', { xp }) }}</span><span class="block break-words t-hint">{{ t('results.stat.xpEarned') }}</span></dd></div>
                 </dl>
                 <p v-if="nextGoal" class="text-sm text-muted">{{ t('results.nextGoal', { seconds: nextGoal }) }}</p>
             </div>
@@ -285,15 +285,15 @@ export const LessonEnd = {
                 <div class="flex flex-col items-center gap-4 text-center md:items-start md:text-start">
                     <StarDiscs ref="stars" :stars="done.stars" big :fresh="done.fresh" />
                     <!-- Serious mode (docs/skins-plan.md): the measure, not the stars, the praise or the XP. -->
-                    <h1 ref="heading" tabindex="-1" class="text-5xl font-extrabold tracking-tight text-cream outline-none">{{ game() ? t(done.word) : done.percent != null ? t(done.label?.key ?? ON_PITCH, { percent: Math.round(done.percent) }) : t('results.lessonDone') }}</h1>
+                    <h1 ref="heading" tabindex="-1" class="t-title-lg text-cream outline-none">{{ game() ? t(done.word) : done.percent != null ? t(done.label?.key ?? ON_PITCH, { percent: Math.round(done.percent) }) : t('results.lessonDone') }}</h1>
                     <p v-if="game()" class="text-cream">{{ t(done.line) }}</p>
                     <ul class="flex flex-wrap justify-center gap-2 md:justify-start">
                         <!-- Game mode's stage clear (docs/game-elements-plan.md): the XP counts up to the real number -->
-                        <li v-if="game() && tally" class="chip font-bold text-cream" data-end-xp><CountUp :to="done.xp || 0" v-slot="{ n }">{{ done.xp ? t('results.xp', { xp: n }) : t('course.done.capped') }}</CountUp></li>
-                        <li v-else-if="game()" class="chip font-bold text-cream" data-end-xp>{{ done.xp ? t('results.xp', { xp: done.xp }) : t('course.done.capped') }}</li>
+                        <li v-if="game() && tally" class="chip font-semibold text-cream" data-end-xp><CountUp :to="done.xp || 0" v-slot="{ n }">{{ done.xp ? t('results.xp', { xp: n }) : t('course.done.capped') }}</CountUp></li>
+                        <li v-else-if="game()" class="chip font-semibold text-cream" data-end-xp>{{ done.xp ? t('results.xp', { xp: done.xp }) : t('course.done.capped') }}</li>
                         <!-- Game feel slice 2: on the day's first lesson end the streak chip is Streak!, popping in once, in the row with the others -->
                         <li v-if="done.streak >= 2 && game() && done.streakNew && effect('popups')" class="chip ge-streak-chip font-bold" data-end-streak data-game-popup="streak">{{ t('game.popup.streak', { count: done.streak }) }}</li>
-                        <li v-else-if="done.streak >= 2 && game()" class="chip font-bold text-part-ink-1" data-end-streak>{{ t('results.streak', { count: done.streak }) }}</li>
+                        <li v-else-if="done.streak >= 2 && game()" class="chip font-semibold text-part-ink-1" data-end-streak>{{ t('results.streak', { count: done.streak }) }}</li>
                         <li class="chip text-muted" data-end-place>{{ tally && Number.isFinite(done.unit) ? t('game.tally.clear', { unit: done.unit, lesson: done.place }) : t('results.lessonOf', { place: done.place, total: done.total }) }}</li>
                     </ul>
                     <BadgeLine v-if="game()" />
@@ -332,8 +332,8 @@ export const LessonEnd = {
                     <!-- The picture waits for a wider screen: on a phone it pushed Next lesson below the fold. -->
                     <div v-if="next.visual" class="pb-3 max-sm:hidden"><LearnVisual :type="next.visual" held class="mx-auto max-w-[16rem]" /></div>
                     <div class="space-y-3">
-                        <p class="text-xs font-bold uppercase tracking-[0.14em] text-accent-strong">{{ next.number ? t('results.upNextLesson', { number: next.number, minutes: next.minutes }) : t('results.upNextMinutes', { minutes: next.minutes }) }}</p>
-                        <h2 class="text-2xl font-extrabold tracking-tight text-cream" translate="no">{{ localized(next.lesson.title) }}</h2>
+                        <p class="t-section">{{ next.number ? t('results.upNextLesson', { number: next.number, minutes: next.minutes }) : t('results.upNextMinutes', { minutes: next.minutes }) }}</p>
+                        <h2 class="text-xl font-semibold text-cream" translate="no">{{ localized(next.lesson.title) }}</h2>
                         <p v-if="next.line" class="text-muted" translate="no">{{ localized(next.line) }}</p>
                         <button type="button" class="btn-primary btn-lg w-full" @click="$emit('next')">{{ t('course.next') }}</button>
                         <!-- A unit's challenge done (unit-song.js): its song, quiet, under the next unit's first lesson. -->

@@ -16570,4 +16570,6 @@ a.cp-ll-block:focus-visible { outline: 3px solid var(--color-cream); outline-off
 :root[data-skin='game'][data-gs] :is(.seg-inset, .seg-header) > .seg-option { border-radius: var(--arc-radius); }
 /* Find your note's pulse in the arcade: a square ring that steps out, never a smooth breath. */
 :root[data-skin='game'][data-gs] [data-ui='capture-pulse'] { border-radius: 0; animation-timing-function: steps(4); }
+/* Sing's Staff view chips (Now, Next, Then) in the arcade: square, like every arcade panel. */
+:root[data-skin='game'][data-gs] [data-now-chips] > li { border-radius: var(--arc-radius); }
 /* game:end */

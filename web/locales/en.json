@@ -4493,6 +4493,15 @@
             "sharp": "sharp",
             "flat": "flat"
         },
+        "chip": {
+            "now": "Now",
+            "next": "Next",
+            "then": "Then",
+            "up": "↑ up",
+            "down": "↓ down",
+            "same": "same",
+            "nextLine": "Next line"
+        },
         "card": {
             "now": "now",
             "word": "“{word}”",

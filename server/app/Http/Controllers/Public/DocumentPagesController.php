@@ -59,6 +59,8 @@ final class DocumentPagesController extends Controller
         'free-satb-learning-tracks',
         // "choir audition tips" / "how to prepare for a choir audition" (2026-11-23), answered mostly by single schools' pages.
         'choir-audition-tips',
+        // In carol season (2026-11-23): "easy christmas carols for choir" and "for small choir", answered mostly by sheet-music shops.
+        'easy-christmas-carols-for-choir',
     ];
 
     /**

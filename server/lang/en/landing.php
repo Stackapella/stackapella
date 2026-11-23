@@ -38,7 +38,8 @@ return [
     'learn_lane' => 'Learn it',
     // The hero (the approved blueprint, Hillel, 2026-11-23): the H1, its lede, and the first lesson, which needs no account.
     'hero' => [
-        'before' => 'Make harmony',
+        // Hillel, 2026-11-23: people search "sing harmony"; "make harmony" read like producer software.
+        'before' => 'Sing harmony',
         'em' => 'with your voice.',
         'lede' => 'Learn to sing harmony, record a solo a cappella performance, or help your choir prepare for rehearsal.',
         'try' => 'Try the first lesson',

@@ -87,6 +87,9 @@ const StaffRow = {
         spaced: Boolean, // by the words (staffSpacing), not by beat alone
         fit: { type: Number, default: null }, // a wrapped row: drawn at its own width (px), never stretched to the screen's
         color: { type: String, required: true },
+        // Sing's Staff view (Hillel's 2026-11-23 design): the staff as wide as the stage (no height cap), each note's name under
+        // its word, and the notes already sung quieter.
+        big: Boolean,
         // The note editor's staff: a note pressed is picked, a press elsewhere places a note there
         // (`pick`, index; `place`, { beat, position } from the line's start), with two beats' room after.
         editable: Boolean,
@@ -94,7 +97,7 @@ const StaffRow = {
     emits: ['pick', 'place'],
     setup: () => ({ GAP, BEAT, METRE, GLYPH, CLEF, MUSIC_FONT }),
     template: `
-        <svg ref="svg" :viewBox="'0 0 ' + width + ' ' + height" class="max-h-56 overflow-visible" :class="[editable ? 'cursor-crosshair touch-none' : '', fit ? 'block' : 'w-full']" :style="fit ? { width: fit + 'px', maxWidth: '100%' } : null" role="img" :aria-label="label" translate="no" @pointerdown="place">
+        <svg ref="svg" :viewBox="'0 0 ' + width + ' ' + height" class="overflow-visible" :class="[big ? 'max-h-[min(46vh,28rem)]' : 'max-h-56', editable ? 'cursor-crosshair touch-none' : '', fit ? 'block' : 'w-full']" :style="fit ? { width: fit + 'px', maxWidth: '100%' } : null" role="img" :aria-label="label" translate="no" @pointerdown="place">
             <line v-for="i in 5" :key="'l' + i" :x1="0" :x2="width" :y1="y(2 * (i - 1))" :y2="y(2 * (i - 1))" stroke="currentColor" stroke-opacity="0.45" stroke-width="1" />
             <text :x="4" :y="clefY" :font-size="layout.clef === 'bass' ? 34 : 44" fill="currentColor" :font-family="MUSIC_FONT">{{ CLEF[layout.clef] }}</text>
             <text v-for="(at, i) in signature" :key="'k' + i" :x="34 + i * 7" :y="y(at) + 5" font-size="18" fill="currentColor" :font-family="MUSIC_FONT">{{ GLYPH[layout.signature.type] }}</text>
@@ -104,14 +107,15 @@ const StaffRow = {
                 <text :x="barX(m.beat) + METRE / 2" :y="y(6) + 6">{{ m.timeSignature.split('/')[0] }}</text>
                 <text :x="barX(m.beat) + METRE / 2" :y="y(2) + 6">{{ m.timeSignature.split('/')[1] }}</text>
             </g>
-            <g v-for="(n, i) in layout.notes" :key="'n' + i" :fill="i === current ? color : 'currentColor'" :stroke="i === current ? color : 'currentColor'" :class="editable ? 'cursor-pointer' : ''" :data-staff-note="i + offset" @pointerdown.stop="editable && $emit('pick', i)">
+            <g v-for="(n, i) in layout.notes" :key="'n' + i" :fill="i === current ? color : 'currentColor'" :stroke="i === current ? color : 'currentColor'" :opacity="big && current >= 0 && i < current ? 0.5 : null" :class="editable ? 'cursor-pointer' : ''" :data-staff-note="i + offset" @pointerdown.stop="editable && $emit('pick', i)">
                 <line v-for="p in n.ledgers" :key="p" :x1="x(n.beat) - 10" :x2="x(n.beat) + 10" :y1="y(p)" :y2="y(p)" stroke-width="1.2" />
                 <text v-if="n.accidental" :x="x(n.beat) - 22" :y="y(n.position) + 5" font-size="17" stroke="none" :font-family="MUSIC_FONT">{{ GLYPH[n.accidental] }}</text>
                 <ellipse :cx="x(n.beat)" :cy="y(n.position)" rx="6.2" ry="4.4" :transform="'rotate(-20 ' + x(n.beat) + ' ' + y(n.position) + ')'" :fill="n.hollow ? 'none' : undefined" stroke-width="1.6" />
                 <line v-if="n.length < 4" :x1="stemX(n)" :x2="stemX(n)" :y1="y(n.position)" :y2="stemEnd(n)" stroke-width="1.3" />
                 <path v-for="k in n.flags" :key="'f' + k" :d="flag(n, k)" fill="none" stroke-width="1.6" />
                 <circle v-if="n.dotted" :cx="x(n.beat) + 11" :cy="y(n.position % 2 === 0 ? n.position + 1 : n.position)" r="1.8" stroke="none" />
-                <text v-if="n.lyric" :x="x(n.beat)" :y="lyricY" font-size="13" text-anchor="middle" stroke="none" translate="no">{{ n.lyric }}</text>
+                <text v-if="n.lyric" :x="x(n.beat)" :y="lyricY" font-size="13" :font-weight="big ? (i === current ? 700 : 600) : null" text-anchor="middle" stroke="none" translate="no">{{ n.lyric }}</text>
+                <text v-if="big && n.name" :x="x(n.beat)" :y="lyricY + (n.lyric ? 13 : 0)" font-size="8.5" font-weight="600" letter-spacing="0.3" fill-opacity="0.7" text-anchor="middle" stroke="none" translate="no" data-staff-name>{{ n.name }}</text>
             </g>
         </svg>`,
     computed: {
@@ -128,7 +132,7 @@ const StaffRow = {
         /** Each note's x from the row's start (by beat, or by the words when `spaced`). */
         spacing: (vm) => staffSpacing(vm.layout.notes, { spaced: vm.spaced }),
         lowest: (vm) => Math.min(0, ...vm.layout.notes.map((n) => n.position)),
-        height: (vm) => TOP + 8 * (GAP / 2) + Math.max(0, -vm.lowest - 1) * (GAP / 2) + 40,
+        height: (vm) => TOP + 8 * (GAP / 2) + Math.max(0, -vm.lowest - 1) * (GAP / 2) + (vm.big ? 54 : 40),
         lyricY: (vm) => vm.y(Math.min(-3, vm.lowest - 3)) + 6,
         clefY: (vm) => (vm.layout.clef === 'bass' ? vm.y(6) + 14 : vm.y(2) + 14),
         signature() {
@@ -199,12 +203,13 @@ export const StaffLine = {
         color: { type: String, required: true },
         editable: Boolean, // the note editor's staff (StaffRow says what that means)
         wrap: Boolean, // Sing's: spaced by the words, and in rows when the screen is too narrow for the line
+        big: Boolean, // Sing's Staff view (StaffRow's big)
     },
     emits: ['pick', 'place'],
     data: () => ({ room: 0 }),
     template: `
         <div ref="box" class="space-y-2" data-staff :data-rows="rows.length" :data-row-at="at">
-            <StaffRow v-for="row in shown" :key="row.from" :layout="row.layout" :offset="row.from" :current="current - row.from" :color="color" :editable="editable" :spaced="wrap" :fit="row.fit" @pick="(i) => $emit('pick', i + row.from)" @place="(at) => $emit('place', at)" />
+            <StaffRow v-for="row in shown" :key="row.from" :layout="row.layout" :offset="row.from" :current="current - row.from" :color="color" :editable="editable" :spaced="wrap" :big="big" :fit="row.fit" @pick="(i) => $emit('pick', i + row.from)" @place="(at) => $emit('place', at)" />
         </div>`,
     computed: {
         signatureCount: (vm) => vm.layout.signature?.count ?? 0,

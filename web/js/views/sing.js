@@ -14,7 +14,7 @@ import { screenLoading } from '../components/screen-loading.js';
 import { BACKING, DRONE, GUIDE_LEVELS, guideId, hasTake } from '../practice.js';
 import { RecordSetup } from '../record-setup.js';
 import { goBack, navigate } from '../router.js';
-import { clefFor, currentPhrase, nextStep, nowText, partSaying, practised, progressOf, staffLayout, stepDone, timelineAt, toStep } from '../sing.js';
+import { clefFor, currentPhrase, direction, nextStep, nowText, partSaying, practised, progressOf, staffLayout, stepDone, timelineAt, toStep } from '../sing.js';
 import { scoreTake } from '../scoring.js';
 import { trackFrame, trackInWorker, VOICED_CLARITY } from '../pitchtrack.js';
 import * as sessionStore from '../stores/session.js';
@@ -201,7 +201,7 @@ export const SingView = {
                                 </div>
                             </div>
                         </template>
-                        <Stage v-else :line="currentLine" :next="nextLine" :position="position" :color="paint(focusPart.color)" :turn="turn" :recording="recording" :now-text="now.state === 'singing' ? nowLine : ''" :sings="sings" :coming-up="comingUp" :line-of="way === 'whole' && !recording ? lineOf : ''"  :start="firstNoteShown ? firstNoteInfo : null" @hear-note="firstNote"
+                        <Stage v-else :chips="staffChips" :line="currentLine" :next="nextLine" :position="position" :color="paint(focusPart.color)" :turn="turn" :recording="recording" :now-text="now.state === 'singing' ? nowLine : ''" :sings="sings" :coming-up="comingUp" :line-of="way === 'whole' && !recording ? lineOf : ''"  :start="firstNoteShown ? firstNoteInfo : null" @hear-note="firstNote"
                             :get-ready="getReady ? { beatsLeft: getReady.beatsLeft, beatsPerBar: getReady.beatsPerBar } : null"
                             :staff="view === 'staff' || !hasWords ? staffNow : null" :current="staffCurrent" :words="hasWords" :tuning="stageTuning" :hint="turn ? hintState.hint : null">
                             <RingMeter v-if="shownRing" class="w-full max-w-md" :reading="shownRing" :chord="ringChord" :color="paint(focusPart.color)" />
@@ -328,6 +328,15 @@ export const SingView = {
         },
         now() {
             return timelineAt(this.notes, this.beat, { beatsPerBar: this.perBar });
+        },
+        /** The Staff view's chips (Hillel's design): the note now, the next and the one after, each with which way it goes. */
+        staffChips() {
+            if (this.now.state !== 'singing') return [];
+            const [next, then] = this.now.next;
+            const chips = [{ key: 'now', name: this.noteName(this.now.note), dir: null }];
+            if (next) chips.push({ key: 'next', name: this.noteName(next), dir: direction(this.now.note.pitch, next.pitch) });
+            if (next && then) chips.push({ key: 'then', name: this.noteName(then), dir: direction(next.pitch, then.pitch) });
+            return chips;
         },
         nowLine() {
             const [key, values] = nowText(this.now, { name: (note) => this.noteName(note) });

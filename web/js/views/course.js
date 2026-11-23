@@ -84,8 +84,8 @@ export const CourseView = {
             <template #aside><a href="/voice" class="flex h-11 shrink-0 items-center gap-2 rounded-full glass-bubble px-4 text-sm font-semibold text-cream hover:bg-raised" @click.prevent="navigate('/voice')"><span class="size-2 rounded-full bg-accent" aria-hidden="true"></span>{{ voice ? t('course.hub.voiceIs', { voice }) : t('voice.title') }}</a></template>
             <div v-if="learning.loaded && learning.course" class="mt-2 grid gap-4 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
                 <section v-if="next" class="card p-6" :aria-label="t('course.hub.upNext')">
-                    <p class="tabular-nums text-xs font-bold uppercase tracking-[0.14em] text-accent-strong">{{ t('course.hub.upNextUnit', { number: unitNumber }) }}</p>
-                    <h2 class="mt-1 text-3xl font-extrabold tracking-tight text-cream" translate="no">{{ localized(next.lesson.title) }}</h2>
+                    <p class="t-section tabular-nums">{{ t('course.hub.upNextUnit', { number: unitNumber }) }}</p>
+                    <h2 class="t-title mt-1 text-cream" translate="no">{{ localized(next.lesson.title) }}</h2>
                     <p v-if="line" class="mt-1 max-w-md text-muted" translate="no">{{ localized(line) }}</p>
                     <div class="mt-5 flex flex-wrap items-center gap-4">
                         <button type="button" class="btn-primary btn-lg" @click="navigate('/learn/' + next.lesson.id)"><Icon name="play" :size="16" /> {{ t('course.startLesson') }}</button>
@@ -93,8 +93,8 @@ export const CourseView = {
                     </div>
                 </section>
                 <section class="card flex flex-col p-6" :aria-label="t('workout.title')">
-                    <p class="tabular-nums text-xs font-bold uppercase tracking-[0.14em] text-accent-strong">{{ t('workout.title') }}</p>
-                    <h2 class="mt-1 text-xl font-bold text-cream">{{ t('course.hub.workoutTime') }}</h2>
+                    <p class="t-section tabular-nums">{{ t('workout.title') }}</p>
+                    <h2 class="mt-1 text-lg font-semibold text-cream">{{ t('course.hub.workoutTime') }}</h2>
                     <p class="mt-1 text-sm text-muted">{{ t('course.hub.workoutLine') }}</p>
                     <div class="mt-auto pt-4"><a href="/workout" class="btn-go" @click.prevent="navigate('/workout')">{{ t('course.hub.begin') }}</a></div>
                 </section>

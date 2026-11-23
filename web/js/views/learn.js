@@ -121,7 +121,7 @@ export const LearnView = {
                 <div v-if="entry" class="min-w-0 flex-1">
                     <p v-if="sharpen" class="truncate text-xs font-semibold text-accent-strong" data-sharpen-place>{{ t('sharpen.place', { place: sharpen.place, total: sharpen.total }) }}</p>
                     <p v-else class="truncate text-xs text-muted" translate="no">{{ localized(entry.unit.title) }}</p>
-                    <p class="line-clamp-2 font-bold leading-snug text-cream" translate="no">{{ localized(entry.lesson.title) }}</p>
+                    <p class="line-clamp-2 text-[17px] font-semibold leading-snug text-cream" translate="no">{{ localized(entry.lesson.title) }}</p>
                 </div>
                 <!-- The step, once (80.png: no second label over the heading): its count and the bars. -->
                 <div v-if="entry && !done && needsAccount === false && !flipRestAt && !capRest && !(entry.boss && (!bossStarted || effect('boss')))" class="flex shrink-0 items-center gap-2">
@@ -143,20 +143,20 @@ export const LearnView = {
                 <BossEnd v-else-if="done && done.boss" ref="bossEnd" :done="done" :title="localized(entry.lesson.title)" @again="bossAgain" @back="goBack('/learn')" />
                 <!-- A course's daily cap (js/daily-cap.js, First steps to belting): checked as one of its lessons opens, never mid-lesson. -->
                 <section v-else-if="capRest" class="card flex w-full flex-col items-center gap-5 p-6 text-center md:p-8" data-ui="cap-rest" data-cap-rest>
-                    <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ t('course.dailyCap.title') }}</h1>
+                    <h1 ref="heading" tabindex="-1" class="t-title text-cream outline-none">{{ t('course.dailyCap.title') }}</h1>
                     <p class="max-w-prose text-muted">{{ t('course.dailyCap.line') }}</p>
                     <button type="button" class="btn-primary" @click="goBack(courseHome)">{{ t('course.backToCourse') }}</button>
                 </section>
                 <!-- Yodeling's five-minute flip cap (js/flip-rest.js): checked as a flip lesson opens, never mid-lesson. -->
                 <section v-else-if="flipRestAt" class="card flex w-full flex-col items-center gap-5 p-6 text-center md:p-8" data-flip-rest>
-                    <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ t('course.flipRest.title') }}</h1>
+                    <h1 ref="heading" tabindex="-1" class="t-title text-cream outline-none">{{ t('course.flipRest.title') }}</h1>
                     <p class="max-w-prose text-muted">{{ t('course.flipRest.line', { time: flipRestTime }) }}</p>
                     <button type="button" class="btn-primary" @click="goBack(courseHome)">{{ t('course.backToCourse') }}</button>
                 </section>
 
                 <!-- The end screen: couldn't hear (nothing earned, nothing lost) -->
                 <section v-else-if="done && done.unheard" class="flex flex-col items-center gap-5 text-center" aria-labelledby="done-title">
-                    <h1 id="done-title" ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ done.skipped ? t('course.done.skippedTitle') : sk('course.done.unheardTitle', 'game.done.continue') }}</h1>
+                    <h1 id="done-title" ref="heading" tabindex="-1" class="t-title text-cream outline-none">{{ done.skipped ? t('course.done.skippedTitle') : sk('course.done.unheardTitle', 'game.done.continue') }}</h1>
                     <p class="max-w-prose text-muted">{{ done.skipped ? sk('course.done.skippedSerious', 'course.done.skipped') : sk('course.done.unheardSerious', 'course.done.unheard') }}</p>
                     <div class="flex flex-wrap justify-center gap-3">
                         <button type="button" class="btn-primary" @click="replay">{{ t('course.tryAgain') }}</button>
@@ -191,7 +191,7 @@ export const LearnView = {
                 <!-- Lesson complete (ux-spec 5.8, 50.png and 51.png) -->
                 <!-- An unscored lesson's end (the cool-down): its own line and one way on, no stars. -->
                 <section v-else-if="done && done.unscored" class="flex flex-col items-center gap-6 py-10 text-center" data-unscored-end>
-                    <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ localized(entry.lesson.endLine) || t('course.cooldown.end') }}</h1>
+                    <h1 ref="heading" tabindex="-1" class="t-title text-cream outline-none">{{ localized(entry.lesson.endLine) || t('course.cooldown.end') }}</h1>
                     <button type="button" class="btn-primary" data-unscored-done @click="goBack(courseHome)">{{ t('common.done') }}</button>
                 </section>
                 <template v-else-if="done">
@@ -222,7 +222,7 @@ export const LearnView = {
                     <SessionWrap v-if="wrap" :lessons="wrap.lessons" :stars="wrap.stars" />
                     <!-- A guest's free lesson of a Plus course (Hillel let guests try one, 2026-10-30): kept here, and in an account once made. -->
                     <section v-if="guestSave" class="w-full space-y-3 rounded-3xl border border-edge bg-panel p-5 text-start" aria-labelledby="guest-save-title" data-guest-save>
-                        <h2 id="guest-save-title" class="font-bold text-cream">{{ t('courses.guest.title') }}</h2>
+                        <h2 id="guest-save-title" class="font-semibold text-cream">{{ t('courses.guest.title') }}</h2>
                         <p class="text-sm text-muted">{{ t('courses.guest.body', { course: localized(entry.course.title) }) }}</p>
                         <a :href="guestSignUp" class="btn-primary btn-sm" data-guest-signup @click.prevent="askYes('acct_course'); navigate(guestSignUp)">{{ t('wrap.makeAccount') }}</a>
                     </section>
@@ -247,20 +247,20 @@ export const LearnView = {
                     <div v-if="split" class="md:order-2 md:pb-8"><LearnVisual :key="'v' + step" :type="current.visual" class="max-w-[12rem] md:max-w-[22rem]" /></div>
                     <div class="flex flex-col gap-5">
                     <BossBar v-if="entry.boss && effect('boss')" :total="bossTotal" :scored="bossScored" :live="result ? 0 : bossLive" :round="bossRound" :rounds="bossRounds" :said="bossSaid" />
-                    <p v-if="step === 0 && entry.lesson.findsHome && chordMoment && !hearFirst" class="-mb-2 text-sm font-semibold text-accent-strong" data-chord-promise>{{ t('chordMoment.promise') }}</p>
-                    <p v-if="current.kind === 'home'" class="-mb-3 text-sm font-semibold text-accent-strong" translate="no">{{ localized(entry.unit.title) }} · {{ t('course.stepLabel', { step: step + 1 }) }}</p>
+                    <p v-if="step === 0 && entry.lesson.findsHome && chordMoment && !hearFirst" class="-mb-2 text-[15px] font-medium text-cream/85" data-chord-promise>{{ t('chordMoment.promise') }}</p>
+                    <p v-if="current.kind === 'home'" class="eyebrow-step -mb-3" translate="no">{{ localized(entry.unit.title) }} · {{ t('course.stepLabel', { step: step + 1 }) }}</p>
                     <!-- mic2's arm b (docs/improvement-log.md row 11): hear it first, one tip, and the mic ask below; no reading screen. -->
                     <template v-if="hearFirst">
-                        <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold leading-snug tracking-tight text-cream outline-none" data-step-line>{{ t('mic2.title') }}</h1>
+                        <h1 ref="heading" tabindex="-1" class="t-title text-cream outline-none" data-step-line>{{ t('mic2.title') }}</h1>
                         <HearFirst :color="color" @heard="countOnce('l1_hear')" />
                         <p class="text-cream" data-mic2-tip>{{ t('mic2.tip') }}</p>
                         <button v-if="!cantSing" type="button" class="link-quiet min-h-11 self-start text-sm" data-cant-sing-open @click="openCantSing">{{ t('mic2.cantSing') }}</button>
                     </template>
-                    <h1 v-else ref="heading" tabindex="-1" class="font-bold leading-snug text-cream outline-none" data-step-line :class="current.headline ? 'text-3xl font-extrabold tracking-tight' : 'text-2xl'" translate="no">{{ localized(current.headline ?? current.text) }}</h1>
-                    <ol v-if="current.steps?.length && !hearFirst" class="space-y-2.5">
-                        <li v-for="(item, i) in current.steps" :key="i" class="flex items-center gap-4 rounded-2xl border border-edge bg-panel px-4 py-3.5">
-                            <span class="w-5 shrink-0 text-center text-xl font-extrabold tabular-nums text-accent-strong" aria-hidden="true">{{ i + 1 }}</span>
-                            <span class="min-w-0"><span class="block font-bold text-cream" translate="no">{{ localized(item.title) }}</span><span class="block text-sm text-muted" translate="no">{{ localized(item.detail) }}</span></span>
+                    <h1 v-else ref="heading" tabindex="-1" class="leading-snug text-cream outline-none" data-step-line :class="current.headline ? 't-title' : 'text-2xl font-semibold'" translate="no">{{ localized(current.headline ?? current.text) }}</h1>
+                    <ol v-if="current.steps?.length && !hearFirst" class="card divide-y divide-line overflow-hidden" data-step-points>
+                        <li v-for="(item, i) in current.steps" :key="i" class="flex items-center gap-4 px-5 py-3.5">
+                            <span class="w-5 shrink-0 text-center text-lg font-semibold tabular-nums text-muted" aria-hidden="true">{{ i + 1 }}</span>
+                            <span class="min-w-0"><span class="block font-semibold text-cream" translate="no">{{ localized(item.title) }}</span><span class="block text-sm text-muted" translate="no">{{ localized(item.detail) }}</span></span>
                         </li>
                     </ol>
                     <!-- A lesson that needs headphones says so quietly on its first card, before the mic asks. -->

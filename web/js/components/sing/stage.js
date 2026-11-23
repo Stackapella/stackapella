@@ -8,7 +8,7 @@
 // sits in the middle when you're on the note, and the syllable glows when you hit it.
 
 
-import { t } from '../../i18n.js';
+import { t, tk } from '../../i18n.js';
 import { joinSyllables } from '../practice.js';
 import { StaffLine } from './staff.js';
 import { Icon } from '../icon.js';
@@ -58,6 +58,10 @@ export const KaraokeLine = {
     },
 };
 
+// The Staff view's chips and their directions (Hillel's design: "NOW C4", "NEXT C4 same", "THEN D4 ↑ up").
+const CHIPS = { now: tk('sing.chip.now'), next: tk('sing.chip.next'), then: tk('sing.chip.then') };
+const DIRS = { up: tk('sing.chip.up'), down: tk('sing.chip.down'), same: tk('sing.chip.same') };
+
 export const Stage = {
     components: { GetReady, KaraokeLine, StaffLine, Icon },
     emits: ['hear-note'],
@@ -79,11 +83,46 @@ export const Stage = {
         words: { type: Boolean, default: true }, // the part has words
         tuning: { type: Object, default: null }, // your voice now: { cents, lit } on your turn, or null
         hint: { type: String, default: null }, // 'higher' or 'lower' (the lane's words), on your turn
+        chips: { type: Array, default: () => [] }, // the Staff view's: [{ key: now|next|then, name, dir: up|down|same|null }]
     },
-    setup: () => ({ joinSyllables }),
+    setup: () => ({ joinSyllables, CHIPS, DIRS }),
     template: `
         <div class="relative flex min-h-0 flex-1 flex-col justify-center gap-5 px-5 py-6 md:px-12" data-ui="sing-stage">
             <GetReady v-if="getReady" v-bind="getReady" :color="color" class="absolute inset-x-4 top-3 md:inset-x-12" />
+            <!-- Hillel's Staff design (2026-11-23): which line and where you start in one row; the staff as wide as the stage,
+                 each word and its note's name under its note (no second line of words: the coordinator's call 11); then the
+                 note now, next and after as chips, and the next line's words at the end. -->
+            <template v-if="staff">
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <p v-if="turn && recording" class="text-lg font-bold" :style="{ color: paintInk(color) }">{{ t('sing.turn.title') }}</p>
+                    <p v-else-if="lineOf" class="t-counter" data-line-of>{{ lineOf }}</p>
+                    <span v-else></span>
+                    <div v-if="start && !recording" class="flex w-fit max-w-full flex-wrap items-center gap-3 rounded-full border border-line py-1.5 pe-1.5 ps-4 text-[15px] text-cream" data-start-pill>
+                        <span class="size-[9px] shrink-0 rounded-full" :style="{ background: color }" aria-hidden="true"></span>
+                        <span translate="no">{{ start.word ? t('sing.startWith', { word: start.word.replace(/-$/, ''), note: start.note }) : t('sing.startOn', { note: start.note }) }}</span>
+                        <button type="button" class="tap-44 inline-flex min-h-8 items-center gap-1.5 rounded-full bg-raised px-3.5 text-[13px] font-semibold text-cream hover:bg-line" @click="$emit('hear-note')"><Icon name="note" :size="14" /> {{ t('sing.hearNote') }}</button>
+                    </div>
+                    <p v-else-if="comingUp" class="text-sm text-subtle">{{ comingUp }}</p>
+                </div>
+                <slot />
+                <StaffLine :layout="staff" :current="current" :color="color" wrap big class="mx-auto w-full max-w-[1500px] text-cream" />
+                <div class="flex flex-wrap items-center justify-between gap-x-10 gap-y-4">
+                    <ul v-if="chips.length" class="flex flex-wrap gap-2.5" aria-live="off" data-now-chips>
+                        <li v-for="c in chips" :key="c.key" class="flex items-baseline gap-2.5 whitespace-nowrap rounded-xl px-4 py-2.5" :class="c.key === 'now' ? '' : 'bg-raised'" :style="c.key === 'now' ? { background: 'color-mix(in srgb, ' + paint(color) + ' 16%, var(--color-panel))' } : null" :data-chip="c.key">
+                            <span class="text-xs font-bold uppercase tracking-[0.1em]" :class="c.key === 'now' ? '' : 'text-subtle'" :style="c.key === 'now' ? { color: paintInk(color) } : null">{{ t(CHIPS[c.key]) }}</span>
+                            <span class="text-xl font-semibold tabular-nums" :class="c.key === 'now' ? '' : 'text-cream'" :style="c.key === 'now' ? { color: paintInk(color) } : null" translate="no">{{ c.name }}</span>
+                            <span v-if="c.dir" class="text-sm text-subtle">{{ t(DIRS[c.dir]) }}</span>
+                        </li>
+                    </ul>
+                    <p v-else-if="nowText" class="text-base font-semibold text-cream" aria-live="off">{{ nowText }}</p>
+                    <p v-if="words && next" class="flex min-w-0 items-baseline gap-3" data-next-line><span class="shrink-0 text-xs font-bold uppercase tracking-[0.1em] text-subtle">{{ t('sing.chip.nextLine') }}</span><span class="truncate text-[22px] font-semibold text-muted" translate="no">{{ joinSyllables(next.syllables) }}</span></p>
+                </div>
+                <p v-if="turn" class="flex min-h-7 items-center gap-2 text-base font-bold text-cream" role="status" :aria-label="tuningLabel">
+                    <template v-if="hint"><span class="grid size-7 place-items-center rounded-full text-ink" :style="{ background: color }" aria-hidden="true">{{ hint === 'higher' ? '▲' : '▼' }}</span>{{ hint === 'higher' ? t('sing.hint.higher') : t('sing.hint.lower') }}</template>
+                    <template v-else-if="tuning?.lit"><span class="grid size-7 place-items-center rounded-full text-ink" :style="{ background: color }" aria-hidden="true">✓</span>{{ t('sing.tuning.on') }}</template>
+                </p>
+            </template>
+            <template v-else>
             <p v-if="turn && recording" class="text-lg font-bold" :style="{ color: paintInk(color) }">{{ t('sing.turn.title') }}</p>
             <template v-else-if="lineOf || start">
                 <p v-if="lineOf" class="text-sm"><span class="font-semibold text-cream">{{ lineOf }}</span></p>
@@ -96,7 +135,6 @@ export const Stage = {
             </template>
             <p v-else-if="comingUp" class="text-sm font-semibold text-muted">{{ comingUp }}</p>
             <slot />
-            <StaffLine v-if="staff" :layout="staff" :current="current" :color="color" wrap class="w-full" />
             <KaraokeLine v-if="words && line" :line="line" :position="position" :color="color" :pill="turn" :glow="!!tuning?.lit" :class="staff ? 'text-2xl md:text-4xl' : 'text-5xl leading-[1.08] md:text-7xl'" class="font-extrabold tracking-tight" />
             <p v-else-if="!words && !staff" class="text-2xl text-muted">{{ t('sing.noWords') }}</p>
             <p v-if="!turn && sings" class="text-base font-bold md:text-lg" :style="{ color: paintInk(color) }" aria-live="off">{{ sings }}</p>
@@ -106,6 +144,7 @@ export const Stage = {
                 <template v-if="hint"><span class="grid size-7 place-items-center rounded-full text-ink" :style="{ background: color }" aria-hidden="true">{{ hint === 'higher' ? '▲' : '▼' }}</span>{{ hint === 'higher' ? t('sing.hint.higher') : t('sing.hint.lower') }}</template>
                 <template v-else-if="tuning?.lit"><span class="grid size-7 place-items-center rounded-full text-ink" :style="{ background: color }" aria-hidden="true">✓</span>{{ t('sing.tuning.on') }}</template>
             </p>
+            </template>
         </div>`,
     computed: {
         tuningLabel() {

@@ -18,7 +18,7 @@ SONGS = Path(__file__).resolve().parents[3] / "server" / "database" / "templates
 LINES = [("oy-chanukah", 32), ("ave-verum-corpus", 130), ("we-three-kings", 24), ("rozhinkes-mit-mandlen", 8)]
 
 CHECK = """(() => {
-    const rows = [...document.querySelectorAll('svg.max-h-56')]; // the staff's rows (one svg before rows existed)
+    const rows = [...document.querySelectorAll('[data-staff] > svg')]; // the staff's rows (one svg before rows existed)
     const box = document.querySelector('[data-staff]');
     const out = { rows: Number(box?.dataset.rows ?? 1), shown: rows.length, smallest: 9, overlaps: [] };
     for (const svg of rows) {
@@ -63,7 +63,7 @@ def journey(f):
         f.run(f"""const s = {SESSION}; s.session.practice.sing = {{ ...(s.session.practice.sing ?? {{}}), way: 'whole', view: 'staff', fitSaid: true, keyChosen: true }};
             s.practise(s.session.parts.find((p) => p.templatePartKey && (s.session.project.template.parts.find((t) => t.key === p.templatePartKey)?.melody)) ?? s.session.parts[0]); s.savePractice();""")
         f.run(f"const s = {SESSION}; s.selectPhrase(s.session.phraseList.findIndex((p) => Math.abs(p.startBeat - {start}) < 0.01))")
-        f.wait("document.querySelector('svg.max-h-56 text[font-size=\"13\"]')", what=f"{song}'s staff with its words")
+        f.wait("document.querySelector('[data-staff] > svg text[font-size=\"13\"]')", what=f"{song}'s staff with its words")
         import time
         time.sleep(0.5)  # the row split follows the measured width
         got = f.js(CHECK)
