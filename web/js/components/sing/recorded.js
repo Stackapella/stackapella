@@ -249,9 +249,9 @@ export const JustRecorded = {
                 <header class="flex flex-wrap items-end justify-between gap-3">
                     <div class="min-w-0">
                         <p v-if="sungBy" class="mb-2 text-lg font-bold text-cream" data-sung-by>{{ sungBy }}</p>
-                        <p v-if="!choir" class="text-xs font-bold uppercase tracking-[0.14em]" :style="{ color: paintInk(color) }" translate="no">{{ t('sing.review.eyebrow', { part: partName }) }}</p>
-                        <h2 id="recorded-title" ref="heading" tabindex="-1" class="mt-1 text-4xl font-extrabold tracking-tight text-cream outline-none">{{ headline }}</h2>
-                        <p class="mt-1 text-muted">{{ choir ? t('ownChoir.record.doneHint') : outcome.everyPart ? t('sing.recorded.everyPartHint') : t('sing.review.hint') }}</p>
+                        <p v-if="!choir" class="eyebrow-step" :style="{ '--step-c': paintInk(color) }" translate="no">{{ t('sing.review.eyebrow', { part: partName }) }}</p>
+                        <h2 id="recorded-title" ref="heading" tabindex="-1" class="t-title-lg mt-2.5 text-cream outline-none">{{ headline }}</h2>
+                        <p class="t-lead mt-2.5">{{ choir ? t('ownChoir.record.doneHint') : outcome.everyPart ? t('sing.recorded.everyPartHint') : t('sing.review.hint') }}</p>
                     </div>
                     <button v-if="!choir" type="button" class="btn-ghost btn-sm" @click="$emit('studio')">{{ t('sing.openStudio') }}</button>
                 </header>
@@ -264,8 +264,8 @@ export const JustRecorded = {
                             <div class="flex items-center gap-3">
                                 <button type="button" class="grid size-12 shrink-0 place-items-center bubble bubble-primary" data-disc="play" :aria-label="hearing ? t('studio.stop') : t('sing.recorded.hearOthers')" @click="$emit('hear')"><Icon :name="hearing ? 'stop' : 'play'" :size="20" /></button>
                                 <div class="min-w-0 flex-1">
-                                    <p class="font-bold text-cream" :data-replay="hearing ? '' : null">{{ hearing ? sk('sing.recorded.hearOthers', 'game.replay') : t('sing.recorded.hearOthers') }}</p>
-                                    <p class="tabular-nums text-xs text-muted">{{ formatTime(Math.max(0, position)) }} / {{ formatTime(lengthSeconds) }}<template v-if="phraseNow !== null && !choir"> · {{ t('sing.review.phrase', { number: phraseNow + 1 }) }}</template></p>
+                                    <p class="text-lg font-semibold text-cream" :data-replay="hearing ? '' : null">{{ hearing ? sk('sing.recorded.hearOthers', 'game.replay') : t('sing.recorded.hearOthers') }}</p>
+                                    <p class="t-clock-of">{{ formatTime(Math.max(0, position)) }} / {{ formatTime(lengthSeconds) }}<template v-if="phraseNow !== null && !choir"> · {{ t('sing.review.phrase', { number: phraseNow + 1 }) }}</template></p>
                                 </div>
                                 <button v-if="!choir" type="button" role="switch" :aria-checked="polished ? 'true' : 'false'" class="tap-44 flex items-center gap-2 rounded-full glass-bubble py-1.5 pe-3 ps-1.5 text-sm font-semibold" :class="polished ? 'text-cream' : 'text-muted'" @click="$emit('polish', !polished)">
                                     <span class="relative h-4 w-7 shrink-0 rounded-full transition" :class="polished ? 'bg-accent' : 'bg-line'" aria-hidden="true"><span class="absolute top-0.5 size-3 rounded-full bg-cream transition-[inset-inline-start]" :style="{ insetInlineStart: polished ? '0.875rem' : '0.125rem' }"></span></span>{{ t('polish.name') }}
@@ -280,16 +280,16 @@ export const JustRecorded = {
                                     <span class="min-w-0 flex-1 rounded-lg bg-ink px-1" :class="row.muted ? 'opacity-40' : ''" :style="row.you ? { boxShadow: 'inset 0 0 0 1.5px ' + row.color } : null"><PeakRow :peaks="row.peaks" :color="row.color" :at="hearing ? Math.max(0, position) / lengthSeconds : null" /></span>
                                 </li>
                             </ul>
-                            <p class="text-xs text-muted">{{ t('sing.review.tapToMute') }}<template v-if="!choir"> {{ polished ? t('polish.hearOn') : t('polish.hearOff') }}</template></p>
+                            <p class="t-hint">{{ t('sing.review.tapToMute') }}<template v-if="!choir"> {{ polished ? t('polish.hearOn') : t('polish.hearOff') }}</template></p>
                         </div>
                         <!-- Fine-tune the take: two tiles. -->
                         <div v-if="!choir" class="space-y-2">
-                            <p class="label">{{ t('sing.review.fineTune') }}</p>
+                            <p class="t-section">{{ t('sing.review.fineTune') }}</p>
                             <div class="grid gap-2 sm:grid-cols-2">
-                                <button type="button" class="card p-4 text-start hover:border-line" :aria-expanded="nudging" @click="nudging = !nudging"><span class="block font-bold text-cream">{{ t('sing.review.nudgeTitle') }}</span><span class="block text-sm text-muted">{{ t('sing.review.nudgeHint') }}</span></button>
-                                <button type="button" class="card p-4 text-start hover:border-line" @click="$emit('trim')"><span class="block font-bold text-cream">{{ t('sing.review.trimTitle') }}</span><span class="block text-sm text-muted">{{ t('sing.review.trimHint') }}</span></button>
+                                <button type="button" class="card p-4 text-start hover:border-line" :aria-expanded="nudging" @click="nudging = !nudging"><span class="block font-semibold text-cream">{{ t('sing.review.nudgeTitle') }}</span><span class="t-hint mt-[3px] block">{{ t('sing.review.nudgeHint') }}</span></button>
+                                <button type="button" class="card p-4 text-start hover:border-line" @click="$emit('trim')"><span class="block font-semibold text-cream">{{ t('sing.review.trimTitle') }}</span><span class="t-hint mt-[3px] block">{{ t('sing.review.trimHint') }}</span></button>
                                 <!-- No phrase feedback (not heard, or still working it out): Re-sing is here instead. -->
-                                <button v-if="canResing && !review.length" type="button" class="card p-4 text-start hover:border-line sm:col-span-2" @click="$emit('resing')"><span class="block font-bold text-cream">{{ t('sing.review.resingTitle') }}</span><span class="block text-sm text-muted">{{ t('sing.review.resingHint') }}</span></button>
+                                <button v-if="canResing && !review.length" type="button" class="card p-4 text-start hover:border-line sm:col-span-2" @click="$emit('resing')"><span class="block font-semibold text-cream">{{ t('sing.review.resingTitle') }}</span><span class="t-hint mt-[3px] block">{{ t('sing.review.resingHint') }}</span></button>
                             </div>
                             <div v-if="nudging" class="card space-y-3 p-4">
                                 <label class="block text-sm font-semibold text-cream" for="nudge">{{ t('sing.recorded.nudge', { ms: nudgeLabel }) }}</label>
@@ -305,7 +305,7 @@ export const JustRecorded = {
                     <!-- The feedback: the one thing to try, the phrases, the picked one's pitch line. -->
                     <div v-if="review.length && !choir" class="card space-y-4 p-4">
                         <div v-if="one">
-                            <p class="label">{{ t('sing.review.oneThing') }}</p>
+                            <p class="t-section">{{ t('sing.review.oneThing') }}</p>
                             <p class="mt-1 text-cream" data-one-thing>{{ oneLine }}</p>
                         </div>
                         <p v-else class="text-cream">{{ t('sing.review.allSteady') }}</p>
@@ -346,9 +346,9 @@ export const JustRecorded = {
                 <BeTheVoice v-if="voice" :part="voice.part" :guest="voice.guest" @share="$emit('voice-share')" @later="$emit('voice-later')" />
             </div>
             <!-- One clear decision, always in view. -->
-            <div class="sticky bottom-0 z-10 border-t border-edge bg-ink/95 px-4 py-3 backdrop-blur md:px-8">
+            <div class="footer-bar px-4 py-3.5 md:px-8">
                 <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-3">
-                    <p class="me-auto text-sm text-muted">{{ t('sing.review.saved') }}</p>
+                    <p class="me-auto text-sm text-subtle">{{ t('sing.review.saved') }}</p>
                     <button type="button" class="btn-secondary" :class="choir ? 'max-sm:w-full' : ''" @click="$emit('again')">{{ t('sing.recorded.again') }}</button>
                     <!-- Share from the take itself (a newcomer couldn't find it: Hillel's dad, 2026-11-23); not for a choir clip. -->
                     <button v-if="!choir && !outcome.everyPart" type="button" class="btn-secondary" data-review-share @click="$emit('share')">{{ t('share.title') }}</button>

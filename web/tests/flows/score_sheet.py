@@ -98,7 +98,7 @@ def journey(f):
         f.run("sessionStorage.setItem('stackapella.mockWithheld', JSON.stringify(['silent-night'])); sessionStorage.setItem('stackapella.scenario', 'templates.show:not_available_here')")
         f.go(f"/t/silent-night/sheet?get=pdf&ref=song-page&lang={lang}", SETTLED)
         f.run(CATCH)
-        assert f.js(STATE) == "withheld", f"a guest on a withheld song ({lang}): {f.js(STATE)}"
+        assert f.js(STATE) == "withheld", f"a guest on a withheld song ({lang}): {f.js(STATE)}, the list {f.js('(await import(\'/js/stores/account.js\')).account.config?.withheldSongs ?? null')}"
         said = f.js("document.querySelector('[data-score-withheld]').textContent")
         assert line in said, f"it says why ({lang}): {said!r}"
         assert not f.js("!!document.querySelector('[data-score-ask], [data-score-signup]')"), f"no invitation ({lang})"

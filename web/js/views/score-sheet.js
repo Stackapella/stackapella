@@ -116,8 +116,10 @@ export const ScoreSheetView = {
             // open it here (the coordinator, 2026-11-17). Its refusal gives the line, with the year it opens here.
             if (!account.me) {
                 const config = await loadAuthConfig().catch(() => null);
+                // The public list decides; the song's own refusal only adds the year it opens here. Any other answer (a slow or
+                // failed request, a copy kept on this device) still says it isn't here, never an invitation (score_sheet's flake).
                 if (withheldSongs(config).has(this.id)) {
-                    this.notHere = await loadTemplate(this.id).then(() => '', (error) => notHereLine(error) ?? '');
+                    this.notHere = (await loadTemplate(this.id).then(() => null, (error) => notHereLine(error))) || t('templates.notHere');
                 }
                 this.state = this.notHere ? 'withheld' : 'guest';
                 return;

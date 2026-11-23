@@ -61,6 +61,8 @@ final class DocumentPagesController extends Controller
         'choir-audition-tips',
         // In carol season (2026-11-23): "easy christmas carols for choir" and "for small choir", answered mostly by sheet-music shops.
         'easy-christmas-carols-for-choir',
+        // Discovering and understanding harmony (Hillel's message, 2026-11-23): "how to hear harmony in a song" has demand.
+        'how-to-hear-harmony',
     ];
 
     /**

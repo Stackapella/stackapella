@@ -60,19 +60,19 @@ export const Coach = {
     template: `
         <section class="flex min-h-0 flex-col overflow-y-auto" :aria-label="t('sing.coach.title', { part: partName })" data-coach>
             <div class="space-y-5 px-5 pb-5 pt-7">
-                <p class="text-xs font-bold uppercase tracking-[0.14em]" :style="{ color: paintInk(color) }">{{ t('sing.coach.stepOf', { step: stepIndex + 1, total: STEPS.length }) }}</p>
+                <p class="eyebrow-step" :style="{ '--step-c': paintInk(color) }">{{ t('sing.coach.stepOf', { step: stepIndex + 1, total: STEPS.length }) }}</p>
                 <ol class="grid grid-cols-4 gap-x-3 gap-y-1.5" :aria-label="t('sing.coach.steps')">
                     <li v-for="(s, i) in STEPS" :key="s">
                         <button type="button" class="w-full text-start" :aria-current="i === stepIndex ? 'step' : null" @click="$emit('step', s)">
-                            <span class="block h-1 rounded-full" :style="{ background: i <= stepIndex ? color : 'var(--color-line)' }" aria-hidden="true"></span>
-                            <span class="mt-2 block text-xs font-semibold leading-tight" data-step-name :class="i === stepIndex ? 'text-cream' : 'text-muted'">{{ t(STEP[s].name) }}</span>
+                            <span class="block h-[3px] rounded-[2px]" :style="{ background: i <= stepIndex ? color : 'var(--color-line)' }" aria-hidden="true"></span>
+                            <span class="mt-2 block text-[13px] leading-tight" data-step-name :class="i === stepIndex ? 'font-semibold text-cream' : 'text-subtle'">{{ t(STEP[s].name) }}</span>
                         </button>
                     </li>
                 </ol>
                 <div>
                     <!-- The screen's heading (h1): the tab says the step, and a screen reader hears where it is (WCAG 2.4.2). -->
-                    <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ t(STEP[step].name) }}</h1>
-                    <p class="mt-2 text-muted">{{ t(STEP[step].hint, { part: partName }) }}</p>
+                    <h1 ref="heading" tabindex="-1" class="t-title text-cream outline-none">{{ t(STEP[step].name) }}</h1>
+                    <p class="t-lead mt-2">{{ t(STEP[step].hint, { part: partName }) }}</p>
                 </div>
                 <KeyControl v-if="musicKey && !(game() && step === 'listen')" :music-key="musicKey" :can-lower="canLower" :can-higher="canHigher" @lower="$emit('lower')" @higher="$emit('higher')" />
                 <button type="button" class="btn-primary btn-lg w-full" :class="step === 'record' ? '' : 'md:hidden'" :aria-busy="pressed && starting ? 'true' : null" data-coach-action @click="pressed = true; $emit('action')"><span v-if="pressed && starting" class="spinner" aria-hidden="true"></span><Icon v-else :name="step === 'record' ? 'record' : 'play'" :size="18" /> {{ t(STEP[step].action, { part: partName, number: here + 1 }) }}</button>
@@ -80,8 +80,8 @@ export const Coach = {
             </div>
             <div v-if="step !== 'record'" class="px-5">
                 <div class="flex items-baseline justify-between gap-3">
-                    <h2 class="font-bold text-cream">{{ t('sing.coach.phrasesTitle') }}</h2>
-                    <span class="tabular-nums text-sm text-muted">{{ t('sing.coach.heardOf', { done: doneCount, total: phrases.length }) }}</span>
+                    <h2 class="t-section">{{ t('sing.coach.phrasesTitle') }}</h2>
+                    <span class="tabular-nums text-[13px] text-subtle">{{ t('sing.coach.heardOf', { done: doneCount, total: phrases.length }) }}</span>
                 </div>
                 <ol class="mt-3 space-y-2 pb-4" :aria-label="t('sing.coach.path')">
                     <li v-for="p in phrases" :key="p.index">
@@ -94,8 +94,8 @@ export const Coach = {
                                 <Icon v-if="counts[p.index]" name="check" :size="16" /><template v-else>{{ p.index + 1 }}</template>
                             </span>
                             <span class="min-w-0">
-                                <span class="block truncate font-bold" data-phrase-line :class="counts[p.index] || p.index <= here ? 'text-cream' : 'text-cream/60'" translate="no">{{ p.label }}</span>
-                                <span class="block tabular-nums text-xs text-muted">{{ counts[p.index] ? t('sing.coach.practised', { count: counts[p.index] }) : p.start ? t('sing.coach.startsOn', { note: p.start }) : t('sing.coach.notYet') }}</span>
+                                <span class="block truncate font-semibold" data-phrase-line :class="counts[p.index] || p.index <= here ? 'text-cream' : 'text-cream/60'" translate="no">{{ p.label }}</span>
+                                <span class="t-hint block tabular-nums">{{ counts[p.index] ? t('sing.coach.practised', { count: counts[p.index] }) : p.start ? t('sing.coach.startsOn', { note: p.start }) : t('sing.coach.notYet') }}</span>
                             </span>
                         </button>
                     </li>

@@ -51,33 +51,33 @@ export const Chooser = {
             <!-- Sing's own bar's place (frame.js SingHeader), Back near the window's edge: never further in than the site's logo
                  (Hillel, 2026-11-10, docs/design-rules.md). The choices keep their column under it. -->
             <header class="flex items-center gap-3 px-3 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))] min-[900px]:px-6">
-                <button type="button" class="glass-bubble grid size-11 shrink-0 place-items-center rounded-full text-cream" :aria-label="t('common.back')" @click="partStep ? back() : $emit('back')"><Icon name="back" :size="20" /></button>
+                <button type="button" class="icon-btn-quiet" :aria-label="t('common.back')" @click="partStep ? back() : $emit('back')"><Icon name="back" :size="20" /></button>
                 <div class="min-w-0 flex-1">
-                    <p v-if="title" class="truncate text-sm text-muted" translate="no">{{ title }}</p>
-                    <p v-if="focus" class="flex items-center gap-2 truncate font-bold text-cream" translate="no"><span class="size-2.5 shrink-0 rounded-full" :style="{ background: paint(focus.slot.color) }" aria-hidden="true"></span>{{ t('sing.chooser.yourPartName', { part: focus.name }) }}</p>
+                    <p v-if="title" class="truncate text-[13px] text-subtle" translate="no">{{ title }}</p>
+                    <p v-if="focus" class="flex items-center gap-2 truncate text-[17px] font-semibold text-cream" translate="no"><span class="size-2.5 shrink-0 rounded-full" :style="{ background: paint(focus.slot.color) }" aria-hidden="true"></span>{{ t('sing.chooser.yourPartName', { part: focus.name }) }}</p>
                 </div>
-                <p v-if="facts" class="shrink-0 tabular-nums text-xs text-muted sm:text-sm">{{ facts }}</p>
+                <p v-if="facts" class="shrink-0 tabular-nums text-[13px] text-subtle">{{ facts }}</p>
             </header>
             <div class="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-4 pb-6 pt-4 md:pb-10 md:pt-6">
             <div class="flex flex-col gap-6 md:my-auto md:pb-10">
 
             <template v-if="!partStep">
                 <div>
-                    <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none md:text-4xl">{{ t('sing.chooser.title') }}</h1>
-                    <p class="mt-1 text-muted">{{ t('sing.chooser.intro') }}</p>
+                    <h1 ref="heading" tabindex="-1" class="t-title text-cream outline-none">{{ t('sing.chooser.title') }}</h1>
+                    <p class="t-lead mt-2">{{ t('sing.chooser.intro') }}</p>
                 </div>
                 <!-- Each way a large button that starts it at once (equal rows when stacked too). Hillel, 2026-11-02 (the
                      first-15-minutes review): Part by part is tagged for a first song, and the studio waits under More ways
                      unless it's the way used last time. -->
                 <div class="grid auto-rows-fr gap-4" :class="shownWays.length === 3 ? 'md:grid-cols-3' : 'md:grid-cols-2'">
-                    <button v-for="w in shownWays" :key="w" type="button" class="card-interactive flex flex-col gap-4 p-5 text-start" :data-way="w" @click="choose(w)">
+                    <button v-for="w in shownWays" :key="w" type="button" class="card-interactive flex flex-col gap-4 p-6 text-start" :data-way="w" @click="choose(w)">
                         <span class="flex items-center gap-3" data-way-head>
-                            <span class="flex-1 text-lg font-bold text-cream" data-way-name>{{ t(LABELS[w]) }}</span>
-                            <span v-if="last === w" class="rounded-full bg-raised px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted" data-last-time>{{ t('sing.chooser.lastTime') }}</span>
-                            <span v-else-if="!last && w === 'parts'" class="rounded-full border border-accent px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent-strong" data-first-pick>{{ t('sing.chooser.firstPick') }}</span>
+                            <span class="flex-1 text-lg font-semibold text-cream" data-way-name>{{ t(LABELS[w]) }}</span>
+                            <span v-if="last === w" class="chip-tag" data-last-time>{{ t('sing.chooser.lastTime') }}</span>
+                            <span v-else-if="!last && w === 'parts'" class="chip-tag border-accent text-accent-strong" data-first-pick>{{ t('sing.chooser.firstPick') }}</span>
                         </span>
                         <!-- How it goes, drawn: a phrase at a time, every part straight through, or the studio's lanes. -->
-                        <span class="relative block space-y-1.5 rounded-2xl border border-line bg-ink/40 p-3" aria-hidden="true">
+                        <span class="relative block space-y-1.5 rounded-2xl bg-well p-3" aria-hidden="true">
                             <Gems measure />
                             <template v-if="w === 'parts'">
                                 <span class="flex gap-1"><span v-for="i in 6" :key="i" class="h-2.5 flex-1" :data-gem="barColor" :data-gem-state="i % 2 ? 'dim' : null"></span></span>
@@ -94,28 +94,28 @@ export const Chooser = {
                                 <span class="block h-2.5" :data-gem="barColor"></span>
                             </template>
                         </span>
-                        <span class="text-muted">{{ t(HINTS[w]) }}</span>
+                        <span class="text-[15px] leading-snug text-muted">{{ t(HINTS[w]) }}</span>
                         <!-- The chevron says a tap goes straight in (the finish-line audit: the cards read as pictures). -->
-                        <span class="mt-auto flex items-center gap-2 tabular-nums text-xs text-muted"><span class="flex-1">{{ w === 'parts' ? partsTime : w === 'whole' ? wholeTime : t('sing.chooser.studioTime') }}</span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 rtl:rotate-90" data-way-go /></span>
+                        <span class="mt-auto flex items-center gap-2 tabular-nums text-[13px] text-subtle"><span class="flex-1">{{ w === 'parts' ? partsTime : w === 'whole' ? wholeTime : t('sing.chooser.studioTime') }}</span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 rtl:rotate-90" data-way-go /></span>
                     </button>
                 </div>
                 <details v-if="shownWays.length < WAYS.length" class="group" data-more-ways>
                     <summary class="link-quiet inline-flex min-h-11 cursor-pointer list-none items-center gap-1.5 text-sm [&::-webkit-details-marker]:hidden">{{ t('sing.chooser.moreWays') }} <Icon name="chevron" :size="14" class="transition group-open:rotate-180" /></summary>
                     <button type="button" class="card-interactive mt-2 flex w-full items-center gap-3 p-4 text-start" data-way="studio" @click="choose('studio')">
                         <span class="flex min-w-0 flex-1 flex-col gap-1">
-                            <span class="font-bold text-cream">{{ t(LABELS.studio) }}</span>
-                            <span class="text-sm text-muted">{{ t(HINTS.studio) }}</span>
+                            <span class="font-semibold text-cream">{{ t(LABELS.studio) }}</span>
+                            <span class="t-hint">{{ t(HINTS.studio) }}</span>
                         </span>
                         <Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" data-way-go />
                     </button>
                 </details>
-                <p v-if="installHint" class="rounded-2xl border border-line p-4 text-sm text-muted">{{ t('sing.chooser.install') }}</p>
+                <p v-if="installHint" class="alert-inline" style="--alert-c: var(--color-accent)"><span>{{ t('sing.chooser.install') }}</span></p>
                 <label class="check-row"><input v-model="always" type="checkbox" class="checkbox" /> {{ t('sing.chooser.always') }}</label>
             </template>
             <template v-else>
                 <div>
-                    <h1 ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ t('sing.chooser.yourPart') }}</h1>
-                    <p class="mt-1 text-muted">{{ t('sing.chooser.yourPartHint') }}</p>
+                    <h1 ref="heading" tabindex="-1" class="t-title text-cream outline-none">{{ t('sing.chooser.yourPart') }}</h1>
+                    <p class="t-lead mt-2">{{ t('sing.chooser.yourPartHint') }}</p>
                 </div>
                 <!-- Game mode's character select (docs/game-elements-plan.md): the same parts and the same choice -->
                 <PartSelect v-if="effect('select')" :parts="parts" :transpose="transpose" :suggested="focus?.slot.id ?? suggested" :no-voice="noVoice" :ai-voice="aiVoice" @choose="(slotId) => $emit('choose', { way: picked, slotId })" />
@@ -124,8 +124,8 @@ export const Chooser = {
                         <button type="button" class="card-interactive flex w-full items-center gap-4 p-4 text-start" @click="$emit('choose', { way: picked, slotId: part.slot.id })">
                             <span class="gem size-4 shrink-0 rounded-full" :style="{ '--gem': paint(part.slot.color) }" aria-hidden="true"></span>
                             <span class="min-w-0 flex-1">
-                                <span class="block font-bold text-cream" translate="no">{{ part.name }}<span v-if="part.slot.id === suggested" class="ms-2 text-xs font-semibold text-part-ink-4">{{ t('range.bestForYou') }}</span><AiVoiceLabel v-if="aiVoice.includes(part.slot.id)" tag class="ms-2 align-middle" /><NoVoiceTag v-else-if="noVoice.includes(part.slot.id)" class="ms-2 align-middle" /></span>
-                                <span class="text-sm text-muted" data-part-words>{{ part.words }}<template v-if="part.words && part.range"> · </template></span><span class="tabular-nums text-sm text-muted">{{ part.range ? t('sing.chooser.range', { low: midiName(part.range.low + transpose), high: midiName(part.range.high + transpose) }) : '' }}<template v-if="part.recorded"> · {{ t('sing.chooser.recorded') }}</template></span>
+                                <span class="block font-semibold text-cream" translate="no">{{ part.name }}<span v-if="part.slot.id === suggested" class="ms-2 text-xs font-semibold text-part-ink-4">{{ t('range.bestForYou') }}</span><AiVoiceLabel v-if="aiVoice.includes(part.slot.id)" tag class="ms-2 align-middle" /><NoVoiceTag v-else-if="noVoice.includes(part.slot.id)" class="ms-2 align-middle" /></span>
+                                <span class="text-sm text-subtle" data-part-words>{{ part.words }}<template v-if="part.words && part.range"> · </template></span><span class="tabular-nums text-sm text-subtle">{{ part.range ? t('sing.chooser.range', { low: midiName(part.range.low + transpose), high: midiName(part.range.high + transpose) }) : '' }}<template v-if="part.recorded"> · {{ t('sing.chooser.recorded') }}</template></span>
                             </span>
                             <Icon name="arrow" :size="20" class="shrink-0 text-muted" />
                         </button>
@@ -141,11 +141,11 @@ export const Chooser = {
         shownWays() {
             return this.last === 'studio' ? WAYS : WAYS.filter((w) => w !== 'studio');
         },
-        /** "B♭2–E♭3 · 90 BPM": your part's range in this key, and the tempo. */
+        /** "B♭2–E♭3 · Tempo 90": your part's range in this key, and the tempo in words (never BPM: the coordinator's call 9). */
         facts() {
             const r = this.focus?.range;
             const range = r ? t('sing.chooser.rangeShort', { low: midiName(r.low + this.transpose), high: midiName(r.high + this.transpose) }) : '';
-            return [range, this.bpm ? t('studio.meta.bpm', { bpm: this.bpm }) : ''].filter(Boolean).join(' · ');
+            return [range, this.bpm ? t('sing.chooser.tempo', { bpm: this.bpm }) : ''].filter(Boolean).join(' · ');
         },
         /** The whole song's picture: a line for each part (up to six), in its own colour. */
         wholeColors() {

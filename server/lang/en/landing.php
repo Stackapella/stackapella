@@ -41,7 +41,7 @@ return [
         // Hillel, 2026-11-23: people search "sing harmony"; "make harmony" read like producer software.
         'before' => 'Sing harmony',
         'em' => 'with your voice.',
-        'lede' => 'Learn to sing harmony, record a solo a cappella performance, or help your choir prepare for rehearsal.',
+        'lede' => 'Harmony is hard to find on your own. Here a guide voice sings with you, so you hear how the parts fit and find yours.',
         'try' => 'Try the first lesson',
         'try_note' => 'No account needed',
     ],
@@ -49,7 +49,7 @@ return [
     'paths' => [
         'label' => 'Find your path.',
         'app' => 'in the app',
-        'learn' => ['eyebrow' => 'Learners', 'badge' => 'Always free', 'who' => 'Learn to sing harmony', 'what' => 'Follow a guide voice and practise one part at a time.', 'go' => 'Explore free courses'],
+        'learn' => ['eyebrow' => 'Learners', 'badge' => 'Always free', 'who' => 'Learn to sing harmony', 'what' => 'Hear each part on its own, then sing yours with a guide voice.', 'go' => 'Explore free courses'],
         'make' => ['eyebrow' => 'Singers', 'who' => 'Record a whole song yourself', 'what' => 'Record every part yourself, or let AI sing them in a voice like yours.', 'go' => 'See how to layer your voice', 'go_choir' => 'Hear yourself as a choir'],
         'lead' => ['eyebrow' => 'Leaders', 'who' => 'Get your choir ready', 'what' => 'Assign parts, give singers a way to practise at home, and see who\'s ready.', 'go' => 'See tools for choir leaders'],
     ],
@@ -94,7 +94,7 @@ return [
         'before' => 'Find',
         'em' => 'your part.',
         'after' => '',
-        'body' => 'Tap a voice and the others step back. Tap it again and all four return, from the same spot.',
+        'body' => 'Hear one part on its own, then all four together: that\'s how the parts fit.',
         'true' => 'Every song in the library opens this way.',
     ],
     'sing' => [

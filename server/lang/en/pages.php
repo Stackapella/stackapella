@@ -351,7 +351,7 @@ return [
         'featured_kick' => 'Start here',
         'read' => 'Read the guide',
         'groups' => [
-            ['The basics', ['what-is-harmony', 'satb-explained', 'choir-voicings', 'what-is-a-descant', 'find-your-voice-type']],
+            ['The basics', ['what-is-harmony', 'how-to-hear-harmony', 'satb-explained', 'choir-voicings', 'what-is-a-descant', 'find-your-voice-type']],
             ['Learn your part', ['find-your-part', 'find-your-starting-note', 'hold-your-part', 'practise-a-choir-part', 'a-round-for-beginners', 'sing-harmony-with-yourself', 'free-satb-learning-tracks']],
             ['Skills', ['ear-training', 'sight-reading-for-singers', 'singing-in-tune', 'how-to-sing-with-vibrato', 'breathing-basics', 'arranging-a-cappella', 'vocal-percussion']],
             ['Singing together', ['how-to-blend-in-a-choir', 'how-to-run-a-sectional', 'how-to-start-an-a-cappella-group', 'barbershop-tags', 'choir-audition-tips', 'hanukkah-songs-for-choir', 'easy-christmas-carols-for-choir']],
@@ -1990,7 +1990,8 @@ return [
                     ['If a song doesn\'t come out', [
                         'The app says what went wrong and how to fix it: too quiet, too loud, too much background noise, a tune it couldn\'t follow, or too little singing.',
                         'Sing again somewhere quiet, about a hand\'s width from the mic, at normal volume.',
-                        'A song that fails on our side, or before any work was done on it, doesn\'t count toward your songs.',
+                        'A loud breath just before a line, or moving after the last note, can stop it too: breathe a moment earlier, turned a little away from the mic.',
+                        'A failure on our side doesn\'t count toward your songs or your minutes. If your recording can\'t be used, it usually doesn\'t count either: the app tells you when it didn\'t.',
                         'Still stuck? Tap **Contact us** at the bottom of **Settings**.',
                     ]],
                 ],

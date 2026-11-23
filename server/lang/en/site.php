@@ -8423,7 +8423,7 @@ return [
             'title' => 'Free singing courses on Stackapella',
             'description' => 'Deeper courses for your voice, in short lessons: counterpoint, vibrato, range, diction, sight-singing, scat, barbershop and more. Every course is free.',
             'headline' => 'Free singing courses',
-            'lead' => 'Deeper courses for your voice, built on the same short lessons as the beginner course. Every course is free: try the first lesson without an account, and a free account opens the rest. More are on the way.',
+            'lead' => 'Harmony is hard to learn on your own. Every course gives you a guide voice to sing with, one short lesson at a time. Every course is free: try the first lesson without an account, and a free account opens the rest.',
             // Hillel's courses page with filters (2026-11-13): the head, the Start here card, the filters and the close.
             'kicker' => 'Courses',
             'lead_count' => ':count courses, all built from short lessons. Try the first lesson of any course without an account; a free account opens the rest.',

@@ -1676,9 +1676,11 @@ select:disabled {
     padding: 3px;
     border-radius: 10px;
     background-color: var(--color-well);
-    & > .seg-option { min-height: 2rem; padding-inline: 14px; border-radius: 7px; font-size: 0.8125rem; font-weight: 500; }
-    /* The tap area reaches 44 px tall without touching the row above or below. */
-    & > .seg-option::after { content: ''; position: absolute; inset-inline: 0; top: 50%; height: max(100%, 44px); transform: translateY(-50%); }
+    & > .seg-option { min-width: 2.75rem; min-height: 2rem; padding-inline: 14px; border-radius: 7px; font-size: 0.8125rem; font-weight: 500; }
+    /* The tap area reaches 44 px tall without touching the row above or below, and is exactly the option's width (a 44 px
+       minimum on the option itself): with tap-44 as well, its max(100%, 44px) width ran a narrow option's area past the
+       track, and fitSegments stacked the whole control (ai-frontend, 2026-11-23). */
+    & > .seg-option::after { content: ''; position: absolute; inset-inline: 0; left: 0; width: auto; top: 50%; height: max(100%, 44px); transform: translateY(-50%); }
 }
 @utility seg-header {
     padding: 4px;

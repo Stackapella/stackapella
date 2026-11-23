@@ -1664,9 +1664,10 @@
     "If a song doesn't come out": "Si una canción no sale",
     "The app says what went wrong and how to fix it: too quiet, too loud, too much background noise, a tune it couldn't follow, or too little singing.": "La app dice qué salió mal y cómo arreglarlo: demasiado bajo, demasiado alto, demasiado ruido de fondo, una melodía que no pudo seguir o muy poco canto.",
     "Sing again somewhere quiet, about a hand's width from the mic, at normal volume.": "Vuelve a cantar en un sitio tranquilo, a un palmo del micrófono, a volumen normal.",
-    "A song that fails on our side, or before any work was done on it, doesn't count toward your songs.": "Una canción que falla por nuestra parte, o antes de empezar a hacerse, no cuenta entre tus canciones.",
+    "A failure on our side doesn't count toward your songs or your minutes. If your recording can't be used, it usually doesn't count either: the app tells you when it didn't.": "Un fallo por nuestra parte no cuenta entre tus canciones ni tus minutos. Si tu grabación no se puede usar, normalmente tampoco cuenta: la app te avisa cuando no contó.",
     "Still stuck? Tap **Contact us** at the bottom of **Settings**.": "¿Sigues sin poder? Toca **Contacto** al final de **Ajustes**.",
     "It sings the song's own words, respelled for singing.": "Canta la letra propia de la canción, transcrita para cantarla.",
     "Singing it with a choir this Hanukkah?": "¿La cantas con un coro esta Janucá?",
-    "A three-week plan": "Un plan de tres semanas"
+    "A three-week plan": "Un plan de tres semanas",
+    "A loud breath just before a line, or moving after the last note, can stop it too: breathe a moment earlier, turned a little away from the mic.": "Una respiración fuerte justo antes de una frase, o moverte tras la última nota, también puede impedirlo: respira un momento antes, girando un poco la cara del micrófono."
 }
