@@ -52,20 +52,33 @@ final class AiMark
         }
     }
 
+    /** The machine-readable line: the worker's iXML USER, and an MP4's description. */
+    public static function line(): string
+    {
+        return 'ai_generated=true;digital_source_type='.config('ai_marking.digital_source_type').';generator='.config('ai_marking.generator');
+    }
+
     /**
-     * ffmpeg's arguments for an MP4 holding AI audio: its comment, and custom keys for the generator and the IPTC
-     * digital source type.
+     * ffmpeg's arguments for an MP4 holding AI audio: the iTunes comment (©cmt) the text and the description (desc) the
+     * line. Standard atoms only: ffmpeg's +use_metadata_tags would move even the comment into mdta keys no iTunes-style
+     * reader sees, and without it a custom key is dropped (tested with ffmpeg 7, 2026-11-24).
      *
      * @return list<string>
      */
     public static function mp4Metadata(): array
     {
-        return [
-            '-metadata', 'comment='.config('ai_marking.text'),
-            '-metadata', 'ai_generated=true',
-            '-metadata', 'ai_generator='.config('ai_marking.generator'),
-            '-metadata', 'digital_source_type='.config('ai_marking.digital_source_type'),
-        ];
+        return ['-metadata', 'comment='.config('ai_marking.text'), '-metadata', 'description='.self::line()];
+    }
+
+    /**
+     * Whether an MP4's tags (Ffmpeg::tags) carry the marking: the line in its description, or the custom key the server
+     * wrote from 2026-11-23 to 24.
+     *
+     * @param  array<string, string>  $tags
+     */
+    public static function mp4Marked(array $tags): bool
+    {
+        return str_starts_with($tags['description'] ?? '', 'ai_generated=true;') || ($tags['ai_generated'] ?? null) === 'true';
     }
 
     /**

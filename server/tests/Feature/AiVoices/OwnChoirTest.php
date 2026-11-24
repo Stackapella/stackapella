@@ -19,6 +19,7 @@ use App\Models\Template;
 use App\Models\TemplateVersion;
 use App\Models\User;
 use App\Services\Audio\Ffmpeg;
+use App\Support\AiVoices\AiMark;
 use App\Support\Contract\SchemaChecker;
 use App\Support\Flags;
 use App\Support\OwnChoir\ChoirWait;
@@ -183,7 +184,7 @@ final class OwnChoirTest extends TestCase
         // Both carry the AI marking (EU AI Act Article 50).
         foreach ([$media, $listen] as $file) {
             $tags = app(Ffmpeg::class)->tags(Storage::disk('private')->path((string) $file));
-            $this->assertSame(['true', config('ai_marking.text'), config('ai_marking.generator')], [$tags['ai_generated'] ?? null, $tags['comment'] ?? null, $tags['ai_generator'] ?? null]);
+            $this->assertSame([config('ai_marking.text'), AiMark::line()], [$tags['comment'] ?? null, $tags['description'] ?? null]);
         }
         $this->assertNotSame($media, $listen);
         $this->assertStringContainsString(basename((string) $listen), (string) collect($show->json('data.requests.0.parts'))->pluck('url')->implode(' '));

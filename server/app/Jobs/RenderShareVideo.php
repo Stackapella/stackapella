@@ -113,6 +113,8 @@ final class RenderShareVideo implements ShouldQueue
 
             $renderer->render([
                 'audio' => $audio,
+                // An AI voice in the mix: the video says so inside it, as the mix does (EU AI Act Article 50).
+                'ai' => $harmony->holdsAi(),
                 'out' => $out,
                 'start' => $start,
                 'end' => $end,

@@ -177,6 +177,15 @@ final class Harmony extends Model
     }
 
     /**
+     * Whether its mix holds an AI voice (a catalogue AI part, or the sharer's or a friend's own voice): every file made
+     * from it is marked.
+     */
+    public function holdsAi(): bool
+    {
+        return (array) $this->ai_parts !== [] || (array) $this->own_voice_parts !== [] || (array) $this->own_voice_friends !== [];
+    }
+
+    /**
      * Anyone with the link may hear it now.
      */
     public function isLive(): bool

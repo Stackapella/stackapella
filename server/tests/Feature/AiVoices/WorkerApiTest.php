@@ -13,6 +13,7 @@ use App\Models\Template;
 use App\Models\TemplateGuide;
 use App\Models\TemplateVersion;
 use App\Services\Audio\Ffmpeg;
+use App\Support\AiVoices\AiMark;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
@@ -129,6 +130,9 @@ final class WorkerApiTest extends TestCase
         $this->assertSame($guide->sqid(), $shown->json('data.guideId'));
         $probe = app(Ffmpeg::class)->probe(Storage::disk('media')->path($guide->media_key), upload: false);
         $this->assertSame('aac', $probe['codec'] ?? null);
+        // The guide the app and the site play says it's AI-made, inside the file (EU AI Act Article 50).
+        $tags = app(Ffmpeg::class)->tags(Storage::disk('media')->path($guide->media_key));
+        $this->assertSame([config('ai_marking.text'), AiMark::line()], [$tags['comment'] ?? null, $tags['description'] ?? null]);
         $this->assertNull(TemplateGuide::withAi()->find($earlier->id), 'The earlier AI render is replaced.');
         Storage::disk('media')->assertMissing($earlier->media_key);
         Storage::disk('private')->assertMissing($upload->upload_key);

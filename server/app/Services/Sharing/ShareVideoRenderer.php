@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Sharing;
 
+use App\Services\Audio\Ffmpeg;
+use App\Support\AiVoices\AiMark;
 use App\Support\Sharing\Karaoke;
 use Closure;
 use GdImage;
@@ -38,7 +40,7 @@ final class ShareVideoRenderer
     private const WORDS_HEIGHT = 340;
 
     /**
-     * @param  array{audio: string, out: string, start: float, end: float, look: string, title: string, singers: string, song: string, link: string, tracks: list<array{name: string, color: string, peaks: string}>, lines: list<list<array{text: string, start: float, end: float, joins: bool}>>}  $job  `lines` already relative to `start`
+     * @param  array{audio: string, ai?: bool, out: string, start: float, end: float, look: string, title: string, singers: string, song: string, link: string, tracks: list<array{name: string, color: string, peaks: string}>, lines: list<list<array{text: string, start: float, end: float, joins: bool}>>}  $job  `lines` already relative to `start`
      * @param  Closure(float): void  $progress  called with 0 to 1 as it goes
      */
     public function render(array $job, Closure $progress): void
@@ -99,7 +101,7 @@ final class ShareVideoRenderer
                 '-map', '[video]', '-map', '[audio]', '-t', (string) $total,
                 ...($threads > 0 ? ['-threads', (string) $threads] : []),
                 '-c:v', 'libx264', '-preset', 'superfast', '-crf', '23', '-maxrate', '1600k', '-bufsize', '3200k', '-pix_fmt', 'yuv420p', '-r', (string) $fps,
-                '-c:a', 'aac', '-b:a', '128k', '-ac', '2', '-movflags', '+faststart',
+                '-c:a', 'aac', '-b:a', '128k', '-ac', '2', ...(($job['ai'] ?? false) ? AiMark::mp4Metadata() : []), '-movflags', '+faststart',
                 '-progress', 'pipe:1',
                 $job['out'],
             ];
@@ -113,6 +115,10 @@ final class ShareVideoRenderer
 
             if (! $result->successful() || ! is_file($job['out']) || filesize($job['out']) === 0) {
                 throw new RuntimeException('ffmpeg could not make the video: '.mb_strimwidth($result->errorOutput(), 0, 500, '...'));
+            }
+
+            if ($job['ai'] ?? false) {
+                app(Ffmpeg::class)->assertMarked($job['out']);
             }
         } finally {
             File::deleteDirectory($dir);

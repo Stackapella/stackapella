@@ -12,6 +12,7 @@ use App\Models\ShareVideo;
 use App\Models\Take;
 use App\Models\User;
 use App\Services\Audio\Ffmpeg;
+use App\Support\AiVoices\AiMark;
 use App\Support\Flags;
 use App\Support\Sharing\HarmonyFacts;
 use App\Support\Trust\TrustLevel;
@@ -441,8 +442,8 @@ final class HarmoniesTest extends TestCase
             $this->postJson('/api/harmonies/'.$id.'/complete')->assertOk();
             $tags = app(Ffmpeg::class)->tags(Storage::disk('private')->path((string) $harmony->refresh()->audio_key));
 
-            $this->assertSame($ai !== null ? 'true' : null, $tags['ai_generated'] ?? null);
-            $this->assertSame($ai !== null ? config('ai_marking.text') : null, $tags['comment'] ?? null);
+            $this->assertSame($ai !== null, AiMark::mp4Marked($tags));
+            $this->assertSame($ai !== null ? [config('ai_marking.text'), AiMark::line()] : [null, null], [$tags['comment'] ?? null, $tags['description'] ?? null]);
         }
     }
 }

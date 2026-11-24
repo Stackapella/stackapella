@@ -107,10 +107,14 @@ final class Ffmpeg
             'volume='.round($gainDb, 2).'dB',
         ]);
 
-        $result = Process::timeout(200)->run(['ffmpeg', '-hide_banner', '-nostats', '-y', ...self::LOCAL_IN, '-i', $in, '-af', $filter, '-c:a', 'aac', '-b:a', ($kbps ?? ((int) config('beta.guide_kbps') ?: 128)).'k', '-ar', (string) $sampleRate, '-ac', '1', ...($ai ? AiMark::mp4Metadata() : []), '-movflags', $ai ? '+faststart+use_metadata_tags' : '+faststart', '-f', 'mp4', $out]);
+        $result = Process::timeout(200)->run(['ffmpeg', '-hide_banner', '-nostats', '-y', ...self::LOCAL_IN, '-i', $in, '-af', $filter, '-c:a', 'aac', '-b:a', ($kbps ?? ((int) config('beta.guide_kbps') ?: 128)).'k', '-ar', (string) $sampleRate, '-ac', '1', ...($ai ? AiMark::mp4Metadata() : []), '-movflags', '+faststart', '-f', 'mp4', $out]);
 
         if (! $result->successful() || ! is_file($out)) {
             throw new RuntimeException('ffmpeg could not make the guide: '.mb_strimwidth($result->errorOutput(), 0, 500, '...'));
+        }
+
+        if ($ai) {
+            $this->assertMarked($out);
         }
     }
 
@@ -120,10 +124,38 @@ final class Ffmpeg
      */
     public function encodeMix(string $in, string $out, int $channels, bool $ai = false): void
     {
-        $result = Process::timeout(200)->run(['ffmpeg', '-hide_banner', '-nostats', '-y', ...self::WAV_IN, '-i', $in, '-c:a', 'aac', '-b:a', $channels > 1 ? '160k' : '128k', '-ac', (string) $channels, ...($ai ? AiMark::mp4Metadata() : []), '-movflags', $ai ? '+faststart+use_metadata_tags' : '+faststart', '-f', 'mp4', $out]);
+        $result = Process::timeout(200)->run(['ffmpeg', '-hide_banner', '-nostats', '-y', ...self::WAV_IN, '-i', $in, '-c:a', 'aac', '-b:a', $channels > 1 ? '160k' : '128k', '-ac', (string) $channels, ...($ai ? AiMark::mp4Metadata() : []), '-movflags', '+faststart', '-f', 'mp4', $out]);
 
         if (! $result->successful() || ! is_file($out) || filesize($out) === 0) {
             throw new RuntimeException('ffmpeg could not make the mix: '.mb_strimwidth($result->errorOutput(), 0, 300));
+        }
+
+        if ($ai) {
+            $this->assertMarked($out);
+        }
+    }
+
+    /**
+     * An MP4 made before the marking, copied with it (ai:mark-existing): the streams untouched, the marking added.
+     */
+    public function markMp4(string $in, string $out): void
+    {
+        $result = Process::timeout(200)->run(['ffmpeg', '-hide_banner', '-nostats', '-y', ...self::LOCAL_IN, '-i', $in, '-map', '0', '-c', 'copy', ...AiMark::mp4Metadata(), '-movflags', '+faststart', '-f', 'mp4', $out]);
+
+        if (! $result->successful() || ! is_file($out) || filesize($out) === 0) {
+            throw new RuntimeException('ffmpeg could not mark the file: '.mb_strimwidth($result->errorOutput(), 0, 300));
+        }
+
+        $this->assertMarked($out);
+    }
+
+    /**
+     * An MP4 holding AI audio, read back: never kept or served without its marking (EU AI Act Article 50).
+     */
+    public function assertMarked(string $path): void
+    {
+        if (! AiMark::mp4Marked($this->tags($path))) {
+            throw new RuntimeException('The AI marking is missing from '.basename($path).'.');
         }
     }
 

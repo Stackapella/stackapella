@@ -1796,9 +1796,12 @@ you" line and Settings' choir email row; off, none of the three, so the app neve
 the storage, from the server's config, so the app never types them. `aiMark` (since 2026-11-23, EU AI Act Article 50): `{ "text", "generator", "digitalSourceType" }`, the one wording
 of the machine-readable marking every file holding an AI voice carries. The app writes it into its own exports that
 hold one (WAV: `LIST`/`INFO` `ICMT` the text and `ISFT` the generator, and a `bext` description; MP3: ID3 `COMM` the
-text and `TXXX` `AI_GENERATED` "true" and `AI_GENERATOR`); the server writes it into every AAC it makes from AI audio
-(the choir's parts and listening copies, AI guides, a shared mix holding one: the comment, and `ai_generated`,
-`ai_generator`, `digital_source_type`).
+text and `TXXX` `AI_GENERATED` "true" and `AI_GENERATOR`); the server writes it into every MP4 it makes from AI audio
+(the choir's parts and listening copies, AI guides, a shared mix holding one and its share videos), since 2026-11-24 as
+standard iTunes atoms: the comment (`©cmt`) the text, and the description (`desc`) the line
+`ai_generated=true;digital_source_type=<digitalSourceType>;generator=<generator>`, as the worker's iXML `USER`. The
+server reads each one back before keeping it, and `app:ai-marking:existing` adds it to files made before (from
+2026-11-23 to 24 the server wrote custom keys instead, `ai_generated` among them).
 
 | Status | Code | Schema | Example |
 |---|---|---|---|

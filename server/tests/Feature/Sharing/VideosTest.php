@@ -8,6 +8,8 @@ use App\Actions\Templates\SyncOfficialTemplates;
 use App\Jobs\RenderShareVideo;
 use App\Models\Harmony;
 use App\Models\ShareVideo;
+use App\Services\Audio\Ffmpeg;
+use App\Support\AiVoices\AiMark;
 use App\Support\Flags;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -53,6 +55,30 @@ final class VideosTest extends TestCase
         $this->assertEqualsWithDelta(32.0, (float) ($probe['format']['duration'] ?? 0), 0.15);
         $this->assertLessThan(15_000_000, $video->bytes);
         $this->assertTrue($video->expires_at?->between(now()->addDays(7)->subMinute(), now()->addDays(7)->addMinute()));
+        // No AI voice in it: no AI marking.
+        $this->assertSame([], array_intersect_key($this->tagsOf((string) $video->file_key), ['description' => true, 'ai_generated' => true]));
+
+        // A mix holding the sharer's own AI voice: its video says so inside it, as the mix does.
+        $harmony->forceFill(['own_voice_parts' => ['alto']])->save();
+        $ai = $this->postJson('/api/harmonies/'.$harmony->public_id.'/videos', ['startSeconds' => 0, 'endSeconds' => 3, 'look' => 'dark', 'words' => false]);
+        $this->getJson('/api/videos/'.$ai->json('data.id'))->assertJsonPath('data.status', 'ready');
+        $tags = $this->tagsOf((string) ShareVideo::query()->latest('id')->firstOrFail()->file_key);
+        $this->assertSame([config('ai_marking.text'), AiMark::line()], [$tags['comment'] ?? null, $tags['description'] ?? null]);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function tagsOf(string $key): array
+    {
+        $file = (string) tempnam(sys_get_temp_dir(), 'video-tags');
+        file_put_contents($file, (string) Storage::disk('private')->get($key));
+
+        try {
+            return app(Ffmpeg::class)->tags($file);
+        } finally {
+            @unlink($file);
+        }
     }
 
     public function test_the_same_choices_again_answer_the_same_video_without_counting_and_the_limit_refuses_more(): void
