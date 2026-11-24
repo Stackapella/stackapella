@@ -35,8 +35,12 @@ export async function loadChoirFull(request) {
 }
 
 /** Plays every part together from the start (after the tap: unlocks first); anything else in the engine is taken out. */
+/** What's playing: its voices' part keys, whether mixed as parts or rendered into one (a room), for the screen and the flows. */
+export const choirPlaying = { parts: [] };
+
 export async function playChoir(voices, sound = null, fromSeconds = 0, { tune = null } = {}) {
     await unlock();
+    choirPlaying.parts = voices.map((v) => v.partKey);
     [...engine.parts.keys()].forEach((id) => engine.removePart(id));
     engine.projectId = 'choir';
     if (shaped(sound)) {

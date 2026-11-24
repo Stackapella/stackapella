@@ -321,6 +321,9 @@
     "/js/public/voices.js",
     "/js/public/demo-player.js"
   ],
+  "/js/public/cabinet.js": [
+    "/js/public/cabinet.js"
+  ],
   "/js/public/carols.js": [
     "/js/public/carols.js"
   ],

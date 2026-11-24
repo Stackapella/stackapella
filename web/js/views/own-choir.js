@@ -18,6 +18,7 @@ import { AppScreen } from '../components/page.js';
 import { confirmAction } from '../components/confirm.js';
 import { toast } from '../components/ui.js';
 import { account, loadAccount, loadAuthConfig } from '../stores/account.js';
+import { prefs } from '../stores/prefs.js';
 import { deleteProject, loadProjects, projects, startFromTemplate } from '../stores/projects.js';
 import { loadTemplate, partsFor, templatePartName } from '../templates.js';
 import { songTitle } from '../song-titles.js';
@@ -80,7 +81,7 @@ const FAILURES = { clip_unusable: tk('ownChoir.failed.clip_unusable'), bad_clip:
 export const OwnChoirView = {
     components: { AiOffNotice, ChoirGalleryRow, Segmented, Agreement, AppScreen, ChoirSettings, ClipChoice, FirstNoteStep, HeadphonesPick, Icon, PlusMoment, TurnstileBox },
     props: { id: { type: String, required: true } },
-    data: () => ({ failRun: null, retried: false, useEarlier: false, resing: false, listenTo: 'choir', plusSettings: false, shift: null, hearingClip: false, firstNote: null, leftNames: [], plusFriends: false, sentInvite: null, copied: false, plusFor: false, emailSent: false, sending: false, checkToken: null, checkRound: 0, state: 'loading', offReason: 'unavailable', canStart: false, template: null, terms: null, busy: false, playing: false, loadingTrack: false, hum: null, own: false }),
+    data: () => ({ at: 0, failRun: null, retried: false, useEarlier: false, resing: false, listenTo: 'choir', plusSettings: false, shift: null, hearingClip: false, firstNote: null, leftNames: [], plusFriends: false, sentInvite: null, copied: false, plusFor: false, emailSent: false, sending: false, checkToken: null, checkRound: 0, state: 'loading', offReason: 'unavailable', canStart: false, template: null, terms: null, busy: false, playing: false, loadingTrack: false, hum: null, own: false }),
     setup: () => ({ rememberedHeadphones, isPlus, ownChoir, account, isOpen, templatePartName, savedVoice, formatNumber, navigate, aiOn, galleryConfig }),
     computed: {
         /** Back here from the Plus page, once Plus is on. */
@@ -113,6 +114,33 @@ export const OwnChoirView = {
             if (!this.retried || !this.request) return null;
             if (isOpen(this.request)) return 'building';
             return this.request.status === 'ready' ? 'done' : null;
+        },
+        /**
+         * The sound they hear, download and share: the choir's own, or (none set yet) the room they picked last, else
+         * Small room (Hillel, 2026-11-24), with every part at its level.
+         */
+        sound() {
+            // The server fills in its default for a song nothing was saved for, and says so (`soundSaved: false`): then the
+            // room is theirs from last time. An older answer without the flag counts as saved.
+            const settings = this.request?.settings ?? {};
+            const own = settings.sound ?? null;
+            const saved = !!own?.room && settings.soundSaved !== false;
+            return { room: prefs.choirRoom || 'small', balance: [], ...(own ?? {}), ...(saved ? {} : { room: prefs.choirRoom || 'small' }) };
+        },
+        /**
+         * Listen to's choices that aren't there yet, each said in one line with what to do: their recording (kept with their
+         * saved voice, on every device, once it was sung to this song) and You + choir (after singing the whole song).
+         */
+        listenMissing() {
+            // One short line for whatever can't be heard yet (never two): sung to another song or not the whole song, or gone.
+            const clip = ownChoir.data?.voice?.clipListen ?? null;
+            const recording = !!clip && clip.templateId === this.request?.templateId;
+            if (recording && this.request?.leadTake) return [];
+            return [clip ? t('ownChoir.version.missing.next') : t('ownChoir.version.missing.gone')];
+        },
+        /** The finished track's length (its longest part), for the player's times. */
+        trackSeconds() {
+            return Math.max(0, ...(this.request?.parts ?? []).map((p) => (p.frames && p.sampleRate ? p.frames / p.sampleRate : 0)));
         },
         /** Hillel's choir error design: our failure with the voice saved, and the try again after it. */
         oursScreen() {
@@ -314,7 +342,8 @@ export const OwnChoirView = {
         /** What there is to listen to: their recording (while kept), them with the choir (a whole-song take), the full choir. */
         viewOptions() {
             const options = [];
-            if (this.clipUrl) options.push({ value: 'recording', label: t('ownChoir.version.recording') });
+            // Only a choice that can play here: their recording when it was sung to this song (the coordinator, 2026-11-24).
+            if (this.clipUrl && ownChoir.data?.voice?.clipListen?.templateId === this.request?.templateId) options.push({ value: 'recording', label: t('ownChoir.version.recording') });
             if (this.request?.leadTake) options.push({ value: 'withChoir', label: t('ownChoir.version.youChoir') });
             options.push({ value: 'choir', label: t('ownChoir.version.fullChoir') });
             return options;
@@ -437,23 +466,40 @@ export const OwnChoirView = {
                 </template>
                 <template v-else-if="request?.status === 'ready'">
                     <p v-for="name in leftNames" :key="name" class="card p-4 text-cream" role="status" data-choir-left>{{ t('ownChoir.together.friendLeft', { name, song }) }}</p>
-                    <h1 class="t-title text-cream">{{ t('ownChoir.listen.title', { song }) }} <span class="chip-tag align-middle" data-ai-voice="tag">{{ t('ownChoir.together.who.ai') }}</span></h1>
-                    <div class="card space-y-4 p-5" data-choir-track>
-                        <!-- The AI label once (the coordinator, 2026-11-23): the H1 says "in a voice like yours"; this line only when
-                             friends' voices join (it names whose). -->
-                        <p v-if="together && (request.members ?? []).length" class="t-hint" data-choir-label>{{ panelLabel }}</p>
+                    <!-- Hillel's Choir Result design (2026-11-24): the title and the line under it, then the player card (play or stop
+                         with its progress and times; Download and Share side by side). -->
+                    <header class="space-y-2.5">
+                        <h1 class="t-title text-cream">{{ t('ownChoir.listen.title', { song }) }} <span class="chip-tag align-middle" data-ai-voice="tag">{{ t('ownChoir.together.who.ai') }}</span></h1>
                         <!-- A low voice's arrangement (the server's, from their range): said once, quietly. -->
-                        <p v-if="request.voicing === 'low'" class="t-hint" data-choir-low-voice>{{ t('ownChoir.ready.lowVoice') }}</p>
+                        <p v-if="request.voicing === 'low'" class="t-lead" data-choir-low-voice>{{ t('ownChoir.ready.lowVoice') }}</p>
+                        <!-- The AI label once: the H1 says "in a voice like yours"; this line only when friends' voices join (it names whose). -->
+                        <p v-if="together && (request.members ?? []).length" class="t-hint" data-choir-label>{{ panelLabel }}</p>
                         <!-- Words not in English: the AI parts are sung on "oo" (ai-modal, via Hillel), from the song's language. -->
                         <p v-if="notEnglish" class="t-hint" data-choir-on-oo>{{ t('ownChoir.ready.onOo') }}</p>
-                        <!-- Hillel: "compare your original, to you with choir around, or full choir" (for everyone). -->
+                    </header>
+                    <div class="card flex flex-col gap-[18px] p-5" data-choir-track>
+                        <!-- Hillel: "compare your original, to you with choir around, or full choir" (only when there's more than one). -->
                         <Segmented v-if="viewOptions.length > 1" :model-value="listenTo" :options="viewOptions" :label="t('ownChoir.version.label')" full class="overflow-x-auto [scrollbar-width:none] [&_.seg-option]:min-h-11 [&_.seg-option]:shrink-0" data-scroll-row data-listen-to @update:model-value="chooseView" />
-                        <div class="grid gap-2.5 sm:grid-cols-2">
-                            <button type="button" class="btn-primary btn-lg justify-center" :aria-busy="loadingTrack ? 'true' : null" data-choir-play @click="togglePlay"><span v-if="loadingTrack" class="spinner" aria-hidden="true"></span>{{ playing || hearingClip ? t('studio.stop') : t('ownChoir.ready.button') }}</button>
-                            <button type="button" class="btn-secondary btn-lg justify-center" :disabled="loadingTrack" data-choir-download @click="download">{{ t('ownChoir.ready.download') }}<span v-if="!request.canDownload" class="chip-accent ms-2 text-xs" data-download-plus>{{ t('ownChoir.settings.plusBadge') }}</span></button>
+                        <!-- What can't be heard yet, and why (never hidden: Hillel couldn't find his own recording, 2026-11-24). -->
+                        <p v-for="line in listenMissing" :key="line" class="t-hint -mt-2" data-listen-missing>{{ line }}</p>
+                        <div class="flex items-center gap-4">
+                            <button type="button" class="grid size-[60px] shrink-0 place-items-center rounded-full bg-cream text-ink transition hover:brightness-110" :aria-busy="loadingTrack ? 'true' : null" data-choir-play @click="togglePlay">
+                                <span v-if="loadingTrack" class="spinner size-5" aria-hidden="true"></span>
+                                <Icon v-else :name="playing || hearingClip ? 'stop' : 'play'" :size="22" />
+                                <span class="sr-only">{{ playing || hearingClip ? t('studio.stop') : t('ownChoir.ready.button') }}</span>
+                            </button>
+                            <div class="flex min-w-0 flex-1 flex-col gap-2">
+                                <div class="h-1.5 overflow-hidden rounded-full bg-raised" aria-hidden="true" data-choir-progress-bar>
+                                    <div class="h-full rounded-full bg-accent" :style="{ width: trackSeconds ? Math.min(100, (at / trackSeconds) * 100) + '%' : '0%' }"></div>
+                                </div>
+                                <div class="flex justify-between text-[13px] text-subtle tabular-nums"><span>{{ clock(at) }}</span><span>{{ clock(trackSeconds) }}</span></div>
+                            </div>
                         </div>
-                        <!-- Share (the share page credits each part as AI made from their singing): the studio's share sheet. -->
-                        <button type="button" class="btn-secondary w-full justify-center" :disabled="busy" data-choir-share @click="share">{{ t('ownChoir.share.button') }}</button>
+                        <div class="flex flex-wrap gap-2.5">
+                            <button type="button" class="btn-secondary min-h-[46px] flex-[1_1_160px] justify-center" :disabled="loadingTrack" data-choir-download @click="download">{{ t('ownChoir.ready.download') }}<span v-if="!request.canDownload" class="chip-accent ms-2 text-xs" data-download-plus>{{ t('ownChoir.settings.plusBadge') }}</span></button>
+                            <!-- Share (the share page credits each part as AI made from their singing): the studio's share sheet. -->
+                            <button type="button" class="btn-secondary min-h-[46px] flex-[1_1_160px] justify-center" :disabled="busy" data-choir-share @click="share">{{ t('ownChoir.share.button') }}</button>
+                        </div>
                         <p v-if="listenTo === 'recording'" class="t-hint" data-share-full>{{ t('ownChoir.share.fullOnly') }}</p>
                     </div>
                     <!-- The choir gallery (docs/choir-gallery-plan.md, behind choir_gallery): one quiet row, heard by staff first. -->
@@ -461,7 +507,7 @@ export const OwnChoirView = {
                     <!-- Downloading is Plus's (Hillel, 2026-11-21); listening and sharing stay free. The server says who may. -->
                     <PlusMoment v-if="plusFor" :title="t('ownChoir.ready.download')" :text="t('plus.moment.choirDownload')" from="choir_download" :next="here" price @close="plusFor = false" />
                     <!-- Choir settings (the coordinator for Hillel): Sound at once, How it's sung by a remake; Plus's, shown to all. -->
-                    <ChoirSettings :request="request" :template="template" :plus="isPlus()" :busy="busy" :minutes-left="ownChoir.data?.quota?.minutesLeft ?? null" :monthly="ownChoir.data?.quota?.minutesPerMonth ?? null" :has-lead="!!request.leadTake" :has-recording="ownChoir.data?.voice?.clipListen?.templateId === request.templateId" @sound="saveSound" @remake="remake" @plus="plusSettings = true" />
+                    <ChoirSettings :sound-now="sound" :who="who" :invitable="inviteShown && !sentInvite ? (request.invite?.parts ?? []) : []" @invite="invite" :request="request" :template="template" :plus="isPlus()" :busy="busy" :minutes-left="ownChoir.data?.quota?.minutesLeft ?? null" :monthly="ownChoir.data?.quota?.minutesPerMonth ?? null" :has-lead="!!request.leadTake" :has-recording="ownChoir.data?.voice?.clipListen?.templateId === request.templateId" @sound="saveSound" @remake="remake" @plus="plusSettings = true" />
                     <PlusMoment v-if="plusSettings" :title="t('ownChoir.settings.title')" :text="t('plus.moment.choirSettings')" from="choir_settings" :next="here" price @close="plusSettings = false" />
                     <!-- A choir with friends (behind own_choir_together): the "really you" line becomes Who sings, one row a part, each
                          with its AI label (or their real take's), the parts that sit high or low for them, and one invite line. -->
@@ -633,6 +679,9 @@ export const OwnChoirView = {
             immediate: true,
             handler(id) {
                 this.useEarlier = false;
+                // A new choir with no room of its own takes the one they picked last: kept on it, so Share sounds as they hear it.
+                const r = this.request;
+                if (r?.status === 'ready' && (r.settings?.soundSaved === false || !r.settings?.sound?.room) && prefs.choirRoom !== 'small' && isPlus()) this.saveSound(this.sound);
                 const kept = id ? local.get(`stackapella.choirView.${id}`) : null;
                 this.listenTo = kept && this.viewOptions.some((o) => o.value === kept) ? kept : 'choir';
             },
@@ -701,6 +750,11 @@ export const OwnChoirView = {
         clearInterval(this.poll);
     },
     methods: {
+        /** A time as the player shows it (m:ss). */
+        clock(seconds) {
+            const s = Math.max(0, Math.round(seconds || 0));
+            return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+        },
         /** A step's dot: the first filled with the accent, the rest ringed (game: its chips, the first its accent chip). */
         /** The choir error design's 44 px dots: done (filled with the accent, a tick) or warn (an amber ring, !); game: its chips. */
         bigDot(kind) {
@@ -1071,6 +1125,7 @@ export const OwnChoirView = {
         /** Choir settings' Sound: kept with the song, and heard at once (playing, it carries on from where it was). */
         async saveSound(sound) {
             const request = this.request;
+            prefs.choirRoom = sound.room ?? prefs.choirRoom; // their room, for every later choir
             request.settings = { ...(request.settings ?? {}), sound };
             if (this.playing) {
                 const at = choirPosition()?.seconds ?? 0;
@@ -1135,7 +1190,7 @@ export const OwnChoirView = {
             }
             this.loadingTrack = true;
             try {
-                const { voices, sound } = await this.version(await this.voices(), this.request.settings?.sound ?? null);
+                const { voices, sound } = await this.version(await this.voices(), this.sound);
                 if (!this.loadingTrack) return; // stopped while it loaded
                 await playChoir(voices, sound, 0, { tune: tunePart(this.template) });
                 this.playing = true;
@@ -1154,6 +1209,7 @@ export const OwnChoirView = {
         watchEnd() {
             const at = choirPosition();
             if (!this.playing) return;
+            this.at = at?.seconds ?? 0;
             if (!at || at.done) {
                 if (at?.done) aiUse('choir_heard'); // played to its end (AI optional's measure, once a day)
                 this.stopTrack();
@@ -1163,6 +1219,7 @@ export const OwnChoirView = {
         },
         stopTrack() {
             cancelAnimationFrame(this.frame);
+            this.at = 0;
             if (this.playing) stopChoir();
             this.playing = false;
             this.loadingTrack = false;
@@ -1177,7 +1234,7 @@ export const OwnChoirView = {
             this.loadingTrack = true;
             try {
                 // The full-quality parts (the page plays the lighter listening copy).
-                const full = await this.version(await loadChoirFull(await downloadParts(this.request)), this.request.settings?.sound ?? null);
+                const full = await this.version(await loadChoirFull(await downloadParts(this.request)), this.sound);
                 const wav = await mixChoirShaped(full.voices, full.sound, { tune: tunePart(this.template) });
                 const url = URL.createObjectURL(wav);
                 const link = Object.assign(document.createElement('a'), { href: url, download: `${t('ownChoir.ready.fileName', { song: this.song })}.wav` });

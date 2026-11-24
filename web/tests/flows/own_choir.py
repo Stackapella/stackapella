@@ -194,7 +194,8 @@ def journey(f):
     f.wait("document.querySelectorAll('[data-listen-to] [role=radio]').length === 3", what="You + choir offered")
     f.run("document.querySelector('[data-listen-to] [role=radio]:nth-child(2)').click()")
     f.run("(await import('/js/audio.js')).unlock(); document.querySelector('[data-choir-play]').click()")
-    f.wait("(async () => { const a = await import('/js/audio.js'); return a.engine.playing && [...a.engine.parts.keys()].some((k) => k === 'choir:lead-take'); })()", timeout=30, what="their take as the lead")
+    # In the mix whether it plays as parts or rendered in its room (Small room by default since 2026-11-24).
+    f.wait("(async () => { const a = await import('/js/audio.js'); const p = await import('/js/own-choir-player.js'); return a.engine.playing && p.choirPlaying.parts.includes('lead-take'); })()", timeout=30, what="their take as the lead")
     f.run("document.querySelector('[data-choir-play]').click()")
     f.go("/t/amazing-grace/choir?api=mock&scenario=&as=member", "document.querySelector('[data-listen-to]')")
     assert f.js("document.querySelector('[data-listen-to] [role=radio]:nth-child(2)').getAttribute('aria-checked')") == "true", "Listen to wasn't remembered"
@@ -220,7 +221,7 @@ def journey(f):
     assert not f.js("document.querySelector('[data-choir-stop]')"), "no Stop on a ready song"
     # The finished track plays here, every part on the engine; a second press stops it.
     f.run("(await import('/js/audio.js')).unlock(); document.querySelector('[data-choir-play]').click()")
-    f.wait("(async () => { const a = await import('/js/audio.js'); return a.engine.playing && [...a.engine.parts.keys()].filter((k) => k.startsWith('choir:')).length === 4; })()", timeout=30, what="the finished track playing")
+    f.wait("(async () => { const a = await import('/js/audio.js'); const p = await import('/js/own-choir-player.js'); return a.engine.playing && p.choirPlaying.parts.length === 4; })()", timeout=30, what="the finished track playing")
     f.run("document.querySelector('[data-choir-play]').click()")
     f.wait("(async () => !(await import('/js/audio.js')).engine.playing)()", what="stopped")
     f.go("/?api=mock&scenario=&as=member", "document.querySelector('h1')")

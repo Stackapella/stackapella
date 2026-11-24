@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Ops;
 
 use App\Http\Middleware\SecurityHeaders;
+use App\Support\Site\ArcadeHandoff;
 use App\Support\Site\GamePreload;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
@@ -51,7 +52,8 @@ final class SecurityHeadersTest extends TestCase
         $csp = self::policy($page);
 
         // Our files, Turnstile for shield mode, and GamePreload's one inline script by its hash, never inline in general.
-        $this->assertSame(["'self'", GamePreload::hash(), 'https://challenges.cloudflare.com'], $csp['script-src']);
+        // The home's and /arcade's hand-off (ArcadeHandoff) beside game mode's preload; never on an embed.
+        $this->assertSame(["'self'", GamePreload::hash(), ArcadeHandoff::hash(), 'https://challenges.cloudflare.com'], $csp['script-src']);
         $this->assertNotContains("'unsafe-eval'", $csp['script-src']);
         $this->assertNotContains("'unsafe-inline'", $csp['script-src']);
         $this->assertSame(["'self'"], $csp['style-src']);

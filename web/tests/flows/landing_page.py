@@ -261,7 +261,8 @@ def strip(f):
 
 
 def game_switch(f):
-    """The top line's Game mode switch is the site's own: it turns the skin, the choice is kept, the page dresses for it.
+    """The top line's Game mode switch is the site's own: it turns the skin, the choice is kept, and game mode turned on is
+    the arcade home, whose switch brings the calm home back.
     On a phone it's in Language and appearance's menu, as on every page (Hillel, 2026-11-16: "combine the two buttons")."""
     f.run("window.scrollTo(0, 0)")
     phone = f.js("innerWidth < 900")
@@ -276,30 +277,21 @@ def game_switch(f):
     assert "Game mode" in f.js(f"{switch}.textContent"), "it has its name"
     box = f.js(f"(() => {{ const r = {switch}.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height), r.left >= 0 && r.right <= innerWidth]; }})()")
     assert box[0] >= 44 and box[1] >= 40 and box[2], f"big enough to press, inside the top line: {box}"
+    # Game mode turned on is the arcade home (Hillel, 2026-11-24; ArcadeHandoff, flows/arcade_home.py): the switch takes
+    # the page there, still in game mode with the switch on, and its switch brings the calm home back. The home's own game
+    # dress, for a visitor who hasn't chosen, is in_game's. The run's pinned skin is lifted first, so the switch's own
+    # choice decides each page from here (it's calm again when the switch goes off).
+    if f.skin_pin:
+        f.chrome.send("Page.removeScriptToEvaluateOnNewDocument", {"identifier": f.skin_pin["identifier"]})
     f.run(f"{switch}.click()")
-    f.wait("document.documentElement.dataset.skin === 'game'", timeout=5, what="game mode on")
-    assert f.js(f"{switch}.getAttribute('aria-checked')") == "true", "the switch says on"
-    assert "game" in f.js("localStorage.getItem('stackapella.appearance') || ''"), "the choice is kept, as the site keeps it"
-    headline = "getComputedStyle(document.querySelector('.lnf-h1')).fontFamily"
-    if f.js("!!document.querySelector('meta[name=game-css]')"):
-        # Turned on after the first paint, game mode's sheet loads then (theme-boot.js's gameCss) and the page wears it.
-        f.wait(f"!{headline}.split(',')[0].includes('Figtree')", timeout=10, what="the page in game mode's dress")
-        # The note gems' ring is the arcade's yellow, as in the app's game lane (docs/glass-spec.md 4), with no soft glow;
-        # the square Play orb and the disc keep no glass crescent.
-        rgb = "((c) => { const p = document.createElement('i'); p.style.color = c; document.body.append(p); const v = getComputedStyle(p).color; p.remove(); return v; })"
-        ring = f.js(f"{rgb}(getComputedStyle(document.querySelector('[data-lnf-lanes] .lnf-g')).getPropertyValue('--gem-ring'))")
-        yellow = f.js(f"{rgb}(getComputedStyle(document.documentElement).getPropertyValue('--g-yellow'))")
-        assert ring == yellow, f"a gem's ring is game mode's yellow: {ring} against {yellow}"
-        assert f.js("getComputedStyle(document.querySelector('[data-lnf-lanes] .lnf-g')).getPropertyValue('--gem-glow').trim().startsWith('0 0 0 0')"), "no soft glow in game mode"
-        assert f.js("[...document.querySelectorAll('.lnf-play .lnf-orb, .lnf-disc')].every((o) => getComputedStyle(o, '::before').display === 'none')"), "the square orb and disc have no crescent"
-    else:
-        assert "Figtree" in f.js(headline), "the page stays calm"
-    f.no_sideways("game mode on")
-    f.run(f"{switch}.click()")
-    f.wait("document.documentElement.dataset.skin === 'serious'", timeout=5, what="game mode off again")
-    assert f.js(f"{switch}.getAttribute('aria-checked')") == "false", "the switch says off"
-    f.wait(f"{headline}.includes('Figtree')", timeout=5, what="the calm page again")
-    f.run("document.querySelector('.lnf-top [data-look-menu]').open = false")
+    f.wait("location.pathname === '/arcade' && document.readyState === 'complete'", timeout=15, what="game mode on: the arcade home")
+    assert f.js("document.documentElement.dataset.skin") == "game", "the arcade is in game mode"
+    back = "([...document.querySelectorAll('[data-game-toggle]')].find((t) => t.getClientRects().length) ?? document.querySelector('[data-game-toggle]'))"
+    assert f.js(f"{back}.getAttribute('aria-checked')") == "true", "its switch says on"
+    f.no_sideways("the arcade")
+    f.run(f"{back}.click()")
+    f.wait("location.pathname === '/' && document.readyState === 'complete' && document.documentElement.dataset.skin === 'serious'", timeout=15, what="game mode off: the calm home again")
+    f.wait(READY, timeout=20, what="the home's script again")
 
 
 def recorded_only(base, size):

@@ -22,6 +22,7 @@ def t(f, key, params=None):
 def journey(f):
     f.go("/?api=mock&scenario=&as=member", "document.querySelector('h1')")
     f.run("sessionStorage.setItem('stackapella.mockOwnChoir', '1'); sessionStorage.removeItem('stackapella.mockChoirState'); sessionStorage.removeItem('stackapella.mockChoir');")
+    f.run("const p = JSON.parse(localStorage.getItem('stackapella.singPrefs') || '{}'); delete p.choirRoom; localStorage.setItem('stackapella.singPrefs', JSON.stringify(p));")
     clear_projects(f)
 
     # Free: the panel shows, and a tap opens the Plus sheet; nothing is kept.
@@ -41,8 +42,14 @@ def journey(f):
     assert f.js("document.querySelector('[data-remake]').disabled"), "Remake is open with nothing changed"
     assert f.js("document.querySelector('[data-remake-cost]').textContent.trim()") == t(f, "ownChoir.settings.remakeNeedsChange")
     assert not f.js("document.querySelector('[data-settings-reset]')"), "Back to the defaults shows with nothing changed"
+    # Small room by default (Hillel, 2026-11-24), nothing picked yet on this device.
+    assert f.js("document.querySelector('[data-settings-room] [role=radio]:nth-child(2)').getAttribute('aria-checked')") == "true", "Small room isn't the default"
     f.run("document.querySelector('[data-settings-room] [role=radio]:nth-child(4)').click()")
     f.wait("globalThis.mockChoirSound?.room === 'chapel'", what="the room kept")
+    # Remembered: a choir with no room of its own now opens in the room they picked last.
+    assert f.js("JSON.parse(localStorage.getItem('stackapella.singPrefs') || '{}').choirRoom") == "chapel", "the room wasn't remembered"
+    f.run("(async () => { const own = await import('/js/own-choir.js'); for (const r of own.ownChoir.data.requests) if (r.status === 'ready') r.settings = { ...(r.settings ?? {}), soundSaved: false, sound: { room: 'small', balance: [] } }; })()")
+    f.wait("document.querySelector('[data-settings-room] [role=radio]:nth-child(4)').getAttribute('aria-checked') === 'true'", what="a choir with no room of its own in the room they picked last")
     assert f.js("document.querySelector('[data-settings-room] [role=radio]:nth-child(4)').getAttribute('aria-checked')") == "true"
     f.run("""const input = document.querySelector('[data-balance=alto] input'); input.value = '-6'; input.dispatchEvent(new Event('change'));""")
     f.wait("globalThis.mockChoirSound?.balance?.find((b) => b.partKey === 'alto')?.db === -6", what="the alto's balance kept")
@@ -54,7 +61,13 @@ def journey(f):
     left = f.js("(async () => String(Math.floor((await import('/js/own-choir.js')).ownChoir.data.quota.minutesLeft)))()")
     minutes = f.js("(async () => (await import('/js/own-choir.js')).ownChoir.data.requests.find((r) => r.templateId === 'silent-night').remakeMinutes.fine)()")
     assert fine == t(f, "ownChoir.settings.remakeOf", {"minutes": minutes, "left": left}), fine
+    # Breaths, timing and pitch sit under the fold (Hillel's Choir Result design): opened, then pitch set wide.
+    assert not f.js("document.querySelector('[data-sung=pitchSpread]')"), "fine-tuning shown before the fold is opened"
+    f.run("document.querySelector('[data-settings-fine]').click()")
+    f.wait("document.querySelector('[data-sung=pitchSpread]')", what="the fine-tuning")
     f.run("document.querySelector('[data-sung=pitchSpread] [role=radio]:nth-child(3)').click()")
+    # Something changed: the remake bar sits at the foot of the screen, with Undo.
+    assert f.js("document.querySelector('[data-remake-bar]').hasAttribute('data-changed') && !!document.querySelector('[data-remake-undo]')"), "the remake bar isn't the changed one" 
     # Vibrato and Natural variation in place of Humanize (Hillel via the coordinator), both at Natural unset.
     assert not f.js("document.querySelector('[data-humanize]')"), "the old Humanize slider is back"
     for name, natural in (("vibrato", 3), ("variation", 2)):

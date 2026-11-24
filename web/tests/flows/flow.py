@@ -35,6 +35,7 @@ class Flow:
         self.base = base.rstrip("/")
         self.size = size
         self.skin = skin
+        self.skin_pin = None
         self.name = name if skin == "game" else f"{name}-{skin}"
         if BROWSER != "chrome":
             self.name = f"{self.name}-{BROWSER}"
@@ -42,7 +43,8 @@ class Flow:
         if skin != "game":
             # The skin (docs/skins-plan.md) chosen before any page script runs, as theme-boot reads it, and
             # the mock account's too (the account's choice wins when it loads).
-            self.chrome.send("Page.addScriptToEvaluateOnNewDocument", {"source": f"""try {{ const c = JSON.parse(localStorage.getItem('stackapella.appearance') || '{{}}'); if (c.skin !== '{skin}') localStorage.setItem('stackapella.appearance', JSON.stringify({{ ...c, skin: '{skin}', at: Date.now() }})); const m = JSON.parse(sessionStorage.getItem('stackapella.mockAppearance') || '{{}}'); if (m.skin !== '{skin}') sessionStorage.setItem('stackapella.mockAppearance', JSON.stringify({{ ...m, skin: '{skin}' }})); }} catch (e) {{}}"""})
+            # Kept (skin_pin) so a flow can lift it to follow a switch the page makes itself (the home to /arcade).
+            self.skin_pin = self.chrome.send("Page.addScriptToEvaluateOnNewDocument", {"source": f"""try {{ const c = JSON.parse(localStorage.getItem('stackapella.appearance') || '{{}}'); if (c.skin !== '{skin}') localStorage.setItem('stackapella.appearance', JSON.stringify({{ ...c, skin: '{skin}', at: Date.now() }})); const m = JSON.parse(sessionStorage.getItem('stackapella.mockAppearance') || '{{}}'); if (m.skin !== '{skin}') sessionStorage.setItem('stackapella.mockAppearance', JSON.stringify({{ ...m, skin: '{skin}' }})); }} catch (e) {{}}"""})
         # A person's browser, as the counts see it: js/automated.js sends nothing when navigator.webdriver is true, which
         # headless Chrome sets, and the flows check what a person's visit sends. as_robot() puts it back.
         # Also as someone who has already interacted (js/automated.js holds counts until a real press; the flows press by

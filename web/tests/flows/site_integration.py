@@ -154,7 +154,14 @@ def main():
                         chrome.goto(base + page, "document.readyState === 'complete'")
                         # Against clientWidth, not innerWidth: on a phone the layout stretches to fit
                         # what's too wide, and innerWidth stretches with it (Yodeling's echo hid that way).
-                        facts = chrome.evaluate("({ theme: document.documentElement.dataset.theme, over: document.documentElement.scrollWidth - document.documentElement.clientWidth, h1: document.querySelectorAll('h1').length })")
+                        # A page that hands over before its first paint (the home and /arcade, by the look chosen:
+                        # ArcadeHandoff) is read once the page it lands on has settled.
+                        facts = None
+                        for _ in range(40):
+                            facts = chrome.evaluate("({ theme: document.documentElement.dataset.theme, over: document.documentElement.scrollWidth - document.documentElement.clientWidth, h1: document.querySelectorAll('h1').length })")
+                            if isinstance(facts, dict) and "theme" in facts and chrome.evaluate("document.readyState") == "complete":
+                                break
+                            time.sleep(0.25)
                         where = f"{page} {skin} {theme} {width}px"
                         if facts["theme"] != theme:
                             found.append(f"{where}: shows {facts['theme']}")

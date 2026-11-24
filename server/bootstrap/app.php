@@ -166,6 +166,8 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::get('/'.YourChoirStage::SLUGS['en'], [SitePagesController::class, 'yourChoir'])->middleware(['nexus', 'throttle:public-pages'])->name('ai-landing.page');
             Route::get('/your-choir', [SitePagesController::class, 'yourChoirMoved'])->middleware(['nexus', 'throttle:public-pages'])->name('your-choir.moved');
             Route::get('/ai-singing', [SitePagesController::class, 'yourChoirMoved'])->middleware(['nexus', 'throttle:public-pages'])->name('ai-singing.moved');
+            // The home in game mode, the arcade (InfoPagesController::arcade): game mode turned on goes there from the home.
+            Route::get('/arcade', [InfoPagesController::class, 'arcade'])->middleware(['nexus', 'throttle:public-pages'])->name('arcade.page');
             Route::get('/how-it-works', [SitePagesController::class, 'howItWorks'])->middleware(['nexus', 'throttle:public-pages'])->name('how.page');
             Route::get('/press', [SitePagesController::class, 'press'])->middleware(['nexus', 'throttle:public-pages'])->name('press.page');
             // Open source (docs/open-source-plan.md, 5.2 and 5.3): there only with the open_source flag on.

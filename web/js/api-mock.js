@@ -473,7 +473,9 @@ async function stateful(operation, params, body, cases, query = {}) {
             if (r.status === 'failed' && tabStorage.get('stackapella.mockCounted')) r.counted = true;
             // The server's hints on a clip that couldn't be used (mockFailureHints, this tab: a JSON list, as "near").
             if (r.status === 'failed') r.failureHints = r.failure === 'clip_unusable' ? JSON.parse(tabStorage.get('stackapella.mockFailureHints') || '[]') : null;
-            r.settings ??= { sound: { room: 'dry', balance: (r.parts ?? []).map((p) => ({ partKey: p.partKey, db: 0 })) }, sung: { vibrato: 'natural', variation: 'natural', voicing: 'auto', breaths: 'legato', ensembleTiming: 'tight', pitchSpread: 'off', quality: 'standard' } };
+            // Unsaved, the server's default room is Small (2026-11-24) and it says so (`soundSaved: false`).
+            if (r.settings && r.settings.soundSaved === undefined) r.settings = { ...r.settings, soundSaved: false, sound: { ...(r.settings.sound ?? {}), room: 'small' } };
+            r.settings ??= { soundSaved: false, sound: { room: 'small', balance: (r.parts ?? []).map((p) => ({ partKey: p.partKey, db: 0 })) }, sung: { vibrato: 'natural', variation: 'natural', voicing: 'auto', breaths: 'legato', ensembleTiming: 'tight', pitchSpread: 'off', quality: 'standard' } };
             r.remakeMinutes ??= { standard: 2, fine: 4 };
             // The choir wait's fields (contract, 2026-11-24); mockChoirSlow (this tab) is past twice its estimate.
             r.holdUntil ??= null;
@@ -596,7 +598,9 @@ async function stateful(operation, params, body, cases, query = {}) {
             }
             for (const r of choir.requests) dress(r);
             // Their own 30 seconds, kept with the saved voice once a song made from it is ready (a short-lived link).
-            if (choir.voice) choir.voice.clipListen = choir.requests.some((r) => r.status === 'ready') ? { url: `${location.origin}/tests/fixtures/guide-48000.m4a?clip=1`, expiresAt: new Date(Date.now() + 36e5).toISOString().replace(/\.\d+Z$/, 'Z') } : null;
+            // As the contract has it: the song the clip was sung to (the newest ready choir's), its rate and length.
+            const sungTo = choir.requests.find((r) => r.status === 'ready');
+            if (choir.voice) choir.voice.clipListen = sungTo ? { url: `${location.origin}/tests/fixtures/guide-48000.m4a?clip=1`, expiresAt: new Date(Date.now() + 36e5).toISOString().replace(/\.\d+Z$/, 'Z'), templateId: sungTo.templateId, sampleRate: 48000, frames: 144000, offsetFrames: 0, clipTranspose: 0 } : null;
             return save(respond(200, { data: choir }));
         }
         if (operation === 'ownChoir.consent') {
@@ -662,6 +666,7 @@ async function stateful(operation, params, body, cases, query = {}) {
             request.settings = { ...(request.settings ?? {}) };
             if (operation === 'ownChoir.requests.sound') {
                 request.settings.sound = body?.sound;
+                request.settings.soundSaved = true;
                 globalThis.mockChoirSound = body?.sound; // what the flows read
                 return save(respond(200, { data: request }));
             }

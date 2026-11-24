@@ -27,6 +27,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    {{-- Game mode turned on is the arcade (/arcade, App\Support\Site\ArcadeHandoff): sent there before the first paint. --}}
+    {{ \App\Support\Site\ArcadeHandoff::tag() }}
     <meta property="og:locale" content="{{ \App\Support\Languages\SiteLanguages::ogLocale(app()->getLocale()) }}">
     {{-- Kept out of search only while the whole site is (SITE_INDEXING), as on every public page. --}}
     @if (! config('ops.indexing'))

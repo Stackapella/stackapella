@@ -58,7 +58,7 @@ def journey(f):
     f.go("/t/silent-night/choir?api=mock&scenario=&as=plus", "document.querySelector('[data-choir-play]')")
     track_a_gone(f, "the choir page")
     f.run("(await import('/js/audio.js')).unlock(); document.querySelector('[data-choir-play]').click()")
-    f.wait("(async () => { const a = await import('/js/audio.js'); return a.engine.playing && [...a.engine.parts.keys()].filter((k) => k.startsWith('choir:')).length === 4; })()", timeout=30, what="the choir playing")
+    f.wait("(async () => { const a = await import('/js/audio.js'); const p = await import('/js/own-choir-player.js'); return a.engine.playing && p.choirPlaying.parts.length === 4; })()", timeout=30, what="the choir playing")
     f.run("document.querySelector('[data-choir-play]').click()")
     f.run("window.__files = 0; const made = URL.createObjectURL; URL.createObjectURL = (b) => { window.__files += 1; return made.call(URL, b); };")
     f.run("document.querySelector('[data-choir-download]').click()")

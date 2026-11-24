@@ -129,6 +129,33 @@ final class InfoPagesController extends Controller
         return $mudeo && $request->cookies->get(MudeoArrival::COOKIE) !== '1' ? $response->withCookie(MudeoArrival::cookie($request)) : $response;
     }
 
+    /**
+     * The home in game mode (Hillel, 2026-11-24: "on the main home page when you enable game mode switch to the view we
+     * used to show with the in-app game experience"): the arcade home of 2026-11-16 (6eb40cce9), the app's own Sing lane
+     * in its cabinet first, then its sections with today's facts, no AI pitch (the home's rule). A quiet page: out of
+     * search, its canonical the home, reached by game mode turned on (App\Support\Site\ArcadeHandoff), which also
+     * sends anyone without that choice back to the home.
+     */
+    public function arcade(Request $request): Response
+    {
+        $price = Prices::of(Prices::currency($request));
+        $plans = Landing::plans();
+
+        return response()->view('pages.arcade', [
+            'title' => __('pages.landing.title'),
+            'meta' => $this->meta(__('pages.landing.title'), __('pages.landing.description'), '/'),
+            'links' => Landing::links(Landing::ref($request->query('ref'))),
+            'hero' => Landing::hero(),
+            'way' => Landing::onTheWay(),
+            'who' => SitePages::who(),
+            'stories' => array_values((array) config('pages.stories')),
+            'price' => $price,
+            'plans' => $plans,
+            'faq' => Landing::faq($plans['freeSongs'], $price, OpenSource::on()),
+            'funnel' => ['counts' => config('counts.enabled') === true, 'experiment' => app(Funnel::class)->current()],
+        ], 200, [...$this->headers(varies: true), 'X-Robots-Tag' => 'noindex']);
+    }
+
     public function pricing(Request $request): Response
     {
         $plans = (array) config('usage.plans');

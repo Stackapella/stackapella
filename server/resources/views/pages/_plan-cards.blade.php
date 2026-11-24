@@ -5,7 +5,8 @@
      Plus's Get Plus is the primary and Free's goes secondary. The Yearly or
      Monthly switch is the page's (the radios and :has, no script); each page prints its own lines under the cards (the
      tax, the choirs line). In the game skin the arcade dresses it. Button labels never wrap.
-     $h: the heading level; $start and $plus: where the buttons go; $id: a prefix for the headings. --}}
+     $h: the heading level; $start and $plus: where the buttons go; $id: a prefix for the headings; $ai: false leaves the
+     songs sung by AI out of both lists (the home's rule, and the arcade home's). --}}
 @php($replace = [':free_songs' => (string) $plans['freeSongs'], ':free_storage' => $plans['freeStorage'], ':storage' => $plans['storage']])
 @php($courses = app(\App\Support\Flags::class)->on('plus_courses'))
 <div class="s-plans s-plans-2">
@@ -21,7 +22,7 @@
         <p class="s-plan-k">{{ __('pages.landing.plans_free_includes') }}</p>
         <ul>
             {{-- Every course is free, one line (Hillel, 2026-11-08); the beginner course alone until the courses open (plus_courses). --}}
-            @foreach (\App\Support\Pages\Landing::list('plans_free_list', $replace) as $line)
+            @foreach (\App\Support\Pages\Landing::list('plans_free_list', $replace, ai: $ai ?? true) as $line)
                 <li><x-site.icon name="check" size="18" />{{ $loop->first && ! $courses ? __('pages.landing.plans_free_beginner') : $line }}</li>
             @endforeach
         </ul>
@@ -45,7 +46,7 @@
         <p class="s-plan-k">{{ __('pages.landing.plans_plus_includes') }}</p>
         {{-- Each a benefit, then the plain fact (Hillel, 2026-11-08: "rework the plus features"). --}}
         <ul class="s-plan-gains">
-            @foreach (\App\Support\Pages\Landing::list('plans_plus_list') as [$gain, $fact])
+            @foreach (\App\Support\Pages\Landing::list('plans_plus_list', ai: $ai ?? true) as [$gain, $fact])
                 <li><x-site.icon name="check" size="18" /><span><strong>{{ $gain }}</strong> <span class="s-plan-fact">{{ strtr($fact, $replace) }}</span></span></li>
             @endforeach
         </ul>

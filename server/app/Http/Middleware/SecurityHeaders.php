@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Support\Http\Hosts;
+use App\Support\Site\ArcadeHandoff;
 use App\Support\Site\GamePreload;
 use App\Support\Site\Showreel;
 use App\Support\Web\AppShell;
@@ -149,7 +150,7 @@ final class SecurityHeaders
             'default-src' => ["'self'"],
             // GamePreload's one inline script (game mode's sheet and VT323 started early), by its hash, where it's drawn: the
             // public pages and the tool embeds, never the admin or another embed.
-            'script-src' => ["'self'", ...(! $isAdmin && (! $isEmbed || $isToolEmbed) ? [GamePreload::hash()] : []), ...$turnstile],
+            'script-src' => ["'self'", ...(! $isAdmin && (! $isEmbed || $isToolEmbed) ? [GamePreload::hash()] : []), ...(! $isAdmin && ! $isEmbed ? [ArcadeHandoff::hash()] : []), ...$turnstile],
             // Our own embeds may be framed by a page of ours (/tools/embed previews them); the admin and
             // the embeds themselves frame nothing.
             'frame-src' => $turnstile === [] ? ["'none'"] : ["'self'", ...$turnstile],
