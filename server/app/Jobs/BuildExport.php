@@ -108,6 +108,11 @@ final class BuildExport implements ShouldQueue
             'adultConfirmedAt' => $user->adult_confirmed_at?->utc()->toIso8601ZuluString(),
             'birthMonth' => $user->birth_month,
             'birthYear' => $user->birth_year,
+            // The AI features setting (docs/ai-optional-plan.md) and when it was chosen; the band kept from the birth date.
+            'aiFeatures' => $user->ai_features,
+            'aiFeaturesAt' => $user->ai_features_at?->utc()->toIso8601ZuluString(),
+            'aiFeaturesSource' => $user->ai_features_source,
+            'ageBand' => $user->age_band,
             'practiceReminders' => ['on' => (bool) $user->reminder_enabled, 'days' => $user->reminder_days, 'time' => $user->reminder_time, 'timezone' => $user->reminder_timezone],
             'appPushes' => AppPushes::settings($user),
             'appearance' => $user->appearance,

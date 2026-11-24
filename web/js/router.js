@@ -19,6 +19,8 @@ const routes = [
     { name: 'storage', pattern: /^\/storage\/?$/, keys: [] },
     { name: 'voice', pattern: /^\/voice\/?$/, keys: [] },
     { name: 'workout', pattern: /^\/workout\/?$/, keys: [] },
+    // Ready by rehearsal: a part's plan (docs/rehearsal-ready-plan.md).
+    { name: 'rehearse', pattern: /^\/rehearse\/([\w-]+)\/([\w-]+)\/?$/, keys: ['song', 'part'] },
     // /settings/plus too: where Checkout's return page, the billing portal and the billing emails link (it went Home, losing the way back).
     { name: 'plus', pattern: /^\/(?:settings\/)?plus\/?$/, keys: [] },
     { name: 'reminders', pattern: /^\/settings\/reminders\/?$/, keys: [] },

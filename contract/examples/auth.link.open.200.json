@@ -59,7 +59,9 @@
             "accepted": 1,
             "current": 1,
             "acceptedAt": "2026-10-29T10:00:00Z"
-        }
+        },
+        "aiFeatures": null,
+        "ageBand": null
     },
     "created": true,
     "intended": "/choir/Xk9mQ2pL7vR4tB8nW3cJ5hYz",

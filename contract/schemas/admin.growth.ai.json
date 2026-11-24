@@ -1,0 +1,382 @@
+{
+    "$id": "admin.growth.ai.json",
+    "title": "Admin > Growth's AI choice card: the card's events, AI used, switches and engagement by state and age band",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "period",
+                "from",
+                "to",
+                "timezone",
+                "floor",
+                "bands",
+                "total"
+            ],
+            "properties": {
+                "period": {
+                    "enum": [
+                        "28d",
+                        "90d"
+                    ]
+                },
+                "from": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                },
+                "timezone": {
+                    "type": "string"
+                },
+                "floor": {
+                    "type": "integer"
+                },
+                "bands": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "band",
+                            "cardShown",
+                            "cardTry",
+                            "cardNot",
+                            "cardClosed",
+                            "tryRate",
+                            "notRate",
+                            "choirStart",
+                            "choirHeard",
+                            "guideHeard",
+                            "switchOnOff",
+                            "switchOffOn",
+                            "engagement"
+                        ],
+                        "properties": {
+                            "band": {
+                                "enum": [
+                                    "u18",
+                                    "18-24",
+                                    "25-34",
+                                    "35-44",
+                                    "45-54",
+                                    "55-64",
+                                    "65+",
+                                    "guest"
+                                ]
+                            },
+                            "cardShown": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "cardTry": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "cardNot": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "cardClosed": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "tryRate": {
+                                "type": [
+                                    "number",
+                                    "null"
+                                ]
+                            },
+                            "notRate": {
+                                "type": [
+                                    "number",
+                                    "null"
+                                ]
+                            },
+                            "choirStart": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "choirHeard": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "guideHeard": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "switchOnOff": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "switchOffOn": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ]
+                            },
+                            "engagement": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "state",
+                                        "backD1",
+                                        "backW1",
+                                        "backD7",
+                                        "backW4",
+                                        "lessons0",
+                                        "lessons1to2",
+                                        "lessons3to5",
+                                        "lessons6plus"
+                                    ],
+                                    "properties": {
+                                        "state": {
+                                            "enum": [
+                                                "on",
+                                                "off",
+                                                "unset"
+                                            ]
+                                        },
+                                        "backD1": {
+                                            "type": [
+                                                "integer",
+                                                "null"
+                                            ]
+                                        },
+                                        "backW1": {
+                                            "type": [
+                                                "integer",
+                                                "null"
+                                            ]
+                                        },
+                                        "backD7": {
+                                            "type": [
+                                                "integer",
+                                                "null"
+                                            ]
+                                        },
+                                        "backW4": {
+                                            "type": [
+                                                "integer",
+                                                "null"
+                                            ]
+                                        },
+                                        "lessons0": {
+                                            "type": [
+                                                "integer",
+                                                "null"
+                                            ]
+                                        },
+                                        "lessons1to2": {
+                                            "type": [
+                                                "integer",
+                                                "null"
+                                            ]
+                                        },
+                                        "lessons3to5": {
+                                            "type": [
+                                                "integer",
+                                                "null"
+                                            ]
+                                        },
+                                        "lessons6plus": {
+                                            "type": [
+                                                "integer",
+                                                "null"
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "total": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "cardShown",
+                        "cardTry",
+                        "cardNot",
+                        "cardClosed",
+                        "tryRate",
+                        "notRate",
+                        "choirStart",
+                        "choirHeard",
+                        "guideHeard",
+                        "switchOnOff",
+                        "switchOffOn",
+                        "engagement"
+                    ],
+                    "properties": {
+                        "cardShown": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        },
+                        "cardTry": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        },
+                        "cardNot": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        },
+                        "cardClosed": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        },
+                        "tryRate": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "notRate": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "choirStart": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        },
+                        "choirHeard": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        },
+                        "guideHeard": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        },
+                        "switchOnOff": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        },
+                        "switchOffOn": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        },
+                        "engagement": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "state",
+                                    "backD1",
+                                    "backW1",
+                                    "backD7",
+                                    "backW4",
+                                    "lessons0",
+                                    "lessons1to2",
+                                    "lessons3to5",
+                                    "lessons6plus"
+                                ],
+                                "properties": {
+                                    "state": {
+                                        "enum": [
+                                            "on",
+                                            "off",
+                                            "unset"
+                                        ]
+                                    },
+                                    "backD1": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "backW1": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "backD7": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "backW4": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "lessons0": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "lessons1to2": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "lessons3to5": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    },
+                                    "lessons6plus": {
+                                        "type": [
+                                            "integer",
+                                            "null"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

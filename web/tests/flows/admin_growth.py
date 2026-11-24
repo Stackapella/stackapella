@@ -642,6 +642,19 @@ api.admin.growth.choirs = async (q) => { window.choirQueries.push(q.period); con
     f.wait("document.querySelector('[data-growth-choirs]').textContent.includes(" + repr(t(f, "admin.growth.choirs.failed")) + ")", what="the failure said")
     f.run("const { api } = await import('/js/api.js'); api.admin.growth.choirs = window.choirsOk;")
 
+    # AI choice (docs/ai-optional-plan.md): the card's totals, a row a band and All, coming back by state; too few said.
+    f.wait("document.querySelector('[data-growth-ai] [data-ai-total=shown] [data-n]')", what="the AI choice card")
+    bands = f.js("(await (await fetch('/contract/examples/admin.growth.ai.200.json')).json()).data.bands.length")
+    rows = f.js("document.querySelectorAll('[data-ai-bands] tbody tr').length")
+    assert rows == bands + 1, f"{rows} rows for {bands} bands and All"
+    assert f.js("document.querySelectorAll('[data-ai-back] tbody tr').length") == rows * 3, "on, off and not chosen for every band"
+    assert t(f, "admin.growth.ai.few") in f.js("document.querySelector('[data-ai-band=u18]').textContent"), "a small band not said as too few"
+    f.run("document.querySelector('[data-growth-ai]').scrollIntoView({ block: 'start' })")
+    f.no_sideways("AI choice")
+    f.shot("ai-choice")
+    f.run("document.querySelector('[data-ai-period=\"90d\"]').click()")
+    f.wait("document.querySelector('[data-ai-period=\"90d\"]').getAttribute('aria-checked') === 'true' && document.querySelector('[data-ai-bands]')", what="90 days")
+
 
 if __name__ == "__main__":
     run("admin_growth", journey, sizes=("desktop", "phone"))

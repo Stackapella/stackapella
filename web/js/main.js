@@ -25,6 +25,7 @@ import { servedBuild, updateAtLaunch } from './sw-update.js';
 import { listenForInstall } from './components/install.js';
 import { fill, fitSegments, radioArrows } from './components/controls.js';
 import { noteSiteArrival } from './hosts.js';
+import { noteAiArrival, syncDeviceAi } from './ai-choice.js';
 import { account, keepLinkToken, loadAccount, loadAuthConfig, rememberRef } from './stores/account.js';
 import { signedInSync, startSync } from './stores/cloud.js';
 import { adoptAccountAppearance, appearance, game } from './stores/appearance.js';
@@ -38,7 +39,7 @@ import { lazyView } from './lazy.js';
 import { prefetchResults } from './components/lazy-results.js';
 import { prefetchStores } from './lazy-stores.js';
 import { LOADING_DELAY_MS, screenLoading } from './components/screen-loading.js';
-import { learning, loadPlusCourses } from './stores/learning.js';
+import { learning, loadLearning, loadPlusCourses } from './stores/learning.js';
 import { courseVisible } from './courses.js';
 import { nameScreens } from './screen-name.js';
 import { COOL_DOWN } from './stores/learning.js';
@@ -78,6 +79,7 @@ const SettingsView = screen(() => import('./views/settings.js').then((m) => m.Se
 const StorageView = screen(() => import('./views/storage.js').then((m) => m.StorageView), { title: tk('cloud.storage.title') });
 const VoiceView = screen(() => import('./views/voice.js').then((m) => m.VoiceView), { title: tk('voice.title') });
 const WorkoutView = screen(() => import('./views/workout.js').then((m) => m.WorkoutView));
+const RehearseView = screen(() => import('./views/rehearse.js').then((m) => m.RehearseView));
 const PlusView = screen(() => import('./views/plus.js').then((m) => m.PlusView), { title: tk('plus.title') });
 const RemindersView = screen(() => import('./views/reminders.js').then((m) => m.RemindersView), { title: tk('reminders.title') });
 const ClassesView = screen(() => import('./views/school.js').then((m) => m.ClassesView), { title: tk('school.classes.title') });
@@ -112,7 +114,7 @@ const IdeaView = screen(() => import('./views/ideas.js').then((m) => m.IdeaView)
 const FIRST_INSTALL_WAIT_MS = 15000; // a timer for when to install, never for audio
 
 const App = {
-    components: { LaunchCredit, RequestsView, ReadLinesView, ProjectsView, StudioView, SingView, PrintView, ScoreSheetView, OwnChoirView, ChoirTogetherJoinView, AuthView, SettingsView, StorageView, VoiceView, WorkoutView, PlusView, RemindersView, ClassesView, ClassJoinView, CloudConflicts, LearnView, CourseView, PlusCourseView, BirthHost, NewVersion, AdminView, StyleguideView, StyleguideGameView, BetaView, CreateView, TemplateView, JoinView, EarlyView, GroupsView, GroupView, ChoirJoinView, MovedView, ContactView, NoticesView, NoticeView, WarmupView, IdeasView, IdeaView, VoicesView, ResetView, Toasts, ConfirmHost, MicHelpHost, MicCheckHost, ChallengeView },
+    components: { LaunchCredit, RequestsView, ReadLinesView, ProjectsView, StudioView, SingView, PrintView, ScoreSheetView, OwnChoirView, ChoirTogetherJoinView, AuthView, SettingsView, StorageView, VoiceView, WorkoutView, RehearseView, PlusView, RemindersView, ClassesView, ClassJoinView, CloudConflicts, LearnView, CourseView, PlusCourseView, BirthHost, NewVersion, AdminView, StyleguideView, StyleguideGameView, BetaView, CreateView, TemplateView, JoinView, EarlyView, GroupsView, GroupView, ChoirJoinView, MovedView, ContactView, NoticesView, NoticeView, WarmupView, IdeasView, IdeaView, VoicesView, ResetView, Toasts, ConfirmHost, MicHelpHost, MicCheckHost, ChallengeView },
     setup: () => ({ route, COOL_DOWN }),
     template: `
         <!-- A self-hosted install's credit, as the licence asks, on whichever screen the app opens (components/credit.js). -->
@@ -153,6 +155,7 @@ const App = {
         <StorageView v-else-if="route.name === 'storage'" />
         <VoiceView v-else-if="route.name === 'voice'" />
         <WorkoutView v-else-if="route.name === 'workout'" />
+        <RehearseView v-else-if="route.name === 'rehearse'" :key="route.params.song + '/' + route.params.part" :song="route.params.song" :part="route.params.part" />
         <PlusView v-else-if="route.name === 'plus'" />
         <RemindersView v-else-if="route.name === 'reminders'" />
         <ClassesView v-else-if="route.name === 'classes'" />
@@ -265,11 +268,18 @@ whenIdle(() => import('./live-beat.js').then((m) => m.startBeat()).catch((error)
 // Who's signed in (never needed to learn or record), and what a Google or Apple sign-in came back with.
 rememberRef();
 noteSiteArrival(); // came from the public site: Home offers the way back (hosts.js)
+noteAiArrival(); // came through /ai-singing (?ref=ai-singing): AI features on for this device (ai-choice.js)
 noteArrival(); // a lesson page's Sing this lesson: its one lesson, granted as it opens (js/page-lesson.js)
 listenForInstall();
 radioArrows();
 fitSegments(); // a segmented control too wide for its row becomes a grid, never a wrapped pill
 loadAccount();
+// AI optional's returns by choice and band (js/ai-counts.js): once the account, its settings and progress are known,
+// loaded after the first screen.
+Promise.all([loadAccount(), loadAuthConfig(), loadLearning()])
+    .then(() => syncDeviceAi().catch((error) => console.info('The device\'s AI choice was not saved', error?.message ?? error)))
+    .then(() => import('./ai-counts.js').then((m) => m.countAiReturns(learning.progress)))
+    .catch((error) => console.info('The AI counts were not sent', error?.message ?? error));
 // The funnel (js/funnel.js): this open counted as an arrival or a return, with the experiment's arm
 // drawn on a first open while one enrols. Without the settings, no arm: the open still counts.
 loadAuthConfig().then(

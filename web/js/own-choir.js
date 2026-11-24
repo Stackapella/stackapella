@@ -6,6 +6,7 @@
 // signing out, or when the server no longer has their song.
 
 import { reactive } from 'vue';
+import { aiUse } from './ai-choice.js';
 import { local } from './storage.js';
 import { api, uploadTo } from './api.js';
 import * as db from './db.js';
@@ -567,6 +568,7 @@ export async function sendClip({ templateId, clipTemplateId = null, clipTranspos
     const bytes = await clip.wav.arrayBuffer();
     const sha256 = hex(await crypto.subtle.digest('SHA-256', bytes));
     const { data: request, upload, leadUpload } = await api.ownChoir.requests.create({ templateId, ...(clipTemplateId ? { clipTemplateId } : {}), ...(clipTranspose ? { clipTranspose } : {}), ...(guide ? {} : { guide: false }), ...leadBody, ...(octave != null ? { octave } : {}), partKey, offsetFrames: clip.offsetFrames, sampleRate, frames: clip.frames, bytes: bytes.byteLength, sha256, ...(turnstileToken ? { turnstileToken } : {}) });
+    aiUse('choir_start'); // AI optional's measure: a choir song asked for, once a day (ai-choice.js)
     // The upload and complete, once more if the first try fails (the contract: send it again after a mismatch); if it still
     // fails, the request goes, so it never sits "on its way" and a new try isn't refused as one song at a time.
     const finish = async () => {
@@ -595,6 +597,7 @@ export function termsNeeded() {
 /** A song from the saved voice: one tap, no recording (the request comes back queued). */
 export async function makeFromVoice(templateId, { turnstileToken = null } = {}) {
     const { data: queued } = await api.ownChoir.requests.create({ templateId, ...(turnstileToken ? { turnstileToken } : {}) });
+    aiUse('choir_start');
     await loadOwnChoir();
     return queued;
 }

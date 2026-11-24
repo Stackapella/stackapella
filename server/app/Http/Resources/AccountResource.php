@@ -70,6 +70,9 @@ final class AccountResource extends JsonResource
             // On the worldwide part leaderboards (boards.global.update; 18 and over).
             'boardsGlobal' => ($user->getAttributes()['board_global_at'] ?? null) !== null,
             'birthGiven' => Age::given($user),
+            // AI features (docs/ai-optional-plan.md): true, false or null (not asked); the band kept for the app's counts.
+            'aiFeatures' => $user->ai_features,
+            'ageBand' => $user->age_band,
             'heardFrom' => $user->heard_from,
             'plan' => app(Plans::class)->plan($user),
             // A live beta singer: the app shows "Your beta parts" and sends waiting takes.

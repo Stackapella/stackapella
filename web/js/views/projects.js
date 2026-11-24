@@ -4,6 +4,7 @@
 // starts it). On a wide screen, the week and level, and the install card, sit at the side.
 
 import { markUsable } from '../first-screen.js';
+import { aiOn } from '../ai-choice.js';
 import { closeMic, engine, unlock } from '../audio.js';
 import { CreditLine } from '../components/credit.js';
 import { api } from '../api.js';
@@ -96,10 +97,12 @@ const SEASON_WORDS = { carols: tk('home.songs.news.carols') };
 // A song's sheet (components/dialogs.js, with Sing's voice capture): loaded when a song is first opened, not with Home.
 const dialogLoader = lazyView(() => import('../components/dialogs.js').then((m) => m.TemplateDialog));
 const TemplateDialog = defineAsyncComponent(dialogLoader);
+// Ready by rehearsal's line (components/rehearsal-plans.js): loaded only for someone with a plan, so a first visit carries none of it.
+const RehearsalPlans = defineAsyncComponent(() => import('../components/rehearsal-plans.js').then((m) => m.RehearsalPlans));
 
 export const ProjectsView = {
-    components: { AiVoiceLabel, LibraryFilters, StorageMeter, CreditLine, PlayerChip, DailyTag, CardMenu, HomeCourses, ChoirPanel, ThemeSwitch, Icon, Logo, TemplateDialog, HomeLead, HomeBand, SongCover, InstallCard, WeekCard, WorkoutStrip, StatusChip, Modal, Notice, RemindAsk, FirstWeek, JoinedChoirs },
-    setup: () => ({ sungYet, GROUP_WORDS, templatePartName, ideas, mine, canStart, projects, account, learning, shownTitle, songTitle, formatTime, timeAgo, PART_COLORS, lengthBeats, partsFor, keyLabel, DIFFICULTY, creditsFor, aiPartsOf, navigate, BAND_COLORS, BETA_STATUS, publicSiteUrl, effect, dailyState }),
+    components: { AiVoiceLabel, LibraryFilters, StorageMeter, CreditLine, PlayerChip, DailyTag, CardMenu, HomeCourses, ChoirPanel, ThemeSwitch, Icon, Logo, TemplateDialog, HomeLead, HomeBand, SongCover, InstallCard, WeekCard, WorkoutStrip, StatusChip, Modal, Notice, RemindAsk, FirstWeek, JoinedChoirs, RehearsalPlans },
+    setup: () => ({ aiOn, sungYet, GROUP_WORDS, templatePartName, ideas, mine, canStart, projects, account, learning, shownTitle, songTitle, formatTime, timeAgo, PART_COLORS, lengthBeats, partsFor, keyLabel, DIFFICULTY, creditsFor, aiPartsOf, navigate, BAND_COLORS, BETA_STATUS, publicSiteUrl, effect, dailyState }),
     data: () => ({ fromSite: cameFromSite(), wide: WIDE.matches, storageUsage: null, locked: false, taste: false, clip: null, templates: [], openTemplate: null, singers: 4, previewing: false, preparingPreview: false, starting: false, groups: null, choirParts: [], startingChoir: null, betaParts: null, avatarFailed: false, making: false, importProblems: null, sheetScore: null, sheetSaving: false, sheetView: null, sessionStore: null, songsOpen: tabStorage.get('stackapella.songsOpen') === '1', libraryFilters: keptFilters(), lookedAt: lastLooked(), newsCounted: null, yoursOpen: false, songColumns: songColumns(), newing: false, showInfo: false, songLoad: null, songNotHere: null, previewOf: null, playingSong: null, renaming: null, newName: '' }),
     template: `
         <div class="min-h-dvh">
@@ -116,7 +119,7 @@ export const ProjectsView = {
                 <ThemeSwitch v-if="account.loaded" />
                 <a v-if="account.me" href="/settings" data-ui="player" class="flex min-w-0 items-center gap-2 rounded-full glass-bubble p-1 text-sm font-semibold text-cream hover:bg-raised sm:pe-3" :aria-label="plus ? t('home.accountLinkPlus', { name: account.me.name }) : t('home.accountLink', { name: account.me.name })" @click.prevent="navigate('/settings')">
                     <img v-if="account.me.avatarUrl && !avatarFailed" :src="account.me.avatarUrl" alt="" class="size-7 rounded-full object-cover" data-avatar @error="avatarFailed = true" />
-                    <span v-else class="bubble bubble-sm grid size-8 place-items-center text-[11px] font-extrabold" aria-hidden="true" data-avatar>{{ initials }}</span>
+                    <span v-else class="bubble bubble-sm grid size-8 place-items-center text-[11px] font-bold" aria-hidden="true" data-avatar>{{ initials }}</span>
                     <span class="hidden max-w-32 truncate sm:inline" translate="no">{{ account.me.name }}</span>
                     <!-- Game mode's title screen: you are P1, at your level (docs/game-elements-plan.md) -->
                     <PlayerChip v-if="effect('title') && learning.loaded && courseStarted" />
@@ -151,11 +154,13 @@ export const ProjectsView = {
                 <InstallCard :songs="songsOnlyHere" :here="songsHere" />
                 <RemindAsk />
                 <FirstWeek :songs="songsOnlyHere" />
-                <JoinedChoirs />
+                <JoinedChoirs v-if="aiOn()" /><!-- AI features off: the joined choirs hidden (docs/ai-optional-plan.md) -->
             </div>
             <div class="mt-10 space-y-10">
                 <div class="min-w-0 space-y-10">
 
+                    <!-- A part's rehearsal plan (docs/rehearsal-ready-plan.md), where a group's rehearsal shows: today's phrases, and Start. -->
+                    <RehearsalPlans v-if="hasRehearsalPlan()" />
                     <!-- A choir member's parts to learn, first (docs/agents/handoff-frontend2.md, the groups review): only for someone given a part in a group, so nobody else's Home changes. -->
                     <HomeBand v-if="choirParts.length" id="band-choir" tone="green" :title="t('groups.learnTitle')" :color="paint(BAND_COLORS.beta)">
                         <template #aside><a href="/groups" class="btn-go" @click.prevent="navigate('/groups')">{{ t('home.seeAll') }}</a></template>
@@ -301,7 +306,7 @@ export const ProjectsView = {
             </div>
 
             <TemplateDialog v-if="openTemplate && showInfo" :template="openTemplate" :credits="creditsFor(openTemplate.id)" :singers="singers" @singers="(n) => { singers = n; if (previewing && !locked) previewLevels(); }"
-                :previewing="previewing" :preparing="preparingPreview" :load="songLoad" :fresh="!sungYet()" :not-here="songNotHere" :starting="starting" @retry="pickTemplate(openTemplate)" @version="switchVersion" @copy="navigate('/create?copy=' + openTemplate.id)" @close="closeTemplate" @preview="preview" @start="start()" @voice="beTheVoice" @choir="navigate('/t/' + encodeURIComponent(openTemplate.id) + '/choir')" :locked="locked" :taste="taste" @signup="navigate(signUpForSong)" />
+                :previewing="previewing" :preparing="preparingPreview" :load="songLoad" :fresh="!sungYet()" :not-here="songNotHere" :starting="starting" @retry="pickTemplate(openTemplate)" @version="switchVersion" @copy="navigate('/create?copy=' + openTemplate.id)" @close="closeTemplate" @preview="preview" @start="start()" @voice="beTheVoice" @choir="navigate('/t/' + encodeURIComponent(openTemplate.id) + '/choir')" @take="takeAway" :locked="locked" :taste="taste" @signup="navigate(signUpForSong)" />
             <Modal v-if="renaming" :title="t('home.yours.renameTitle')" @close="renaming = null">
                 <form class="space-y-4" @submit.prevent="saveName">
                     <label class="block space-y-1"><span class="text-sm font-semibold text-cream">{{ t('home.yours.nameLabel') }}</span>
@@ -451,7 +456,8 @@ export const ProjectsView = {
         /** Your songs: recordings, songs you wrote and unfinished drafts, newest first (one place for all of yours). */
         yourSongs() {
             const items = [
-                ...projects.list.map((p) => ({ kind: 'project', key: 'p-' + p.id, p, at: p.updatedAt ?? 0 })),
+                // AI features off: an AI choir song (made from a choir request) is kept, not shown (docs/ai-optional-plan.md).
+                ...projects.list.filter((p) => aiOn() || !p.choir?.requestId).map((p) => ({ kind: 'project', key: 'p-' + p.id, p, at: p.updatedAt ?? 0 })),
                 ...mine.list.map((r) => ({ kind: 'written', key: 'w-' + r.id, r, at: r.updatedAt ?? 0 })),
                 ...mine.drafts.map((d) => ({ kind: 'draft', key: 'd-' + d.id, d, at: d.updatedAt ?? 0 })),
             ];
@@ -671,7 +677,21 @@ export const ProjectsView = {
             url.searchParams.delete('song');
             url.searchParams.delete('part');
             url.searchParams.delete('choir');
+            // A part page's links (brief A, B and C): "Take it with you" (?take=louder|without&part=) straight to its practice
+            // track, "Rehearsing this soon? Pick the day" (?rehearsal=YYYY-MM-DD&part=) the plan made.
+            const take = query.get('take');
+            const rehearsal = query.get('rehearsal');
+            url.searchParams.delete('take');
+            url.searchParams.delete('rehearsal');
             history.replaceState(history.state, '', url.pathname + url.search);
+            if (/^\d{4}-\d{2}-\d{2}$/.test(rehearsal ?? '') && this.linkedPart?.part) {
+                this.planFromLink(song, rehearsal, this.linkedPart.part);
+                return;
+            }
+            if (take === 'louder' || take === 'without') {
+                this.takeFromLink(song, take, this.linkedPart?.part ?? '');
+                return;
+            }
             // Once the account is known: a Plus member must never see the song as locked.
             if (account.loaded) this.infoSong(song);
             else this.linkedSong = song;
@@ -682,13 +702,56 @@ export const ProjectsView = {
          * The part of a song that sits inside the singer's range (the one nearest its middle), by name, or '' with no range
          * or none that fits: why a pick is here (the UX review, item 9).
          */
+        /** A rehearsal plan still on (its rehearsal today or ahead, not removed): Home's line shows. */
+        hasRehearsalPlan() {
+            const d = new Date();
+            const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; // local, as the plan's dates
+            return (learning.progress?.rehearsals ?? []).some((p) => !p.removedAt && p.date >= today);
+        },
         fitPart(tpl) {
+            const best = this.fitPartOf(tpl);
+            return best ? templatePartName(best).toLowerCase() : '';
+        },
+        /** The part that sits best in their range (its middle nearest theirs), or null without a range. */
+        fitPartOf(tpl) {
             const range = learning.progress.range;
-            if (!range) return '';
+            if (!range) return null;
             const middle = (range.low + range.high) / 2;
             const fits = (tpl.parts ?? []).filter((p) => p.range && p.kind !== 'instrument' && p.range.low >= range.low && p.range.high <= range.high);
-            const best = fits.sort((a, b) => Math.abs((a.range.low + a.range.high) / 2 - middle) - Math.abs((b.range.low + b.range.high) / 2 - middle))[0];
-            return best ? templatePartName(best).toLowerCase() : '';
+            return fits.sort((a, b) => Math.abs((a.range.low + a.range.high) / 2 - middle) - Math.abs((b.range.low + b.range.high) / 2 - middle))[0] ?? null;
+        },
+        /** The site's Take it with you: the song started, and the studio's export open on that part's practice track. */
+        async takeFromLink(song, take, part) {
+            try {
+                const tpl = await loadTemplate(song.id);
+                const key = part || this.fitPartOf(tpl)?.key || tpl.parts.find((p) => p.kind !== 'instrument')?.key || '';
+                const project = await startFromTemplate(tpl, { renderGuides: false, ...(key ? { focusKey: key } : {}) });
+                navigate(`/p/${project.id}?take=${take}&part=${encodeURIComponent(key)}`);
+            } catch (error) {
+                console.warn('The song to take away did not open', error);
+                this.infoSong(song); // its sheet, as any song link
+            }
+        },
+        /**
+         * Take it with you (brief C): the song opened in the studio with its export on the practice track, their part (the
+         * part page's, else the one that fits their range, else the first) louder, as MP3.
+         */
+        async takeAway() {
+            if (this.starting) return;
+            this.starting = true;
+            this.stopPreview();
+            try {
+                const tpl = this.openTemplate;
+                const linked = this.linkedPart?.song === tpl.id ? this.linkedPart.part : null;
+                const part = linked ?? this.fitPartOf(tpl)?.key ?? tpl.parts.find((p) => p.kind !== 'instrument')?.key ?? '';
+                const project = await startFromTemplate(tpl, { singers: this.singers, renderGuides: false, ...(part ? { focusKey: part } : {}) });
+                navigate(`/p/${project.id}?take=louder&part=${encodeURIComponent(part)}`);
+            } catch (error) {
+                console.error('Taking a song away failed', error);
+                toast(t('projects.couldNotStart'), { tone: 'error' });
+            } finally {
+                this.starting = false;
+            }
         },
         outside(tpl) {
             const range = learning.progress.range;
@@ -1050,6 +1113,18 @@ export const ProjectsView = {
             const part = voicelessParts(this.openTemplate.id)[0];
             if (part) this.linkedPart = { song: this.openTemplate.id, part };
             this.start();
+        },
+        /** The site's Pick the day: the part's plan made for that date, then its page. */
+        async planFromLink(song, date, part) {
+            try {
+                const { startPlan } = await import('../stores/rehearsals.js');
+                count('rr_page_pick');
+                await startPlan({ songId: song.id, partKey: part, date });
+                navigate(`/rehearse/${encodeURIComponent(song.id)}/${encodeURIComponent(part)}`);
+            } catch (error) {
+                console.warn('The rehearsal plan was not made', error);
+                this.infoSong(song);
+            }
         },
         /** A song's cover seed, from its id: the same colours wherever it's listed. */
         seedOf: (id) => [...String(id)].reduce((hash, c) => (hash * 31 + c.charCodeAt(0)) >>> 0, 7),

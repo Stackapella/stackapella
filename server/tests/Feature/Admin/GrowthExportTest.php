@@ -103,4 +103,22 @@ final class GrowthExportTest extends TestCase
         $this->actingAs(User::factory()->create());
         $this->getJson('/api/admin/growth/export?page=funnel')->assertForbidden();
     }
+
+    public function test_the_ai_choice_card_downloads_by_band_with_too_few_left_empty(): void
+    {
+        $this->actingAsAdmin();
+        $this->counted('ai_card:shown:25-34', 10);
+        $this->counted('ai_card:try:25-34', 4);
+        $this->counted('ai_card:not:25-34', 2);
+
+        $made = $this->getJson('/api/admin/growth/export?page=ai&period=90d');
+        $this->assertMatchesContract($made, 'admin.growth.export', 200);
+        $lines = self::rows((string) $made->json('data.csv'));
+        $this->assertSame(['band', 'card_shown', 'card_try', 'card_not'], array_slice($lines[0], 0, 4));
+        $this->assertContains('unset_back_d1', $lines[0]);
+        $band = collect(array_slice($lines, 1))->firstWhere(0, '25-34');
+        $this->assertSame(['25-34', '10', '4', ''], array_slice((array) $band, 0, 4), 'Two not-for-me answers are too few: empty.');
+        $this->assertSame('all', $lines[count($lines) - 1][0]);
+        $this->getJson('/api/admin/growth/export?page=ai&period=7d')->assertUnprocessable();
+    }
 }

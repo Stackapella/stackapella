@@ -1058,6 +1058,8 @@ return [
         'faq_seat_choir' => 'A seat covers singing with the group, not songs sung by AI.',
         // Joined to "Can I share what I make?" while own_choir is on.
         'faq_share_choir' => 'A song sung by AI says so wherever you share it.',
+        // Last among the questions while ai_optional is on (docs/ai-optional-plan.md).
+        'faq_ai' => ['Do I have to use AI?', 'No. AI features are a choice in Settings. With them off, you hear real singers and our practice voice, and nothing uses AI. Only Plus\'s AI choir songs need them on.'],
         'choir_row' => ['Download a song in a voice like yours', 'No', 'Yes'],
         // How many songs in your own voice (Hillel delegated, 2026-11-21: 60 minutes a month with Plus, one free song per email).
         'choir_songs_row' => ['Your own AI choir, sung in a voice like yours', 'Your first choir, once', ':plus_minutes minutes a month'],
@@ -1696,6 +1698,14 @@ return [
                         '**How you sing** says what happens when you open a song to sing: **Ask each time**, **Phrase by phrase** or **Whole song**. Ticking **Use this every time** in Sing sets it too.',
                         'If you chose not to be asked before discarding a draft, **Ask before discarding drafts** turns the question back on. Deleting a song always asks, and offers **Undo** for a few seconds after.',
                     ]],
+                    // AI as a choice (docs/ai-optional-plan.md): the Settings switch, shown once the app has it.
+                    ['AI features', [
+                        'Under **Choir and groups**, **AI features** turns everything in Stackapella made with AI on or off: AI guide voices, Hear yourself as a choir and lending your voice.',
+                        'A new account starts with it off, unless you came through Hear yourself as a choir. After you record a part, the app may ask you once whether you\'d like to try it. Change it here any time.',
+                        'With it off, a part with no real singer yet plays our practice voice, nothing you hear is made with AI, and your voice isn\'t lent to anyone.',
+                        'Turning it off deletes nothing: your AI choir songs are kept, and come back when you turn it on.',
+                        'Under 18, on means AI guide voices only. Hear yourself as a choir and lending your voice are for 18 and over.',
+                    ], 'flag' => 'ai_optional'],
                     ['The mic and timing', [
                         'The mic and the timing check are in the studio, where you record. Open a song, then **Microphone and timing**: in the More menu on a phone, or the mic at the top on a bigger screen.',
                         'Under **Record with**, pick the mic you sing into, and watch its level move. **Check timing** measures your delay. Run **Check again** after you change headphones.',
@@ -1842,6 +1852,7 @@ return [
                             'Your singing stays on your device until you save it to your account or share it. Without an account, everything stays on your device.',
                             'The pitch feedback (your notes lighting up, and the report on your take) is worked out on your device.',
                             'No third-party analytics, no advertising, no tracking.',
+                            ['text' => '**AI features**, under **Choir and groups** in Settings, is your choice. With them off, nothing you hear is made with AI, and your voice isn\'t lent to anyone.', 'flag' => 'ai_optional'],
                         ],
                     ],
                     [
@@ -1981,6 +1992,7 @@ return [
                     ['Always labelled as AI', [
                         'Every part made this way is labelled as AI, in the app and on anything you share.',
                         'A file you download carries the AI marking inside it too.',
+                        ['text' => 'It needs **AI features** on, under **Choir and groups** in Settings. With them off, a choir link offers **Turn on AI features**.', 'flag' => 'ai_optional'],
                     ]],
                     ['With friends', [
                         'Invite a friend whose voice sits higher or lower than yours. They sing for 30 seconds, and the parts that suit their voice are sung in a voice like theirs.',

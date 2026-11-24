@@ -25,7 +25,9 @@ final class GrowthExportRequest extends FormRequest
 
         return [
             'page' => ['required', 'in:'.implode(',', GrowthCsv::PAGES)],
-            'period' => ['sometimes', 'nullable', 'in:'.implode(',', $page === 'choirs' ? ['7d', '30d'] : FairCompare::PERIODS)],
+            'period' => ['sometimes', 'nullable', 'in:'.implode(',', match ($page) {
+                'choirs' => ['7d', '30d'], 'ai' => ['28d', '90d'], default => FairCompare::PERIODS
+            })],
             'days' => ['sometimes', 'nullable', 'integer', 'in:'.($page === 'sources' ? '1,7,30,90' : '7,30,90')],
             'experiment' => ['sometimes', 'nullable', 'string', 'max:40'],
         ];

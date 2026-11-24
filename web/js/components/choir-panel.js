@@ -5,6 +5,7 @@
 // it sits in the course card's side column (`side`: no card of its own); on a phone, its own card after the course.
 
 import { t } from '../i18n.js';
+import { aiOn } from '../ai-choice.js';
 import { navigate } from '../router.js';
 import { clipSongs, isOpen, ownChoir, ownChoirOn, readyUnseen, togetherOn } from '../own-choir-state.js';
 
@@ -20,6 +21,7 @@ function friendReady(request) {
 
 /** Home's ready songs: ready and not yet heard, or one a friend left since (said whatever the switch). */
 export function choirReady() {
+    if (!aiOn()) return []; // AI features off: none of the AI choir's news (docs/ai-optional-plan.md)
     const left = (ownChoir.data?.requests ?? []).filter((r) => (r.left ?? []).some((l) => !l.seen));
     const ready = ownChoirOn() ? readyUnseen() : [];
     return [...ready, ...left.filter((r) => !ready.includes(r))];

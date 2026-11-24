@@ -491,10 +491,13 @@ export const ExportDialog = {
     // written parts ([{ key, name }]), for sheet music; none, and it isn't offered.
     // choirLocked: a choir made from your voice is in the mix and this song isn't the singer's to download (Plus).
     // creditsLine: the credits as one line, "Real voices: ..." or, with an AI voice among them, "Voices: ..." (the studio's).
-    props: { title: { type: String, default: '' }, defaultName: String, busy: Boolean, credits: { type: Array, default: () => [] }, creditsLine: { type: String, default: null }, hasChords: Boolean, parts: { type: Array, default: () => [] }, scoreParts: { type: Array, default: () => [] }, seconds: { type: Number, default: 0 }, sampleRate: { type: Number, default: 48000 }, choirLocked: Boolean },
-    emits: ['export', 'close', 'upgrade', 'unmute'],
+    // library: a library song (not your own), whose practice track is MP3 with a free account. start: the choice it opens on
+    // (`{ what: 'track', kind: 'louder' | 'without', partId }`: the song sheet's and the site's Take it with you).
+    props: { library: Boolean, start: { type: Object, default: null }, partWords: { type: String, default: '' }, title: { type: String, default: '' }, defaultName: String, busy: Boolean, credits: { type: Array, default: () => [] }, creditsLine: { type: String, default: null }, hasChords: Boolean, parts: { type: Array, default: () => [] }, scoreParts: { type: Array, default: () => [] }, seconds: { type: Number, default: 0 }, sampleRate: { type: Number, default: 48000 }, choirLocked: Boolean },
+    emits: ['export', 'close', 'upgrade', 'unmute', 'account'],
     data() {
-        return { name: this.defaultName, format: 'wav', chords: false, polish: prefs.polish, room: prefs.room, what: 'song', partId: this.parts[0]?.id ?? null, kind: 'without', clicks: true, sheetFormat: 'musicxml', sheetPart: '', field, label, primary, secondary, ROOM_CHOICES, SHEET_FORMATS };
+        const start = this.start;
+        return { name: this.defaultName, format: start ? 'mp3' : 'wav', chords: false, polish: prefs.polish, room: prefs.room, what: start?.what ?? 'song', partId: start?.partId ?? this.parts[0]?.id ?? null, kind: start?.kind ?? 'without', clicks: true, sheetFormat: 'musicxml', sheetPart: '', field, label, primary, secondary, ROOM_CHOICES, SHEET_FORMATS };
     },
     template: `
         <Modal :title="title ? t('export.titleOf', { title }) : t('export.title')" :title-is-content="!!title" @close="$emit('close')">
@@ -555,20 +558,32 @@ export const ExportDialog = {
                             <button type="button" role="radio" :aria-checked="sheetFormat === 'print' ? 'true' : 'false'" class="seg-option" @click="sheetFormat = 'print'">{{ t('export.print') }}</button>
                         </div>
                         <div v-else-if="what !== 'stems'" class="seg ms-auto flex" role="radiogroup" :aria-label="t('export.format')">
-                            <button v-for="f in ['wav', 'mp3']" :key="f" type="button" role="radio" :aria-checked="format === f ? 'true' : 'false'" class="seg-option flex items-center gap-1.5" @click="format = f" translate="no">{{ f.toUpperCase() }}<span v-if="f === 'mp3' && !plus" class="chip-accent">{{ t('home.plus') }}</span></button>
+                            <button v-for="f in ['wav', 'mp3']" :key="f" type="button" role="radio" :aria-checked="format === f ? 'true' : 'false'" class="seg-option flex items-center gap-1.5" @click="format = f" translate="no">{{ f.toUpperCase() }}<span v-if="f === 'mp3' && !plus && !freeTrack" class="chip-accent">{{ t('home.plus') }}</span></button>
                         </div>
                     </div>
                     <p class="text-xs text-muted">{{ what === 'sheet' ? (printing ? t('export.printHint') : sheetFormat === 'midi' ? t('export.midiHint') : t('export.musicxmlHint')) : what === 'stems' ? t('export.stemsHint') : format === 'mp3' ? t('export.mp3Hint') : t('export.wavHint') }}</p>
                 </fieldset>
+                <!-- A library song's practice track as MP3 is free with an account: a guest is asked for one, in the song's words. -->
+                <p v-if="needsAccount" ref="take" class="text-sm text-cream" role="status" data-export-account>{{ t('export.takeAccount', { part: partWords || selectedPartName, song: title }) }}</p>
                 <p v-if="locked" class="text-sm text-cream" role="status" data-export-plus>{{ choirLocked ? t('plus.moment.choirDownload') : what === 'stems' ? t('plus.moment.stems') : t('plus.moment.mp3') }}</p>
                 <p v-if="credits.length && what !== 'sheet'" class="text-sm text-cream">{{ creditsLine ?? t('export.credits', { names: formatList(credits) }) }}</p>
                 <div class="flex flex-wrap items-center gap-3 border-t border-line pt-4">
                     <span class="me-auto text-xs tabular-nums text-muted" translate="no">{{ summary }}</span>
                     <button type="button" :class="secondary" @click="$emit('close')">{{ t('common.cancel') }}</button>
-                    <button type="submit" :class="primary" :disabled="busy">{{ busy ? t('export.mixing') : locked ? t('plus.subscribe') : printing ? t('export.printButton') : t('export.exportAs', { format: formatName }) }}</button>
+                    <button type="submit" :class="primary" :disabled="busy">{{ busy ? t('export.mixing') : needsAccount ? t('wrap.makeAccount') : locked ? t('plus.subscribe') : printing ? t('export.printButton') : t('export.exportAs', { format: formatName }) }}</button>
                 </div>
             </form>
         </Modal>`,
+    // Opened by Take it with you: the foot in view (the format, the account ask and the button), not the list of choices.
+    mounted() {
+        this.footToView();
+    },
+    watch: {
+        // The credits line arrives after the sheet opens and pushes the foot down: in view again (Take it with you).
+        credits() {
+            this.footToView();
+        },
+    },
     computed: {
         plus: () => isPlus(),
         whats() {
@@ -595,12 +610,23 @@ export const ExportDialog = {
         printing() {
             return this.what === 'sheet' && this.sheetFormat === 'print';
         },
+        /** A library song's practice track, your part louder or without it: MP3 with a free account (brief C). */
+        freeTrack() {
+            return this.library && !this.choirLocked && this.what === 'track' && ['louder', 'without'].includes(this.kind);
+        },
+        /** That track as MP3 for a guest: the account ask, in the song's words, instead of the file. */
+        needsAccount() {
+            return this.freeTrack && this.format === 'mp3' && !account.me && !this.plus;
+        },
+        selectedPartName() {
+            return (this.parts.find((p) => p.id === this.partId)?.name ?? '').toLowerCase();
+        },
         /** MP3 and each part are Plus (docs/features.md): picked, a line says so and the button is Get Plus. */
         locked() {
             if (this.what === 'sheet') return false;
             // A choir made from your voice, in the mix, downloads with Plus (the server's canDownload; sheet music stays free).
             if (this.choirLocked) return true;
-            return exportNeedsPlus(this.what === 'stems' ? 'stems' : this.format);
+            return exportNeedsPlus(this.what === 'stems' ? 'stems' : this.format, { practiceTrack: this.freeTrack });
         },
         /** "WAV · about 6.5 MB · 0:37": stereo 16-bit at the mix's rate, MP3 at about 128 kbps, each recorded part a mono WAV at its own. */
         summary() {
@@ -612,9 +638,17 @@ export const ExportDialog = {
         },
     },
     methods: {
+        /** Opened by Take it with you: the foot in view (the format, the account ask and the button). The sheet is teleported: found by its hook. */
+        footToView() {
+            if (this.start) this.$nextTick(() => document.querySelector('[data-export] [type=submit]')?.scrollIntoView({ block: 'end' }));
+        },
         send() {
             // Remembered for next time (and Hear it polished plays the same room).
             Object.assign(prefs, { polish: this.polish, room: this.room });
+            if (this.needsAccount) {
+                this.$emit('account', { kind: this.kind, partId: this.partId });
+                return;
+            }
             if (this.locked) {
                 this.$emit('upgrade', this.choirLocked ? 'choir_download' : this.what === 'stems' ? 'stems' : this.format);
                 return;
@@ -845,7 +879,7 @@ export const TemplateDialog = {
     // taste: a guest on a library song whose first phrase they may sing (templates.firstPhrase): Start sings that, the ask after.
     // load: the song's notes still coming ('loading'), or why they didn't ('failed', 'offline'); starting: Start was tapped.
     props: { template: { type: Object, required: true }, previewing: Boolean, preparing: Boolean, credits: { type: Array, default: () => [] }, locked: Boolean, taste: Boolean, singers: { type: Number, default: 4 }, fresh: Boolean, load: { type: String, default: null }, notHere: { type: String, default: null }, starting: Boolean },
-    emits: ['start', 'preview', 'close', 'signup', 'copy', 'singers', 'retry', 'voice', 'version', 'choir'],
+    emits: ['start', 'preview', 'close', 'signup', 'copy', 'singers', 'retry', 'voice', 'version', 'choir', 'take'],
     setup: () => ({ midiName, formatTime, formatNumber, primary, secondary, singerOptions, templatePartName, keyLabel, DIFFICULTY, formatList, TEMPO, songTitle, versionsOf, GUIDE_WORDS }),
     template: `
         <!-- Hillel's song sheet (2026-11-20, shots-review/designs/song-sheet-2026-11-20): the title and its line in the header
@@ -916,6 +950,8 @@ export const TemplateDialog = {
                         <button v-if="!fresh && !taste" type="button" :class="[secondary, 'w-full justify-center']" :aria-label="t('templates.editLabel', { title: songTitle(template) })" data-song-edit @click="$emit('copy')">{{ t('template.edit') }}</button>
                     </div>
                     <button v-if="hasCourse" type="button" class="btn-ghost btn-sm" data-song-course @click="learnIt"><Icon name="arrow" :size="16" /> {{ t('songCourse.open') }}</button>
+                    <!-- Take it with you (brief C): your part louder, as an MP3 to practise anywhere; a library song only. -->
+                    <button v-if="library && !taste" type="button" class="btn-ghost btn-sm" data-song-take @click="$emit('take')"><Icon name="download" :size="16" /> {{ t('templates.take') }}</button>
                 </div>
                 <!-- The credits, last and folded: one row, a draft said only as its badge until it opens. -->
                 <div v-if="template.credits">
@@ -985,6 +1021,10 @@ export const TemplateDialog = {
         /** The hairline group shows only when it has a row. */
         groupShown() {
             return !!(this.guides.length || versionsOf(this.template).length || this.singersShown || this.credits.length || this.aiParts.length || this.voiceless.length || this.choirShown);
+        },
+        /** A library song (the catalogue's, not one of their own): its practice track can be taken away (brief C). */
+        library() {
+            return !this.locked && !!catalogue.list.find((entry) => entry.id === this.template.id);
         },
         /** Hear yourself as a choir: on for this account, a library song they can start (not a guest's taste or a locked one). */
         choirShown() {

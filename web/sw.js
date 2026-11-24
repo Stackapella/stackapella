@@ -198,6 +198,11 @@ const SHELL = [
     '/js/views/storage.js',
     '/js/views/voice.js',
     '/js/views/workout.js',
+    '/js/views/rehearse.js',
+    '/js/components/rehearsal-plans.js',
+    '/js/stores/rehearsals.js',
+    '/js/rehearsal-plan.js',
+    '/js/rehearsal-merge.js',
     '/js/views/plus.js',
     '/js/views/reminders.js',
     '/js/views/school.js',
@@ -226,6 +231,10 @@ const SHELL = [
     '/js/components/joined-choirs.js',
     '/js/components/choir-panel.js',
     '/js/ai-voices.js',
+    '/js/ai-choice.js',
+    '/js/ai-counts.js',
+    '/js/components/ai-off.js',
+    '/js/components/ai-card.js',
     '/js/voice-take.js',
     '/js/components/share-voice.js',
     '/js/library-filter.js',
@@ -426,7 +435,7 @@ const SHELL = [
 
 // The app's own addresses (every route in router.js; tests/sw-routes.test.js keeps them in step);
 // every other page is the server's.
-const APP_ROUTE = /^\/(?:$|index\.html$|p\/[\w-]+(?:\/(?:sing|print))?\/?$|styleguide(?:\/game)?\/?$|beta(?:\/[\w-]*)?\/?$|signin(?:\/link)?\/?$|settings(?:\/(?:reminders|classes))?\/?$|class(?:\/[\w-]+)?\/?$|storage\/?$|voice\/?$|workout\/?$|plus\/?$|learn(?:\/[cs])?(?:\/[\w-]+)?(?:\/lines)?\/?$|verify\/?$|reset\/?$|email\/(?:confirm|revert)\/?$|create(?:\/[\w-]+)?\/?$|t\/[\w-]+(?:\/(?:sheet|choir))?\/?$|(?:join|early|invite|choir|challenge)\/[\w-]+\/?$|choir\/join\/[\w-]+\/?$|groups(?:\/[\w-]+)?\/?$|ideas(?:\/[\w-]+)?\/?$|requests\/?$|voices\/?$|start-fresh\/?$|cooldown\/?$|warmup\/?$|moved\/?$|contact\/?$|notices?\/?$|admin(?:\/(?!sign-in|sign-out|second-factor)[\w-]+(?:\/[\w-]+)?)?\/?$)/;
+const APP_ROUTE = /^\/(?:$|index\.html$|p\/[\w-]+(?:\/(?:sing|print))?\/?$|styleguide(?:\/game)?\/?$|beta(?:\/[\w-]*)?\/?$|signin(?:\/link)?\/?$|settings(?:\/(?:reminders|classes))?\/?$|class(?:\/[\w-]+)?\/?$|storage\/?$|voice\/?$|workout\/?$|rehearse\/[\w-]+\/[\w-]+\/?$|plus\/?$|learn(?:\/[cs])?(?:\/[\w-]+)?(?:\/lines)?\/?$|verify\/?$|reset\/?$|email\/(?:confirm|revert)\/?$|create(?:\/[\w-]+)?\/?$|t\/[\w-]+(?:\/(?:sheet|choir))?\/?$|(?:join|early|invite|choir|challenge)\/[\w-]+\/?$|choir\/join\/[\w-]+\/?$|groups(?:\/[\w-]+)?\/?$|ideas(?:\/[\w-]+)?\/?$|requests\/?$|voices\/?$|start-fresh\/?$|cooldown\/?$|warmup\/?$|moved\/?$|contact\/?$|notices?\/?$|admin(?:\/(?!sign-in|sign-out|second-factor)[\w-]+(?:\/[\w-]+)?)?\/?$)/;
 
 /**
  * Caches every file of the app, or none: a file that fails (a folder the server doesn't serve, say)

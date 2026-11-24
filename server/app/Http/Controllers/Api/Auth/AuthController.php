@@ -28,6 +28,7 @@ use App\Rules\StrongPassword;
 use App\Services\Cloudflare\Turnstile;
 use App\Services\EventSchedule\EventSchedule;
 use App\Support\Accounts\Age;
+use App\Support\Accounts\AiChoice;
 use App\Support\Accounts\BetaPass;
 use App\Support\Accounts\Sessions;
 use App\Support\Accounts\SignInProviders;
@@ -132,6 +133,8 @@ final class AuthController extends Controller
             'aiMark' => AiMark::forApp(),
             // Plus's numbers as the site's Plus words give them, so the app's Plus page never types its own.
             'plusLimits' => PlusFeatures::limits(),
+            // AI as a choice (docs/ai-optional-plan.md): while on, the app honours each account's setting.
+            'aiOptional' => AiChoice::on(),
             // Song requests (the song_requests switch); staff see them before (account.songRequests).
             'songRequests' => $flags->on('song_requests'),
             'schools' => $flags->on('schools'),
@@ -173,7 +176,7 @@ final class AuthController extends Controller
         if ($request->validated('nickname') === null && ! $tooQuick) {
             $invite = $request->validated('invite');
             $early = $request->validated('early');
-            $register->handle((string) $request->validated('name'), (string) $request->validated('email'), (string) $request->validated('password'), $request->validated('ref'), app()->getLocale(), $request->ip(), $birth, is_string($invite) && $invite !== '' ? $invite : null, is_string($early) && $early !== '' ? $early : null, Country::of($request), $browserHash, self::doneLessons($request->validated('doneLessons')));
+            $register->handle((string) $request->validated('name'), (string) $request->validated('email'), (string) $request->validated('password'), $request->validated('ref'), app()->getLocale(), $request->ip(), $birth, is_string($invite) && $invite !== '' ? $invite : null, is_string($early) && $early !== '' ? $early : null, Country::of($request), $browserHash, self::doneLessons($request->validated('doneLessons')), $request->validated('aiFeatures') !== null ? $request->boolean('aiFeatures') : null, is_string($source = $request->validated('aiFeaturesSource')) ? $source : null);
         }
 
         $answer = $this->checkEmail();

@@ -6,6 +6,8 @@
 // account or Sign in, coming back here. Every refusal in its own words; never a browser dialog.
 
 import { api } from '../api.js';
+import { aiOn } from '../ai-choice.js';
+import { AiOffNotice } from '../components/ai-off.js';
 import { t } from '../i18n.js';
 import { navigate } from '../router.js';
 import { AppScreen } from '../components/page.js';
@@ -23,7 +25,7 @@ import { loadChoir, playChoir, stopChoir } from '../own-choir-player.js';
 import { game as gameSkin } from '../stores/appearance.js';
 
 export const ChoirTogetherJoinView = {
-    components: { AccountWall, Agreement, AppScreen, ClipChoice, FirstNoteStep, HeadphonesPick, Switch },
+    components: { AiOffNotice, AccountWall, Agreement, AppScreen, ClipChoice, FirstNoteStep, HeadphonesPick, Switch },
     props: { token: { type: String, required: true } },
     data: () => ({ shift: null, firstNote: null, withClip: false, singInstead: false, clipLost: false, sent: false, partsChanged: false, wordsChanged: false, state: 'loading', invite: null, terms: null, showName: false, busy: false, playing: false, loadingTrack: false, template: null }),
     setup: () => ({ account, savedVoice, navigate, clipLine, rememberedHeadphones }),
@@ -95,6 +97,11 @@ export const ChoirTogetherJoinView = {
             }
             if (!togetherOn()) {
                 this.state = 'unavailable';
+                return;
+            }
+            // AI features off (docs/ai-optional-plan.md): the invite says it uses AI voices, with the way to turn them on.
+            if (!aiOn()) {
+                this.state = 'aiOff';
                 return;
             }
             await loadOwnChoir({ force: true }).catch((error) => console.warn('The choir did not load', error));
@@ -286,6 +293,7 @@ export const ChoirTogetherJoinView = {
     template: `
         <AppScreen :title="header" back="/" measure="max-w-2xl">
             <p v-if="state === 'loading'" class="text-muted" role="status">{{ t('common.loading') }}</p>
+            <AiOffNotice v-else-if="state === 'aiOff'" data-join-off="aiOff" @on="load" />
             <div v-else-if="state === 'closed' || state === 'offline' || state === 'unavailable' || state === 'own' || state === 'full'" class="card space-y-3 p-5" :data-join-off="state">
                 <p class="text-cream">{{ state === 'offline' ? t('common.offline') : state === 'own' ? t('ownChoir.together.join.own') : state === 'full' ? t('ownChoir.together.join.full') : state === 'unavailable' ? t('ownChoir.off.unavailable') : t('ownChoir.together.join.expired') }}</p>
                 <button v-if="state === 'offline'" type="button" class="btn-secondary self-start" @click="load">{{ t('common.tryAgain') }}</button>

@@ -102,7 +102,11 @@ export function lockReason(project) {
 // ---- The app-only gates (docs/features.md, "In the app only") -------------------------------------
 // Courses, songs and workouts are free (2026-11-06 and 11-07); Plus is singing with others, and the solo extras.
 
-/** MP3 and stems are Plus. */
-export function exportNeedsPlus(format) {
+/**
+ * MP3 and stems are Plus; a library song's practice track (your part louder, or without it) is MP3 with a free account
+ * (Hillel's approved build plan, 2026-11-23, brief C: learning tracks to take away). Its account ask is the dialog's own.
+ */
+export function exportNeedsPlus(format, { practiceTrack = false } = {}) {
+    if (practiceTrack && format === 'mp3') return false;
     return (format === 'mp3' || format === 'stems') && !isPlus();
 }

@@ -523,7 +523,8 @@
         "sheetSummary": "{format} · {count, plural, one {# part} other {# parts}}",
         "print": "Print",
         "printHint": "Opens the parts on a page to print, or to save as a PDF.",
-        "printButton": "Print"
+        "printButton": "Print",
+        "takeAccount": "Make a free account to take the {part} of {song} with you."
     },
     "print": {
         "print": "Print or save as PDF",
@@ -718,7 +719,8 @@
             "real": "Real voice",
             "ai": "AI voice",
             "hummed": "Practice voice"
-        }
+        },
+        "take": "Take it with you"
     },
     "projects": {
         "title": "Your songs",
@@ -1884,6 +1886,15 @@
             "confirmTitle": "Clear your range?",
             "confirmBody": "Part suggestions and how a choir's parts fit you stop using it until you check your range again. Your songs and recordings stay.",
             "cleared": "Your range is cleared."
+        },
+        "ai": {
+            "title": "AI features",
+            "hintOn": "AI guide voices, Hear yourself as a choir and lending your voice.",
+            "hintOff": "You'll hear real singers and our practice voice. No AI anywhere.",
+            "kept": "Your {count, plural, one {AI choir song is} other {# AI choir songs are}} kept. Turn AI features on to hear {count, plural, one {it} other {them}}.",
+            "linkOff": "This uses AI voices, and your AI features are off.",
+            "turnOn": "Turn on AI features",
+            "hintOnMinor": "AI guide voices, where no one has recorded a part yet."
         }
     },
     "version": {
@@ -6203,6 +6214,13 @@
         "help": {
             "link": "How it works, and your questions",
             "failed": "What to do when a song doesn't come out"
+        },
+        "aiCard": {
+            "title": "Hear the other parts in your voice?",
+            "body": "An AI choir can sing the rest of {song} in a voice like yours. It's optional, and always marked as AI.",
+            "not": "Not for me",
+            "try": "Try it",
+            "note": "You can change this any time in Settings."
         }
     },
     "aiVoice": {
@@ -6447,5 +6465,35 @@
         "onPitch": "On pitch {percent}% across your last {count, plural, one {take} other {# takes}}.",
         "next": "Next: {what}, in today's workout.",
         "go": "Start it"
+    },
+    "rehearse": {
+        "screen": "Rehearsal plan",
+        "title": "{part}, {song}",
+        "ask": "When is the rehearsal?",
+        "make": "Make my plan",
+        "when": "{day}, {days} days to rehearsal",
+        "whenTomorrow": "{day}: rehearsal is tomorrow",
+        "whenToday": "Rehearsal is today",
+        "today": "Today",
+        "whole": "The whole part, with the others",
+        "readyCheck": "Ready check",
+        "phrase": "Phrase {n}",
+        "phrases": "Phrases {from} to {to}",
+        "minutes": "About {minutes} minutes",
+        "done": "Done",
+        "start": "Start",
+        "readyFor": "Ready for {day}.",
+        "knowIt": "I know most of it",
+        "calendar": "Add to my calendar",
+        "share": "Send myself the link",
+        "change": "Change the day",
+        "remove": "Remove this plan",
+        "removeTitle": "Remove the plan for {title}?",
+        "removeBody": "The days and what you marked done go from this device and your account. The song stays.",
+        "removeAction": "Remove the plan",
+        "shareText": "My rehearsal plan for {title}",
+        "soon": "Rehearsing this soon?",
+        "homeDays": "{days} days to rehearsal",
+        "homeLine": "{when} · {what}"
     }
 }

@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use App\Support\Accounts\AiChoice;
 use App\Support\OwnChoir\ChoirCounts;
 use App\Support\Pages\SongCollections;
 
@@ -29,6 +30,8 @@ return [
         'app_open', 'lesson_start', 'lesson_done', 'unit_done', 'song_created', 'take_recorded', 'share_created', 'harmonise_used', 'export_done', 'sign_up', 'result_shared', 'leaderboard_viewed', 'challenge_accepted',
         // Lesson 1's live chord (2026-11-23, Hillel's "I just sang harmony"): asked to hear their note in a chord, and the chord sounded round it.
         'chord_live_start', 'chord_live_heard',
+        // Engagement by AI choice and age band, from signed-in devices (docs/ai-optional-plan.md).
+        ...AiChoice::deviceKinds(),
         // Ready by rehearsal (build plan brief A, docs/rehearsal-ready-plan.md): a part page's date picked, a plan made, a
         // practice day done, a ready check, the days added to a calendar.
         'rr_page_pick', 'rr_plan_made', 'rr_day_done', 'rr_ready_check', 'rr_cal_add',
@@ -233,7 +236,9 @@ return [
         // 50 and up (App\Support\Groups\ChoirSeats::band). Never the group or who bought it.
         'seats_bought_10', 'seats_bought_20', 'seats_bought_50',
         // The choir's outcomes over time (App\Support\OwnChoir\ChoirCounts; Hillel, 2026-11-23).
-        ...ChoirCounts::kinds()],
+        ...ChoirCounts::kinds(),
+        // The AI features choice by age band (docs/ai-optional-plan.md): at sign-up, the one-time card, a switch.
+        ...AiChoice::serverKinds()],
 
     // A shared link's page opened, counted by the server as so:<surface> (docs/retention-plan.md, sharing): a shared
     // song's page, an invite to sing a part, Hillel's invite link, a choir group's join link, a challenge. By surface
@@ -250,7 +255,7 @@ return [
     // New embedding sites a day kept by name before the rest are counted as embed-other.
     'new_embed_hosts_a_day' => 5,
 
-    'sources' => ['choir-share', 'choir-song', 'choir-home', 'choir-about', 'choir-footer', 'your-choir', 'hn', 'mudeo', 'songs', 'song-page', 'part-page', 'carols', 'lesson-page', 'course-page', 'courses-hub', 'features-course', 'lesson-try', 'warmups', 'intervals', 'chords', 'voice-types', 'tools', 'tools-embed', 'share-range', 'share-pitch-matching', 'share-interval-ear-training', 'share-chord-ear-training', 'share-lesson', 'for-choir-directors', 'for-choirs-footer', 'for-choirs-songs', 'for-choirs-collection', 'for-choirs-carols', 'for-choirs-pricing', 'for-choirs-landing', 'for-choirs-course', 'for-choirs-help', 'features-choirs', 'social', 'reddit', 'producthunt', 'newsletter', 'press',
+    'sources' => ['choir-share', 'choir-song', 'choir-home', 'choir-about', 'choir-footer', 'your-choir', 'ai-harmony-singing', 'hn', 'mudeo', 'songs', 'song-page', 'part-page', 'carols', 'lesson-page', 'course-page', 'courses-hub', 'features-course', 'lesson-try', 'warmups', 'intervals', 'chords', 'voice-types', 'tools', 'tools-embed', 'share-range', 'share-pitch-matching', 'share-interval-ear-training', 'share-chord-ear-training', 'share-lesson', 'for-choir-directors', 'for-choirs-footer', 'for-choirs-songs', 'for-choirs-collection', 'for-choirs-carols', 'for-choirs-pricing', 'for-choirs-landing', 'for-choirs-course', 'for-choirs-help', 'features-choirs', 'social', 'reddit', 'producthunt', 'newsletter', 'press',
         // The improvement loop: the verify email's next lesson, the day's part (/today), and the thread back.
         'welcome', 'today', 'back-link', 'back-calendar',
         // Each share surface's tag (share-lesson was already one; never folded, as every share- tag).

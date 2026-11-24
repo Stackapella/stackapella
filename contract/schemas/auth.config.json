@@ -40,7 +40,8 @@
                 "choirSeats",
                 "ownChoirTogether",
                 "aiMark",
-                "plusLimits"
+                "plusLimits",
+                "aiOptional"
             ],
             "properties": {
                 "methods": {
@@ -339,6 +340,10 @@
                             "type": "integer"
                         }
                     }
+                },
+                "aiOptional": {
+                    "type": "boolean",
+                    "description": "The ai_optional switch (docs/ai-optional-plan.md): while on, the app honours each account's AI features setting and a guest's device key; off, AI shows for everyone as before."
                 }
             }
         }

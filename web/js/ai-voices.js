@@ -10,15 +10,19 @@
 // offline included. An AI part still counts as having no real voice (`hasRealGuide` false), so Be the voice keeps asking.
 
 import { account } from './stores/account.js';
+import { aiOn, aiUse } from './ai-choice.js';
 import { voiceAskOpen } from './be-the-voice.js';
 import { formatList, locale, t } from './i18n.js';
 import { publicSiteUrl } from './hosts.js';
 import { count } from './usage.js';
 import { Icon } from './components/icon.js';
 
-/** Whether AI guide voices are on for this account: auth.config `aiVoices`, and only when it's known to be true. */
+/**
+ * Whether AI guide voices are on for this account: auth.config `aiVoices`, known to be true, and AI features on here
+ * (ai-choice.js; off, every AI guide gives way to the practice voice).
+ */
 export function aiVoicesOn() {
-    return account.config?.aiVoices === true;
+    return account.config?.aiVoices === true && aiOn();
 }
 
 /** Whether a guide recording (or a session voice entry) is an AI voice. */
@@ -74,7 +78,9 @@ export function aiCtaOpen(project) {
  * the session's guideVoices entries of the parts that sound.
  */
 export function countAiHeard(voices) {
-    if (voices.some((voice) => voice?.kind === 'real' && voice.ai)) count('ai_heard');
+    if (!voices.some((voice) => voice?.kind === 'real' && voice.ai)) return;
+    count('ai_heard');
+    aiUse('guide_heard'); // AI optional's measure: once a day, with the band (ai-choice.js)
 }
 
 /**

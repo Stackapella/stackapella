@@ -21,6 +21,8 @@ final class GrowthViewers
         'admin.growth.choirs',
         // The same pages' numbers as CSV (Hillel, 2026-11-23), audit-logged.
         'admin.growth.export',
+        // The AI choice card (docs/ai-optional-plan.md): counts by choice and age band, small ones suppressed.
+        'admin.growth.ai',
         // The Growth page's chart of devices: counts only. Not admin.counts.show, whose countries aren't folded.
         'admin.reach.show',
         'admin.funnel.show',

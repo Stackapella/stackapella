@@ -595,6 +595,7 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `admin.growth.show` | `GET /api/admin/growth` | An admin, or a growth viewer | L |
 | `admin.growth.choirs` | `GET /api/admin/growth/choirs` | An admin, or a growth viewer | L |
 | `admin.growth.export` | `GET /api/admin/growth/export` | An admin, or a growth viewer | L |
+| `admin.growth.ai` | `GET /api/admin/growth/ai` | An admin, or a growth viewer | L |
 | `admin.sources.show` | `GET /api/admin/sources` | An admin, or a growth viewer | L |
 | `admin.active.show` | `GET /api/admin/active` | An admin | L |
 | `admin.groups.list` | `GET /api/admin/groups` | An admin | L |
@@ -642,7 +643,7 @@ sends the person to `/admin/sign-in?intended=<the admin page they were on>`.
 - **`role`** is `admin`, `editor` or `viewer`. An editor works the queues; money, bans, deletes, settings and
   switches are the admin's (`docs/operations-plan.md`, "A moderator role").
 - **A growth viewer** (`viewer`; Hillel, 2026-11-23: an advisor who reads the numbers) sees only anonymous totals:
-  `admin.me`, `admin.growth.show`, `admin.growth.choirs`, `admin.growth.export`, `admin.reach.show`,
+  `admin.me`, `admin.growth.show`, `admin.growth.choirs`, `admin.growth.ai`, `admin.growth.export`, `admin.reach.show`,
   `admin.funnel.show`, `admin.dropoffs.show` and `admin.sources.show` (not `admin.counts.show`, whose countries aren't folded). Every other
   admin operation answers a viewer `403 not_admin`, the server's own allow-list, so
   never a person's account, email, group, request, refund, setting or any action. A viewer signs in as an admin does
@@ -1197,6 +1198,9 @@ terms are reviewed and `ai_voices` is on for them. Not offered, `beta.aiLicence.
 nothing. Accepting makes their AI voice (`admin.aiVoices.list`), or renews its consent; withdrawing retires every part
 it sang at once and deletes its files (as `admin.aiVoices.withdraw` does), and accepting again later makes a new voice.
 A new version of the terms stops new parts in their voice (the worker's `403 licence_changed`) until they accept it;
+so does their account's AI features turned off (`aiFeatures: false`, since 2026-11-23): consent to their voice being used
+must be live, so nothing new is made in it for anyone while it's off (the voice `licensed: false` to the worker), and
+turning AI on again lets it be used again; songs and guides already made keep what they rendered;
 the parts already made stay. Stored: the version, the time accepted, the credit choice, withdrawn and when.
 
 #### `beta.aiLicence.show`
@@ -1782,7 +1786,8 @@ that differs first shows, if the device fits `audience` and isn't in one it `exc
 the arm label on the device (never an id). `experiment` stays onb1's until it ends.
 **Request:** none.
 
-`plusLimits` (since 2026-11-23): Plus's numbers as the site's Plus words give them, `{ "choirMinutes", "choirSongs",
+`aiOptional` (since 2026-11-23, the `ai_optional` switch, docs/ai-optional-plan.md): while on, the app honours each
+account's `aiFeatures` and a guest's device key; off, AI shows for everyone as before. `plusLimits` (since 2026-11-23): Plus's numbers as the site's Plus words give them, `{ "choirMinutes", "choirSongs",
 "storageBytes" }`: the AI choir's part-minutes a month, about how many songs that is (minutes over 4, at least 1), and
 the storage, from the server's config, so the app never types them. `aiMark` (since 2026-11-23, EU AI Act Article 50): `{ "text", "generator", "digitalSourceType" }`, the one wording
 of the machine-readable marking every file holding an AI voice carries. The app writes it into its own exports that
@@ -1802,6 +1807,12 @@ that. **`signupKey`** (optional, 20 to 128 characters): an app's own secret for 
 **Request:** `{ "name": "Ada", "email": "ada@example.com", "password": "...",
 "birthMonth": 5, "birthYear": 1990, "ref": "hn", "elapsedMs": 41250, "nickname": "",
 "invite": null, "turnstileToken": null }`:
+- `aiFeatures` (optional, since 2026-11-23, docs/ai-optional-plan.md v2): `true` or `false`, the device's AI features
+  choice when it holds one, with `aiFeaturesSource` (optional, `card` or `ai-singing`; else on is `ai-singing` and off
+  `card`); left out, it's null (not chosen: off for an account made from 2026-11-23, every account made before was set
+  on, source `existing`).
+  `account.json`'s `ageBand` is the band kept when the birth date was first given (`u18` to `65+`, null without one):
+  the app's own engagement counts (`aic:*`) carry it, `unknown` while it's null.
 - `birthMonth` (1 to 12) and `birthYear`: when they were born ("When were you born?", month and
   year only). A birthday counts as the last day of its month, so someone is 13 (or 18) once their
   whole birth month has passed. Under 13 answers `422 too_young` (the code alone, nothing about the
@@ -1985,7 +1996,10 @@ sign-in now), for the app's Admin link; editors and everyone else get false. It'
 
 #### `account.update`
 
-**Request:** any of `name` (1 to 80), `handle`, `bio` (up to 300), `tried` (breadth: features tried on this device, each with the day first used, `{ "record": "2026-11-11" }`,
+**Request:** any of `aiFeatures` (`true` or `false`, the AI features setting, docs/ai-optional-plan.md v2) with
+`aiFeaturesSource` (`card`: the card's Try it or Not for me; `settings`, the default; or `ai-singing`: a device's
+arrival carried into an account that hadn't chosen); only a change from `settings` is counted (`ai_switch`, by age band,
+never with who), `name` (1 to 80), `handle`, `bio` (up to 300), `tried` (breadth: features tried on this device, each with the day first used, `{ "record": "2026-11-11" }`,
 from config/counts.php `features`; merged with the account's, each keeping its earliest day, never taken away),
 `locale` (`en`, `es` or `de`, the
 account's language: emails and pushes follow it, each sentence in English until it's translated; any of
@@ -6874,7 +6888,9 @@ count). **Request:** `?page=` `growth` (the overview's chart: one row a slot, th
 `_now` and `_before`; `?period=` as `admin.growth.show`), `funnel` (each step by arm: guest, account, total, rate;
 `?days=` and `?experiment=` as `admin.funnel.show`), `dropoffs` (the latest week's steps: entered, passed, pass-through,
 the week before, too few, a drop, lost), `sources` (a row a source, the page's columns; `?days=` as `admin.sources.show`)
-or `choirs` (a row a day, as `admin.growth.choirs`; `?period=`). **Answer:** `filename`
+`choirs` (a row a day, as `admin.growth.choirs`; `?period=`) or `ai` (since 2026-11-24: a row a band, guests and
+`all`, as `admin.growth.ai`, with each state's engagement in columns, too few left empty; `?period=28d` or `90d`).
+**Answer:** `filename`
 (`stackapella-growth-<page>-<from>_<to>.csv`), `csv` (UTF-8 text, a header row first, ISO dates, `\n` line ends; a text
 cell that would start a spreadsheet formula, `=`, `+`, `-`, `@`, has a `'` put before it, as tags come from links anyone
 can make) and `rows` (not counting the header). The app saves it as a file. Each download is audit-logged
@@ -6884,6 +6900,22 @@ can make) and `rows` (not counting the header). The app saves it as a file. Each
 |---|---|---|---|
 | 200 | | `admin.growth.export.json` | `admin.growth.export.200.json` |
 | 422 | `validation_failed` | `error.json` | `admin.growth.export.validation_failed.json` |
+
+#### `admin.growth.ai`
+
+Admin > Growth's "AI choice" card (docs/ai-optional-plan.md v2, "Measuring from behaviour"): anonymous daily counts over
+`?period=28d` (the default) or `90d` to today in the report timezone, by the age band stored at sign-up (`u18`,
+`18-24`, `25-34`, `35-44`, `45-54`, `55-64`, `65+`), guests (`guest`) and in `total` (with accounts that have no birth
+date). Each: the card "Hear the other parts in your voice?" (`cardShown`, `cardTry`, `cardNot`, `cardClosed`, and
+`tryRate` and `notRate` of those shown), AI used (`choirStart`, `choirHeard` to its end, `guideHeard`), Settings'
+switches (`switchOnOff`, `switchOffOn`), and `engagement` by state (`on`, `off`, `unset`): back the next day, in week
+one, on day 7 and in week four, and week one's lessons with stars (`lessons0`, `lessons1to2`, `lessons3to5`,
+`lessons6plus`), each a device's count, as the return counts are. Any count under `floor` (3) is null, "too few", and a
+rate null while either side is; no person, never per country. Team devices left out as now.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.growth.ai.json` | `admin.growth.ai.200.json` |
 
 #### `admin.growth.choirs`
 
@@ -8274,7 +8306,8 @@ already has an AI guide may be uploaded again: the new one replaces it when it's
 - `409 real_voice_exists`: a recorded voice is published for this part of this version;
 - `409 template_changed`: `versionId` isn't the song's current version;
 - `403 voice_withdrawn`: the voice was withdrawn;
-- `403 licence_changed`: its singer licensed it in the app and hasn't accepted the current terms yet (stop; never retry
+- `403 licence_changed`: its singer licensed it in the app and hasn't accepted the current terms yet, or has turned AI
+  features off (stop; never retry
   until `worker.ai.needs` shows it `licensed` again);
 - `422`: the numbers don't add up, or a check or renderer field is missing.
 

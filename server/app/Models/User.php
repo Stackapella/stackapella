@@ -45,6 +45,10 @@ use Laravel\Passkeys\PasskeyAuthenticatable;
  * @property Carbon|null $adult_confirmed_at
  * @property int|null $birth_month 1 to 12 (Age)
  * @property int|null $birth_year
+ * @property bool|null $ai_features the AI features setting: null until chosen (docs/ai-optional-plan.md)
+ * @property Carbon|null $ai_features_at
+ * @property string|null $ai_features_source card, settings, ai-singing or existing
+ * @property string|null $age_band the band kept from the first birth date given (Age::BANDS)
  * @property string|null $country the latest country signed in from (Country)
  * @property Carbon|null $board_global_at when they chose to show on the global part leaderboards (18+)
  * @property Carbon|null $coach_active_at
@@ -222,6 +226,8 @@ final class User extends Authenticatable implements PasskeyUser
             'reminder_sent_on' => 'date',
             'age_confirmed_at' => 'datetime',
             'adult_confirmed_at' => 'datetime',
+            'ai_features' => 'boolean',
+            'ai_features_at' => 'datetime',
             'birth_month' => 'integer',
             'birth_year' => 'integer',
             'trust_level_override' => 'integer',

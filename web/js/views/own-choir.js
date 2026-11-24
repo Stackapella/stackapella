@@ -4,6 +4,8 @@
 // part, Delete); or what went wrong and Sing again. Stop making songs in my voice at the foot. Behind own_choir.
 
 import { keepNext, plusPriceLine, PlusMoment } from '../components/plus-moment.js';
+import { aiOn, aiUse } from '../ai-choice.js';
+import { AiOffNotice } from '../components/ai-off.js';
 import { loadPrices } from '../stores/plan.js';
 import { api } from '../api.js';
 import { count } from '../usage.js';
@@ -68,7 +70,7 @@ const NEXT_FIX = { headphones: tk('ownChoir.failed.next.headphones'), tune: tk('
 const FAILURES = { clip_unusable: tk('ownChoir.failed.clip_unusable'), bad_clip: tk('ownChoir.failed.bad_clip'), gates_failed: tk('ownChoir.failed.gates_failed'), render_failed: tk('ownChoir.failed.render_failed'), expired: tk('ownChoir.failed.expired'), reference_gone: tk('ownChoir.failed.reference_gone') };
 
 export const OwnChoirView = {
-    components: { Segmented, Agreement, AppScreen, ChoirSettings, ClipChoice, FirstNoteStep, HeadphonesPick, Icon, PlusMoment, TurnstileBox },
+    components: { AiOffNotice, Segmented, Agreement, AppScreen, ChoirSettings, ClipChoice, FirstNoteStep, HeadphonesPick, Icon, PlusMoment, TurnstileBox },
     props: { id: { type: String, required: true } },
     data: () => ({ failRun: null, retried: false, useEarlier: false, resing: false, listenTo: 'choir', plusSettings: false, shift: null, hearingClip: false, firstNote: null, leftNames: [], plusFriends: false, sentInvite: null, copied: false, plusFor: false, emailSent: false, sending: false, checkToken: null, checkRound: 0, state: 'loading', offReason: 'unavailable', canStart: false, template: null, terms: null, busy: false, playing: false, loadingTrack: false, hum: null, own: false }),
     setup: () => ({ rememberedHeadphones, isPlus, ownChoir, account, isOpen, templatePartName, savedVoice, formatNumber, navigate }),
@@ -357,6 +359,7 @@ export const OwnChoirView = {
         <AppScreen :title="pageTitle" :back="'/?song=' + encodeURIComponent(id)" :column="columnHead && !firstNote ? 'max-w-[520px]' : null" :eyebrow="columnHead && !firstNote ? song || null : null" eyebrow-is-content :measure="columnHead ? 'max-w-[520px]' : 'max-w-2xl'" :compact="state === 'ready' && !columnHead && !!request && (request.status === 'ready' || isOpen(request))">
             <p v-if="state === 'loading'" class="text-muted" role="status">{{ t('common.loading') }}</p>
             <!-- Why it can't open, each in its own words: signed out (sign in), offline (Try again), or not open to them. -->
+            <AiOffNotice v-else-if="state === 'off' && offReason === 'aiOff'" data-choir-off="aiOff" @on="load" />
             <div v-else-if="state === 'off'" class="card space-y-3 p-5" :data-choir-off="offReason">
                 <p class="text-cream">{{ offReason === 'signedOut' ? t('ownChoir.off.signedOut') : offReason === 'offline' ? t('common.offline') : t('ownChoir.off.unavailable') }}</p>
                 <a v-if="offReason === 'signedOut'" :href="'/signin?next=' + encodeURIComponent('/t/' + id + '/choir')" class="btn-secondary self-start" @click.prevent="navigate('/signin?next=' + encodeURIComponent('/t/' + id + '/choir'))">{{ t('auth.signIn') }}</a>
@@ -724,6 +727,12 @@ export const OwnChoirView = {
                 this.state = 'off';
                 // A fresh page offline can't tell who's signed in: it says it's offline, never "sign in".
                 this.offReason = navigator.onLine === false ? 'offline' : 'signedOut';
+                return;
+            }
+            // AI features off (docs/ai-optional-plan.md): the choir isn't reachable; it says so, with the way to turn them on.
+            if (!aiOn()) {
+                this.state = 'off';
+                this.offReason = 'aiOff';
                 return;
             }
             await loadCatalogue().catch((error) => console.warn('The catalogue did not load', error));
@@ -1135,6 +1144,7 @@ export const OwnChoirView = {
             const at = choirPosition();
             if (!this.playing) return;
             if (!at || at.done) {
+                if (at?.done) aiUse('choir_heard'); // played to its end (AI optional's measure, once a day)
                 this.stopTrack();
                 return;
             }

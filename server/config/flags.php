@@ -124,5 +124,8 @@ return [
     // A choir with friends (docs/choir-together-plan.md): invite a friend whose voice suits the parts that don't suit
     // yours. Per account while it's tested.
     'own_choir_together' => ['kind' => 'feature', 'values' => ['off', 'on']],
+    // AI as a choice (docs/ai-optional-plan.md, Hillel 2026-11-23): the app honours each account's AI features setting
+    // and a guest's device key; off, AI shows for everyone as before.
+    'ai_optional' => ['kind' => 'feature', 'values' => ['off', 'on']],
 
 ];

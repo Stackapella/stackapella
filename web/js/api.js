@@ -224,6 +224,7 @@ export const OPERATIONS = {
     'admin.growth.show': ['GET', '/api/admin/growth'],
     'admin.growth.choirs': ['GET', '/api/admin/growth/choirs'],
     'admin.growth.export': ['GET', '/api/admin/growth/export'],
+    'admin.growth.ai': ['GET', '/api/admin/growth/ai'],
     'admin.choir.show': ['GET', '/api/admin/choir'],
     'admin.choir.live': ['GET', '/api/admin/choir/live'],
     'admin.outreach.list': ['GET', '/api/admin/outreach'],
@@ -913,7 +914,7 @@ export const api = {
         dropoffs: () => call('admin.dropoffs.show'),
         sharing: () => call('admin.sharing.show'),
         breadth: () => call('admin.breadth.show'),
-        growth: { show: ({ period, days } = {}) => call('admin.growth.show', { query: { period, days } }), choirs: ({ period } = {}) => call('admin.growth.choirs', { query: { period } }), export: ({ page, ...params } = {}) => call('admin.growth.export', { query: { page, ...params } }) },
+        growth: { show: ({ period, days } = {}) => call('admin.growth.show', { query: { period, days } }), choirs: ({ period } = {}) => call('admin.growth.choirs', { query: { period } }), export: ({ page, ...params } = {}) => call('admin.growth.export', { query: { page, ...params } }), ai: ({ period } = {}) => call('admin.growth.ai', { query: { period } }) },
         // The choir's anonymous numbers (Hear yourself as a choir): 7d or 30d.
         choir: { show: ({ period } = {}) => call('admin.choir.show', { query: { period } }), live: () => call('admin.choir.live') },
         // Outreach (docs/outreach-plan.md): one organization, one email, sent by Hillel's own press.

@@ -5,7 +5,7 @@ import { assert, test } from './harness.js';
 
 const SAMPLES = {
     sing: '/p/abc/sing', print: '/p/abc/print', scoreSheet: '/t/amazing-grace/sheet', ownChoir: '/t/amazing-grace/choir', readLines: '/learn/c/sight-singing/lines', studio: '/p/abc', admin: '/admin/singers', styleguide: '/styleguide', styleguideGame: '/styleguide/game', auth: '/signin/link',
-    settings: '/settings', storage: '/storage', voice: '/voice', workout: '/workout', plus: '/plus', reminders: '/settings/reminders', classes: '/settings/classes', classJoin: '/class/KQ7M-3XPA',
+    settings: '/settings', storage: '/storage', voice: '/voice', workout: '/workout', rehearse: '/rehearse/amazing-grace/alto', plus: '/plus', reminders: '/settings/reminders', classes: '/settings/classes', classJoin: '/class/KQ7M-3XPA',
     course: '/learn', learn: '/learn/match-a-note', plusCourse: '/learn/c/vibrato', songCourse: '/learn/s/amazing-grace', beta: '/beta/abc', create: '/create/abc', template: '/t/abc', join: '/join/abc',
     early: '/early/abc', invite: '/invite/abc', groups: '/groups', group: '/groups/abc', choir: '/choir/abc', choirTogether: '/choir/join/abc', challenge: '/challenge/abc', moved: '/moved',
     contact: '/contact', notices: '/notices', notice: '/notice', ideas: '/ideas', requests: '/requests', voices: '/voices', fresh: '/start-fresh', cooldown: '/cooldown', warmup: '/warmup', idea: '/ideas/Qx7Lm2Pa9Kd4', projects: '/',

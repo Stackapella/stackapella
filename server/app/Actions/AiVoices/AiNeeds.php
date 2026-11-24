@@ -75,6 +75,6 @@ final class AiNeeds
      */
     public function voices(): array
     {
-        return array_values(AiVoice::query()->orderBy('id')->get()->map(static fn (AiVoice $voice): array => ['id' => $voice->sqid(), 'name' => $voice->name, 'active' => $voice->isActive(), 'licensed' => AiLicence::licensed($voice)])->all());
+        return array_values(AiVoice::query()->with('betaSinger.user')->orderBy('id')->get()->map(static fn (AiVoice $voice): array => ['id' => $voice->sqid(), 'name' => $voice->name, 'active' => $voice->isActive(), 'licensed' => AiLicence::licensed($voice)])->all());
     }
 }

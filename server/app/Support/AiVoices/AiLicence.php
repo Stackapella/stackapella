@@ -47,11 +47,17 @@ final class AiLicence
 
     /**
      * May new parts be made in this voice: a voice licensed in the app needs its singer's yes to the current terms (a
-     * voice added by command was consented outside the app).
+     * voice added by command was consented outside the app), and their account's AI features not turned off: consent
+     * must be live, so nothing new is made in it for anyone while it's off (docs/ai-optional-plan.md, the coordinator
+     * 2026-11-23). What's already made stays.
      */
     public static function licensed(AiVoice $voice): bool
     {
-        return $voice->beta_singer_id === null || $voice->consent_version === (string) self::current();
+        if ($voice->beta_singer_id === null) {
+            return true;
+        }
+
+        return $voice->consent_version === (string) self::current() && $voice->loadMissing('betaSinger.user')->betaSinger?->user?->ai_features !== false;
     }
 
     /**

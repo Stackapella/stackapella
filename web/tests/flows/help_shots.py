@@ -260,10 +260,10 @@ def getting_started(f):
         f.wait("['listening', 'hearing', 'holding'].includes(document.querySelector('[data-listening]')?.dataset.phase)", what="listening")
         f.js("(await import('/js/creator-audio.js')).hearNotes([{ beat: 0, length: 8, pitch: 57 }], { tempo: 60 })")
         if wanted("your-voice--note"):
-            # Holding: zoomed to the octave around it, the ring a little over half way.
+            # Holding (Find your note, Hillel's design: a pulse, a dot that fills as it's held): the dot a little over half full.
             freeze_when(f, """document.querySelector('[data-listening]')?.dataset.phase === 'holding'
-                && [...document.querySelectorAll('[data-listening] [translate=no]')].some((s) => s.textContent === 'G3')
-                && Number(document.querySelector('[data-listening] circle[stroke-dasharray]')?.getAttribute('stroke-dashoffset')) < 119.4 * 0.5""", what="holding, zoomed in")
+                && document.querySelector('[data-ui=capture-pulse-only]')?.hasAttribute('data-holding')
+                && parseFloat(document.querySelector('[data-ui=capture-pulse-only] .inset-x-0')?.style.height) > 50""", what="holding, the dot filling")
             shoot(f, "your-voice--note")
             thaw(f)
         f.wait("document.querySelector('[data-listening]')?.dataset.phase === 'found'", timeout=15, what="the note found")
@@ -374,7 +374,8 @@ def fact_card(f):
     time.sleep(1.5)
     # Down to the fact card, but never past the stars: every gem stays whole, with room above it.
     shoot(f, "your-voice--fact", scroll="""window.scrollTo(0, 0); const card = document.querySelector('[data-fact]').getBoundingClientRect();
-        const gems = document.querySelector('[data-lesson-end] .gem').parentElement.getBoundingClientRect();
+        // Game mode's stars, or serious mode's card (its lesson dots since the 2026-11-23 language): its top stays in view.
+        const gems = (document.querySelector('[data-lesson-end] .gem')?.parentElement ?? document.querySelector('[data-lesson-end]')).getBoundingClientRect();
         window.scrollBy(0, Math.max(0, Math.min(card.bottom - innerHeight + 24, gems.top - 24)));""")
     f.run("const k = JSON.parse(localStorage.getItem('stackapella.funnel') || '{}'); delete k.arrived; localStorage.setItem('stackapella.funnel', JSON.stringify(k));")
 

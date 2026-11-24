@@ -10,6 +10,7 @@ use App\Models\HandleHold;
 use App\Models\Harmony;
 use App\Models\User;
 use App\Support\Accounts\Age;
+use App\Support\Accounts\AiChoice;
 use App\Support\Gallery\Gallery;
 use App\Support\Push\AppPushes;
 use App\Support\Sharing\HarmonyFiles;
@@ -122,6 +123,15 @@ final class UpdateProfile
             $fields = [...$fields, ...Age::fields($user, (int) $changes['birthMonth'], (int) $changes['birthYear'])];
         }
 
+        // The AI features setting: chosen on the card, in Settings, or carried from an /ai-singing arrival.
+        $aiBefore = $user->ai_features;
+
+        $aiSource = in_array($changes['aiFeaturesSource'] ?? null, AiChoice::SOURCES, true) ? (string) $changes['aiFeaturesSource'] : 'settings';
+
+        if (array_key_exists('aiFeatures', $changes) && is_bool($changes['aiFeatures']) && $changes['aiFeatures'] !== $aiBefore) {
+            $fields = [...$fields, 'ai_features' => $changes['aiFeatures'], 'ai_features_at' => now(), 'ai_features_source' => $aiSource];
+        }
+
         $before = $user->handle;
 
         try {
@@ -146,6 +156,11 @@ final class UpdateProfile
         } catch (UniqueConstraintViolationException) {
             // Someone took the handle a moment ago.
             throw ValidationException::withMessages(['handle' => __('validation.handle.taken')]);
+        }
+
+        // A change in Settings is counted here; the card's answers are the device's own counts.
+        if (array_key_exists('ai_features', $fields) && $aiSource === 'settings') {
+            AiChoice::switched($user, $aiBefore, (bool) $user->ai_features);
         }
 
         // Hidden, shown again or renamed: the share cards that name them are drawn again.

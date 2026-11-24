@@ -9,7 +9,8 @@ import { game } from '../skin.js';
 import { defineAsyncComponent, toRefs } from 'vue';
 import { audio, closeMic, engine, latencyNow, openMic } from '../audio.js';
 import { follow, hintStep, voiceFollower } from '../livevoice.js';
-import { formatList, t, tk } from '../i18n.js';
+import { formatList, localized, t, tk } from '../i18n.js';
+import { aiBand, aiChosen, aiOptional, cardAllowed, cardShows, chooseAi, firstDay, noteCardShown } from '../ai-choice.js';
 import { screenLoading } from '../components/screen-loading.js';
 import { BACKING, DRONE, GUIDE_LEVELS, guideId, hasTake } from '../practice.js';
 import { RecordSetup } from '../record-setup.js';
@@ -19,6 +20,7 @@ import { scoreTake } from '../scoring.js';
 import { trackFrame, trackInWorker, VOICED_CLARITY } from '../pitchtrack.js';
 import * as sessionStore from '../stores/session.js';
 import { account } from '../stores/account.js';
+import { songTitle } from '../song-titles.js';
 import { claimInvitation, countVoice, later, needsVoice, saidLater, usableTake, voiceAskOpen } from '../be-the-voice.js';
 import { aiCredit, aiCtaOpen } from '../ai-voices.js';
 import { checkKey, choirRefusal, clipSecondsFor, clipSongs, joinFor, keepJoinClip, loadOwnChoir, MIN_SECONDS, ownChoir, ownChoirOn, sendClip, takeLevel, takeProblem, tunePart } from '../own-choir.js';
@@ -107,7 +109,7 @@ export const SingView = {
     components: { SingShell: screenLoading(), ShareVoice: defineAsyncComponent(() => import('../components/share-voice.js').then((m) => m.ShareVoice)), DailyShare, RingMeter, VoiceCareLine, TimingLine, PopupSlot, TakeBest, IdeaVoice, PhraseStage, Chooser, Stage, RecordingStage, Lane, NowCard, Coach, StepDone, JustRecorded, LineBar, ModeBar, SingHeader, Transport, TurnBand, PartSheet, SettingsSheet, HeadphonesDialog, TimingDialog, RangeDialog, Icon, VoiceNote, ResingSheet, ResungCard, TrimSheet, WhatsNext, LockedBanner, ShareSheet },
     props: { id: { type: String, required: true } },
     setup: () => ({ ...toRefs(session), audio, formatTime, shownTitle, prefs, game, effect, aiCtaOpen }),
-    data: () => ({ clipReady: false, tasteAsked: false, crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null, ring: null, ringChord: '', lessonStep: null, lessonOpening: false, voiceAt: 0, voicePartId: null, choirSending: false, choirError: '', choirSent: null, choirCheck: null }),
+    data: () => ({ clipReady: false, aiCardFor: null, aiCardDone: null, aiCardBusy: false, tasteAsked: false, crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null, ring: null, ringChord: '', lessonStep: null, lessonOpening: false, voiceAt: 0, voicePartId: null, choirSending: false, choirError: '', choirSent: null, choirCheck: null }),
     template: `
         <div class="flex h-dvh flex-col bg-ink" :data-paused="paused ? '' : null">
             <p class="sr-only" aria-live="polite">{{ said }}</p>
@@ -128,6 +130,7 @@ export const SingView = {
             <SingShell v-else-if="clipTake && !clipReady" />
             <Chooser v-else-if="choosing || !way || !focusPart" :parts="partChoices" :transpose="project.transpose || 0" :way="choosing ? null : way" :suggested="suggested"
                 :title="shownTitle(project)" :focus="focusPart ? { slot: focusPart, name: partName, range: templatePart(focusPart)?.range ?? null } : null" :bpm="project.bpm" :phrases="phraseRows.length" :length="lengthSeconds" :auto="!choosing" :no-voice="noVoiceSlots" :ai-voice="aiVoiceSlots"
+                :rehearsable="isTemplate && !project.course && !project.choir && !project.beta && !project.shared" @rehearse="rehearse"
                 @choose="choose" @range="dialog = 'range'" @back="leave" @studio="openStudio" />
             <!-- Recording strips everything else away (113.png): the lane, the words, Stop -->
             <RecordingStage v-else-if="recording" :title="shownTitle(project)" :named="!!project.title?.trim()" :part-name="clipTake ? '' : partName" :big-count="60 / (project.bpm || 90)" :color="paint(focusPart.color)" :take="takeNumbers[rerecordId] ?? 1" :hearing="hearLine"
@@ -165,7 +168,7 @@ export const SingView = {
                         <JustRecorded v-else-if="recorded" class="m-auto" :outcome="recorded" :part-name="nameOf(recorded.part)" :next-name="recorded.next ? nameOf(recorded.next) : ''" :hearing="playing"
                             :nudge-ms="nudgeMsOf(recorded.part)" :lining="lining" :lined="lined" :can-resing="phraseRows.length > 1" :color="paint(recorded.part.color)" :stack="recordedStack"
                             :score="recorded.report?.score ?? null" :notes="reportNotes" :track="recorded.report?.track ?? null" :beat-seconds="fullBeatSeconds" :offset-seconds="recorded.part.offsetSeconds + (recorded.part.nudgeSeconds || 0)"
-                            :phrases="reportPhrases" :phrase-labels="phraseRows.map((p) => p.label)" :position="position" :length-seconds="lengthSeconds" :bleed="!!recorded.report?.bleed" :sung-by="sungBy" :voice="voiceInvite" :choir="choirTake" @choir-make="makeChoir" @choir-force="(token) => makeChoir(token, { force: true })" @choir-listen="listenToChoir"
+                            :phrases="reportPhrases" :phrase-labels="phraseRows.map((p) => p.label)" :position="position" :length-seconds="lengthSeconds" :bleed="!!recorded.report?.bleed" :sung-by="sungBy" :voice="voiceInvite" :choir="choirTake" :ai-card="aiCard" @ai-try="aiTry" @ai-not="aiNot" @ai-close="aiClose" @choir-make="makeChoir" @choir-force="(token) => makeChoir(token, { force: true })" @choir-listen="listenToChoir"
                             @hear="hearTake($event)" @mute="toggleHearing" @again="recordPart" @next="nextPart" @nudge="nudge" @nudged="nudged" @line-up="lineUp" @studio="openStudio" @resing="resingFrom" @trim="openTrim" :polished="prefs.hearPolished" @polish="hearPolished" @share="dialog = 'share'" @hear-phrase="hearPhrase" @voice-share="voiceShare" @voice-later="voiceLater">
                             <template #report>
                                 <!-- The part's leaderboard (components/boards.js): your best, or why it didn't count; never a lesson's song -->
@@ -487,6 +490,31 @@ export const SingView = {
             return { part: this.nameOf(part), guest: !account.me };
         },
         /**
+         * AI optional's card under this take's review (docs/ai-optional-plan.md; its rules in ai-choice.js cardAllowed): the
+         * song's first recorded part, a song the choir can make, no choice yet, never with Be the voice's invitation.
+         */
+        aiCard() {
+            const rec = this.recorded;
+            if (!rec || this.voiceInvite || this.aiCardDone === rec) return null;
+            const song = this.project?.template ? songTitle(this.project.template) || localized(this.project.template.title) : '';
+            if (this.aiCardFor === rec) return { song, busy: this.aiCardBusy };
+            const project = this.project;
+            const template = project?.template;
+            const allowed = cardAllowed({
+                optional: aiOptional(),
+                choir: account.config?.ownChoir === true,
+                chosen: aiChosen(),
+                adult: account.me ? account.me.isAdult : true,
+                songOk: !!template?.id && (template.parts ?? []).some((p) => p.guide?.notes?.length) && !project.beta && !project.course && !project.choir && !project.shared,
+                firstPart: this.parts.filter(hasTake).length === 1,
+                heard: rec.report?.score?.status === 'scored' && !rec.report?.bleed,
+                firstDay: firstDay(),
+                shows: cardShows(),
+                askFree: askDue('ai_card'),
+            });
+            return allowed ? { song, busy: false } : null;
+        },
+        /**
          * A choir project's take, waiting to become the song in a voice like theirs (js/own-choir.js): its length and how the
          * sending goes; null once it's sent (the choir page says the rest), or anywhere else.
          */
@@ -719,6 +747,14 @@ export const SingView = {
         },
     },
     watch: {
+        // AI optional's card: counted and kept once it shows for a take; a take left with it unanswered is a close.
+        aiCard(card, before) {
+            if (card && this.aiCardFor !== this.recorded) this.aiCardShown(this.recorded);
+            if (!card && before && this.aiCardFor && this.aiCardDone !== this.aiCardFor) {
+                count(`ai_card:closed:${aiBand()}`);
+                this.aiCardDone = this.aiCardFor;
+            }
+        },
         clipTake: {
             immediate: true,
             handler(on) {
@@ -861,15 +897,30 @@ export const SingView = {
         const back = query.get('voice');
         // Learn the alto part (Hear yourself as a choir's page): Sing opens on that part (?part=<key>).
         const wantedPart = query.get('part');
-        if (back || wantedPart) {
+        // A rehearsal plan's Start (js/rehearsal-plan.js, ?phrase=N with ?part=): part by part, Coach on that day's first phrase.
+        const wantedPhrase = query.get('phrase');
+        // Its last day, the ready check (?ready=YYYY-MM-DD): the whole part with the others, as the whole song's way.
+        const readyFor = query.get('ready');
+        if (back || wantedPart || wantedPhrase !== null || readyFor) {
             query.delete('voice');
             query.delete('part');
+            query.delete('phrase');
+            query.delete('ready');
             history.replaceState(history.state, '', location.pathname + (query.size ? `?${query}` : ''));
         }
         // The studio may have it open already (Sing from the studio): no need to load it again.
         if (session.openedId !== this.id || !session.project) await sessionStore.openSession(this.id);
         const wanted = wantedPart && session.parts.find((p) => p.templatePartKey === wantedPart);
         if (wanted && session.practice?.focus !== wanted.id) sessionStore.practise(wanted);
+        const phrase = wantedPhrase === null ? null : Number(wantedPhrase);
+        if (wanted && Number.isInteger(phrase) && session.phraseList[phrase]) {
+            this.choose({ way: 'parts', slotId: wanted.id });
+            sessionStore.selectPhrase(phrase);
+        }
+        if (wanted && /^\d{4}-\d{2}-\d{2}$/.test(readyFor ?? '')) {
+            this.choose({ way: 'whole', slotId: wanted.id });
+            tabStorage.set('stackapella.readyCheck', JSON.stringify({ songId: session.project.template?.id, partKey: wantedPart, date: readyFor }));
+        }
         // Hear yourself as a choir's 30 seconds: always the tune, with its words, in whatever octave suits them (Hillel,
         // 2026-11-22: a bass part all on "oo" left too little to hear). No chooser and no key fitting: the clip is sung
         // against the tune as written, in their own octave.
@@ -1208,6 +1259,47 @@ export const SingView = {
             this.dialog = 'voice';
         },
         /** Not now: that part, 14 days. */
+        /** The card has shown for this take: once counted, its ask slot kept, its showing kept (twice, then never). */
+        aiCardShown(rec) {
+            this.aiCardFor = rec;
+            noteCardShown();
+            askSeen('ai_card');
+            count(`ai_card:shown:${aiBand()}`);
+        },
+        /** Try it: AI on, and Hear yourself as a choir's start for this song (the terms first, if not yet agreed). */
+        async aiTry() {
+            this.aiCardBusy = true;
+            try {
+                await chooseAi(true);
+                count(`ai_card:try:${aiBand()}`);
+                this.aiCardDone = this.recorded;
+                navigate(`/t/${encodeURIComponent(this.project.template.id)}/choir`);
+            } catch (error) {
+                console.warn('AI features were not turned on', error);
+                toast(t('settings.failed'), { tone: 'error' });
+            } finally {
+                this.aiCardBusy = false;
+            }
+        },
+        /** Not for me: AI off, and the card never shows again. */
+        async aiNot() {
+            this.aiCardBusy = true;
+            try {
+                await chooseAi(false);
+                count(`ai_card:not:${aiBand()}`);
+                this.aiCardDone = this.recorded;
+            } catch (error) {
+                console.warn('AI features were not turned off', error);
+                toast(t('settings.failed'), { tone: 'error' });
+            } finally {
+                this.aiCardBusy = false;
+            }
+        },
+        /** Closed without a choice: no answer (it may show once more, on a later recorded part). */
+        aiClose() {
+            if (this.aiCardFor && this.aiCardDone !== this.aiCardFor) count(`ai_card:closed:${aiBand()}`);
+            this.aiCardDone = this.recorded;
+        },
         voiceLater() {
             const part = this.recorded?.part;
             if (!part) return;
@@ -1282,6 +1374,10 @@ export const SingView = {
         openStudio() {
             if (this.recording) return;
             navigate(`/p/${this.id}`);
+        },
+        /** Rehearsing this soon? The part's rehearsal plan (asks the day when there's none yet). */
+        rehearse() {
+            navigate(`/rehearse/${encodeURIComponent(this.project.template.id)}/${encodeURIComponent(this.focusPart?.templatePartKey ?? '')}`);
         },
         sing(fields) {
             this.practice.sing = { ...(this.practice.sing ?? {}), ...fields };

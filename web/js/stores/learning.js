@@ -585,6 +585,11 @@ export async function pickRange(low, high) {
     return true;
 }
 
+/** Rehearsal plans (js/rehearsal-plan.js), kept with the progress so they follow the account; the course's reset keeps them. */
+export async function setRehearsals(list) {
+    await save({ ...learning.progress, rehearsals: list });
+}
+
 /** The kept warm-ups (js/stores/warmups.js), kept with the progress so they follow the account. */
 export async function setWarmups(list) {
     await save({ ...learning.progress, warmups: list });

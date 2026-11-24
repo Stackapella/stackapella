@@ -546,7 +546,8 @@
         "sheetSummary": "{format} · {count, plural, one {# part} other {# parts}}",
         "print": "Print",
         "printHint": "Opens the parts on a page to print, or to save as a PDF.",
-        "printButton": "Print"
+        "printButton": "Print",
+        "takeAccount": "Make a free account to take the {part} of {song} with you."
     },
     "print": {
         "print": "Print or save as PDF",
@@ -741,7 +742,8 @@
             "real": "Real voice",
             "ai": "AI voice",
             "hummed": "Practice voice"
-        }
+        },
+        "take": "Take it with you"
     },
     "projects": {
         "title": "Your songs",
@@ -1300,7 +1302,8 @@
             "indexnow": "IndexNow: tell search engines about changed pages",
             "gallery": "The gallery",
             "coaching": "Coaching",
-            "event_schedule": "Event Schedule"
+            "event_schedule": "Event Schedule",
+            "ai_optional": "AI optional"
         },
         "flagHint": {
             "growth_fresh_start": "Every growth view and the export count only from the start of the day (Jerusalem time) this was turned on. Saving it on again keeps that day; off shows all history again. Nothing is deleted.",
@@ -1346,7 +1349,8 @@
             "indexnow": "Every hour, public pages that are new or whose words changed go to Bing, Yandex and others through IndexNow, at most 500 a day. Google reads the sitemap instead.",
             "gallery": "Opens public harmonies and Explore.",
             "coaching": "Opens coaches' profiles and checkout.",
-            "event_schedule": "Opens connecting Event Schedule accounts."
+            "event_schedule": "Opens connecting Event Schedule accounts.",
+            "ai_optional": "Each account chooses AI features on or off (Settings), and a guest sees AI only after /ai-singing. Off: AI shows for everyone as before."
         },
         "flagValue": {
             "off": "Off",
@@ -3511,6 +3515,56 @@
                 "rate": "{rate} became a choir",
                 "tried": "{tried} tried",
                 "triedFailed": "{tried} tried · {failed} failed: {take} the take, {ours} ours"
+            },
+            "ai": {
+                "title": "AI choice",
+                "sub": "The card after a first recorded part, AI used and coming back, by age band, {from} to {to} ({zone}). Under {floor} shows as too few.",
+                "subLoading": "The card after a first recorded part, by age band.",
+                "failed": "The AI choice numbers didn't load.",
+                "few": "too few",
+                "byBand": "By age band",
+                "back": "Coming back, by state",
+                "backHint": "On, off or not chosen yet, as each device was on the day it counted. Lessons: those with stars in the first week.",
+                "caveat": "A device isn't a person: an account on two devices counts twice. Team accounts are left out.",
+                "ofShown": "{n} of the cards shown",
+                "switches": "Switches on / off",
+                "switchesHint": "Turned on, then turned off, in Settings.",
+                "period": {
+                    "label": "Period",
+                    "28d": "28 days",
+                    "90d": "90 days"
+                },
+                "band": {
+                    "u18": "Under 18",
+                    "guest": "Guests",
+                    "total": "All"
+                },
+                "state": {
+                    "on": "On",
+                    "off": "Off",
+                    "unset": "Not chosen"
+                },
+                "col": {
+                    "band": "Age band",
+                    "state": "State",
+                    "shown": "Cards shown",
+                    "try": "Try it",
+                    "not": "Not for me",
+                    "closed": "Closed",
+                    "choirStart": "Choir started",
+                    "choirHeard": "Choir heard",
+                    "guideHeard": "AI guide heard",
+                    "onOff": "On to off",
+                    "offOn": "Off to on",
+                    "backD1": "Back day 1",
+                    "backW1": "Back week 1",
+                    "backD7": "Back day 7",
+                    "backW4": "Back week 4",
+                    "lessons0": "0 lessons",
+                    "lessons1to2": "1-2 lessons",
+                    "lessons3to5": "3-5 lessons",
+                    "lessons6plus": "6+ lessons"
+                }
             }
         },
         "choirGroups": {
@@ -5061,6 +5115,15 @@
             "confirmTitle": "Clear your range?",
             "confirmBody": "Part suggestions and how a choir's parts fit you stop using it until you check your range again. Your songs and recordings stay.",
             "cleared": "Your range is cleared."
+        },
+        "ai": {
+            "title": "AI features",
+            "hintOn": "AI guide voices, Hear yourself as a choir and lending your voice.",
+            "hintOff": "You'll hear real singers and our practice voice. No AI anywhere.",
+            "kept": "Your {count, plural, one {AI choir song is} other {# AI choir songs are}} kept. Turn AI features on to hear {count, plural, one {it} other {them}}.",
+            "linkOff": "This uses AI voices, and your AI features are off.",
+            "turnOn": "Turn on AI features",
+            "hintOnMinor": "AI guide voices, where no one has recorded a part yet."
         }
     },
     "version": {
@@ -9380,6 +9443,13 @@
         "help": {
             "link": "How it works, and your questions",
             "failed": "What to do when a song doesn't come out"
+        },
+        "aiCard": {
+            "title": "Hear the other parts in your voice?",
+            "body": "An AI choir can sing the rest of {song} in a voice like yours. It's optional, and always marked as AI.",
+            "not": "Not for me",
+            "try": "Try it",
+            "note": "You can change this any time in Settings."
         }
     },
     "aiVoice": {
@@ -9601,5 +9671,35 @@
         "onPitch": "On pitch {percent}% across your last {count, plural, one {take} other {# takes}}.",
         "next": "Next: {what}, in today's workout.",
         "go": "Start it"
+    },
+    "rehearse": {
+        "screen": "Rehearsal plan",
+        "title": "{part}, {song}",
+        "ask": "When is the rehearsal?",
+        "make": "Make my plan",
+        "when": "{day}, {days} days to rehearsal",
+        "whenTomorrow": "{day}: rehearsal is tomorrow",
+        "whenToday": "Rehearsal is today",
+        "today": "Today",
+        "whole": "The whole part, with the others",
+        "readyCheck": "Ready check",
+        "phrase": "Phrase {n}",
+        "phrases": "Phrases {from} to {to}",
+        "minutes": "About {minutes} minutes",
+        "done": "Done",
+        "start": "Start",
+        "readyFor": "Ready for {day}.",
+        "knowIt": "I know most of it",
+        "calendar": "Add to my calendar",
+        "share": "Send myself the link",
+        "change": "Change the day",
+        "remove": "Remove this plan",
+        "removeTitle": "Remove the plan for {title}?",
+        "removeBody": "The days and what you marked done go from this device and your account. The song stays.",
+        "removeAction": "Remove the plan",
+        "shareText": "My rehearsal plan for {title}",
+        "soon": "Rehearsing this soon?",
+        "homeDays": "{days} days to rehearsal",
+        "homeLine": "{when} · {what}"
     }
 }

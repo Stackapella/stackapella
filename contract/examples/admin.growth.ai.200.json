@@ -1,0 +1,451 @@
+{
+    "data": {
+        "period": "28d",
+        "from": "2026-10-27",
+        "to": "2026-11-23",
+        "timezone": "UTC",
+        "floor": 3,
+        "bands": [
+            {
+                "band": "u18",
+                "cardShown": null,
+                "cardTry": null,
+                "cardNot": null,
+                "cardClosed": null,
+                "tryRate": null,
+                "notRate": null,
+                "choirStart": null,
+                "choirHeard": null,
+                "guideHeard": null,
+                "switchOnOff": null,
+                "switchOffOn": null,
+                "engagement": [
+                    {
+                        "state": "on",
+                        "backD1": null,
+                        "backW1": null,
+                        "backD7": null,
+                        "backW4": null,
+                        "lessons0": null,
+                        "lessons1to2": null,
+                        "lessons3to5": null,
+                        "lessons6plus": null
+                    },
+                    {
+                        "state": "off",
+                        "backD1": null,
+                        "backW1": null,
+                        "backD7": null,
+                        "backW4": null,
+                        "lessons0": null,
+                        "lessons1to2": null,
+                        "lessons3to5": null,
+                        "lessons6plus": null
+                    },
+                    {
+                        "state": "unset",
+                        "backD1": null,
+                        "backW1": null,
+                        "backD7": null,
+                        "backW4": null,
+                        "lessons0": null,
+                        "lessons1to2": null,
+                        "lessons3to5": null,
+                        "lessons6plus": null
+                    }
+                ]
+            },
+            {
+                "band": "18-24",
+                "cardShown": null,
+                "cardTry": null,
+                "cardNot": null,
+                "cardClosed": null,
+                "tryRate": null,
+                "notRate": null,
+                "choirStart": null,
+                "choirHeard": null,
+                "guideHeard": null,
+                "switchOnOff": null,
+                "switchOffOn": null,
+                "engagement": [
+                    {
+                        "state": "on",
+                        "backD1": null,
+                        "backW1": null,
+                        "backD7": null,
+                        "backW4": null,
+                        "lessons0": null,
+                        "lessons1to2": null,
+                        "lessons3to5": null,
+                        "lessons6plus": null
+                    },
+                    {
+                        "state": "off",
+                        "backD1": null,
+                        "backW1": null,
+                        "backD7": null,
+                        "backW4": null,
+                        "lessons0": null,
+                        "lessons1to2": null,
+                        "lessons3to5": null,
+                        "lessons6plus": null
+                    },
+                    {
+                        "state": "unset",
+                        "backD1": null,
+                        "backW1": null,
+                        "backD7": null,
+                        "backW4": null,
+                        "lessons0": null,
+                        "lessons1to2": null,
+                        "lessons3to5": null,
+                        "lessons6plus": null
+                    }
+                ]
+            },
+            {
+                "band": "25-34",
+                "cardShown": 20,
+                "cardTry": 8,
+                "cardNot": 9,
+                "cardClosed": 3,
+                "tryRate": 0.4,
+                "notRate": 0.45,
+                "choirStart": 6,
+                "choirHeard": 4,
+                "guideHeard": 5,
+                "switchOnOff": null,
+                "switchOffOn": null,
+                "engagement": [
+                    {
+                        "state": "on",
+                        "backD1": 7,
+                        "backW1": 5,
+                        "backD7": 3,
+                        "backW4": null,
+                        "lessons0": null,
+                        "lessons1to2": null,
+                        "lessons3to5": null,
+                        "lessons6plus": null
+                    },
+                    {
+                        "state": "off",
+                        "backD1": 8,
+                        "backW1": 6,
+                        "backD7": 4,
+                        "backW4": null,
+                        "lessons0": null,
+                        "lessons1to2": null,
+                        "lessons3to5": null,
+                        "lessons6plus": null
+                    },
+                    {
+                        "state": "unset",
+                        "backD1": 3,
+                        "backW1": null,
+                        "backD7": null,
+                        "backW4": null,
+                        "lessons0": null,
+                        "lessons1to2": null,
+                        "lessons3to5": null,
+                        "lessons6plus": null
+                    }
+                ]
+            },
+            {
+                "band": "35-44",
+                "cardShown": null,
+                "cardTry": null,
+                "cardNot": null,
+                "cardClosed": null,
+                "tryRate": null,
+                "notRate": null,
+                "choirStart": null,
+                "choirHeard": null,
+                "guideHeard": null,
+                "switchOnOff": null,
+                "switchOffOn": null,
+                "engagement": [
+                    {
+                        "state": "on",
+                        "backD1": null,
+                        "backW1": null,
+                        "backD7": null,
+                        "backW4": null,
+                        "lessons0": null,
+                        "lessons1to2": null,
+                        "lessons3to5": null,
+                        "lessons6plus": null
+                    },
+                    {
+                        "state": "off",
+                        "backD1": null,
+                        "backW1": null,
+                        "backD7": null,
+                        "backW4": null,
+                        "lessons0": null,
+                        "lessons1to2": null,
+                        "lessons3to5": null,
+                        "lessons6plus": null
+                    },
+                    {
+                        "state": "unset",
+                        "backD1": null,
+                        "backW1": null,
+                        "backD7": null,
+                        "backW4": null,
+                        "lessons0": null,
+                        "lessons1to2": null,
+                        "lessons3to5": null,
+                        "lessons6plus": null
+                    }
+                ]
+            },
+            {
+                "band": "45-54",
+                "cardShown": null,
+                "cardTry": null,
+                "cardNot": null,
+                "cardClosed": null,
+                "tryRate": null,
+                "notRate": null,
+                "choirStart": null,
+                "choirHeard": null,
+                "guideHeard": null,
+                "switchOnOff": null,
+                "switchOffOn": null,
+                "engagement": [
+                    {
+                        "state": "on",
+                        "backD1": null,
+                        "backW1": null,
+                        "backD7": null,
+                        "backW4": null,
+                        "lessons0": null,
+                        "lessons1to2": null,
+                        "lessons3to5": null,
+                        "lessons6plus": null
+                    },
+                    {
+                        "state": "off",
+                        "backD1": null,
+                        "backW1": null,
+                        "backD7": null,
+                        "backW4": null,
+                        "lessons0": null,
+                        "lessons1to2": null,
+                        "lessons3to5": null,
+                        "lessons6plus": null
+                    },
+                    {
+                        "state": "unset",
+                        "backD1": null,
+                        "backW1": null,
+                        "backD7": null,
+                        "backW4": null,
+                        "lessons0": null,
+                        "lessons1to2": null,
+                        "lessons3to5": null,
+                        "lessons6plus": null
+                    }
+                ]
+            },
+            {
+                "band": "55-64",
+                "cardShown": null,
+                "cardTry": null,
+                "cardNot": null,
+                "cardClosed": null,
+                "tryRate": null,
+                "notRate": null,
+                "choirStart": null,
+                "choirHeard": null,
+                "guideHeard": null,
+                "switchOnOff": null,
+                "switchOffOn": null,
+                "engagement": [
+                    {
+                        "state": "on",
+                        "backD1": null,
+                        "backW1": null,
+                        "backD7": null,
+                        "backW4": null,
+                        "lessons0": null,
+                        "lessons1to2": null,
+                        "lessons3to5": null,
+                        "lessons6plus": null
+                    },
+                    {
+                        "state": "off",
+                        "backD1": null,
+                        "backW1": null,
+                        "backD7": null,
+                        "backW4": null,
+                        "lessons0": null,
+                        "lessons1to2": null,
+                        "lessons3to5": null,
+                        "lessons6plus": null
+                    },
+                    {
+                        "state": "unset",
+                        "backD1": null,
+                        "backW1": null,
+                        "backD7": null,
+                        "backW4": null,
+                        "lessons0": null,
+                        "lessons1to2": null,
+                        "lessons3to5": null,
+                        "lessons6plus": null
+                    }
+                ]
+            },
+            {
+                "band": "65+",
+                "cardShown": null,
+                "cardTry": null,
+                "cardNot": null,
+                "cardClosed": null,
+                "tryRate": null,
+                "notRate": null,
+                "choirStart": null,
+                "choirHeard": null,
+                "guideHeard": null,
+                "switchOnOff": null,
+                "switchOffOn": null,
+                "engagement": [
+                    {
+                        "state": "on",
+                        "backD1": null,
+                        "backW1": null,
+                        "backD7": null,
+                        "backW4": null,
+                        "lessons0": null,
+                        "lessons1to2": null,
+                        "lessons3to5": null,
+                        "lessons6plus": null
+                    },
+                    {
+                        "state": "off",
+                        "backD1": null,
+                        "backW1": null,
+                        "backD7": null,
+                        "backW4": null,
+                        "lessons0": null,
+                        "lessons1to2": null,
+                        "lessons3to5": null,
+                        "lessons6plus": null
+                    },
+                    {
+                        "state": "unset",
+                        "backD1": null,
+                        "backW1": null,
+                        "backD7": null,
+                        "backW4": null,
+                        "lessons0": null,
+                        "lessons1to2": null,
+                        "lessons3to5": null,
+                        "lessons6plus": null
+                    }
+                ]
+            },
+            {
+                "band": "guest",
+                "cardShown": null,
+                "cardTry": null,
+                "cardNot": null,
+                "cardClosed": null,
+                "tryRate": null,
+                "notRate": null,
+                "choirStart": null,
+                "choirHeard": null,
+                "guideHeard": null,
+                "switchOnOff": null,
+                "switchOffOn": null,
+                "engagement": [
+                    {
+                        "state": "on",
+                        "backD1": null,
+                        "backW1": null,
+                        "backD7": null,
+                        "backW4": null,
+                        "lessons0": null,
+                        "lessons1to2": null,
+                        "lessons3to5": null,
+                        "lessons6plus": null
+                    },
+                    {
+                        "state": "off",
+                        "backD1": null,
+                        "backW1": null,
+                        "backD7": null,
+                        "backW4": null,
+                        "lessons0": null,
+                        "lessons1to2": null,
+                        "lessons3to5": null,
+                        "lessons6plus": null
+                    },
+                    {
+                        "state": "unset",
+                        "backD1": null,
+                        "backW1": null,
+                        "backD7": null,
+                        "backW4": null,
+                        "lessons0": null,
+                        "lessons1to2": null,
+                        "lessons3to5": null,
+                        "lessons6plus": null
+                    }
+                ]
+            }
+        ],
+        "total": {
+            "cardShown": 41,
+            "cardTry": 15,
+            "cardNot": 19,
+            "cardClosed": 7,
+            "tryRate": 0.366,
+            "notRate": 0.463,
+            "choirStart": 11,
+            "choirHeard": 7,
+            "guideHeard": 9,
+            "switchOnOff": null,
+            "switchOffOn": 3,
+            "engagement": [
+                {
+                    "state": "on",
+                    "backD1": 12,
+                    "backW1": 9,
+                    "backD7": 5,
+                    "backW4": null,
+                    "lessons0": null,
+                    "lessons1to2": null,
+                    "lessons3to5": null,
+                    "lessons6plus": null
+                },
+                {
+                    "state": "off",
+                    "backD1": 15,
+                    "backW1": 11,
+                    "backD7": 7,
+                    "backW4": null,
+                    "lessons0": 4,
+                    "lessons1to2": 6,
+                    "lessons3to5": 3,
+                    "lessons6plus": null
+                },
+                {
+                    "state": "unset",
+                    "backD1": 9,
+                    "backW1": 5,
+                    "backD7": null,
+                    "backW4": null,
+                    "lessons0": null,
+                    "lessons1to2": null,
+                    "lessons3to5": null,
+                    "lessons6plus": null
+                }
+            ]
+        }
+    }
+}

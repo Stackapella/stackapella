@@ -53,7 +53,7 @@ final class PersonalData
         'reminder_enabled' => 'practiceReminders', 'reminder_days' => 'practiceReminders', 'reminder_time' => 'practiceReminders', 'reminder_timezone' => 'practiceReminders',
         'reminder_sent_on' => [null, 'Bookkeeping: the last day a reminder went.'],
         'signup_harmony_id' => [null, 'Never written since 2026-11-11 (Q8: the song keeps the count, the account nothing); emptied then.'],
-        'coach_active_at' => 'coachSince', 'idea_emails' => 'ideaEmails', 'push_settings' => 'appPushes',
+        'coach_active_at' => 'coachSince', 'idea_emails' => 'ideaEmails', 'ai_features' => 'aiFeatures', 'ai_features_at' => 'aiFeaturesAt', 'ai_features_source' => 'aiFeaturesSource', 'age_band' => 'ageBand', 'push_settings' => 'appPushes',
         'apple_refresh_token' => [null, 'A secret, revoked with Apple when they leave.'], 'apple_web_refresh_token' => [null, 'A secret, revoked with Apple when they leave.'],
     ];
 

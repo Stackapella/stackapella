@@ -20,6 +20,8 @@ final class AppRoutes
         'plus', 'plus/*', 'class', 'class/*', 'learn', 'learn/*', 'beta', 'beta/*', 'create', 'create/*', 't/*',
         'join/*', 'early/*', 'invite/*', 'groups', 'groups/*', 'choir/*', 'challenge/*', 'moved', 'contact', 'cooldown',
         'warmup', 'start-fresh', 'ideas', 'ideas/*', 'requests', 'voices', 'notices',
+        // Ready by rehearsal's plan for a song's part (web/js/router.js `rehearse`).
+        'rehearse/*',
         // Signing in and the emails' links (the router's auth pages and HostRouting's redirected ones).
         'signin', 'signin/*', 'verify', 'reset', 'email/*', 'notice', 'auth/*', 'preview/*', 'teacher/*', 'connect/*',
     ];

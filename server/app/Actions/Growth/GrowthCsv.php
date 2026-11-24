@@ -18,7 +18,7 @@ use App\Support\Stats\ReportDay;
  */
 final class GrowthCsv
 {
-    public const PAGES = ['growth', 'funnel', 'dropoffs', 'sources', 'choirs'];
+    public const PAGES = ['growth', 'funnel', 'dropoffs', 'sources', 'choirs', 'ai'];
 
     /**
      * @param  array{period?: string|null, days?: int|null, experiment?: string|null}  $params
@@ -31,6 +31,7 @@ final class GrowthCsv
             'funnel' => $this->funnel(isset($params['experiment']) ? (string) $params['experiment'] : null, (int) ($params['days'] ?? 30)),
             'dropoffs' => $this->dropoffs(),
             'sources' => $this->sources((int) ($params['days'] ?? 7)),
+            'ai' => $this->ai((string) ($params['period'] ?? '28d')),
             default => $this->choirs((string) ($params['period'] ?? '30d')),
         };
 
@@ -145,6 +146,44 @@ final class GrowthCsv
         $shown = app(ChoirGrowth::class)->build($period === '7d' ? '7d' : '30d');
 
         return ['from' => (string) $shown['from'], 'to' => (string) $shown['to'], ...self::table((array) $shown['days'], ['date', 'made', 'free', 'plus', 'comped', 'together', 'partMinutes', 'failedOurs', 'failedTake'])];
+    }
+
+    /**
+     * The AI choice card: a row a band (guests too) and one for all, the card's numbers, then engagement by state;
+     * a count too few to show is left empty, as the card says "too few".
+     *
+     * @return array{from: string, to: string, header: list<string>, rows: list<list<mixed>>}
+     */
+    private function ai(string $period): array
+    {
+        $shown = app(AiChoiceGrowth::class)->build($period === '90d' ? '90d' : '28d');
+        $columns = ['cardShown', 'cardTry', 'cardNot', 'cardClosed', 'tryRate', 'notRate', 'choirStart', 'choirHeard', 'guideHeard', 'switchOnOff', 'switchOffOn'];
+        $engagement = ['backD1', 'backW1', 'backD7', 'backW4', 'lessons0', 'lessons1to2', 'lessons3to5', 'lessons6plus'];
+        $header = ['band', ...array_map(self::snake(...), $columns)];
+
+        foreach (['on', 'off', 'unset'] as $state) {
+            foreach ($engagement as $key) {
+                $header[] = $state.'_'.self::snake($key);
+            }
+        }
+
+        $row = static function (string $band, array $numbers) use ($columns, $engagement): array {
+            $byState = collect((array) $numbers['engagement'])->keyBy('state');
+            $cells = [$band, ...array_map(static fn (string $key): mixed => $numbers[$key] ?? null, $columns)];
+
+            foreach (['on', 'off', 'unset'] as $state) {
+                foreach ($engagement as $key) {
+                    $cells[] = $byState[$state][$key] ?? null;
+                }
+            }
+
+            return $cells;
+        };
+
+        $rows = array_values(array_map(static fn (array $band): array => $row((string) $band['band'], $band), (array) $shown['bands']));
+        $rows[] = $row('all', (array) $shown['total']);
+
+        return ['from' => (string) $shown['from'], 'to' => (string) $shown['to'], 'header' => $header, 'rows' => $rows];
     }
 
     /**

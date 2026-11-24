@@ -32,6 +32,7 @@ export const Chooser = {
         suggested: { type: String, default: null }, // a slot id the range check suggests
         title: { type: String, default: '' },
         focus: { type: Object, default: null }, // the part already yours: { slot, name, range }
+        rehearsable: Boolean, // a library song with a part: its rehearsal plan is offered (docs/rehearsal-ready-plan.md)
         bpm: { type: Number, default: null },
         phrases: { type: Number, default: 0 },
         length: { type: Number, default: 0 }, // seconds
@@ -39,7 +40,7 @@ export const Chooser = {
         noVoice: { type: Array, default: () => [] }, // slot ids whose part no one has sung yet (be-the-voice.js)
         aiVoice: { type: Array, default: () => [] }, // slot ids an AI voice sings (js/ai-voices.js): its tag, in the same place
     },
-    emits: ['choose', 'range', 'back', 'studio'],
+    emits: ['choose', 'range', 'back', 'studio', 'rehearse'],
     data() {
         const remembered = prefs.singWay;
         // The way chosen last time is marked, never picked for you (Hillel).
@@ -65,6 +66,8 @@ export const Chooser = {
                 <div>
                     <h1 ref="heading" tabindex="-1" class="t-title text-cream outline-none">{{ t('sing.chooser.title') }}</h1>
                     <p class="t-lead mt-2">{{ t('sing.chooser.intro') }}</p>
+                    <!-- Ready by rehearsal: one quiet link, never a second primary (ai-design: a 13 px link with its 44 px of target). -->
+                    <button v-if="rehearsable && focus" type="button" class="link t-hint tap-44 mt-1" data-chooser-rehearse @click="$emit('rehearse')">{{ t('rehearse.soon') }}</button>
                 </div>
                 <!-- Each way a large button that starts it at once (equal rows when stacked too). Hillel, 2026-11-02 (the
                      first-15-minutes review): Part by part is tagged for a first song, and the studio waits under More ways

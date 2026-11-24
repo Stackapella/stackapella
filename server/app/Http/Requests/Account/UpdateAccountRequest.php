@@ -46,6 +46,9 @@ final class UpdateAccountRequest extends FormRequest
             'birthMonth' => ['sometimes', 'required_with:birthYear', 'integer', 'between:1,12'],
             'birthYear' => ['sometimes', 'required_with:birthMonth', 'integer', 'min:'.Age::EARLIEST_YEAR, 'max:'.now()->year],
             'publicProfile' => ['sometimes', 'boolean'],
+            // The AI features setting (docs/ai-optional-plan.md v2): chosen, never unset, and where (Settings by default).
+            'aiFeatures' => ['sometimes', 'boolean'],
+            'aiFeaturesSource' => ['sometimes', 'in:card,settings,ai-singing'],
             // Hide profile: shown to others as "Anonymous" (docs/hide-profile-plan.md).
             'hideProfile' => ['sometimes', 'boolean'],
             // Game mode's arcade initials on the boards: three letters, none on the blocked list.

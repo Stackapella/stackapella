@@ -25,6 +25,7 @@ import { METRICS as METRIC_NAMES, MetricCard, TrackingPanel } from './growth-car
 import { HOUR_MARGINS, HourChart } from './growth-chart.js';
 import { COLUMN_MARGINS, ColumnChart, CountStrip } from './growth-columns.js';
 import { GrowthChoirs } from './growth-choirs.js';
+import { GrowthAi } from './growth-ai.js';
 
 // Each period's days, for what still reads a day count (the reach chart, and the cards from an older server); 4 weeks and
 // This month read as 30 there, 12 weeks as 84 (the people chart a week at a time).
@@ -76,7 +77,7 @@ export function sortSources(rows, by, rate = false) {
 
 export const OverviewSection = {
     mixins: [remembers('growth', { period: PERIODS, sortBy: Object.keys(COLUMNS) })],
-    components: { CsvLink, LoadFailed, ReachChart, SiteSectionsCard, MetricCard, TrackingPanel, HourChart, ColumnChart, CountStrip, GrowthChoirs },
+    components: { CsvLink, LoadFailed, ReachChart, SiteSectionsCard, MetricCard, TrackingPanel, HourChart, ColumnChart, CountStrip, GrowthChoirs, GrowthAi },
     props: { me: { type: Object, required: true } },
     data: () => ({ period: 'today', showHow: false, growth: null, sources: null, funnel: null, failed: false, sortBy: 'day2', updatedAt: null, now: Date.now(), refreshing: false, staleSince: null }),
     setup: () => ({ zoneName, PERIODS, PERIOD_NAMES, METRIC_NAMES, FEW, TILES, STEPS, COLUMNS, SHORT, ARM_COLORS, formatNumber, pct, day, navigate, HOUR_MARGINS, COLUMN_MARGINS }),
@@ -181,6 +182,8 @@ export const OverviewSection = {
 
                 <!-- AI choirs beside the sign-ups (Hillel, 2026-11-23): its own 7 or 30 days, from the page's period at first. -->
                 <GrowthChoirs :period="shownPeriod" />
+                <!-- AI choice (docs/ai-optional-plan.md): the card after a first part, AI used and coming back, by age band. -->
+                <GrowthAi />
 
                 <!-- People using the app (Hillel: signed in against guests), week by week against the 12 weeks before. -->
                 <ReachChart :days="days" />

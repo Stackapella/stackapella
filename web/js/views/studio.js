@@ -89,6 +89,7 @@ export const StudioView = {
         dialog: null, // settings | headphones | timing | timing-record | mic | export | part | range
         dialogPart: null,
         exporting: false,
+        exportStart: null, // the export's opening choice, from Take it with you
         box: { left: 0, width: 0 }, // where the timeline sits in the scrolling area, for the playhead
         hearing: false, // the beta take playing in the mix, as learners will hear it
         previousTake: null, // a beta take's Undo: the take before it, to send that one instead
@@ -368,7 +369,7 @@ export const StudioView = {
                 @close="closeReport" @again="recordAgain" @loop="loopFromReport" @hear="hearAsLearners" @send="sendTake" />
             <TellHillel v-if="dialog === 'tell'" :context="tellContext" @close="dialog = null" />
             <MicDialog v-if="dialog === 'mic'" @close="dialog = null" @timing="openAudioDialog('timing')" />
-            <ExportDialog v-if="dialog === 'export'" :title="shownTitle(project)" :seconds="contentLength" :parts="exportParts" :default-name="exportName" :sample-rate="engine.sampleRate" @unmute="(id) => update(parts.find((p) => p.id === id), { muted: false })" :credits="voiceCredits" :credits-line="creditsLine" :choir-locked="choirLocked" :has-chords="!!project.template?.chords?.length" :score-parts="scoreParts" :busy="exporting" @close="dialog = null" @export="exportMix" @upgrade="navigate('/plus?from=' + $event)" />
+            <ExportDialog v-if="dialog === 'export'" :library="librarySong" :start="exportStart" @account="takeAccount" :title="shownTitle(project)" :seconds="contentLength" :parts="exportParts" :default-name="exportName" :sample-rate="engine.sampleRate" @unmute="(id) => update(parts.find((p) => p.id === id), { muted: false })" :credits="voiceCredits" :credits-line="creditsLine" :choir-locked="choirLocked" :has-chords="!!project.template?.chords?.length" :score-parts="scoreParts" :busy="exporting" @close="dialog = null" @export="exportMix" @upgrade="navigate('/plus?from=' + $event)" />
             <PartDialog v-if="dialog === 'part' && dialogPart" :breaths="sessionStore.canSoftenBreaths(dialogPart)" :theirs="sessionStore.mine(dialogPart) ? null : (dialogPart.createdBy?.name ?? project.shared?.owner?.name ?? '')" :part="dialogPart" :shown-name="nameOf(dialogPart)" :color="paint(dialogPart.color)" :voice="guideVoices[dialogPart.id] ?? null" :recording="recording" @voice="chooseVoice(dialogPart, $event)" :slot="!!dialogPart.templatePartKey" :recorded="hasTake(dialogPart)" @close="dialog = null" @update="update(dialogPart, $event)" @rerecord="rerecord(dialogPart)" @delete="removePart(dialogPart)" @clear="clearTakeOf(dialogPart)" @practise="dialog = null; singPart(dialogPart)" :ai-cta="aiCtaOpen(project)" @be-voice="dialog = null; singPart(dialogPart)" @trim="openTrim(dialogPart)" :harmonise="!project.template && !project.beta && !project.shared" @harmonise="harmonise(dialogPart)" />
             <TrimSheet v-if="dialog === 'trim' && dialogPart" :part="dialogPart" :name="nameOf(dialogPart)" :color="paint(dialogPart.color)" :beat-seconds="60 / (project.bpm || 90)" :playing="playing" :can-line-up="parts.filter(hasTake).length > 1"
                 @trim="trim(dialogPart, $event)" @play-start="hearEdge(dialogPart, 'start')" @play-end="hearEdge(dialogPart, 'end')" @play-trimmed="hearTrimmed(dialogPart)" @stop="stopPlayback" @line-up="lineUp" @close="closeTrim(dialogPart)" />
@@ -599,6 +600,11 @@ export const StudioView = {
         countInLabel() {
             return t('studio.countInLabel', { count: this.project.countInBars });
         },
+        /** A library song (not one of their own): its practice track takes away as MP3 with a free account (brief C). */
+        librarySong() {
+            const id = this.project?.template?.id;
+            return !!id && !this.project.beta && !this.choirRequest && !mine.list.some((m) => m.id === id) && !mine.drafts.some((m) => m.id === id);
+        },
         exportName() {
             const arranger = this.project.template?.credits?.arrangement?.replace(/\s*\(draft\)$/, '');
             return arranger ? t('studio.exportName', { title: shownTitle(this.project), arranger }) : shownTitle(this.project);
@@ -699,10 +705,21 @@ export const StudioView = {
         await sessionStore.openSession(this.id);
         sessionStore.setScreen('studio');
         // Home's More menu: Share or Invite someone to sing opens here, on its sheet.
-        const sheet = new URLSearchParams(location.search).get('sheet');
+        const params = new URLSearchParams(location.search);
+        const sheet = params.get('sheet');
         if (sheet === 'share' || sheet === 'together') {
             history.replaceState(history.state, '', location.pathname);
             this.dialog = sheet;
+        }
+        // Take it with you (the song sheet, or a part page's ?take=louder|without&part=): the export opens on the practice
+        // track for that part, your part louder or without it, as MP3 (brief C).
+        const take = params.get('take');
+        if (take === 'louder' || take === 'without') {
+            history.replaceState(history.state, '', location.pathname);
+            const part = this.parts.find((p) => p.templatePartKey === params.get('part')) ?? this.parts.find((p) => sessionStore.mine(p)) ?? this.parts[0];
+            count('tracks_take');
+            this.exportStart = { what: 'track', kind: take, partId: part?.id ?? null };
+            this.dialog = 'export';
         }
         if (this.project?.beta) loadBar(); // the bar a take must meet, as it is today
         // Opened from My parts' Practise phrase N: that phrase looped, once.
@@ -1471,6 +1488,12 @@ export const StudioView = {
 
         // ---- Export ----
 
+        /** A guest's practice track as MP3: a free account, then back here with the same track ready to make. */
+        takeAccount({ kind, partId }) {
+            const key = this.parts.find((p) => p.id === partId)?.templatePartKey ?? '';
+            const back = `/p/${this.id}?take=${kind}&part=${encodeURIComponent(key)}`;
+            navigate(`/signin?mode=signup&for=take&next=${encodeURIComponent(back)}`);
+        },
         async exportMix({ name, format = 'wav', chords = false, room = null, track = null, sheet = null }) {
             this.exporting = true;
             try {
@@ -1519,6 +1542,7 @@ export const StudioView = {
                 setTimeout(() => URL.revokeObjectURL(url), 60000);
                 count('export_done');
                 count(sheet ? 'exp_sheet' : format === 'stems' ? 'exp_stems' : track ? 'exp_practice' : 'exp_song'); // by kind: the song, a practice track, every part, sheet music
+                if (track && this.librarySong && ['louder', 'without'].includes(track.kind)) count(`tracks_made:${track.kind}`); // brief C's take-away tracks
                 this.dialog = null;
             } catch (error) {
                 console.error('Export failed', error);

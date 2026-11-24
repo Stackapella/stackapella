@@ -4,6 +4,7 @@
 // tests/course.test.js; the progress itself is kept by js/stores/learning.js.
 
 import { tk } from './i18n.js';
+import { mergeRehearsals } from './rehearsal-merge.js';
 import { mergeCourses } from './courses.js';
 import { mergeWarmups } from './warmup.js';
 
@@ -277,6 +278,8 @@ export function mergeProgress(mine, theirs) {
         ...(mine.bosses || theirs.bosses ? { bosses: mergeBosses(mine.bosses, theirs.bosses) } : {}),
         // Kept warm-ups (docs/warmup-builder-plan.md, slice 4), only once either side has one.
         ...(mine.warmups || theirs.warmups ? { warmups: mergeWarmups(mine.warmups, theirs.warmups) } : {}),
+        // Rehearsal plans (docs/rehearsal-ready-plan.md; the contract's merge rule), only once either side has one.
+        ...(mine.rehearsals || theirs.rehearsals ? { rehearsals: mergeRehearsals(mine.rehearsals, theirs.rehearsals) } : {}),
         keys: { ...theirs.keys, ...mine.keys },
         testedOut: [...new Set([...(mine.testedOut ?? []), ...(theirs.testedOut ?? [])])],
         xp: { total: Math.max(mine.xp?.total ?? 0, theirs.xp?.total ?? 0, sum), days },

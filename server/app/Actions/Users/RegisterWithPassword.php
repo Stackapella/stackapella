@@ -46,7 +46,7 @@ final class RegisterWithPassword
      * @param  array{month: int, year: int}  $birth  when they were born (Age)
      * @param  list<string>  $doneLessons  the free course's lessons the device finished signed out (the mail's next lesson)
      */
-    public function handle(string $name, string $email, string $password, ?string $ref, string $locale, ?string $ip, array $birth, ?string $invite = null, ?string $early = null, ?string $country = null, ?string $browserHash = null, array $doneLessons = []): void
+    public function handle(string $name, string $email, string $password, ?string $ref, string $locale, ?string $ip, array $birth, ?string $invite = null, ?string $early = null, ?string $country = null, ?string $browserHash = null, array $doneLessons = [], ?bool $aiFeatures = null, ?string $aiFeaturesSource = null): void
     {
         $email = strtolower(trim($email));
         $existing = User::query()->where('email', $email)->first();
@@ -72,7 +72,7 @@ final class RegisterWithPassword
         }
 
         try {
-            $user = DB::transaction(function () use ($name, $email, $password, $ref, $locale, $invite, $early, $ip, $birth): User {
+            $user = DB::transaction(function () use ($name, $email, $password, $ref, $locale, $invite, $early, $ip, $birth, $aiFeatures, $aiFeaturesSource): User {
                 // The early-access link's place, taken with the account (refused while paused
                 // when it filled or closed a moment ago, and no beta invite carries them).
                 $link = $early !== null ? EarlyAccess::claim($early, $ip) : null;
@@ -83,7 +83,10 @@ final class RegisterWithPassword
 
                 $user = new User(['name' => $name, 'email' => $email, 'locale' => $locale]);
                 $age = Age::fields($user, $birth['month'], $birth['year']);
-                $user->forceFill(['password' => $password, 'ref' => RecordCounts::accountRef($ref), 'early_access_link_id' => $link?->id, ...$age, 'pending_invite_hash' => $invite !== null ? hash('sha256', $invite) : null])->save();
+                $user->forceFill(['password' => $password, 'ref' => RecordCounts::accountRef($ref), 'early_access_link_id' => $link?->id, ...$age, 'pending_invite_hash' => $invite !== null ? hash('sha256', $invite) : null,
+                    // The device's choice, when it holds one (docs/ai-optional-plan.md v2): the card's (Try it, Not for me) or an
+                    // /ai-singing arrival's, said by the app (else on is the arrival's, off the card's); none leaves it unchosen.
+                    'ai_features' => $aiFeatures, 'ai_features_at' => $aiFeatures !== null ? now() : null, 'ai_features_source' => $aiFeatures === null ? null : ($aiFeaturesSource ?? ($aiFeatures ? 'ai-singing' : 'card'))])->save();
                 ShareSignUps::record($user, $ref);
 
                 return $user;

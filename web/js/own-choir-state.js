@@ -3,6 +3,7 @@
 // (site_integration's PREFETCH_KB). own-choir.js re-exports all of it.
 
 import { reactive } from 'vue';
+import { aiOn } from './ai-choice.js';
 import { api } from './api.js';
 import { account, loadAccount } from './stores/account.js';
 import { locale } from './i18n.js';
@@ -10,9 +11,9 @@ import { templatePartName } from './templates.js';
 
 const OPEN = ['uploading', 'queued', 'rendering'];
 
-/** Whether it's on for this account: auth.config `ownChoir`, known to be true. */
+/** Whether it's on for this account: auth.config `ownChoir`, known to be true, and AI features on here (ai-choice.js). */
 export function ownChoirOn() {
-    return account.config?.ownChoir === true;
+    return account.config?.ownChoir === true && aiOn();
 }
 
 /** Whether their own songs can be heard in their voice too (auth.config `ownChoirSongs`, the own_choir_songs switch). */

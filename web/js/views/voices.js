@@ -7,6 +7,7 @@
 // and sent on the beta singers' own screen (/beta), and Hillel reviews it there.
 
 import { api, ApiError } from '../api.js';
+import { aiOn } from '../ai-choice.js';
 import { formatDate, t, tk } from '../i18n.js';
 import { navigate } from '../router.js';
 import { AppScreen } from '../components/page.js';
@@ -56,7 +57,7 @@ export const VoicesView = {
             <!-- Ready to share (Be the voice; the engagement review): your takes of parts that still have no voice, earlier Not nows
                  included. Each opens its take in Sing with the share sheet. -->
             <section v-if="account.me && ready.length" class="mb-8 space-y-3" aria-labelledby="voices-ready" data-voices-ready>
-                <h2 id="voices-ready" class="text-xl font-extrabold tracking-tight text-cream">{{ t('voices.ready.title') }}</h2>
+                <h2 id="voices-ready" class="text-xl font-bold tracking-tight text-cream">{{ t('voices.ready.title') }}</h2>
                 <p class="text-sm text-muted">{{ t('voices.ready.line') }}</p>
                 <ul class="card divide-y divide-line">
                     <li v-for="r in ready" :key="r.projectId + ':' + r.partKey" class="flex flex-wrap items-center gap-3 p-4">
@@ -174,7 +175,7 @@ export const VoicesView = {
         async load() {
             this.refusal = null;
             const config = await loadAuthConfig().catch(() => null);
-            if (!config?.lendVoice) return (this.state = 'off');
+            if (!config?.lendVoice || !aiOn()) return (this.state = 'off'); // AI features off: Lend your voice is hidden (ai-choice.js)
             await loadAccount();
             if (!account.me) return (this.state = 'signedOut');
             let me = null;

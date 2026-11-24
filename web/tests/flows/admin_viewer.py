@@ -9,7 +9,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
 
-ALLOWED = ["admin.me", "admin.growth.show", "admin.growth.choirs", "admin.growth.export", "admin.funnel.show", "admin.dropoffs.show", "admin.sources.show", "admin.reach.show"]
+ALLOWED = ["admin.me", "admin.growth.show", "admin.growth.choirs", "admin.growth.export", "admin.growth.ai", "admin.funnel.show", "admin.dropoffs.show", "admin.sources.show", "admin.reach.show"]
 CALLS = "(globalThis.mockCalls ?? []).filter((op) => op.startsWith('admin.'))"
 
 
@@ -39,6 +39,9 @@ def journey(f):
     assert f.js("window.saved[0]").endswith(".csv"), f.js("window.saved[0]")
     f.run("document.querySelector('[data-csv=choirs]').click()")
     f.wait("window.saved.length === 2", what="the AI choirs' CSV")
+    f.wait("document.querySelector('[data-csv=ai]')", what="the AI choice card's CSV")
+    f.run("document.querySelector('[data-csv=ai]').click()")
+    f.wait("window.saved.length === 3", what="the AI choice card's CSV saved")
     f.no_sideways("a viewer's Growth")
     f.shot("growth")
     # A page that isn't theirs: Growth, and the address says so.

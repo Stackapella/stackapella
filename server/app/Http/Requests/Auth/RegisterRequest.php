@@ -50,6 +50,9 @@ final class RegisterRequest extends FormRequest
             'birthMonth' => ['required', 'integer', 'between:1,12'],
             'birthYear' => ['required', 'integer', 'min:'.Age::EARLIEST_YEAR, 'max:'.now()->year],
             'ageConfirmed' => ['prohibited'],
+            // The device's AI features choice, when it holds one (docs/ai-optional-plan.md v2), and where it came from.
+            'aiFeatures' => ['sometimes', 'nullable', 'boolean'],
+            'aiFeaturesSource' => ['sometimes', 'nullable', 'in:card,ai-singing'],
             'ref' => ['nullable', 'string', 'max:40', 'regex:/^[A-Za-z0-9-]+$/'],
             'elapsedMs' => ['nullable', 'integer', 'min:0'],
             'nickname' => ['nullable', 'string', 'max:200'],

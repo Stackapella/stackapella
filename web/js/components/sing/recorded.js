@@ -14,6 +14,7 @@ import { formatTime } from '../../theme.js';
 import { Icon } from '../icon.js';
 import { sk } from '../../skin.js';
 import { BeTheVoice } from '../../be-the-voice.js';
+import { AiCard } from '../ai-card.js';
 import { MIN_SECONDS } from '../../own-choir.js';
 import { TurnstileBox } from '../../turnstile.js';
 import { templatePartName } from '../../templates.js';
@@ -205,7 +206,7 @@ const ChoirReview = {
 };
 
 export const JustRecorded = {
-    components: { ChoirReview, Icon, PeakRow, BeTheVoice },
+    components: { ChoirReview, Icon, PeakRow, AiCard, BeTheVoice },
     props: {
         outcome: { type: Object, required: true }, // sessionStore.finishRecording's
         partName: { type: String, required: true },
@@ -232,8 +233,9 @@ export const JustRecorded = {
         sungBy: { type: String, default: '' }, // the song and who sang it, once two or more of its parts are yours (onboarding step 10)
         voice: { type: Object, default: null }, // Be the voice's invitation (js/be-the-voice.js): { part, guest }, or null
         choir: { type: Object, default: null }, // a choir project's take (js/own-choir.js): { seconds, busy, error }, or null
+        aiCard: { type: Object, default: null }, // AI optional's card (components/ai-card.js): { song, busy }, or null
     },
-    emits: ['hear', 'mute', 'again', 'next', 'nudge', 'nudged', 'line-up', 'studio', 'resing', 'trim', 'polish', 'share', 'hear-phrase', 'voice-share', 'voice-later', 'choir-make', 'choir-force', 'choir-listen'],
+    emits: ['hear', 'mute', 'again', 'next', 'nudge', 'nudged', 'line-up', 'studio', 'resing', 'trim', 'polish', 'share', 'hear-phrase', 'voice-share', 'voice-later', 'choir-make', 'choir-force', 'choir-listen', 'ai-try', 'ai-not', 'ai-close'],
     data: () => ({ nudging: false, picked: null }),
     setup: () => ({ MAX_NUDGE_MS, CHART, formatNumber, formatTime, sk }),
     template: `
@@ -346,6 +348,8 @@ export const JustRecorded = {
                 </div>
                 <!-- Be the voice (Hillel, 2026-11-12): a usable take of a part no one has given a real voice, one calm card after the take's own checks. -->
                 <BeTheVoice v-if="voice" :part="voice.part" :guest="voice.guest" @share="$emit('voice-share')" @later="$emit('voice-later')" />
+                <!-- AI optional's way in (docs/ai-optional-plan.md): under the take's result, never over it; one ask at a time. -->
+                <AiCard v-else-if="aiCard" :song="aiCard.song" :busy="aiCard.busy" @try="$emit('ai-try')" @not="$emit('ai-not')" @close="$emit('ai-close')" />
             </div>
             <!-- One clear decision, always in view. -->
             <div class="footer-bar px-4 py-3.5 md:px-8">

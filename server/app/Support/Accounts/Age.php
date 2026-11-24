@@ -35,6 +35,29 @@ final class Age
         return ($on ?? now())->copy()->startOfDay()->gte(self::turns($month, $year, $age));
     }
 
+    /** The age bands Growth reads by (docs/ai-optional-plan.md), youngest first. */
+    public const BANDS = ['u18', '18-24', '25-34', '35-44', '45-54', '55-64', '65+'];
+
+    /** Someone's age band today from their birth month and year (a birthday counts at its month's end, as turns()). */
+    public static function band(int $month, int $year, ?Carbon $on = null): string
+    {
+        $age = ($on ?? now())->year - $year;
+
+        if (! self::isAtLeast($month, $year, $age, $on)) {
+            $age--;
+        }
+
+        return match (true) {
+            $age < 18 => 'u18',
+            $age < 25 => '18-24',
+            $age < 35 => '25-34',
+            $age < 45 => '35-44',
+            $age < 55 => '45-54',
+            $age < 65 => '55-64',
+            default => '65+',
+        };
+    }
+
     public static function given(User $user): bool
     {
         return $user->birth_month !== null && $user->birth_year !== null;
@@ -73,6 +96,8 @@ final class Age
             'birth_year' => $year,
             'age_confirmed_at' => $user->age_confirmed_at ?? now(),
             'adult_confirmed_at' => self::isAtLeast($month, $year, self::ADULT) ? ($user->adult_confirmed_at ?? now()) : null,
+            // The band when the date was first given, kept (a cohort doesn't move on a birthday).
+            'age_band' => $user->age_band ?? self::band($month, $year),
         ];
     }
 

@@ -34,6 +34,8 @@ import { ideas, ideasOpen } from '../stores/ideas.js';
 import { setNotes, voiceCare } from '../voice-day.js';
 import { local, session } from '../storage.js';
 import { publicSiteUrl } from '../hosts.js';
+import { aiOn, aiOptional } from '../ai-choice.js';
+import { loadOwnChoir, ownChoir } from '../own-choir-state.js';
 import { count } from '../usage.js';
 import { loadBilling, plan } from '../stores/plan.js';
 
@@ -115,7 +117,7 @@ export const SettingsView = {
         editing: null, // 'email' or 'password': its change open under its row
         section: 'learning', // the group in view, marked in the sidebar
     }),
-    setup: () => ({ publicSiteUrl, voiceCare, setNotes, ideas, learning, prefs, account, locale, noteNames, NAMINGS, LEGAL, chooseNaming, METHODS, HANDLE_REASONS, EXPORT, formatDate, formatBytes, SECTIONS, SECTION_WORDS, appearanceSummary, selfHosted, CREDIT_SITE, sk, game }),
+    setup: () => ({ aiOn, aiOptional, publicSiteUrl, voiceCare, setNotes, ideas, learning, prefs, account, locale, noteNames, NAMINGS, LEGAL, chooseNaming, METHODS, HANDLE_REASONS, EXPORT, formatDate, formatBytes, SECTIONS, SECTION_WORDS, appearanceSummary, selfHosted, CREDIT_SITE, sk, game }),
     template: `
         <AppScreen :title="t('settings.title')" back="/" measure="" data-ui="screen" class="bg-ink">
             <!-- How it looks is the header's Theme button, here as on every screen (Hillel's call). -->
@@ -208,10 +210,16 @@ export const SettingsView = {
                     <div class="card divide-y divide-line overflow-hidden">
                         <a v-if="account.me" href="/groups" class="flex items-center justify-between gap-4 p-5 hover:bg-raised/50" @click.prevent="navigate('/groups')"><span class="min-w-0"><span class="block font-semibold text-cream">{{ t('groups.title') }}</span><span class="block text-sm text-muted">{{ t('groups.settingsHint') }}</span></span><Icon name="chevron" :size="18" class="shrink-0 -rotate-90 text-muted rtl:rotate-90" /></a>
                     </div>
-                <!-- Hear yourself as a choir (js/own-choir.js): the voice kept for their next songs, and Delete; only while one is kept. -->
-                <SavedVoiceRow v-if="account.me" />
+                <!-- AI features (docs/ai-optional-plan.md, decision 3): one switch for every AI feature; off, real voices and the
+                     practice voice only. Not asked yet counts as on. Off with AI choir songs kept: they're kept, and it says so. -->
+                <div v-if="aiOptional()" class="card py-3 pe-3 ps-5" data-ai-features>
+                    <Switch :on="aiOn()" :label="t('settings.ai.title')" :hint="!aiOn() ? t('settings.ai.hintOff') : account.me?.isAdult === false ? t('settings.ai.hintOnMinor') : t('settings.ai.hintOn')" :disabled="busy === 'ai'" @change="setAi" />
+                    <p v-if="!aiOn() && keptAiSongs" class="t-hint mt-2 pe-2" data-ai-kept>{{ t('settings.ai.kept', { count: keptAiSongs }) }}</p>
+                </div>
+                <!-- Hear yourself as a choir (js/own-choir.js): the voice kept for their next songs, and Delete; only while one is kept and AI is on. -->
+                <SavedVoiceRow v-if="account.me && aiOn()" />
                 <!-- Lend your voice (docs/lend-your-voice-plan.md): no new tab, a row here, while its switch is on -->
-                <a v-if="account.me && account.config?.lendVoice" href="/voices" class="card-interactive flex items-center gap-4 p-5" data-lend-voice @click.prevent="navigate('/voices')">
+                <a v-if="account.me && account.config?.lendVoice && aiOn()" href="/voices" class="card-interactive flex items-center gap-4 p-5" data-lend-voice @click.prevent="navigate('/voices')">
                     <span class="grid size-10 shrink-0 place-items-center rounded-full bg-raised text-cream" aria-hidden="true"><Icon name="mic" :size="20" /></span>
                     <span class="min-w-0 flex-1"><span class="block font-semibold text-cream">{{ t('voices.title') }}</span><span class="block text-sm text-muted">{{ t('voices.settingsHint') }}</span></span>
                     <Icon name="arrow" :size="18" class="text-muted" />
@@ -237,7 +245,7 @@ export const SettingsView = {
                         <div class="flex items-center gap-4">
                             <!-- A photo that won't load (offline, or gone from the store) shows the letter, as Home does. -->
                             <img v-if="account.me.avatarUrl && avatarFailed !== account.me.avatarUrl" :src="account.me.avatarUrl" alt="" class="size-14 rounded-full object-cover" data-avatar @error="avatarFailed = account.me.avatarUrl" />
-                            <span v-else class="bubble bubble-lg grid size-14 place-items-center text-xl font-extrabold" style="--bubble: var(--color-part-1); --bubble-ink: var(--color-part-text-1)" aria-hidden="true" data-avatar>{{ (account.me.name || '?').slice(0, 1) }}</span>
+                            <span v-else class="bubble bubble-lg grid size-14 place-items-center text-xl font-bold" style="--bubble: var(--color-part-1); --bubble-ink: var(--color-part-text-1)" aria-hidden="true" data-avatar>{{ (account.me.name || '?').slice(0, 1) }}</span>
                             <div class="min-w-0 space-y-1.5">
                                 <p class="truncate font-semibold text-cream" translate="no">{{ account.me.name }}</p>
                                 <div class="flex flex-wrap gap-2">
@@ -435,6 +443,8 @@ export const SettingsView = {
             <RangeDialog v-if="checkingRange" :template="{ key: 'C', parts: [] }" :parts="[]" @close="checkingRange = false" />
         </AppScreen>`,
     computed: {
+        /** AI choir songs kept while AI features are off (made, so they come back when it's turned on). */
+        keptAiSongs: () => (ownChoir.data?.requests ?? []).filter((r) => r.status === 'ready').length,
         /** The range kept, in the naming in use, or that none is. */
         rangeLine() {
             const range = learning.progress.range;
@@ -487,6 +497,8 @@ export const SettingsView = {
             toast(t('settings.guest.restored', { songs, lessons }), { seconds: 8 });
         }
         if (account.me) this.reset();
+        // AI features off: the AI choir songs still kept, counted for the line under the switch.
+        if (account.me && !aiOn()) loadOwnChoir({ force: true }).catch((error) => console.warn('The kept AI songs were not counted', error));
         loadAuthConfig().then((config) => {
             this.config = config;
             if (config?.schools && account.me) loadBilling(); // a school year's end date, for the plan line
@@ -680,6 +692,14 @@ export const SettingsView = {
             }, 400);
         },
         /** Show or stop showing your best scores on the worldwide boards, at once. */
+        /** AI features on or off for the account (account.update `aiFeatures`; the server counts the change). */
+        async setAi(on) {
+            if (await this.run('ai', () => api.account.update({ aiFeatures: on }))) {
+                account.me = { ...account.me, aiFeatures: on };
+                toast(t('settings.saved'));
+                if (!on) loadOwnChoir({ force: true }).catch((error) => console.warn('The kept AI songs were not counted', error));
+            }
+        },
         /** Hide profile: everyone else sees "Anonymous", with no handle, picture or profile page. */
         async setHidden(on) {
             if (await this.run('hide', () => api.account.update({ hideProfile: on }))) toast(t('settings.saved'));

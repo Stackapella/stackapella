@@ -248,7 +248,9 @@ async function stateful(operation, params, body, cases, query = {}) {
         const turnstileSiteKey = tabStorage.get('stackapella.mockTurnstile') === '1' ? '1x00000000000000000000AA' : data.turnstileSiteKey ?? null;
         // A choir with friends, for a flow (stackapella.mockTogether, this tab).
         const ownChoirTogether = tabStorage.get('stackapella.mockTogether') === '1' || !!data.ownChoirTogether;
-        return respond(200, { data: { ...data, ideas: !scenarios().includes('ideas.list:not_found'), experiments, lendVoice, selfHosted, withheldSongs, aiVoices, ownChoir, ownChoirSongs, turnstileSiteKey, ownChoirTogether } });
+        // AI optional's release switch (docs/ai-optional-plan.md): off unless a flow turns it on for the tab.
+        const aiOptional = tabStorage.get('stackapella.mockAiOptional') === '1' || !!data.aiOptional;
+        return respond(200, { data: { ...data, ideas: !scenarios().includes('ideas.list:not_found'), experiments, aiOptional, lendVoice, selfHosted, withheldSongs, aiVoices, ownChoir, ownChoirSongs, turnstileSiteKey, ownChoirTogether } });
     }
     // A share's body as sent (Update that link's `replaces` among it), for the flows; the example answers as before.
     if (operation === 'harmonies.create') globalThis.mockShareBody = body;
@@ -268,6 +270,9 @@ async function stateful(operation, params, body, cases, query = {}) {
         const naming = JSON.parse(tabStorage.get('stackapella.mockInitials') || '{}');
         Object.assign(data, naming);
         if (who === 'young') Object.assign(data, { isAdult: false, boardsName: 'initials' });
+        // AI features, as this tab last chose them (account.update `aiFeatures`); not asked: null.
+        const ai = tabStorage.get('stackapella.mockAiFeatures');
+        data.aiFeatures = ai === null ? (data.aiFeatures ?? null) : ai === '1';
         // Fields a flow sets for this tab (`stackapella.mockAccount`, JSON: createdAt, isAdult and the like).
         Object.assign(data, JSON.parse(tabStorage.get('stackapella.mockAccount') || '{}'));
         // `plus` and `singerPlus` are on Plus; `singer` and `singerPlus` are beta singers; `editor` is
@@ -298,6 +303,10 @@ async function stateful(operation, params, body, cases, query = {}) {
         const me = await accountAs(as);
         if (tabStorage.get('stackapella.mockUnverified') === '1') me.data = { ...me.data, emailVerified: false };
         return respond(200, me);
+    }
+    if (operation === 'account.update' && typeof body?.aiFeatures === 'boolean' && as !== 'signedOut') {
+        tabStorage.set('stackapella.mockAiFeatures', body.aiFeatures ? '1' : '0');
+        return respond(200, await accountAs(as));
     }
     if (operation === 'account.update' && typeof body?.hideProfile === 'boolean' && as !== 'signedOut') {
         tabStorage.set('stackapella.mockHideProfile', body.hideProfile ? '1' : '0');

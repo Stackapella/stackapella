@@ -103,9 +103,17 @@ let waiting = false;
 export const LIBRARY_FILTERS = new Set(['all', 'search', 'christmas', 'jewish-songs', 'rounds', 'spirituals', 'hymns', 'sea-shanties', 'folk-songs', 'classical', 'barbershop-songs', 'more', 'part:soprano', 'part:alto', 'part:tenor', 'part:bass']);
 const libraryFilter = (kind) => kind.startsWith('library_filter:') && LIBRARY_FILTERS.has(kind.slice('library_filter:'.length));
 
+// AI optional (docs/ai-optional-plan.md, "Measuring"), as server/config/counts.php allows them: the returns by state and
+// band (js/ai-counts.js), and the card's events by band (views/sing.js).
+const BAND = '(?:u18|18-24|25-34|35-44|45-54|55-64|65\\+|unknown|guest)';
+const AIC = new RegExp(`^aic:(?:back_(?:d1|w1|d7|w4)|wk1_lessons):(?:on|off|unset):${BAND}(?::(?:0|1-2|3-5|6\\+))?$`);
+const AI_CARD = new RegExp(`^ai_card:(?:shown|try|not|closed):${BAND}$`);
+const AI_USE = new RegExp(`^ai_use:(?:choir_start|choir_heard|guide_heard):${BAND}$`);
+const aic = (kind) => AI_CARD.test(kind) || AI_USE.test(kind) || (AIC.test(kind) && kind.startsWith('aic:wk1_lessons:') === (kind.split(':').length === 5));
+
 /** Counts one `kind` (an unknown one is ignored). */
 export function count(kind) {
-    if (KINDS.has(kind) || detailed(kind) || libraryFilter(kind)) enqueue(kind);
+    if (KINDS.has(kind) || detailed(kind) || libraryFilter(kind) || aic(kind)) enqueue(kind);
 }
 
 // A share, counted as sh:<surface>.<method>: what was shared and how. The lists mirror server/config/counts.php

@@ -523,7 +523,8 @@
         "sheetSummary": "{format} · {count, plural, one {# voz} other {# voces}}",
         "print": "Imprimir",
         "printHint": "Abre las voces en una página para imprimirlas o guardarlas como PDF.",
-        "printButton": "Imprimir"
+        "printButton": "Imprimir",
+        "takeAccount": "Crea una cuenta gratis para llevarte la voz de {part} de {song}."
     },
     "print": {
         "print": "Imprimir o guardar como PDF",
@@ -718,7 +719,8 @@
             "real": "Voz real",
             "ai": "Voz de IA",
             "hummed": "Voz de práctica"
-        }
+        },
+        "take": "Llévatela contigo"
     },
     "projects": {
         "title": "Tus canciones",
@@ -1884,6 +1886,15 @@
             "confirmTitle": "¿Borrar tu extensión?",
             "confirmBody": "Las sugerencias de partes y cómo te encajan las partes de un coro dejan de usarla hasta que vuelvas a medirla. Tus canciones y grabaciones se quedan.",
             "cleared": "Borramos tu extensión."
+        },
+        "ai": {
+            "title": "Funciones de IA",
+            "hintOn": "Voces guía de IA, Óyete como un coro y prestar tu voz.",
+            "hintOff": "Oirás a cantantes reales y a nuestra voz de práctica. Nada de IA.",
+            "kept": "{count, plural, one {Tu canción de coro con IA sigue guardada} other {Tus # canciones de coro con IA siguen guardadas}}. Activa las funciones de IA para {count, plural, one {escucharla} other {escucharlas}}.",
+            "linkOff": "Esto usa voces de IA, y tus funciones de IA están desactivadas.",
+            "turnOn": "Activar funciones de IA",
+            "hintOnMinor": "Voces guía de IA, donde aún nadie ha grabado una voz."
         }
     },
     "version": {
@@ -6203,6 +6214,13 @@
         "help": {
             "link": "Cómo funciona y tus preguntas",
             "failed": "Qué hacer si una canción no sale bien"
+        },
+        "aiCard": {
+            "title": "¿Oír las demás voces con tu voz?",
+            "body": "Un coro con IA puede cantar el resto de {song} con una voz como la tuya. Es opcional, y siempre se señala como IA.",
+            "not": "No es para mí",
+            "try": "Probar",
+            "note": "Puedes cambiarlo cuando quieras en Ajustes."
         }
     },
     "aiVoice": {
@@ -6447,5 +6465,35 @@
         "onPitch": "Afinado un {percent}% en tus últimas {count, plural, one {toma} other {# tomas}}.",
         "next": "Siguiente: {what}, en el entrenamiento de hoy.",
         "go": "Empezarlo"
+    },
+    "rehearse": {
+        "screen": "Plan para el ensayo",
+        "title": "{part}, {song}",
+        "ask": "¿Cuándo es el ensayo?",
+        "make": "Hacer mi plan",
+        "when": "{day}, faltan {days} días para el ensayo",
+        "whenTomorrow": "{day}: el ensayo es mañana",
+        "whenToday": "El ensayo es hoy",
+        "today": "Hoy",
+        "whole": "Toda la voz, con las demás",
+        "readyCheck": "Prueba final",
+        "phrase": "Frase {n}",
+        "phrases": "Frases {from} a {to}",
+        "minutes": "Unos {minutes} minutos",
+        "done": "Hecho",
+        "start": "Empezar",
+        "readyFor": "Lista para el {day}.",
+        "knowIt": "Ya me sé casi todo",
+        "calendar": "Añadir a mi calendario",
+        "share": "Enviarme el enlace",
+        "change": "Cambiar el día",
+        "remove": "Quitar este plan",
+        "removeTitle": "¿Quitar el plan de {title}?",
+        "removeBody": "Los días y lo que marcaste como hecho se borran de este dispositivo y de tu cuenta. La canción se queda.",
+        "removeAction": "Quitar el plan",
+        "shareText": "Mi plan de ensayo para {title}",
+        "soon": "¿Lo ensayas pronto?",
+        "homeDays": "Faltan {days} días para el ensayo",
+        "homeLine": "{when} · {what}"
     }
 }

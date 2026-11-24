@@ -72,6 +72,10 @@ final class InfoPagesController extends Controller
                 }
             }
         }
+        // Whether AI is needed at all, once AI is a choice (docs/ai-optional-plan.md).
+        if (SongParts::switchedOn('ai_optional')) {
+            $faq[] = (array) Lang::get('pages.pricing.faq_ai');
+        }
 
         return $faq;
     }

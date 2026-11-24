@@ -5,6 +5,7 @@
 // beta invite carried through a sign-up.
 
 import { count } from '../usage.js';
+import { registerAi } from '../ai-choice.js';
 import { CreditLine } from '../components/credit.js';
 import { api, ApiError } from '../api.js';
 import { formatWait, t, tk } from '../i18n.js';
@@ -408,6 +409,7 @@ export const AuthView = {
                     doneLessons: await doneLessons(),
                     ...(this.invite ? { invite: this.invite } : {}),
                     ...(this.early ? { early: this.early } : {}),
+                    ...registerAi(), // AI optional: this device's choice (the card, or an /ai-singing arrival), else left out
                 });
                 tabStorage.set('stackapella.next', this.next);
                 // An account made from an ask, by its reason (no one's details); a library song's ask counts as songs, as it always has.

@@ -37,7 +37,9 @@
         "plusCourses",
         "terms",
         "songRequests",
-        "tried"
+        "tried",
+        "aiFeatures",
+        "ageBand"
     ],
     "properties": {
         "id": {
@@ -425,6 +427,26 @@
                     "format": "date-time"
                 }
             }
+        },
+        "aiFeatures": {
+            "type": [
+                "boolean",
+                "null"
+            ],
+            "description": "The account's AI features setting (docs/ai-optional-plan.md): true, false, or null when not asked yet (the app treats null as on and shows its one-time question)."
+        },
+        "ageBand": {
+            "enum": [
+                "u18",
+                "18-24",
+                "25-34",
+                "35-44",
+                "45-54",
+                "55-64",
+                "65+",
+                null
+            ],
+            "description": "The age band kept when the birth date was first given (it doesn't move on a birthday), for the app's own anonymous counts by band; null without a birth date. Never the date."
         }
     },
     "title": "The signed-in person's own account"

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Api\Account\AccountController;
 use App\Http\Controllers\Api\Account\LearningController;
+use App\Http\Controllers\Api\Admin\AiChoiceGrowthController as AdminAiChoiceGrowth;
 use App\Http\Controllers\Api\Admin\AiVoices\AiGuidesController as AdminAiGuides;
 use App\Http\Controllers\Api\Admin\AiVoices\AiVoicesController as AdminAiVoices;
 use App\Http\Controllers\Api\Admin\AuditController;
@@ -682,6 +683,7 @@ Route::middleware(['auth', 'editor', 'second-factor'])->prefix('admin')->name('a
         Route::get('/growth', [AdminGrowth::class, 'overview'])->name('growth.show');
         Route::get('/growth/choirs', AdminChoirGrowth::class)->name('growth.choirs');
         Route::get('/growth/export', AdminGrowthExport::class)->name('growth.export');
+        Route::get('/growth/ai', AdminAiChoiceGrowth::class)->name('growth.ai');
         Route::get('/sources', [AdminGrowth::class, 'sources'])->name('sources.show');
         Route::get('/active', [AdminGrowth::class, 'active'])->name('active.show');
         Route::get('/reach', [AdminGrowth::class, 'reach'])->name('reach.show');
