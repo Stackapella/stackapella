@@ -49,6 +49,8 @@ final class UpdateAccountRequest extends FormRequest
             // The AI features setting (docs/ai-optional-plan.md v2): chosen, never unset, and where (Settings by default).
             'aiFeatures' => ['sometimes', 'boolean'],
             'aiFeaturesSource' => ['sometimes', 'in:card,settings,ai-singing'],
+            // Email me when my choir is ready (the choir wait, 2026-11-24).
+            'choirEmail' => ['sometimes', 'boolean'],
             // Hide profile: shown to others as "Anonymous" (docs/hide-profile-plan.md).
             'hideProfile' => ['sometimes', 'boolean'],
             // Game mode's arcade initials on the boards: three letters, none on the blocked list.

@@ -7,7 +7,7 @@
 <meta property="og:description" content="{{ $meta['description'] }}">
 <meta property="og:url" content="{{ $meta['url'] }}">
 <meta property="og:type" content="website">
-{{-- A page may name its own card for its language (`image`: /es/your-choir's is drawn in Spanish). --}}
+{{-- A page may name its own card for its language (`image`: /es/armonias-con-ia's is drawn in Spanish). --}}
 <meta property="og:image" content="{{ $meta['image'] ?? \App\Support\Site\SitePages::image($meta['url']) }}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">

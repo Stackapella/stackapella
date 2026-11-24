@@ -19,16 +19,16 @@ final class RenderEmailsTest extends TestCase
 
         $command = $this->artisan('app:emails:render', ['dir' => $dir]);
         $this->assertInstanceOf(PendingCommand::class, $command);
-        $command->expectsOutputToContain('Rendered 31 emails')->assertSuccessful()->run();
+        $command->expectsOutputToContain('Rendered 33 emails')->assertSuccessful()->run();
 
-        // Each account email in the game skin too (21 of them); the admin and mudeo emails in one.
-        $this->assertCount(21, File::glob($dir.'/*.game.html'));
-        $this->assertCount(31 + 21, File::glob($dir.'/*.html'));
-        $this->assertCount(31, File::glob($dir.'/*.txt'));
+        // Each account email in the game skin too (23 of them); the admin and mudeo emails in one.
+        $this->assertCount(23, File::glob($dir.'/*.game.html'));
+        $this->assertCount(33 + 23, File::glob($dir.'/*.html'));
+        $this->assertCount(33, File::glob($dir.'/*.txt'));
         $this->assertStringContainsString('Continue your game', (string) File::get($dir.'/04-sign-in-link.game.html'));
         $this->assertStringNotContainsString('Continue your game', (string) File::get($dir.'/04-sign-in-link.html'));
         $this->assertStringContainsString('Try Stackapella', (string) File::get($dir.'/00-mudeo-new.html'));
-        $this->assertStringContainsString('## 30.', (string) File::get($dir.'/index.md'));
+        $this->assertStringContainsString('## 32.', (string) File::get($dir.'/index.md'));
         // Through the array mailer only: nothing left this machine.
         $this->assertSame('array', config('mail.default'));
         File::deleteDirectory($dir);

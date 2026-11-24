@@ -18,7 +18,8 @@ use Tests\TestCase;
 /**
  * Hear yourself as a choir across the site (the marketing review, 2026-11-22): while own_choir is off, nothing below
  * shows; once on, the plans, the questions, the pricing rows, the song pages, About AI voices, the share page and the
- * self-host page say what it is, and each way in leads to /your-choir or the app with its own ref.
+ * self-host page say what it is, and each way in leads to /ai-harmony-singing (its first address, /your-choir, moved
+ * there) or the app with its own ref.
  */
 final class OwnChoirSiteWordsTest extends TestCase
 {
@@ -40,6 +41,7 @@ final class OwnChoirSiteWordsTest extends TestCase
             $html = (string) $this->get($page)->assertOk()->getContent();
             $this->assertStringNotContainsString(e(__('pages.landing.plans_free_choir')), $html, $page);
             $this->assertStringNotContainsString(e(__('pages.pricing.faq_share_choir')), $html, $page);
+            $this->assertStringNotContainsString('/ai-harmony-singing', $html, $page);
             $this->assertStringNotContainsString('/your-choir', $html, $page);
             $this->assertStringNotContainsString('choir=1', $html, $page);
         }
@@ -49,12 +51,16 @@ final class OwnChoirSiteWordsTest extends TestCase
     {
         $this->on('own_choir');
 
+        // The home says nothing of AI (Hillel, 2026-11-23): its plans leave the choir lines out and the Singers' step
+        // stays on the page; /pricing lists them.
         $home = (string) $this->get('/')->assertOk()->getContent();
-        $this->assertStringContainsString(e(__('pages.landing.plans_free_choir')), $home);
-        $this->assertStringContainsString(e(__('plus.items.choir.0')), $home);
-        // Hear yourself as a choir is the Singers' step among the ways in, said once.
-        $this->assertSame(1, substr_count($home, 'href="/your-choir?ref=choir-home"'));
-        $this->assertStringContainsString(e(__('landing.paths.make.go_choir')), $home);
+        $this->assertStringNotContainsString(e(__('pages.landing.plans_free_choir')), $home);
+        $this->assertStringNotContainsString(e(__('plus.items.choir.0')), $home);
+        $this->assertStringNotContainsString('/your-choir', $home);
+        $this->assertStringNotContainsString('/ai-harmony-singing', $home);
+        $this->assertStringNotContainsString(e(__('landing.paths.make.go_choir')), $home);
+        $this->assertStringContainsString(e(__('plus.items.storage.0')), $home);
+        $this->assertStringContainsString(e(__('plus.items.choir.0')), (string) $this->get('/pricing')->getContent());
 
         $pricing = (string) $this->get('/pricing')->assertOk()->getContent();
         $this->assertStringContainsString('60 minutes a month, about 15 songs', $pricing);
@@ -66,11 +72,11 @@ final class OwnChoirSiteWordsTest extends TestCase
         $this->on('choir_seats');
         $this->assertStringContainsString(e(__('pages.pricing.faq_seat_choir')), (string) $this->get('/pricing')->getContent());
 
-        $choir = (string) $this->get('/your-choir')->assertOk()->getContent();
+        $choir = (string) $this->get('/ai-harmony-singing')->assertOk()->getContent();
         $this->assertStringContainsString('$4.99', $choir);
         $this->assertStringContainsString('$39.99', $choir);
         $this->assertStringNotContainsString(':price_', $choir);
-        $this->assertStringContainsString('£4.49', (string) $this->get('/your-choir', ['CF-IPCountry' => 'GB'])->getContent());
+        $this->assertStringContainsString('£4.49', (string) $this->get('/ai-harmony-singing', ['CF-IPCountry' => 'GB'])->getContent());
     }
 
     public function test_on_a_song_page_opens_the_app_on_its_song_and_says_the_first_is_free(): void
@@ -117,14 +123,14 @@ final class OwnChoirSiteWordsTest extends TestCase
         $this->assertStringNotContainsString(e(__('site.ai_voices.sections.checked.heading')), $html);
         $this->assertStringNotContainsString(e(__('site.ai_voices.sections.replace.heading')), $html);
         $this->assertStringNotContainsString(e(__('site.ai_voices.sample.kick')), $html);
-        $this->assertStringContainsString('href="/your-choir?ref=choir-about"', $html);
+        $this->assertStringContainsString('href="/ai-harmony-singing?ref=choir-about"', $html);
 
         // With AI guides on too, the whole page as before.
         $this->on('ai_voices');
         $both = (string) $this->get('/about/ai-voices')->assertOk()->getContent();
         $this->assertStringContainsString(e(__('site.ai_voices.headline')), $both);
         $this->assertStringContainsString(e(__('site.ai_voices.sections.checked.heading')), $both);
-        $this->assertStringNotContainsString('/your-choir', $both);
+        $this->assertStringNotContainsString('/ai-harmony-singing', $both);
     }
 
     public function test_a_choir_songs_share_page_offers_hearing_yourself_as_a_choir_once_it_is_on(): void
@@ -136,9 +142,9 @@ final class OwnChoirSiteWordsTest extends TestCase
         app(HarmonyFiles::class)->sync($harmony);
         $path = '/h/'.$harmony->refresh()->public_id;
 
-        $this->assertStringNotContainsString('/your-choir', (string) $this->get($path)->assertOk()->getContent());
+        $this->assertStringNotContainsString('/ai-harmony-singing', (string) $this->get($path)->assertOk()->getContent());
         $this->on('own_choir');
-        $this->assertStringContainsString('href="/your-choir?ref=choir-share"', (string) $this->get($path)->assertOk()->getContent());
+        $this->assertStringContainsString('href="/ai-harmony-singing?ref=choir-share"', (string) $this->get($path)->assertOk()->getContent());
     }
 
     public function test_the_self_host_page_says_how_the_choir_runs_once_it_is_on(): void
@@ -156,13 +162,13 @@ final class OwnChoirSiteWordsTest extends TestCase
         app(SyncOfficialTemplates::class)->handle();
         $this->on('own_choir');
 
-        $html = (string) $this->get('/your-choir')->assertOk()->getContent();
-        $this->assertStringContainsString('song=amazing-grace&amp;choir=1&amp;ref=your-choir', $html);
+        $html = (string) $this->get('/ai-harmony-singing')->assertOk()->getContent();
+        $this->assertStringContainsString('song=amazing-grace&amp;choir=1&amp;ref=ai-harmony-singing', $html);
         $this->assertStringNotContainsString('href="/songs/amazing-grace"', $html);
 
         // Past the choir's limits: the card falls back to the song's page.
         config(['own_choir.max_parts' => 1]);
-        $this->assertStringContainsString('href="/songs/amazing-grace"', (string) $this->get('/your-choir')->assertOk()->getContent());
+        $this->assertStringContainsString('href="/songs/amazing-grace"', (string) $this->get('/ai-harmony-singing')->assertOk()->getContent());
     }
 
     public function test_a_song_page_says_the_first_choir_is_free_only_on_a_song_a_free_choir_can_be(): void

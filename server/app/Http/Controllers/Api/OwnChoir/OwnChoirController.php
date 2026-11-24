@@ -13,6 +13,7 @@ use App\Http\Requests\OwnChoir\StartOwnChoirRequest;
 use App\Models\OwnChoirRequest;
 use App\Models\User;
 use App\Support\OwnChoir\ChoirSettings;
+use App\Support\OwnChoir\ChoirWait;
 use App\Support\OwnChoir\OwnChoir;
 use Illuminate\Container\Attributes\CurrentUser;
 use Illuminate\Http\JsonResponse;
@@ -32,6 +33,9 @@ final class OwnChoirController extends Controller
         if (! OwnChoir::on($user) && ! OwnChoir::hasData($user)) {
             return response()->json(['data' => null]);
         }
+
+        // The app looked: a choir ready meanwhile is emailed ten minutes later, not at once (the choir wait).
+        ChoirWait::looked($user);
 
         return response()->json(['data' => OwnChoir::state($user)]);
     }
@@ -64,6 +68,16 @@ final class OwnChoirController extends Controller
     public function seen(OwnChoirRequest $song, OwnChoirRequests $choir, #[CurrentUser] User $user): JsonResponse
     {
         return response()->json(['data' => OwnChoir::request($choir->seen($user, $song)->load(OwnChoir::SHOWN), null, $user)]);
+    }
+
+    public function hold(OwnChoirRequest $song, OwnChoirRequests $choir, #[CurrentUser] User $user): JsonResponse
+    {
+        return response()->json(['data' => OwnChoir::request($choir->hold($user, $song)->load(OwnChoir::SHOWN), null, $user)]);
+    }
+
+    public function start(OwnChoirRequest $song, OwnChoirRequests $choir, #[CurrentUser] User $user): JsonResponse
+    {
+        return response()->json(['data' => OwnChoir::request($choir->startNow($user, $song)->load(OwnChoir::SHOWN), null, $user)]);
     }
 
     public function sound(OwnChoirRequest $song, ChoirSoundRequest $request, OwnChoirRequests $choir, #[CurrentUser] User $user): JsonResponse

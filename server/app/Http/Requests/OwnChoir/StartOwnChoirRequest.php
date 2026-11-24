@@ -27,6 +27,8 @@ final class StartOwnChoirRequest extends FormRequest
         return [
             // A library song's slug, or (own_choir_songs) one of their own songs' id.
             'templateId' => ['required', 'string', 'regex:/^[a-z0-9-]{1,80}$/'],
+            // A take the app started by itself: it waits 10 seconds before the renderer may take it (2026-11-24).
+            'auto' => ['sometimes', 'boolean'],
             'clipTemplateId' => ['sometimes', 'nullable', 'string', 'regex:/^[a-z0-9-]{1,80}$/'],
             // The tune transposed to the singer's comfortable first note (2026-11-23).
             'clipTranspose' => ['sometimes', 'nullable', 'integer', 'between:-12,12'],

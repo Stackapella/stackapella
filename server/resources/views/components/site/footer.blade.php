@@ -3,21 +3,25 @@
      columns (two on a phone), and the company at the bottom, with the licence's credit once it's
      open source or self-hosted (off the nexus, only the pages that are there). Links are plain words, underlined only
      on hover and focus (docs/ux-spec.md 4.2). --}}
-{{-- Six columns of four (Hillel: "the number of options the same in all cols"), three across on a desktop: Learn and
+{{-- Columns of four (Hillel: "the number of options the same in all cols"; Who it's for and Product hold three, above), four across from a tablet: Learn and
      Reference first (never Songs: Hillel, a short catalogue looks thin), so the courses, tools and reference pages are a click from every page (Hillel, 2026-11-07). Write
      to us is the app's form and Email us is a plain address: two ways in, not one twice. Company's fourth is Integrations
      (Hillel, 2026-11-09); Self-host stays a click away, on /open-source and /features. --}}
+{{-- Who it's for first (Hillel, 2026-11-23): the home's three paths, each to its page, exactly three; Choir directors
+     moved here from Product, never listed twice. So Who it's for and Product hold three and the rest four: the
+     even-columns rule bends here rather than pad either with a link that isn't one of theirs (docs/design-rules.md). --}}
 @php($groups = [
+    'who' => ['learners' => '/for/learners', 'singers' => '/for/singers', 'for_choirs' => '/for/choir-directors?ref=for-choirs-footer'],
     'learn' => ['songs' => '/songs', 'courses' => '/courses', 'free_tools' => \App\Support\Site\SitePages::toolsHome(), 'guides' => '/guides'],
     'reference' => ['intervals' => '/intervals', 'chords' => '/chords', 'voice_types' => '/voice-types', 'note_chart' => '/tools/note-frequency-chart'],
-    'product' => ['features' => '/features', 'how' => '/how-it-works', 'pricing' => '/pricing', 'for_choirs' => '/for/choir-directors?ref=for-choirs-footer'],
+    'product' => ['features' => '/features', 'how' => '/how-it-works', 'pricing' => '/pricing'],
     'help' => ['help' => '/help', 'whats_new' => '/whats-new', 'contact_app' => \App\Support\Http\Hosts::app('/contact'), 'email_us' => 'mailto:'.config('site.contact_email')],
     'company' => ['about' => '/about', 'press' => '/press', ...(\App\Support\Site\OpenSource::on() ? ['open_source' => '/open-source'] : []), 'integrations' => '/integrations'],
     'legal' => ['terms' => '/legal/terms', 'privacy' => '/legal/privacy', 'copyright' => '/legal/copyright', 'accessibility' => '/legal/accessibility'],
 ])
 {{-- Off the nexus (a self-hosted install) the marketing pages aren't there (docs/branding-matrix.md), so
      neither are their links: Help (without What's new) and Legal stay. --}}
-@php($groups = config('app.is_nexus', true) ? $groups : [...array_diff_key($groups, array_flip(['learn', 'reference', 'product', 'company'])), 'help' => array_diff_key($groups['help'], ['whats_new' => true])])
+@php($groups = config('app.is_nexus', true) ? $groups : [...array_diff_key($groups, array_flip(['who', 'learn', 'reference', 'product', 'company'])), 'help' => array_diff_key($groups['help'], ['whats_new' => true])])
 {{-- Suggest a correction, at the end of a song, part, course, lesson or tool page: the page's controller shares
      `correction` (its type and title, App\Support\Site\Correction::share). --}}
 @php($correction = \App\Support\Site\Correction::here())

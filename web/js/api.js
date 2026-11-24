@@ -40,6 +40,8 @@ export const OPERATIONS = {
     'ownChoir.requests.create': ['POST', '/api/own-choir/requests'],
     'ownChoir.requests.complete': ['POST', '/api/own-choir/requests/{id}/complete'],
     'ownChoir.requests.seen': ['POST', '/api/own-choir/requests/{id}/seen'],
+    'ownChoir.requests.hold': ['POST', '/api/own-choir/requests/{id}/hold'],
+    'ownChoir.requests.start': ['POST', '/api/own-choir/requests/{id}/start'],
     'ownChoir.requests.download': ['GET', '/api/own-choir/requests/{id}/download'],
     'ownChoir.requests.sound': ['PATCH', '/api/own-choir/requests/{id}/sound'],
     'ownChoir.requests.remake': ['POST', '/api/own-choir/requests/{id}/remake'],

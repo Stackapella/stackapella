@@ -40,7 +40,8 @@ final class ChoirGrowthTest extends TestCase
      */
     private function counts(): array
     {
-        return DB::table('usage_counts')->selectRaw('kind, sum(count) as n')->groupBy('kind')->pluck('n', 'kind')->map(static fn (mixed $n): int => (int) $n)->all();
+        // Growth's own kinds only (a failed song also sends its email, counted on its own).
+        return DB::table('usage_counts')->whereIn('kind', ChoirCounts::GROWTH)->selectRaw('kind, sum(count) as n')->groupBy('kind')->pluck('n', 'kind')->map(static fn (mixed $n): int => (int) $n)->all();
     }
 
     public function test_growth_shows_each_days_choirs_by_plan_beside_the_period_before(): void

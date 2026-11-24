@@ -69,10 +69,12 @@ final class SitePages
     public const FOR = ['beginners', 'choir-singers', 'choir-directors', 'worship-teams', 'music-teachers', 'voice-teachers', 'a-cappella', 'songwriters', 'instrumentalists', 'friends-and-family', 'coaches'];
 
     /**
-     * Every "for" page: the audiences above, and the page for organizations (the outreach partner
-     * offer), which stays out of the "Who it's for" band so a new singer never meets it.
+     * Every "for" page: the audiences above, the page for organizations (the outreach partner
+     * offer), which stays out of the "Who it's for" band so a new singer never meets it, and the home's
+     * two paths with pages of their own (PathPages: learners, singers), which stay out of it too: the home's
+     * path cards lead to them, and beginners and a cappella already stand in that band for the same people.
      */
-    public const FOR_PAGES = [...self::FOR, 'organizations'];
+    public const FOR_PAGES = [...self::FOR, 'organizations', ...PathPages::PATHS];
 
     /**
      * The free tools that are built, in the hub's order (docs/tools-plan.md). Every slug here, in TOOL_MOUNTS and in

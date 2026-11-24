@@ -20,6 +20,18 @@ use App\Support\Languages\SongWords;
  */
 final class YourChoirStage
 {
+    /**
+     * The AI landing's address in each language (Hillel, 2026-11-24, after an SEO check: /ai-harmony-singing, and its
+     * Spanish page its own words, /es/armonias-con-ia): the one place they're named. The route, its Spanish twin
+     * (SiteLanguages::ownPaths), the 301s from its earlier addresses, the sitemap, hreflang and the tests all read it.
+     *
+     * @var array{en: string, es: string}
+     */
+    public const SLUGS = ['en' => 'ai-harmony-singing', 'es' => 'armonias-con-ia'];
+
+    /** The page's link cards, web/icons/og/<card>.png and es-<card>.png (server/tool/link_cards.py draws them). */
+    public const CARD = 'ai-harmony-singing';
+
     /** The silence between the real song and the AI one (seconds). */
     public const GAP = 1.6;
 
@@ -135,8 +147,8 @@ final class YourChoirStage
     }
 
     /**
-     * The page's link cards (tool/link_cards.py draws them, SitePages::linkCards lists them): /your-choir's in English and
-     * /es/your-choir's in Spanish, each its words and the stage's picture: one real lane (the demo's real song) and the two
+     * The page's link cards (tool/link_cards.py draws them, SitePages::linkCards lists them): /ai-harmony-singing's in English and
+     * /es/armonias-con-ia's in Spanish, each its words and the stage's picture: one real lane (the demo's real song) and the two
      * AI lanes it becomes (the AI song's tune and harmony), each lane's opening notes from the songs themselves, each
      * lane's chip in the page's own words. Nothing when the songs aren't in the library.
      *
@@ -158,12 +170,13 @@ final class YourChoirStage
         ];
         $locale = app()->getLocale();
         $cards = [];
-        foreach (['en' => 'your-choir', 'es' => 'es-your-choir'] as $language => $key) {
+        foreach (['en' => self::CARD, 'es' => 'es-'.self::CARD] as $language => $key) {
             app()->setLocale($language);
             $cards[] = ['key' => $key, 'choir' => [
                 'eyebrow' => (string) __('site.your_choir.eyebrow'),
-                'headline' => (string) __('site.your_choir.headline_before'),
-                'em' => (string) __('site.your_choir.headline_em'),
+                // Its own short headline (marketing, 2026-11-24): the page's H1 is too long for a card.
+                'headline' => (string) __('site.your_choir.card.headline_before'),
+                'em' => (string) __('site.your_choir.card.headline_em'),
                 'line' => (string) __('site.your_choir.stage.play'),
                 'lanes' => array_map(static fn (array $lane): array => [
                     ...$lane,

@@ -1,23 +1,25 @@
 // Hear yourself as a choir (/your-choir; server/resources/views/site/your-choir.blade.php, css/your-choir.css). Hillel,
 // 2026-11-20: "something immersive to experience one real voice becoming 2 fake ones".
 //
-// A stage that fills the screen for its scenes (hero, real, split, four when all four parts are there, yours), then a
-// page that scrolls, and a dock that stays. One player, this module's, on the AudioContext clock: one press plays the
+// A page that scrolls like a page (Hillel, 2026-11-23: "when you scroll, you just scroll like a normal page"): the first
+// screen's words, the lanes once under them, then each scene (real, split, four when all four parts are there, yours)
+// a section with its own picture, each rising into place as it comes into view; the dock comes up only while the song
+// plays and its lanes are scrolled away. One player, this module's, on the AudioContext clock: one press plays the
 // whole story as one timeline (App\Support\Pages\YourChoirStage's `play`): the singer's real recording, a breath of
 // silence, then the AI song made from her singing, its tune and harmony from the first note and, with four parts, the
 // tenor and bass joining at the middle phrase. Every voice is decoded first (as the app's players do: app-voices.js
 // realVoice, its breaths softened as every library voice's are, soften-breaths.js) and every source started on the
 // clock before the first note, a join being a scheduled gain ramp (Hillel, on the home page: "play all but unmute to
 // add to keep in sync"); nothing is ever scheduled with a timer. Stop is a stop: back to the start.
-// Scrolling changes the picture (which lanes the view opens), never the sound; the page never scrolls by itself. The
+// Scrolling never changes the sound; the page never scrolls by itself. The
 // picture is the sound: while it plays, a lane whose voice is heard is lit (data-live) and one whose voice is silent
 // waits, dim, its notes ghosts (data-wait); the line under the lanes and the dock say who is heard, and a screen reader
-// hears it. While it doesn't play, each view poses its lanes at a moment of its own.
+// hears it. While it doesn't play, the lanes rest at the first screen's pose.
 // Only the recorded voices sing here (the AI guides are recordings too): a press waits for them, with real progress on
 // the button (data-load, --yc-load), and says so honestly if they can't be had; the next press tries again. They start
 // coming on a hover, a focus or a touch of a Play button, so most presses don't wait.
-// With reduced motion (or no script) nothing is pinned: the scenes are still panels and the lanes one picture, which
-// this module still lights in place as the voices sing. Tested in tests/your-choir.test.js.
+// With reduced motion nothing rises or slides; the lanes are still lit in place as the voices sing. Tested in
+// tests/your-choir.test.js.
 
 import { audio } from './voices.js';
 import { playState } from './play-state.js';
@@ -31,17 +33,6 @@ export const JOIN_FADE = 0.05;
 /** Where the page rests when stopped: each view's still pose, in its song's beats ({ rb: real, ab: AI }). Pure. */
 export function poseOf(view, join = 0) {
     return { hero: { rb: 1, ab: 0 }, real: { rb: 5, ab: 0 }, split: { rb: 5, ab: 3 }, four: { rb: 5, ab: join > 0 ? join + 3 : 12 }, yours: { rb: 5, ab: 12 } }[view] ?? { rb: 0, ab: 0 };
-}
-
-/** The scene a scroll position shows: one screen each, the nearest, the last one from there on. Pure. */
-export function sceneAt(scrollY, screen, count) {
-    if (!(screen > 0) || !(count > 0)) return 0;
-    return Math.max(0, Math.min(count - 1, Math.round(scrollY / screen)));
-}
-
-/** Whether a scroll position is past the stage (the stage more than half gone). Pure. */
-export function inTail(scrollY, screen, count) {
-    return screen > 0 && scrollY > (count - 0.5) * screen;
 }
 
 /** "1:05". Pure. */
@@ -85,14 +76,24 @@ export function noteState(note, beat) {
     return beat >= note.b ? 'lit' : '';
 }
 
+/**
+ * The device's note that its visitor came for AI singing (Hillel, 2026-11-23: the AI landing "should set a device flag that
+ * the visitor came for AI"; the app reads it to pre-select the sign-up's answer): `sa_for=ai`, on the domain the site
+ * and the app share (as the theme and the mic's name are), for 30 days. A choice, never an ID: the same for everyone
+ * who came. The cookie as written, for `domain` (or none, one host) and `secure`. Pure.
+ */
+export function cameForAi(domain, secure) {
+    return `sa_for=ai; path=/; max-age=2592000; samesite=lax${domain ? `; domain=${domain}` : ''}${secure ? '; secure' : ''}`;
+}
+
 const root = document.querySelector('[data-yc]');
-if (root) setUp();
+if (root) {
+    document.cookie = cameForAi(document.querySelector('meta[name="theme-cookie-domain"]')?.getAttribute('content'), location.protocol === 'https:');
+    setUp();
+}
 
 function setUp() {
     const still = matchMedia('(prefers-reduced-motion: reduce)');
-    const views = [...root.querySelectorAll('[data-yc-stage] [data-s]')];
-    const pinned = root.hasAttribute('data-stage');
-    if (pinned) document.documentElement.classList.add('yc-page');
     let play = null;
     try {
         play = JSON.parse(root.querySelector('[data-yc-data]')?.textContent ?? 'null');
@@ -101,32 +102,19 @@ function setUp() {
         play = null;
     }
 
-    // ---- the scenes, from the scroll -----------------------------------------------------------------------------
-    const dots = [...root.querySelectorAll('[data-yc-dots] a')];
+    // ---- the scroll: the top line, and past the stage -------------------------------------------------------------
     const screen = () => window.innerHeight || 1;
-    let scene = 0;
     let lastY = window.scrollY;
     let queued = false;
-    const viewOf = (i) => views[i]?.dataset.s ?? 'hero';
-    // What the player sets up below, once it has (a page that loads scrolled down shows its scene before then).
+    // What the player sets up below, once it has.
     let settle = () => {};
-
-    function show(to) {
-        if (to === scene && root.dataset.view === viewOf(to)) return;
-        scene = to;
-        root.dataset.view = viewOf(to);
-        dots.forEach((dot, i) => (i === to ? dot.setAttribute('aria-current', 'true') : dot.removeAttribute('aria-current')));
-        settle();
-    }
 
     const note = document.querySelector('[data-yc-note]');
     function onScroll() {
         queued = false;
         const y = window.scrollY;
         if (note) root.style.setProperty('--yc-note', `${Math.max(0, Math.round(note.getBoundingClientRect().bottom))}px`);
-        const moving = pinned && !still.matches;
-        if (moving) show(sceneAt(y, screen(), views.length));
-        const tail = moving ? inTail(y, screen(), views.length) : (root.querySelector('[data-yc-tail]')?.getBoundingClientRect().top ?? 1) < screen() / 2;
+        const tail = (root.querySelector('[data-yc-tail]')?.getBoundingClientRect().top ?? 1) < screen() / 2;
         root.toggleAttribute('data-tail', tail);
         if (y < 40 || y < lastY - 4) delete root.dataset.top;
         else if (y > lastY + 4) root.dataset.top = 'small';
@@ -138,17 +126,27 @@ function setUp() {
         requestAnimationFrame(onScroll);
     }, { passive: true });
     addEventListener('resize', onScroll, { passive: true });
-    // Focus that lands in a scene off the screen brings its scene (a pinned scene is only seen when it's the one).
-    views.forEach((section, i) => {
-        section.addEventListener('focusin', () => {
-            if (!pinned || still.matches || (i === scene && !root.hasAttribute('data-tail'))) return;
-            window.scrollTo({ top: i * screen(), behavior: 'auto' });
-        });
-    });
     still.addEventListener('change', () => {
-        show(pinned && !still.matches ? sceneAt(window.scrollY, screen(), views.length) : 0);
+        root.toggleAttribute('data-reveal', !still.matches);
         settle();
     });
+
+    // The page scrolls like a page (Hillel, 2026-11-23): each section rises into place as it comes into view, once
+    // (only with motion allowed; without a script nothing waits to be shown), and the dock comes up only while the song
+    // plays with its lanes scrolled out of view.
+    if ('IntersectionObserver' in window) {
+        root.toggleAttribute('data-reveal', !still.matches);
+        const rise = new IntersectionObserver((entries) => {
+            for (const entry of entries) {
+                if (!entry.isIntersecting) continue;
+                entry.target.setAttribute('data-shown', '');
+                rise.unobserve(entry.target);
+            }
+        }, { rootMargin: '0px 0px -12% 0px' });
+        for (const el of root.querySelectorAll('.yc-stage .yc-sc:not(.yc-hero), .yc-sec, .yc-world')) rise.observe(el);
+        const world = root.querySelector('.yc-world');
+        if (world) new IntersectionObserver(([entry]) => root.toggleAttribute('data-away', !entry.isIntersecting)).observe(world);
+    }
 
     onScroll();
     if (!play) {

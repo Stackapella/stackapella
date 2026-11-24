@@ -21,6 +21,7 @@ use App\Support\Pages\SongCollections;
 use App\Support\Pages\SongParts;
 use App\Support\Pages\SongStories;
 use App\Support\Pages\Warmups;
+use App\Support\Pages\YourChoirStage;
 use App\Support\Templates\Catalogue;
 use Illuminate\Support\Carbon;
 
@@ -63,6 +64,10 @@ final class SitemapPaths
         // Each part of a live, reviewed, public-domain song, once its page exists.
         if (SongParts::open()) {
             $paths = [...$paths, ...app(SongParts::class)->paths()];
+        }
+        // The AI landing (Hillel, 2026-11-23), once hearing yourself as a choir is live.
+        if (SongParts::switchedOn('own_choir')) {
+            $paths[] = '/'.YourChoirStage::SLUGS['en'];
         }
         // The songs in the public domain, and the songs that will be.
         $paths[] = PublicDomain::PATH;
@@ -113,7 +118,7 @@ final class SitemapPaths
         // Each page again in every language that's open and serves it (config/languages.php), under /<lang>/.
         foreach (app(Languages::class)->offered() as $language) {
             if ($language !== 'en') {
-                $paths = [...$paths, ...array_map(static fn (string $path): string => '/'.$language.($path === '/' ? '' : $path), array_values(array_filter(array_map('strval', $paths), static fn (string $path): bool => SiteLanguages::serves($language, $path))))];
+                $paths = [...$paths, ...array_map(static fn (string $path): string => SiteLanguages::path($language, $path), array_values(array_filter(array_map('strval', $paths), static fn (string $path): bool => SiteLanguages::serves($language, $path))))];
             }
         }
 

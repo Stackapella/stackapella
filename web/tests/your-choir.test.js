@@ -1,7 +1,7 @@
 // Hear yourself as a choir's page script (js/public/your-choir.js): what it works out from the scroll and from the one
 // player's clock, as pure functions. The page's stage and gating are server/tests/Feature/Site/YourChoirPageTest.php.
 import { assert, test } from './harness.js';
-import { JOIN_FADE, LEAD, beatsAt, clock, heard, inTail, noteState, poseOf, sayAt, sceneAt } from '/js/public/your-choir.js';
+import { JOIN_FADE, LEAD, beatsAt, cameForAi, clock, heard, noteState, poseOf, sayAt } from '/js/public/your-choir.js';
 
 const assertEq = (actual, expected) => assert(JSON.stringify(actual) === JSON.stringify(expected), `${JSON.stringify(actual)} should be ${JSON.stringify(expected)}`);
 
@@ -19,14 +19,6 @@ const play = {
         ] },
     ],
 };
-
-test('your-choir: a scene a screen of scroll, the last one from there on; past the stage once it is half gone', () => {
-    assertEq([0, 399, 401, 800, 3200, 9000].map((y) => sceneAt(y, 800, 5)), [0, 0, 1, 1, 4, 4]);
-    assertEq(sceneAt(500, 0, 5), 0);
-    assertEq(sceneAt(500, 800, 0), 0);
-    assertEq([0, 3200, 3601, 9000].map((y) => inTail(y, 800, 5)), [false, false, true, true]);
-    assertEq(inTail(5000, 0, 5), false);
-});
 
 test('your-choir: each view poses its lanes at a moment of its own; four waits past the join', () => {
     assertEq(poseOf('hero').rb < poseOf('real').rb, true);
@@ -73,4 +65,9 @@ test('your-choir: a note is lit while it sounds and settled once it has', () => 
 test('your-choir: everything is set on the clock before the first note, and a join ramps in by its beat', () => {
     assertEq(LEAD > 0 && LEAD < 0.5, true);
     assertEq(JOIN_FADE > 0 && JOIN_FADE < 0.2, true);
+});
+
+test('ai singing: the visit leaves the device a note that it came for AI, on the domain the site and the app share', () => {
+    assert(cameForAi('.stackapella.com', true) === 'sa_for=ai; path=/; max-age=2592000; samesite=lax; domain=.stackapella.com; secure', cameForAi('.stackapella.com', true));
+    assert(cameForAi(null, false) === 'sa_for=ai; path=/; max-age=2592000; samesite=lax', `one host, no domain: ${cameForAi(null, false)}`);
 });

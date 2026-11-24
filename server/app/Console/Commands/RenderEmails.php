@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Mail\Account\AccountMail;
 use App\Mail\Account\AlreadyHaveAnAccount;
+use App\Mail\Account\ChoirReadyMail;
 use App\Mail\Account\ClassCodesReady;
 use App\Mail\Account\ConfirmNewEmail;
 use App\Mail\Account\EmailChanging;
@@ -179,6 +180,8 @@ final class RenderEmails extends Command
             ['email-changing', 'Changing their email: to the old address, with an undo', 'The old address', fn () => $this->mail(new EmailChanging('ana.new@example.com', 'token'))],
             ['confirm-new-email', 'Changing their email: to the new address', 'The new address', fn () => $this->mail(new ConfirmNewEmail('token'), 'ana.new@example.com')],
             ['new-sign-in', 'A sign-in on a new browser', 'The account', fn () => $this->mail(new NewSignIn($browser))],
+            ['choir-ready', 'Their AI choir is ready and not heard yet (once a song)', 'The account', fn () => $this->mail(new ChoirReadyMail(1, 'Ana', 'Silent Night', 'silent-night'))],
+            ['choir-failed', 'Their AI choir couldn\'t be made, given back (once a song)', 'The account', fn () => $this->mail(new ChoirReadyMail(1, 'Ana', 'Silent Night', 'silent-night', 'clip_unusable', true))],
             ['growth-viewer', 'A growth viewer is granted from a console (app:viewer:grant, with a --note)', 'The address granted', fn () => $this->mail(new GrowthViewerInvite('ana@example.com', 'You also have view access to our Google Search Console, for search data.'))],
             ['new-sign-in-app', 'A sign-in on a new app device', 'The account', fn () => $this->mail(new NewSignIn('the Stackapella app on an iPhone', true))],
             ['recovered-by-support', 'Support moved the account to a new address', 'The old address', fn () => $this->mail(new RecoveredBySupport('ana.new@example.com'))],

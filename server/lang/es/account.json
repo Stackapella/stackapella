@@ -106,5 +106,18 @@
     "Download my data": "Descargar mis datos",
     "you asked for a copy of your Stackapella data": "pediste una copia de tus datos de Stackapella",
     "Your next lesson: Lesson :n, :title": "Tu próxima lección: Lección :n, :title",
-    "Start the lesson": "Empezar la lección"
+    "Start the lesson": "Empezar la lección",
+    "Your choir is ready: :song": "Tu coro está listo: :song",
+    "Your choir is ready": "Tu coro está listo",
+    "Your *:song* choir is ready: every part sung by an AI voice made from your singing.": "Tu coro de *:song* está listo: cada voz cantada por una voz de IA hecha a partir de tu canto.",
+    "Listen to your choir": "Escucha tu coro",
+    "One email per choir, only if you haven't heard it. Turn these off: :unsubscribe": "Un correo por coro, solo si aún no lo has escuchado. Desactívalos: :unsubscribe",
+    "you asked for an AI choir in Stackapella": "pediste un coro con IA en Stackapella",
+    "Your :song choir couldn't be made": "No se pudo hacer tu coro de :song",
+    "Your choir couldn't be made": "No se pudo hacer tu coro",
+    "Your *:song* choir couldn't be made this time.": "Esta vez no se pudo hacer tu coro de *:song*.",
+    "Your recording couldn't be used. The app says why, and how to sing it again.": "No se pudo usar tu grabación. La app te dice por qué y cómo volver a cantarla.",
+    "Something went wrong on our side.": "Algo falló de nuestro lado.",
+    "It didn't use your free choir or your minutes.": "No ha usado tu coro gratis ni tus minutos.",
+    "See what to do": "Ver qué hacer"
 }

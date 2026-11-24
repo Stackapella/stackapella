@@ -26,6 +26,7 @@ final class ChoirDirectorsPageTest extends TestCase
         $page = (string) $this->get('/for/choir-directors')->assertOk()->getContent();
 
         $order = [
+            '<h1 id="page-h">'.e(__('site.for_directors.h1')).'</h1>',
             e(__('site.for_directors.headline')),
             'data-choir-board',
             e(__('site.for_directors.steps_title')),
@@ -49,12 +50,13 @@ final class ChoirDirectorsPageTest extends TestCase
         $this->assertStringContainsString('href="/songs"', $page);
     }
 
-    public function test_three_questions_also_as_structured_data(): void
+    public function test_four_questions_also_as_structured_data(): void
     {
         $page = (string) $this->get('/for/choir-directors')->assertOk()->getContent();
 
         $faq = (array) __('site.for_directors.faq');
-        $this->assertCount(3, $faq);
+        // Three about the tracks, and one for every title a choir's leader goes by (marketing, 2026-11-23).
+        $this->assertCount(4, $faq);
         foreach ($faq as [$question]) {
             $this->assertStringContainsString(e($question), $page);
         }

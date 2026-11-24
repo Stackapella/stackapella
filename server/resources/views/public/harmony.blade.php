@@ -120,7 +120,7 @@
                 {{-- A song sung in a voice like its singer's: one quiet way for a listener to make their own (own_choir;
                      ai-frontend's ask, the marketing review, 2026-11-22). --}}
                 @if (collect($harmony['guides'])->contains('ownVoice', true) && \App\Support\Pages\SongParts::switchedOn('own_choir'))
-                    <p><a href="/your-choir?ref=choir-share" class="s-lk" data-choir-share>{{ __('sharing.page.choir') }}</a></p>
+                    <p><a href="/ai-harmony-singing?ref=choir-share" class="s-lk" data-choir-share>{{ __('sharing.page.choir') }}</a></p>
                 @endif
             @endif
             <button type="button" class="hidden btn-ghost s-report" data-report-open>{{ __('sharing.page.report') }}</button>

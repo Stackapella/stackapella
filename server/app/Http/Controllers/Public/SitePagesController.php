@@ -9,6 +9,7 @@ use App\Models\Template;
 use App\Support\Admin\StaffDevice;
 use App\Support\Flags;
 use App\Support\Http\Hosts;
+use App\Support\Languages\SiteLanguages;
 use App\Support\Languages\SongWords;
 use App\Support\Legal\LegalText;
 use App\Support\Pages\Landing;
@@ -19,6 +20,7 @@ use App\Support\Site\HelpGuide;
 use App\Support\Site\OpenSource;
 use App\Support\Site\SitePages;
 use App\Support\Site\WhatsNew;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
@@ -31,9 +33,12 @@ use Illuminate\Support\HtmlString;
  */
 final class SitePagesController extends Controller
 {
-    /** /your-choir's library card (merged-v4): the songs a visitor knows, each as its tune's opening notes. */
+    /** /ai-harmony-singing's library card (merged-v4): the songs a visitor knows, each as its tune's opening notes. */
     /** The switch for hearing a song of your own as a choir (named by the backend and frontend when they build it). */
     private const OWN_SONGS = 'own_choir_songs';
+
+    /** /ai-harmony-singing's own ref into the app (agreed with the frontend: the app turns AI on by it, as by sa_for=ai). */
+    private const AI_REF = 'ai-harmony-singing';
 
     private const CHOIR_SONGS = ['silent-night', 'amazing-grace', 'happy-birthday', 'joy-to-the-world'];
 
@@ -109,9 +114,17 @@ final class SitePagesController extends Controller
             return response()->view('public.page-gone', ['links' => ['app' => '/']], 404, [...SongPagesController::headers(), 'Cache-Control' => 'no-store', 'X-Robots-Tag' => 'noindex']);
         }
 
-        $frame = $this->frame('your_choir', '/your-choir', $ref = Landing::ref($request->query('ref')));
-        // Its link card in the page's language, where one is drawn (tool/link_cards.py: your-choir, es-your-choir).
-        $card = (app()->getLocale() === 'en' ? '' : app()->getLocale().'-').'your-choir';
+        // Its links into the app carry the visitor's own ref (a shared link still counts), else ai-harmony-singing: with it the
+        // app knows the visitor came for AI even where the device's note (sa_for=ai, js/public/your-choir.js) is lost.
+        $ref = Landing::ref($request->query('ref')) ?? self::AI_REF;
+        $frame = $this->frame('your_choir', '/'.YourChoirStage::SLUGS['en'], $ref);
+        foreach (['start', 'app', 'plus', 'create'] as $link) {
+            $frame['links'][$link] = self::forAi((string) $frame['links'][$link]);
+        }
+        // A search title of its own (marketing): the page's name, Hear yourself as a choir, stays its heading.
+        $frame['title'] = $frame['meta']['title'] = SitePages::title((string) __('site.your_choir.meta_title'));
+        // Its link card in the page's language, where one is drawn (tool/link_cards.py: YourChoirStage::CARD, in English and Spanish).
+        $card = (app()->getLocale() === 'en' ? '' : app()->getLocale().'-').YourChoirStage::CARD;
         if (is_file(dirname(base_path()).'/web/icons/og/'.$card.'.png')) {
             $frame['meta']['image'] = Hosts::public('/icons/og/'.$card.'.png');
         }
@@ -121,7 +134,7 @@ final class SitePagesController extends Controller
             'indexed' => $on,
             // Silent Night in the app, ready to hear yourself as a choir (the app's `choir` link, agreed with the frontend).
             // The choir page on the song most singers start with: their voice and their free choir in one (the frontend).
-            'try' => Hosts::app('/?'.http_build_query(['song' => YourChoirStage::PICTURE_SONG, 'choir' => 1, 'ref' => $ref ?? 'your-choir'])),
+            'try' => self::forAi(Hosts::app('/?'.http_build_query(['song' => YourChoirStage::PICTURE_SONG, 'choir' => 1, 'ref' => $ref]))),
             // The stage: one real voice becoming the AI's two parts, then four (YourChoirStage, from VoiceDemo's own
             // voices and gating); null, and the page shows no demo, until every voice is there.
             'stage' => $shown = $stage->stage(),
@@ -132,7 +145,7 @@ final class SitePagesController extends Controller
             'parts' => ($picture ?? YourChoirStage::picture(self::choirTemplates()->get(YourChoirStage::PICTURE_SONG)))['parts'] ?? [],
             // A song of your own (hummed, or with your own words: Hillel, 2026-11-20), only once its switch is on (the
             // coordinator: the page never promises what isn't live); the app's create screen (agreed with the frontend).
-            'own' => self::switchedOn($flags, self::OWN_SONGS) ? Hosts::app('/create?'.http_build_query(['ref' => $ref ?? 'your-choir'])) : null,
+            'own' => self::switchedOn($flags, self::OWN_SONGS) ? self::forAi(Hosts::app('/create?'.http_build_query(['ref' => $ref]))) : null,
             // The library card's songs, each with its story's picture, as the songs hub shows them.
             'songs' => self::choirSongs(),
             'toolsUrl' => SitePages::toolsHome(),
@@ -144,7 +157,26 @@ final class SitePagesController extends Controller
     }
 
     /**
-     * The songs on /your-choir's library card: the four of merged-v4, those that are open, each with its title and its
+     * A link into the app from /ai-harmony-singing with `for=ai` too (agreed with the frontend): the app turns this device's AI
+     * on by it where the device's note (sa_for=ai) is lost and the visitor's own ref stands in for ai-harmony-singing. Only a
+     * choice, never a source: what counts is the ref.
+     */
+    private static function forAi(string $url): string
+    {
+        return $url.(str_contains($url, '?') ? '&' : '?').'for=ai';
+    }
+
+    /**
+     * /your-choir, the page's first address: moved for good to the page in the same language (/ai-harmony-singing, /es/armonias-con-ia), its query kept (a
+     * shared link's ?ref= still counts where it lands).
+     */
+    public function yourChoirMoved(Request $request): RedirectResponse
+    {
+        return new RedirectResponse(Landing::withQuery($request, SiteLanguages::path(app()->getLocale(), '/'.YourChoirStage::SLUGS['en'])), 301);
+    }
+
+    /**
+     * The songs on /ai-harmony-singing's library card: the four of merged-v4, those that are open, each with its title and its
      * tune's opening as a lane of notes (never a photo on this page: Hillel, 2026-11-20, "they look out of place").
      *
      * @return list<array{slug: string, title: string, tune: array{beats: float, notes: list<array{beat: float, length: float, y: float}>}, url: string}>
@@ -162,7 +194,7 @@ final class SitePagesController extends Controller
                 'tune' => YourChoirStage::tune($song),
                 // Straight into the app's choir for this song (Hillel, 2026-11-22: "go right into their choice"), where the
                 // choir can sing it; otherwise, or while the switch is off (an admin's preview), the song's page.
-                'url' => SongPagesController::choirLink($song, true, 'your-choir') ?? '/songs/'.$slug,
+                'url' => ($choir = SongPagesController::choirLink($song, true, self::AI_REF)) !== null ? self::forAi($choir) : '/songs/'.$slug,
             ];
         }, self::CHOIR_SONGS)));
     }

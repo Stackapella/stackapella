@@ -8,6 +8,7 @@ use App\Http\Controllers\Public\InfoPagesController;
 use App\Http\Controllers\Public\LanguageNotFoundController;
 use App\Http\Middleware\SiteLanguage;
 use App\Support\Http\Hosts;
+use App\Support\Pages\YourChoirStage;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
 
@@ -47,7 +48,7 @@ final class SiteLanguages
                     $route->middleware(SiteLanguage::class.':en');
                 }
 
-                $router->get($language.'/'.ltrim($route->uri(), '/'), $route->getAction('uses'))
+                $router->get(ltrim(self::path($language, '/'.ltrim($route->uri(), '/')), '/'), $route->getAction('uses'))
                     ->where($route->wheres)
                     ->setDefaults($route->defaults)
                     ->middleware([...array_values(array_diff($route->middleware(), [SiteLanguage::class.':en'])), SiteLanguage::class.':'.$language])
@@ -119,23 +120,53 @@ final class SiteLanguages
     }
 
     /**
+     * The pages whose address in a language is words of its own rather than the English slug under /<lang>/ (Hillel,
+     * 2026-11-24: the AI landing's Spanish page is /es/armonias-con-ia), as language => [English path => its own path,
+     * without the language's prefix]. Every other page keeps the English slug.
+     *
+     * @return array<string, array<string, string>>
+     */
+    public static function ownPaths(): array
+    {
+        return ['es' => ['/'.YourChoirStage::SLUGS['en'] => '/'.YourChoirStage::SLUGS['es']]];
+    }
+
+    /**
+     * A page's path in a language, without the host: the English path, under /<lang>/ in another language, in that
+     * language's own words where it has them (ownPaths).
+     */
+    public static function path(string $language, string $englishPath): string
+    {
+        $path = '/'.ltrim($englishPath, '/');
+        if ($language === 'en') {
+            return $path;
+        }
+        $own = self::ownPaths()[$language][$path] ?? $path;
+
+        return '/'.$language.($own === '/' ? '' : $own);
+    }
+
+    /**
      * A page's address in a language.
      */
     public static function url(string $language, string $englishPath): string
     {
-        $path = '/'.ltrim($englishPath, '/');
-
-        return Hosts::publicUrl().($language === 'en' ? $path : '/'.$language.($path === '/' ? '' : $path));
+        return Hosts::publicUrl().self::path($language, $englishPath);
     }
 
     /**
-     * The English path of a request's page: its own path, without a language's prefix.
+     * The English path of a request's page: its own path, without a language's prefix, and back from its own words.
      */
     public static function englishPath(string $path, string $language): string
     {
         $path = '/'.ltrim($path, '/');
+        if ($language === 'en') {
+            return $path;
+        }
+        $bare = (string) preg_replace('#^/'.preg_quote($language, '#').'(?=/|$)#', '', $path) ?: '/';
+        $english = array_search($bare, self::ownPaths()[$language] ?? [], true);
 
-        return $language === 'en' ? $path : ((string) preg_replace('#^/'.preg_quote($language, '#').'(?=/|$)#', '', $path) ?: '/');
+        return is_string($english) ? $english : $bare;
     }
 
     /**

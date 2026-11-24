@@ -73,6 +73,8 @@ final class AccountResource extends JsonResource
             // AI features (docs/ai-optional-plan.md): true, false or null (not asked); the band kept for the app's counts.
             'aiFeatures' => $user->ai_features,
             'ageBand' => $user->age_band,
+            // Email me when my choir is ready: on unless they turned it off.
+            'choirEmail' => (bool) ($user->getAttributes()['choir_email'] ?? true),
             'heardFrom' => $user->heard_from,
             'plan' => app(Plans::class)->plan($user),
             // A live beta singer: the app shows "Your beta parts" and sends waiting takes.

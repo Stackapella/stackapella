@@ -1954,6 +1954,9 @@ select:disabled {
 .s-trk-name { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 12px; font-weight: 700; color: var(--color-cream); }
 .s-trk-name::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: 99px; background: var(--c); }
 .s-trk-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Game mode's wide letters take more room (2026-11-23: Spanish "Contralto" was cut at phone width): a wider name
+   column, the same on every lane so the waves still start together. */
+:root[data-skin="game"] body.s-arcade .s-trk { grid-template-columns: 14px minmax(0, 96px) minmax(0, 1fr); }
 .s-trk .s-wv { height: 22px; display: block; }
 .s-trk-sm { display: flex; gap: 4px; }
 .s-trk-sm span { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 5px; font-size: 10px; font-weight: 800; color: var(--color-cream); background: color-mix(in srgb, var(--color-cream) 6%, var(--color-panel)); box-shadow: 0 0 0 1px var(--color-line); }
@@ -2133,7 +2136,8 @@ select:disabled {
 .s-card b { font-size: 17px; font-weight: 750; }
 .s-card span:not(.s-soon) { font-size: 15px; line-height: 1.45; color: var(--color-muted); }
 @media (min-width: 640px) {
-    .s-foot-cols { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    /* Seven columns since Who it's for (2026-11-23): four across reads as two rows, four and three, never one alone. */
+    .s-foot-cols { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .s-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (min-width: 900px) {
@@ -9891,6 +9895,9 @@ main.cp-pt2 ~ [data-lesson-pages] { display: none; }
 /* For choir directors (site/for-directors.blade.php, 2026-11-23): the note under the way in, the four steps on glass
    gems in a row, and "No group yet?" beside its three steps. */
 .s-dir-note { margin-top: 14px; max-width: 40em; font-size: 14.5px; line-height: 1.5; color: var(--color-muted); }
+/* The path pages (site/for-path.blade.php, 2026-11-23): a section's groups of cards (songs, courses, tools, guides) each
+   start clear of the one before. */
+.s-dir .s-cards + .s-headrow, .s-dir .s-cards + .s-cards { margin-top: 40px; }
 .s-dir-steps { list-style: none; margin: 28px 0 0; padding: 0; display: grid; gap: 14px; }
 .s-dir-steps li { padding: 20px; background: var(--color-panel); border: 1px solid var(--color-line); border-radius: 24px; }
 .s-dir-steps h3 { margin-top: 14px; font-size: 19px; font-weight: 800; line-height: 1.2; letter-spacing: -0.01em; }
@@ -10013,6 +10020,19 @@ main.cp-pt2 ~ [data-lesson-pages] { display: none; }
 .s-note-private { display: flex; align-items: flex-start; justify-content: center; gap: 8px; font-size: 13.5px; line-height: 1.5; color: var(--color-muted); }
 .s-note-private svg { flex: none; margin-top: 2px; }
 :root[data-skin="game"] body.s-arcade .s-capture-still { border-radius: 0; }
+/* The serious look keeps the panel round the note capture (Hillel, 2026-11-24, on the 2026-11-23 language: "the BEFORE"),
+   the card and its still frame alike; game mode keeps its own. The listening rings breathe inside it: a smaller breath
+   (to 1.16 of the 152 px ring, about 12 px past it), clipped by the panel, and the ring a little more room below, so a
+   ring never touches "Finding your note" (the app's own card keeps its wider breath). */
+:root:not([data-skin="game"]) .s-capture-still,
+:root:not([data-skin="game"]) .s-capture [data-ui='capture'] { border: 1px solid var(--color-line); border-radius: 24px; background: var(--color-panel); }
+:root:not([data-skin="game"]) .s-capture [data-ui='capture'] { overflow: hidden; }
+:root:not([data-skin="game"]) .s-capture [data-ui='capture-hold'] { margin-bottom: 8px; }
+:root:not([data-skin="game"]) .s-capture .capture-pulse { animation-name: capture-pulse-panel; }
+@keyframes capture-pulse-panel {
+    0% { transform: scale(0.9); opacity: 0.6; }
+    100% { transform: scale(1.16); opacity: 0; }
+}
 /* Before the start, a scrim over the whole stage so the start reads as a cover, not a stray pill. */
 .s-demo:not([data-state="live"]) .s-demo-stage::after { content: ""; position: absolute; inset: 0; z-index: 1; border-radius: inherit; background: rgb(12 9 16 / .38); pointer-events: none; }
 .s-demo-start { z-index: 2; }

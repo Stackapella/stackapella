@@ -32,7 +32,7 @@ return [
             'intervals.index', 'intervals.page', 'chords.index', 'chords.page', 'voice-types.index', 'voice-types.page',
             'help.index', 'help.page',
             'pricing.page', 'features.index', 'features.page', 'compare.index', 'compare.page', 'for.page',
-            'integrations.index', 'integrations.page', 'about.page', 'ai-voices.page', 'your-choir.page', 'how.page', 'open-source.page', 'selfhost.page',
+            'integrations.index', 'integrations.page', 'about.page', 'ai-voices.page', 'ai-landing.page', 'your-choir.moved', 'ai-singing.moved', 'how.page', 'open-source.page', 'selfhost.page',
         ],
         'de' => [],
     ],

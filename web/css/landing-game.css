@@ -107,24 +107,21 @@
 
 /* The lanes: four neon frames on hard shadows, each in its voice's colour; the gems stay glass. (The Share scene folds
    the lanes into the mark's bars: those stay as the calm sheet draws them.) */
-[data-skin='game'] .lnf:not([data-scene='4']) .lnf-deck { inset: 0 10px; gap: 12px; }
-[data-skin='game'] .lnf:not([data-scene='4']) .lnf-ln { background: var(--g-well); border: 2px solid var(--c); box-shadow: 5px 5px 0 color-mix(in srgb, var(--c) 38%, var(--g-sh)); }
+[data-skin='game'] .lnf .lnf-deck { inset: 0 10px; gap: 12px; }
+[data-skin='game'] .lnf .lnf-ln { background: var(--g-well); border: 2px solid var(--c); box-shadow: 5px 5px 0 color-mix(in srgb, var(--c) 38%, var(--g-sh)); }
 /* Waiting for its voice: a dashed, unlit frame. Lit on arrival by the rule above taking over again. */
-[data-skin='game'] .lnf:not([data-scene='4']) .lnf-ln[data-wait] { background: var(--g-well); border: 2px dashed var(--g-line); box-shadow: none; }
+[data-skin='game'] .lnf .lnf-ln[data-wait] { background: var(--g-well); border: 2px dashed var(--g-line); box-shadow: none; }
 /* The voice heard alone, and the story's chosen voice: a doubled frame on a shadow in its own colour. */
-[data-skin='game'] .lnf:not([data-alone])[data-scene='1'] .lnf-ln.lnf-v1, [data-skin='game'] .lnf:not([data-scene='4']) .lnf-ln[data-solo] { box-shadow: inset 0 0 0 2px var(--c), 5px 5px 0 var(--c); }
+[data-skin='game'] .lnf .lnf-ln[data-solo] { box-shadow: inset 0 0 0 2px var(--c), 5px 5px 0 var(--c); }
 [data-skin='game'] .lnf-lb b { font: 400 12px/1 var(--g-px); letter-spacing: 0; text-transform: uppercase; }
 [data-skin='game'] .lnf-lb small { font: 400 17px/1.05 var(--g-vt); }
-[data-skin='game'] .lnf[data-scene='4'] .lnf-lb b { font-size: 12px; }
 /* Share's four bars keep their glass, on the hard shadow. */
-[data-skin='game'] .lnf[data-scene='4'] .lnf-ln { box-shadow: inset 0 3px 0 rgb(255 255 255 / .75), inset 0 -10px 18px color-mix(in oklab, var(--c) 48%, black), 5px 5px 0 color-mix(in srgb, var(--c) 38%, var(--g-sh)); }
-[data-skin='game'] .lnf[data-scene='4'] .lnf-ln[data-wait] { box-shadow: none; }
 [data-skin='game'] .lnf-mt i { width: 4px; border-radius: 0; }
 [data-skin='game'] .lnf-chip { border-radius: 0; font: 400 16px/1 var(--g-vt); letter-spacing: .05em; }
 /* The lane's link into the app is a link (underlined screen face), and Solo is its control (a square frame in the
    voice's colour, filled when on): only the controls look pressable (a consultant's review, 2026-11-23). */
 [data-skin='game'] .lnf-solo { height: 26px; border-radius: 0; border: 2px solid var(--c); background: var(--g-panel); box-shadow: 3px 3px 0 color-mix(in srgb, var(--c) 45%, var(--g-sh)); font: 400 17px/1 var(--g-vt); letter-spacing: .04em; text-transform: uppercase; }
-[data-skin='game'] .lnf-ln[data-solo] .lnf-solo, [data-skin='game'] .lnf:not([data-alone])[data-scene='1'] .lnf-v1 .lnf-solo { background: var(--c); color: var(--g-bg); box-shadow: none; }
+[data-skin='game'] .lnf-ln[data-solo] .lnf-solo { background: var(--c); color: var(--g-bg); box-shadow: none; }
 [data-skin='game'] .lnf-app { font-family: var(--g-vt); font-size: 1.05em; letter-spacing: .03em; text-transform: uppercase; }
 /* The first screen: the first lesson is the game's primary (PRESS START's yellow), the song's Play a framed panel
    beside it; the three ways in are cabinet panels, their badges square. */
@@ -139,19 +136,12 @@
 [data-skin='game'] .lnf-path b { font: 400 11px/1.5 var(--g-px); text-transform: uppercase; }
 [data-skin='game'] .lnf-path .lnf-who { font: 400 17px/1 var(--g-vt); letter-spacing: .06em; }
 [data-skin='game'] .lnf-path em { font: 400 19px/1.1 var(--g-vt); letter-spacing: .03em; text-transform: uppercase; }
-/* A phone's pinned first screen: a way in's step is its arrow alone (landing.css), in the arcade type too. */
-@media (max-width: 899px) and (prefers-reduced-motion: no-preference) and (scripting: enabled) and (min-height: 560px) {
-    [data-skin='game'] .lnf-stage .lnf-path em { font-size: 0; }
-    [data-skin='game'] .lnf-stage .lnf-path a[data-lnf-go-title] em { font: 400 11px/1.5 var(--g-px); text-transform: uppercase; letter-spacing: 0; }
-}
 [data-skin='game'] .lnf-badge { border-radius: 0; font: 400 16px/1 var(--g-vt); letter-spacing: .04em; }
 /* The playhead: a hard bar with a block for its head, no glow. */
 [data-skin='game'] .lnf .lnf-beam { top: -8px; bottom: -8px; width: 4px; margin-left: -2px; border-radius: 0; background: var(--ink); box-shadow: 3px 0 0 var(--g-pink); }
 [data-skin='game'] .lnf .lnf-beam::before { content: ""; position: absolute; left: -6px; top: 0; width: 16px; height: 8px; background: var(--ink); box-shadow: 3px 3px 0 var(--g-pink); }
 /* Who sings, as the song builds: the screen's line. */
 [data-skin='game'] .lnf-now { font: 400 19px/1.1 var(--g-vt); letter-spacing: .05em; text-transform: uppercase; color: var(--g-yellow); }
-[data-skin='game'] .lnf-dots a::before { width: 8px; height: 8px; border-radius: 0; }
-[data-skin='game'] .lnf-dots a[aria-current='true']::before { height: 22px; background: var(--g-yellow); }
 
 /* The dock: a cabinet's control panel. */
 [data-skin='game'] .lnf-disc { background: var(--g-yellow); color: var(--g-on) !important; box-shadow: 4px 4px 0 var(--g-frame); }
@@ -249,7 +239,7 @@
     [data-skin='game'] .lnf-play { min-height: 66px; padding: 8px 16px 8px 68px; font-size: 13px; }
     [data-skin='game'] .lnf-play-w small { font-size: 17px; }
     [data-skin='game'] .lnf-prim { font-size: 12px; padding: 10px 16px; }
-    [data-skin='game'] .lnf:not([data-scene='4']) .lnf-deck { inset: 0 8px; gap: 10px; }
+    [data-skin='game'] .lnf .lnf-deck { inset: 0 8px; gap: 10px; }
     [data-skin='game'] .lnf-lb b { font-size: 10px; }
     [data-skin='game'] .lnf-chip { font-size: 15px; }
     [data-skin='game'] .lnf-stage .lnf-play { min-height: 52px; font-size: 10px; }
@@ -275,23 +265,6 @@
     [data-skin='game'] .lnf .lnf-glass { box-shadow: 5px 5px 0 var(--g-sh); }
     [data-skin='game'] .lnf .lnf-slab { box-shadow: 5px 5px 0 color-mix(in srgb, var(--c) 38%, var(--g-sh)); }
     [data-skin='game'] .lnf .lnf-plus { box-shadow: 5px 5px 0 color-mix(in srgb, var(--g-yellow) 38%, var(--g-sh)); }
-}
-/* A short phone's first screen in the arcade (the coordinator, 2026-11-23: an empty band under Press Start reads
-   broken): the headline a size smaller, and lanes too short for their notes (under 44 px) show as name rows, each
-   lane's name and Solo centred, so Play sits over lanes you can see; their notes come in when Play folds the ways in
-   away. Under 22 px a lane (88 px for the four) they come in with the next scene instead. */
-@media (max-width: 899px) and (prefers-reduced-motion: no-preference) and (scripting: enabled) and (min-height: 560px) {
-    @container lnf-world (max-height: 87px) { [data-skin='game'] .lnf[data-scene="0"] .lnf-deck { opacity: 0; visibility: hidden; } }
-    @container lnf-world (min-height: 88px) { [data-skin='game'] .lnf[data-scene="0"] .lnf-deck { opacity: 1; visibility: visible; } } /* over the calm look's 120 px */
-    @container (max-height: 44px) {
-        [data-skin='game'] .lnf[data-scene="0"] .lnf-tr { display: none; }
-        [data-skin='game'] .lnf[data-scene="0"] .lnf-lb { top: 0; bottom: 0; }
-        [data-skin='game'] .lnf[data-scene="0"] .lnf-lb .lnf-orb { width: 16px; height: 16px; font-size: 9px; }
-        [data-skin='game'] .lnf[data-scene="0"] .lnf-solo { height: 20px; font-size: 14px; box-shadow: none; }
-    }
-}
-@media (max-width: 899px) and (max-height: 720px) and (prefers-reduced-motion: no-preference) and (scripting: enabled) and (min-height: 560px) {
-    [data-skin='game'] .lnf-stage [data-s='0'] .lnf-h1 { font-size: 19px; }
 }
 @media (max-width: 400px) {
     [data-skin='game'] .lnf-logo span { font-size: 9px; }

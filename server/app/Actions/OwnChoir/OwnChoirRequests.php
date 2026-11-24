@@ -23,6 +23,7 @@ use App\Models\User;
 use App\Services\Cloudflare\Turnstile;
 use App\Support\OwnChoir\ChoirCounts;
 use App\Support\OwnChoir\ChoirSettings;
+use App\Support\OwnChoir\ChoirWait;
 use App\Support\OwnChoir\ClipTune;
 use App\Support\OwnChoir\OwnChoir;
 use App\Support\OwnChoir\VoicingTransform;
@@ -32,6 +33,7 @@ use App\Support\Templates\Catalogue;
 use App\Support\Trust\TrustLevel;
 use App\Support\Trust\WordLists;
 use App\Support\Usage\UploadBytes;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -145,6 +147,9 @@ final class OwnChoirRequests
             'priority' => OwnChoir::tier($user) === 'paid' ? 1 : 0,
             'starts_after' => OwnChoir::busyToday() ? now()->addDay()->startOfDay() : null,
             'email_key' => OwnChoir::emailKey($user),
+            // Started by the app itself, after the take: the renderer waits 10 seconds (held while they listen back).
+            'auto' => (bool) ($clip['auto'] ?? false),
+            'hold_until' => ($clip['auto'] ?? false) === true ? now()->addSeconds(self::HOLD_SECONDS) : null,
         ];
 
         // The lead (2026-11-23): the whole song sung (a clip of its own tune), or a clip tune whose first section is
@@ -270,6 +275,49 @@ final class OwnChoirRequests
         return $request->refresh();
     }
 
+    /** A song the app started by itself waits this long before the renderer may take it. */
+    public const HOLD_SECONDS = 10;
+
+    /** While they listen back, each hold reaches this far, and never past HOLD_MAX_SECONDS from when it was asked for. */
+    public const HOLD_STEP_SECONDS = 5;
+
+    public const HOLD_MAX_SECONDS = 120;
+
+    /**
+     * ownChoir.requests.hold: they're listening back, so the renderer waits a little longer (409 claimed once it's taken).
+     */
+    public function hold(User $user, OwnChoirRequest $request): OwnChoirRequest
+    {
+        $this->ensureMine($user, $request);
+        $cap = ($request->created_at ?? now())->copy()->addSeconds(self::HOLD_MAX_SECONDS);
+        $until = now()->addSeconds(self::HOLD_STEP_SECONDS)->min($cap);
+
+        return $this->holdUntil($request, $until->lte(now()) ? null : $until);
+    }
+
+    /** ownChoir.requests.start: Start now, the hold ended (409 claimed once it's taken). */
+    public function startNow(User $user, OwnChoirRequest $request): OwnChoirRequest
+    {
+        $this->ensureMine($user, $request);
+
+        return $this->holdUntil($request, null);
+    }
+
+    private function holdUntil(OwnChoirRequest $request, ?Carbon $until): OwnChoirRequest
+    {
+        return DB::transaction(static function () use ($request, $until): OwnChoirRequest {
+            $locked = OwnChoirRequest::query()->whereKey($request->id)->lockForUpdate()->firstOrFail();
+
+            if ($locked->first_claimed_at !== null || ! in_array($locked->status, [OwnChoirStatus::Uploading, OwnChoirStatus::Queued], true)) {
+                throw new Refusal(409, 'claimed');
+            }
+
+            $locked->forceFill(['hold_until' => $until])->save();
+
+            return $locked;
+        });
+    }
+
     public function seen(User $user, OwnChoirRequest $request): OwnChoirRequest
     {
         // The owner sees their friends' leaving too.
@@ -290,8 +338,10 @@ final class OwnChoirRequests
         // Whatever the switch: a singer can always see and delete what's theirs.
         $this->ensureMine($user, $request);
 
-        if ($request->seen_at === null && $request->status === OwnChoirStatus::Ready) {
+        // Seen once opened, ready or not made (the banner's ready and failed lines go): how long after it was ready, counted.
+        if ($request->seen_at === null && in_array($request->status, [OwnChoirStatus::Ready, OwnChoirStatus::Failed], true)) {
             $request->forceFill(['seen_at' => now()])->save();
+            ChoirWait::heard($request);
         }
 
         return $request;

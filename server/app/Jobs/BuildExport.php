@@ -118,6 +118,7 @@ final class BuildExport implements ShouldQueue
             'appearance' => $user->appearance,
             'tried' => $user->tried,
             'ideaEmails' => (bool) ($user->getAttributes()['idea_emails'] ?? true),
+            'choirEmail' => (bool) ($user->getAttributes()['choir_email'] ?? true),
             'storePlusUntil' => $user->store_plus_until?->utc()->toIso8601ZuluString(),
             'schoolPlusUntil' => $user->school_plus_until?->utc()->toIso8601ZuluString(),
             'emailVerifiedAt' => $user->email_verified_at?->utc()->toIso8601ZuluString(),

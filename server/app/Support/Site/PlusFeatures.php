@@ -16,9 +16,11 @@ use Illuminate\Support\Facades\Lang;
 final class PlusFeatures
 {
     /**
+     * Without `$ai`, the choir line (songs sung by AI) is left out: the home says nothing of AI (Hillel, 2026-11-23).
+     *
      * @return list<array{0: string, 1: string}> each feature's gain and fact
      */
-    public static function items(): array
+    public static function items(bool $ai = true): array
     {
         $words = (array) Lang::get('plus.items');
 
@@ -27,7 +29,7 @@ final class PlusFeatures
             $fact = $key === 'together' && Teams::seats() ? (string) Lang::get('plus.together_seats') : (string) ($item[1] ?? '');
 
             return [strtr((string) ($item[0] ?? ''), self::numbers()), strtr($fact, self::numbers())];
-        }, self::keys()));
+        }, self::keys($ai)));
     }
 
     /** The same as one line: "Plus adds A, B and C." */
@@ -57,17 +59,17 @@ final class PlusFeatures
     }
 
     /**
-     * The features that apply now, in marketing's order.
+     * The features that apply now, in marketing's order; without `$ai`, not the choir line (the home's lists).
      *
      * @return list<string>
      */
-    public static function keys(): array
+    public static function keys(bool $ai = true): array
     {
         $flags = app(Flags::class);
         $on = static fn (string $flag): bool => $flags->exists($flag) && $flags->on($flag);
 
         return array_values(array_filter(array_keys((array) Lang::get('plus.items', [], 'en')), static fn (string $key): bool => match ($key) {
-            'choir' => $on('own_choir'),
+            'choir' => $ai && $on('own_choir'),
             'together' => Teams::on(),
             default => true,
         }));

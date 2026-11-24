@@ -1,7 +1,7 @@
 {{-- For choir directors (/for/choir-directors), radically shorter (Hillel, 2026-11-23, from the consultant's concept;
      Saul: "if a section doesn't help someone choose a path, cut or fold it"): the promise beside the director's view as a
      live demo (made-up singers, no faces), one way in with the email beside it, then the four steps, "No group yet?" with
-     the part pages, three questions, and the last word. Words: lang/en/site.php `for_directors`, through Teams so the
+     the part pages, four questions, and the last word. Its H1 names its people (Hillel, 2026-11-23), the promise under it. Words: lang/en/site.php `for_directors`, through Teams so the
      plus_teams and choir_seats switches change them (a seat per singer while seats are on). --}}
 @extends('public.layout')
 
@@ -22,8 +22,8 @@
                     <x-site.crumbs :trail="[[__('pages.site.who_crumb'), '/features#who-h'], [$page['name']]]" :ld="true" />
                     {{-- Game mode's kicker (Hillel's 90s design): a choir group is two players' co-op. --}}
                     <p class="s-kick s-skin-g">{{ __('site.game.co_op_kick') }}</p>
-                    <h1 id="page-h">{{ __('site.for_directors.headline') }}</h1>
-                    <p class="s-lede">{{ __('site.for_directors.lead') }}</p>
+                    <h1 id="page-h">{{ __('site.for_directors.h1') }}</h1>
+                    <p class="s-lede"><b>{{ __('site.for_directors.headline') }}</b> {{ __('site.for_directors.lead') }}</p>
                     <div class="s-actions s-actions-row">
                         <a href="{{ $start }}" class="btn-primary btn-lg"><x-site.skin :game="__('site.game.co_op_start')" :serious="__('site.for_directors.start')" /> <x-site.icon name="arrow" size="18" /></a>
                         <a href="{{ $email }}" class="btn-secondary btn-lg">{{ __('site.for_directors.email') }}</a>

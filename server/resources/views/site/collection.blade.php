@@ -45,7 +45,7 @@
                     <p class="s-lead">{{ __($words.'.lead') }}</p>
                     {{-- The Jewish songs' AI choir sings their own words, respelled for singing (2026-11-23), while own_choir is on. --}}
                     @if ($slug === 'jewish-songs' && \App\Support\Pages\SongParts::switchedOn('own_choir') && trans()->has($words.'.ai_choir'))
-                        <p class="s-sub"><a href="/your-choir" class="s-lk">{{ __('site.your_choir.title') }}</a>: {{ __($words.'.ai_choir') }}</p>
+                        <p class="s-sub"><a href="/ai-harmony-singing?ref=choir-jewish" class="s-lk">{{ __('site.your_choir.title') }}</a>: {{ __($words.'.ai_choir') }}</p>
                     @endif
                     <div class="s-actions s-actions-row">
                         <a href="#songbook" class="btn-primary btn-lg">{{ __($words.'.pick') }} <span aria-hidden="true">↓</span></a>

@@ -258,6 +258,9 @@ return [
         'voice_types' => 'Voice types',
         'note_chart' => 'Note frequencies',
         'for_choirs' => 'Choir directors',
+        // The footer's Who it's for (Hillel, 2026-11-23): the home's paths, each to its page.
+        'learners' => 'Learners',
+        'singers' => 'Singers',
         'features' => 'Features',
         'how' => 'How it works',
         'pricing' => 'Pricing',
@@ -284,7 +287,7 @@ return [
         'tagline' => 'Harmony, made by you.',
         // The footer's line on the carols page while the carols are pushed (Hillel's redesign, 2026-11-10).
         'xmas' => 'Merry Christmas from all four parts.',
-        'groups' => ['learn' => 'Learn', 'reference' => 'Reference', 'product' => 'Product', 'help' => 'Help', 'company' => 'Company', 'legal' => 'Legal'],
+        'groups' => ['who' => 'Who it\'s for', 'learn' => 'Learn', 'reference' => 'Reference', 'product' => 'Product', 'help' => 'Help', 'company' => 'Company', 'legal' => 'Legal'],
         'social' => ['x' => 'Stackapella on X', 'bluesky' => 'Stackapella on Bluesky'],
         'rights' => '© :year Stackapella',
         // The licence's credit (LICENSE, 2): the author's name and Stackapella, never translated or changed.

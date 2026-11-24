@@ -279,6 +279,12 @@
                 "remake",
                 "failureDetail",
                 "counted",
+                "holdUntil",
+                "claimedAt",
+                "queuePosition",
+                "etaMinutes",
+                "slow",
+                "costMinutes",
                 "failureHints",
                 "leadTake",
                 "canUseRecordingAsLead"
@@ -563,6 +569,32 @@
                         null
                     ],
                     "description": "Why its clip couldn't be used (with failure clip_unusable), for its singer alone; null otherwise."
+                },
+                "holdUntil": {
+                    "type": ["string", "null"],
+                    "format": "date-time",
+                    "description": "A song the app started by itself waits this long before the renderer may take it (10 s, held up to 2 minutes while they listen back; null once taken or started)."
+                },
+                "claimedAt": {
+                    "type": ["string", "null"],
+                    "format": "date-time",
+                    "description": "When the renderer first took it; from then a stop still counts toward the singer's songs or minutes."
+                },
+                "queuePosition": {
+                    "type": ["integer", "null"],
+                    "description": "Its place in line while it waits for the renderer (1 is next); null once taken, while held, or on a busy day's wait."
+                },
+                "etaMinutes": {
+                    "type": ["integer", "null"],
+                    "description": "Roughly how many minutes until it's made, while it waits or is being made; null when about to start or not on its way."
+                },
+                "slow": {
+                    "type": "boolean",
+                    "description": "Past twice its estimate: the app says it's taking longer than usual, and that they'll be emailed."
+                },
+                "costMinutes": {
+                    "type": "number",
+                    "description": "The part-minutes it uses of paid Plus's month (the free choir's own line comes from quota)."
                 },
                 "failureHints": {
                     "type": [

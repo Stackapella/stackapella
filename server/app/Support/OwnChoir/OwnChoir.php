@@ -522,6 +522,11 @@ final class OwnChoir
             'failureDetail' => $viewer->id === $request->user_id ? $request->failure_detail : null,
             // A failed song: whether it counted toward their songs or minutes (false: given back).
             'counted' => self::countedAgainst($request),
+            // The choir wait (2026-11-24): held after the take, when the renderer took it, its place, how long, slow.
+            'holdUntil' => $request->hold_until?->isFuture() === true ? $request->hold_until->utc()->toIso8601ZuluString() : null,
+            'claimedAt' => $request->first_claimed_at?->utc()->toIso8601ZuluString(),
+            ...ChoirWait::of($request),
+            'costMinutes' => round((float) $request->part_minutes, 1),
             // What its measures say about fixing an unusable take (2026-11-23), for its singer alone: never the numbers.
             'failureHints' => $viewer->id === $request->user_id ? self::failureHints($request) : null,
             'createdAt' => $request->created_at?->utc()->toIso8601ZuluString(),

@@ -74,7 +74,7 @@
                 @php($end = $choirOnly ? 'site.ai_voices.choir_only.end' : 'site.ai_voices.end')
                 <h2 id="end-h">{{ __($end.'.title') }}</h2>
                 <p>{{ __($end.'.body') }}</p>
-                <p class="s-final-btns"><a href="{{ $choirOnly ? '/your-choir?ref=choir-about' : '/songs' }}" class="btn-primary btn-lg">{{ __($end.'.cta') }} <x-site.icon name="arrow" size="18" /></a></p>
+                <p class="s-final-btns"><a href="{{ $choirOnly ? '/ai-harmony-singing?ref=choir-about' : '/songs' }}" class="btn-primary btn-lg">{{ __($end.'.cta') }} <x-site.icon name="arrow" size="18" /></a></p>
             </div>
         </section>
     </main>

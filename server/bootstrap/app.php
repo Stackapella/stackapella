@@ -82,6 +82,7 @@ use App\Support\Languages\SiteLanguages;
 use App\Support\Pages\LandingStage;
 use App\Support\Pages\MudeoArrival;
 use App\Support\Pages\SongCollections;
+use App\Support\Pages\YourChoirStage;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Middleware\Authorize;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
@@ -159,8 +160,12 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::get('/about', [SitePagesController::class, 'about'])->middleware(['nexus', 'throttle:public-pages'])->name('about.page');
             // About AI voices (docs/ai-voices-build-plan.md): unlisted, noindex until ai_voices is on.
             Route::get('/about/ai-voices', [SitePagesController::class, 'aiVoices'])->middleware(['nexus', 'throttle:public-pages'])->name('ai-voices.page');
-            // Hear yourself as a choir (docs/ai-voices-build-plan.md, phase 3): not found until own_choir is on.
-            Route::get('/your-choir', [SitePagesController::class, 'yourChoir'])->middleware(['nexus', 'throttle:public-pages'])->name('your-choir.page');
+            // Hear yourself as a choir (docs/ai-voices-build-plan.md, phase 3): not found until own_choir is on. The AI
+            // landing (YourChoirStage::SLUGS: /ai-harmony-singing, /es/armonias-con-ia; Hillel, 2026-11-23: the home says nothing of AI); its first address, /your-choir,
+            // moved there for good, a shared link's ?ref= kept.
+            Route::get('/'.YourChoirStage::SLUGS['en'], [SitePagesController::class, 'yourChoir'])->middleware(['nexus', 'throttle:public-pages'])->name('ai-landing.page');
+            Route::get('/your-choir', [SitePagesController::class, 'yourChoirMoved'])->middleware(['nexus', 'throttle:public-pages'])->name('your-choir.moved');
+            Route::get('/ai-singing', [SitePagesController::class, 'yourChoirMoved'])->middleware(['nexus', 'throttle:public-pages'])->name('ai-singing.moved');
             Route::get('/how-it-works', [SitePagesController::class, 'howItWorks'])->middleware(['nexus', 'throttle:public-pages'])->name('how.page');
             Route::get('/press', [SitePagesController::class, 'press'])->middleware(['nexus', 'throttle:public-pages'])->name('press.page');
             // Open source (docs/open-source-plan.md, 5.2 and 5.3): there only with the open_source flag on.
@@ -219,6 +224,9 @@ return Application::configure(basePath: dirname(__DIR__))
             // Ideas' emails to their writer (docs/your-tune-plan.md): the same one click turns them off.
             Route::get('/unsubscribe/ideas/{user}', [UnsubscribeController::class, 'showIdeas'])->middleware(['signed:relative', 'throttle:public-pages'])->name('ideas.unsubscribe');
             Route::post('/unsubscribe/ideas/{user}', [UnsubscribeController::class, 'storeIdeas'])->middleware(['signed:relative', 'throttle:public-pages'])->name('ideas.unsubscribe.store');
+            // The choir's ready email (the choir wait, 2026-11-24): the same one click turns them off.
+            Route::get('/unsubscribe/choir/{user}', [UnsubscribeController::class, 'showChoir'])->middleware(['signed:relative', 'throttle:public-pages'])->name('choir-emails.unsubscribe');
+            Route::post('/unsubscribe/choir/{user}', [UnsubscribeController::class, 'storeChoir'])->middleware(['signed:relative', 'throttle:public-pages'])->name('choir-emails.unsubscribe.store');
 
             // A harmony played on other sites (Event Schedule's event pages): oEmbed and its player.
             Route::get('/oembed', OEmbedController::class)->middleware('throttle:public-pages')->name('oembed');

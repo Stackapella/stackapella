@@ -39,7 +39,8 @@
         "songRequests",
         "tried",
         "aiFeatures",
-        "ageBand"
+        "ageBand",
+        "choirEmail"
     ],
     "properties": {
         "id": {
@@ -447,6 +448,10 @@
                 null
             ],
             "description": "The age band kept when the birth date was first given (it doesn't move on a birthday), for the app's own anonymous counts by band; null without a birth date. Never the date."
+        },
+        "choirEmail": {
+            "type": "boolean",
+            "description": "Email me when my choir is ready (on by default): one email a choir song, only if it isn't heard yet."
         }
     },
     "title": "The signed-in person's own account"

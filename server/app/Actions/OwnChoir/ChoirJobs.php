@@ -17,6 +17,7 @@ use App\Notifications\Admin\OpsAlert;
 use App\Services\Audio\Ffmpeg;
 use App\Support\Admin\Admins;
 use App\Support\OwnChoir\ChoirCounts;
+use App\Support\OwnChoir\ChoirWait;
 use App\Support\OwnChoir\OwnChoir;
 use App\Support\OwnChoir\VoicingTransform;
 use App\Support\Storage\ReceivedUploads;
@@ -60,6 +61,8 @@ final class ChoirJobs
                         ->orWhere(fn ($again) => $again->where('status', OwnChoirStatus::Rendering->value)->where('claimed_at', '<', $stale)))
                     ->where('tries', '<', (int) config('own_choir.max_tries'))->whereNotNull('template_version_id')
                     ->where(fn ($query) => $query->whereNull('starts_after')->orWhere('starts_after', '<=', now()))
+                    // A song the app started by itself waits out its hold (the choir wait, 2026-11-24).
+                    ->where(fn ($query) => $query->whereNull('hold_until')->orWhere('hold_until', '<=', now()))
                     // A friend's parts wait for the owner's part-minutes (ChoirTogether::release).
                     ->where('held_for_minutes', false)
                     // Paid Plus first, then in turn.
@@ -77,7 +80,7 @@ final class ChoirJobs
                 }
 
                 $first = $request->first_claimed_at === null;
-                $request->forceFill(['status' => OwnChoirStatus::Rendering, 'claimed_at' => now(), 'claim_started_at' => now(), 'claim_token' => Str::random(32), 'claim_gpu_seconds' => 0,
+                $request->forceFill(['status' => OwnChoirStatus::Rendering, 'claimed_at' => now(), 'claim_started_at' => now(), 'hold_until' => null, 'claim_token' => Str::random(32), 'claim_gpu_seconds' => 0,
                     'first_claimed_at' => $request->first_claimed_at ?? now(), 'tries' => $request->tries + 1])->save();
 
                 if ($first) {
@@ -384,6 +387,8 @@ final class ChoirJobs
 
         app(RecordCounts::class)->server('own_choir_ready', true, null);
         ChoirCounts::made($request);
+        // Its one email, if they haven't heard it (the choir wait).
+        ChoirWait::finished(OwnChoirRequest::query()->findOrFail($request->id));
 
         // A friend's parts are in the owner's song: the owner's quiet card shows again, and the song's voices counted.
         if ($request->parent_request_id !== null) {
@@ -478,7 +483,8 @@ final class ChoirJobs
      */
     public static function failAndClean(OwnChoirRequest $request, string $failure, ?string $claim = null): OwnChoirRequest
     {
-        $files = DB::transaction(function () use ($request, $failure, $claim): array {
+        $failedNow = false;
+        $files = DB::transaction(function () use ($request, $failure, $claim, &$failedNow): array {
             // A worker's failure (a claim given) only while its claim still holds, checked under this lock.
             $locked = $claim !== null ? self::lockHeld($request->id, $claim) : OwnChoirRequest::query()->whereKey($request->id)->lockForUpdate()->first();
 
@@ -493,12 +499,19 @@ final class ChoirJobs
             $locked->forceFill(['status' => OwnChoirStatus::Failed, 'failure' => $failure, 'clip_key' => null, 'claimed_at' => null, 'claim_token' => null])->save();
             OwnChoir::releaseFree($locked);
             ChoirCounts::failed($failure);
+            $failedNow = true;
 
             return array_values($files);
         });
         Storage::disk('private')->delete($files);
+        $failed = $request->refresh();
 
-        return $request->refresh();
+        // Failed by this call: its one email, if they haven't seen it (the choir wait).
+        if ($failedNow) {
+            ChoirWait::finished($failed);
+        }
+
+        return $failed;
     }
 
     /**

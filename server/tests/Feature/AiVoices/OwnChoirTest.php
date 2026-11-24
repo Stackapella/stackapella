@@ -9,6 +9,8 @@ use App\Enums\OwnChoirStatus;
 use App\Http\Resources\Worker\ChoirJobResource;
 use App\Jobs\CheckChoirClip;
 use App\Jobs\KeepVoiceClip;
+use App\Jobs\SendChoirEmail;
+use App\Mail\Account\ChoirReadyMail;
 use App\Models\OwnChoirConsent;
 use App\Models\OwnChoirPart;
 use App\Models\OwnChoirRequest;
@@ -19,11 +21,14 @@ use App\Models\User;
 use App\Services\Audio\Ffmpeg;
 use App\Support\Contract\SchemaChecker;
 use App\Support\Flags;
+use App\Support\OwnChoir\ChoirWait;
 use App\Support\OwnChoir\ClipTune;
 use App\Support\OwnChoir\OwnChoir;
 use App\Support\OwnChoir\VoicingTransform;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
@@ -764,5 +769,160 @@ final class OwnChoirTest extends TestCase
         $this->assertSame(['near'], OwnChoir::request($mine->refresh()->load(OwnChoir::SHOWN), null, $user)['failureHints']);
         $this->assertNull(OwnChoir::request($mine, null, User::factory()->create())['failureHints']);
         $this->assertStringNotContainsString('noiseMargin', (string) json_encode(OwnChoir::request($mine, null, $user)));
+    }
+
+    /** A take sent up and checked, as the app does: consent, the clip, its complete. */
+    private function sentUp(string $wav, array $with = []): OwnChoirRequest
+    {
+        OwnChoirConsent::factory()->create(['user_id' => auth()->id()]);
+        $this->postJson('/api/own-choir/requests', [...$this->clip($wav, 'silent-night'), ...$with])->assertCreated();
+        $song = OwnChoirRequest::query()->latest('id')->firstOrFail();
+        Storage::disk('private')->put((string) $song->upload_key, $wav);
+        $this->postJson("/api/own-choir/requests/{$song->sqid()}/complete")->assertOk();
+
+        return $song->refresh();
+    }
+
+    public function test_a_take_the_app_started_waits_ten_seconds_held_while_they_listen_or_started_now(): void
+    {
+        $this->singer();
+        $song = $this->sentUp(Wav::tone(8.0), ['auto' => true]);
+        $this->assertTrue($song->auto);
+        $this->assertEqualsWithDelta(now()->addSeconds(10)->getTimestamp(), $song->hold_until?->getTimestamp(), 2);
+        $this->getJson('/api/own-choir')->assertJsonPath('data.requests.0.queuePosition', null)->assertJsonPath('data.requests.0.claimedAt', null);
+
+        // Not taken while it's held.
+        $this->worker('POST', '/api/worker/choir/claim')->assertNoContent();
+
+        // Listening back holds it 5 seconds more each time, never past 2 minutes from when it was asked for.
+        $held = $this->postJson("/api/own-choir/requests/{$song->sqid()}/hold");
+        $this->assertMatchesContract($held, 'ownChoir.requests.hold', 200);
+        $this->travel(110)->seconds();
+        $this->postJson("/api/own-choir/requests/{$song->sqid()}/hold")->assertOk();
+        $this->assertLessThanOrEqual(($song->created_at?->getTimestamp() ?? 0) + 120, $song->refresh()->hold_until?->getTimestamp());
+
+        // Start now: taken next.
+        $started = $this->postJson("/api/own-choir/requests/{$song->sqid()}/start");
+        $this->assertMatchesContract($started, 'ownChoir.requests.start', 200);
+        $started->assertJsonPath('data.holdUntil', null)->assertJsonPath('data.queuePosition', 1);
+        $this->worker('POST', '/api/worker/choir/claim')->assertOk();
+        $this->assertNotNull($this->getJson('/api/own-choir')->json('data.requests.0.claimedAt'));
+
+        // Once taken, a hold or a start is refused: a stop now still counts.
+        $this->assertMatchesContract($this->postJson("/api/own-choir/requests/{$song->sqid()}/hold"), 'ownChoir.requests.hold', 409);
+        $this->assertMatchesContract($this->postJson("/api/own-choir/requests/{$song->sqid()}/start"), 'ownChoir.requests.start', 409);
+        $this->actingAs(User::factory()->create())->postJson("/api/own-choir/requests/{$song->sqid()}/hold")->assertNotFound();
+    }
+
+    public function test_a_take_deleted_before_the_renderer_takes_it_gives_everything_back(): void
+    {
+        $user = $this->singer();
+        config(['own_choir.free_songs' => 1]);
+        $song = $this->sentUp(Wav::tone(8.0), ['auto' => true]);
+        $this->assertSame(0, OwnChoir::quota($user)['freeLeft']);
+
+        $this->deleteJson("/api/own-choir/requests/{$song->sqid()}")->assertNoContent();
+        $this->assertSame(1, OwnChoir::quota($user)['freeLeft'], 'Nothing was charged.');
+        $this->assertSame(0, OwnChoir::counted($user)->count());
+    }
+
+    public function test_a_song_in_line_says_its_place_and_roughly_how_long(): void
+    {
+        $user = $this->singer();
+        $song = $this->sentUp(Wav::tone(8.0));
+        $shown = $this->getJson('/api/own-choir')->json('data.requests.0');
+        $this->assertSame([1, null, false], [$shown['queuePosition'], $shown['holdUntil'], $shown['slow']]);
+        $this->assertSame(round((float) $song->part_minutes, 1), (float) $shown['costMinutes']);
+
+        // Long past twice its estimate: slower than usual.
+        $this->travel(3)->hours();
+        $this->assertTrue($this->getJson('/api/own-choir')->json('data.requests.0.slow'));
+        $this->assertNotNull($user);
+    }
+
+    public function test_one_email_when_a_choir_is_ready_and_unheard_and_none_otherwise(): void
+    {
+        Mail::fake();
+        config(['counts.enabled' => true]);
+        $user = $this->singer();
+        $user->forceFill(['email_verified_at' => now()])->save();
+        $song = OwnChoirRequest::factory()->create(['user_id' => $user->id, 'template_version_id' => (int) Template::query()->where('slug', 'silent-night')->value('current_version_id'), 'status' => OwnChoirStatus::Ready, 'ready_at' => now(), 'tries' => 1]);
+
+        // Not while the choir_email switch is off: the app hasn't said it will email yet.
+        (new SendChoirEmail($song->id))->handle();
+        Mail::assertNothingQueued();
+        $this->assertNull($song->refresh()->email_sent_at);
+        app(Flags::class)->set('choir_email', 'on', null, 'Testing');
+
+        (new SendChoirEmail($song->id))->handle();
+        Mail::assertQueued(ChoirReadyMail::class, fn (ChoirReadyMail $mail): bool => $mail->hasTo((string) $user->email) && $mail->failure === null && $mail->songId === 'silent-night');
+        $this->assertNotNull($song->refresh()->email_sent_at);
+        $this->assertSame(1, (int) DB::table('usage_counts')->where('kind', 'choir_email_sent_ready')->sum('count'));
+
+        // Once a song, whatever queues it again.
+        (new SendChoirEmail($song->id))->handle();
+        Mail::assertQueuedCount(1);
+
+        // Heard first, choir emails off, AI off, or a friend's parts: none.
+        $make = fn (array $with = []): OwnChoirRequest => OwnChoirRequest::factory()->create(['user_id' => $user->id, 'template_version_id' => $song->template_version_id, 'status' => OwnChoirStatus::Ready, 'ready_at' => now(), 'tries' => 1, ...$with]);
+        (new SendChoirEmail($make(['seen_at' => now()])->id))->handle();
+        $user->forceFill(['choir_email' => false])->save();
+        (new SendChoirEmail($make()->id))->handle();
+        $user->forceFill(['choir_email' => true, 'ai_features' => false])->save();
+        (new SendChoirEmail($make()->id))->handle();
+        Mail::assertQueuedCount(1);
+
+        // A song that couldn't be made, given back: said so.
+        $user->forceFill(['ai_features' => true])->save();
+        (new SendChoirEmail($make(['status' => OwnChoirStatus::Failed, 'ready_at' => null, 'failure' => 'clip_unusable', 'gpu_seconds' => 0])->id))->handle();
+        Mail::assertQueued(ChoirReadyMail::class, fn (ChoirReadyMail $mail): bool => $mail->failure === 'clip_unusable' && $mail->givenBack);
+    }
+
+    public function test_the_app_watching_sends_the_email_ten_minutes_later_and_hearing_it_cancels_it(): void
+    {
+        Queue::fake();
+        $user = $this->singer();
+        $song = OwnChoirRequest::factory()->create(['user_id' => $user->id, 'template_version_id' => (int) Template::query()->where('slug', 'silent-night')->value('current_version_id'), 'status' => OwnChoirStatus::Ready, 'ready_at' => now(), 'tries' => 1]);
+
+        ChoirWait::finished($song);
+        Queue::assertPushed(SendChoirEmail::class, fn (SendChoirEmail $job): bool => $job->delay === null);
+
+        $this->getJson('/api/own-choir')->assertOk();
+        ChoirWait::finished($song);
+        Queue::assertPushed(SendChoirEmail::class, fn (SendChoirEmail $job): bool => $job->delay !== null);
+
+        // A friend's parts or a remake: no email of their own.
+        ChoirWait::finished(OwnChoirRequest::factory()->create(['user_id' => $user->id, 'template_version_id' => $song->template_version_id, 'status' => OwnChoirStatus::Ready, 'parent_request_id' => $song->id]));
+        Queue::assertPushed(SendChoirEmail::class, 2);
+    }
+
+    public function test_one_click_turns_choir_emails_off_and_settings_turn_them_back_on(): void
+    {
+        config(['counts.enabled' => true]);
+        $user = $this->singer()->fresh() ?? throw new \LogicException;
+        $this->actingAs($user)->getJson('/api/account')->assertOk()->assertJsonPath('data.choirEmail', true);
+
+        $off = ChoirReadyMail::unsubscribeUrl($user->id);
+        $this->get($off)->assertOk()->assertSee(__('own_choir.email_off.button'));
+        $this->post($off)->assertOk()->assertSee(__('own_choir.email_off.done_title'));
+        $this->assertFalse($user->refresh()->choir_email);
+        $this->assertSame(1, (int) DB::table('usage_counts')->where('kind', 'choir_email_off')->sum('count'));
+        $this->post(str_replace('signature=', 'signature=x', $off))->assertForbidden();
+
+        $this->patchJson('/api/account', ['choirEmail' => true])->assertOk()->assertJsonPath('data.choirEmail', true);
+    }
+
+    public function test_hearing_a_ready_choir_counts_how_long_after_and_a_failed_one_is_seen_too(): void
+    {
+        config(['counts.enabled' => true]);
+        $user = $this->singer();
+        $version = (int) Template::query()->where('slug', 'silent-night')->value('current_version_id');
+        $ready = OwnChoirRequest::factory()->create(['user_id' => $user->id, 'template_version_id' => $version, 'status' => OwnChoirStatus::Ready, 'ready_at' => now()->subMinutes(30), 'voicing' => 'written']);
+        $failed = OwnChoirRequest::factory()->create(['user_id' => $user->id, 'template_version_id' => $version, 'status' => OwnChoirStatus::Failed, 'failure' => 'render_failed', 'voicing' => 'written']);
+
+        $this->postJson("/api/own-choir/requests/{$ready->sqid()}/seen")->assertOk();
+        $this->postJson("/api/own-choir/requests/{$failed->sqid()}/seen")->assertOk();
+        $this->assertNotNull($failed->refresh()->seen_at);
+        $this->assertSame(1, (int) DB::table('usage_counts')->where('kind', 'choir_heard_after_1h')->sum('count'));
     }
 }

@@ -118,6 +118,9 @@ return [
     'ai_voices' => ['kind' => 'feature', 'values' => ['off', 'on']],
     'own_choir_teaser' => ['kind' => 'feature', 'values' => ['off', 'on']],
     'own_choir' => ['kind' => 'feature', 'values' => ['off', 'on']],
+    // choir_email: the "your choir is ready" email (docs/decisions.md 2026-11-24). Off until the app's take review says
+    // "We'll email you" with its Don't email me, so no one gets one they weren't told of.
+    'choir_email' => ['kind' => 'feature', 'values' => ['off', 'on']],
     // Hear yourself as a choir on a singer's own songs from the creator (hummed, or with words they typed; Hillel,
     // 2026-11-20: "they could hum it and have their voice replace their humming", "definiety allow typed words").
     'own_choir_songs' => ['kind' => 'feature', 'values' => ['off', 'on']],

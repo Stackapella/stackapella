@@ -4,21 +4,21 @@
      Its own document (not the public layout), its own sheet (css/landing.css, every class .lnf-*; the footer is the
      site's own component, dressed there) and its own script (js/public/landing.js); calm light and dark, and game mode's
      dress once its sheet is there (css/landing-game.css, the game agent's: linked only in game mode, only if it exists).
-     The first five scenes are one stage that fills the screen and stays: the showreel's four lanes of Amazing Grace,
-     played by the song page's own player (js/public/mixer.js, through its hooks), as the showreel plays it: twice
-     through, the voices joining one by one the first time, each lane lighting as its voice comes in; only the recorded
-     voices, their breaths ducked. After Share the stage lets go and the rest is a page that scrolls: free, choirs, the
-     plans and four questions, the finale, the site's footer. A dock stays through all of it: play, the time, the line
-     being sung, Start singing. A voice is heard alone by its lane.
-     Every scene's words, links and questions are here, in order, so the page reads and paints with no script; with
-     reduced motion (or no script) nothing is pinned and the stage's scenes are five still panels.
+     The page scrolls like a page (Hillel, 2026-11-23: "when you scroll, you just scroll like a normal page; avoid what we
+     have now where only the text scrolls"): the headline, the first lesson and the three ways in, then the showreel's
+     four lanes of Amazing Grace once, played in place by the song page's own player (js/public/mixer.js, through its
+     hooks) as the showreel plays it: twice through, the voices joining one by one the first time, each lane lighting as
+     its voice comes in; only the recorded voices, their breaths ducked. Then the story's four steps, each a section with
+     its picture (the lanes as that step shows them, or the stacked song), then free, the plans and four questions, the
+     finale, the site's footer. A small player rises from the foot only while the song plays and its lanes
+     have gone by. A voice is heard alone by its lane.
+     Every scene's words, links and questions are here, in order, so the page reads and paints with no script.
      As the home page it carries what the public layout gives every page (the description, link card and canonical
      address, whether search may index it, the Open Graph locale, the outreach partner's line), the landing's own
      structured data, a mudeo arrival's banner and letter, the funnel (js/public/funnel.js: site_visit with its source,
      the Start links marked), the app's first screen fetched ahead, and the footer's count and heartbeat (js/public/site.js).
      Its data is the site's (App\Support\Pages\LandingStage, Landing). --}}
 @php($song = $stage['title'] ?? '')
-@php($pinned = 5)
 <!DOCTYPE html>
 {{-- On the app's arcade screen in game mode (data-gs), as the public layout marks the home page. --}}
 @php($web = (string) config('app.web_path'))
@@ -36,7 +36,7 @@
     @include('pages._head')
     <x-site.json-ld :data="\App\Support\Site\StructuredData::landing($price, $questions)" />
     <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml">
-    <meta name="theme-color" content="#050403">
+    <meta name="theme-color" content="#050403" data-dark="#050403" data-light="#f5eee1">
     @if (config('hosts.pass_domain'))
         <meta name="theme-cookie-domain" content="{{ config('hosts.pass_domain') }}">
     @endif
@@ -74,7 +74,7 @@
         </div>
     @endif
     {{-- The whole page is the player's: the lanes and the dock are both inside it, so the dock plays from any scene. --}}
-    <div class="lnf" id="lnf" data-lnf data-player data-scene="0" data-beats="{{ $stage['beats'] ?? 0 }}" data-passes="{{ \App\Support\Pages\LandingStage::PASSES }}" @if ($stage !== null) style="--beats: {{ $stage['beats'] }}" @endif>
+    <div class="lnf" id="lnf" data-lnf data-player data-beats="{{ $stage['beats'] ?? 0 }}" data-passes="{{ \App\Support\Pages\LandingStage::PASSES }}" @if ($stage !== null) style="--beats: {{ $stage['beats'] }}" @endif>
         @if ($stage !== null)
             @php($songData = $stage['song'])
             <script type="application/json" data-song>@json($songData)</script>
@@ -96,167 +96,189 @@
         </header>
 
         <main>
-            <div class="lnf-pin">
-                <div class="lnf-stage" data-lnf-stage role="group" aria-label="{{ __('landing.stage', ['song' => $song]) }}">
-                    <div class="lnf-bg" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="lnf-stage" data-lnf-stage role="group" aria-label="{{ __('landing.stage', ['song' => $song]) }}">
+                <div class="lnf-bg" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
 
-                    {{-- 0, the overture (the consultant's front page that Hillel approved as the blueprint, 2026-11-23, in our
-                         own look): the headline, the first lesson as the way in, the song to press play on, and who it's
-                         for, each with its one next step. --}}
-                    <section class="lnf-sc" id="lnf-s0" data-s="0" aria-labelledby="lnf-h0">
-                        <div class="lnf-cap">
+                {{-- 0, the overture (the consultant's front page that Hillel approved as the blueprint, 2026-11-23, in our
+                     own look): the headline, the first lesson as the way in, the song to press play on, and who it's
+                     for, each with its one next step. --}}
+                <section class="lnf-sc" id="lnf-s0" data-s="0" aria-labelledby="lnf-h0">
+                    <div class="lnf-cap">
+                        {{-- The promise and what makes it so (Hillel's lede A, 2026-11-23): the guide voice. --}}
+                        <div class="lnf-hgroup">
                             <h1 id="lnf-h0" class="lnf-h1"><span>{{ __('landing.hero.before') }}</span> <em>{{ __('landing.hero.em') }}</em></h1>
-                            <div>
-                                <div class="lnf-go">
-                                    {{-- The way in: lesson 1, no account needed, in the app (and it says so). --}}
-                                    <a href="{{ $links['start'] }}" class="lnf-try" data-funnel-start><span><b>{{ __('landing.hero.try') }}</b><small>{{ __('landing.hero.try_note') }} · {{ __('landing.paths.app') }}</small></span> <x-site.icon name="arrow" size="18" /></a>
-                                    @if ($stage !== null)
-                                        {{-- What a press commits to: the song, how many voices, how long. --}}
-                                        <button type="button" class="lnf-play" data-lnf-play><span class="lnf-orb bubble" aria-hidden="true"><span class="lnf-i-play"><x-site.icon name="play" size="22" /></span><span class="lnf-i-stop"><x-site.icon name="stop" size="22" /></span></span><span class="lnf-play-w"><span class="lnf-i-play">@if ($gameSheet)<x-site.skin :game="__('landing.game.play')" :serious="__('landing.play', ['song' => $song])" />@else{{ __('landing.play', ['song' => $song]) }}@endif</span><span class="lnf-i-stop">{{ __('landing.stop') }}</span><small class="lnf-meta">{{ __('landing.play_meta', ['count' => count($stage['lanes']), 'length' => $stage['seconds']]) }}</small><small class="lnf-load" data-lnf-load data-loading="{{ __('landing.loading') }}" data-failed="{{ __('landing.failed') }}"></small></span></button>
-                                    @endif
-                                </div>
-                            </div>
-                            {{-- Find your path: learners, singers making their own a cappella, and leaders preparing a choir,
-                                 each with what they get and its one next step, the choir's way in on the first screen. Singers
-                                 hear of Hear yourself as a choir while it's live (own_choir). A step into the app says so. --}}
-                            {{-- The learner's line is lesson 1's chord moment: while the onb1 experiment enrols, its control arm
-                                 gets no chord moment, so it waits until funnel.js knows this device's arm isn't the control. --}}
-                            @php($chordTest = (($funnel['experiment']['id'] ?? null) === 'onb1') && ($funnel['experiment']['enrol'] ?? false))
-                            <nav class="lnf-paths" aria-labelledby="lnf-paths-h">
-                                <h2 id="lnf-paths-h" class="lnf-paths-h">{{ __('landing.paths.label') }}</h2>
-                                @php($choir = \App\Support\Pages\SongParts::switchedOn('own_choir'))
-                                <ul>
-                                    @foreach (['learn' => ['/courses', false, 'go'], 'make' => $choir ? ['/your-choir?ref=choir-home', false, 'go_choir'] : ['#lnf-at-1', false, 'go'], 'lead' => ['/for/choir-directors?ref=for-choirs-landing', false, 'go']] as $key => [$href, $inApp, $go])
-                                        <li class="lnf-path lnf-v{{ $loop->iteration === 1 ? 1 : ($loop->iteration === 2 ? 3 : 4) }}">
-                                            <a href="{{ $href }}" data-lnf-path="{{ $key }}"@if ($go !== 'go') data-lnf-go-title @endif>
-                                                <small class="lnf-who">{{ __('landing.paths.'.$key.'.eyebrow') }}@if ($key === 'learn' && filled(__('landing.paths.learn.badge'))) <i class="lnf-badge">{{ __('landing.paths.learn.badge') }}</i>@endif</small>
-                                                <b>{{ __('landing.paths.'.$key.'.who') }}</b>
-                                                <span @if ($key === 'learn' && $chordTest) hidden data-variant-except="onb1-a" @endif>{{ __('landing.paths.'.$key.'.what') }}</span>
-                                                <em>{{ __('landing.paths.'.$key.'.'.$go) }}@if ($inApp) <small class="lnf-app">{{ __('landing.paths.app') }}</small>@endif <x-site.icon name="arrow" size="16" /></em>
-                                            </a>
-                                        </li>
-                                    @endforeach
-                                </ul>
-                            </nav>
+                            <p class="lnf-say lnf-lede">{{ __('landing.hero.lede') }}</p>
                         </div>
-                        @if ($stage !== null)
-                            <div class="lnf-foot">
-                                {{-- Who wrote it and who is heard: the recording's whole credit where there's room (it is
-                                     written in English), the singers' line otherwise. --}}
-                                @if ($stage['credit'] !== null || $stage['credited'] !== null)
-                                    <p class="lnf-cred">
-                                        @if (app()->getLocale() === 'en' && $stage['credited'] !== null)
-                                            <span class="lnf-cred-full">{{ $stage['credited'] }}</span><span class="lnf-cred-short">{{ $stage['credit'] ?? $stage['credited'] }}</span>
-                                        @else
-                                            <span>{{ $stage['credit'] ?? $stage['credited'] }}</span>
-                                        @endif
-                                    </p>
+                        <div>
+                            <div class="lnf-go">
+                                {{-- The way in: lesson 1, no account needed, in the app (and it says so). --}}
+                                <a href="{{ $links['start'] }}" class="lnf-try" data-funnel-start><span><b>{{ __('landing.hero.try') }}</b><small>{{ __('landing.hero.try_note') }} · {{ __('landing.paths.app') }}</small></span> <x-site.icon name="arrow" size="18" /></a>
+                                @if ($stage !== null)
+                                    {{-- What a press commits to: the song, how many voices, how long. --}}
+                                    <button type="button" class="lnf-play" data-lnf-play><span class="lnf-orb bubble" aria-hidden="true"><span class="lnf-i-play"><x-site.icon name="play" size="22" /></span><span class="lnf-i-stop"><x-site.icon name="stop" size="22" /></span></span><span class="lnf-play-w"><span class="lnf-i-play">@if ($gameSheet)<x-site.skin :game="__('landing.game.play')" :serious="__('landing.play', ['song' => $song])" />@else{{ __('landing.play', ['song' => $song]) }}@endif</span><span class="lnf-i-stop">{{ __('landing.stop') }}</span><small class="lnf-meta">{{ __('landing.play_meta', ['count' => count($stage['lanes']), 'length' => $stage['seconds']]) }}</small><small class="lnf-load" data-lnf-load data-loading="{{ __('landing.loading') }}" data-failed="{{ __('landing.failed') }}"></small></span></button>
                                 @endif
+                            </div>
+                        </div>
+                        {{-- Find your path: learners, singers making their own a cappella, and leaders preparing a choir,
+                             each with what they get and its one next step, the choir's way in on the first screen. Singers
+                             hear of Hear yourself as a choir while it's live (own_choir). A step into the app says so. --}}
+                        {{-- The learner's line is lesson 1's chord moment: while the onb1 experiment enrols, its control arm
+                             gets no chord moment, so it waits until funnel.js knows this device's arm isn't the control. --}}
+                        @php($chordTest = (($funnel['experiment']['id'] ?? null) === 'onb1') && ($funnel['experiment']['enrol'] ?? false))
+                        <nav class="lnf-paths" aria-labelledby="lnf-paths-h">
+                            <h2 id="lnf-paths-h" class="lnf-paths-h">{{ __('landing.paths.label') }}</h2>
+                            <ul>
+                                @foreach (['learn' => ['/for/learners', false, 'go'], 'make' => ['/for/singers', false, 'go'], 'lead' => ['/for/choir-directors?ref=for-choirs-landing', false, 'go']] as $key => [$href, $inApp, $go])
+                                    <li class="lnf-path lnf-v{{ $loop->iteration === 1 ? 1 : ($loop->iteration === 2 ? 3 : 4) }}">
+                                        <a href="{{ $href }}" data-lnf-path="{{ $key }}"@if ($go !== 'go') data-lnf-go-title @endif>
+                                            <small class="lnf-who">{{ __('landing.paths.'.$key.'.eyebrow') }}@if ($key === 'learn' && filled(__('landing.paths.learn.badge'))) <i class="lnf-badge">{{ __('landing.paths.learn.badge') }}</i>@endif</small>
+                                            <b>{{ __('landing.paths.'.$key.'.who') }}</b>
+                                            <span @if ($key === 'learn' && $chordTest) hidden data-variant-except="onb1-a" @endif>{{ __('landing.paths.'.$key.'.what') }}</span>
+                                            <em>{{ __('landing.paths.'.$key.'.'.$go) }}@if ($inApp) <small class="lnf-app">{{ __('landing.paths.app') }}</small>@endif <x-site.icon name="arrow" size="16" /></em>
+                                        </a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </nav>
+                    </div>
+                    @if ($stage !== null)
+                        <div class="lnf-foot">
+                            {{-- Who wrote it and who is heard: the recording's whole credit where there's room (it is
+                                 written in English), the singers' line otherwise. --}}
+                            @if ($stage['credit'] !== null || $stage['credited'] !== null)
+                                <p class="lnf-cred">
+                                    @if (app()->getLocale() === 'en' && $stage['credited'] !== null)
+                                        <span class="lnf-cred-full">{{ $stage['credited'] }}</span><span class="lnf-cred-short">{{ $stage['credit'] ?? $stage['credited'] }}</span>
+                                    @else
+                                        <span>{{ $stage['credit'] ?? $stage['credited'] }}</span>
+                                    @endif
+                                </p>
+                            @endif
+                        </div>
+                    @endif
+                </section>
+
+                {{-- The four lanes, in every scene of the stage: a lane is one button (hear this voice alone, again for
+                     all four), its notes as glass gems with their syllables, and the way to learn that part. --}}
+                @if ($stage !== null)
+                    <div class="lnf-world">
+                        <div class="lnf-deck" role="group" aria-label="{{ __('landing.voices') }}" data-lnf-lanes>
+                            @foreach ($stage['lanes'] as $lane)
+                                <div class="lnf-ln lnf-v{{ $lane['n'] }}" data-learn="{{ $lane['learn'] }}" data-voice="{{ $lane['key'] }}" data-name="{{ mb_strtolower($lane['name']) }}" data-title="{{ $lane['name'] }}" data-join="{{ $stage['joins'][$lane['key']] ?? 0 }}">
+                                    <button type="button" class="lnf-hit" data-hear-alone aria-pressed="false" aria-label="{{ __('pages.landing.hero.hear_only', ['part' => mb_strtolower($lane['name'])]) }}" data-label="{{ __('pages.landing.hero.hear_only', ['part' => mb_strtolower($lane['name'])]) }}" data-label-back="{{ __('pages.landing.hero.hear_all_back') }}"></button>
+                                    <div class="lnf-tr" aria-hidden="true">
+                                        @foreach ($lane['notes'] as $note)
+                                            <span class="lnf-g gem-note" data-b="{{ $note['beat'] }}" data-l="{{ $note['length'] }}" style="--b: {{ $note['beat'] }}; --l: {{ $note['length'] }}; --y: {{ $note['y'] }}"><span class="gem-word">{{ $note['text'] }}</span></span>
+                                        @endforeach
+                                        {{-- Your pitch as Sing draws it, shown in the Sing along scene, up to where the song is. --}}
+                                        @if ($loop->first && $lane['trace'] !== '')
+                                            <span class="lnf-trace"><svg viewBox="0 0 {{ $stage['beats'] }} 1" preserveAspectRatio="none" focusable="false"><path d="{{ $lane['trace'] }}" /></svg></span>
+                                        @endif
+                                    </div>
+                                    {{-- The lane's words and its control. The name and role are plain words; the chips say
+                                         where the story is, as flat tags; Solo is drawn as a control (the lane itself is the
+                                         button, so the whole lane answers a tap; pressed, it says "Solo on"). The lane's
+                                         button already names the voice, so this is for the eye only. --}}
+                                    <div class="lnf-lb" aria-hidden="true">
+                                        <b><span class="lnf-orb bubble bubble-sm">{{ mb_substr($lane['name'], 0, 1) }}</span>{{ $lane['name'] }}<i class="lnf-mt"><i></i><i></i><i></i><i></i></i></b>
+                                        <small>{{ __('pages.landing.hero.roles.'.$lane['key']) }}</small>
+                                        <span class="lnf-do">
+                                            <span class="lnf-solo"><x-site.icon name="headphones" size="14" /><span class="lnf-solo-off">{{ __('landing.solo') }}</span><span class="lnf-solo-on">{{ __('landing.solo_on') }}</span></span>
+                                        </span>
+                                        @if ($loop->first)
+                                            <span class="lnf-chip" data-chip="2">{{ __('landing.sing.chip') }}</span>
+                                        @endif
+                                        @if ($loop->iteration === 3)
+                                            <span class="lnf-chip lnf-chip-rec" data-chip="3">{{ __('pages.landing.steps.record.recording') }}</span>
+                                        @else
+                                            <span class="lnf-chip" data-chip="{{ $loop->iteration < 3 ? '3 4' : '4' }}">{{ __('pages.landing.steps.voice.you') }}</span>
+                                        @endif
+                                        @if ($loop->iteration === 3)
+                                            <span class="lnf-chip" data-chip="4">{{ __('pages.landing.steps.voice.you') }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                            <i class="lnf-beam" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                    {{-- What is being heard, as the song builds: who sings, who has just joined, then all four (the
+                         script writes it and tells a screen reader the same words). --}}
+                    <p class="lnf-now" aria-hidden="true" data-lnf-now data-first="{{ __('landing.build.first', ['part' => ':part']) }}" data-join="{{ __('landing.build.join', ['part' => ':part']) }}" data-all="{{ __('landing.build.all') }}" data-alone="{{ __('landing.build.alone', ['part' => ':part']) }}"></p>
+                @endif
+
+                {{-- 1 to 4, the story: the app's four steps, in its own words. --}}
+                @php($steps = [1 => ['hear', __('landing.hear.body')], 2 => ['sing', __('pages.landing.steps.voice.body')], 3 => ['record', __('pages.landing.steps.record.body')], 4 => ['share', __('pages.landing.steps.share.body')]])
+                @php($first = $stage['lanes'][0] ?? null)
+                @foreach ($steps as $n => [$key, $body])
+                    <section class="lnf-sc lnf-story" id="lnf-s{{ $n }}" data-s="{{ $n }}" aria-labelledby="lnf-h{{ $n }}">
+                        <div class="lnf-cap">
+                            <div>
+                                <p class="lnf-kick"><span class="lnf-bars" aria-hidden="true">@for ($i = 1; $i <= 4; $i++)<i @class(['lnf-on' => $i <= $n])></i>@endfor</span>{{ __('landing.solo_scene.kick') }} · @if ($gameSheet)<x-site.skin :game="__('landing.game.step', ['n' => $n])" :serious="__('landing.step', ['n' => $n])" />@else{{ __('landing.step', ['n' => $n]) }}@endif</p>
+                                <h2 id="lnf-h{{ $n }}" class="lnf-h2">{{ __('landing.'.$key.'.before') }} <em>{{ __('landing.'.$key.'.em') }}</em> {{ __('landing.'.$key.'.after') }}</h2>
+                            </div>
+                            <div>
+                                <p class="lnf-say">{{ $body }}</p>
+                                {{-- The way to learn the voice last heard alone (the script renames it; the melody's until one
+                                     is). A voice is heard alone by its lane's Solo, so the scene needs no button of its own;
+                                     Hear yourself as a choir is the Singers' step in the first screen, said there once. --}}
+                                @if ($first !== null && ($n === 1 || $n === 2))
+                                    <div class="lnf-go">
+                                        <a href="{{ $first['learn'] }}" class="lnf-arrow" data-lnf-learn data-label="{{ __('landing.learn', ['part' => ':part']) }}"><span>{{ __('landing.learn', ['part' => mb_strtolower($first['name'])]) }}</span> <small class="lnf-app">{{ __('landing.paths.app') }}</small> <x-site.icon name="arrow" size="16" /></a>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                        {{-- The step's picture: the four lanes as that step shows them, their opening notes as glass (the stage's
+                             own notes, standing still): 1, the tune heard alone; 2, the tune yours to sing, your pitch over it;
+                             3, two parts done and the third being recorded, the bass still to come. --}}
+                        @if ($n <= 3 && $stage !== null)
+                            @php($look = [1 => ['solo' => [1], 'wait' => [2, 3, 4]], 2 => ['wait' => [2, 3, 4], 'grow' => [1], 'chip' => [1 => __('landing.sing.chip')]], 3 => ['wait' => [4], 'grow' => [3], 'chip' => [1 => __('pages.landing.steps.voice.you'), 2 => __('pages.landing.steps.voice.you'), 3 => __('pages.landing.steps.record.recording')]]][$n])
+                            <figure class="lnf-pic lnf-glass" aria-hidden="true">
+                                <div class="lnf-mini">
+                                    @foreach ($stage['lanes'] as $lane)
+                                        <div @class(['lnf-ln', 'lnf-v'.$lane['n']]) @if (in_array($lane['n'], $look['wait'] ?? [], true)) data-wait @endif @if (in_array($lane['n'], $look['solo'] ?? [], true)) data-solo @endif @if (in_array($lane['n'], $look['grow'] ?? [], true)) data-grow @endif>
+                                            <div class="lnf-tr">
+                                                @foreach ($lane['notes'] as $note)
+                                                    @if ($note['beat'] < 13)
+                                                        <span class="lnf-g gem-note" style="--b: {{ $note['beat'] }}; --l: {{ $note['length'] }}; --y: {{ $note['y'] }}"></span>
+                                                    @endif
+                                                @endforeach
+                                                @if ($n === 2 && $loop->first && $lane['trace'] !== '')
+                                                    <span class="lnf-trace" style="--lnf-t: 12"><svg viewBox="0 0 {{ $stage['beats'] }} 1" preserveAspectRatio="none" focusable="false"><path d="{{ $lane['trace'] }}" /></svg></span>
+                                                @endif
+                                            </div>
+                                            <div class="lnf-lb">
+                                                <b><span class="lnf-orb bubble bubble-sm">{{ mb_substr($lane['name'], 0, 1) }}</span>{{ $lane['name'] }}</b>
+                                                @if (in_array($lane['n'], $look['solo'] ?? [], true))
+                                                    <span class="lnf-do"><span class="lnf-solo"><x-site.icon name="headphones" size="14" /><span class="lnf-solo-on">{{ __('landing.solo_on') }}</span></span></span>
+                                                @endif
+                                                @if (isset($look['chip'][$lane['n']]))
+                                                    <span @class(['lnf-chip', 'lnf-chip-rec' => $n === 3 && $lane['n'] === 3])>{{ $look['chip'][$lane['n']] }}</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </figure>
+                        @endif
+                        @if ($n === 2)
+                            {{-- The three ways to practise a part, as Sing offers them: a picture of its control. --}}
+                            <p class="lnf-seg" aria-hidden="true"><span>{{ __('pages.landing.steps.voice.listen') }}</span><span class="lnf-on">{{ __('pages.landing.steps.voice.along') }}</span><span>{{ __('pages.landing.steps.voice.alone') }}</span></p>
+                        @endif
+                        @if ($n === 4)
+                            <div class="lnf-glass lnf-share lnf-pic" aria-hidden="true">
+                                <b>{{ __('pages.landing.steps.share.every', ['song' => $song]) }}</b>
+                                <p>{{ __('landing.share.card') }}</p>
+                                <p class="lnf-orbs">@for ($i = 1; $i <= 4; $i++)<span class="lnf-orb bubble lnf-v{{ $i }}">{{ __('pages.landing.steps.voice.you') }}</span>@endfor</p>
+                                <p class="lnf-pair"><span>{{ __('pages.landing.steps.share.link') }}</span><span>{{ __('pages.landing.steps.share.video') }}</span></p>
                             </div>
                         @endif
                     </section>
-
-                    {{-- The four lanes, in every scene of the stage: a lane is one button (hear this voice alone, again for
-                         all four), its notes as glass gems with their syllables, and the way to learn that part. --}}
-                    @if ($stage !== null)
-                        <div class="lnf-world">
-                            <div class="lnf-deck" role="group" aria-label="{{ __('landing.voices') }}" data-lnf-lanes>
-                                @foreach ($stage['lanes'] as $lane)
-                                    <div class="lnf-ln lnf-v{{ $lane['n'] }}" data-learn="{{ $lane['learn'] }}" data-voice="{{ $lane['key'] }}" data-name="{{ mb_strtolower($lane['name']) }}" data-title="{{ $lane['name'] }}" data-join="{{ $stage['joins'][$lane['key']] ?? 0 }}">
-                                        <button type="button" class="lnf-hit" data-hear-alone aria-pressed="false" aria-label="{{ __('pages.landing.hero.hear_only', ['part' => mb_strtolower($lane['name'])]) }}" data-label="{{ __('pages.landing.hero.hear_only', ['part' => mb_strtolower($lane['name'])]) }}" data-label-back="{{ __('pages.landing.hero.hear_all_back') }}"></button>
-                                        <div class="lnf-tr" aria-hidden="true">
-                                            @foreach ($lane['notes'] as $note)
-                                                <span class="lnf-g gem-note" data-b="{{ $note['beat'] }}" data-l="{{ $note['length'] }}" style="--b: {{ $note['beat'] }}; --l: {{ $note['length'] }}; --y: {{ $note['y'] }}"><span class="gem-word">{{ $note['text'] }}</span></span>
-                                            @endforeach
-                                            {{-- Your pitch as Sing draws it, shown in the Sing along scene, up to where the song is. --}}
-                                            @if ($loop->first && $lane['trace'] !== '')
-                                                <span class="lnf-trace"><svg viewBox="0 0 {{ $stage['beats'] }} 1" preserveAspectRatio="none" focusable="false"><path d="{{ $lane['trace'] }}" /></svg></span>
-                                            @endif
-                                        </div>
-                                        {{-- The lane's words and its control. The name and role are plain words; the chips say
-                                             where the story is, as flat tags; Solo is drawn as a control (the lane itself is the
-                                             button, so the whole lane answers a tap; pressed, it says "Solo on"). The lane's
-                                             button already names the voice, so this is for the eye only. --}}
-                                        <div class="lnf-lb" aria-hidden="true">
-                                            <b><span class="lnf-orb bubble bubble-sm">{{ mb_substr($lane['name'], 0, 1) }}</span>{{ $lane['name'] }}<i class="lnf-mt"><i></i><i></i><i></i><i></i></i></b>
-                                            <small>{{ __('pages.landing.hero.roles.'.$lane['key']) }}</small>
-                                            <span class="lnf-do">
-                                                <span class="lnf-solo"><x-site.icon name="headphones" size="14" /><span class="lnf-solo-off">{{ __('landing.solo') }}</span><span class="lnf-solo-on">{{ __('landing.solo_on') }}</span></span>
-                                            </span>
-                                            @if ($loop->first)
-                                                <span class="lnf-chip" data-chip="2">{{ __('landing.sing.chip') }}</span>
-                                            @endif
-                                            @if ($loop->iteration === 3)
-                                                <span class="lnf-chip lnf-chip-rec" data-chip="3">{{ __('pages.landing.steps.record.recording') }}</span>
-                                            @else
-                                                <span class="lnf-chip" data-chip="{{ $loop->iteration < 3 ? '3 4' : '4' }}">{{ __('pages.landing.steps.voice.you') }}</span>
-                                            @endif
-                                            @if ($loop->iteration === 3)
-                                                <span class="lnf-chip" data-chip="4">{{ __('pages.landing.steps.voice.you') }}</span>
-                                            @endif
-                                        </div>
-                                    </div>
-                                @endforeach
-                                <i class="lnf-beam" aria-hidden="true"></i>
-                            </div>
-                        </div>
-                        {{-- What is being heard, as the song builds: who sings, who has just joined, then all four (the
-                             script writes it and tells a screen reader the same words). --}}
-                        <p class="lnf-now" aria-hidden="true" data-lnf-now data-first="{{ __('landing.build.first', ['part' => ':part']) }}" data-join="{{ __('landing.build.join', ['part' => ':part']) }}" data-all="{{ __('landing.build.all') }}" data-alone="{{ __('landing.build.alone', ['part' => ':part']) }}"></p>
-                    @endif
-
-                    {{-- 1 to 4, the story: the app's four steps, in its own words. --}}
-                    @php($steps = [1 => ['hear', __('landing.hear.body')], 2 => ['sing', __('pages.landing.steps.voice.body')], 3 => ['record', __('pages.landing.steps.record.body')], 4 => ['share', __('pages.landing.steps.share.body')]])
-                    @php($first = $stage['lanes'][0] ?? null)
-                    @foreach ($steps as $n => [$key, $body])
-                        <section class="lnf-sc" id="lnf-s{{ $n }}" data-s="{{ $n }}" aria-labelledby="lnf-h{{ $n }}">
-                            <div class="lnf-cap">
-                                <div>
-                                    <p class="lnf-kick"><span class="lnf-bars" aria-hidden="true">@for ($i = 1; $i <= 4; $i++)<i @class(['lnf-on' => $i <= $n])></i>@endfor</span>{{ __('landing.solo_scene.kick') }} · @if ($gameSheet)<x-site.skin :game="__('landing.game.step', ['n' => $n])" :serious="__('landing.step', ['n' => $n])" />@else{{ __('landing.step', ['n' => $n]) }}@endif</p>
-                                    <h2 id="lnf-h{{ $n }}" class="lnf-h2">{{ __('landing.'.$key.'.before') }} <em>{{ __('landing.'.$key.'.em') }}</em> {{ __('landing.'.$key.'.after') }}</h2>
-                                </div>
-                                <div>
-                                    <p class="lnf-say">{{ $body }}</p>
-                                    {{-- The way to learn the voice last heard alone (the script renames it; the melody's until one
-                                         is). A voice is heard alone by its lane's Solo, so the scene needs no button of its own;
-                                         Hear yourself as a choir is the Singers' step in the first screen, said there once. --}}
-                                    @if ($first !== null && ($n === 1 || $n === 2))
-                                        <div class="lnf-go">
-                                            <a href="{{ $first['learn'] }}" class="lnf-arrow" data-lnf-learn data-label="{{ __('landing.learn', ['part' => ':part']) }}"><span>{{ __('landing.learn', ['part' => mb_strtolower($first['name'])]) }}</span> <small class="lnf-app">{{ __('landing.paths.app') }}</small> <x-site.icon name="arrow" size="16" /></a>
-                                        </div>
-                                    @endif
-                                </div>
-                            </div>
-                            @if ($n === 2)
-                                {{-- The three ways to practise a part, as Sing offers them: a picture of its control. --}}
-                                <p class="lnf-seg" aria-hidden="true"><span>{{ __('pages.landing.steps.voice.listen') }}</span><span class="lnf-on">{{ __('pages.landing.steps.voice.along') }}</span><span>{{ __('pages.landing.steps.voice.alone') }}</span></p>
-                            @endif
-                            @if ($n === 4)
-                                <div class="lnf-glass lnf-share" aria-hidden="true">
-                                    <b>{{ __('pages.landing.steps.share.every', ['song' => $song]) }}</b>
-                                    <p>{{ __('landing.share.card') }}</p>
-                                    <p class="lnf-orbs">@for ($i = 1; $i <= 4; $i++)<span class="lnf-orb bubble lnf-v{{ $i }}">{{ __('pages.landing.steps.voice.you') }}</span>@endfor</p>
-                                    <p class="lnf-pair"><span>{{ __('pages.landing.steps.share.link') }}</span><span>{{ __('pages.landing.steps.share.video') }}</span></p>
-                                </div>
-                            @endif
-                        </section>
-                    @endforeach
-
-                    <nav class="lnf-dots" aria-label="{{ __('landing.scenes') }}" data-lnf-dots>
-                        @for ($i = 0; $i < $pinned; $i++)
-                            <a href="#lnf-at-{{ $i }}" aria-label="{{ __('landing.scene', ['n' => $i + 1, 'count' => $pinned]) }}" @if ($i === 0) aria-current="true" @endif></a>
-                        @endfor
-                    </nav>
-                </div>
-                {{-- One screen of scroll for each of the stage's scenes: where the page rests, and what the dots lead to. --}}
-                <div class="lnf-snaps" aria-hidden="true">
-                    @for ($i = 0; $i < $pinned; $i++)
-                        <div id="lnf-at-{{ $i }}"></div>
-                    @endfor
-                </div>
+                @endforeach
             </div>
 
-            {{-- From here the page scrolls like a page. --}}
+            {{-- Then free, the plans and the questions, the finale. --}}
             <div class="lnf-tail" data-lnf-tail>
                 {{-- 5, free to learn: what there is, by its real numbers, each a way in; then the first step. --}}
                 <section class="lnf-sc" id="lnf-s5" data-s="5" aria-labelledby="lnf-h5">
@@ -327,7 +349,7 @@
                                 <p class="lnf-note">{{ __('pages.landing.plans_free_note') }}</p>
                                 <ul>
                                     {{-- Every course is free, one line; the beginner course alone until the courses open (plus_courses), as on /pricing. --}}
-                                    @foreach (\App\Support\Pages\Landing::list('plans_free_list', $replace) as $line)
+                                    @foreach (\App\Support\Pages\Landing::list('plans_free_list', $replace, ai: false) as $line)
                                         <li><x-site.icon name="check" size="16" />{{ $loop->first && ! app(\App\Support\Flags::class)->on('plus_courses') ? __('pages.landing.plans_free_beginner') : $line }}</li>
                                     @endforeach
                                 </ul>
@@ -338,7 +360,7 @@
                                 <p class="lnf-price">{{ $price['month'] }} <small>{{ __('pages.landing.plans_month') }}</small></p>
                                 <p class="lnf-note">{{ __('pages.landing.plans_or_year', ['year' => $price['year']]) }} @unless ($plans['checkoutOpen']){{ __('pages.landing.plans_paused') }}@endunless</p>
                                 <ul>
-                                    @foreach (\App\Support\Pages\Landing::list('plans_plus_list') as [$gain, $fact])
+                                    @foreach (\App\Support\Pages\Landing::list('plans_plus_list', ai: false) as [$gain, $fact])
                                         <li><x-site.icon name="check" size="16" /><span><b>{{ $gain }}</b> {{ strtr($fact, $replace) }}</span></li>
                                     @endforeach
                                 </ul>

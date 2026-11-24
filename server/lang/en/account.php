@@ -4,6 +4,24 @@ declare(strict_types=1);
 
 return [
     'mail' => [
+        'choir_ready' => [
+            'subject' => 'Your choir is ready: :song',
+            'title' => 'Your choir is ready',
+            'body' => 'Your *:song* choir is ready: every part sung by an AI voice made from your singing.',
+            'button' => 'Listen to your choir',
+            'footer' => 'One email per choir, only if you haven\'t heard it. Turn these off: :unsubscribe',
+            'because' => 'you asked for an AI choir in Stackapella',
+        ],
+        'choir_failed' => [
+            'subject' => 'Your :song choir couldn\'t be made',
+            'title' => 'Your choir couldn\'t be made',
+            'body' => 'Your *:song* choir couldn\'t be made this time.',
+            'take' => 'Your recording couldn\'t be used. The app says why, and how to sing it again.',
+            'ours' => 'Something went wrong on our side.',
+            'given_back' => 'It didn\'t use your free choir or your minutes.',
+            'button' => 'See what to do',
+            'because' => 'you asked for an AI choir in Stackapella',
+        ],
         'hello' => 'Hi :name,',
         'hello_plain' => 'Hi,',
         'ignore_lead' => 'Didn\'t ask for this?',

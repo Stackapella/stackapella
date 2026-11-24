@@ -727,6 +727,9 @@ return [
     // director's view, four steps, no group yet, three questions. True to the live switches: plus_teams on (starting a
     // group takes Plus), choir_seats off (seats.php says it for seats), groups 18 and over, the first song's tracks free.
     'for_directors' => [
+        // The page names its people (Hillel, 2026-11-23: "For learners" / "For singers" / "For choir directors"); the
+        // headline is the promise under it.
+        'h1' => 'For choir directors',
         'eyebrow' => 'For choir directors',
         'headline' => 'Rehearsals that start with the notes learned.',
         'lead' => 'Start a group for your choir and ask for one song you\'re rehearsing. We make part-by-part learning tracks for your singers, free. Each singer learns their part at home, and you see who\'s ready.',
@@ -761,6 +764,7 @@ return [
             ['What does it cost?', 'Nothing. Starting a group is free, your singers never pay, and your first song\'s learning tracks are free.'],
             ['How do I ask for learning tracks?', 'From your group\'s page: tap Ask us under "Want learning tracks of a piece you\'re rehearsing?". Rather email? Send us the song, your choir\'s parts and when you\'re rehearsing it; a score helps, as a PDF or MusicXML.'],
             ['Can I hear my singers\' recordings?', 'No. You see who has started and who has recorded their part, never the recordings themselves or their contact details.'],
+            ['Is it for choir leaders and choirmasters too?', 'Yes: anyone who leads a choir, at church, school or in the community, whatever the title.'],
         ],
         'end' => [
             'title' => 'Ask for one song you\'re rehearsing.',
@@ -882,8 +886,8 @@ return [
                 'try_note' => 'Start a group, then ask for learning tracks from its page. Rather email? Write to us with the song and your choir\'s parts.',
                 'name' => 'Choir directors',
                 'summary' => 'Learning tracks of your songs, and see who has started.',
-                'title' => 'Choir learning tracks, one song free',
-                'description' => 'Ask for one song your choir is rehearsing and we\'ll make part-by-part learning tracks for your singers, free. You see who has started and recorded their part.',
+                'title' => 'Learning Tracks for Choir Directors',
+                'description' => 'For choir directors, choir leaders and choirmasters: ask for one song you\'re rehearsing, and we\'ll make part-by-part learning tracks for your singers, free.',
                 'headline' => 'Rehearsals that start with the notes learned',
                 'lead' => 'Start a group for your choir, ask for one song you\'re rehearsing, and we\'ll make part-by-part learning tracks for your singers, free. Each singer learns their part at home, and you see who\'s ready.',
                 'sections' => [
@@ -1300,6 +1304,41 @@ return [
             // Organizations (Hillel, 2026-11-02: "Yes, build it"): the outreach partner offer
             // (docs/outreach-plan.md) in plain words, only what's built. Not in the "Who it's for" band,
             // so a singer's first week never meets it; outreach links reach it from a quiet line.
+            // The home's paths with pages of their own (Hillel, 2026-11-23; App\Support\Site\PathPages, site/for-path):
+            // marketing's words. Each section's `lines` entry is its one line under the heading (none under "better": the
+            // course page's own words are the section); `labels` head the card groups; `also` links the narrower page.
+            'learners' => [
+                'pic' => 'course',
+                'name' => 'Learners',
+                'summary' => '',
+                'h1' => 'For learners',
+                'headline' => 'Discover harmony, even on your own.',
+                'lead' => 'Hear each part on its own, then sing yours with a guide voice, until you hear how the parts fit.',
+                'start' => 'Try lesson 1, free',
+                'title' => 'Learn Harmony Singing on Your Own',
+                'description' => 'Harmony is hard to learn alone. Hear each part on its own, sing yours with a guide voice, and hear how the parts fit. Free courses, no music reading.',
+                'heads' => ['hear' => 'Hear each part.', 'sing' => 'Sing yours with a guide.', 'better' => 'Hear yourself get better.', 'faq' => 'Questions'],
+                'lines' => ['hear' => 'Start with songs you know, and guides on how the parts fit.', 'sing' => 'A guide voice sings your part with you, and the courses build it step by step.', 'better' => ''],
+                'labels' => ['songs' => 'Songs to start with', 'courses' => 'Courses'],
+                'also' => 'Never sung at all? See the page for complete beginners.',
+                'end' => ['title' => 'Hear how the parts fit.', 'body' => 'Lesson 1 is free, with no account to start.'],
+            ],
+            'singers' => [
+                'pic' => 'stack',
+                'name' => 'Singers',
+                'summary' => '',
+                'h1' => 'For singers',
+                'headline' => 'This song is yours.',
+                'lead' => 'Record every part yourself, in time, until the whole song is you.',
+                'start' => 'Record your first part',
+                'title' => 'Record Yourself Singing Every Part of a Song',
+                'description' => 'Sing every part of a song yourself: record each one over the others, exactly in time, mix them, and share the whole song. Free in your browser.',
+                'heads' => ['pick' => 'Pick a song.', 'record' => 'Record each part over the others.', 'mix' => 'Line them up and mix.', 'share' => 'Share the whole song.', 'faq' => 'Questions'],
+                'lines' => ['pick' => 'Every song in the library has its parts written out, ready to sing.', 'record' => 'Each take plays under the next. The courses make the harder parts easier.', 'mix' => 'Check your mic and timing once, and every part lands in time.', 'share' => 'Share it as a link or a video, or sing it with friends.'],
+                'labels' => ['courses' => 'Courses', 'tools' => 'Tools singers use', 'friends' => 'Sing it with friends'],
+                'also' => 'Like the a cappella sound? Stack your own harmonies.',
+                'end' => ['title' => 'Start with one part.', 'body' => 'Amazing Grace opens in the app: record one part, then the next over it.'],
+            ],
             'organizations' => [
                 'try' => ['Write to us', 'mailto::partners_email?subject=Partner%20offer'],
                 'try_note' => 'A plain email to us, answered by a person.',
@@ -1393,17 +1432,19 @@ return [
     // not found until the own_choir switch is on. Built on the angle: a real arrangement, any song from 30 seconds of
     // singing, learning your part, the ethics up front. AI said plainly, never first. No prices until Hillel sets them.
     'your_choir' => [
+        // The link card's own headline (YourChoirStage::cards): the page's H1 is too long for a card.
+        'card' => ['headline_before' => 'You, as a', 'headline_em' => 'whole choir'],
         'title' => 'Hear yourself as a choir',
-        // The <title> and og:title of /ai-singing, with the words people search for; `title` stays the page's visible name
+        // The <title> and og:title of the AI landing, with the words people search for; `title` stays the page's visible name
         // (marketing, 2026-11-23).
-        'meta_title' => 'AI Singing: Hear Yourself as a Choir',
-        'description' => 'AI singing in a voice like yours: sing 30 seconds of a song you know, then hear a real choir arrangement with every part sung by AI. Your first song is free.',
-        'eyebrow' => 'Hear yourself as a choir',
+        'meta_title' => 'AI Harmony Singing: Hear Yourself as a Choir',
+        'description' => 'AI harmony singing in a voice like yours: sing 30 seconds of a song you know and hear a real choir arrangement, every part sung by AI. First song free.',
+        'eyebrow' => 'AI harmony singing',
         // The headline in two, its key phrase in the warm accent (design rules, the five pages' headline).
-        'headline_before' => 'You, as a',
-        'headline_em' => 'whole choir',
+        'headline_before' => 'Sing 30 seconds, and hear yourself as a',
+        'headline_em' => 'whole choir.',
         // `lead` without own_choir_hum, `lead_hum` with it (the hummed-song path's own switch).
-        'lead' => 'Sing about 30 seconds of a song you know, like Happy Birthday or Silent Night, and hear that song come back as a whole choir, every part sung by AI in a voice like yours. Your first choir is free; more songs from our library come with Plus.',
+        'lead' => 'AI harmony from a real choir arrangement: sing about 30 seconds of a song you know, like Happy Birthday or Silent Night, and hear every part sung by AI in a voice like yours. Your first choir is free; more songs from our library come with Plus.',
         'lead_hum' => 'Sing about 30 seconds of a song you know, like Happy Birthday or Silent Night, and hear that song come back as a whole choir, every part sung by AI in a voice like yours. Your first choir is free; more songs from our library, or a tune you hum, come with Plus.',
         'start' => 'Try it with Silent Night',
         // The hero's main button on the page without the audio demo (Hillel: "support starting track B without A"); the
@@ -1440,7 +1481,7 @@ return [
         'now' => ['real' => ':name, really singing :song', 'two' => 'AI: :song\'s tune and harmony', 'four' => 'AI: all four parts'],
         'live' => ['playing' => 'Playing: one voice becoming a choir', 'stopped' => 'Stopped'],
         'ways' => [
-            'title' => 'The songs you can choose',
+            'title' => 'AI harmony on real choir arrangements',
             'title_hum' => 'A song from our library, or one you make',
             'library' => ['kick' => 'From our library', 'heading' => 'Real arrangements', 'body' => 'Not harmonies made up around a tune: the soprano, alto, tenor and bass a choir actually sings, arranged from songs in the public domain.', 'all' => 'See every song'],
             // A song you make sings the words you give it, else "oo" (Hillel, 2026-11-20: "definiety allow typed words").

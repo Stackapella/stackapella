@@ -313,22 +313,23 @@ final class Landing
     }
 
     /**
-     * A list of lines from the landing's words (the plans' lists).
+     * A list of lines from the landing's words (the plans' lists). Without `$ai`, nothing of songs sung by AI: the home
+     * says nothing of AI (Hillel, 2026-11-23; /ai-harmony-singing is the page for it), /pricing still lists them.
      *
      * @param  array<string, string>  $replace
      * @return list<mixed>
      */
-    public static function list(string $key, array $replace = []): array
+    public static function list(string $key, array $replace = [], bool $ai = true): array
     {
         // Plus's features, from the one list every page reads (PlusFeatures: the switches' lines included).
         if ($key === 'plans_plus_list') {
-            return PlusFeatures::items();
+            return PlusFeatures::items($ai);
         }
 
         $lines = array_values((array) Teams::words('pages.landing.'.$key));
         // Songs sung by AI in a voice like yours, while own_choir is on (the marketing review, 2026-11-22): the free song
         // after Free's lines, Plus's songs first on Plus.
-        if (SongParts::switchedOn('own_choir')) {
+        if ($ai && SongParts::switchedOn('own_choir')) {
             $lines = match ($key) {
                 'plans_free_list' => [...$lines, (string) __('pages.landing.plans_free_choir')],
                 default => $lines,

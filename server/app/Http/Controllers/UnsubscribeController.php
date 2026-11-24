@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Actions\Counts\RecordCounts;
 use App\Actions\Mudeo\MudeoList;
 use App\Models\MudeoContact;
 use App\Models\User;
@@ -63,6 +64,25 @@ final class UnsubscribeController extends Controller
         User::query()->whereKey(Ids::decode($user) ?? 0)->update(['idea_emails' => false]);
 
         return response()->view('pages.idea-emails-off', ['title' => __('ideas.unsubscribe.done_title'), 'done' => true, 'action' => null], 200, self::HEADERS);
+    }
+
+    /**
+     * The choir's ready email: the button, and its POST (or the mail provider's one click) turns them off.
+     */
+    public function showChoir(Request $request, string $user): Response
+    {
+        $found = User::query()->find(Ids::decode($user) ?? 0);
+
+        return response()->view('pages.choir-emails-off', ['title' => __('own_choir.email_off.title'), 'done' => $found === null || ! $found->choir_email, 'action' => $request->fullUrl()], 200, self::HEADERS);
+    }
+
+    public function storeChoir(string $user): Response
+    {
+        if (User::query()->whereKey(Ids::decode($user) ?? 0)->where('choir_email', true)->update(['choir_email' => false]) === 1) {
+            app(RecordCounts::class)->serverAmount('choir_email_off', 1);
+        }
+
+        return response()->view('pages.choir-emails-off', ['title' => __('own_choir.email_off.done_title'), 'done' => true, 'action' => null], 200, self::HEADERS);
     }
 
     private function contact(string $sqid): ?MudeoContact

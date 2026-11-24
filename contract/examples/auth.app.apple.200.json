@@ -76,7 +76,8 @@
                 "acceptedAt": "2026-10-29T10:00:00Z"
             },
             "aiFeatures": null,
-            "ageBand": null
+            "ageBand": null,
+            "choirEmail": true
         }
     }
 }

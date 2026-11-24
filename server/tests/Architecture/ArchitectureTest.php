@@ -169,6 +169,7 @@ final class ArchitectureTest extends TestCase
         'Mail/Account/ConfirmNewEmail.php' => 'the new address, when someone changes their email',
         'Mail/Account/EmailChanging.php' => 'the old address, when someone changes their email (with an undo link)',
         'Mail/Account/GrowthViewerInvite.php' => 'an advisor\'s address, once, when staff grant it view-only access from a console',
+        'Mail/Account/ChoirReadyMail.php' => 'the account, once a choir song, when it\'s ready or couldn\'t be made and isn\'t heard yet (choir emails on)',
         'Mail/Account/NewSignIn.php' => 'the account, on a sign-in from a device it has not seen',
         'Mail/Account/ExportReady.php' => 'whoever asked for their data, when it is ready',
         'Mail/Account/RecoveredBySupport.php' => 'the old address, when support helped its owner back in',

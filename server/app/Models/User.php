@@ -49,6 +49,7 @@ use Laravel\Passkeys\PasskeyAuthenticatable;
  * @property Carbon|null $ai_features_at
  * @property string|null $ai_features_source card, settings, ai-singing or existing
  * @property string|null $age_band the band kept from the first birth date given (Age::BANDS)
+ * @property bool $choir_email email me when my choir is ready (on by default)
  * @property string|null $country the latest country signed in from (Country)
  * @property Carbon|null $board_global_at when they chose to show on the global part leaderboards (18+)
  * @property Carbon|null $coach_active_at
@@ -217,6 +218,7 @@ final class User extends Authenticatable implements PasskeyUser
             'reminder_enabled' => 'boolean',
             'hide_profile' => 'boolean',
             'idea_emails' => 'boolean',
+            'choir_email' => 'boolean',
             'apple_refresh_token' => 'encrypted',
             'apple_web_refresh_token' => 'encrypted',
             'store_plus_until' => 'datetime',

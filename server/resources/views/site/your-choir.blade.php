@@ -1,18 +1,20 @@
-{{-- Hear yourself as a choir (/your-choir and /es/your-choir; docs/ai-voices-build-plan.md, phase 3's launch page). Hillel,
+{{-- Hear yourself as a choir, the AI landing (/ai-harmony-singing and /es/armonias-con-ia, once /your-choir, which 301s here; Hillel,
+     2026-11-23: the home says nothing of AI; docs/ai-voices-build-plan.md, phase 3's launch page). Hillel,
      2026-11-20: "I want it really impressive, as immersive as our home page: something immersive to experience one real
      voice becoming 2 fake ones". Not found until the own_choir switch is on (an admin's device sees it first, noindex).
      Its own document, as the home page is (not the public layout): its own sheet (css/your-choir.css, every class .yc-*,
      the app's glass copied in by tool/glass_copy.py; the footer is the site's own component, dressed there) and its own
      script (js/public/your-choir.js). Calm light and dark only: a game-mode visitor sees the calm page.
-     The first scenes are one stage that fills the screen and stays (App\Support\Pages\YourChoirStage, from the demo's own
+     The page scrolls like a page (Hillel, 2026-11-23: "when you scroll, you just scroll like a normal page"): the first
+     screen's words, the lanes once under them (App\Support\Pages\YourChoirStage, from the demo's own
      voices, VoiceDemo, which keeps its gating): a singer's real recording on one lane ("really singing"), then the AI
      voice made from her singing splitting into Silent Night's tune and harmony, two lanes, each plainly AI, then the
      whole choir when all four parts are there, then "now yours". One player on the audio clock plays them in that order;
-     scrolling changes the picture, never the sound, and a lane is lit only while its voice sounds. Without every voice
-     the stage has no demo: the headline and "now yours" only, unpinned. After the stage the page scrolls: the ways in
+     each scene below is a section with its own picture of its lanes (site._yc-mini); scrolling never changes the sound, and a lane is lit only while its voice sounds. Without every voice
+     the stage has no demo: the headline and "now yours" only. Then the ways in
      (the library, and a song of your own once its switch is on, `own`), what happens to your voice, the questions, the
-     close. Every scene's words are here, in order, so the page reads and paints with no script; with reduced motion (or
-     no script) nothing is pinned and the scenes are still panels. --}}
+     close. Every scene's words are here, in order, so the page reads and paints with no script; with reduced motion
+     nothing rises or slides. --}}
 @php($web = (string) config('app.web_path'))
 {{-- Without the demo's voices the stage is a picture (YourChoirStage::picture, Hillel, 2026-11-21: "lets support starting
      track B without A ... so there aren't samples"): the arrangement's notes as lanes, no sound, no singer: one voice line
@@ -33,7 +35,7 @@
     <title>{{ $title }}</title>
     @include('pages._head')
     <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml">
-    <meta name="theme-color" content="#050403">
+    <meta name="theme-color" content="#050403" data-dark="#050403" data-light="#f5eee1">
     @if (config('hosts.pass_domain'))
         <meta name="theme-cookie-domain" content="{{ config('hosts.pass_domain') }}">
     @endif
@@ -95,9 +97,6 @@
                                 <p class="yc-note">{{ __('site.your_choir.start_note') }}</p>
                             </div>
                         </div>
-                        @if ($stage !== null || $pic)
-                            <p class="yc-cue" aria-hidden="true">{{ __('site.your_choir.stage.scroll') }} <x-site.icon name="chevron" size="14" /></p>
-                        @endif
                     </section>
 
                     @if ($pic)
@@ -113,6 +112,7 @@
                                 </div>
                                 <p class="yc-say">{{ __('site.your_choir.picture.two.body') }}</p>
                             </div>
+                            @include('site._yc-mini', ['lanes' => $picture['parts'], 'chip' => __('site.your_choir.stage.ai_chip')])
                         </section>
 
                         {{-- You + choir: the singer's own recording as the lead, the AI parts around it (the voice line becomes
@@ -127,6 +127,7 @@
                                 </div>
                                 <p class="yc-say">{{ __('site.your_choir.lead_scene.body') }}</p>
                             </div>
+                            @include('site._yc-mini', ['you' => ['name' => __('site.your_choir.lead_scene.you'), 'chip' => __('site.your_choir.lead_scene.you_chip'), 'notes' => $picture['you']['notes']], 'lanes' => $picture['parts'], 'keep' => ['alto', 'tenor', 'bass'], 'chip' => __('site.your_choir.stage.ai_chip')])
                         </section>
                     @endif
 
@@ -141,6 +142,7 @@
                                 </div>
                                 <p class="yc-say">{{ __('site.your_choir.s1.body', ['name' => $stage['real']['name'], 'song' => $stage['real']['song']]) }}</p>
                             </div>
+                            @include('site._yc-mini', ['lanes' => [$stage['real']['lane']], 'chip' => __('site.your_choir.stage.real_chip')])
                         </section>
 
                         {{-- The split: the AI voice made from her singing, as the song's tune and harmony. --}}
@@ -152,6 +154,7 @@
                                 </div>
                                 <p class="yc-say">{{ __('site.your_choir.s2.body', ['name' => $stage['ai']['name'], 'song' => $stage['ai']['song']]) }}</p>
                             </div>
+                            @include('site._yc-mini', ['lanes' => $stage['ai']['lanes'], 'keep' => ['soprano', 'alto'], 'chip' => __('site.your_choir.stage.ai_chip')])
                         </section>
 
                         @if ($stage['four'])
@@ -164,6 +167,7 @@
                                     </div>
                                     <p class="yc-say">{{ __('site.your_choir.s3.body', ['name' => $stage['ai']['name']]) }}</p>
                                 </div>
+                                @include('site._yc-mini', ['lanes' => $stage['ai']['lanes'], 'chip' => __('site.your_choir.stage.ai_chip')])
                             </section>
                         @endif
                     @endif
@@ -219,11 +223,6 @@
                                 @endforeach
                             </div>
                         </div>
-                        <nav class="yc-dots" aria-label="{{ __('landing.scenes') }}" data-yc-dots>
-                            @for ($i = 0; $i < $pinned; $i++)
-                                <a href="#yc-at-{{ $i }}" aria-label="{{ __('landing.scene', ['n' => $i + 1, 'count' => $pinned]) }}" @if ($i === 0) aria-current="true" @endif></a>
-                            @endfor
-                        </nav>
                     @endif
 
                     @if ($stage !== null)
@@ -253,21 +252,8 @@
                         {{-- Who is heard, while it plays (the script writes it, and tells a screen reader). --}}
                         <p class="yc-now" aria-hidden="true" data-yc-now data-real="{{ __('site.your_choir.now.real', ['name' => $stage['real']['name'], 'song' => $stage['real']['song']]) }}" data-two="{{ __('site.your_choir.now.two', ['song' => $stage['ai']['song']]) }}" data-four="{{ __('site.your_choir.now.four', ['song' => $stage['ai']['song']]) }}"></p>
 
-                        <nav class="yc-dots" aria-label="{{ __('landing.scenes') }}" data-yc-dots>
-                            @for ($i = 0; $i < $pinned; $i++)
-                                <a href="#yc-at-{{ $i }}" aria-label="{{ __('landing.scene', ['n' => $i + 1, 'count' => $pinned]) }}" @if ($i === 0) aria-current="true" @endif></a>
-                            @endfor
-                        </nav>
                     @endif
                 </div>
-                @if ($stage !== null || $pic)
-                    {{-- One screen of scroll for each of the stage's scenes: where the page rests, and what the dots lead to. --}}
-                    <div class="yc-snaps" aria-hidden="true">
-                        @for ($i = 0; $i < $pinned; $i++)
-                            <div id="yc-at-{{ $i }}"></div>
-                        @endfor
-                    </div>
-                @endif
             </div>
 
             {{-- From here the page scrolls like a page, in the stage's dress: the same type, glass and lanes, and at the

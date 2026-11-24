@@ -154,7 +154,7 @@ final class SiteLanguage
         $app = $path === '/' && preg_match('/[?&](song|lang)=/', $tail) === 1;
         $done = ! $app && SiteLanguages::serves($language, $path) && ! str_starts_with($path, '/'.$language.'/')
             // The landing is /es, as its hreflang and the sitemap name it (SiteLanguages::url), never /es/ beside it.
-            ? ($relative ? '' : $public).'/'.$language.($path === '/' ? '' : $path).$tail
+            ? ($relative ? '' : $public).SiteLanguages::path($language, $path).$tail
             : $url;
 
         return $escape ? e($done) : $done;

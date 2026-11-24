@@ -1,18 +1,22 @@
-"""Hear yourself as a choir, /your-choir (site/your-choir.blade.php, js/public/your-choir.js, css/your-choir.css; Hillel,
+"""Hear yourself as a choir, the AI landing (/ai-harmony-singing, /es/armonias-con-ia; once /your-choir, which 301s here; site/your-choir.blade.php, js/public/your-choir.js, css/your-choir.css; Hillel,
 2026-11-20: "something immersive to experience one real voice becoming 2 fake ones"). On a desktop and a phone:
 
 - the page is its own document with its own sheet (and the Game mode switch's), no photos, no console errors;
 - with the demo's voices (a consented, credited AI voice and the real guide, VoiceDemo), the stage: one real lane first,
   then the AI lanes, each saying once whether it's real or AI; nothing sounds until a press;
-- the scenes follow the scroll (hero, real, split, four when all four parts are there, yours), and each opens the lanes
-  it needs: her lane alone, then her lane folded with the tune and harmony open, then the four AI parts, then none;
-- Play plays one timeline on the audio clock: her lane is heard first (lit, the AI ones waiting), the dock says who, the
-  time moves; scrolling never stops or moves it; on the desktop, the AI song comes in after hers and her lane waits;
-  Stop puts it back at the start;
-- reduced motion: nothing pinned, every scene in the page's flow, and a press still lights the lanes in place;
-- Spanish at /es/your-choir;
+- the page scrolls like a page (Hillel, 2026-11-23: "when you scroll, you just scroll like a normal page"): nothing
+  pinned; the lanes once, right under the first screen's words; then each scene (real, split, four when all four parts
+  are there, yours) a section with its own picture of its lanes (her lane; the tune and harmony; the four parts), each
+  rising into place as it comes into view;
+- Play plays one timeline on the audio clock: her lane is heard first (lit, the AI ones waiting), the time moves;
+  scrolling never stops or moves it, and with the lanes scrolled away the dock comes up and says who; on the desktop,
+  the AI song comes in after hers and her lane waits; Stop puts it back at the start and the dock goes;
+- reduced motion: nothing rises or slides, every scene in the page's flow, and a press still lights the lanes in place;
+- Spanish at its own address (/es/armonias-con-ia); /your-choir moves here for good, its ref kept; the visit notes on the device that it came
+  for AI (sa_for=ai);
 - without the demo's voices, the picture (the designed default until a singer's voice is licensed): one voice line
-  becoming four AI parts from the song's notes, no player and no sound, the way in on the first screen (the server's own
+  becoming four AI parts from the song's notes, no player and no sound, the way in on the first screen, then the four
+  parts' scene and "you with the choir" each with its picture (the server's own
   test covers each way the voices can be missing; this checks the page that results, wherever this server has none).
 
 The page is behind own_choir: run it against a server whose database has own_choir on (and, for the stage, the demo's
@@ -24,12 +28,34 @@ here (a tone per part), so the media disk needn't hold them. Not a mock-chain fl
 import os
 import sys
 import time
+import urllib.error
+import urllib.parse
+import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 import flow  # noqa: E402
 
 SITE = os.environ.get("SITE", "http://127.0.0.1:8412")
+
+
+def moved_to(old):
+    """Where the server's 301 from `old` (the page's first address) leads: the page's own address in that language
+    (YourChoirStage::SLUGS, named once on the server), with no second copy of it here."""
+    class Stay(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, *args, **kwargs):
+            return None
+    try:
+        urllib.request.build_opener(Stay).open(SITE + old)
+    except urllib.error.HTTPError as error:
+        if error.code == 301:
+            return urllib.parse.urlsplit(error.headers["Location"]).path
+        raise
+    raise AssertionError(f"{old} should move to the page for good (301)")
+
+
+PAGE = moved_to("/your-choir")
+PAGE_ES = moved_to("/es/your-choir")
 ROOT = "document.querySelector('[data-yc]')"
 READY = f"{ROOT}?.dataset.ready !== undefined"
 # The voices' files, stubbed: any guide file the page fetches is a tone made here (the part named in its file name if it
@@ -59,7 +85,7 @@ STATE = f"""(() => {{ const r = {ROOT}; return {{
     wait: [...r.querySelectorAll('.yc-ln[data-wait]')].map((l) => l.dataset.seg + ':' + l.dataset.part),
     lit: r.querySelectorAll('.yc-g[data-ring]').length, time: r.querySelector('[data-yc-time]')?.textContent ?? '',
     who: r.querySelector('[data-yc-who]')?.textContent ?? '', run: Number.parseFloat(r.querySelector('.yc-rail')?.style.getPropertyValue('--yc-p')) || 0 }}; }})()"""
-# Which lanes a view opens (pinned): a lane folded away has no height.
+# Which of the lanes under the first screen show: a lane folded away has no height.
 OPEN = "[...document.querySelectorAll('.yc-ln')].filter((l) => l.getBoundingClientRect().height > 8 && getComputedStyle(l).opacity !== '0').map((l) => l.dataset.seg + ':' + l.dataset.part)"
 
 
@@ -79,31 +105,42 @@ def first_frame(f):
     assert not f.js(f"{ROOT}.hasAttribute('data-playing') || {ROOT}.hasAttribute('data-loading')"), "nothing sounds until a press"
 
 
+def pictures(f):
+    """Each scene's picture: its rows' names and chips, in order (site/_yc-mini)."""
+    return f.js("Object.fromEntries([...document.querySelectorAll('[data-yc-stage] [data-s]')].map((s) => [s.dataset.s, [...s.querySelectorAll('.yc-mini .yc-song')].map((r) => [r.querySelector('b').firstChild.nextSibling?.textContent?.trim() ?? r.querySelector('b').textContent.trim(), r.querySelector('.yc-chip')?.textContent.trim() ?? '', r.querySelectorAll('.gem-note').length])]))")
+
+
+def rises(f, view):
+    """A scene scrolled into view rises into place and shows (motion allowed), with no sideways scroll."""
+    f.run(f"document.querySelector('[data-s={view}]').scrollIntoView({{ block: 'center' }})")
+    f.wait(f"document.querySelector('[data-s={view}]').hasAttribute('data-shown')", timeout=5, what=f"the {view} scene in view")
+    time.sleep(1.1)
+    shown = f.js(f"[...document.querySelector('[data-s={view}]').children].every((c) => getComputedStyle(c).opacity === '1')")
+    assert shown, f"the {view} scene shows"
+    f.no_sideways(f"the {view} scene")
+
+
 def scenes(f):
-    """The scenes follow the scroll, and each opens the lanes it needs."""
+    """A page that scrolls: the lanes once under the first screen, then each scene a section with its own picture."""
     views = f.js("[...document.querySelectorAll('[data-yc-stage] [data-s]')].map((s) => s.dataset.s)")
     four = "four" in views
     assert views[:3] == ["hero", "real", "split"] and views[-1] == "yours", f"the stage's scenes: {views}"
     assert four == (f.js("document.querySelectorAll('.yc-ln.yc-ai').length") >= 4), "the whole choir's scene only with four AI parts"
-    assert f.js("getComputedStyle(document.querySelector('.yc-stage')).position") == "sticky", "the stage stays while its scenes pass"
-    for i, view in enumerate(views):
-        f.run(f"window.scrollTo(0, {i} * innerHeight)")
-        f.wait(f"{ROOT}.dataset.view === '{view}'", timeout=5, what=f"the {view} scene")
-        time.sleep(1.1)
-        shown = f.js(f"getComputedStyle(document.querySelector('[data-s={view}]')).opacity")
-        assert shown == "1", f"the {view} scene shows: {shown}"
-        opened = f.js(OPEN)
-        if view == "real" or (view == "hero" and f.size == "desktop"):
-            assert opened == ["real:soprano"], f"{view}: her lane alone: {opened}"
-        elif view == "split":
-            assert opened == ["real:soprano", "ai:soprano", "ai:alto"], f"split: her lane folded, the tune and harmony open: {opened}"
-        elif view == "four":
-            assert opened == ["ai:soprano", "ai:alto", "ai:tenor", "ai:bass"], f"four: the four AI parts: {opened}"
-        elif view == "yours":
-            assert f.js("getComputedStyle(document.querySelector('.yc-world')).opacity") == "0", "now yours: the lanes give way"
-        f.no_sideways(f"the {view} scene")
+    assert f.js("[...document.querySelectorAll('.yc-stage, .yc-stage *')].every((el) => !/sticky|fixed/.test(getComputedStyle(el).position))"), "nothing on the stage is pinned"
+    tops = f.js("['[data-s=hero]', '.yc-world', '[data-s=real]'].map((q) => Math.round(document.querySelector(q).getBoundingClientRect().top + scrollY))")
+    assert tops == sorted(tops), f"the lanes come right under the first screen, before the scenes: {tops}"
+    assert len(f.js(OPEN)) == f.js("document.querySelectorAll('.yc-ln').length"), "every lane shows, once"
+    pics = pictures(f)
+    real_chip = f.js("document.querySelector('.yc-ln.yc-real .yc-chip').textContent.trim()")
+    ai_chip = f.js("document.querySelector('.yc-ln.yc-ai .yc-chip').textContent.trim()")
+    assert [r[1] for r in pics["real"]] == [real_chip] and pics["real"][0][2] > 0, f"real: her lane, chipped real: {pics['real']}"
+    assert [r[1] for r in pics["split"]] == [ai_chip, ai_chip] and all(r[2] > 0 for r in pics["split"]), f"split: the tune and harmony, AI: {pics['split']}"
+    if four:
+        assert len(pics["four"]) == 4 and {r[1] for r in pics["four"]} == {ai_chip}, f"four: the four AI parts: {pics['four']}"
+    assert pics["hero"] == [] and pics["yours"] == [], "the first screen and now yours have no picture of their own"
+    for view in views[1:]:
+        rises(f, view)
     f.run("window.scrollTo(0, 0)")
-    f.wait(f"{ROOT}.dataset.view === 'hero'", timeout=5, what="back at the top")
 
 
 def play(f, whole):
@@ -117,11 +154,13 @@ def play(f, whole):
     assert all(w.startswith("ai:") for w in state["wait"]) and state["wait"], f"the AI lanes wait while she sings: {state}"
     assert state["who"] and state["time"].startswith("0:0") and state["time"] != "0:00 / " + state["time"].split(" / ")[1], f"the dock says who and the time moves: {state}"
     assert f.js("document.querySelector('.yc-dock button.yc-disc').getAttribute('aria-label')") == f.js("document.querySelector('.yc-dock button.yc-disc').dataset.labelStop"), "the dock's control says Stop"
+    assert f.js("getComputedStyle(document.querySelector('.yc-dock')).visibility") == "hidden", "with the lanes in view, no dock"
     before = state["run"]
-    f.run("window.scrollTo(0, 2 * innerHeight)")
+    f.run("document.querySelector('[data-s=yours]').scrollIntoView()")
     time.sleep(1.5)
     after = f.js(STATE)
     assert after["playing"] and after["run"] > before, f"scrolling never stops or moves the song: {before} -> {after}"
+    assert f.js("getComputedStyle(document.querySelector('.yc-dock')).visibility") == "visible", "with the lanes scrolled away, the dock comes up"
     if whole:
         # The AI song comes in after hers: her lane waits, the tune and harmony are heard.
         start = data["segments"][1]["start"]
@@ -148,7 +187,7 @@ def still(size):
     f.chrome.send("Page.addScriptToEvaluateOnNewDocument", {"source": VOICES})
     f.chrome.send("Emulation.setEmulatedMedia", {"features": [{"name": "prefers-reduced-motion", "value": "reduce"}]})
     try:
-        f.go("/your-choir", READY)
+        f.go(PAGE, READY)
         if not f.js(f"{ROOT}.hasAttribute('data-stage')"):
             return
         if f.js(f"{ROOT}.hasAttribute('data-picture')"):
@@ -176,7 +215,7 @@ def without_voices(f):
     """No demo voices on this server (Hillel, 2026-11-21: "lets support starting track B without A ... so there aren't
     samples"): the picture, no player. One voice line ("Your voice", no AI chip) becomes four parts, each chipped AI,
     with the song's own notes; no sound, no singer's name, no recording; the way in ("Try it with your voice") is on the
-    first screen; scrolling opens the four parts, then "now yours"."""
+    first screen; then the four parts' scene and you with the choir, each with its picture, then "now yours"."""
     assert f.js(f"{ROOT}.hasAttribute('data-picture')"), "the page is the picture"
     assert f.js("document.querySelectorAll('[data-yc-play], [data-yc-data], [data-yc-go], .yc-dock, audio').length") == 0, "no player, no sound"
     lanes = f.js("[...document.querySelectorAll('.yc-ln')].map((l) => [l.dataset.seg, l.dataset.part, l.querySelector('.yc-chip')?.textContent.trim() ?? '', l.querySelectorAll('.yc-g').length])")
@@ -189,26 +228,22 @@ def without_voices(f):
     assert f.js("document.querySelectorAll('img').length") == 0, "no photos on this page"
     views = f.js("[...document.querySelectorAll('[data-yc-stage] [data-s]')].map((s) => s.dataset.s)")
     assert views == ["hero", "four", "lead", "yours"], f"the picture's scenes: {views}"
-    # The first screen: the voice line becomes the four parts once, on its own, then rests (nothing animates for ever).
+    # Under the first screen's words, as the lanes come into view: the voice line becomes the four parts once, on its own,
+    # then rests (nothing animates for ever).
+    f.run("document.querySelector('.yc-world').scrollIntoView({ block: 'center' })")
     time.sleep(3.5)
     opened = f.js(OPEN)
     assert opened == ["you:soprano", "ai:soprano", "ai:alto", "ai:tenor", "ai:bass"], f"the first screen: one voice line, four parts: {opened}"
     assert f.js("document.getAnimations().filter((a) => a.playState === 'running' && /yc-lane/.test(a.animationName ?? '')).length") == 0, "the opening has finished"
-    f.run("window.scrollTo(0, innerHeight)")
-    f.wait(f"{ROOT}.dataset.view === 'four'", timeout=5, what="the four parts scene")
-    time.sleep(1.2)
-    assert f.js("getComputedStyle(document.querySelector('[data-s=four]')).opacity") == "1", "the four parts' words show"
-    assert f.js(OPEN) == ["you:soprano", "ai:soprano", "ai:alto", "ai:tenor", "ai:bass"], f"four: the voice line folded, the four parts open: {f.js(OPEN)}"
-    # You + choir: the voice line back as the lead, named as the singer's own recording, the AI alto, tenor and bass
-    # around it, the AI soprano given way.
-    f.run("window.scrollTo(0, 2 * innerHeight)")
-    f.wait(f"{ROOT}.dataset.view === 'lead'", timeout=5, what="you with the choir")
-    time.sleep(1.2)
-    assert f.js(OPEN) == ["you:soprano", "ai:alto", "ai:tenor", "ai:bass"], f"lead: your recording and the AI parts around it: {f.js(OPEN)}"
-    shown = f.js("[...document.querySelectorAll('.yc-you :is(.yc-you-voice, .yc-you-lead)')].filter((b) => getComputedStyle(b).display !== 'none').map((b) => b.className)")
-    assert shown == ["yc-you-lead"], f"lead: the voice line is named as your recording: {shown}"
-    f.run("window.scrollTo(0, 3 * innerHeight)")
-    f.wait(f"{ROOT}.dataset.view === 'yours'", timeout=5, what="now yours")
+    # Then the four parts' scene and you with the choir, each with its picture: the four AI parts; your recording leading
+    # the AI alto, tenor and bass (the AI soprano gives way to the tune you sing).
+    pics = pictures(f)
+    ai_chip = lanes[1][2]
+    assert [r[1] for r in pics["four"]] == [ai_chip] * 4 and all(r[2] > 0 for r in pics["four"]), f"four: the four AI parts: {pics['four']}"
+    lead = pics["lead"]
+    assert len(lead) == 4 and lead[0][1] not in ("", ai_chip) and [r[1] for r in lead[1:]] == [ai_chip] * 3, f"lead: your recording, then three AI parts: {lead}"
+    for view in ("four", "lead", "yours"):
+        rises(f, view)
     f.no_sideways("the picture")
     # Better with friends (own_choir_together on in this server's database): four parts, two in a voice like yours and
     # two in a voice like your friend's, each saying whose with the small AI chip; no button of its own.
@@ -232,9 +267,11 @@ def main():
         f = flow.Flow(SITE, size, "your_choir", skin="serious")
         f.chrome.send("Page.addScriptToEvaluateOnNewDocument", {"source": VOICES})
         try:
-            f.go("/your-choir", "document.readyState !== 'loading'")
+            f.go(PAGE, "document.readyState !== 'loading'")
             assert f.js("!!document.querySelector('[data-yc]')"), "the page is there (own_choir on in this server's database?)"
             f.wait(READY, timeout=20, what="the page's script")
+            # The visit leaves the device its note that it came for AI (the app pre-selects the sign-up's answer by it).
+            assert "sa_for=ai" in f.js("document.cookie").split("; "), f"came for AI: {f.js('document.cookie')}"
             stage = f.js("!!document.querySelector('[data-yc-data]')")
             if stage:
                 first_frame(f)
@@ -242,8 +279,11 @@ def main():
                 play(f, whole=size == "desktop")
             else:
                 without_voices(f)
-            f.go("/es/your-choir", READY)
-            assert f.js("document.documentElement.lang") == "es", "Spanish at /es/your-choir"
+            # Its first address moved here for good, in each language, a shared link's ref kept.
+            f.go("/your-choir?ref=choir-share", READY)
+            assert f.js("location.pathname + location.search") == PAGE + "?ref=choir-share", f"the old address moved: {f.js('location.href')}"
+            f.go(PAGE_ES, READY)
+            assert f.js("document.documentElement.lang") == "es", f"Spanish at {PAGE_ES}"
             f.no_sideways("the Spanish page")
         except AssertionError as error:
             failures.append(f"{size}: {error}")

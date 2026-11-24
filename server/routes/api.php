@@ -501,6 +501,9 @@ Route::middleware('auth')->prefix('own-choir')->name('ownChoir.')->group(functio
     Route::post('/requests', [OwnChoirApi::class, 'store'])->middleware(['age', 'throttle:take-uploads', 'paused:uploads'])->name('requests.create');
     Route::post('/requests/{song}/complete', [OwnChoirApi::class, 'complete'])->middleware('paused:uploads')->name('requests.complete');
     Route::post('/requests/{song}/seen', [OwnChoirApi::class, 'seen'])->name('requests.seen');
+    // The choir wait (2026-11-24): held while they listen back, or started now.
+    Route::post('/requests/{song}/hold', [OwnChoirApi::class, 'hold'])->middleware('throttle:60,1')->name('requests.hold');
+    Route::post('/requests/{song}/start', [OwnChoirApi::class, 'start'])->name('requests.start');
     // Plus's choir settings (2026-11-23): the mix, saved at once; the singing, by a remake.
     Route::patch('/requests/{song}/sound', [OwnChoirApi::class, 'sound'])->name('requests.sound');
     Route::post('/requests/{song}/remake', [OwnChoirApi::class, 'remake'])->middleware('throttle:6,1')->name('requests.remake');

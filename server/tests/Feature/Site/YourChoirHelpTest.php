@@ -10,7 +10,7 @@ use Tests\TestCase;
 
 /**
  * Help's Hear yourself as a choir page (the coordinator, 2026-11-23): only while own_choir is on, every number from
- * config, its friends section only with own_choir_together, and linked from /your-choir.
+ * config, its friends section only with own_choir_together, and linked from /ai-harmony-singing.
  */
 final class YourChoirHelpTest extends TestCase
 {
@@ -29,7 +29,7 @@ final class YourChoirHelpTest extends TestCase
         $this->assertStringContainsString('Unused for 6 months', $html);
         $this->assertStringNotContainsString(':plus_', $html);
         $this->assertStringNotContainsString(e(__('pages.help.pages.your-choir.sections.6.0')), $html, 'friends wait for their switch');
-        $this->assertStringContainsString('href="/help/your-choir"', (string) $this->get('/your-choir')->getContent());
+        $this->assertStringContainsString('href="/help/your-choir"', (string) $this->get('/ai-harmony-singing')->getContent());
 
         config(['flags.own_choir_together' => ['kind' => 'feature', 'values' => ['off', 'on']]]);
         app(Flags::class)->set('own_choir_together', 'on', null, 'Live');

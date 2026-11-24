@@ -1303,7 +1303,8 @@
             "gallery": "The gallery",
             "coaching": "Coaching",
             "event_schedule": "Event Schedule",
-            "ai_optional": "AI optional"
+            "ai_optional": "AI optional",
+            "choir_email": "Choir ready emails"
         },
         "flagHint": {
             "growth_fresh_start": "Every growth view and the export count only from the start of the day (Jerusalem time) this was turned on. Saving it on again keeps that day; off shows all history again. Nothing is deleted.",
@@ -1350,7 +1351,8 @@
             "gallery": "Opens public harmonies and Explore.",
             "coaching": "Opens coaches' profiles and checkout.",
             "event_schedule": "Opens connecting Event Schedule accounts.",
-            "ai_optional": "Each account chooses AI features on or off (Settings), and a guest sees AI only after /ai-singing. Off: AI shows for everyone as before."
+            "ai_optional": "Each account chooses AI features on or off (Settings), and a guest sees AI only after /ai-singing. Off: AI shows for everyone as before.",
+            "choir_email": "Email a singer when their choir is ready or couldn't be made, once a choir, only if unheard. On only once the app tells them first."
         },
         "flagValue": {
             "off": "Off",

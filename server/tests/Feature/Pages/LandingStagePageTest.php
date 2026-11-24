@@ -107,10 +107,12 @@ final class LandingStagePageTest extends TestCase
 
         $this->assertSame('amazing-grace', $stage['song']['song']);
         $this->assertSame(['soprano', 'alto', 'tenor', 'bass'], array_column($stage['lanes'], 'key'));
-        // Every note of every part is a gem in the page, each with where it sits and (when it has one) its syllable.
+        // Every note of every part is a gem in the lanes, each with where it sits and (when it has one) its syllable; the
+        // steps' pictures draw only their first bars, as pictures (no beat to play from).
         $notes = array_sum(array_map(static fn (array $lane): int => count($lane['notes']), $stage['lanes']));
         $this->assertGreaterThan(0, $notes);
-        $this->assertSame($notes, substr_count((string) $page->getContent(), 'class="lnf-g gem-note"'));
+        $this->assertSame($notes, substr_count((string) $page->getContent(), 'class="lnf-g gem-note" data-b="'));
+        $this->assertGreaterThan(0, substr_count((string) $page->getContent(), 'class="lnf-g gem-note" style="'));
         foreach ($stage['lanes'] as $lane) {
             foreach ($lane['notes'] as $note) {
                 $this->assertGreaterThanOrEqual(0.0, $note['y']);

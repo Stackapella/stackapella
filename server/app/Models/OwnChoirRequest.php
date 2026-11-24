@@ -32,6 +32,9 @@ use Illuminate\Support\Carbon;
  * @property array<string, mixed>|null $sound choir settings' mix (2026-11-23)
  * @property array<string, mixed>|null $sung how it's sung
  * @property bool $remake a remake: its parts replace its song's (parent_request_id) when made
+ * @property Carbon|null $hold_until a song the app started by itself waits until then before the renderer may take it
+ * @property bool $auto started by the app itself, after the take
+ * @property Carbon|null $email_sent_at its one ready or failed email
  * @property string|null $failure_detail why its clip couldn't be used (length, quiet, loud, noisy, edge, short, notes)
  * @property list<array{name: string, value: float}>|null $failure_numbers an unusable clip's measures from the worker, numbers only
  * @property array{gateFailures: list<array{partKey: string, reason: string|null, cents: list<float>}>, partWorst: list<array{partKey: string, cents: list<float>}>}|null $gate_numbers the worker's worst notes, signed cents
@@ -114,6 +117,9 @@ final class OwnChoirRequest extends Model
             'sung' => 'array',
             'remake' => 'boolean',
             'lead' => 'array',
+            'hold_until' => 'datetime',
+            'auto' => 'boolean',
+            'email_sent_at' => 'datetime',
             'failure_numbers' => 'array',
             'gate_numbers' => 'array',
             'key_shift' => 'integer',

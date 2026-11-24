@@ -1,9 +1,10 @@
-// The landing, the site's home page (server/resources/views/pages/landing.blade.php): a stage that fills the screen for the first five
-// scenes, the song's four lanes on it, then a page that scrolls, and a dock that stays. The sound is the song page's
+// The landing, the site's home page (server/resources/views/pages/landing.blade.php): a page that scrolls like a page (Hillel,
+// 2026-11-23), the song's four lanes once under the first screen, the story's steps each with its picture, and a small
+// player that rises from the foot only while the song plays and its lanes have gone by. The sound is the song page's
 // player, js/public/mixer.js: this module only reads what it says (data-playing on the page's root, its mixer-frame, the lanes'
 // data-solo, its mixer-solo event) and presses its own buttons (the dock's disc, a lane). So the page has one clock,
 // the player's: where the song is comes from each of its frames (mixer-frame, its place p), and nothing here plays, seeks, pauses or mutes
-// anything. Scrolling changes the scene and never touches the sound, and the page never scrolls by itself.
+// anything. Scrolling never touches the sound, and the page never scrolls by itself.
 //
 // The song plays as the showreel plays it (Hillel, 2026-11-16: "the song plays twice, but the first time it plays each
 // voice is added one by one ... only the first row is active and then, when the second voice comes in it, it's lit
@@ -16,13 +17,12 @@
 // passing a playhead, from the same place, on the player's frames (the page runs one frame loop, the player's).
 //
 // What it sets, for css/landing.css:
-// - on <html>: the class lnf-page (the page rests on a scene of the stage as it scrolls);
-// - on .lnf: data-scene (0 to 4, from the scroll: the stage's scenes), data-tail (past the stage, on the page that
-//   scrolls), data-alone (the voice heard alone, while one is), data-top ("small" on the way down, gone on the way up),
-//   --lnf-t, the song's place in beats (the player's while it plays; while it doesn't, a still pose for the scene, so
-//   each story scene shows its moment; written on the tracks, the trace and the strips' bands, not on .lnf), --lnf-page,
-//   the sung line's first beat (the still page shows a line at a
-//   time; on the tracks too), --lnf-run on the dock's rail, how far through both passes the play is (0 to 1), and --lnf-load with
+// - on .lnf: data-tail (past the lanes and the story, on the plans and the finale), data-away (the lanes scrolled past:
+//   the small player may rise), data-reveal (motion allowed: a section comes in as it enters, data-in on it), data-alone
+//   (the voice heard alone, while one is), data-top ("small" on the way down, gone on the way up),
+//   --lnf-t, the song's place in beats (the player's while it plays, the start while it doesn't; written on the lanes'
+//   tracks and the strips' bands, not on .lnf), --lnf-page, the sung line's first beat (with reduced motion the lanes
+//   show a line at a time; on the tracks too), --lnf-run on the dock's rail, how far through both passes the play is (0 to 1), and --lnf-load with
 //   data-load (the percent) while the voices' download can be told;
 // - on a gem (the app's glass, css/glass.css's .gem-note, copied into landing.css): data-ring while its note sounds,
 //   data-state="settled" once it has, --gem-g as the next note nears (the app's ramp, docs/glass-spec.md 4), and its
@@ -35,33 +35,15 @@
 // A voice is heard alone by its lane; the Hear scene's button presses a lane too, and it and the "Learn the ... part"
 // links name the voice last heard alone.
 // The lanes are one group for the keyboard: Tab reaches it once, the arrows move between the voices, Space or Enter
-// hears one alone (the lane is a button). With reduced motion or no script the stage's scenes are five still panels (the
-// CSS's base layout); this module then still lights the gems and the words, in place.
+// hears one alone (the lane is a button). With reduced motion the lanes stand on the sung line while the gems and the
+// words light in place; with no script the page is the same, still. The story's pictures are copies of the lanes,
+// still, outside [data-lnf-lanes]: nothing here touches them.
 // Only the recorded voices sing on this page (the player's `realOnly`): a press may wait for their download, and this
 // module shows how far it is (the player's mixer-load event) on the Play button and in words, and a failure in words.
 // The top line's Language and appearance is the site header's own (js/public/look-menu.js); Game mode's switch, the
 // page's one anonymous count and Admin > Live's heartbeat are the site's own script's (js/public/site.js, with the footer). Tested in tests/landing.test.js and tests/flows/landing_page.py.
 
 const root = document.querySelector('[data-lnf]');
-
-/** How many scenes the stage holds; the rest of the page scrolls. */
-export const PINNED = 5;
-
-/** The stage's scene a scroll position shows: one screen each, the nearest, the last one from there on. Pure. */
-export function sceneAt(scrollY, screen, count = PINNED) {
-    if (!(screen > 0)) return 0;
-    return Math.max(0, Math.min(count - 1, Math.round(scrollY / screen)));
-}
-
-/** Whether a scroll position is past the stage, on the page that scrolls (the stage more than half gone). Pure. */
-export function inTail(scrollY, screen, count = PINNED) {
-    return screen > 0 && scrollY > (count - 0.5) * screen;
-}
-
-/** Where a still scene poses the song (beats) while nothing plays: each story scene's own moment. Pure. */
-export function poseOf(scene) {
-    return [0, 5.2, 10.5, 17, 30][scene] ?? 0;
-}
 
 /** The sung line a beat falls in: the index of the phrase holding it, else the last one begun, else 0. Pure. */
 export function phraseAt(phrases, beat) {
@@ -126,15 +108,10 @@ export function captionOf(joins, pass, beat, alone = false) {
 if (root) setUp();
 
 function setUp() {
-    // The page itself rests on a scene of the stage (css: scroll-snap, only where the stage is pinned).
-    document.documentElement.classList.add('lnf-page');
     const beats = Number(root.dataset.beats) || 1;
     const passes = Number(root.dataset.passes) || 1;
-    const scenes = [...root.querySelectorAll('[data-lnf-stage] [data-s]')];
-    // Reduced motion, or a screen too short for the pinned stage (css/landing.css, min-height: 560px): the still panels.
-    const still = matchMedia('(prefers-reduced-motion: reduce), (max-height: 559px)');
     const calm = matchMedia('(prefers-reduced-motion: reduce)');
-    const gems = [...root.querySelectorAll('.lnf-g')].map((el) => ({ el, b: Number(el.dataset.b), l: Number(el.dataset.l), state: '', glow: 0, word: el.textContent.trim() }));
+    const gems = [...root.querySelectorAll('[data-lnf-lanes] .lnf-g')].map((el) => ({ el, b: Number(el.dataset.b), l: Number(el.dataset.l), state: '', glow: 0, word: el.textContent.trim() }));
     let song = {};
     try {
         song = JSON.parse(root.querySelector('[data-song]')?.textContent ?? '{}') ?? {};
@@ -150,14 +127,12 @@ function setUp() {
     }));
     const next = root.querySelector('[data-lnf-next]');
     const live = root.querySelector('[data-lnf-live]');
-    const dots = [...root.querySelectorAll('[data-lnf-dots] a')];
-    let scene = 0;
     let shownLine = -1;
     // What moves with the song, each written on itself (registered, never inherited: a frame restyles these few elements,
     // not the page; an inherited --lnf-t on .lnf restyled and laid out the whole page every frame, 71% of the main
     // thread while it played, 2026-11-20): the lanes' tracks and the trace (--lnf-t, and --lnf-page, the sung line's
     // first beat), the strips' bands (--lnf-t, made with their notes) and the dock's rail (--lnf-run).
-    const movers = [...root.querySelectorAll('.lnf-tr, .lnf-trace')];
+    const movers = [...root.querySelectorAll('[data-lnf-lanes] :is(.lnf-tr, .lnf-trace)')];
     const rail = root.querySelector('.lnf-rail');
     let shownT = '';
     let shownRun = '';
@@ -209,11 +184,10 @@ function setUp() {
     }
 
     const playing = () => root.hasAttribute('data-playing');
-    // Stopped, the song is back at its start (the player's Stop is a stop): the lanes show the scene's still pose, and
-    // every lane is lit again.
+    // Stopped, the song is back at its start (the player's Stop is a stop), and every lane is lit again.
     const rest = () => {
         runTo(0);
-        draw(still.matches ? 0 : poseOf(scene));
+        draw(0);
         build(null);
         strips(0);
     };
@@ -441,56 +415,26 @@ function setUp() {
         });
     });
 
-    // ---- the scenes, from the scroll ---------------------------------------------------------------------------
+    // ---- the page, as it scrolls --------------------------------------------------------------------------------
     const screen = () => window.innerHeight || 1;
     let lastY = window.scrollY;
     let queued = false;
 
-    function show(to) {
-        if (to === scene) return;
-        scene = to;
-        root.dataset.scene = String(to);
-        dots.forEach((dot, i) => (i === to ? dot.setAttribute('aria-current', 'true') : dot.removeAttribute('aria-current')));
-        if (!playing()) rest();
-    }
-
     // A line above the page (an outreach partner's, a mudeo arrival's): the top line sits under it while it's in view.
     const note = document.querySelector('[data-lnf-note]');
-
-    // The first scene: the lanes start just under the heading, the lede, Play and the three ways in, however they wrap
-    // (css/landing.css, data-cap0), so there's no empty band under the top bar and nothing runs into the lanes (Hillel,
-    // 2026-11-21: "the main landing home needs work on mobile"; the desktop too since the ways in, 2026-11-23). Without
-    // this, the stylesheet's own split stands.
-    const cap0 = root.querySelector('.lnf-stage [data-s="0"] .lnf-cap');
-    if (cap0 && 'ResizeObserver' in window) {
-        // Its pieces, the Try and Play group's own too: on a phone that group gives way (display: contents) so Play can sit
-        // under the three ways in, next to the lanes it plays (Hillel, 2026-11-23).
-        const pieces = () => [...cap0.querySelectorAll(':scope > *, :scope > * > .lnf-go > *')].filter((el) => el.getClientRects().length);
-        const fitCap = () => {
-            const shown = pieces();
-            if (!shown.length) return;
-            // From the highest of them to the lowest (on a desktop the heading and the lede sit side by side, either the taller).
-            const height = Math.ceil(Math.max(...shown.map((el) => el.getBoundingClientRect().bottom)) - Math.min(...shown.map((el) => el.getBoundingClientRect().top)));
-            root.style.setProperty('--lnf-cap0', `${height}px`);
-            // The first fit takes its place at once (no slide on arrival); later ones move as the scenes do.
-            if (!root.hasAttribute('data-cap0')) {
-                root.setAttribute('data-cap0', 'first');
-                requestAnimationFrame(() => requestAnimationFrame(() => root.setAttribute('data-cap0', '')));
-            }
-        };
-        fitCap();
-        const watch = new ResizeObserver(() => requestAnimationFrame(fitCap));
-        for (const el of cap0.querySelectorAll(':scope > *, :scope > * > .lnf-go > *')) watch.observe(el);
-    }
+    const tailEl = root.querySelector('[data-lnf-tail]');
+    const world = root.querySelector('.lnf-world');
 
     function onScroll() {
         queued = false;
         const y = window.scrollY;
         if (note) root.style.setProperty('--lnf-note', `${Math.max(0, Math.round(note.getBoundingClientRect().bottom))}px`);
-        if (!still.matches) show(sceneAt(y, screen()));
-        // Past the stage: with nothing pinned that's past its five panels, wherever they end.
-        const tail = still.matches ? (root.querySelector('[data-lnf-tail]')?.getBoundingClientRect().top ?? 1) < screen() / 2 : inTail(y, screen());
-        root.toggleAttribute('data-tail', tail);
+        // On the plans and the finale: the sung line gives way there while nothing plays.
+        root.toggleAttribute('data-tail', (tailEl?.getBoundingClientRect().top ?? 1) < screen() / 2);
+        // The small player rises only while the song plays and its lanes have gone by, scrolled past above (Play lives
+        // with the lanes; lanes still to come below, as under a phone's first screen, are on their way, not away). Read
+        // on every scroll, not by crossing: a jump to the top or the end passes the lanes without ever meeting them.
+        root.toggleAttribute('data-away', (world?.getBoundingClientRect().bottom ?? 1) < 0);
         // The top line: smaller on the way down, back on the way up (and always whole at the very top).
         if (y < 40 || y < lastY - 4) delete root.dataset.top;
         else if (y > lastY + 4) root.dataset.top = 'small';
@@ -503,19 +447,22 @@ function setUp() {
     }, { passive: true });
     addEventListener('resize', onScroll, { passive: true });
 
-    // Focus that lands in a scene of the stage off the screen brings its scene (a pinned scene is only seen when it's
-    // the one). The page below scrolls to what's focused by itself.
-    scenes.forEach((section, i) => {
-        section.addEventListener('focusin', () => {
-            if (still.matches || (i === scene && !root.hasAttribute('data-tail'))) return;
-            window.scrollTo({ top: i * screen(), behavior: 'auto' });
-        });
-    });
-    still.addEventListener('change', () => {
-        liven();
-        show(still.matches ? 0 : sceneAt(window.scrollY, screen()));
-        if (!playing()) rest();
-    });
+    if ('IntersectionObserver' in window) {
+        // Each section comes in as it enters (motion allowed only; without a script, or with reduced motion, every section
+        // is simply there). Once in, it stays.
+        if (!calm.matches) {
+            const sections = [...root.querySelectorAll('.lnf-story, .lnf-tail .lnf-sc')];
+            const enter = new IntersectionObserver((entries) => {
+                for (const entry of entries) {
+                    if (!entry.isIntersecting) continue;
+                    entry.target.dataset.in = '';
+                    enter.unobserve(entry.target);
+                }
+            }, { rootMargin: '0px 0px -12% 0px' });
+            for (const section of sections) enter.observe(section);
+            root.dataset.reveal = '';
+        }
+    }
 
     onScroll();
     rest();

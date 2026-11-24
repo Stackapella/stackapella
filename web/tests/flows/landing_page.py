@@ -1,6 +1,8 @@
 """The landing, the site's home page at / and /es (pages/landing.blade.php, js/public/landing.js, css/landing.css; Hillel,
-2026-11-16: "make next-final the main home page"): a stage that fills the screen for five scenes, the song's four lanes
-on it, then a page that scrolls, the site's footer, and a dock that stays. On a desktop and a phone:
+2026-11-16: "make next-final the main home page"; 2026-11-23: "when you scroll, you just scroll like a normal page"): the
+headline and the ways in, the song's four lanes once, the story's steps each with its picture, then free, the plans, the
+finale and the site's footer, nothing pinned; a small player rises only while the song plays out of view. On a desktop
+and a phone:
 
 - with no light or dark chosen, the calm page is the device's from the first paint, the browser bar's colour too (a song
   page too);
@@ -21,11 +23,12 @@ on it, then a page that scrolls, the site's footer, and a dock that stays. On a 
 - down the page, a strip of lanes in view is the song itself while it plays, and a picture again once it stops;
 - the top line's Game mode switch is the site's: it turns the skin, the choice is kept, and the page puts on game mode's
   dress (css/landing-game.css, loaded then), or stays calm while there is none;
-- the stage's scenes follow the scroll, 0 to 4; after Share the stage lets go and the rest scrolls as a page: nothing
-  scrolls inside itself, the lanes end above the dock in every scene, and the last question clears the dock;
+- the page scrolls like a page: nothing pinned, the lanes go by with it, each step comes in as it enters with its picture
+  (pictures only: hidden from a screen reader, no stops), nothing scrolls inside itself; the small player rises while
+  the song plays out of view and goes when the lanes are back;
 - scrolling never stops or moves the song;
 - the keyboard: Try the first lesson, then Play, are the first controls in the page's main part, the lanes are one stop (the arrows move between them,
-  Space hears one alone), and focus in a scene of the stage off the screen brings its scene;
+  Space hears one alone), and focus on a step's link brings it into view;
 - light and dark by the top line's switch;
 - reduced motion: nothing is pinned, every scene shows, and the song still plays with its gems lit in place;
 - it's the site's home: its canonical address, the site's footer with its links, the Start links marked for the funnel
@@ -62,7 +65,7 @@ STATE = """(() => { const s = document.getElementById('lnf'); return {
     now: s.querySelectorAll('.lnf-line [data-now]').length,
     alone: [...s.querySelectorAll('[data-voice][data-solo]')].map((l) => l.dataset.voice),
     live: s.querySelector('[data-lnf-live]').textContent, time: s.querySelector('[data-time]').textContent,
-    scene: s.dataset.scene, tail: s.hasAttribute('data-tail') }; })()"""
+    tail: s.hasAttribute('data-tail') }; })()"""
 # A machine without the song's render (it lives on the media disk): the player says so and its own voices sing, as
 # site_keyboard.py allows too. Where the render is there, the flow plays it.
 RENDER = "/media/song-audio/"
@@ -103,21 +106,15 @@ VOICES = """(() => {
 })();"""
 
 
-def scroll_to(f, scene):
-    """One of the stage's scenes (0 to 4): a screen of scroll each."""
-    f.run(f"window.scrollTo(0, {scene} * innerHeight)")
-    f.wait(f"document.querySelector('[data-lnf]').dataset.scene === '{scene}'", timeout=10, what=f"scene {scene}")
-
-
 def first_frame(f):
     # As the server sends it, before any script: the headline, the lanes, the gems, the first sung line.
     html = f.js("fetch(location.pathname).then((r) => r.text())")
-    for piece in ('class="lnf-h1"', 'data-voice="soprano"', 'data-voice="bass"', 'class="lnf-g gem-note"', 'class="lnf-line"', 'data-scene="0"'):
+    for piece in ('class="lnf-h1"', 'data-voice="soprano"', 'data-voice="bass"', 'class="lnf-g gem-note"', 'class="lnf-line"'):
         assert piece in html, f"the page as served has {piece}"
     assert html.count('class="lnf-g gem-note"') > 60, "every note of the song is a gem in the page"
     assert f.js("document.querySelectorAll('h1').length") == 1, "one h1"
     state = f.js(STATE)
-    assert not state["playing"] and state["lit"] == 0 and state["scene"] == "0", f"at rest nothing plays or is lit: {state}"
+    assert not state["playing"] and state["lit"] == 0, f"at rest nothing plays or is lit: {state}"
     # The recorded voices start coming in a quiet moment, before any press; the practice voice is never made.
     f.wait("performance.getEntriesByType('resource').some((r) => /\\/api\\/templates\\/amazing-grace/.test(r.name))", timeout=15, what="the recorded voices asked for ahead of a press")
     assert f.js("JSON.parse(document.querySelector('#lnf [data-song]').textContent).realOnly") is True, "the page asks for the recorded voices only"
@@ -237,7 +234,7 @@ def strip(f):
         f.wait("document.getElementById('lnf').hasAttribute('data-playing')", timeout=40, what="the song playing, down the page")
     f.wait("document.querySelector('#lnf-s5 .lnf-floor').hasAttribute('data-live')", timeout=10, what="the strip in view shows the song")
     live = f.js(floors)
-    notes = f.js("document.querySelectorAll('.lnf-g').length")
+    notes = f.js("document.querySelectorAll('[data-lnf-lanes] .lnf-g').length")
     assert live[0] == [True, notes], f"its bars are the song's own notes: {live[0]} of {notes}"
     assert [x[0] for x in live[1:]] == [False] * (len(live) - 1), f"a strip off the screen costs nothing: {live}"
     at = f.js("getComputedStyle(document.querySelector('#lnf-s5 .lnf-floor u')).translate")
@@ -362,45 +359,56 @@ def over(f, what):
         return Math.round(el.getBoundingClientRect().bottom - top); }})()""")
 
 
-def scenes(f, before):
-    # Down through the stage's scenes while the song plays: the scroll moves the scene and nothing else.
-    for scene in (1, 2, 3, 4):
-        scroll_to(f, scene)
-        assert f.js("document.querySelector('[data-lnf]').dataset.top") == "small", "the top line is small on the way down"
-        f.wait(f"Number(getComputedStyle(document.querySelector('[data-s=\"{scene}\"]')).opacity) > 0.9", timeout=5, what=f"scene {scene} shown")
-        f.no_sideways(f"scene {scene}")
+DOCK = "getComputedStyle(document.querySelector('.lnf-dock')).visibility === 'visible'"
+
+
+def page(f, before):
+    """The page scrolls like a page (Hillel, 2026-11-23): nothing pinned, the lanes go by with it, each step comes in with
+    its picture, and the small player rises only while the song plays out of view."""
+    assert f.js("['.lnf-stage', '.lnf-world', '.lnf-deck'].every((s) => !['sticky', 'fixed'].includes(getComputedStyle(document.querySelector(s)).position))"), "nothing is pinned"
+    assert not f.js(DOCK), "the small player waits while the lanes are in view"
+    for n in (1, 2, 3, 4):
+        f.run(f"document.getElementById('lnf-s{n}').scrollIntoView({{ block: 'center' }})")
+        f.wait(f"document.getElementById('lnf-s{n}').hasAttribute('data-in')", timeout=5, what=f"step {n} comes in as it enters")
         time.sleep(1.0)
-        assert over(f, ".lnf-world") <= 1, f"scene {scene}: the lanes end above the dock ({over(f, '.lnf-world')} px under it)"
-        assert not f.js("document.getElementById('lnf').hasAttribute('data-tail')"), f"scene {scene} is the stage's"
+        f.no_sideways(f"step {n}")
+        assert f.js(f"getComputedStyle(document.querySelector('#lnf-s{n} .lnf-pic')).opacity") == "1", f"step {n} shows its picture"
+        assert f.js("document.querySelector('.lnf-world').getBoundingClientRect().bottom < innerHeight / 2"), f"step {n}: the lanes went by with the page"
+        assert not f.js("document.getElementById('lnf').hasAttribute('data-tail')"), f"step {n} is the story's"
+    pics = "[...document.querySelectorAll('.lnf-pic')]"
+    assert f.js(f"{pics}.length === 4 && {pics}.every((p) => p.getAttribute('aria-hidden') === 'true' && !p.querySelector('a, button, [tabindex]'))"), "the steps' pictures are pictures: hidden from a screen reader, no stops"
     state = f.js(STATE)
     if state["playing"]:
         assert state["p"] > before["p"], f"scrolling never stops or rewinds the song: {before['p']} then {state['p']}"
+        f.wait(DOCK, timeout=5, what="the small player rises while the song plays out of view")
     else:
-        assert state["p"] == 0, f"the song ended by itself while the scenes went by, never stopped part way: {state}"
-    # After Share the stage lets go: the rest is a page that scrolls, each section in the flow, nothing scrolling inside.
+        assert state["p"] == 0, f"the song ended by itself while the steps went by, never stopped part way: {state}"
     for scene in (5, 7, 8):
         f.run(f"window.scrollTo(0, document.getElementById('lnf-s{scene}').getBoundingClientRect().top + scrollY)")
-        f.wait("document.getElementById('lnf').hasAttribute('data-tail')", timeout=10, what=f"scene {scene} is the page that scrolls")
-        f.no_sideways(f"scene {scene}")
-    assert f.js("document.querySelector('.lnf-stage').getBoundingClientRect().bottom") <= 1, "the stage has scrolled away"
+        f.wait("document.getElementById('lnf').hasAttribute('data-tail')", timeout=10, what=f"section {scene}, past the story")
+        f.no_sideways(f"section {scene}")
     strip(f)
-    inside = f.js("[...document.querySelectorAll('.lnf-tail, .lnf-tail *')].filter((el) => /auto|scroll/.test(getComputedStyle(el).overflowY)).map((el) => el.className)")
+    inside = f.js("[...document.querySelectorAll('.lnf-tail, .lnf-tail *, .lnf-stage, .lnf-stage *')].filter((el) => /auto|scroll/.test(getComputedStyle(el).overflowY)).map((el) => el.className)")
     assert inside == [], f"nothing scrolls inside itself: {inside}"
-    places = f.js("[...document.querySelectorAll('.lnf-tail .lnf-sc, .lnf-tail .lnf-cap, .lnf-faq, .lnf-plans, .lnf-slabs, .lnf-choir')].map((el) => getComputedStyle(el).position)")
+    places = f.js("[...document.querySelectorAll('.lnf-sc, .lnf-tail .lnf-cap, .lnf-faq, .lnf-plans, .lnf-slabs')].map((el) => getComputedStyle(el).position)")
     assert all(place in ("static", "relative") for place in places), f"the page's pieces are in its flow: {places}"
-    # The dock stays; at the very end the last question and the last links clear it.
+    # The top line: smaller on the way down, whole again on the way up.
     f.run("window.scrollTo(0, document.documentElement.scrollHeight)")
     time.sleep(0.6)
-    assert f.js("getComputedStyle(document.querySelector('.lnf-dock')).position") == "fixed", "the dock stays"
-    assert over(f, ".lnf-foot-wrap .s-foot-legal") <= 0, f"the footer's last line clears the dock ({over(f, '.lnf-foot-wrap .s-foot-legal')} px under it)"
-    f.run("document.querySelector('.lnf-faq details:last-child').scrollIntoView({ block: 'center' })")
-    time.sleep(0.4)
-    assert over(f, ".lnf-faq details:last-child") <= 0, "the last question can be read clear of the dock"
-    scroll_to(f, 3)
+    f.run("document.getElementById('lnf-s3').scrollIntoView({ block: 'start' })")
+    time.sleep(0.6)
     assert f.js("document.querySelector('[data-lnf]').dataset.top") is None, "the top line is back on the way up"
-    scroll_to(f, 0)
+    # Out of view the small player has the song: it rises with it, and the lanes back in view take it again.
+    f.run("document.querySelector('[data-play]').click()")
+    f.wait("document.getElementById('lnf').hasAttribute('data-playing')", timeout=40, what="playing, from down the page")
+    f.wait(DOCK, timeout=5, what="the small player, while the lanes have gone by")
+    f.run("window.scrollTo(0, document.documentElement.scrollHeight)")
+    time.sleep(0.6)
+    assert over(f, ".lnf-foot-wrap .s-foot-legal") <= 0, f"the footer's last line clears the small player ({over(f, '.lnf-foot-wrap .s-foot-legal')} px under it)"
+    f.run("window.scrollTo(0, 0)")
+    f.wait("!(" + DOCK + ")", timeout=5, what="the lanes in view: the small player goes")
     # Stop is a stop: the song is back at its start, and the page shows it.
-    f.run("const b = document.querySelector('[data-play]'); if (document.getElementById('lnf').hasAttribute('data-playing')) b.click();")
+    f.run("document.querySelector('[data-lnf-play]').click()")
     f.wait("!document.getElementById('lnf').hasAttribute('data-playing')", timeout=10, what="stopped")
     time.sleep(0.6)
     stopped = f.js(STATE)
@@ -413,11 +421,12 @@ FIRST_PAINT = "new MutationObserver((_, o) => { if (document.body) { window.__fi
 
 def unchosen(f):
     """Nothing chosen yet, the calm skin follows the device from the first paint, here and on a song page (Hillel,
-    2026-11-17: "Auto everywhere, calm"): light on a light phone or laptop, dark on a dark one, the browser bar's colour too."""
+    2026-11-17: "Auto everywhere, calm"): light on a light phone or laptop, dark on a dark one, the browser bar's colour too
+    (the home's is its own stage's ground, dark and light; a song page's the site's)."""
     first = f.chrome.send("Page.addScriptToEvaluateOnNewDocument", {"source": FIRST_PAINT})["identifier"]
-    for device, want in (("light", ["warm-light", "#faf5ee"]), ("dark", ["graphite-dark", "#151617"])):  # calm dark is Graphite until chosen (Hillel, 2026-11-23)
+    for device, home, song in (("light", ["warm-light", "#f5eee1"], ["warm-light", "#faf5ee"]), ("dark", ["graphite-dark", "#050403"], ["graphite-dark", "#151617"])):  # calm dark is Graphite until chosen (Hillel, 2026-11-23)
         f.scheme(device)
-        for path in ("/", "/songs/amazing-grace"):
+        for path, want in (("/", home), ("/songs/amazing-grace", song)):
             f.go(path, "document.readyState !== 'loading'")
             assert f.js("JSON.parse(localStorage.getItem('stackapella.appearance') || '{}').mode ?? null") is None, "no light or dark chosen"
             assert f.js("window.__firstPaint") == want, f"{path} on a {device} device: {f.js('window.__firstPaint')}, not {want}"
@@ -461,9 +470,9 @@ def keyboard(f):
     assert ring, "the focused lane shows its focus"
     f.press("ArrowUp")
     assert f.js("document.activeElement.closest('[data-voice]')?.dataset.voice") == "bass", "up from the first voice goes round to the last"
-    # Focus that lands in a scene of the stage off the screen brings its scene.
+    # Focus on a step's link brings it into view (the page scrolls to it, as any page does).
     f.run("document.querySelector('#lnf-s2 [data-lnf-learn]').focus()")
-    f.wait("document.querySelector('[data-lnf]').dataset.scene === '2'", timeout=10, what="focus in the Sing along scene shows it")
+    f.wait("(() => { const r = document.querySelector('#lnf-s2 [data-lnf-learn]').getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight; })()", timeout=5, what="the Sing along step's link in view")
     # The dock's controls are real buttons with names, each at least 40 px across and 44 px tall.
     sizes = f.js("[...document.querySelectorAll('.lnf-dock button, .lnf-dock a')].map((el) => { const r = el.getBoundingClientRect(); return [el.getAttribute('aria-label') || el.textContent.trim(), Math.round(r.width), Math.round(r.height)]; })")
     assert len(sizes) == 2 and all(name and w >= 44 and h >= 44 for name, w, h in sizes), f"the dock's two controls (Play, Start singing), named and big enough: {sizes}"
@@ -511,7 +520,8 @@ def spanish(f):
     assert "armonía" in f.js("document.querySelector('h1').textContent").lower(), "the headline is in Spanish"
     assert f.js("document.querySelector('link[rel=canonical]')?.getAttribute('href') ?? ''").endswith("/es"), "the Spanish page's own address"
     for scene in (0, 1, 2, 3, 4):
-        scroll_to(f, scene)
+        f.run(f"document.getElementById('lnf-s{scene}').scrollIntoView({{ block: 'center' }})")
+        time.sleep(0.4)
         f.no_sideways(f"the Spanish scene {scene}")
     for scene in (5, 7, 8):
         f.run(f"window.scrollTo(0, document.getElementById('lnf-s{scene}').getBoundingClientRect().top + scrollY)")
@@ -587,7 +597,7 @@ def main():
             unchosen(f)
             f.go("/", READY)
             first_frame(f)
-            scenes(f, play_and_solo(f))
+            page(f, play_and_solo(f))
             theme(f)
             game_switch(f)
             keyboard(f)

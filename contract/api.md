@@ -234,6 +234,8 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `ownChoir.requests.create` | `POST /api/own-choir/requests` | Anyone signed in | Own choir |
 | `ownChoir.requests.complete` | `POST /api/own-choir/requests/{id}/complete` | Anyone signed in, their own | Own choir |
 | `ownChoir.requests.seen` | `POST /api/own-choir/requests/{id}/seen` | Anyone signed in, their own | Own choir |
+| `ownChoir.requests.hold` | `POST /api/own-choir/requests/{id}/hold` | Anyone signed in, their own | Own choir |
+| `ownChoir.requests.start` | `POST /api/own-choir/requests/{id}/start` | Anyone signed in, their own | Own choir |
 | `ownChoir.requests.sound` | `PATCH /api/own-choir/requests/{id}/sound` | Plus, their own song | Own choir |
 | `ownChoir.requests.remake` | `POST /api/own-choir/requests/{id}/remake` | Plus, their own song | Own choir |
 | `ownChoir.requests.download` | `GET /api/own-choir/requests/{id}/download` | Anyone signed in, their own, with Plus | Own choir |
@@ -1996,7 +1998,7 @@ sign-in now), for the app's Admin link; editors and everyone else get false. It'
 
 #### `account.update`
 
-**Request:** any of `aiFeatures` (`true` or `false`, the AI features setting, docs/ai-optional-plan.md v2) with
+**Request:** any of `choirEmail` (`true` or `false`: email me when my choir is ready), `aiFeatures` (`true` or `false`, the AI features setting, docs/ai-optional-plan.md v2) with
 `aiFeaturesSource` (`card`: the card's Try it or Not for me; `settings`, the default; or `ai-singing`: a device's
 arrival carried into an account that hadn't chosen); only a change from `settings` is counted (`ai_switch`, by age band,
 never with who), `name` (1 to 80), `handle`, `bio` (up to 300), `tried` (breadth: features tried on this device, each with the day first used, `{ "record": "2026-11-11" }`,
@@ -7755,7 +7757,16 @@ them), deleted with the voice (stop making songs, deleting the voice or the acco
 Download my data. `clipSongs` (since 2026-11-23) lists the tunes a clip may sing, in the order shown, the first the default
 (voice-capture, shown as Happy Birthday): `[{ "templateId", "stopBeat", "songId" }]`, `songId` the song it makes as the
 free song. Each song's `failureDetail`: why its clip couldn't be used (with `clip_unusable`), one of `length`, `quiet`,
-`loud`, `noisy`, `notes`, `edge`, `short` (the most fixable first), for its singer alone; null otherwise. Each failed
+`loud`, `noisy`, `notes`, `edge`, `short` (the most fixable first), for its singer alone; null otherwise. The choir wait (since 2026-11-24, Hillel: start the choir after the take, show it while it's made, email when
+ready): `ownChoir.requests.create` takes `auto: true` for a take the app started by itself, which waits `holdUntil` (10
+seconds, held while they listen back: `ownChoir.requests.hold`, ended by `ownChoir.requests.start`) before the
+renderer may take it; deleting a song before `claimedAt` gives everything back. Each song's `queuePosition` (1 is next;
+null once taken, while held or on a busy day's wait), `etaMinutes` (roughly, while it waits or is made; null when about
+to start), `slow` (past twice its estimate) and `costMinutes` (what it uses of paid Plus's month). When it's ready or
+couldn't be made, one email, if the account's `choirEmail` is on (the default; `account.update` sets it, and the email's
+one-click unsubscribe turns it off), the song isn't heard (`seen`) yet and AI features aren't off: ten minutes later if
+the app looked at it in the last two, so someone watching isn't emailed. No tracking pixel; its link carries only
+`ref=choir-email`. Each failed
 song's `counted` (since 2026-11-23): whether it counted toward the singer's free song, Plus songs or Plus minutes; false
 when it was given back (it never reached the renderer, failed before any GPU work, or failed on our side, `render_failed`
 or `gates_failed`, except a gates failure on their own song), so the app says "It didn't count toward your minutes" only
@@ -7888,6 +7899,30 @@ For a song you joined (choir together), it marks your parts seen (the member's `
 |---|---|---|---|
 | 200 |  | `ownChoir.request.json` | `ownChoir.requests.seen.200.json` |
 | 404 | `not_found` | `error.json` | `ownChoir.requests.seen.not_found.json` |
+
+#### `ownChoir.requests.hold`
+
+While they listen back to a take the app started by itself (`auto`, docs: the choir wait, 2026-11-24): the renderer
+may not take the song before `holdUntil`, now 5 seconds from now, never past 2 minutes from when it was asked for. The
+app sends it every 4 seconds while they listen and stops when they stop, so it's taken about 5 seconds later.
+**Request:** none. `409 claimed`: the renderer has taken it (a stop now still counts).
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `ownChoir.request.json` | `ownChoir.requests.hold.200.json` |
+| 404 | `not_found` | `error.json` | `ownChoir.requests.hold.not_found.json` |
+| 409 | `claimed` | `error.json` | `ownChoir.requests.hold.claimed.json` |
+
+#### `ownChoir.requests.start`
+
+Start now: the hold ends (`holdUntil` null) and the renderer may take it next. **Request:** none. `409 claimed`: it's
+already taken.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `ownChoir.request.json` | `ownChoir.requests.start.200.json` |
+| 404 | `not_found` | `error.json` | `ownChoir.requests.start.not_found.json` |
+| 409 | `claimed` | `error.json` | `ownChoir.requests.start.claimed.json` |
 
 #### `ownChoir.requests.sound`
 

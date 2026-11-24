@@ -27,7 +27,7 @@ use Illuminate\Validation\ValidationException;
  */
 final class UpdateProfile
 {
-    private const FIELDS = ['name' => 'name', 'handle' => 'handle', 'bio' => 'bio', 'locale' => 'locale', 'timezone' => 'timezone', 'xHandle' => 'x_handle', 'blueskyHandle' => 'bluesky_handle', 'heardFrom' => 'heard_from', 'ideaEmails' => 'idea_emails', 'hideProfile' => 'hide_profile', 'initials' => 'initials', 'boardsName' => 'boards_name'];
+    private const FIELDS = ['name' => 'name', 'handle' => 'handle', 'bio' => 'bio', 'locale' => 'locale', 'timezone' => 'timezone', 'xHandle' => 'x_handle', 'blueskyHandle' => 'bluesky_handle', 'heardFrom' => 'heard_from', 'ideaEmails' => 'idea_emails', 'choirEmail' => 'choir_email', 'hideProfile' => 'hide_profile', 'initials' => 'initials', 'boardsName' => 'boards_name'];
 
     /**
      * @param  array<string, mixed>  $changes  validated, in the contract's names

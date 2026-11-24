@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Support\Http\Hosts;
 use App\Support\Languages\Languages;
 use App\Support\Pages\Landing;
+use App\Support\Pages\Prices;
+use App\Support\Site\PathPages;
 use App\Support\Site\SitePages;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -35,6 +37,11 @@ final class ForPagesController extends Controller
             $page['group_start'] = $ref;
         }
 
+        // The home's other two paths (Hillel, 2026-11-23): learners and singers, each the site's own content for that way in.
+        if (in_array($who, PathPages::PATHS, true)) {
+            return $this->path($request, $who, $page);
+        }
+
         // For choir directors has its own short page (the consultant's concept, 2026-11-23); the others share site.for.
         return response()->view($who === 'choir-directors' ? 'site.for-directors' : 'site.for', [
             'title' => SitePages::title((string) $page['title']),
@@ -48,6 +55,30 @@ final class ForPagesController extends Controller
             'cards' => SitePages::unshown(SitePages::cards(array_values(array_filter((array) ($page['features'] ?? []), 'is_string'))), SitePages::picturesOf($page)),
             'draw' => SitePages::draw(),
         ], 200, SongPagesController::headers());
+    }
+
+    /**
+     * /for/learners and /for/singers: one way in (lesson 1 with no account; the studio on the home's song), then the
+     * songs, courses, tools, guides and questions that fit, each the site's own card. A visitor's own ref stays theirs.
+     *
+     * @param  array<string, mixed>  $page
+     */
+    private function path(Request $request, string $who, array $page): Response
+    {
+        $ref = Landing::ref($request->query('ref')) ?? 'for-'.$who;
+        $links = Landing::links($ref);
+        $price = Prices::of(Prices::currency($request));
+
+        return response()->view('site.for-path', [
+            'title' => SitePages::title((string) $page['title']),
+            'meta' => ['title' => SitePages::title((string) $page['title']), 'description' => (string) $page['description'], 'url' => Hosts::publicUrl().'/for/'.$who],
+            'area' => 'for',
+            'page' => $page,
+            'links' => $links,
+            // The first action: lesson 1 (no account) for learners; for singers, the home's song in the app, to record a part.
+            'first' => $who === 'learners' ? $links['start'] : Hosts::app('/t/'.Landing::HERO_SONG.'?'.http_build_query(['ref' => $ref])),
+            'content' => PathPages::content($who, $price),
+        ], 200, [...SongPagesController::headers(), 'Vary' => 'CF-IPCountry, Accept-Language']);
     }
 
     /** @param  list<string>  $offered */

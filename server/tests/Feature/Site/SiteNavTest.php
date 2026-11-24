@@ -70,8 +70,13 @@ final class SiteNavTest extends TestCase
         preg_match('#<nav class="s-foot-cols".*?</nav>#s', $html, $foot);
         preg_match_all('#<ul>(.*?)</ul>#s', $foot[0], $columns);
 
-        $this->assertCount(6, $columns[1]);
-        $this->assertSame([4], array_values(array_unique(array_map(static fn (string $col): int => substr_count($col, '<li>'), $columns[1]))));
+        // Who it's for first, exactly the home's three paths; Product three since Choir directors moved there; the rest four
+        // (the even-columns rule bends there rather than pad either: docs/design-rules.md).
+        $this->assertCount(7, $columns[1]);
+        $this->assertSame([3, 4, 4, 3, 4, 4, 4], array_map(static fn (string $col): int => substr_count($col, '<li>'), $columns[1]));
+        preg_match_all('#href="([^"]+)"#', $columns[1][0], $who);
+        $this->assertSame(['/for/learners', '/for/singers', '/for/choir-directors?ref=for-choirs-footer'], $who[1]);
+        $this->assertSame(1, substr_count($html, 'href="/for/choir-directors?ref=for-choirs-footer"'), 'Choir directors once');
     }
 
     public function test_the_landing_shows_free_courses_and_free_tools_after_how_it_works(): void
