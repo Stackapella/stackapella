@@ -105,8 +105,17 @@ def journey(f):
     # Hillel: first, the note they'd like to start on (the app's find-your-note), with Use the usual key.
     f.wait("document.querySelector('[data-first-note] [data-first-note-usual]')", what="the first-note step")
     f.shot("first-note")
+    # The take's first frame is the take (Hillel's bug, 2026-11-23): every change to the page watched from the tap, and
+    # the chooser never once in it.
+    f.run("""window.sawChooser = false; window.chooserWatch?.disconnect();
+        window.chooserWatch = new MutationObserver(() => { if (document.querySelector('[data-chooser]')) window.sawChooser = true; });
+        window.chooserWatch.observe(document.documentElement, { childList: true, subtree: true });""")
     f.run("document.querySelector('[data-first-note-usual]').click()")
     f.wait("/^\\/p\\/[\\w-]+\\/sing$/.test(location.pathname)", what="Sing on the choir project")
+    f.wait("(async () => (await import('/js/stores/session.js')).session.practice?.sing?.way === 'whole')()", what="the take's way set")
+    f.run("await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));")
+    f.run("window.chooserWatch.disconnect()")
+    assert f.js("window.sawChooser") is False, "the way chooser showed before the choir take"
     clip_project = f.js("location.pathname.split('/')[2]")
     assert f.js(f"""(async () => {{ const s = await import('/js/stores/projects.js'); await s.loadProjects(); return s.projects.all.find((x) => x.id === {json.dumps(clip_project)})?.choir?.noHeadphones; }})()""") is True, "the no-headphones take isn't marked"
     # A silent run: nothing reaches the speakers (the play bus at 0 on the audio clock), and stopping puts it back.

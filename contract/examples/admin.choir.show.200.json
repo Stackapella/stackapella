@@ -213,6 +213,39 @@
                     }
                 ]
             }
+        ],
+        "gateNumbers": [
+            {
+                "date": "2026-11-23",
+                "failure": null,
+                "gateFailures": [
+                    {
+                        "partKey": "alto",
+                        "reason": "pitch",
+                        "cents": [
+                            -41.5,
+                            33.0
+                        ]
+                    }
+                ],
+                "partWorst": [
+                    {
+                        "partKey": "soprano",
+                        "cents": [
+                            12.5,
+                            -9.0,
+                            8.0
+                        ]
+                    },
+                    {
+                        "partKey": "alto",
+                        "cents": [
+                            -28.0,
+                            21.5
+                        ]
+                    }
+                ]
+            }
         ]
     }
 }

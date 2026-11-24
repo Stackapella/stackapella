@@ -19,7 +19,7 @@ return [
         'groups' => ['Choir groups (18 and over)', 'Join free', 'Start and join'],
     ],
     // The choir question, the third since the trial question left (2026-11-21).
-    'pages.pricing.faq' => [2 => [1 => 'Nothing for your singers: they join free. Starting the group takes Plus. We also make learning tracks of a choir\'s own songs, and your first song is free. See For choirs.']],
+    'pages.pricing.faq' => [2 => [1 => 'Nothing for your singers: they join free. Starting the group takes Plus. We also make learning tracks of a choir\'s own songs, and your first song is free. See the page for choir directors.']],
     // Help.
     'pages.help.pages.plus-and-billing.sections' => [0 => [1 => [2 => 'Record every part, polish the mix, export as WAV, and share links and videos. You can join any song or choir group you\'re invited to; inviting friends to sing on your songs and starting a choir group take Plus, and everyone you invite joins free.']]],
     'pages.help.pages.groups.sections' => [0 => [1 => [0 => 'A choir director starts a group, sends the singers its link, shares songs, and says who sings which part. Starting a group takes Plus; every singer joins free.']]],

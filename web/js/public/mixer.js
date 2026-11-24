@@ -86,6 +86,12 @@ const REAL_WAIT = 1500;
 const MIX_GAIN = 1 / LEVEL;
 const MIX_MOVE = 0.03; // the time constant of moving between the render and the voices apart: about 100 ms
 const JOIN_FADE = 0.12; // seconds a joining voice takes to open, ending on its beat: a fade, not a click
+// Each time through, a voice is heard to the song's end and no further (Hillel, 2026-11-23: "when the song repeats on
+// the landing page there's a click"): a recorded take runs on past the song's last beat (the singer stopping, the room;
+// the home's bass take has pops there), so every voice sounds through a fade of its own over the song's last moment,
+// silent just before the end, and the next time through starts on a fresh one.
+const TAIL = 0.3; // seconds the song's last moment fades over
+const TAIL_GAP = 0.05; // silent this long before the song's end, so a pop just before it goes too
 
 /** The render this browser plays: the m4a where it can, else the mp3; null without one. Pure (the tests check it). */
 /** What reads a player's playhead (--p) in the site's sheet: the Play button (its ring), a wave's line, a score's bar. */
@@ -184,6 +190,22 @@ export function buildOf(song, beats) {
     const joins = new Map(Object.entries(song?.joins && typeof song.joins === 'object' ? song.joins : {})
         .filter(([key, beat]) => keys.has(key) && typeof beat === 'number' && beat > 0 && beat < beats));
     return { passes, joins: joins.size ? joins : null };
+}
+
+/**
+ * A voice's own fade at the song's end (`end`, on the audio clock, this time through), scheduled on `param` from `now`:
+ * full until `tail` before the silence, silent from `gap` before `end`. A play that starts inside the fade carries on
+ * from where it would be. Only the audio clock (the tests render it offline).
+ */
+export function untilSongEnd(param, end, now, tail = TAIL, gap = TAIL_GAP) {
+    const to = end - gap;
+    if (to <= now) {
+        param.setValueAtTime(0, now);
+        return;
+    }
+    if (to - tail >= now) param.setValueAtTime(1, to - tail);
+    else param.setValueAtTime((to - now) / tail, now);
+    param.linearRampToValueAtTime(0, to);
 }
 
 /** When each pass of a song starts on the audio clock: `start`, then every `seconds` after. Pure (the tests check it). */
@@ -781,6 +803,14 @@ function setUp(root) {
         }
     }
 
+    // A voice's source into its part's gain through a fade of its own that closes at `end`, the song's end that time
+    // through (untilSongEnd): what a take holds past the song is never heard, and a repeat starts clean.
+    function heard(source, current, key, end) {
+        const fade = context.createGain();
+        untilSongEnd(fade.gain, end, context.currentTime);
+        source.connect(fade).connect(current.gains.get(key));
+    }
+
     // The song again for each further pass (a page's `passes`): every voice of `voices` started on the same clock at
     // the pass's own start (or, if they came late, now, that far into it). The sources it started.
     function again(current, voices) {
@@ -793,7 +823,7 @@ function setUp(root) {
                 const source = context.createBufferSource();
                 source.buffer = buffer;
                 source.from = offset;
-                source.connect(current.gains.get(part.key));
+                heard(source, current, part.key, start + single);
                 source.start(when, offset);
                 list.push(source);
             });
@@ -826,7 +856,7 @@ function setUp(root) {
             const source = context.createBufferSource();
             source.buffer = buffer;
             source.from = offset;
-            source.connect(current.gains.get(part.key));
+            heard(source, current, part.key, current.start + single);
             if (offset < buffer.duration) source.start(at, offset);
             return source;
         }).filter((source) => source.from < source.buffer.duration);
@@ -955,7 +985,7 @@ function setUp(root) {
                 const source = context.createBufferSource();
                 source.buffer = buffer;
                 source.from = offset;
-                source.connect(current.gains.get(part.key));
+                heard(source, current, part.key, current.start + single);
                 if (offset < buffer.duration) source.start(when, offset);
                 return source;
             }).filter((source) => source.from < source.buffer.duration);

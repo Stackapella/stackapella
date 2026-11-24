@@ -24,7 +24,8 @@
                 "firstSuccess",
                 "renderSeconds",
                 "plusFromChoir",
-                "clipNumbers"
+                "clipNumbers",
+                "gateNumbers"
             ],
             "properties": {
                 "period": {
@@ -315,6 +316,81 @@
                                         },
                                         "value": {
                                             "type": "number"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "gateNumbers": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "date",
+                            "failure",
+                            "gateFailures",
+                            "partWorst"
+                        ],
+                        "properties": {
+                            "date": {
+                                "type": "string"
+                            },
+                            "failure": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "gateFailures": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "partKey",
+                                        "reason",
+                                        "cents"
+                                    ],
+                                    "properties": {
+                                        "partKey": {
+                                            "type": "string"
+                                        },
+                                        "reason": {
+                                            "type": [
+                                                "string",
+                                                "null"
+                                            ]
+                                        },
+                                        "cents": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "number"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "partWorst": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "partKey",
+                                        "cents"
+                                    ],
+                                    "properties": {
+                                        "partKey": {
+                                            "type": "string"
+                                        },
+                                        "cents": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "number"
+                                            }
                                         }
                                     }
                                 }

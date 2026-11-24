@@ -257,7 +257,7 @@ return [
         'chords' => 'Chords',
         'voice_types' => 'Voice types',
         'note_chart' => 'Note frequencies',
-        'for_choirs' => 'For choirs',
+        'for_choirs' => 'Choir directors',
         'features' => 'Features',
         'how' => 'How it works',
         'pricing' => 'Pricing',
@@ -883,7 +883,7 @@ return [
         'plans_plus_for' => 'For what you make.',
         // Plus isn't the choir offer: learning tracks are their own thing (docs/choir-tracks-plan.md).
         // Beside the plans (Hillel, 2026-11-12: For choirs is led to from the pages a director reads).
-        'plans_choirs' => 'For choirs:',
+        'plans_choirs' => 'For choir directors:',
         'plans_choirs_link' => 'every singer free, and learning tracks for your choir',
         'plans_get' => 'Get Plus',
         // Free's first line before the courses open (the plus_courses flag off, as in a fresh dev setup): every course is
@@ -1048,7 +1048,7 @@ return [
         'faq' => [
             ['If I stop Plus, do I lose what I made?', 'No. Nothing is deleted, and you can play and export all of it. If your recordings are over the free storage, clear some space before you record more.'],
             ['Can I share what I make?', 'Yes, anywhere, including monetised videos, credited "Arranged by Stackapella". The songs are in the public domain.'],
-            ['I lead a choir. What does it cost?', 'Nothing for you or your singers: choir groups are free. We also make learning tracks of a choir\'s own songs, and your first song is free. See For choirs.'],
+            ['I lead a choir. What does it cost?', 'Nothing for you or your singers: choir groups are free. We also make learning tracks of a choir\'s own songs, and your first song is free. See the page for choir directors.'],
         ],
         // Shared private arrangements need everyone's own Plus (the plus_private switch, Hillel 2026-11-17): a row in
         // With others and a question, shown only while it's on. The same words as the app's Plus sheet.

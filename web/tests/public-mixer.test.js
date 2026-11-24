@@ -249,6 +249,49 @@ test('site mixer: every pass starts on the same clock, and a join is a ramp that
     assert(onTime.when === 46.1 && onTime.offset === 0, 'on time: at the pass\'s own start');
 });
 
+test('site mixer: a take that runs past the song is never heard at the repeat, rendered offline (no click)', async () => {
+    const { untilSongEnd } = await import('/js/public/mixer.js');
+    const rate = 48000;
+    // A one-second song whose take runs 0.2 s on: sung to 0.95 s, then pops (a singer stopping), as the home's bass take.
+    const take = new Float32Array(Math.round(1.2 * rate));
+    for (let i = 0; i < Math.round(0.95 * rate); i++) take[i] = 0.5 * Math.sin((2 * Math.PI * 220 * i) / rate);
+    for (const at of [0.97, 1.02, 1.08]) for (let i = 0; i < 24; i++) take[Math.round(at * rate) + i] = i % 2 ? -0.9 : 0.9;
+    // Twice through, each pass's own source started as the last one ends, as the site's passes are.
+    async function render(faded) {
+        const ctx = new OfflineAudioContext(1, Math.round(2.3 * rate), rate);
+        const buffer = ctx.createBuffer(1, take.length, rate);
+        buffer.copyToChannel(take, 0);
+        for (const start of [0, 1]) {
+            const source = ctx.createBufferSource();
+            source.buffer = buffer;
+            const fade = ctx.createGain();
+            if (faded) untilSongEnd(fade.gain, start + 1, 0);
+            source.connect(fade).connect(ctx.destination);
+            source.start(start);
+        }
+        return (await ctx.startRendering()).getChannelData(0);
+    }
+    const step = (out) => out.reduce((most, v, i) => (i ? Math.max(most, Math.abs(v - out[i - 1])) : 0), 0);
+    const before = await render(false);
+    assert(step(before) > 0.5, `the take alone has its pops at the seam: ${step(before)}`);
+    const after = await render(true);
+    // A 220 Hz voice at half scale moves at most 0.015 a sample: anything near a pop is a click.
+    assert(step(after) < 0.02, `no step anywhere, the seam included: ${step(after)}`);
+    const quiet = after.subarray(Math.round(0.951 * rate), rate).reduce((most, v) => Math.max(most, Math.abs(v)), 0);
+    assert(quiet === 0, `silent just before the repeat: ${quiet}`);
+    const sung = after.subarray(Math.round(1.1 * rate), Math.round(1.5 * rate)).reduce((most, v) => Math.max(most, Math.abs(v)), 0);
+    assert(sung > 0.49, `the second time through sings in full: ${sung}`);
+    // A play that starts inside the fade carries on from where it would be, not from full.
+    const ctx = new OfflineAudioContext(1, Math.round(0.3 * rate), rate);
+    const one = ctx.createConstantSource();
+    const late = ctx.createGain();
+    untilSongEnd(late.gain, 0.2, 0, 0.3, 0.05);
+    one.connect(late).connect(ctx.destination);
+    one.start(0);
+    const level = await ctx.startRendering().then((b) => b.getChannelData(0));
+    assert(Math.abs(level[0] - 0.5) < 0.01 && level[Math.round(0.16 * rate)] === 0, `late: from half, silent by 0.15 s: ${level[0]}, ${level[Math.round(0.16 * rate)]}`);
+});
+
 test('site mixer: a song in two passes plays as the voices apart, twice as long, and a voice alone still switches', async () => {
     const root = document.createElement('div');
     root.dataset.player = '';

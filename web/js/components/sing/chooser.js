@@ -47,7 +47,7 @@ export const Chooser = {
     },
     template: `
         <!-- Its header at the top; on a desktop the choices sit in the middle of the height, not over an empty half (docs/design-rules.md). -->
-        <div class="flex w-full flex-col md:flex-1">
+        <div class="flex w-full flex-col md:flex-1" data-chooser>
             <!-- Sing's own bar's place (frame.js SingHeader), Back near the window's edge: never further in than the site's logo
                  (Hillel, 2026-11-10, docs/design-rules.md). The choices keep their column under it. -->
             <header class="flex items-center gap-3 px-3 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))] min-[900px]:px-6">

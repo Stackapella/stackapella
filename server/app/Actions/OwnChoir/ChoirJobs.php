@@ -310,7 +310,7 @@ final class ChoirJobs
     }
 
     /**
-     * @param  array{detail?: string|null, level?: string|null, partTries?: list<array{partKey: string, tries: int}>|null, gateFailures?: list<array{partKey: string, reason?: string|null}>|null, detailNumbers?: list<array{name: string, value: float|int|string}>|null}  $report
+     * @param  array{detail?: string|null, level?: string|null, partTries?: list<array{partKey: string, tries: int}>|null, gateFailures?: list<array{partKey: string, reason?: string|null, cents?: list<float|int>|null}>|null, partWorst?: list<array{partKey: string, cents: list<float|int>}>|null, detailNumbers?: list<array{name: string, value: float|int|string}>|null}  $report
      */
     public function finish(OwnChoirRequest $request, string $claim, ?string $failed, ?float $gpuSeconds = null, array $report = []): OwnChoirRequest
     {
@@ -319,6 +319,13 @@ final class ChoirJobs
         // Why its clip couldn't be used, for its singer alone (Hillel, 2026-11-23).
         if ($failed === 'clip_unusable' && $done->status === OwnChoirStatus::Failed && ($report['detail'] ?? null) !== null) {
             $done->forceFill(['failure_detail' => $report['detail']])->save();
+        }
+
+        // The worst notes the worker measured, for Admin > Choir (2026-11-24): partKeys and signed cents, numbers only.
+        $gates = self::gateNumbers($report);
+
+        if ($gates !== null) {
+            $done->forceFill(['gate_numbers' => $gates])->save();
         }
 
         // Its measures, for Admin > Choir to tune the checks: numbers only (2026-11-23).
@@ -447,6 +454,22 @@ final class ChoirJobs
         foreach (OwnChoirRequest::query()->where('status', OwnChoirStatus::Rendering->value)->where('claimed_at', '<', $stale)->where('tries', '>=', (int) config('own_choir.max_tries'))->get() as $request) {
             self::failAndClean($request, 'render_failed');
         }
+    }
+
+    /**
+     * The worker's pitch numbers for a job: each gate failure's worst notes and each part's as made, or null without any.
+     *
+     * @param  array<string, mixed>  $report
+     * @return array{gateFailures: list<array{partKey: string, reason: string|null, cents: list<float>}>, partWorst: list<array{partKey: string, cents: list<float>}>}|null
+     */
+    public static function gateNumbers(array $report): ?array
+    {
+        $cents = static fn (mixed $list): array => array_values(array_map(static fn (mixed $c): float => round((float) $c, 1), array_filter((array) $list, 'is_numeric')));
+        $failures = array_values(array_map(static fn (array $f): array => ['partKey' => (string) ($f['partKey'] ?? ''), 'reason' => isset($f['reason']) ? (string) $f['reason'] : null, 'cents' => $cents($f['cents'] ?? [])],
+            array_filter((array) ($report['gateFailures'] ?? []), static fn (mixed $f): bool => is_array($f) && ($f['cents'] ?? []) !== [] && ($f['cents'] ?? null) !== null)));
+        $worst = array_values(array_map(static fn (array $p): array => ['partKey' => (string) ($p['partKey'] ?? ''), 'cents' => $cents($p['cents'] ?? [])], array_filter((array) ($report['partWorst'] ?? []), 'is_array')));
+
+        return $failures === [] && $worst === [] ? null : ['gateFailures' => $failures, 'partWorst' => $worst];
     }
 
     /**

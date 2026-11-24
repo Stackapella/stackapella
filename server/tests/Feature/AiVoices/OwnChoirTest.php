@@ -616,7 +616,14 @@ final class OwnChoirTest extends TestCase
         $finish(['detailNumbers' => [['name' => 'snrDb', 'value' => 1, 'words' => 'happy birthday']]])->assertStatus(422);
         $finish(['detailNumbers' => ['snrDb' => 6.5]])->assertStatus(422);
         $finish(['detailNumbers' => array_map(static fn (int $i): array => ['name' => "m{$i}", 'value' => $i], range(1, 17))])->assertStatus(422);
-        $this->assertMatchesContract($finish(['level' => 'quiet', 'detailNumbers' => [['name' => 'snrDb', 'value' => 6.5], ['name' => 'rmsDb', 'value' => -31]]]), 'worker.choir.jobs.finish', 200);
+        // The worst notes: signed cents, 3 at most, within an octave; each part's as made, 8 parts at most.
+        $finish(['gateFailures' => [['partKey' => 'alto', 'reason' => 'pitch', 'cents' => [41, -38, 33, 30]]]])->assertStatus(422);
+        $finish(['gateFailures' => [['partKey' => 'alto', 'reason' => 'pitch', 'cents' => [1300]]]])->assertStatus(422);
+        $finish(['partWorst' => [['partKey' => 'alto', 'cents' => [12], 'note' => 'flat']]])->assertStatus(422);
+        $finish(['partWorst' => array_fill(0, 9, ['partKey' => 'alto', 'cents' => [12]])])->assertStatus(422);
+        $this->assertMatchesContract($finish(['level' => 'quiet', 'detailNumbers' => [['name' => 'snrDb', 'value' => 6.5], ['name' => 'rmsDb', 'value' => -31]],
+            'gateFailures' => [['partKey' => 'alto', 'reason' => 'pitch', 'cents' => [-41.5, 33]]], 'partWorst' => [['partKey' => 'soprano', 'cents' => [12.5, -9, 8]]]]), 'worker.choir.jobs.finish', 200);
+        $this->assertEquals(['gateFailures' => [['partKey' => 'alto', 'reason' => 'pitch', 'cents' => [-41.5, 33]]], 'partWorst' => [['partKey' => 'soprano', 'cents' => [12.5, -9, 8]]]], $song->refresh()->gate_numbers);
         // Stored as JSON, a whole number reads back without its ".0".
         $this->assertEquals([['name' => 'snrDb', 'value' => 6.5], ['name' => 'rmsDb', 'value' => -31]], $song->refresh()->failure_numbers);
 

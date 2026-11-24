@@ -175,7 +175,12 @@ final class WorkerApiTest extends TestCase
         $this->assertMatchesContract($this->worker('POST', '/api/worker/ai/uploads', ['bytes' => $master['bytes'] - 2] + $master), 'worker.ai.uploads.create', 422);
         // Its AI marking may follow the audio, up to 64 KB, never more.
         $this->worker('POST', '/api/worker/ai/uploads', ['bytes' => $master['bytes'] + 65538] + $master)->assertUnprocessable();
-        $this->worker('POST', '/api/worker/ai/uploads', ['checks' => ['notesOver30' => 1] + $master['checks']] + $master)->assertUnprocessable()->assertJsonValidationErrors('checks.notesOver30');
+        // A few notes over 30 cents pass (2026-11-24): with 41 measured, up to 3 (5%, rounded up); 50 cents the worst.
+        $this->worker('POST', '/api/worker/ai/uploads', ['checks' => ['notesOver30' => 4] + $master['checks']] + $master)->assertUnprocessable()->assertJsonValidationErrors('checks.notesOver30');
+        $this->worker('POST', '/api/worker/ai/uploads', ['checks' => ['pitchMaxCents' => 50.5] + $master['checks']] + $master)->assertUnprocessable()->assertJsonValidationErrors('checks.pitchMaxCents');
+        $this->worker('POST', '/api/worker/ai/uploads', ['checks' => ['pitchMedianCents' => 30.5] + $master['checks']] + $master)->assertUnprocessable()->assertJsonValidationErrors('checks.pitchMedianCents');
+        // With few notes measured, 2 is still allowed and 3 isn't.
+        $this->worker('POST', '/api/worker/ai/uploads', ['checks' => ['notesMeasured' => 10, 'notesOver30' => 3] + $master['checks']] + $master)->assertUnprocessable()->assertJsonValidationErrors('checks.notesOver30');
         $this->worker('POST', '/api/worker/ai/uploads', ['renderer' => ['reference' => '/home/x/ref.wav'] + $master['renderer']] + $master)->assertUnprocessable()->assertJsonValidationErrors('renderer.reference');
         $this->worker('POST', '/api/worker/ai/uploads', ['sampleRate' => 24000] + $master)->assertUnprocessable();
 
@@ -208,5 +213,15 @@ final class WorkerApiTest extends TestCase
 
         $this->assertSame('real_voice_exists', $upload->refresh()->failure);
         $this->assertSame(0, TemplateGuide::withAi()->where('source', 'ai')->count());
+    }
+
+    public function test_one_slightly_off_note_no_longer_fails_a_part(): void
+    {
+        $template = $this->catalogue();
+        $voice = AiVoice::factory()->consented()->create();
+        $master = $this->master($template, $voice, Wav::tone(0.5));
+
+        $sent = $this->worker('POST', '/api/worker/ai/uploads', ['checks' => ['pitchMaxCents' => 46.0, 'notesOver30' => 3] + $master['checks']] + $master);
+        $this->assertMatchesContract($sent, 'worker.ai.uploads.create', 201);
     }
 }

@@ -107,7 +107,7 @@ export const SingView = {
     components: { SingShell: screenLoading(), ShareVoice: defineAsyncComponent(() => import('../components/share-voice.js').then((m) => m.ShareVoice)), DailyShare, RingMeter, VoiceCareLine, TimingLine, PopupSlot, TakeBest, IdeaVoice, PhraseStage, Chooser, Stage, RecordingStage, Lane, NowCard, Coach, StepDone, JustRecorded, LineBar, ModeBar, SingHeader, Transport, TurnBand, PartSheet, SettingsSheet, HeadphonesDialog, TimingDialog, RangeDialog, Icon, VoiceNote, ResingSheet, ResungCard, TrimSheet, WhatsNext, LockedBanner, ShareSheet },
     props: { id: { type: String, required: true } },
     setup: () => ({ ...toRefs(session), audio, formatTime, shownTitle, prefs, game, effect, aiCtaOpen }),
-    data: () => ({ tasteAsked: false, crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null, ring: null, ringChord: '', lessonStep: null, lessonOpening: false, voiceAt: 0, voicePartId: null, choirSending: false, choirError: '', choirSent: null, choirCheck: null }),
+    data: () => ({ clipReady: false, tasteAsked: false, crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null, ring: null, ringChord: '', lessonStep: null, lessonOpening: false, voiceAt: 0, voicePartId: null, choirSending: false, choirError: '', choirSent: null, choirCheck: null }),
     template: `
         <div class="flex h-dvh flex-col bg-ink" :data-paused="paused ? '' : null">
             <p class="sr-only" aria-live="polite">{{ said }}</p>
@@ -123,6 +123,9 @@ export const SingView = {
             </div>
             <!-- A lesson's song (Hillel agreed, 2026-11-11): no chooser and no part picker, the step's part and way set while its lesson is read. -->
             <SingShell v-else-if="lessonOpening" />
+            <!-- Hear yourself as a choir's take (Hillel's bug, 2026-11-23): the opening frame until its way and part are set,
+                 so its first screen is the take, never a flash of the chooser. -->
+            <SingShell v-else-if="clipTake && !clipReady" />
             <Chooser v-else-if="choosing || !way || !focusPart" :parts="partChoices" :transpose="project.transpose || 0" :way="choosing ? null : way" :suggested="suggested"
                 :title="shownTitle(project)" :focus="focusPart ? { slot: focusPart, name: partName, range: templatePart(focusPart)?.range ?? null } : null" :bpm="project.bpm" :phrases="phraseRows.length" :length="lengthSeconds" :auto="!choosing" :no-voice="noVoiceSlots" :ai-voice="aiVoiceSlots"
                 @choose="choose" @range="dialog = 'range'" @back="leave" @studio="openStudio" />
@@ -878,6 +881,7 @@ export const SingView = {
             if (this.practice?.mode === 'own' && !hasTake(tune)) sessionStore.setMode('singAlong');
             this.choosing = false;
         }
+        this.clipReady = true; // a choir take's way and part are set (or it has none): Sing may show it now
         // A beta take is recorded in the studio's beta mode (the sound check, Check and send).
         if (session.project?.beta) {
             navigate(`/p/${this.id}`, { replace: true });

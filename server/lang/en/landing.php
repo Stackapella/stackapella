@@ -49,9 +49,11 @@ return [
     'paths' => [
         'label' => 'Find your path.',
         'app' => 'in the app',
-        'learn' => ['eyebrow' => 'Learners', 'badge' => 'Always free', 'who' => 'Learn to sing harmony', 'what' => 'Hear each part on its own, then sing yours with a guide voice.', 'go' => 'Explore free courses'],
-        'make' => ['eyebrow' => 'Singers', 'who' => 'Record a whole song yourself', 'what' => 'Record each part over the others, in time, until the whole song is you.', 'go' => 'See how to layer your voice', 'go_choir' => 'Hear yourself as a choir'],
-        'lead' => ['eyebrow' => 'Leaders', 'who' => 'Get your choir ready', 'what' => 'Assign parts, give singers a way to practise at home, and see who\'s ready.', 'go' => 'See tools for choir leaders'],
+        // Who each path is for, then its goal, said the same everywhere (Hillel, 2026-11-23, the copy expert's words; the
+        // rule in docs/design-rules.md). No badge on Learners: its line says free.
+        'learn' => ['eyebrow' => 'Learners', 'badge' => '', 'who' => 'Learn harmony', 'what' => 'Free lessons with a guide voice, even on your own.', 'go' => 'See the free lessons'],
+        'make' => ['eyebrow' => 'Singers', 'who' => 'Sing every part', 'what' => 'Record a whole song yourself.', 'go' => 'See how to layer your voice', 'go_choir' => 'Hear yourself as a choir'],
+        'lead' => ['eyebrow' => 'Choir directors', 'who' => 'Lead a choir', 'what' => 'Give each singer their part and see who\'s ready.', 'go' => 'See tools for choir directors'],
     ],
     // Over the four pinned scenes: they are the solo performance.
     'solo_scene' => ['kick' => 'Sing every part', 'title_before' => 'Create your own', 'title_em' => 'a cappella performance.', 'body' => 'Sing each part yourself. As you record, hear your earlier takes play alongside you.'],

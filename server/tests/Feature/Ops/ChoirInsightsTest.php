@@ -72,6 +72,11 @@ final class ChoirInsightsTest extends TestCase
         $numbers = $this->getJson('/api/admin/choir');
         $this->assertMatchesContract($numbers, 'admin.choir.show', 200);
         $numbers->assertJsonPath('data.clipNumbers', [['detail' => 'noisy', 'date' => ReportDay::now()->toDateString(), 'numbers' => [['name' => 'snrDb', 'value' => 6.5]]]]);
+        // The worker's worst notes, numbers only.
+        OwnChoirRequest::factory()->create(['user_id' => $singer->id, 'status' => OwnChoirStatus::Ready, 'gate_numbers' => ['gateFailures' => [['partKey' => 'alto', 'reason' => 'pitch', 'cents' => [-41.5]]], 'partWorst' => [['partKey' => 'bass', 'cents' => [20.0, -12.0]]]]]);
+        $gates = $this->getJson('/api/admin/choir');
+        $this->assertMatchesContract($gates, 'admin.choir.show', 200);
+        $gates->assertJsonPath('data.gateNumbers.0.failure', null)->assertJsonPath('data.gateNumbers.0.gateFailures.0.cents', [-41.5])->assertJsonPath('data.gateNumbers.0.partWorst.0.partKey', 'bass');
         $this->assertStringNotContainsString('Ann Lee', (string) $numbers->getContent());
 
         $this->getJson('/api/admin/choir?period=7d')->assertJsonPath('data.period', '7d')->assertJsonPath('data.funnel.2.before', 0);

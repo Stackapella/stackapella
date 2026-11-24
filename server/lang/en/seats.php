@@ -20,7 +20,7 @@ return [
     'pages.pricing.rows' => [
         'groups' => ['Choir groups (18 and over)', 'A seat from your director', 'A seat in any group'],
     ],
-    'pages.pricing.faq' => [2 => [1 => 'Each singer in a choir group needs a seat. The director buys them for the choir, from 10 seats; a singer with Plus already has one. Learning alone stays free. We also make learning tracks of a choir\'s own songs, and your first song is free. See For choirs.']],
+    'pages.pricing.faq' => [2 => [1 => 'Each singer in a choir group needs a seat. The director buys them for the choir, from 10 seats; a singer with Plus already has one. Learning alone stays free. We also make learning tracks of a choir\'s own songs, and your first song is free. See the page for choir directors.']],
     // Help.
     'pages.help.pages.plus-and-billing.sections' => [0 => [1 => [2 => 'Record every part, polish the mix, export as WAV, and share links and videos. You can join any song you\'re invited to; inviting friends to sing on your songs takes Plus, and everyone you invite joins free. Singing in a choir group takes a seat: your own Plus, or one your director buys for the choir.']]],
     'pages.help.pages.groups.sections' => [0 => [1 => [0 => 'A choir director starts a group, sends the singers its link, shares songs, and says who sings which part. Every singer needs a seat: the director buys them for the choir, and a singer with Plus already has one.']]],

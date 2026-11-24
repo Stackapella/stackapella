@@ -95,7 +95,7 @@
     "No account needed": "No hace falta cuenta",
     "Always free": "Siempre gratis",
     "Hear yourself as a choir": "Óyete como un coro",
-    "Sing every part": "Canta cada parte",
+    "Sing every part": "Canta todas las voces",
     "Create your own": "Crea tu propia",
     "a cappella performance.": "actuación a cappella.",
     "Sing each part yourself. As you record, hear your earlier takes play alongside you.": "Canta tú cada parte. Mientras grabas, oye tus tomas anteriores sonar contigo.",
@@ -114,8 +114,16 @@
     "Plus for more ways to create.": "Plus, para más formas de crear.",
     "Learning never needs a card. Plus is for what you make: your files and private arrangements.": "Aprender nunca pide tarjeta. Plus es para lo que creas: tus archivos y arreglos privados.",
     "This season": "Esta temporada",
-    "Learners": "Para aprender",
-    "Singers": "Para cantar",
+    "Learners": "Aprendices",
+    "Singers": "Cantantes",
     "Leaders": "Para dirigir",
-    "An example. In lesson 1, the app finds your own comfortable note as you sing.": "Un ejemplo. En la lección 1, la app encuentra tu propia nota cómoda mientras cantas."
+    "An example. In lesson 1, the app finds your own comfortable note as you sing.": "Un ejemplo. En la lección 1, la app encuentra tu propia nota cómoda mientras cantas.",
+    "Learn harmony": "Aprende armonía",
+    "Free lessons with a guide voice, even on your own.": "Lecciones gratis con una voz guía, incluso por tu cuenta.",
+    "See the free lessons": "Ver las lecciones gratis",
+    "Record a whole song yourself.": "Graba tú una canción entera.",
+    "Lead a choir": "Dirige un coro",
+    "Give each singer their part and see who's ready.": "Da a cada cantante su voz y mira quién la tiene lista.",
+    "See tools for choir directors": "Herramientas para directores de coro",
+    "Choir directors": "Directores de coro"
 }

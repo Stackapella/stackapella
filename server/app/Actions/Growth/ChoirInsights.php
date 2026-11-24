@@ -79,6 +79,7 @@ final class ChoirInsights
             'renderSeconds' => $pair('choir_render_seconds'),
             'plusFromChoir' => ['n' => self::plusFrom($from, $to), 'before' => self::plusFrom($beforeFrom, $beforeTo)],
             'clipNumbers' => self::clipNumbers($from, $to),
+            'gateNumbers' => self::gateNumbers($from, $to),
         ];
     }
 
@@ -109,6 +110,25 @@ final class ChoirInsights
                 'detail' => $r->failure_detail,
                 'date' => $r->updated_at?->copy()->setTimezone(ReportDay::zone())->toDateString() ?? $to->toDateString(),
                 'numbers' => array_values(array_map(static fn (array $n): array => ['name' => (string) $n['name'], 'value' => (float) $n['value']], (array) $r->failure_numbers)),
+            ])->all());
+    }
+
+    /**
+     * The period's latest jobs with the worker's pitch numbers: the day, how it ended, each gate failure's and each part's
+     * worst notes in signed cents, never whose.
+     *
+     * @return list<array{date: string, failure: string|null, gateFailures: list<mixed>, partWorst: list<mixed>}>
+     */
+    private static function gateNumbers(Carbon $from, Carbon $to): array
+    {
+        return array_values(OwnChoirRequest::query()->whereNotNull('gate_numbers')
+            ->whereBetween('updated_at', [ReportDay::start($from->toDateString()), ReportDay::end($to->toDateString())])->latest('updated_at')->latest('id')->limit(50)
+            ->get(['id', 'failure', 'gate_numbers', 'updated_at'])
+            ->map(static fn (OwnChoirRequest $r): array => [
+                'date' => $r->updated_at?->copy()->setTimezone(ReportDay::zone())->toDateString() ?? $to->toDateString(),
+                'failure' => $r->failure,
+                'gateFailures' => array_values((array) ($r->gate_numbers['gateFailures'] ?? [])),
+                'partWorst' => array_values((array) ($r->gate_numbers['partWorst'] ?? [])),
             ])->all());
     }
 

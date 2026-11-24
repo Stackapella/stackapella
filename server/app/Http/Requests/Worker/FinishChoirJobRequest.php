@@ -37,6 +37,14 @@ final class FinishChoirJobRequest extends FormRequest
             'gateFailures' => ['sometimes', 'nullable', 'array', 'max:64'],
             'gateFailures.*.partKey' => ['required', 'string', 'max:40'],
             'gateFailures.*.reason' => ['sometimes', 'nullable', 'string', 'max:40'],
+            // The worst notes' distance from pitch, signed (minus is flat), worst first (2026-11-24): numbers only.
+            'gateFailures.*.cents' => ['sometimes', 'nullable', 'array', 'list', 'max:3'],
+            'gateFailures.*.cents.*' => ['numeric', 'between:-1200,1200'],
+            'partWorst' => ['sometimes', 'nullable', 'array', 'list', 'max:8'],
+            'partWorst.*' => ['array:partKey,cents'],
+            'partWorst.*.partKey' => ['required', 'string', 'max:40'],
+            'partWorst.*.cents' => ['required', 'array', 'list', 'max:3'],
+            'partWorst.*.cents.*' => ['numeric', 'between:-1200,1200'],
             // An unusable clip's measures (2026-11-23): numbers only, never audio or text from the take.
             'detailNumbers' => ['sometimes', 'nullable', 'prohibited_unless:failed,clip_unusable', 'array', 'list', 'max:16'],
             'detailNumbers.*' => ['array:name,value'],

@@ -34,6 +34,7 @@ use Illuminate\Support\Carbon;
  * @property bool $remake a remake: its parts replace its song's (parent_request_id) when made
  * @property string|null $failure_detail why its clip couldn't be used (length, quiet, loud, noisy, edge, short, notes)
  * @property list<array{name: string, value: float}>|null $failure_numbers an unusable clip's measures from the worker, numbers only
+ * @property array{gateFailures: list<array{partKey: string, reason: string|null, cents: list<float>}>, partWorst: list<array{partKey: string, cents: list<float>}>}|null $gate_numbers the worker's worst notes, signed cents
  * @property array<string, mixed>|null $lead the song's lead: the whole song sung (take), or a stretch of its clip (fromClip)
  * @property string|null $lead_upload_key the whole song's WAV while it's on its way
  * @property string|null $lead_key the lead, levelled, as AAC
@@ -114,6 +115,7 @@ final class OwnChoirRequest extends Model
             'remake' => 'boolean',
             'lead' => 'array',
             'failure_numbers' => 'array',
+            'gate_numbers' => 'array',
             'key_shift' => 'integer',
             'held_for_minutes' => 'boolean',
             'clip_checked_at' => 'datetime',

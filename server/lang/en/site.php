@@ -880,7 +880,7 @@ return [
                 'end' => ['title' => 'Ask for one song you\'re rehearsing.', 'body' => 'We\'ll make part-by-part learning tracks of it for your singers, free.'],
                 'try' => ['Write to us', 'mailto::partners_email?subject=Learning%20tracks'],
                 'try_note' => 'Start a group, then ask for learning tracks from its page. Rather email? Write to us with the song and your choir\'s parts.',
-                'name' => 'Directors and teachers',
+                'name' => 'Choir directors',
                 'summary' => 'Learning tracks of your songs, and see who has started.',
                 'title' => 'Choir learning tracks, one song free',
                 'description' => 'Ask for one song your choir is rehearsing and we\'ll make part-by-part learning tracks for your singers, free. You see who has started and recorded their part.',
@@ -7332,7 +7332,7 @@ return [
                         ['Singers book without leaving', 'Your next open times show on your Stackapella profile, in the singer\'s own time zone, and the booking lands in Event Schedule like any other.'],
                         ['Around the lesson', 'Before it, the singer can attach a take of what they want to work on. After it, you can add notes and exercises to the same lesson.'],
                     ]],
-                    ['For choirs', [
+                    ['For choir directors', [
                         ['The next rehearsal, in the group', 'Your Stackapella group shows the next rehearsals and concerts from your schedule, with what to practise for each.'],
                         ['The songs, on the event page', 'Link the songs to a concert, and its page in Event Schedule shows each one with a player and a Learn your part link.'],
                         ['Your members, in one step', 'Invite the people on your schedule to your Stackapella group at once, and give out the parts.'],

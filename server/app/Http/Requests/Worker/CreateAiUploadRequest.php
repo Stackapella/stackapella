@@ -64,13 +64,20 @@ final class CreateAiUploadRequest extends FormRequest
             }],
             'sha256' => ['required', 'string', 'regex:/^[0-9a-fA-F]{64}$/'],
             'checks' => ['required', 'array:pitchMaxCents,pitchMedianCents,notesMeasured,notesTotal,notesOver15,notesOver30,dropouts,heldSeconds,durationSeconds'],
-            'checks.pitchMaxCents' => ['required', 'numeric', 'min:0', 'max:30'],
+            // One slightly-off note no longer fails a whole part (2026-11-24): the worst may be 50 cents out.
+            'checks.pitchMaxCents' => ['required', 'numeric', 'min:0', 'max:50'],
             'checks.pitchMedianCents' => ['required', 'numeric', 'min:0', 'max:30'],
             'checks.notesMeasured' => $count,
             'checks.notesTotal' => $count,
             'checks.notesOver15' => $count,
-            // A part with any note over 30 cents is never uploaded.
-            'checks.notesOver30' => ['required', 'integer', 'in:0'],
+            // A few notes over 30 cents, at most the larger of 2 and 5% of the notes measured (2026-11-24).
+            'checks.notesOver30' => ['required', 'integer', 'min:0', static function (string $attribute, mixed $value, Closure $fail) use ($input): void {
+                $measured = $input('checks.notesMeasured');
+
+                if (is_numeric($measured) && is_numeric($value) && (int) $value > max(2, (int) ceil(0.05 * (int) $measured))) {
+                    $fail(__('validation.max.numeric', ['attribute' => $attribute, 'max' => max(2, (int) ceil(0.05 * (int) $measured))]));
+                }
+            }],
             'checks.dropouts' => $count,
             'checks.heldSeconds' => $number,
             'checks.durationSeconds' => $number,

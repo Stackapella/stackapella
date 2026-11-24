@@ -243,7 +243,7 @@ final class LandingStagePageTest extends TestCase
 
         $page = $this->get('/es')->assertOk();
 
-        $page->assertSee('Canta armonías')->assertSee('Reproducir Amazing Grace')->assertSee('Graba una canción entera por tu cuenta');
+        $page->assertSee('Canta armonías')->assertSee('Reproducir Amazing Grace')->assertSee('Canta todas las voces')->assertSee('Aprendices');
         // Its links to pages that have a Spanish stay in Spanish; its own two languages name themselves.
         $page->assertSee('href="/es/songs"', false)->assertSee('hreflang="en"', false);
         // The locale it set for itself is put back.

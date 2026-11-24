@@ -6763,6 +6763,9 @@ failed clips; `gates`: part gate failures by part and voicing, most first; `firs
 `renderSeconds`: the GPU seconds of made songs and remakes; `plusFromChoir`: Checkouts completed from a choir moment;
 `clipNumbers`: the period's latest 50 clips that couldn't be used with the measures the worker sent (`detailNumbers`),
 newest first, each its `detail`, its day (`date`) and its `numbers` (`[{ "name", "value" }]`), never whose.
+`gateNumbers` (since 2026-11-24): the period's latest 50 jobs the worker sent pitch numbers for, newest first: their day
+(`date`), `failure` (null when made), `gateFailures` (`[{ "partKey", "reason", "cents" }]`) and `partWorst`
+(`[{ "partKey", "cents" }]`), the worst notes' signed cents, never whose.
 A number over a total under `floor` reads as too few to tell. Numbers only, nothing about anyone. **Request:** none.
 
 | Status | Code | Schema | Example |
@@ -8199,8 +8202,12 @@ a 16-bit mono WAV; `meta` your own JSON, at most 64 KB, given back with the refe
 its range for a choir with friends, and a check on the octave the app measured. Optional, for the singer and the anonymous counts (2026-11-23): `detail`
 with `failed: "clip_unusable"`, one of `length`, `quiet`, `loud`, `noisy`, `notes`, `edge`, `short` (the most fixable
 first); `level`, the take's singing level, `quiet` (under −35 dBFS), `ok` or `loud` (over −6 dBFS or clipped);
-`partTries` `[{ "partKey", "tries" }]`; `gateFailures` `[{ "partKey", "reason" }]`, every gate failure on the way, a
-retry's too (`pitch`, `measured`, `shift`, `rest`, `clicks`, `length`, `broken`). Counted as numbers per day only.
+`partTries` `[{ "partKey", "tries" }]`; `gateFailures` `[{ "partKey", "reason", "cents"? }]`, every gate failure on
+the way, a retry's too (`pitch`, `measured`, `shift`, `rest`, `clicks`, `length`, `broken`), with `cents` (since
+2026-11-24, optional) the worst notes' distance from pitch, at most 3, signed (minus is flat), worst first, each from
+-1200 to 1200; and `partWorst` (since 2026-11-24, optional) `[{ "partKey", "cents" }]`, at most 8: each part's worst
+notes as made, the same shape. Counted as numbers per day; the numbers are kept with the song for Admin > Choir
+(`admin.choir.show` `gateNumbers`), numbers only.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -8239,8 +8246,9 @@ The master is a 16-bit mono WAV at 48000 Hz (`bytes` is the whole file: `44 + fr
 first, then since 2026-11-23 its AI marking, at most 64 KB more: a `LIST`/`INFO` chunk whose `ICMT` is config
 `ai_marking.text` and an `iXML` chunk whose `USER` starts `ai_generated=true;`, EU AI Act Article 50; with
 `ai_marking.required` on, a master without it fails `unmarked`), at most 10 minutes, its frame 0 at the
-template's beat 0. `checks` are the voices lane's gates, stored for Admin: `notesOver30` must be 0 (a part with any
-note over 30 cents is never uploaded). `renderer.reference` is a short label, never a path or a URL. A part that
+template's beat 0. `checks` are the voices lane's gates, stored for Admin: `pitchMaxCents` at most 50 and
+`pitchMedianCents` at most 30, and `notesOver30` at most the larger of 2 and 5% of `notesMeasured`, rounded up (since
+2026-11-24: one slightly-off note no longer fails a whole part). `renderer.reference` is a short label, never a path or a URL. A part that
 already has an AI guide may be uploaded again: the new one replaces it when it's published.
 
 - `409 real_voice_exists`: a recorded voice is published for this part of this version;

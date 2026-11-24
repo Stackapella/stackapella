@@ -129,7 +129,7 @@
                                     @foreach (['learn' => ['/courses', false, 'go'], 'make' => $choir ? ['/your-choir?ref=choir-home', false, 'go_choir'] : ['#lnf-at-1', false, 'go'], 'lead' => ['/for/choir-directors?ref=for-choirs-landing', false, 'go']] as $key => [$href, $inApp, $go])
                                         <li class="lnf-path lnf-v{{ $loop->iteration === 1 ? 1 : ($loop->iteration === 2 ? 3 : 4) }}">
                                             <a href="{{ $href }}" data-lnf-path="{{ $key }}"@if ($go !== 'go') data-lnf-go-title @endif>
-                                                <small class="lnf-who">{{ __('landing.paths.'.$key.'.eyebrow') }}@if ($key === 'learn') <i class="lnf-badge">{{ __('landing.paths.learn.badge') }}</i>@endif</small>
+                                                <small class="lnf-who">{{ __('landing.paths.'.$key.'.eyebrow') }}@if ($key === 'learn' && filled(__('landing.paths.learn.badge'))) <i class="lnf-badge">{{ __('landing.paths.learn.badge') }}</i>@endif</small>
                                                 <b>{{ __('landing.paths.'.$key.'.who') }}</b>
                                                 <span @if ($key === 'learn' && $chordTest) hidden data-variant-except="onb1-a" @endif>{{ __('landing.paths.'.$key.'.what') }}</span>
                                                 <em>{{ __('landing.paths.'.$key.'.'.$go) }}@if ($inApp) <small class="lnf-app">{{ __('landing.paths.app') }}</small>@endif <x-site.icon name="arrow" size="16" /></em>
