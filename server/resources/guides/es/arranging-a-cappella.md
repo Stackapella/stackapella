@@ -1,5 +1,5 @@
 ---
-title: Arreglos a cappella para principiantes
+title: Cómo hacer un arreglo a cappella: guía para principiantes
 description: Escribe tu primer arreglo a cappella con pocas ideas: parte de la melodía, pon el bajo en la fundamental, completa el acorde y que cada voz sea cantable.
 song: simple-gifts
 version: 2

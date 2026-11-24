@@ -5870,7 +5870,8 @@
                 "length": "Something went wrong with the recording's length. Please try again.",
                 "loud": "Your recording was too loud in places. Back off a little from the mic and sing at normal volume.",
                 "noisyQuiet": "Your singing was quiet next to the room's sound. Sing a little louder, or a little closer to the phone, then sing again.",
-                "noisyNear": "There's a steady hum in the room, like a fan or fridge. Turn it off or move away from it, then sing again."
+                "noisyNear": "There's a steady hum in the room, like a fan or fridge. Turn it off or move away from it, then sing again.",
+                "notesGuide": "Sing along with the guide this time: it gives you the starting note."
             },
             "lead": {
                 "take": "That take couldn't make a voice."

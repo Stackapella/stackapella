@@ -1,5 +1,5 @@
 ---
-title: What Is A Cappella? Meaning, Styles and How to Sing It
+title: What is a cappella? Meaning, styles and how to sing it
 description: A cappella means singing with no instruments, voices only. What the word means, where it comes from, its main styles, and how to start singing a cappella harmony.
 song: amazing-grace
 version: 1

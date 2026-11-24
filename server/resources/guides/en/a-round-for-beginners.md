@@ -1,5 +1,5 @@
 ---
-title: A round: the easiest way to start singing harmony
+title: How to sing a round: the easiest way to start singing harmony
 description: How to sing a round: everyone sings the same tune, starting at different times, and the harmony happens by itself. The gentlest first step into parts.
 song: are-you-sleeping
 version: 2

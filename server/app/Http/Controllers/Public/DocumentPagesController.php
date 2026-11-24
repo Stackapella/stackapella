@@ -132,7 +132,9 @@ final class DocumentPagesController extends Controller
             // guests" (2026-11-08) for every open song on a public page, as the part pages do (the coordinator,
             // 2026-11-10). Before, only a bundled song played here (Hillel, 2026-10-27).
             'line' => $song !== null ? Landing::line($song) : null,
-            'meta' => ['title' => $guide['title'], 'description' => (string) $guide['description'], 'url' => $url],
+            // The page shows its heading; search and link previews get the front matter's title (marketing, 2026-11-24:
+            // titles set there never reached the page before).
+            'meta' => ['title' => $text->frontTitle($slug, app()->getLocale()) ?? $guide['title'], 'description' => (string) $guide['description'], 'url' => $url],
         ], 200, self::headers());
     }
 

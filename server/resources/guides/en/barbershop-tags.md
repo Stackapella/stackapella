@@ -1,5 +1,5 @@
 ---
-title: What Is a Barbershop Tag? How to Sing Your First Tag
+title: What is a barbershop tag? How to sing your first tag
 description: A tag is the big finish of a barbershop song, sung for the chords: what posts and swipes are, how tag singing works, and how to learn your first tag.
 song: down-by-the-old-mill-stream
 version: 1

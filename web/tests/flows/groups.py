@@ -297,7 +297,15 @@ def journey(f):
     f.shot("rehearsal-member")
     f.run("(await import('/js/router.js')).navigate('/')")
     f.wait("document.querySelector('[data-choir-part] [data-rehearsal-soon]')", what="Home's row says it")
+    # Ready by rehearsal from the group's date, no question asked (docs/rehearsal-ready-plan.md, "Groups"): the part's plan,
+    # marked with the group, and its line on Home.
+    f.wait(f"""(async () => {{ const {{ learning }} = await import('/js/stores/learning.js');
+        return (learning.progress.rehearsals ?? []).some((p) => p.songId === 'amazing-grace' && p.partKey === 'tenor' && p.groupId && p.date === ({ISO})(2) && !p.removedAt); }})()""", what="the group part's plan")
+    f.wait("document.querySelector('[data-rehearsal-plans] [data-rehearsal-plan]')", what="the plan's line on Home")
+    # Within a week: straight under the hero, above the install card and the rest (the coordinator, 2026-11-24).
+    assert f.js("(() => { const plans = document.querySelector('[data-rehearsal-plans]'); const install = document.querySelector('[data-install-card], [data-install]'); return !install || !!(plans.compareDocumentPosition(install) & Node.DOCUMENT_POSITION_FOLLOWING); })()"), "the plan's line under the install card"
     f.shot("rehearsal-home")
+    f.run("const s = await import('/js/stores/learning.js'); await s.setRehearsals([]);")
     f.run("sessionStorage.removeItem('stackapella.mockChoirMember')")
 
 

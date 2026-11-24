@@ -1,5 +1,5 @@
 ---
-title: How to Hear Harmony in a Song: Pick Out Each Part by Ear
+title: How to hear harmony in a song: pick out each part by ear
 description: How to hear harmony in a song: find the tune, then the bass, then the parts in between, and hear each part on its own and then together until you can follow them all.
 song: amazing-grace
 version: 1

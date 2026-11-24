@@ -1,5 +1,5 @@
 ---
-title: Choir Audition Tips: How to Prepare for a Choir Audition
+title: Choir audition tips: how to prepare for a choir audition
 description: Choir audition tips: what a choir audition usually asks (your range, a short song, sight-reading, singing back a phrase, holding a part) and how to prepare for each.
 song: amazing-grace
 version: 1

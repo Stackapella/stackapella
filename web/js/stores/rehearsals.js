@@ -7,7 +7,7 @@ import { computed } from 'vue';
 import { localized, t } from '../i18n.js';
 import { navigate } from '../router.js';
 import { count } from '../usage.js';
-import { localDate } from '../rehearsal.js';
+import { daysUntil, isoDate, localDate, rehearsalDates } from '../rehearsal.js';
 import { dayNow, livePlans, makePlan, phrasesDone, replan, upsertPlan } from '../rehearsal-plan.js';
 import { progressOf } from '../sing.js';
 import { loadTemplate, templatePartName } from '../templates.js';
@@ -81,6 +81,38 @@ export async function markReady(songId, partKey, at = Date.now()) {
     const plan = livePlans(learning.progress?.rehearsals ?? []).find((p) => p.songId === songId && p.partKey === partKey);
     if (!plan || plan.readyAt) return;
     await setRehearsals(upsertPlan(learning.progress?.rehearsals ?? [], { ...plan, readyAt: at }));
+}
+
+const GROUP_DAYS = 60; // a plan's rehearsal at most this far ahead (the contract)
+
+/**
+ * What a group part's plan needs now (pure, for the tests): `make` (with the date), `remove`, or nothing. A group plan
+ * follows its group's next rehearsal and goes when the group has none; the singer's own plan is never touched, and a
+ * date whose plan they removed isn't made again. `removed`: the dates of this part's plans they removed.
+ */
+export function groupPlanStep({ rehearsal, groupId, plan = null, removed = [] }, today = new Date()) {
+    const next = rehearsalDates(rehearsal, today).next;
+    const days = next ? daysUntil(next, today) : null;
+    const date = next && days >= 0 && days <= GROUP_DAYS ? isoDate(next) : null;
+    if (plan && !plan.groupId) return null;
+    if (!date) return plan?.groupId === groupId ? { action: 'remove' } : null;
+    if (plan?.date === date || (!plan && removed.includes(date))) return null;
+    return { action: 'make', date };
+}
+
+/**
+ * A choir group member's plans from the group's own date (docs/rehearsal-ready-plan.md, "Groups": no question asked).
+ * `parts`: Home's parts a director gave this singer (group-songs.js myGroupParts), each with its group's rehearsal.
+ */
+export async function planGroupParts(parts = [], today = new Date()) {
+    await loadLearning();
+    for (const part of parts) {
+        if (!part?.templateId || !part.partKey) continue;
+        const removed = (learning.progress?.rehearsals ?? []).filter((p) => p.songId === part.templateId && p.partKey === part.partKey && p.removedAt).map((p) => p.date);
+        const step = groupPlanStep({ rehearsal: part.rehearsal, groupId: part.groupId, plan: planFor(part.templateId, part.partKey), removed }, today);
+        if (step?.action === 'remove') await removePlan(part.templateId, part.partKey);
+        if (step?.action === 'make') await startPlan({ songId: part.templateId, partKey: part.partKey, date: step.date, groupId: part.groupId }).catch((error) => console.warn('A group part\'s plan was not made', error));
+    }
 }
 
 /** Start: the day's first phrase in Sing's Coach; the whole part's day (and "I know most of it"), the whole song. */

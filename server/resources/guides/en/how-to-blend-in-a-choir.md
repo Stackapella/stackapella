@@ -1,5 +1,5 @@
 ---
-title: How to Blend in a Choir: Match Your Section's Sound
+title: How to blend in a choir: match your section's sound
 description: Blending is sounding like one voice with the singers around you: listen first, match their vowels and volume, breathe and start together, and keep your top notes light.
 song: amazing-grace
 version: 1

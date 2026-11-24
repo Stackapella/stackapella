@@ -63,6 +63,9 @@ function failRunOf(id, kind) {
 // Noise with the server's hints (failureHints, worked out from the worker's measures; the app never sees the numbers):
 // sung quietly beside the room, the easier fix first (sing louder or closer); close to passing, a steady hum like a fan.
 const NOISY_HINTS = { quietSinger: tk('ownChoir.failed.detail.noisyQuiet'), near: tk('ownChoir.failed.detail.noisyNear') };
+// The notes with no reference pitch (the server's `noReference`: the take sat between keys or drifted, ai-modal's rule):
+// sing along with the guide, which gives the starting note. Its key is also the next take's fix (views/sing.js guideFix).
+export const NOTES_GUIDE = tk('ownChoir.failed.detail.notesGuide');
 // The second take problem in a row: the next fix, headphones if they sang without, else another tune.
 // The failure's title, by kind (Hillel's choir error design, 2026-11-24).
 const FAIL_TITLES = { take: tk('ownChoir.failed.title.take'), gone: tk('ownChoir.failed.title.gone'), ours: tk('ownChoir.failed.title.ours') };
@@ -343,6 +346,7 @@ export const OwnChoirView = {
                 const hint = ['quietSinger', 'near'].find((h) => hints.includes(h));
                 if (hint) return NOISY_HINTS[hint];
             }
+            if (this.request.failureDetail === 'notes' && hints.includes('noReference')) return NOTES_GUIDE;
             return FAILURE_DETAILS[this.request.failureDetail] ?? FAILURES.clip_unusable;
         },
         /** The alert's one line: the fix for this take (the next fix the second time), or what happens now. */

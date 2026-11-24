@@ -150,6 +150,9 @@ export const ProjectsView = {
                     <template #week><WeekCard v-if="learning.loaded && courseStarted" bare /></template>
                     <template v-if="choirInLead" #side><ChoirPanel side /></template>
                 </HomeLead>
+                <!-- A rehearsal within a week (own or a group's): the most time-bound thing on Home, straight under the hero
+                     (the coordinator, 2026-11-24: below the install card it sat under the fold on a phone). -->
+                <RehearsalPlans v-if="rehearsalSoon()" />
                 <ChoirPanel v-if="!choirInLead" />
                 <InstallCard :songs="songsOnlyHere" :here="songsHere" />
                 <RemindAsk />
@@ -160,7 +163,7 @@ export const ProjectsView = {
                 <div class="min-w-0 space-y-10">
 
                     <!-- A part's rehearsal plan (docs/rehearsal-ready-plan.md), where a group's rehearsal shows: today's phrases, and Start. -->
-                    <RehearsalPlans v-if="hasRehearsalPlan()" />
+                    <RehearsalPlans v-if="hasRehearsalPlan() && !rehearsalSoon()" />
                     <!-- A choir member's parts to learn, first (docs/agents/handoff-frontend2.md, the groups review): only for someone given a part in a group, so nobody else's Home changes. -->
                     <HomeBand v-if="choirParts.length" id="band-choir" tone="green" :title="t('groups.learnTitle')" :color="paint(BAND_COLORS.beta)">
                         <template #aside><a href="/groups" class="btn-go" @click.prevent="navigate('/groups')">{{ t('home.seeAll') }}</a></template>
@@ -706,6 +709,13 @@ export const ProjectsView = {
          * or none that fits: why a pick is here (the UX review, item 9).
          */
         /** A rehearsal plan still on (its rehearsal today or ahead, not removed): Home's line shows. */
+        /** A plan still on whose rehearsal is within 7 days: its line goes straight under the hero. */
+        rehearsalSoon() {
+            const d = new Date();
+            const local = (x) => `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
+            const week = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7);
+            return (learning.progress?.rehearsals ?? []).some((p) => !p.removedAt && p.date >= local(d) && p.date <= local(week));
+        },
         hasRehearsalPlan() {
             const d = new Date();
             const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; // local, as the plan's dates
@@ -787,6 +797,8 @@ export const ProjectsView = {
             try {
                 this.groups = (await api.groups.list()).data;
                 if (account.me?.id) this.choirParts = await myGroupParts(account.me.id, this.groups);
+                // Ready by rehearsal for a group's parts, from the group's date, no question asked (loaded only with parts).
+                if (this.choirParts.length) import('../stores/rehearsals.js').then((m) => m.planGroupParts(this.choirParts)).catch((error) => console.warn('The group plans were not made', error));
             } catch (error) {
                 if (error?.code !== 'offline') console.warn('Choir groups not loaded', error);
             }

@@ -758,6 +758,14 @@ final class OwnChoirTest extends TestCase
         $this->assertSame(['near'], OwnChoir::failureHints($song('quiet', ['levelMargin' => -4.0, 'levelDb' => -39.0])));
         $this->assertSame([], OwnChoir::failureHints($song('notes', ['fitMargin' => -0.27])));
         $this->assertSame(['near'], OwnChoir::failureHints($song('notes', ['fitMargin' => -0.05])));
+        // Sung in another key (the tuning pinned at 50, as request #23) or drifting a semitone either way: no reference.
+        $this->assertSame(['noReference'], OwnChoir::failureHints($song('notes', ['fitMargin' => -0.4, 'tuningCents' => 50.0])));
+        $this->assertSame(['noReference'], OwnChoir::failureHints($song('notes', ['tuningCents' => 12.0, 'driftCents' => -100.0])));
+        $this->assertSame(['near', 'noReference'], OwnChoir::failureHints($song('notes', ['fitMargin' => -0.05, 'tuningCents' => 20.0, 'driftCents' => 140.0])));
+        $this->assertSame(['noReference'], OwnChoir::failureHints($song('notes', ['tuningCents' => 50.0, 'driftCents' => 120.0])));
+        $this->assertSame([], OwnChoir::failureHints($song('notes', ['tuningCents' => 49.0, 'driftCents' => -99.0])));
+        // Only the notes: a pinned tuning on a noisy take says nothing of a reference.
+        $this->assertSame([], OwnChoir::failureHints($song('noisy', ['noiseMargin' => -15.0, 'tuningCents' => 50.0])));
         // No measure sent, no rule for loud, another failure.
         $this->assertSame([], OwnChoir::failureHints($song('noisy', [])));
         $this->assertSame([], OwnChoir::failureHints($song('loud', ['levelMargin' => -1.0])));

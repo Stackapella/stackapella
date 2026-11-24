@@ -223,6 +223,9 @@ export const SingView = {
                     </div>
                 </div>
 
+                <!-- After a take with no reference pitch: the starting note, a tap away before the count-in (with headphones the
+                     guide sings along too; without them nothing may play during the take). -->
+                <div v-if="guideFix && !recording && !recorded" class="flex justify-center pb-2" data-guide-fix><button type="button" class="btn-secondary btn-sm" @click="firstNote"><Icon name="note" :size="16" /> {{ t('sing.firstNoteCard.playMine') }}</button></div>
                 <div v-if="getReady && !recording" class="flex justify-center pb-2"><button type="button" class="btn-secondary btn-sm" @click="firstNote"><Icon name="note" :size="16" /> {{ t('sing.firstNoteCard.playMine') }}</button></div>
                 <LineBar v-if="way === 'whole' && !recording && !recorded && phraseRows.length > 1" class="hidden bg-panel md:grid" :lines="phraseRows" :position="position" :color="paint(focusPart.color)" @seek="seekLine" />
                 <Transport v-if="!recorded && !resung" :starting="starting" :class="coaching && !playing ? 'hidden md:flex' : ''" :position="position" :length="lengthSeconds" :playing="playing && !recording" :recording="recording" :busy="busy" :loop="!!practice.loop" :part-name="partName"
@@ -250,6 +253,10 @@ export const SingView = {
             return !!this.project?.choir && (!this.project.choir.requestId || this.project.choir.requestId === this.choirSent);
         },
         /** After a take that couldn't make a voice: its one fix, over the next take's count-in (views/own-choir.js keeps it). */
+        /** The last choir take had no reference pitch (own-choir.js NOTES_GUIDE): this one starts from the guide's note. */
+        guideFix() {
+            return this.clipTake && tabStorage.get(CHOIR_FIX) === 'ownChoir.failed.detail.notesGuide';
+        },
         choirTip() {
             const key = this.clipTake ? tabStorage.get(CHOIR_FIX) : null;
             return key && key.startsWith('ownChoir.failed.') ? t(key) : '';
@@ -969,6 +976,8 @@ export const SingView = {
             this.choosing = false;
         }
         this.clipReady = true; // a choir take's way and part are set (or it has none): Sing may show it now
+        // After a take with no reference pitch, with headphones: the guide sings along this time (it gives the starting note).
+        if (this.guideFix && !session.project?.choir?.noHeadphones) sessionStore.setRecordGuide(true);
         // A beta take is recorded in the studio's beta mode (the sound check, Check and send).
         if (session.project?.beta) {
             navigate(`/p/${this.id}`, { replace: true });

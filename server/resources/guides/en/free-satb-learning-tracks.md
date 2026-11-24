@@ -1,5 +1,5 @@
 ---
-title: Free SATB Learning Tracks: Practise Your Choir Part at Home
+title: Free SATB learning tracks: practise your choir part at home
 description: Free SATB learning tracks for choir singers: what part-dominant and part-missing tracks are, how to practise with them, and where to hear every part of a song free.
 song: silent-night
 version: 1

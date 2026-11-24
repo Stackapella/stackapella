@@ -1,5 +1,5 @@
 ---
-title: Cómo cantar afinado: guía para principiantes
+title: Cómo cantar afinado: dar la nota, para principiantes
 description: ¿Aún no logras dar la nota? Cómo cantar afinado si empiezas: oye la nota antes, cántala con un sonido fácil, deslízate hasta que se asiente y compruébalo.
 song: simple-gifts
 version: 1

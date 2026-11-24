@@ -5870,7 +5870,8 @@
                 "length": "Algo falló con la duración de la grabación. Vuelve a intentarlo.",
                 "loud": "Tu grabación sonó demasiado alta en algunos momentos. Apártate un poco del micrófono y canta a volumen normal.",
                 "noisyQuiet": "Tu canto sonaba bajo junto al ruido de la sala. Canta un poco más fuerte, o un poco más cerca del teléfono, y vuelve a cantar.",
-                "noisyNear": "Hay un zumbido constante en la sala, como un ventilador o una nevera. Apágalo o aléjate de él y vuelve a cantar."
+                "noisyNear": "Hay un zumbido constante en la sala, como un ventilador o una nevera. Apágalo o aléjate de él y vuelve a cantar.",
+                "notesGuide": "Esta vez canta con la guía: te da la nota de inicio."
             },
             "lead": {
                 "take": "Con esa toma no pudimos hacer una voz."

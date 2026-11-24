@@ -1,5 +1,5 @@
 ---
-title: How to Do Vocal Percussion in an A Cappella Group
+title: How to do vocal percussion in an a cappella group
 description: In an a cappella group, the VP is the drummer. Learn the kick, snare and hi-hat, a first beat, breathing while you play, the mic and locking with the bass.
 song: wade-in-the-water
 version: 1

@@ -604,10 +604,11 @@
                     "items": {
                         "enum": [
                             "near",
-                            "quietSinger"
+                            "quietSinger",
+                            "noReference"
                         ]
                     },
-                    "description": "With failure clip_unusable, for its singer alone: what the measures say about fixing it ([] when nothing applies). near: it came close to passing; quietSinger: noise was the reason, but they sang quietly. Null otherwise."
+                    "description": "With failure clip_unusable, for its singer alone: what the measures say about fixing it ([] when nothing applies). near: it came close to passing; quietSinger: noise was the reason, but they sang quietly; noReference: the notes didn't fit because they sang in another key, or drifted from one, with no starting note to hold to. Null otherwise."
                 },
                 "counted": {
                     "type": [

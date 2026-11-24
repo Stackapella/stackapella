@@ -83,5 +83,9 @@ return [
         ['detail' => 'noisy', 'hint' => 'quietSinger', 'measure' => 'levelDb', 'below' => -30.0],
         ['detail' => 'quiet', 'hint' => 'near', 'measure' => 'levelMargin', 'atLeast' => -5.0],
         ['detail' => 'notes', 'hint' => 'near', 'measure' => 'fitMargin', 'atLeast' => -0.10],
+        // Sung in another key, or drifting from one, with no starting note to hold to (ai-modal, 2026-11-24): the tuning
+        // pinned at its 50-cent cap, or the last phrase a semitone or more from the first, either way ('abs': its size).
+        ['detail' => 'notes', 'hint' => 'noReference', 'measure' => 'tuningCents', 'atLeast' => 50.0, 'abs' => true],
+        ['detail' => 'notes', 'hint' => 'noReference', 'measure' => 'driftCents', 'atLeast' => 100.0, 'abs' => true],
     ],
 ];

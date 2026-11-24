@@ -1,5 +1,5 @@
 ---
-title: What Is SATB? Soprano, Alto, Tenor and Bass Explained
+title: What is SATB? Soprano, alto, tenor and bass explained
 description: SATB stands for soprano, alto, tenor and bass, the four parts of most choir music, high to low. Hear each part's range, see what it sings and find yours.
 song: amazing-grace
 version: 4

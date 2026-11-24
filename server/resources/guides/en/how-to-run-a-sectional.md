@@ -1,5 +1,5 @@
 ---
-title: How to Run a Choir Sectional: A Plan for Section Leaders
+title: How to run a choir sectional: a plan for section leaders
 description: How to run a choir sectional: set one goal with the director, warm up, fix the hard places slowly, sing them in context, and end with the section sounding better.
 song: silent-night
 version: 1

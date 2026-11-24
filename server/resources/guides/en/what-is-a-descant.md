@@ -1,5 +1,5 @@
 ---
-title: What Is a Descant? The High Line Over the Tune
+title: What is a descant? The high line over the tune
 description: A descant is a higher melody sung over a song's tune, often on one of a carol's last verses: what it is, where the word comes from, and how to sing one well.
 song: o-come-all-ye-faithful
 version: 1

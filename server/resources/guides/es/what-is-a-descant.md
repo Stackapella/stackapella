@@ -1,5 +1,5 @@
 ---
-title: ¿Qué es un contracanto agudo o descant?
+title: ¿Qué es un contracanto agudo? La línea aguda sobre la melodía
 description: Un contracanto agudo es una melodía sobre la de una canción, a menudo en una de las últimas estrofas de un villancico: qué es, de dónde viene y cómo cantarlo.
 song: o-come-all-ye-faithful
 version: 1

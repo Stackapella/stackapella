@@ -1,5 +1,5 @@
 ---
-title: A cappella arranging for beginners
+title: How to arrange a cappella: a beginner's guide
 description: Write your first a cappella arrangement with a few simple ideas: start with the tune, put a bass on the roots, fill the chord, and keep every part singable.
 song: simple-gifts
 version: 2

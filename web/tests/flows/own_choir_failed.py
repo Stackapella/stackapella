@@ -107,6 +107,15 @@ def journey(f):
         if hints == ["near"]:
             f.shot("noisy-hum")
 
+    # The notes with no reference pitch (the server's noReference: the take sat between keys or drifted): sing along with
+    # the guide this time; without the hint, the notes' own line as before.
+    for hints, words in ((["noReference"], "ownChoir.failed.detail.notesGuide"), ([], "ownChoir.failed.detail.notes")):
+        failed(f, detail="notes", hints=hints)
+        fix = f.js("document.querySelector('[data-choir-fail-fix]').textContent.trim()")
+        assert fix == t(f, words), f"{hints}: {fix}"
+        if hints:
+            f.shot("notes-guide")
+
     # No older voice: Sing again alone.
     failed(f, detail="quiet", voice=False)
     assert f.js("!document.querySelector('[data-choir-use-earlier]') && !document.querySelector('[data-choir-use-saved]')"), "a link to a voice there isn't"

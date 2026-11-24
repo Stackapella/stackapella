@@ -68,6 +68,23 @@ final class LegalText
     }
 
     /**
+     * The front matter's own `title:` (a guide's search title, its <title> and og:title), or null where it has none. The
+     * page's "# " heading replaces it in read(), which stays the page's heading (marketing, 2026-11-24).
+     */
+    public function frontTitle(string $name, string $language = 'en', string $folder = 'guides'): ?string
+    {
+        $root = $this->root($folder);
+        $path = is_file("{$root}/{$language}/{$name}.md") ? "{$root}/{$language}/{$name}.md" : "{$root}/en/{$name}.md";
+        $text = is_file($path) ? (string) file_get_contents($path) : '';
+        if (preg_match('/^---\n(.*?)\n---\n/s', $text, $parts) !== 1 || preg_match('/^title:\s*(.+)$/m', $parts[1], $title) !== 1) {
+            return null;
+        }
+        $value = trim($title[1]);
+
+        return preg_match('/^(["\'])(.*)\1$/s', $value, $q) === 1 ? $q[2] : $value;
+    }
+
+    /**
      * @return array{version: int, reviewed: bool, language: string, title: string, description: string|null, song: string|null, blocks: list<array{type: string, level: int|null, text: string|null, items: list<string>|null}>}
      */
     private function parse(string $root, string $name, string $language): array

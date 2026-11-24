@@ -1,5 +1,5 @@
 ---
-title: ¿Qué es la armonía? Guía para cantantes
+title: ¿Qué es la armonía en la música? Guía para cantantes
 description: La armonía en música son notas distintas cantadas a la vez que suenan bien juntas. Aquí verás qué es, cómo funcionan los acordes y por qué suena tan bien.
 song: happy-birthday
 version: 2

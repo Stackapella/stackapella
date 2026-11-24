@@ -1,5 +1,5 @@
 ---
-title: How to Start an A Cappella Group: From Four Friends to a First Gig
+title: How to start an a cappella group: from four friends to a first gig
 description: How to start an a cappella group: find a few singers, choose a style and your first songs, learn the parts, run good rehearsals, and sing for people early.
 song: down-by-the-old-mill-stream
 version: 1

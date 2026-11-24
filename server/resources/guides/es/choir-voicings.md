@@ -1,5 +1,5 @@
 ---
-title: Voces SSA, SSAA, TTBB y SAB: qué significan
+title: SSA, SSAA, TTBB y SAB: la distribución de voces del coro, explicada
 description: Qué significan SSA, SSAA, TTBB, SAB y SATB en una partitura de coro: las voces de cada una, quién suele cantarlas y cómo elegir una que tu coro pueda cantar.
 song: the-water-is-wide
 version: 1

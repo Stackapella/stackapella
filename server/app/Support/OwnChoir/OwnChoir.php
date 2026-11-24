@@ -224,6 +224,11 @@ final class OwnChoir
                 continue;
             }
 
+            // A signed measure read by its size (a drift up or down alike).
+            if (($rule['abs'] ?? false) === true) {
+                $value = abs($value);
+            }
+
             $holds = (! isset($rule['atLeast']) || $value >= (float) $rule['atLeast']) && (! isset($rule['below']) || $value < (float) $rule['below']);
 
             if ($holds) {

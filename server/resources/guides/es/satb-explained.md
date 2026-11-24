@@ -1,5 +1,5 @@
 ---
-title: Qué es SATB: soprano, contralto, tenor y bajo
+title: ¿Qué es SATB? Soprano, contralto, tenor y bajo
 description: SATB son soprano, contralto, tenor y bajo, las cuatro voces de la música coral, de aguda a grave. Escucha su extensión, qué canta cada una y halla la tuya.
 song: amazing-grace
 version: 4

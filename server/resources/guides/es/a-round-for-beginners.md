@@ -1,5 +1,5 @@
 ---
-title: Cómo cantar en canon para principiantes
+title: Cómo cantar en canon: la forma más fácil de empezar a cantar en armonía
 description: Cómo cantar un canon: todos cantan la misma melodía, entrando en momentos distintos, y la armonía surge sola. El primer paso más suave para cantar a voces.
 song: are-you-sleeping
 version: 2

@@ -68,3 +68,18 @@ test('rehearsal plan: the ready check is ready when every phrase heard is close,
     assert(!nearly.ready && JSON.stringify(nearly.phrases) === '[1,3]', JSON.stringify(nearly));
     assert(!readyVerdict([]).ready, 'nothing heard is never ready');
 });
+
+test('rehearsal plan: a group part follows its group\'s date, never touching the singer\'s own plan', async () => {
+    const { groupPlanStep } = await import('/js/stores/rehearsals.js');
+    const today = new Date(2026, 10, 24);
+    const rehearsal = { date: '2026-11-27', weekly: false };
+    assert(JSON.stringify(groupPlanStep({ rehearsal, groupId: 7 }, today)) === '{"action":"make","date":"2026-11-27"}', 'no plan: made from the group\'s date');
+    assert(groupPlanStep({ rehearsal, groupId: 7, plan: { date: '2026-11-27', groupId: 7 } }, today) === null, 'already on that date');
+    assert(groupPlanStep({ rehearsal, groupId: 7, plan: { date: '2026-11-25', groupId: 7 } }, today)?.date === '2026-11-27', 'the group\'s date moved: the plan follows');
+    assert(groupPlanStep({ rehearsal, groupId: 7, plan: { date: '2026-11-30' } }, today) === null, 'their own plan touched');
+    assert(groupPlanStep({ rehearsal, groupId: 7, removed: ['2026-11-27'] }, today) === null, 'a removed plan made again');
+    assert(groupPlanStep({ rehearsal: null, groupId: 7, plan: { date: '2026-11-27', groupId: 7 } }, today)?.action === 'remove', 'the group\'s date gone: the plan stays');
+    assert(groupPlanStep({ rehearsal: { date: '2027-03-01' }, groupId: 7 }, today) === null, 'a rehearsal past 60 days planned');
+    const weekly = groupPlanStep({ rehearsal: { date: '2026-11-17', weekly: true }, groupId: 7 }, today);
+    assert(weekly?.date === '2026-11-24', `a weekly rehearsal steps on to its next: ${weekly?.date}`);
+});

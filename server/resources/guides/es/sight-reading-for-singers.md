@@ -1,5 +1,5 @@
 ---
-title: Lectura a primera vista con solfeo
+title: Solfeo a primera vista: cómo leer música cantando
 description: Leer a primera vista es cantar una melodía que nunca has oído, desde la partitura. Aprende con do móvil: busca "do", lee grados y saltos, y cuenta el ritmo.
 song: ode-to-joy
 version: 2

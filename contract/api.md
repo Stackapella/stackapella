@@ -7776,7 +7776,9 @@ then; null for a song not failed. The daily cap counts every song the renderer w
 `failureHints` (since 2026-11-23), with `clip_unusable` and for its singer alone: what the worker's measures say about
 fixing it, worked out by the server (config `own_choir.failure_hints`), never the measures: `near` (it came close to
 passing: a steady hum, a little quiet, nearly in tune) and `quietSinger` (noise was the reason, but they sang quietly:
-louder or closer may fix it); `[]` when nothing applies, null otherwise. `voicing` may
+louder or closer may fix it) and `noReference` (since 2026-11-24: the notes were the reason, and they sang in another
+key or drifted from one, as singing with no starting note does: singing along with the guide may fix it); `[]` when
+nothing applies, null otherwise. `voicing` may
 be `full`: both octaves, each treble part beside its `-low` twin ("Soprano (low)"), six parts, the pairs 3 dB down in
 `settings.sound.balance`; `remakeMinutes.fullStandard` and `fullFine` what a remake in both octaves would use. The clip stops at `stopBeat` (null: the
 whole tune): the app sings, and the worker's `clip.data` holds, only the notes starting before it, each unchanged.
