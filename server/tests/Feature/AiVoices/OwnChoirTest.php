@@ -852,7 +852,10 @@ final class OwnChoirTest extends TestCase
         (new SendChoirEmail($song->id))->handle();
         Mail::assertNothingQueued();
         $this->assertNull($song->refresh()->email_sent_at);
+        $this->getJson('/api/auth/config')->assertJsonPath('data.choirEmail', false);
         app(Flags::class)->set('choir_email', 'on', null, 'Testing');
+        // The app's "We'll email you" comes on with the email itself.
+        $this->getJson('/api/auth/config')->assertJsonPath('data.choirEmail', true);
 
         (new SendChoirEmail($song->id))->handle();
         Mail::assertQueued(ChoirReadyMail::class, fn (ChoirReadyMail $mail): bool => $mail->hasTo((string) $user->email) && $mail->failure === null && $mail->songId === 'silent-night');
@@ -910,6 +913,12 @@ final class OwnChoirTest extends TestCase
         $this->post(str_replace('signature=', 'signature=x', $off))->assertForbidden();
 
         $this->patchJson('/api/account', ['choirEmail' => true])->assertOk()->assertJsonPath('data.choirEmail', true);
+
+        // Off in the app counts the same, once: the same answer again changes nothing.
+        $this->patchJson('/api/account', ['choirEmail' => false])->assertOk()->assertJsonPath('data.choirEmail', false);
+        $this->patchJson('/api/account', ['choirEmail' => false])->assertOk();
+        $this->patchJson('/api/account', ['name' => 'Ada Lovelace'])->assertOk();
+        $this->assertSame(2, (int) DB::table('usage_counts')->where('kind', 'choir_email_off')->sum('count'));
     }
 
     public function test_hearing_a_ready_choir_counts_how_long_after_and_a_failed_one_is_seen_too(): void

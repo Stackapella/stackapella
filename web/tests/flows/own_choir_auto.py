@@ -1,8 +1,10 @@
 """From /your-choir (Hillel: "if you're recording a song because you started on /your-choir then we should auto start the
 choir processing and show it working while you review the results"): the take is sent by itself once saved (no Make my
 choir), the take review shows each part's state while it's made, then Listen to your choir opens the song's choir page.
-Elsewhere the take waits for Make my choir, as before.
+The choir wait (Hillel, 2026-11-24): every choir take starts by itself, held 10 s first: "Your choir starts in 10 s" with
+what it uses, Sing again and Start now; the email line under the card ("Don't email me" turns it off).
 """
+import json
 import sys
 from pathlib import Path
 
@@ -41,7 +43,8 @@ def journey(f):
     f.wait(f"{SESSION}.session.guidesVersion > 0", timeout=30, what="the guide")
     f.wait(f"{SESSION}.session.practice?.focus", what="the tune in focus")
     f.press("r")  # Sing's own Record: the take goes into the tune's slot
-    f.wait(f"{AUDIO}.engine.playing?.recording && {AUDIO}.engine.ctx.currentTime > {AUDIO}.engine.playing.startTime + 16", timeout=40, what="16 s sung")
+    # Past 17 s of whole lines (the quick check's), so it starts by itself: its hold is what this flow is about.
+    f.wait(f"{AUDIO}.engine.playing?.recording && {AUDIO}.engine.ctx.currentTime > {AUDIO}.engine.playing.startTime + 25", timeout=50, what="25 s sung")
     f.press("Escape")
     # A loopback take may be quiet: the warning first (a take the worker would refuse isn't sent without a word).
     f.wait("document.querySelector('[data-choir-sent]') || document.querySelector('[data-choir-check]')", timeout=30, what="sent, or the level warning")
@@ -52,6 +55,26 @@ def journey(f):
     f.wait("document.querySelector('[data-choir-sent]')", timeout=30, what="the choir being made, on the take review")
     assert not f.js("document.querySelector('[data-choir-make]')"), "Make my choir offered for a take sent by itself"
     assert f.js("!!globalThis.mockChoirClip?.sha256"), "the take wasn't sent"
+    assert f.js("globalThis.mockChoirClip?.auto === true"), "not sent as started by itself"
+    # Its hold: counted down, with what it uses; Sing again and Start now; the email line under the card.
+    f.wait("document.querySelector('[data-choir-hold]')", what="the hold")
+    # Only recorded while it's held (Sing again would undo it): Step 1, not "on its way" (the coordinator's review).
+    said_now = f.js("document.querySelector('[data-take-review]').innerText")
+    assert f.js("(await import('/js/i18n.js')).t('ownChoir.record.done')") in said_now and f.js("(await import('/js/i18n.js')).t('ownChoir.wait.title')") not in said_now, "on its way said during the hold"
+    t = lambda key, params=None: f.js(f"(await import('/js/i18n.js')).t({json.dumps(key)}, {json.dumps(params or {})})")
+    said = f.js("document.querySelector('[data-choir-hold] p').textContent.trim()")
+    assert any(said == t("choirWait.hold.starts", {"n": n}) for n in range(0, 11)), said
+    assert f.js("!!document.querySelector('[data-choir-cost]') && !!document.querySelector('[data-choir-start-now]') && !!document.querySelector('[data-choir-again]')"), "the hold's cost, Start now or Sing again missing"
+    assert f.js("!!document.querySelector('[data-choir-email]')"), "no email line"
+    f.no_sideways("the take review in its hold")
+    f.run("document.querySelector('[data-choir-hold]').scrollIntoView({ block: 'center' })")
+    f.shot("auto-hold")
+    f.run("document.querySelector('[data-choir-start-now]').click()")
+    f.wait("!document.querySelector('[data-choir-hold]')", timeout=10, what="started at once")
+    f.run("document.querySelector('[data-choir-email-off]').click()")
+    f.wait("document.querySelector('[data-choir-email-done]')", what="the email turned off")
+    assert f.js("(await import('/js/stores/account.js')).account.me.choirEmail") is False, "the account still emails"
+    f.run("sessionStorage.removeItem('stackapella.mockChoirEmail')")
     f.run("(await import('/js/own-choir.js')).loadOwnChoir({ force: true })")
     f.wait("document.querySelectorAll('[data-choir-sent] [data-choir-part]').length > 0", what="each part's state")
     f.no_sideways("the take review with the choir being made")

@@ -1,6 +1,6 @@
 ---
-title: Cómo cantar en armonía
-description: La armonía son dos o más notas cantadas a la vez que encajan. Cómo oír una voz, empezar con terceras y cánones, mantener tu línea y afinarla para que resuene.
+title: Cómo cantar en armonía: 7 ejercicios para principiantes
+description: Cómo cantar en armonía, paso a paso: siete ejercicios para principiantes, de encontrar la tercera y cantar un canon a mantener tu voz frente a la melodía y afinarla para que resuene.
 song: michael-row
 version: 2
 reviewed: false
@@ -8,7 +8,7 @@ translatedFrom: df64cc2a53bb
 ---
 
 
-# Cómo cantar en armonía
+# Cómo cantar en armonía: 7 ejercicios para principiantes
 
 La armonía son dos o más notas cantadas a la vez que encajan entre sí. La melodía es la parte que todo
 el mundo conoce; una voz de armonía va por encima o por debajo de ella y se mueve con ella, a veces a la

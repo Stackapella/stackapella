@@ -83,8 +83,10 @@ final class LandingStage
             'beats' => (float) $line['songBeats'],
             'seconds' => (string) $line['length'],
             'credit' => self::sungBy($audio['credit'] ?? null, $names),
-            // The recording's whole credit, as written (English): /next-final shows it where there's room.
+            // The recording's whole credit, as written (English), and the song's part of it (words, tune, arrangement)
+            // without the singers' sentence, which `credit` says first, on its own line.
             'credited' => $audio['credit'] ?? null,
+            'song_credit' => self::songCredit($audio['credit'] ?? null),
             'lanes' => $lanes,
             'phrases' => self::phrases($data, $parts, (float) $line['songBeats']),
         ];
@@ -156,6 +158,20 @@ final class LandingStage
         }
 
         return $points === [] ? '' : 'M'.implode(' L', $points);
+    }
+
+    /**
+     * The song's credit (words, tune, arrangement) from the recording's whole credit, its "... sung by ..." sentence left
+     * out (the singers' line says that). Null when there is nothing else.
+     */
+    private static function songCredit(?string $credit): ?string
+    {
+        if (! is_string($credit)) {
+            return null;
+        }
+        $song = trim((string) preg_replace('/\s*[^.]*?\s+sung by\s+[^.]+\.?/', '', $credit));
+
+        return $song === '' ? null : $song;
     }
 
     /**

@@ -143,14 +143,14 @@
                     </div>
                     @if ($stage !== null)
                         <div class="lnf-foot">
-                            {{-- Who wrote it and who is heard: the recording's whole credit where there's room (it is
-                                 written in English), the singers' line otherwise. --}}
+                            {{-- Who is heard, then who wrote it, each in full on its own line, wrapping where it must (Hillel,
+                                 2026-11-24: the credit is never cut short). The song's credit is written in English, so a page
+                                 in another language says the singers' line alone. --}}
                             @if ($stage['credit'] !== null || $stage['credited'] !== null)
                                 <p class="lnf-cred">
-                                    @if (app()->getLocale() === 'en' && $stage['credited'] !== null)
-                                        <span class="lnf-cred-full">{{ $stage['credited'] }}</span><span class="lnf-cred-short">{{ $stage['credit'] ?? $stage['credited'] }}</span>
-                                    @else
-                                        <span>{{ $stage['credit'] ?? $stage['credited'] }}</span>
+                                    <span>{{ $stage['credit'] ?? $stage['credited'] }}</span>
+                                    @if (app()->getLocale() === 'en' && $stage['credit'] !== null && $stage['song_credit'] !== null)
+                                        <span>{{ $stage['song_credit'] }}</span>
                                     @endif
                                 </p>
                             @endif
@@ -322,12 +322,7 @@
                         @endif
                     </div>
                     </div>
-                    {{-- Game mode, said once and optional (the consultant's front page): the real switch, with what it does. --}}
-                    <div class="lnf-glass lnf-gm">
-                        <x-site.game-toggle size="pill" />
-                        <p><b>{{ __('landing.game_mode.title') }}</b> <span>{{ __('landing.game_mode.body') }}</span></p>
-                        <i class="lnf-badge">{{ __('landing.game_mode.tag') }}</i>
-                    </div>
+                    {{-- (No Game mode card: the top line's switch is the one way in, Hillel, 2026-11-24.) --}}
                     <div class="lnf-floor" aria-hidden="true"><span><i></i><i></i><i></i><i></i></span></div>
                 </section>
 
@@ -357,8 +352,10 @@
                             <div class="lnf-glass lnf-plan lnf-plus">
                                 <h3>{{ __('pages.landing.plans_plus') }} @unless ($plans['checkoutOpen'])<span class="lnf-soon">{{ __('pages.landing.plans_soon') }}</span>@endunless</h3>
                                 {{-- The monthly price, the yearly beside it (the marketing review, 2026-11-22). --}}
-                                <p class="lnf-price">{{ $price['month'] }} <small>{{ __('pages.landing.plans_month') }}</small></p>
-                                <p class="lnf-note">{{ __('pages.landing.plans_or_year', ['year' => $price['year']]) }} @unless ($plans['checkoutOpen']){{ __('pages.landing.plans_paused') }}@endunless</p>
+                                {{-- Plus by the year, as /pricing's yearly card says it (Hillel, 2026-11-24): what it comes to a month, then
+                                     what's billed once a year, in the visitor's currency. --}}
+                                <p class="lnf-price">{{ $price['yearAsMonth'] }} <small>{{ __('pages.landing.plans_month') }}</small></p>
+                                <p class="lnf-note">{{ __('pages.landing.plans_billed_year', ['year' => $price['year']]) }} @unless ($plans['checkoutOpen']){{ __('pages.landing.plans_paused') }}@endunless</p>
                                 <ul>
                                     @foreach (\App\Support\Pages\Landing::list('plans_plus_list', ai: false) as [$gain, $fact])
                                         <li><x-site.icon name="check" size="16" /><span><b>{{ $gain }}</b> {{ strtr($fact, $replace) }}</span></li>

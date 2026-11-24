@@ -69,7 +69,7 @@
 [data-skin='game'] .lnf-look .s-look-seg { background: var(--g-well); box-shadow: inset 0 0 0 2px var(--g-line); }
 [data-skin='game'] .lnf-look .s-look-seg [aria-pressed='true'] { background: var(--g-yellow); color: var(--g-on); box-shadow: none; }
 [data-skin='game'] .lnf-look .s-look-group + .s-look-group { border-top: 2px solid var(--g-line); }
-[data-skin='game'] .lnf[data-tail] .lnf-top { background: var(--g-bg); box-shadow: 0 2px 0 var(--g-line); }
+[data-skin='game'] .lnf:is([data-tail], [data-scrolled]) .lnf-top { background: var(--g-bg); box-shadow: 0 2px 0 var(--g-line); } /* solid once the page moves under it (Hillel, 2026-11-24) */
 
 /* Words: pixel caps on a hard shadow for headings; sentences keep the readable face. */
 [data-skin='game'] :is(.lnf-h1, .lnf-h2) { font-family: var(--g-px); font-weight: 400; letter-spacing: 0; line-height: 1.35; text-transform: uppercase; text-shadow: .09em .09em 0 var(--g-shade); }
@@ -242,7 +242,7 @@
     [data-skin='game'] .lnf .lnf-deck { inset: 0 8px; gap: 10px; }
     [data-skin='game'] .lnf-lb b { font-size: 10px; }
     [data-skin='game'] .lnf-chip { font-size: 15px; }
-    [data-skin='game'] .lnf-stage .lnf-play { min-height: 52px; font-size: 10px; }
+    [data-skin='game'] .lnf-stage .lnf-play { min-height: 56px; font-size: 10px; } /* room for the download's line, so a press never grows it */
     [data-skin='game'] .lnf-try b { font-size: 12px; }
     [data-skin='game'] .lnf-now { font-size: 16px; letter-spacing: .02em; }
     /* The dock's one pill is one square panel. */

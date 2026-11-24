@@ -556,7 +556,7 @@ const hex = (buffer) => [...new Uint8Array(buffer)].map((b) => b.toString(16).pa
  * Sends a take as a song's clip: the request, the upload, then complete. Resolves the request (queued); refusals are the
  * contract's ApiErrors (consent_required, quota_reached with `which`, request_open, account_required).
  */
-export async function sendClip({ templateId, clipTemplateId = null, clipTranspose = 0, guide = true, octave = null, partKey, samples, sampleRate, startSeconds, hum = false, turnstileToken = null, clipSeconds = MAX_SECONDS, whole = false }) {
+export async function sendClip({ templateId, clipTemplateId = null, clipTranspose = 0, guide = true, octave = null, partKey, samples, sampleRate, startSeconds, hum = false, turnstileToken = null, clipSeconds = MAX_SECONDS, whole = false, auto = false }) {
     // A whole-song take (Hillel: compare you as the lead): its first stretch, to the tune's stop, is the voice's clip; the
     // whole take goes beside it as the lead (owner-only, deleted with the voice), its beat 0 where the clip's is.
     const clip = clipFrom(samples, sampleRate, startSeconds, clipSeconds);
@@ -567,7 +567,7 @@ export async function sendClip({ templateId, clipTemplateId = null, clipTranspos
     if (hum) clip.offsetFrames = null; // a hum sets its own tempo: where the song's beat 0 falls in it isn't known
     const bytes = await clip.wav.arrayBuffer();
     const sha256 = hex(await crypto.subtle.digest('SHA-256', bytes));
-    const { data: request, upload, leadUpload } = await api.ownChoir.requests.create({ templateId, ...(clipTemplateId ? { clipTemplateId } : {}), ...(clipTranspose ? { clipTranspose } : {}), ...(guide ? {} : { guide: false }), ...leadBody, ...(octave != null ? { octave } : {}), partKey, offsetFrames: clip.offsetFrames, sampleRate, frames: clip.frames, bytes: bytes.byteLength, sha256, ...(turnstileToken ? { turnstileToken } : {}) });
+    const { data: request, upload, leadUpload } = await api.ownChoir.requests.create({ templateId, ...(clipTemplateId ? { clipTemplateId } : {}), ...(clipTranspose ? { clipTranspose } : {}), ...(guide ? {} : { guide: false }), ...leadBody, ...(octave != null ? { octave } : {}), partKey, offsetFrames: clip.offsetFrames, sampleRate, frames: clip.frames, bytes: bytes.byteLength, sha256, ...(turnstileToken ? { turnstileToken } : {}), ...(auto ? { auto: true } : {}) });
     aiUse('choir_start'); // AI optional's measure: a choir song asked for, once a day (ai-choice.js)
     // The upload and complete, once more if the first try fails (the contract: send it again after a mismatch); if it still
     // fails, the request goes, so it never sits "on its way" and a new try isn't refused as one song at a time.
@@ -600,6 +600,30 @@ export async function makeFromVoice(templateId, { turnstileToken = null } = {}) 
     aiUse('choir_start');
     await loadOwnChoir();
     return queued;
+}
+
+/**
+ * The choir wait (docs/decisions.md, 2026-11-24): a song the app started by itself waits a few seconds before it's made.
+ * holdChoir keeps it waiting while they listen back (5 s each time, never past 2 minutes; 409 claimed once it's begun);
+ * startChoir lets it go at once. Both answer with the song, kept in the store.
+ */
+export async function holdChoir(id) {
+    const { data } = await api.ownChoir.requests.hold(id);
+    keepRequest(data);
+    return data;
+}
+
+export async function startChoir(id) {
+    const { data } = await api.ownChoir.requests.start(id);
+    keepRequest(data);
+    return data;
+}
+
+/** One song as the server just said it, in place in the store. */
+function keepRequest(request) {
+    const list = ownChoir.data?.requests;
+    const at = list?.findIndex((r) => r.id === request?.id) ?? -1;
+    if (at >= 0) list.splice(at, 1, { ...list[at], ...request });
 }
 
 /** Deletes a song made from their singing: on the server, then its parts kept on this device. */

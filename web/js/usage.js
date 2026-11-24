@@ -43,6 +43,8 @@ for (const kind of [
     'choir_song_joy_to_the_world', 'choir_song_silent_night', 'choir_song_voice_capture', 'choir_take_sent',
     'choir_take_started', 'choir_take_warned_clipped', 'choir_take_warned_edge', 'choir_take_warned_quiet',
     'choir_take_warned_short', 'choir_teaser', 'choir_try_again', 'choir_view_full', 'choir_view_recording',
+    'choir_auto_started', 'choir_hold_listened', 'choir_hold_sang_again', 'choir_start_now', 'choir_stopped_after_claim', 'choir_email_opened',
+    'choir_banner_closed', 'choir_banner_tap_queued', 'choir_banner_tap_tomorrow', 'choir_banner_tap_making', 'choir_banner_tap_slow', 'choir_banner_tap_ready', 'choir_banner_tap_failed',
     'choir_view_with_choir', 'chord_live_heard', 'chord_live_start', 'rr_cal_add', 'rr_day_done', 'rr_page_pick',
     'rr_plan_made', 'rr_ready_check', 'tracks_made:louder', 'tracks_made:without', 'tracks_take', 'boot_reset',
     'challenge_accepted', 'leaderboard_viewed',

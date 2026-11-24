@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Users;
 
+use App\Actions\Counts\RecordCounts;
 use App\Exceptions\Refusal;
 use App\Jobs\RedrawPersonsCards;
 use App\Models\HandleHold;
@@ -133,6 +134,7 @@ final class UpdateProfile
         }
 
         $before = $user->handle;
+        $choirEmailBefore = (bool) $user->choir_email;
 
         try {
             DB::transaction(function () use ($user, $fields, $before): void {
@@ -161,6 +163,12 @@ final class UpdateProfile
         // A change in Settings is counted here; the card's answers are the device's own counts.
         if (array_key_exists('ai_features', $fields) && $aiSource === 'settings') {
             AiChoice::switched($user, $aiBefore, (bool) $user->ai_features);
+        }
+
+        // Choir emails turned off in the app (Settings, or the take review's Don't email me), counted as the email's
+        // one-click unsubscribe is: one count however it's done, and only a real change.
+        if ($choirEmailBefore && ! $user->choir_email) {
+            app(RecordCounts::class)->serverAmount('choir_email_off', 1);
         }
 
         // Hidden, shown again or renamed: the share cards that name them are drawn again.

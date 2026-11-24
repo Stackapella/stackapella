@@ -16089,6 +16089,9 @@ a.cp-ll-block:focus-visible { outline: 3px solid var(--color-cream); outline-off
 :root[data-skin='game'][data-gs] .ge-kick { margin: 0; font-family: var(--arc-pixel); font-size: 10px; font-weight: 400; line-height: 1.4; letter-spacing: 0; text-transform: uppercase; color: var(--arc-yellow); font-size-adjust: var(--arc-ex, none); }
 :root[data-skin='game'][data-gs] [data-groups-kick] { color: var(--arc-cyan); }
 :root[data-skin='game'][data-gs] .ge-portrait { border: var(--arc-frame) solid var(--ge-part); box-shadow: var(--arc-shadow); }
+/* The choir wait's banner (components/choir-banner.js): an arcade panel, its dot a square. */
+:root[data-skin='game'][data-gs] [data-ui='choir-banner'] { border-radius: var(--arc-radius); border: 3px solid var(--arc-cyan); background: var(--arc-well); box-shadow: 4px 4px 0 var(--arc-line); }
+:root[data-skin='game'][data-gs] [data-ui='choir-banner'] > span:first-child { border-radius: 0; }
 :root[data-skin='game'][data-gs] [data-group-card] { border-radius: var(--arc-radius); border: 3px solid var(--arc-cyan); background: var(--arc-well); box-shadow: 4px 4px 0 var(--arc-line); }
 :root[data-skin='game'][data-gs] [data-group-card]:hover { border-color: var(--color-cream); }
 /* A song part's page in its redesign (marketing's .s-spart-*, 2026-11-10) on the arcade screen, in the 90s design's

@@ -70,7 +70,8 @@ final class PathPages
             if (! in_array($slug, DocumentPagesController::guides(), true)) {
                 return null;
             }
-            $doc = app(LegalText::class)->read($slug, folder: 'guides');
+            // In the page's language, as the guide's own page reads it (English where a guide has no translation yet).
+            $doc = app(LegalText::class)->read($slug, app()->getLocale(), 'guides');
 
             return ['name' => (string) $doc['title'], 'summary' => (string) $doc['description'], 'url' => '/guides/'.$slug];
         };

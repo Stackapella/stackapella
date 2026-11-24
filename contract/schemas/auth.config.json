@@ -41,7 +41,8 @@
                 "ownChoirTogether",
                 "aiMark",
                 "plusLimits",
-                "aiOptional"
+                "aiOptional",
+                "choirEmail"
             ],
             "properties": {
                 "methods": {
@@ -344,6 +345,10 @@
                 "aiOptional": {
                     "type": "boolean",
                     "description": "The ai_optional switch (docs/ai-optional-plan.md): while on, the app honours each account's AI features setting and a guest's device key; off, AI shows for everyone as before."
+                },
+                "choirEmail": {
+                    "type": "boolean",
+                    "description": "The choir_email switch: while on, the choir ready email is sent, and the app says so (the take review's line and the Settings row); off, neither."
                 }
             }
         }

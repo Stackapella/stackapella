@@ -1,4 +1,44 @@
 {
+    "choirWait": {
+        "hold": {
+            "starts": "Tu coro empieza en {n} s",
+            "listening": "Tu coro empieza cuando termines de escuchar.",
+            "costFree": "Usa tu coro gratis.",
+            "costMinutes": "Usa unos {m} de tus {left} minutos.",
+            "startNow": "Empezar ya"
+        },
+        "stop": {
+            "title": "¿Dejar de hacer este coro?",
+            "bodyFree": "Ya ha empezado, así que cuenta igualmente como tu coro gratis.",
+            "bodyMinutes": "Ya ha empezado, así que usa igualmente unos {m} minutos.",
+            "confirm": "Parar y cantar otra vez",
+            "keep": "Seguir haciéndolo"
+        },
+        "email": {
+            "line": "Te escribiremos a {email} si no estás cuando esté listo.",
+            "off": "No quiero correos",
+            "offDone": "No te escribiremos sobre tus coros."
+        },
+        "banner": {
+            "queued": "Tu coro de {song} está en la cola: unos {m} min.",
+            "queuedSoon": "Tu coro de {song} está en la cola: empieza enseguida.",
+            "tomorrow": "Tu coro de {song} se hará mañana.",
+            "making": "Haciendo tu coro de {song}: {n} de {count} partes listas",
+            "slow": "Tu coro de {song} está tardando más de lo normal. Te escribiremos.",
+            "ready": "Tu coro de {song} está listo",
+            "failed": "No pudimos hacer tu coro de {song}.",
+            "see": "Verlo",
+            "listen": "Escuchar",
+            "why": "Ver por qué",
+            "close": "Cerrar",
+            "label": "Tu coro"
+        },
+        "settings": {
+            "title": "Escríbeme cuando mi coro esté listo",
+            "hint": "Solo si aún no lo has escuchado."
+        },
+        "makingLeadEta": "Tarda unos {m} minutos. Usa la app mientras esperas: se ve arriba."
+    },
     "notices": {
         "token": {
             "notFound": "No se encuentra este aviso. Revisa el enlace de tu correo.",
@@ -636,7 +676,7 @@
         "timingHint": "Adelántala si esta voz suena tarde, retrásala si suena pronto.",
         "softBreaths": "Suavizar las respiraciones",
         "softBreathsHint": "Baja las respiraciones entre frases. Tu toma no cambia.",
-        "rerecord": "Regrabar",
+        "rerecord": "Canta otra vez",
         "clearTake": "Eliminar toma",
         "delete": "Eliminar voz",
         "panCentre": "Centro",
@@ -837,7 +877,7 @@
             "none": "Aún no hay voces",
             "noneHint": "Cuando te pidamos cantar una voz, aparecerá aquí.",
             "processing": "Preparando tu toma para enviarla.",
-            "failed": "Tu toma no llegó completa. Grábala otra vez o vuelve a enviarla desde este dispositivo.",
+            "failed": "Tu toma no llegó completa. Cántala otra vez o vuelve a enviarla desde este dispositivo.",
             "learnAndRecord": "Aprender y grabar",
             "recordAgain": "Grabar otra toma",
             "hearYourVoice": "Escuchar tu voz",
@@ -957,7 +997,7 @@
             "hear": "Escucharla como la oirán",
             "note": "Un mensaje para nosotros",
             "noteHelp": "Lo que deba saber sobre esta toma.",
-            "again": "Grabar de nuevo",
+            "again": "Canta otra vez",
             "send": "Enviar",
             "sending": "Guardándola para enviarla",
             "checked": "Comprobaciones terminadas.",
@@ -993,8 +1033,8 @@
             "not_yours": "Esta voz ya no es tuya.",
             "not_recordable": "Ahora esta canción no está abierta para grabar.",
             "template_changed": "La canción cambió desde que grabaste: grábala otra vez.",
-            "validation_failed": "Esta toma no se pudo enviar. Grábala otra vez.",
-            "lost": "Esta toma se borró de este dispositivo antes de enviarse. Grábala otra vez, por favor.",
+            "validation_failed": "Esta toma no se pudo enviar. Cántala otra vez.",
+            "lost": "Esta toma se borró de este dispositivo antes de enviarse. Cántala otra vez, por favor.",
             "wifiTip": "Una toma ocupa unos pocos megabytes: con wifi va más rápido y no gasta tus datos. Hasta entonces está a salvo en este dispositivo.",
             "notSinger": "Esta cuenta no puede enviar tomas para la beta. Entra con tu cuenta de cantante.",
             "signIn": "Se enviará cuando entres.",
@@ -1061,7 +1101,7 @@
             "aroundHome": "En cualquier punto entre {low, plural, one {1 semitono} other {# semitonos}} por debajo y {high, plural, one {1 semitono} other {# semitonos}} por encima de tu nota cómoda.",
             "hearNote": "Escuchar tu nota",
             "record": "Grabar",
-            "recordAgain": "Grabar de nuevo",
+            "recordAgain": "Canta otra vez",
             "countIn": "Prepárate: {count}",
             "singNow": "Canta ahora",
             "ready": "Listo para enviar: claro, sin saturar y lo bastante largo.",
@@ -1071,7 +1111,7 @@
             "send": "Enviar",
             "outboxTitle": "{course}: un clip de curso",
             "micFailed": "El micrófono no se abrió. Revisa el permiso de micrófono del navegador y vuelve a intentarlo.",
-            "keepFailed": "Esta toma no se pudo guardar en este dispositivo. Grábala otra vez."
+            "keepFailed": "Esta toma no se pudo guardar en este dispositivo. Cántala otra vez."
         }
     },
     "sing": {
@@ -1270,7 +1310,7 @@
             "lined": "Se movió {ms} ms para alinearse con las notas.",
             "linedFine": "Tus entradas ya están alineadas. No hace falta ajustar.",
             "hearOthers": "Escuchar con los demás",
-            "again": "Grabar de nuevo",
+            "again": "Canta otra vez",
             "sungBy": "{song}, cantada por {names}",
             "you": "ti"
         },
@@ -1993,7 +2033,7 @@
         "hear": "Escuchar",
         "record": "Grábate",
         "start": "Grabar",
-        "recordAgain": "Grabar de nuevo",
+        "recordAgain": "Canta otra vez",
         "lead": "Escucha primero y luego canta",
         "recording": "Grabando: cántalo ahora",
         "compare": "Comparar",
@@ -5776,7 +5816,7 @@
             "readyNow": "Tu coro está listo",
             "listen": "Escuchar tu coro",
             "done": "Tu canto está grabado",
-            "doneHint": "Escúchalo si quieres y luego crea tu coro.",
+            "doneHint": "Escúchalo si quieres. Tu coro empieza solo.",
             "hearAll": "Oirás la melodía y las demás partes.",
             "hearOthers": "Tu melodía está apagada. Oirás las demás partes."
         },
@@ -5789,9 +5829,9 @@
             "recorded": "Grabada",
             "you": "Tú",
             "making": "Creando…",
-            "partsHint": "Las voces del coro aparecen aquí cuando creas tu coro.",
+            "partsHint": "Cada voz aparece aquí cuando está lista.",
             "makingHint": "Cada voz aparece aquí cuando está lista.",
-            "makingLead": "Puede tardar unos minutos. Te avisaremos aquí cuando esté listo.",
+            "makingLead": "Puede tardar unos minutos. Usa la app mientras esperas: se ve arriba.",
             "readyLead": "Ya están todas las voces. Escucha para oírte como un coro.",
             "readyCount": "{count, plural, one {{n} de {count} voz lista…} other {{n} de {count} voces listas…}}"
         },

@@ -235,6 +235,8 @@ async function stateful(operation, params, body, cases, query = {}) {
         const experiments = JSON.parse(tabStorage.get('stackapella.mockExperiments') || '[]');
         // Lend your voice switched on for a flow (stackapella.mockLendVoice, this tab).
         const lendVoice = tabStorage.get('stackapella.mockLendVoice') === '1' || !!data.lendVoice;
+        // The choir email's switch (choir_email): on here unless a flow turns it off (stackapella.mockChoirEmailSwitch '0').
+        const choirEmail = tabStorage.get('stackapella.mockChoirEmailSwitch') !== '0';
         // A self-hosted install, for this tab (`stackapella.mockSelfHosted`): the licence's credit shows.
         const selfHosted = tabStorage.get('stackapella.mockSelfHosted') === '1' || !!data.selfHosted;
         // Songs withheld where the visitor is, for a flow (stackapella.mockWithheld, this tab): js/withheld.js swaps them.
@@ -250,7 +252,7 @@ async function stateful(operation, params, body, cases, query = {}) {
         const ownChoirTogether = tabStorage.get('stackapella.mockTogether') === '1' || !!data.ownChoirTogether;
         // AI optional's release switch (docs/ai-optional-plan.md): off unless a flow turns it on for the tab.
         const aiOptional = tabStorage.get('stackapella.mockAiOptional') === '1' || !!data.aiOptional;
-        return respond(200, { data: { ...data, ideas: !scenarios().includes('ideas.list:not_found'), experiments, aiOptional, lendVoice, selfHosted, withheldSongs, aiVoices, ownChoir, ownChoirSongs, turnstileSiteKey, ownChoirTogether } });
+        return respond(200, { data: { ...data, ideas: !scenarios().includes('ideas.list:not_found'), experiments, aiOptional, lendVoice, choirEmail, selfHosted, withheldSongs, aiVoices, ownChoir, ownChoirSongs, turnstileSiteKey, ownChoirTogether } });
     }
     // A share's body as sent (Update that link's `replaces` among it), for the flows; the example answers as before.
     if (operation === 'harmonies.create') globalThis.mockShareBody = body;
@@ -264,6 +266,9 @@ async function stateful(operation, params, body, cases, query = {}) {
         const saved = JSON.parse(tabStorage.get('stackapella.mockAppearance') || 'null');
         const appearance = saved || data.appearance ? { ...(data.appearance ?? {}), ...(saved ?? {}) } : null;
         // Hide profile, as this tab last set it.
+        // Email me when my choir is ready, as this tab last set it (on by default, as the server's).
+        const choirEmail = tabStorage.get('stackapella.mockChoirEmail');
+        if (choirEmail !== null) data.choirEmail = choirEmail === '1';
         const hidden = tabStorage.get('stackapella.mockHideProfile');
         if (hidden !== null) data.hideProfile = hidden === '1';
         // Initials on the boards, as this tab last set them; `young` is under 18 (initials only).
@@ -306,6 +311,10 @@ async function stateful(operation, params, body, cases, query = {}) {
     }
     if (operation === 'account.update' && typeof body?.aiFeatures === 'boolean' && as !== 'signedOut') {
         tabStorage.set('stackapella.mockAiFeatures', body.aiFeatures ? '1' : '0');
+        return respond(200, await accountAs(as));
+    }
+    if (operation === 'account.update' && typeof body?.choirEmail === 'boolean' && as !== 'signedOut') {
+        tabStorage.set('stackapella.mockChoirEmail', body.choirEmail ? '1' : '0');
         return respond(200, await accountAs(as));
     }
     if (operation === 'account.update' && typeof body?.hideProfile === 'boolean' && as !== 'signedOut') {
@@ -430,6 +439,13 @@ async function stateful(operation, params, body, cases, query = {}) {
             if (r.status === 'failed') r.failureHints = r.failure === 'clip_unusable' ? JSON.parse(tabStorage.get('stackapella.mockFailureHints') || '[]') : null;
             r.settings ??= { sound: { room: 'dry', balance: (r.parts ?? []).map((p) => ({ partKey: p.partKey, db: 0 })) }, sung: { vibrato: 'natural', variation: 'natural', voicing: 'auto', breaths: 'legato', ensembleTiming: 'tight', pitchSpread: 'off', quality: 'standard' } };
             r.remakeMinutes ??= { standard: 2, fine: 4 };
+            // The choir wait's fields (contract, 2026-11-24); mockChoirSlow (this tab) is past twice its estimate.
+            r.holdUntil ??= null;
+            r.claimedAt ??= ['rendering', 'ready', 'failed'].includes(r.status) ? r.createdAt ?? now : null;
+            r.queuePosition ??= null;
+            r.etaMinutes = r.status === 'rendering' ? 3 : r.status === 'queued' ? r.etaMinutes ?? null : null;
+            r.slow = !!tabStorage.get('stackapella.mockChoirSlow') && ['queued', 'rendering'].includes(r.status);
+            r.costMinutes ??= 4;
             // Their whole-song take as the lead (mockChoirLead this tab, or a song sung whole here), once it's ready.
             r.leadTake = r.status === 'ready' && (r.wholeTake || tabStorage.get('stackapella.mockChoirLead')) && r.parts?.length ? { ...r.parts[0], id: `${r.parts[0].id}-lead`, url: `${location.origin}/tests/fixtures/guide-48000.m4a?lead=1` } : null;
             r.canUseRecordingAsLead = !!r.leadTake;
@@ -514,6 +530,16 @@ async function stateful(operation, params, body, cases, query = {}) {
             for (const r of choir.requests) {
                 // tomorrow's (today's ceiling) stays queued; one held "being made" (mockChoirMaking) is made once the flag goes
                 if ((r.status !== 'queued' && r.status !== 'rendering') || r.startsAfter) continue;
+                // The choir wait: a song the app started by itself waits out its hold (holdUntil), then the renderer takes it.
+                if (r.holdUntil && Date.now() < Date.parse(r.holdUntil)) continue;
+                r.holdUntil = null;
+                // In line (mockChoirQueued, this tab): second, about 6 minutes, not taken yet.
+                if (tabStorage.get('stackapella.mockChoirQueued')) {
+                    Object.assign(r, { status: 'queued', queuePosition: 2, etaMinutes: 6, claimedAt: null });
+                    continue;
+                }
+                r.claimedAt ??= now;
+                r.queuePosition = null;
                 // mockChoirMaking: it stays being made, one part ready, one making, the rest waiting (the contract's `progress`).
                 if (tabStorage.get('stackapella.mockChoirMaking')) {
                     r.status = 'rendering';
@@ -553,6 +579,10 @@ async function stateful(operation, params, body, cases, query = {}) {
             const request = { id: `Rq${choir.requests.length + 7}x`, templateId: body.templateId, title: listed?.title ?? body.templateId, version: listed?.version ?? 1, status: 'uploading', progress: [], failure: null, createdAt: now, readyAt: null, seen: false, canDownload: as === 'plus', startsAfter: choir.busyToday ? new Date(Date.now() + 864e5).toISOString().replace(/\.\d+Z$/, 'Z') : null, parts: [] };
             choir.requests.unshift(request);
             globalThis.mockChoirClip = body; // what was sent, for the flows
+            // Started by the app itself (`auto`): it waits 10 s before the renderer may take it (the choir wait).
+            request.createdAt = now;
+            request.holdUntil = body?.auto ? new Date(Date.now() + 10000).toISOString() : null;
+            request.claimedAt = null;
             // From the saved voice ({ templateId } alone): queued at once, nothing to upload.
             if (!body?.sha256) {
                 Object.assign(request, { status: 'queued', progress: shown.requests[0].parts.map((p) => ({ partKey: p.partKey, status: 'waiting' })) });
@@ -592,6 +622,13 @@ async function stateful(operation, params, body, cases, query = {}) {
         if (operation === 'ownChoir.requests.seen') {
             request.seen = true;
             for (const gone of request.left ?? []) gone.seen = true;
+            return save(respond(200, { data: request }));
+        }
+        // The choir wait: held 5 s more while they listen back (never past 2 minutes), or let go at once; refused once taken.
+        if (operation === 'ownChoir.requests.hold' || operation === 'ownChoir.requests.start') {
+            if (request.claimedAt) return respond(409, { message: 'claimed', code: 'claimed' });
+            const cap = Date.parse(request.createdAt ?? now) + 120000;
+            request.holdUntil = operation === 'ownChoir.requests.start' ? null : new Date(Math.min(Date.now() + 5000, cap)).toISOString();
             return save(respond(200, { data: request }));
         }
         if (operation === 'ownChoir.requests.delete') {

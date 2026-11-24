@@ -164,15 +164,24 @@ def glass(f):
     assert not g["old"], f"no gem keeps the old outline or filter: {g}"
 
 
+# Where the first screen's controls sit on the page: Play, Try the first lesson and the three ways in.
+CONTROLS = "['[data-lnf-play]', '.lnf-try', '.lnf-paths'].map((s) => { const b = document.querySelector(s).getBoundingClientRect(); return [Math.round(b.left), Math.round(b.top + scrollY), Math.round(b.width), Math.round(b.height)]; })"
+
+
 def play_and_solo(f):
+    # A press moves nothing (Hillel, 2026-11-24: "pressing Play ... makes the buttons move"): Play keeps its size whatever
+    # it says, and nothing beside or under it shifts, while it loads or plays.
+    before = f.js(CONTROLS)
     f.run("document.querySelector('[data-lnf-play]').click()")
     f.wait("document.getElementById('lnf').hasAttribute('data-playing')", timeout=40, what="the song playing")
     time.sleep(2.5)
+    assert f.js(CONTROLS) == before, f"a press on Play moves nothing around it: {before} then {f.js(CONTROLS)}"
     a = f.js(STATE)
     assert a["p"] > 0 and a["t"] > 0 and a["lit"] >= 1, f"the song moves and gems light: {a}"
     assert a["now"] == 1 and a["line"], f"the sung line follows, one word at a time: {a}"
     assert "Amazing Grace" in a["live"], f"a screen reader is told it's playing: {a['live']!r}"
-    assert f.js("getComputedStyle(document.querySelector('.lnf-play-w .lnf-i-stop')).display") != "none", "the big button says Stop while it plays"
+    # Both labels keep their place (Play's size never changes): the one shown is the one visible.
+    assert f.js("[getComputedStyle(document.querySelector('.lnf-play-w > .lnf-i-stop')).visibility, getComputedStyle(document.querySelector('.lnf-play-w > .lnf-i-play')).visibility]") == ["visible", "hidden"], "the big button says Stop while it plays"
     assert f.js("getComputedStyle(document.querySelector('.lnf-disc .lnf-i-stop')).display") != "none", "the dock's disc shows the square"
     assert f.js("!!document.querySelector('.lnf [data-icon=pause], .lnf svg[class*=pause]')") is False, "never a pause"
     # The song builds: both passes in the time, the first lane alone at the start, the others waiting, and the stage says so.
@@ -314,7 +323,8 @@ def recorded_only(base, size):
         assert not first[2] and 0 < first[3] < 1, f"nothing sounds while it loads: {first}"
         assert "Loading the voices" in f.js("document.querySelector('[data-play-status]')?.textContent ?? ''"), "a screen reader hears it's loading"
         assert f.js("getComputedStyle(document.querySelector('.lnf-play .lnf-orb'), '::after').backgroundImage").startswith("conic-gradient"), "the ring fills with the share"
-        assert f.js("getComputedStyle(document.querySelector('.lnf-meta')).display") == "none", "the words take the place of the length"
+        # The words take the length's place: it keeps its room on a wide screen (Play never changes size), hidden.
+        assert f.js("(() => { const m = getComputedStyle(document.querySelector('.lnf-meta')); return m.display === 'none' || m.visibility === 'hidden'; })()"), "the words take the place of the length"
         f.wait(f"Number({root}.dataset.load) > {first[0]}", timeout=20, what="the share grows")
         # It starts by itself the moment the voices are in, with nothing more pressed.
         f.wait(f"{root}.hasAttribute('data-playing')", timeout=60, what="the song starting once the voices are in")
@@ -365,6 +375,9 @@ DOCK = "getComputedStyle(document.querySelector('.lnf-dock')).visibility === 'vi
 def page(f, before):
     """The page scrolls like a page (Hillel, 2026-11-23): nothing pinned, the lanes go by with it, each step comes in with
     its picture, and the small player rises only while the song plays out of view."""
+    # The credit under the lanes in full (Hillel, 2026-11-24): who sings, then who wrote it, each on its own line, never cut.
+    cut = f.js("[...document.querySelectorAll('.lnf-cred > span')].filter((s) => s.scrollWidth > s.clientWidth + 1 || getComputedStyle(s.parentElement).textOverflow === 'ellipsis').map((s) => s.textContent)")
+    assert cut == [], f"no credit is cut short: {cut}"
     assert f.js("['.lnf-stage', '.lnf-world', '.lnf-deck'].every((s) => !['sticky', 'fixed'].includes(getComputedStyle(document.querySelector(s)).position))"), "nothing is pinned"
     assert not f.js(DOCK), "the small player waits while the lanes are in view"
     for n in (1, 2, 3, 4):

@@ -8,6 +8,7 @@
 
 import { goBack } from '../router.js';
 import { Icon } from './icon.js';
+import { ChoirBanner } from './choir-banner.js';
 
 export const PageHeader = {
     components: { Icon },
@@ -58,7 +59,7 @@ export const PageHeader = {
  * a screen of cards takes the whole row (''). Attributes (data-ui, a data hook, a class) go on the screen itself.
  */
 export const AppScreen = {
-    components: { PageHeader },
+    components: { PageHeader, ChoirBanner },
     props: {
         title: { type: String, required: true },
         back: { type: String, default: '/' },
@@ -82,6 +83,8 @@ export const AppScreen = {
                 <template v-if="$slots.title" #title><slot name="title" /></template>
                 <template #aside><slot name="aside" /></template>
             </PageHeader>
+            <!-- The choir wait's one line, while a choir made from their singing is on its way, ready or failed. -->
+            <ChoirBanner class="mb-4" />
             <div class="app-wrap flex flex-1 flex-col" :class="foot">
                 <!-- With a side (Hillel's width design): the content at left, the side panel at right from 900 px, sticky
                      where it fits; a phone has the side after the content, as written. -->

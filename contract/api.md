@@ -1789,7 +1789,9 @@ the arm label on the device (never an id). `experiment` stays onb1's until it en
 **Request:** none.
 
 `aiOptional` (since 2026-11-23, the `ai_optional` switch, docs/ai-optional-plan.md): while on, the app honours each
-account's `aiFeatures` and a guest's device key; off, AI shows for everyone as before. `plusLimits` (since 2026-11-23): Plus's numbers as the site's Plus words give them, `{ "choirMinutes", "choirSongs",
+account's `aiFeatures` and a guest's device key; off, AI shows for everyone as before. `choirEmail` (since 2026-11-24,
+the `choir_email` switch): while on, the choir ready email is sent, and the app shows the take review's "We'll email
+you" line and Settings' choir email row; off, none of the three, so the app never promises an email that won't come. `plusLimits` (since 2026-11-23): Plus's numbers as the site's Plus words give them, `{ "choirMinutes", "choirSongs",
 "storageBytes" }`: the AI choir's part-minutes a month, about how many songs that is (minutes over 4, at least 1), and
 the storage, from the server's config, so the app never types them. `aiMark` (since 2026-11-23, EU AI Act Article 50): `{ "text", "generator", "digitalSourceType" }`, the one wording
 of the machine-readable marking every file holding an AI voice carries. The app writes it into its own exports that

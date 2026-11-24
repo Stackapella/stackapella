@@ -1,4 +1,44 @@
 {
+    "choirWait": {
+        "hold": {
+            "starts": "Your choir starts in {n} s",
+            "listening": "Your choir starts after you listen.",
+            "costFree": "This uses your free choir.",
+            "costMinutes": "Uses about {m} of your {left} minutes.",
+            "startNow": "Start now"
+        },
+        "stop": {
+            "title": "Stop making this choir?",
+            "bodyFree": "It's already started, so it still counts as your free choir.",
+            "bodyMinutes": "It's already started, so it still uses about {m} minutes.",
+            "confirm": "Stop and sing again",
+            "keep": "Keep making it"
+        },
+        "email": {
+            "line": "We'll email {email} if you're away when it's ready.",
+            "off": "Don't email me",
+            "offDone": "We won't email you about your choirs."
+        },
+        "banner": {
+            "queued": "Your {song} choir is in line: about {m} min.",
+            "queuedSoon": "Your {song} choir is in line: starting soon.",
+            "tomorrow": "Your {song} choir will be made tomorrow.",
+            "making": "Making your {song} choir: {n} of {count} parts ready",
+            "slow": "Your {song} choir is taking longer than usual. We'll email you.",
+            "ready": "Your {song} choir is ready",
+            "failed": "Your {song} choir couldn't be made.",
+            "see": "See it",
+            "listen": "Listen",
+            "why": "See why",
+            "close": "Close",
+            "label": "Your choir"
+        },
+        "settings": {
+            "title": "Email me when my choir is ready",
+            "hint": "Only if you haven't heard it yet."
+        },
+        "makingLeadEta": "It takes about {m} minutes. Use the app while you wait: it shows at the top."
+    },
     "notices": {
         "token": {
             "notFound": "This notice can't be found. Check the link in your email.",
@@ -636,7 +676,7 @@
         "timingHint": "Nudge earlier if this part sounds late, later if it's early.",
         "softBreaths": "Soften breaths",
         "softBreathsHint": "Quietens the breaths between phrases. Your take itself isn't changed.",
-        "rerecord": "Re-record",
+        "rerecord": "Sing again",
         "clearTake": "Delete take",
         "delete": "Delete part",
         "panCentre": "Centre",
@@ -837,7 +877,7 @@
             "none": "No parts yet",
             "noneHint": "When we ask you to sing a part, it shows here.",
             "processing": "Getting your take ready to send.",
-            "failed": "Your take didn't arrive in one piece. Record it again, or send it again from this device.",
+            "failed": "Your take didn't arrive in one piece. Sing it again, or send it again from this device.",
             "learnAndRecord": "Learn and record",
             "recordAgain": "Record another take",
             "hearYourVoice": "Hear your voice",
@@ -957,7 +997,7 @@
             "hear": "Hear it as learners will",
             "note": "A note for us",
             "noteHelp": "Anything he should know about this take.",
-            "again": "Record again",
+            "again": "Sing again",
             "send": "Send",
             "sending": "Keeping it to send",
             "checked": "The checks are done.",
@@ -993,7 +1033,7 @@
             "not_yours": "This part isn't yours any more.",
             "not_recordable": "This song isn't open for recording now.",
             "template_changed": "The song changed since you recorded: record it again.",
-            "validation_failed": "This take couldn't be sent. Record it again.",
+            "validation_failed": "This take couldn't be sent. Sing it again.",
             "lost": "This take was cleared from this device before it was sent. Please record it again.",
             "wifiTip": "A take is a few megabytes: on Wi-Fi it goes faster and doesn't use your data. It's safe on this device until then.",
             "notSinger": "This account can't send takes for the beta. Sign in with your singer account.",
@@ -1061,7 +1101,7 @@
             "aroundHome": "Anywhere from {low, plural, one {1 semitone} other {# semitones}} below to {high, plural, one {1 semitone} other {# semitones}} above your comfortable note.",
             "hearNote": "Hear your note",
             "record": "Record",
-            "recordAgain": "Record again",
+            "recordAgain": "Sing again",
             "countIn": "Get ready: {count}",
             "singNow": "Sing now",
             "ready": "Ready to send: clear, not too loud, and long enough.",
@@ -1071,7 +1111,7 @@
             "send": "Send it",
             "outboxTitle": "{course}: a course clip",
             "micFailed": "The mic didn't open. Check the browser's mic permission, then try again.",
-            "keepFailed": "This take couldn't be kept on this device. Record it again."
+            "keepFailed": "This take couldn't be kept on this device. Sing it again."
         }
     },
     "sing": {
@@ -1270,7 +1310,7 @@
             "lined": "Moved {ms} ms to line up with the notes.",
             "linedFine": "Your entries already line up. No nudge needed.",
             "hearOthers": "Hear it with the others",
-            "again": "Record again",
+            "again": "Sing again",
             "sungBy": "{song}, sung by {names}",
             "you": "you"
         },
@@ -1993,7 +2033,7 @@
         "hear": "Hear it",
         "record": "Record yourself",
         "start": "Record",
-        "recordAgain": "Record again",
+        "recordAgain": "Sing again",
         "lead": "Listen first, then sing",
         "recording": "Recording: sing it now",
         "compare": "Compare",
@@ -5776,7 +5816,7 @@
             "readyNow": "Your choir is ready",
             "listen": "Listen to your choir",
             "done": "Your singing is recorded",
-            "doneHint": "Listen back if you like, then make your choir.",
+            "doneHint": "Listen back if you like. Your choir starts by itself.",
             "hearAll": "You'll hear the tune and the other parts.",
             "hearOthers": "Your tune is off. You'll hear the other parts."
         },
@@ -5789,9 +5829,9 @@
             "recorded": "Recorded",
             "you": "You",
             "making": "Making…",
-            "partsHint": "The choir's parts appear here once you make your choir.",
+            "partsHint": "Each part shows here as it's made.",
             "makingHint": "Each part shows here as it's made.",
-            "makingLead": "It can take a few minutes. We'll tell you here when it's ready.",
+            "makingLead": "It can take a few minutes. Use the app while you wait: it shows at the top.",
             "readyLead": "Every part is in. Listen to hear yourself as a choir.",
             "readyCount": "{count, plural, one {{n} of {count} part ready…} other {{n} of {count} parts ready…}}"
         },

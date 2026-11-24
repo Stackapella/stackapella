@@ -10,7 +10,7 @@ import { defineAsyncComponent, toRefs } from 'vue';
 import { audio, closeMic, engine, latencyNow, openMic } from '../audio.js';
 import { follow, hintStep, voiceFollower } from '../livevoice.js';
 import { formatDate, formatList, localized, t, tk } from '../i18n.js';
-import { aiBand, aiChosen, aiOptional, cardAllowed, cardShows, chooseAi, firstDay, noteCardShown } from '../ai-choice.js';
+import { aiBand, aiChosen, aiOn, aiOptional, cardAllowed, cardShows, chooseAi, firstDay, noteCardShown } from '../ai-choice.js';
 import { screenLoading } from '../components/screen-loading.js';
 import { BACKING, DRONE, GUIDE_LEVELS, guideId, hasTake } from '../practice.js';
 import { RecordSetup } from '../record-setup.js';
@@ -19,11 +19,12 @@ import { clefFor, currentPhrase, direction, nextStep, nowText, partSaying, pract
 import { scoreTake } from '../scoring.js';
 import { trackFrame, trackInWorker, VOICED_CLARITY } from '../pitchtrack.js';
 import * as sessionStore from '../stores/session.js';
-import { account } from '../stores/account.js';
+import { account, loadAuthConfig } from '../stores/account.js';
 import { songTitle } from '../song-titles.js';
 import { claimInvitation, countVoice, later, needsVoice, saidLater, usableTake, voiceAskOpen } from '../be-the-voice.js';
 import { aiCredit, aiCtaOpen } from '../ai-voices.js';
-import { checkKey, choirRefusal, clipSecondsFor, clipSongs, joinFor, keepJoinClip, loadOwnChoir, MIN_SECONDS, ownChoir, ownChoirOn, sendClip, takeLevel, takeProblem, tunePart } from '../own-choir.js';
+import { checkKey, choirRefusal, clipSecondsFor, clipSongs, deleteSong, holdChoir, joinFor, keepJoinClip, loadOwnChoir, MIN_SECONDS, ownChoir, ownChoirOn, sendClip, startChoir, takeLevel, takeProblem, tunePart } from '../own-choir.js';
+import { confirmAction } from '../components/confirm.js';
 import { CHOIR_FIX } from '../own-choir-state.js';
 import { session as tabStorage } from '../storage.js';
 import { aiPartsOf } from '../stores/catalogue.js';
@@ -45,6 +46,7 @@ import { HeadphonesDialog, RangeDialog, TimingDialog } from '../components/dialo
 import { Icon } from '../components/icon.js';
 import { Lane, NowCard } from '../components/sing/lane.js';
 import { toast } from '../components/ui.js';
+import { api } from '../api.js';
 import { joinSyllables } from '../components/practice.js';
 import { Chooser } from '../components/sing/chooser.js';
 import { Stage } from '../components/sing/stage.js';
@@ -111,7 +113,7 @@ export const SingView = {
     components: { SingShell: screenLoading(), ShareVoice: defineAsyncComponent(() => import('../components/share-voice.js').then((m) => m.ShareVoice)), DailyShare, RingMeter, VoiceCareLine, TimingLine, PopupSlot, TakeBest, IdeaVoice, PhraseStage, Chooser, Stage, RecordingStage, Lane, NowCard, Coach, StepDone, JustRecorded, LineBar, ModeBar, SingHeader, Transport, TurnBand, PartSheet, SettingsSheet, HeadphonesDialog, TimingDialog, RangeDialog, Icon, VoiceNote, ResingSheet, ResungCard, TrimSheet, WhatsNext, LockedBanner, ShareSheet },
     props: { id: { type: String, required: true } },
     setup: () => ({ ...toRefs(session), audio, formatTime, shownTitle, prefs, game, effect, aiCtaOpen }),
-    data: () => ({ readyCountedFor: null, clipReady: false, aiCardFor: null, aiCardDone: null, aiCardBusy: false, tasteAsked: false, crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null, ring: null, ringChord: '', lessonStep: null, lessonOpening: false, voiceAt: 0, voicePartId: null, choirSending: false, choirError: '', choirSent: null, choirCheck: null }),
+    data: () => ({ readyCountedFor: null, clipReady: false, aiCardFor: null, aiCardDone: null, aiCardBusy: false, tasteAsked: false, crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null, ring: null, ringChord: '', lessonStep: null, lessonOpening: false, voiceAt: 0, voicePartId: null, choirSending: false, choirError: '', choirSent: null, choirCheck: null, choirClock: Date.now(), choirEmailOff: false }),
     template: `
         <div class="flex h-dvh flex-col bg-ink" :data-paused="paused ? '' : null">
             <p class="sr-only" aria-live="polite">{{ said }}</p>
@@ -146,7 +148,7 @@ export const SingView = {
             <template v-else>
                 <!-- Your turn is a band in your colour; otherwise the song, and your part with what's happening -->
                 <TurnBand v-if="bandShown" :color="paint(focusPart.color)" :others="otherNames" :marked="hearingChanged" @settings="dialog = 'settings'" />
-                <SingHeader v-else :title="shownTitle(project)" :named="!!project.title?.trim()" :info="songInfo" :part-name="partName" :color="paint(focusPart.color)" :chip="chip"
+                <SingHeader v-else :banner-quiet="recording || countIn !== null || playing" :title="shownTitle(project)" :named="!!project.title?.trim()" :info="songInfo" :part-name="partName" :color="paint(focusPart.color)" :chip="chip"
                     :recording="recording" :recorded-seconds="recordedSeconds" :count-in="countIn" :about="about" :badge="settingsBadge"
                     @back="leave" @part="dialog = 'part'" @settings="dialog = 'settings'" :marked="hearingChanged" :view="recorded && clipTake ? '' : view" @view="setView" :any-part="clipTake" />
                 <LockedBanner v-if="locked" :reason="locked" :owner="project?.shared?.owner?.name ?? ''" class="mx-4 mt-2 md:mx-6" />
@@ -170,7 +172,7 @@ export const SingView = {
                         <JustRecorded v-else-if="recorded" class="m-auto" :outcome="recorded" :part-name="nameOf(recorded.part)" :next-name="recorded.next ? nameOf(recorded.next) : ''" :hearing="playing"
                             :nudge-ms="nudgeMsOf(recorded.part)" :lining="lining" :lined="lined" :can-resing="phraseRows.length > 1" :color="paint(recorded.part.color)" :stack="recordedStack"
                             :score="recorded.report?.score ?? null" :notes="reportNotes" :track="recorded.report?.track ?? null" :beat-seconds="fullBeatSeconds" :offset-seconds="recorded.part.offsetSeconds + (recorded.part.nudgeSeconds || 0)"
-                            :phrases="reportPhrases" :phrase-labels="phraseRows.map((p) => p.label)" :position="position" :length-seconds="lengthSeconds" :bleed="!!recorded.report?.bleed" :sung-by="sungBy" :voice="voiceInvite" :choir="choirTake" :ready-check="readyReport" @ready-phrase="readyPhrase" :ai-card="aiCard" @ai-try="aiTry" @ai-not="aiNot" @ai-close="aiClose" @choir-make="makeChoir" @choir-force="(token) => makeChoir(token, { force: true })" @choir-listen="listenToChoir"
+                            :phrases="reportPhrases" :phrase-labels="phraseRows.map((p) => p.label)" :position="position" :length-seconds="lengthSeconds" :bleed="!!recorded.report?.bleed" :sung-by="sungBy" :voice="voiceInvite" :choir="choirTake" :ready-check="readyReport" @ready-phrase="readyPhrase" :ai-card="aiCard" @ai-try="aiTry" @ai-not="aiNot" @ai-close="aiClose" @choir-make="makeChoir" @choir-force="(token) => makeChoir(token, { force: true })" @choir-listen="listenToChoir" @choir-start="choirStartNow" @choir-stop="choirStop" @choir-email-off="choirEmailStop"
                             @hear="hearTake($event)" @mute="toggleHearing" @again="recordPart" @next="nextPart" @nudge="nudge" @nudged="nudged" @line-up="lineUp" @studio="openStudio" @resing="resingFrom" @trim="openTrim" :polished="prefs.hearPolished" @polish="hearPolished" @share="dialog = 'share'" @hear-phrase="hearPhrase" @voice-share="voiceShare" @voice-later="voiceLater">
                             <template #report>
                                 <!-- The part's leaderboard (components/boards.js): your best, or why it didn't count; never a lesson's song -->
@@ -244,7 +246,8 @@ export const SingView = {
     computed: {
         /** Recording the choir's 30 seconds (an own choir's or a join's take, any octave): no voice type to show or pick. */
         clipTake() {
-            return !!this.project?.choir && !this.project.choir.requestId;
+            // Still the clip's take while its review shows the choir it started (the choir wait: the take stays to listen back).
+            return !!this.project?.choir && (!this.project.choir.requestId || this.project.choir.requestId === this.choirSent);
         },
         /** After a take that couldn't make a voice: its one fix, over the next take's count-in (views/own-choir.js keeps it). */
         choirTip() {
@@ -540,9 +543,15 @@ export const SingView = {
          */
         choirTake() {
             const part = this.recorded?.part;
-            if (!this.project?.choir || this.project.choir.requestId || !part?.templatePartKey || !ownChoirOn()) return null;
+            if (!this.clipTake || !part?.templatePartKey || !ownChoirOn()) return null;
             const sent = this.choirSent ? (ownChoir.data?.requests ?? []).find((r) => r.id === this.choirSent) ?? { status: 'queued', progress: [] } : null;
-            return { seconds: (part.frames || 0) / (part.sampleRate || 48000), busy: this.choirSending, error: this.choirError, siteKey: checkKey(), join: !!joinFor(this.project.id), sent, check: this.choirCheck };
+            // The choir wait (docs/decisions.md, 2026-11-24): an auto-started song's hold, counted down here, and what it uses.
+            const hold = sent?.holdUntil && !sent.claimedAt ? { seconds: Math.max(0, Math.ceil((Date.parse(sent.holdUntil) - this.choirClock) / 1000)), listening: this.playing } : null;
+            const q = ownChoir.data?.quota;
+            const cost = !q ? '' : q.plus ? t('choirWait.hold.costMinutes', { m: Math.round(sent?.costMinutes ?? 4), left: Math.floor(q.minutesLeft ?? 0) }) : t('choirWait.hold.costFree');
+            // Only while the server sends it (auth.config's choirEmail, the choir_email switch): never a promise it won't keep.
+            const email = sent && sent.status !== 'ready' && account.me && account.config?.choirEmail === true && !this.choirEmailOff && account.me.choirEmail !== false ? account.me.email : null;
+            return { seconds: (part.frames || 0) / (part.sampleRate || 48000), busy: this.choirSending, error: this.choirError, siteKey: checkKey(), join: !!joinFor(this.project.id), sent, check: this.choirCheck, hold, cost, claimed: !!sent?.claimedAt, email, emailOff: this.choirEmailOff };
         },
         /** The part Be the voice's sheet is for: the review's, or the one a sign-up came back to (?voice=<partId>). */
         voicePart() {
@@ -827,10 +836,10 @@ export const SingView = {
             this.choirCheck = null; // a new take: its own level, if it's sent
             sessionStore.setInReview(!!now);
             if (!now) sessionStore.clearReview();
-            // From /your-choir (Hillel: "auto start the choir processing and show it working while you review"): the take
-            // goes by itself once saved (not a friend's join, nor with a check to pass first, nor a take too short).
-            const auto = now && this.clipTake && this.project.choir?.auto && !this.choirSent && !joinFor(this.project.id) && !checkKey();
-            if (auto && (now.part?.frames || 0) / (now.part?.sampleRate || 48000) >= MIN_SECONDS) this.makeChoir();
+            // Every choir take goes by itself once saved (Hillel, the choir wait, 2026-11-24: "auto-start after the take"), after
+            // a 10 s hold to sing again or start at once: not a friend's join (it keeps its yes), nor with a tap's check to
+            // pass first, nor a take too short, nor with nothing left to make it with. The quick check still stops it (makeChoir).
+            if (now) this.autoChoir(now);
         },
         /** A phrase played through to its end counts once (each round of a loop too). */
         position(now, before) {
@@ -991,6 +1000,8 @@ export const SingView = {
     beforeUnmount() {
         badgeHold.on = false;
         clearInterval(this.choirPoll);
+        clearInterval(this.choirTicker);
+        if (this.choirSent) this.dropChoirTake(this.recorded?.part);
         if (this.project?.id) leftSong(this.project.id); // a unit song's visit ends when Sing does (unit-song.js)
         // A re-sung phrase on trial wasn't kept: the take goes back as it was.
         if (this.resung) sessionStore.tryTake(this.resung.outcome.part, this.resung.before);
@@ -1178,12 +1189,129 @@ export const SingView = {
          * project remembers the request, and the choir page says what happens next. A refusal is said on the card.
          */
         /** Listen, once the choir sent from here is ready: its page; the take's own project goes (it was only for this). */
-        async listenToChoir() {
-            const forId = this.project.choir?.forTemplateId;
-            const projectId = this.project.id;
-            navigate(`/t/${encodeURIComponent(forId)}/choir`);
-            const { deleteProject } = await import('../stores/projects.js');
-            await deleteProject(projectId).catch((error) => console.warn('The take was not removed', error));
+        /** The choir wait's start by itself (see the recorded watcher), once the allowance is known (Sing opened straight on a take loads it). */
+        async autoChoir(now) {
+            if (!this.clipTake || this.choirSent || joinFor(this.project.id) || checkKey() || !aiOn()) return;
+            if ((now.part?.frames || 0) / (now.part?.sampleRate || 48000) < MIN_SECONDS) return;
+            if (!ownChoir.data) await loadOwnChoir().catch((error) => console.info('The choir was not loaded for its start', error?.message ?? error));
+            if (this.recorded !== now || this.choirSent) return; // moved on meanwhile
+            const q = ownChoir.data?.quota;
+            if (q && (q.plus ? (q.minutesLeft ?? 0) > 0 : (q.freeLeft ?? 0) > 0)) this.makeChoir(null, { auto: true });
+        },
+        /** Listen: the choir's page (leaving Sing lets the take go: dropChoirTake). */
+        listenToChoir() {
+            navigate(`/t/${encodeURIComponent(this.project.choir?.forTemplateId ?? this.project.template.id)}/choir`);
+        },
+        /**
+         * The choir wait, while its take review shows (a UI clock, nothing scheduled for the audio): the hold counted down
+         * each second; held 5 s more every 4 s while they listen back (never past 2 minutes, the server's cap); a look every
+         * 3 s once the hold is over until it's begun; then every 15 s until it's ready or failed.
+         */
+        watchChoir() {
+            // The email line needs the server's switches (auth.config's choirEmail).
+            if (!account.config) loadAuthConfig().catch((error) => console.info('The settings were not loaded', error?.message ?? error));
+            clearInterval(this.choirTicker);
+            clearInterval(this.choirPoll);
+            const check = () => loadOwnChoir({ force: true }).catch((error) => console.info('The choir was not checked', error?.message ?? error));
+            let looked = 0;
+            let held = 0;
+            this.choirClock = Date.now();
+            this.choirTicker = setInterval(() => {
+                this.choirClock = Date.now();
+                const sent = (ownChoir.data?.requests ?? []).find((r) => r.id === this.choirSent);
+                if (!sent) return;
+                if (sent.claimedAt || !['uploading', 'queued', 'rendering'].includes(sent.status)) {
+                    clearInterval(this.choirTicker);
+                    return;
+                }
+                if (this.playing && sent.holdUntil && Date.now() - held > 4000) {
+                    held = Date.now();
+                    if (!this.choirListened) {
+                        this.choirListened = true;
+                        count('choir_hold_listened');
+                    }
+                    holdChoir(sent.id).catch((error) => (error?.code === 'claimed' ? check() : console.info('The choir was not held', error?.message ?? error)));
+                }
+                if ((!sent.holdUntil || Date.parse(sent.holdUntil) <= Date.now()) && Date.now() - looked > 3000) {
+                    looked = Date.now();
+                    check();
+                }
+            }, 1000);
+            this.choirPoll = setInterval(() => {
+                const made = (ownChoir.data?.requests ?? []).find((r) => r.id === this.choirSent);
+                if (!made || made.status === 'ready' || made.status === 'failed') clearInterval(this.choirPoll);
+                else check();
+            }, 15000);
+        },
+        /** Start now: no more waiting out the hold. */
+        async choirStartNow() {
+            if (!this.choirSent) return;
+            count('choir_start_now');
+            try {
+                await startChoir(this.choirSent);
+            } catch (error) {
+                console.info('The choir was not started at once', error?.message ?? error);
+            }
+            loadOwnChoir({ force: true }).catch((error) => console.info('The choir was not checked', error?.message ?? error));
+        },
+        /**
+         * Sing again while the choir is on its way: in its hold it's simply stopped (nothing used); once it's begun, a modal
+         * says it still counts. Ready or failed: just a new take.
+         */
+        async choirStop() {
+            // By the id it started (the store may not have the song yet, just after it was sent): never left running unseen.
+            const sent = this.choirSent ? (ownChoir.data?.requests ?? []).find((r) => r.id === this.choirSent) ?? { id: this.choirSent, status: 'queued' } : null;
+            if (!sent || sent.status === 'ready' || sent.status === 'failed') return this.recordPart();
+            if (sent.claimedAt) {
+                const q = ownChoir.data?.quota;
+                const yes = await confirmAction({ title: t('choirWait.stop.title'), body: q?.plus ? t('choirWait.stop.bodyMinutes', { m: Math.round(sent.costMinutes ?? 4) }) : t('choirWait.stop.bodyFree'), action: t('choirWait.stop.confirm'), cancel: t('choirWait.stop.keep') });
+                if (!yes) return;
+                count('choir_stopped_after_claim');
+            } else count('choir_hold_sang_again');
+            try {
+                await deleteSong(sent);
+            } catch (error) {
+                console.warn('The choir was not stopped', error);
+                toast(t('common.tryAgain'), { tone: 'error' });
+                return;
+            }
+            clearInterval(this.choirTicker);
+            clearInterval(this.choirPoll);
+            this.choirSent = null;
+            ownChoir.reviewing = null;
+            if (this.project.choir?.requestId === sent.id) {
+                this.project.choir = { ...this.project.choir, requestId: null };
+                await sessionStore.persist(async () => {});
+            }
+            this.recordPart();
+        },
+        /** Don't email me (the review's line): off for every choir, the Settings row turns it back on. */
+        async choirEmailStop() {
+            try {
+                account.me = (await api.account.update({ choirEmail: false })).data;
+                this.choirEmailOff = true; // counted by the server, on the change (choir_email_off)
+            } catch (error) {
+                console.warn('The choir email was not turned off', error);
+                toast(t('common.tryAgain'), { tone: 'error' });
+            }
+        },
+        /**
+         * Sing goes after a take that started its choir: the take was only for the choir (the server keeps the voice made
+         * from it), so it isn't kept here; a take for another song's choir (`forTemplateId`) goes with its project.
+         */
+        async dropChoirTake(part) {
+            const id = this.choirSent;
+            const project = this.project;
+            this.choirSent = null;
+            ownChoir.reviewing = null;
+            if (!id || !project?.choir) return;
+            if (project.choir.forTemplateId) {
+                const { deleteProject } = await import('../stores/projects.js');
+                await deleteProject(project.id).catch((error) => console.warn('The take was not removed', error));
+                return;
+            }
+            const db = await import('../db.js');
+            if (part && (await db.get('projects', project.id))?.choir?.requestId === id) await sessionStore.clearTakeOf(part);
         },
         /** A whole-song take's clip end (the tune's stop) and its lead flag, for sendClip; nothing for a 30 seconds' take. */
         wholeTake() {
@@ -1191,7 +1319,7 @@ export const SingView = {
             const stopBeat = clipSongs().find((song) => song.templateId === this.project.template.id)?.stopBeat ?? null;
             return { whole: true, clipSeconds: clipSecondsFor(this.project.template, stopBeat, this.fullBeatSeconds) };
         },
-        async makeChoir(turnstileToken = null, { force = false } = {}) {
+        async makeChoir(turnstileToken = null, { force = false, auto = false } = {}) {
             const part = this.recorded?.part;
             const samples = part && sessionStore.takeOf(part);
             if (!samples || this.choirSending) return;
@@ -1238,18 +1366,22 @@ export const SingView = {
                 // The voice-capture take for another song's choir (`forTemplateId`): the clip names its template; the
                 // project was only for the take, so it goes once sent (the server keeps only the voice made from it).
                 const forId = this.project.choir?.forTemplateId ?? null;
-                const request = await sendClip({ templateId: forId ?? this.project.template.id, clipTemplateId: forId ? this.project.template.id : null, clipTranspose: forId ? clipTranspose : 0, guide: !this.project.choir?.noHeadphones, octave: forId ? octave : null, ...this.wholeTake(), partKey: part.templatePartKey, samples, sampleRate: part.sampleRate, startSeconds: part.offsetSeconds + (part.nudgeSeconds || 0), turnstileToken });
+                const request = await sendClip({ templateId: forId ?? this.project.template.id, clipTemplateId: forId ? this.project.template.id : null, clipTranspose: forId ? clipTranspose : 0, guide: !this.project.choir?.noHeadphones, octave: forId ? octave : null, ...this.wholeTake(), partKey: part.templatePartKey, samples, sampleRate: part.sampleRate, startSeconds: part.offsetSeconds + (part.nudgeSeconds || 0), turnstileToken, auto });
                 // Sent by itself from /your-choir: they stay with their take while it's made (a look every 15 s), then Listen.
                 if (forId) count('choir_take_sent');
                 tabStorage.remove(CHOIR_FIX); // sent: the fix was for this take
-                if (forId && this.project.choir?.auto) {
+                if (auto) count('choir_auto_started');
+                // Started by itself (the choir wait), or from /ai-singing: they stay with their take while it's made, its hold
+                // first (Sing again or Start now), then each part as it comes, then Listen. The app's banner says the rest.
+                if (auto || (forId && this.project.choir?.auto)) {
                     this.choirSent = request.id;
+                    ownChoir.reviewing = request.id;
                     tabStorage.remove('stackapella.choirFromSite');
-                    this.choirPoll = setInterval(() => {
-                        const made = (ownChoir.data?.requests ?? []).find((r) => r.id === this.choirSent);
-                        if (made?.status === 'ready' || made?.status === 'failed') clearInterval(this.choirPoll);
-                        else loadOwnChoir({ force: true }).catch((error) => console.info('The choir was not checked', error?.message ?? error));
-                    }, 15000);
+                    if (!forId) {
+                        this.project.choir = { ...this.project.choir, requestId: request.id };
+                        await sessionStore.persist(async () => {});
+                    }
+                    this.watchChoir();
                     return;
                 }
                 if (forId) {

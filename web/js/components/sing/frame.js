@@ -7,6 +7,7 @@ import { engine } from '../../audio.js';
 import { MODES } from '../../practice.js';
 import { formatTime } from '../../theme.js';
 import { Icon } from '../icon.js';
+import { ChoirBanner } from '../choir-banner.js';
 import { formatNumber, tk } from '../../i18n.js';
 import { CountIn } from '../count-in.js';
 
@@ -46,9 +47,10 @@ export const MicLevel = {
  * chip opens Your part, with the mic level beside it on a wide screen. While recording, the header is the red "Recording 0:07" and the mic level.
  */
 export const SingHeader = {
-    components: { Icon, CountIn },
+    components: { Icon, CountIn, ChoirBanner },
     props: {
         title: { type: String, required: true },
+        bannerQuiet: Boolean, // recording, counting in or playing: the choir banner keeps out of the way
         named: { type: Boolean, default: true }, // the song has a title (else a placeholder, in italics)
         info: { type: String, default: '' },
         partName: { type: String, required: true },
@@ -99,6 +101,8 @@ export const SingHeader = {
                     </button>
                 </div>
             </template>
+            <!-- The choir wait's one line, under the bar (hidden while singing or playing). -->
+            <ChoirBanner inline :quiet="bannerQuiet" />
         </header>`,
 };
 

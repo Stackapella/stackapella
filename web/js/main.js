@@ -269,6 +269,7 @@ whenIdle(() => import('./live-beat.js').then((m) => m.startBeat()).catch((error)
 rememberRef();
 noteSiteArrival(); // came from the public site: Home offers the way back (hosts.js)
 noteAiArrival(); // came through /ai-singing (?ref=ai-singing): AI features on for this device (ai-choice.js)
+if (new URLSearchParams(location.search).get('ref') === 'choir-email') count('choir_email_opened'); // the choir email's Listen (its button doesn't pass the server)
 noteArrival(); // a lesson page's Sing this lesson: its one lesson, granted as it opens (js/page-lesson.js)
 listenForInstall();
 radioArrows();

@@ -1,13 +1,13 @@
 ---
-title: How to sing harmony
-description: Harmony is two or more notes sung together that fit. How to hear a harmony part, start with thirds and rounds, hold your line against the tune, and tune it so it rings.
+title: How to Sing Harmony: 7 Exercises for Beginners
+description: How to sing harmony, step by step: seven beginner exercises, from finding the third and singing a round to holding your part against the tune and tuning it so it rings.
 song: michael-row
 version: 2
 reviewed: false
 ---
 
 
-# How to sing harmony
+# How to sing harmony: 7 exercises for beginners
 
 Harmony is two or more notes sung at once that fit together. The tune is the part everyone knows; a
 harmony part sits above or below it and moves with it, sometimes in step, sometimes holding still while

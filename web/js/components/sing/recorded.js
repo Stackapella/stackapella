@@ -102,14 +102,14 @@ const CHOIR_STAGES = {
 const ChoirReview = {
     components: { Icon, PeakRow, TurnstileBox },
     props: {
-        choir: { type: Object, required: true }, // { seconds, busy, error, siteKey, join, sent, check }
+        choir: { type: Object, required: true }, // { seconds, busy, error, siteKey, join, sent, check, hold, cost, claimed, email, emailOff }
         stack: { type: Array, default: () => [] }, // the song's parts: [{ id, key, name, color, peaks, you }]
         color: { type: String, required: true }, // your part's
         hearing: Boolean,
         position: { type: Number, default: 0 },
         lengthSeconds: { type: Number, default: 1 },
     },
-    emits: ['hear', 'again', 'make', 'force', 'listen'],
+    emits: ['hear', 'again', 'make', 'force', 'listen', 'start', 'stop', 'email-off'],
     data: () => ({ token: null, checkKey: 0 }),
     setup: () => ({ MIN_SECONDS, formatTime, CHECK_WORDS }),
     watch: {
@@ -133,10 +133,13 @@ const ChoirReview = {
             return list.map((l) => ({ ...l, name: byKey[l.key]?.name ?? templatePartName({ key: l.key, name: l.key }), peaks: byKey[l.key]?.peaks ?? null }));
         },
         readyCount: (vm) => vm.lanes.filter((l) => l.status === 'ready').length,
-        stage: (vm) => (vm.ready ? 'ready' : vm.sent ? 'making' : 'recorded'),
+        // In its hold (Sing again would still undo it) it's only recorded: on its way once the renderer has it (the coordinator).
+        stage: (vm) => (vm.ready ? 'ready' : vm.sent && !vm.choir.hold ? 'making' : 'recorded'),
         eyebrow: (vm) => t(CHOIR_STAGES[vm.stage].eyebrow),
         title: (vm) => t(CHOIR_STAGES[vm.stage].title),
-        lead: (vm) => (vm.stage === 'ready' ? t('ownChoir.review.readyLead') : vm.stage === 'making' ? t('ownChoir.review.makingLead') : t('ownChoir.record.doneHint')),
+        lead: (vm) => (vm.stage === 'ready' ? t('ownChoir.review.readyLead') : vm.stage === 'making' ? (vm.sent?.etaMinutes ? t('choirWait.makingLeadEta', { m: vm.sent.etaMinutes }) : t('ownChoir.review.makingLead')) : t('ownChoir.record.doneHint')),
+        /** The choir wait's hold (an auto-started song's first seconds): what the footer says instead of "Saved automatically". */
+        hold: (vm) => vm.choir.hold,
         hint: (vm) => (vm.stage === 'recorded' ? t('ownChoir.review.partsHint') : vm.stage === 'making' ? t('ownChoir.review.makingHint') : ''),
     },
     methods: {
@@ -183,18 +186,29 @@ const ChoirReview = {
                     <p v-else-if="!sent && short" class="alert-inline" role="alert"><span>{{ t('ownChoir.record.short') }}</span></p>
                     <p v-else-if="choir.error" class="alert-inline" style="--alert-c: var(--color-bad)" role="alert"><span>{{ choir.error }}</span></p>
                     <TurnstileBox v-if="!sent && !choir.check && choir.siteKey && !short" :key="checkKey" :site-key="choir.siteKey" @token="token = $event" @failed="token = null" data-choir-check />
+                    <!-- The choir wait: an email when it's ready, only if they're away (the server sends at most one); off in one tap. -->
+                    <p v-if="choir.email" class="t-hint" data-choir-email>{{ t('choirWait.email.line', { email: choir.email }) }} <button type="button" class="link tap-44 inline" data-choir-email-off @click="$emit('email-off')">{{ t('choirWait.email.off') }}</button></p>
+                    <p v-else-if="choir.emailOff && sent && !ready" class="t-hint" role="status" data-choir-email-done>{{ t('choirWait.email.offDone') }}</p>
                 </div>
             </div>
             <div class="footer-bar">
                 <div class="mx-auto flex max-w-[820px] flex-wrap items-center gap-x-4 gap-y-3 px-6 py-3.5">
-                    <p class="min-w-56 flex-[1_1_14rem] text-sm text-subtle">{{ t('sing.review.saved') }}</p>
+                    <div v-if="hold" class="min-w-56 flex-[1_1_14rem]" role="status" data-choir-hold :data-choir-hold-listening="hold.listening ? '' : null">
+                        <p class="text-sm font-semibold text-cream tabular-nums">{{ hold.listening ? t('choirWait.hold.listening') : t('choirWait.hold.starts', { n: hold.seconds }) }}</p>
+                        <p v-if="choir.cost" class="t-hint" data-choir-cost>{{ choir.cost }}</p>
+                    </div>
+                    <p v-else class="min-w-56 flex-[1_1_14rem] text-sm text-subtle">{{ t('sing.review.saved') }}</p>
                     <div class="flex w-full flex-col-reverse gap-2.5 sm:w-auto sm:flex-row">
                         <template v-if="choir.check">
                             <button type="button" class="btn-secondary" :disabled="choir.busy" data-choir-force @click="$emit('force', token)">{{ t('ownChoir.check.send') }}</button>
                             <button type="button" class="btn-primary" data-choir-again @click="$emit('again')">{{ t('ownChoir.check.again') }}</button>
                         </template>
+                        <template v-else-if="hold">
+                            <button type="button" class="btn-secondary" data-choir-again @click="$emit('stop')">{{ t('sing.recorded.again') }}</button>
+                            <button type="button" class="btn-primary" data-choir-start-now @click="$emit('start')">{{ t('choirWait.hold.startNow') }}</button>
+                        </template>
                         <template v-else>
-                            <button type="button" :class="short && !sent ? 'btn-primary' : 'btn-secondary'" :data-choir-again="short && !sent ? '' : null" @click="$emit('again')">{{ short && !sent ? t('ownChoir.record.again') : t('sing.recorded.again') }}</button>
+                            <button type="button" :class="short && !sent ? 'btn-primary' : 'btn-secondary'" :data-choir-again="short && !sent ? '' : null" @click="sent ? $emit('stop') : $emit('again')">{{ short && !sent ? t('ownChoir.record.again') : t('sing.recorded.again') }}</button>
                             <button v-if="ready" type="button" class="btn-primary" data-choir-listen @click="$emit('listen')">{{ t('ownChoir.record.listen') }}</button>
                             <button v-else-if="sent" type="button" class="btn-primary" disabled>{{ t('ownChoir.review.readyCount', { n: readyCount, count: lanes.length }) }}</button>
                             <button v-else-if="!short" type="button" class="btn-primary" :disabled="choir.busy || (!!choir.siteKey && !token)" :aria-busy="choir.busy ? 'true' : null" data-choir-make @click="$emit('make', token)"><span v-if="choir.busy" class="spinner" aria-hidden="true"></span>{{ choir.busy ? t('ownChoir.record.sending') : choir.join ? t('ownChoir.together.join.next') : t('ownChoir.record.use') }}</button>
@@ -236,11 +250,11 @@ export const JustRecorded = {
         aiCard: { type: Object, default: null }, // AI optional's card (components/ai-card.js): { song, busy }, or null
         readyCheck: { type: Object, default: null }, // a rehearsal plan's ready check: { ready, day, phrases: [index] }, or null
     },
-    emits: ['hear', 'mute', 'again', 'next', 'nudge', 'nudged', 'line-up', 'studio', 'resing', 'trim', 'polish', 'share', 'hear-phrase', 'voice-share', 'voice-later', 'choir-make', 'choir-force', 'choir-listen', 'ai-try', 'ai-not', 'ai-close', 'ready-phrase'],
+    emits: ['hear', 'mute', 'again', 'next', 'nudge', 'nudged', 'line-up', 'studio', 'resing', 'trim', 'polish', 'share', 'hear-phrase', 'voice-share', 'voice-later', 'choir-make', 'choir-force', 'choir-start', 'choir-stop', 'choir-email-off', 'choir-listen', 'ai-try', 'ai-not', 'ai-close', 'ready-phrase'],
     data: () => ({ nudging: false, picked: null }),
     setup: () => ({ MAX_NUDGE_MS, CHART, formatList, formatNumber, formatTime, sk }),
     template: `
-        <ChoirReview v-if="choir" ref="choirReview" :choir="choir" :stack="stack" :color="color" :hearing="hearing" :position="position" :length-seconds="lengthSeconds" @hear="$emit('hear', $event)" @again="$emit('again')" @make="$emit('choir-make', $event)" @force="$emit('choir-force', $event)" @listen="$emit('choir-listen')" />
+        <ChoirReview v-if="choir" ref="choirReview" :choir="choir" :stack="stack" :color="color" :hearing="hearing" :position="position" :length-seconds="lengthSeconds" @hear="$emit('hear', $event)" @again="$emit('again')" @make="$emit('choir-make', $event)" @force="$emit('choir-force', $event)" @listen="$emit('choir-listen')" @start="$emit('choir-start')" @stop="$emit('choir-stop')" @email-off="$emit('choir-email-off')" />
         <section v-else class="flex min-h-full w-full flex-col" aria-labelledby="recorded-title" data-take-review>
             <div class="mx-auto w-full max-w-6xl flex-1 space-y-6 px-4 pb-8 pt-5 md:px-8">
                 <!-- The parts, honestly: done, next, then the rest. -->

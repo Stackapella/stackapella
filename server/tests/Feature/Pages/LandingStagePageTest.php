@@ -78,9 +78,10 @@ final class LandingStagePageTest extends TestCase
 
         $html = (string) $this->get('/')->assertOk()->getContent();
         // The same control as the site header's (its component), before Language and appearance, and again in that
-        // menu for a phone (Hillel, 2026-11-16: "combine the two buttons"); light and dark only there. A third, the same
-        // switch, is the optional Game mode card under "New to harmony?" (the approved blueprint, 2026-11-23).
-        $this->assertSame(3, substr_count($html, 'data-game-toggle'));
+        // menu for a phone (Hillel, 2026-11-16: "combine the two buttons"); light and dark only there. No Game mode card
+        // further down (Hillel, 2026-11-24): the top line's switch is the one way in.
+        $this->assertSame(2, substr_count($html, 'data-game-toggle'));
+        $this->assertStringNotContainsString(e(__('landing.game_mode.body')), $html);
         $this->assertStringContainsString('role="switch"', $html);
         $this->assertLessThan(strpos($html, 'data-look-menu'), strpos($html, 'data-game-toggle'));
         $this->assertSame(1, substr_count($html, 'data-look-menu'));

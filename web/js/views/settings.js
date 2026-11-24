@@ -35,7 +35,7 @@ import { setNotes, voiceCare } from '../voice-day.js';
 import { local, session } from '../storage.js';
 import { publicSiteUrl } from '../hosts.js';
 import { aiOn, aiOptional } from '../ai-choice.js';
-import { loadOwnChoir, ownChoir } from '../own-choir-state.js';
+import { loadOwnChoir, ownChoir, ownChoirOn } from '../own-choir-state.js';
 import { count } from '../usage.js';
 import { loadBilling, plan } from '../stores/plan.js';
 
@@ -117,7 +117,7 @@ export const SettingsView = {
         editing: null, // 'email' or 'password': its change open under its row
         section: 'learning', // the group in view, marked in the sidebar
     }),
-    setup: () => ({ aiOn, aiOptional, publicSiteUrl, voiceCare, setNotes, ideas, learning, prefs, account, locale, noteNames, NAMINGS, LEGAL, chooseNaming, METHODS, HANDLE_REASONS, EXPORT, formatDate, formatBytes, SECTIONS, SECTION_WORDS, appearanceSummary, selfHosted, CREDIT_SITE, sk, game }),
+    setup: () => ({ aiOn, aiOptional, ownChoirOn, publicSiteUrl, voiceCare, setNotes, ideas, learning, prefs, account, locale, noteNames, NAMINGS, LEGAL, chooseNaming, METHODS, HANDLE_REASONS, EXPORT, formatDate, formatBytes, SECTIONS, SECTION_WORDS, appearanceSummary, selfHosted, CREDIT_SITE, sk, game }),
     template: `
         <AppScreen :title="t('settings.title')" back="/" measure="" data-ui="screen" class="bg-ink">
             <!-- How it looks is the header's Theme button, here as on every screen (Hillel's call). -->
@@ -215,6 +215,10 @@ export const SettingsView = {
                 <div v-if="aiOptional()" class="card py-3 pe-3 ps-5" data-ai-features>
                     <Switch :on="aiOn()" :label="t('settings.ai.title')" :hint="!aiOn() ? t('settings.ai.hintOff') : account.me?.isAdult === false ? t('settings.ai.hintOnMinor') : t('settings.ai.hintOn')" :disabled="busy === 'ai'" @change="setAi" />
                     <p v-if="!aiOn() && keptAiSongs" class="t-hint mt-2 pe-2" data-ai-kept>{{ t('settings.ai.kept', { count: keptAiSongs }) }}</p>
+                </div>
+                <!-- The choir wait (2026-11-24): one email when a choir made from their singing is ready, only if it's still unheard. -->
+                <div v-if="account.me && aiOn() && ownChoirOn() && account.config?.choirEmail === true" class="card py-3 pe-3 ps-5" data-choir-email-setting>
+                    <Switch :on="account.me.choirEmail !== false" :label="t('choirWait.settings.title')" :hint="t('choirWait.settings.hint')" :disabled="busy === 'choirEmail'" @change="setChoirEmail" />
                 </div>
                 <!-- Hear yourself as a choir (js/own-choir.js): the voice kept for their next songs, and Delete; only while one is kept and AI is on. -->
                 <SavedVoiceRow v-if="account.me && aiOn()" />
@@ -698,6 +702,13 @@ export const SettingsView = {
                 account.me = { ...account.me, aiFeatures: on };
                 toast(t('settings.saved'));
                 if (!on) loadOwnChoir({ force: true }).catch((error) => console.warn('The kept AI songs were not counted', error));
+            }
+        },
+        /** Email me when my choir is ready (the take review's Don't email me turns it off too). */
+        async setChoirEmail(on) {
+            if (await this.run('choirEmail', () => api.account.update({ choirEmail: on }))) {
+                account.me = { ...account.me, choirEmail: on };
+                toast(t('settings.saved'));
             }
         },
         /** Hide profile: everyone else sees "Anonymous", with no handle, picture or profile page. */

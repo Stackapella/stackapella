@@ -6,6 +6,7 @@ namespace Tests\Feature\Site;
 
 use App\Actions\Templates\SyncOfficialTemplates;
 use App\Support\Flags;
+use App\Support\Legal\LegalText;
 use App\Support\Site\SitePages;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -71,6 +72,18 @@ final class PathPagesTest extends TestCase
         ]);
         $this->assertSame(1, substr_count($html, 'href="/for/a-cappella"'), 'the a cappella page, once');
         $this->assertStringContainsString(e(__('plus.items.storage.0')), $html);
+    }
+
+    public function test_in_spanish_the_guides_are_spanish_where_they_are_translated(): void
+    {
+        app(Flags::class)->set('lang_es', 'on', null, 'Spanish checked');
+
+        // Each card reads the guide in the page's language, as the guide's own page does (marketing's Spanish check).
+        $learners = (string) $this->get('/es/for/learners')->assertOk()->getContent();
+        $this->assertStringContainsString(e(app(LegalText::class)->read('what-is-harmony', 'es', 'guides')['title']), $learners);
+        $this->assertStringNotContainsString(e(app(LegalText::class)->read('what-is-harmony', 'en', 'guides')['title']), $learners);
+        $singers = (string) $this->get('/es/for/singers')->assertOk()->getContent();
+        $this->assertStringContainsString(e(app(LegalText::class)->read('record-vocal-harmonies-at-home', 'es', 'guides')['title']), $singers);
     }
 
     public function test_neither_says_a_word_about_ai_in_either_language(): void

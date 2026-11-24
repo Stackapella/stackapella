@@ -30,7 +30,8 @@ export function clipSongs() {
 }
 
 /** The singer's consent, quota and songs (ownChoir.show), once loaded; null while off or unknown. */
-export const ownChoir = reactive({ data: null, loaded: false });
+// `reviewing`: the song Sing's take review shows now (the banner leaves it to that review).
+export const ownChoir = reactive({ data: null, loaded: false, reviewing: null });
 
 /** Loads (or reloads) where things stand; quietly nothing while it's off. */
 export async function loadOwnChoir({ force = false } = {}) {
@@ -80,6 +81,29 @@ export const isOpen = (request) => !!request && OPEN.includes(request.status);
 /** The ready songs not yet heard: Home's one quiet notice each. */
 export function readyUnseen() {
     return (ownChoir.data?.requests ?? []).filter((r) => r.status === 'ready' && !r.seen);
+}
+
+/**
+ * The choir wait's one line (docs/decisions.md, 2026-11-24): the song to tell them about, ready first, then failed, then
+ * on its way; ready and failed only while unseen. Null when there's none. The app's banner and Home's choir panel share it.
+ */
+export function bannerRequest() {
+    const list = ownChoir.data?.requests ?? [];
+    return list.find((r) => r.status === 'ready' && !r.seen) ?? list.find((r) => r.status === 'failed' && !r.seen) ?? list.find((r) => isOpen(r) && r.status !== 'uploading') ?? null;
+}
+
+/**
+ * Its state, from the server's own fields: `ready`, `failed`, `slow` (past twice its estimate), `tomorrow` (a busy
+ * day's wait), `making` (being made, with its parts ready so far) or `queued` (in line, `etaMinutes` when known).
+ * The words are choirWait.banner.<state> (queuedSoon when the wait isn't known yet).
+ */
+export function bannerState(request) {
+    if (!request) return null;
+    if (request.status === 'ready') return 'ready';
+    if (request.status === 'failed') return 'failed';
+    if (request.slow) return 'slow';
+    if (request.startsAfter) return 'tomorrow';
+    return request.status === 'rendering' ? 'making' : 'queued';
 }
 
 /** What a choir project keeps of its song: the request, its version and parts (to play offline). */

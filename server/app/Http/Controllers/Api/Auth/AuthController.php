@@ -135,6 +135,8 @@ final class AuthController extends Controller
             'plusLimits' => PlusFeatures::limits(),
             // AI as a choice (docs/ai-optional-plan.md): while on, the app honours each account's setting.
             'aiOptional' => AiChoice::on(),
+            // The choir ready email, and the app's words promising it, come on together (the choir_email switch).
+            'choirEmail' => $flags->on('choir_email'),
             // Song requests (the song_requests switch); staff see them before (account.songRequests).
             'songRequests' => $flags->on('song_requests'),
             'schools' => $flags->on('schools'),

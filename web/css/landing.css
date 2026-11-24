@@ -475,15 +475,23 @@ body { margin: 0; background: var(--ground); }
 .lnf-stage .lnf-play .lnf-orb::after, .lnf[data-loading] .lnf-stage .lnf-play .lnf-orb::after { border-color: color-mix(in srgb, var(--ink) 70%, transparent); }
 .lnf-badge { display: inline-flex; align-items: center; height: 20px; margin-inline-start: 8px; padding: 0 8px; border-radius: 6px; background: color-mix(in srgb, var(--c) 16%, transparent); color: var(--ink); font-size: 11px; font-style: normal; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; vertical-align: 2px; }
 /* Game mode, optional: the real switch, what it does, and that it's optional. */
-.lnf-gm { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin-top: 26px; padding: 14px 20px; border-radius: 20px; }
-.lnf-gm p { flex: 1 1 260px; margin: 0; font-size: 15px; line-height: 1.4; color: var(--mute); } .lnf-gm b { color: var(--ink); }
-.lnf-gm .lnf-badge { --c: var(--c4); margin: 0; }
 .lnf-prim { display: inline-flex; align-items: center; gap: 10px; height: 64px; padding: 0 32px; border-radius: 99px; background: var(--btn); color: var(--btn-ink) !important; font-size: 19px; font-weight: 800; white-space: nowrap; }
 .lnf-arrow { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 16px; font-weight: 700; text-decoration: underline !important; text-decoration-color: color-mix(in srgb, var(--ink) 40%, transparent) !important; text-underline-offset: 5px; }
 /* Play and Stop: the player stops and goes back to the start, so the square and the word Stop, never a pause. */
 .lnf-i-stop, .lnf:is([data-playing], [data-loading]) .lnf-i-play { display: none; }
 .lnf:is([data-playing], [data-loading]) .lnf-i-stop { display: inline-flex; }
 .lnf-orb > .lnf-i-play { display: inline-flex; }
+/* Play keeps its size whatever it says (Hillel, 2026-11-24: "pressing Play ... makes the buttons move"): its two labels
+   share one place, and so do the line under them and the voices' download, each shown by visibility, never display, so
+   the pill is always as wide as its widest words and nothing beside or under it moves. The download's words fill the
+   line's width without setting it (the orb's ring shows how far it is). */
+.lnf-play-w { grid-template-areas: "say" "sub"; }
+.lnf .lnf-play-w > :is(.lnf-i-play, .lnf-i-stop) { grid-area: say; display: block; }
+.lnf .lnf-play-w > .lnf-i-stop, .lnf:is([data-playing], [data-loading]) .lnf-play-w > .lnf-i-play { visibility: hidden; }
+.lnf:is([data-playing], [data-loading]) .lnf-play-w > .lnf-i-stop { visibility: visible; }
+.lnf-play-w > :is(.lnf-meta, .lnf-load) { grid-area: sub; }
+.lnf-play-w > .lnf-load { width: 0; min-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+@media (min-width: 900px) { .lnf:is([data-loading], [data-failed]) .lnf-play-w > .lnf-meta { display: block; visibility: hidden; } }
 /* The round thing you press says where it is, by the bubble's one ring (docs/glass-spec.md 3: 3 px clear, 3 px wide,
    in the text colour of what it sits on): it breathes until the first press, turns while the voices load, fills as
    their share can be told, and stands ringed if they couldn't (still, each of them, with reduced motion). */
@@ -585,9 +593,8 @@ body { margin: 0; background: var(--ground); }
 :root[data-theme$="-light"] .lnf-trace path { stroke: #1d1712; }
 /* Under the lanes in the first scene: the way on, and who is heard. */
 .lnf-foot { display: flex; justify-content: space-between; align-items: center; gap: 24px; margin: 10px 0 0; padding: 0 var(--pad); font-size: 12.5px; font-weight: 500; line-height: 1.35; color: var(--mute); }
-.lnf-foot p { margin: 0; } .lnf-cred { text-align: end; max-width: 62ch; margin-inline-start: auto !important; }
-.lnf-cred-short { display: none; }
-.lnf-foot { justify-content: flex-end; } .lnf-cred { min-width: 0; margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.lnf-foot p { margin: 0; } .lnf-cred { text-align: end; max-width: 100ch; margin-inline-start: auto !important; }
+.lnf-foot { justify-content: flex-end; } .lnf-cred { display: grid; gap: 2px; min-width: 0; margin: 0; } /* each credit whole, on its own line, wrapping where it must */
 
 /* The dock: it stays, in every scene and down the page. Play, the time, the four voices, the line being sung, and
    Start singing. */
@@ -794,7 +801,6 @@ body { margin: 0; background: var(--ground); }
     .lnf-game .gt-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
     .lnf .lnf-game.gt--pill { padding-inline: 8px; }
     .lnf-money { grid-template-columns: 1fr; }
-    .lnf-cred-full { display: none; } .lnf-cred-short { display: inline; }
     .lnf-next { display: none; } .lnf-dock { gap: 12px; } .lnf-tp { gap: 8px; }
 }
 
@@ -847,7 +853,6 @@ body { margin: 0; background: var(--ground); }
     .lnf-mini .lnf-g { top: calc(52% + var(--y) * 20%); }
     .lnf-mini .lnf-lb .lnf-chip, .lnf-mini .lnf-do { margin-inline-start: auto; }
     .lnf-foot { justify-content: center; text-align: center; font-size: 12px; } .lnf-cred { margin: 0 !important; text-align: center; }
-    .lnf-cred-full { display: none; } .lnf-cred-short { display: inline; }
     /* The dock on a phone: the line being sung, then one pill (play, the time, Start singing). */
     .lnf-dock { height: auto; padding: 0 10px calc(10px + env(safe-area-inset-bottom)); grid-template-columns: 1fr auto; grid-template-areas: "words words" "tp start"; gap: 0; border: 0; background: linear-gradient(transparent, var(--ground) 10px); /* solid behind the sung line, so the page never shows through its words */ -webkit-backdrop-filter: none; backdrop-filter: none; pointer-events: none; }
     .lnf-dock::before { content: ""; grid-area: 2 / 1 / 3 / 3; align-self: stretch; border-radius: 99px; background: color-mix(in srgb, var(--ground) 86%, var(--ink)); border: 1px solid var(--edge); box-shadow: 0 14px 40px -14px rgb(0 0 0 / .7); }
@@ -903,5 +908,5 @@ body { margin: 0; background: var(--ground); }
    the home's cards and panels share the 22 px corner. The home's labels are already its quiet grey; the arcade keeps
    its own pieces (landing-game.css). */
 :root:not([data-skin='game']) .lnf-stage .lnf-play { background: transparent; }
-:root:not([data-skin='game']) :is(.lnf-glass, .lnf-lesson, .lnf-gm) { border-radius: 22px; }
+:root:not([data-skin='game']) :is(.lnf-glass, .lnf-lesson) { border-radius: 22px; }
 @media (min-width: 900px) { :root:not([data-skin='game']) .lnf-path a { border-radius: 22px; } }

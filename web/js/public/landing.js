@@ -19,7 +19,8 @@
 // What it sets, for css/landing.css:
 // - on .lnf: data-tail (past the lanes and the story, on the plans and the finale), data-away (the lanes scrolled past:
 //   the small player may rise), data-reveal (motion allowed: a section comes in as it enters, data-in on it), data-alone
-//   (the voice heard alone, while one is), data-top ("small" on the way down, gone on the way up),
+//   (the voice heard alone, while one is), data-top ("small" on the way down, gone on the way up), data-scrolled (off
+//   the very top: game mode's top line takes its solid ground),
 //   --lnf-t, the song's place in beats (the player's while it plays, the start while it doesn't; written on the lanes'
 //   tracks and the strips' bands, not on .lnf), --lnf-page, the sung line's first beat (with reduced motion the lanes
 //   show a line at a time; on the tracks too), --lnf-run on the dock's rail, how far through both passes the play is (0 to 1), and --lnf-load with
@@ -436,6 +437,8 @@ function setUp() {
         // on every scroll, not by crossing: a jump to the top or the end passes the lanes without ever meeting them.
         root.toggleAttribute('data-away', (world?.getBoundingClientRect().bottom ?? 1) < 0);
         // The top line: smaller on the way down, back on the way up (and always whole at the very top).
+        // Off the very top: the game look's top line takes its solid ground there (nothing shows through behind it).
+        root.toggleAttribute('data-scrolled', y >= 8);
         if (y < 40 || y < lastY - 4) delete root.dataset.top;
         else if (y > lastY + 4) root.dataset.top = 'small';
         lastY = y;
