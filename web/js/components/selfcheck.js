@@ -59,7 +59,7 @@ export const SelfCheck = {
             <ol class="space-y-3">
                 <!-- 1. Hear the model -->
                 <li class="flex flex-wrap items-center gap-3 rounded-2xl border border-edge bg-panel p-4">
-                    <span class="w-5 text-center text-xl font-extrabold tabular-nums text-accent-strong" aria-hidden="true">1</span>
+                    <span class="w-5 text-center text-xl font-bold tabular-nums text-accent-strong" aria-hidden="true">1</span>
                     <span class="min-w-0 flex-1"><span class="block font-bold text-cream">{{ t('selfcheck.model') }}</span>
                         <span v-if="published?.credit" class="block text-xs text-muted" translate="no">{{ clipCredit(published) }} <button type="button" class="link-quiet" :aria-label="t('voices.report.button', { who: clipCredit(published) })" data-report-clip @click="reporting = true">{{ t('voices.report.short') }}</button></span>
                         <span v-else-if="!canHearModel && model.description" class="block text-sm text-muted" translate="no" data-selfcheck-described>{{ localized(model.description) }}</span></span>
@@ -68,7 +68,7 @@ export const SelfCheck = {
                 <!-- 2. Record yourself -->
                 <li class="space-y-3 rounded-2xl border border-edge bg-panel p-4">
                     <div class="flex flex-wrap items-center gap-3">
-                        <span class="w-5 text-center text-xl font-extrabold tabular-nums text-accent-strong" aria-hidden="true">2</span>
+                        <span class="w-5 text-center text-xl font-bold tabular-nums text-accent-strong" aria-hidden="true">2</span>
                         <span class="min-w-0 flex-1 font-bold text-cream">{{ t('selfcheck.record') }}</span>
                         <button type="button" class="btn-primary btn-sm" @click="recording ? stop() : record()" data-selfcheck-record><Icon :name="recording ? 'stop' : 'mic'" :size="14" /> {{ recording ? t('studio.stop') : take ? t('selfcheck.recordAgain') : t('selfcheck.start') }}</button>
                     </div>
@@ -77,7 +77,7 @@ export const SelfCheck = {
                 </li>
                 <!-- 3. Compare -->
                 <li class="flex flex-wrap items-center gap-3 rounded-2xl border border-edge bg-panel p-4" :class="take ? '' : 'opacity-60'">
-                    <span class="w-5 text-center text-xl font-extrabold tabular-nums text-accent-strong" aria-hidden="true">3</span>
+                    <span class="w-5 text-center text-xl font-bold tabular-nums text-accent-strong" aria-hidden="true">3</span>
                     <span class="min-w-0 flex-1 font-bold text-cream">{{ t('selfcheck.compare') }}</span>
                     <div class="flex w-full flex-wrap gap-2 sm:w-auto">
                         <button type="button" class="btn-secondary btn-sm" :disabled="!take || recording" @click="play('yours')" data-selfcheck-yours><Icon :name="playing === 'yours' ? 'stop' : 'play'" :size="14" /> {{ t('selfcheck.yours') }}</button>

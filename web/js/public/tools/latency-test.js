@@ -151,7 +151,7 @@ const PANEL = `
   <div class="mt-auto space-y-1" data-problem hidden><p class="font-semibold" data-problem-words></p><p class="text-muted" data-problem-hint></p></div>
 </div>
 <button type="button" class="absolute inset-0 flex touch-manipulation select-none flex-col items-center justify-center gap-1 text-cream active:bg-panel" data-ui="tap-pad" data-pad hidden>
-  <span class="text-4xl font-extrabold" data-pad-word></span>
+  <span class="text-4xl font-bold" data-pad-word></span>
   <span class="px-4 text-sm text-muted" data-pad-hint></span>
 </button>
 <div class="flex h-full flex-col gap-3 overflow-y-auto p-4 text-sm text-cream" data-ui="what-now" data-after hidden>

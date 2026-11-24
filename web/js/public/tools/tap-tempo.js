@@ -43,7 +43,7 @@ const HERO = `<p class="flex items-baseline justify-center gap-2 pt-2 [@media(ma
 
 const PANEL = `
 <button type="button" class="absolute inset-0 flex touch-manipulation select-none flex-col items-center justify-center gap-1 text-cream transition active:scale-[0.99] active:bg-panel motion-reduce:transition-none" data-ui="tap-pad" data-pad>
-  <span class="text-4xl font-extrabold" data-pad-word></span>
+  <span class="text-4xl font-bold" data-pad-word></span>
   <span class="text-sm text-muted" data-pad-hint></span>
 </button>`;
 

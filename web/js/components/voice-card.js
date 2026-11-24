@@ -19,8 +19,8 @@ export const VoiceCard = {
     setup: () => ({ learning, midiName, easyRange }),
     template: `
         <section v-if="learning.progress.home !== null" class="w-full space-y-4 rounded-3xl border border-edge bg-panel p-5 text-center" aria-labelledby="voice-card-title" data-voice-card>
-            <p id="voice-card-title" class="text-xs font-bold uppercase tracking-[0.14em] text-accent-strong">{{ t('voiceCard.title') }}</p>
-            <p class="text-7xl font-extrabold leading-none tracking-tight text-cream" translate="no">{{ midiName(Math.round(learning.progress.home)) }}</p>
+            <p id="voice-card-title" class="t-section">{{ t('voiceCard.title') }}</p>
+            <p class="text-7xl font-bold leading-none tracking-tight text-cream" translate="no">{{ midiName(Math.round(learning.progress.home)) }}</p>
             <p class="text-cream">{{ line }}</p>
             <NoteKeyboard :home="learning.progress.home" :range="easyRange(learning.progress.home, learning.progress.range)" class="mx-auto max-w-xl" />
             <div class="flex justify-center">

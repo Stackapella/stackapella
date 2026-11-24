@@ -41,7 +41,7 @@ export const BreathVisual = {
             <canvas ref="canvas" class="touch-pan-y absolute inset-0 size-full" aria-hidden="true"></canvas>
             <figcaption class="absolute inset-0 grid place-items-center text-center" aria-live="off">
                 <span class="transition-opacity duration-1000" :class="still ? '' : ''">
-                    <span class="block text-2xl font-extrabold tracking-tight text-cream drop-shadow">{{ phase === 'in' ? t('learnVisual.breatheIn') : t('learnVisual.breatheOut') }}</span>
+                    <span class="block text-2xl font-bold tracking-tight text-cream drop-shadow">{{ phase === 'in' ? t('learnVisual.breatheIn') : t('learnVisual.breatheOut') }}</span>
                     <span v-if="!held" class="mt-1 block text-sm font-semibold tabular-nums text-cream/80">{{ left }}</span>
                 </span>
             </figcaption>

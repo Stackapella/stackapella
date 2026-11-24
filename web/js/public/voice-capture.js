@@ -36,7 +36,7 @@ const CARD = `
         <circle cx="76" cy="76" r="69" fill="none" stroke-width="8" stroke-linecap="round" data-ring></circle>
       </svg>
       <div class="absolute inset-[0.875rem] flex flex-col items-center justify-center gap-1 rounded-full bg-ink/60">
-        <span class="text-[2.625rem] font-extrabold leading-none tabular-nums" translate="no" data-note data-ui="capture-note"></span>
+        <span class="text-[2.625rem] font-bold leading-none tabular-nums" translate="no" data-note data-ui="capture-note"></span>
         <span class="text-[0.8125rem] text-muted" data-ui="capture-note-sub"></span>
       </div>
     </div>

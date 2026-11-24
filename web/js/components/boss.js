@@ -43,7 +43,7 @@ export const BossIntro = {
         </section>
         <section v-else class="flex flex-col gap-5" data-boss-intro data-unit-review aria-labelledby="boss-title">
             <p class="text-sm font-semibold text-accent-strong" translate="no">{{ unitTitle }}</p>
-            <h1 id="boss-title" ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ t('boss.review.title') }}</h1>
+            <h1 id="boss-title" ref="heading" tabindex="-1" class="text-3xl font-bold tracking-tight text-cream outline-none">{{ t('boss.review.title') }}</h1>
             <p class="text-lg text-cream" translate="no">{{ title }}</p>
             <p class="max-w-prose text-muted">{{ sk('boss.review.lineSerious', 'boss.review.line', { percent: formatNumber(BOSS_PASS) }) }}</p>
             <p v-if="best !== null" class="text-sm text-muted" data-boss-best>{{ beaten ? t('boss.review.bestPassed', { percent: formatNumber(best) }) : t('boss.best', { percent: formatNumber(best) }) }}</p>
@@ -108,7 +108,7 @@ export const BossEnd = {
             </div>
         </section>
         <section v-else class="flex flex-col items-center gap-5 text-center" data-boss-end data-unit-review :data-beaten="done.beaten ? '' : null" aria-labelledby="boss-end-title">
-            <h1 id="boss-end-title" ref="heading" tabindex="-1" class="text-3xl font-extrabold tracking-tight text-cream outline-none">{{ !done.counted ? t('boss.notCounted.title') : done.beaten ? t('boss.review.passed', { percent: formatNumber(done.percent) }) : t('boss.review.notYet', { percent: formatNumber(done.percent) }) }}</h1>
+            <h1 id="boss-end-title" ref="heading" tabindex="-1" class="text-3xl font-bold tracking-tight text-cream outline-none">{{ !done.counted ? t('boss.notCounted.title') : done.beaten ? t('boss.review.passed', { percent: formatNumber(done.percent) }) : t('boss.review.notYet', { percent: formatNumber(done.percent) }) }}</h1>
             <p class="max-w-prose text-muted" data-boss-line>{{ line }}</p>
             <div class="flex flex-wrap justify-center gap-3 max-sm:w-full max-sm:flex-col">
                 <button type="button" class="btn-primary" data-boss-again-or-back @click="$emit(done.beaten ? 'back' : 'again')">{{ done.beaten ? t('boss.backToMap') : t('boss.tryAgain') }}</button>

@@ -108,7 +108,7 @@ export const CreateView = {
     template: `
         <AppScreen :title="draft ? t(STEP_NAMES[draft.step]) : t('create.title')" :eyebrow="draft ? t('create.frame.stepOf', { step: stepIndex + 1, total: steps.length }) : t('create.title')" :leave="leave" :back-label="t('create.leave')" :measure="wide ? '' : 'max-w-4xl'" foot="">
             <template #aside><p v-if="savedAt" data-ui="facts" class="flex shrink-0 items-center gap-2 text-sm text-muted" role="status"><span class="size-2 rounded-full bg-accent" aria-hidden="true"></span>{{ t('create.draftSaved') }}</p></template>
-            <p v-if="failed" class="card p-6 text-cream" role="alert">{{ failed }}</p>
+            <p v-if="failed" class="alert-inline text-[15px]" style="--alert-c: var(--color-bad)" role="alert"><span>{{ failed }}</span></p>
             <section v-else-if="unclear" class="card space-y-4 p-6" role="status">
                 <h2 class="text-xl font-bold text-cream">{{ t('harmonise.unclear.title') }}</h2>
                 <p class="text-muted">{{ t('harmonise.unclear.body') }}</p>

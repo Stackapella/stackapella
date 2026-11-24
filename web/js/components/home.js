@@ -42,7 +42,7 @@ export const GoalRing = {
                 <circle cx="18" cy="18" r="15" fill="none" stroke="var(--color-line)" stroke-width="3.5" />
                 <circle v-if="ring.done" cx="18" cy="18" r="15" fill="none" :stroke="color" stroke-width="3.5" stroke-linecap="round" :stroke-dasharray="(Math.min(1, ring.done / ring.goal) * 94.2) + ' 94.2'" transform="rotate(-90 18 18)" />
             </svg>
-            <span class="text-xs font-extrabold tabular-nums text-cream" aria-hidden="true">{{ ring.done }}/{{ ring.goal }}</span>
+            <span class="text-xs font-bold tabular-nums text-cream" aria-hidden="true">{{ ring.done }}/{{ ring.goal }}</span>
         </span>`,
     computed: {
         ring: () => weekRing(learning.progress),

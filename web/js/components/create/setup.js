@@ -27,7 +27,7 @@ export const TempoStep = {
              right, beside them rather than under the sticky bar. A phone keeps this order. -->
         <section class="space-y-6" :class="draft.mode === 'sing' ? 'app-split min-[900px]:gap-y-6 min-[900px]:space-y-0' : ''" data-create-tempo>
             <div class="min-[900px]:col-start-1">
-                <h2 class="text-4xl font-extrabold tracking-tight text-cream">{{ t('create.tempo.title') }}</h2>
+                <h2 class="text-4xl font-bold tracking-tight text-cream">{{ t('create.tempo.title') }}</h2>
                 <p class="mt-2 text-muted">{{ draft.mode === 'sing' ? t('create.tempo.hintSing') : t('create.tempo.hintWrite') }}</p>
             </div>
             <div class="card space-y-6 p-5 md:p-7 min-[900px]:col-start-1">
@@ -36,7 +36,7 @@ export const TempoStep = {
                         <button type="button" class="glass-bubble grid size-11 place-items-center rounded-full text-cream transition" :aria-label="t('create.tempo.slower')" @click="setTempo(draft.template.tempo - 1)"><Icon name="minus" :size="18" /></button>
                         <label class="flex items-baseline gap-1.5">
                             <span class="sr-only">{{ t('create.tempo.bpm') }}</span>
-                            <input type="number" min="40" max="240" step="1" class="bg-transparent text-6xl font-extrabold tracking-tight text-cream tabular-nums outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-accent" :value="draft.template.tempo" :style="{ width: String(draft.template.tempo).length + 0.4 + 'ch' }" @change="setTempo($event.target.value)" />
+                            <input type="number" min="40" max="240" step="1" class="bg-transparent text-6xl font-bold tracking-tight text-cream tabular-nums outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-accent" :value="draft.template.tempo" :style="{ width: String(draft.template.tempo).length + 0.4 + 'ch' }" @change="setTempo($event.target.value)" />
                             <span class="text-sm font-semibold text-muted" aria-hidden="true">{{ t('create.tempo.unit') }}</span>
                         </label>
                         <button type="button" class="glass-bubble grid size-11 place-items-center rounded-full text-cream transition" :aria-label="t('create.tempo.faster')" @click="setTempo(draft.template.tempo + 1)"><Icon name="plus" :size="18" /></button>
@@ -75,12 +75,12 @@ export const TempoStep = {
             </fieldset>
             <div v-if="draft.mode === 'sing'" class="grid gap-4 md:grid-cols-2 min-[900px]:sticky min-[900px]:top-6 min-[900px]:col-start-2 min-[900px]:row-span-3 min-[900px]:row-start-2 min-[900px]:!grid-cols-1" data-create-notes>
                 <div class="card space-y-2 p-5">
-                    <p class="text-xs font-bold uppercase tracking-widest text-accent">{{ t('create.tempo.pickupEyebrow') }}</p>
+                    <p class="t-section">{{ t('create.tempo.pickupEyebrow') }}</p>
                     <p class="font-semibold text-cream">{{ t('create.tempo.pickupTitle') }}</p>
                     <p class="text-sm text-muted">{{ t('create.tempo.pickupHint') }}</p>
                 </div>
                 <div class="card space-y-3 p-5">
-                    <p class="text-xs font-bold uppercase tracking-widest text-accent">{{ t('create.tempo.beforeEyebrow') }}</p>
+                    <p class="t-section">{{ t('create.tempo.beforeEyebrow') }}</p>
                     <p class="flex items-center gap-2 font-semibold text-cream"><Icon name="headphones" :size="18" /> {{ t('create.tempo.headphonesTitle') }}</p>
                     <p class="text-sm text-muted">{{ t('create.tempo.headphonesHint') }}</p>
                     <MicPicker v-if="audio.mic" />
@@ -168,7 +168,7 @@ export const WordsStep = {
         <section class="space-y-6">
             <div class="flex flex-wrap items-end justify-between gap-4">
                 <div class="min-w-0">
-                    <h2 class="text-4xl font-extrabold tracking-tight text-cream">{{ t('create.words.title') }}</h2>
+                    <h2 class="text-4xl font-bold tracking-tight text-cream">{{ t('create.words.title') }}</h2>
                     <p class="mt-2 text-muted">{{ t('create.words.hint') }}</p>
                 </div>
                 <div class="seg flex" role="group" :aria-label="t('create.words.kind')">

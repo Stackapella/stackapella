@@ -41,7 +41,7 @@ const SHELL = `
   <div class="sticky bottom-0 z-10 order-last mt-auto grid grid-cols-[1fr_3rem] items-center gap-x-3 gap-y-3 bg-ink pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 md:static md:mt-0 md:bg-transparent md:p-0" data-ui="tool-bar">
     <div class="col-span-2 empty:hidden" data-ui="tool-controls"></div>
     <button type="button" class="btn-primary min-h-16 min-w-0 gap-3 rounded-full text-[1.1875rem] [@media(max-height:640px)]:min-h-14" data-ui="tool-primary"><span class="size-3 shrink-0 rounded-full bg-current" aria-hidden="true" data-primary-icon></span><span data-primary-label></span></button>
-    <button type="button" class="btn-secondary size-12 rounded-full p-0 text-lg font-extrabold tracking-[1px]" aria-haspopup="dialog" aria-expanded="false" data-ui="tool-more"><span aria-hidden="true">···</span></button>
+    <button type="button" class="btn-secondary size-12 rounded-full p-0 text-lg font-bold tracking-[1px]" aria-haspopup="dialog" aria-expanded="false" data-ui="tool-more"><span aria-hidden="true">···</span></button>
     <p class="col-span-2 text-sm text-muted empty:hidden" aria-live="polite" data-ui="tool-next"></p>
   </div>
   </div>

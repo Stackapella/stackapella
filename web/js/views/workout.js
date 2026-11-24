@@ -69,7 +69,7 @@ export const WorkoutView = {
             <template v-else-if="plan">
                 <section class="mt-2 space-y-5" :aria-labelledby="'workout-step-' + step">
                     <div>
-                        <h2 :id="'workout-step-' + step" class="text-2xl font-extrabold leading-tight tracking-tight text-cream md:text-3xl">{{ headline }}</h2>
+                        <h2 :id="'workout-step-' + step" class="text-2xl font-bold leading-tight tracking-tight text-cream md:text-3xl">{{ headline }}</h2>
                         <p v-if="hint" class="mt-1 text-muted">{{ hint }}</p>
                     </div>
                     <!-- Only with a teacher's warm-up kept on this device: which warm-up, ours or theirs. -->

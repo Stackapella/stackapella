@@ -159,7 +159,7 @@ export const BetaView = {
 
                 <section v-else-if="step === 'invite'" class="space-y-5">
                     <p class="eyebrow">{{ t('beta.welcome.eyebrow') }}</p>
-                    <h1 class="text-3xl font-extrabold tracking-tight text-cream">{{ t('beta.welcome.title', { name: invite.name }) }}</h1>
+                    <h1 class="text-3xl font-bold tracking-tight text-cream">{{ t('beta.welcome.title', { name: invite.name }) }}</h1>
                     <p class="max-w-prose text-cream">{{ t('beta.welcome.who') }}</p>
                     <p class="max-w-prose rounded-2xl border border-edge p-4 text-cream"><Icon name="info" :size="18" class="me-1 inline align-[-3px] text-accent" /> {{ t('beta.bar.line', { pitch: betaBar.pitchPercent, timing: betaBar.timingPercent }) }} <span class="text-muted">{{ t('beta.bar.checks') }}</span></p>
                     <p class="max-w-prose text-muted">{{ account.me ? t('beta.invite.signedIn', { name: account.me.name }) : t('beta.invite.account') }}</p>
@@ -190,7 +190,7 @@ export const BetaView = {
 
                 <section v-else-if="step === 'welcome'" class="space-y-5">
                     <p class="eyebrow">{{ t('beta.welcome.eyebrow') }}</p>
-                    <h1 class="text-3xl font-extrabold tracking-tight text-cream">{{ t('beta.welcome.title', { name: me.name }) }}</h1>
+                    <h1 class="text-3xl font-bold tracking-tight text-cream">{{ t('beta.welcome.title', { name: me.name }) }}</h1>
                     <p class="max-w-prose text-cream">{{ t('beta.welcome.who') }}</p>
                     <p class="max-w-prose text-muted">{{ t('beta.welcome.what') }}</p>
                     <p class="max-w-prose rounded-2xl border border-edge p-4 text-cream"><Icon name="info" :size="18" class="me-1 inline align-[-3px] text-accent" /> {{ t('beta.bar.line', { pitch: betaBar.pitchPercent, timing: betaBar.timingPercent }) }} <span class="text-muted">{{ t('beta.bar.checks') }}</span></p>
@@ -229,7 +229,7 @@ export const BetaView = {
                      counted at the top; Hillel's note as a note; one status a card; one credit card. -->
                 <section v-else-if="step === 'parts'" class="space-y-6">
                     <div class="space-y-3">
-                        <h1 class="text-3xl font-extrabold tracking-tight text-cream">{{ t('beta.parts.title') }}</h1>
+                        <h1 class="text-3xl font-bold tracking-tight text-cream">{{ t('beta.parts.title') }}</h1>
                         <p v-if="parts?.length" data-ui="facts" class="flex flex-wrap gap-2 text-xs font-semibold text-cream">
                             <span v-if="groups.retakes" class="flex items-center gap-1.5 rounded-full border border-line px-3 py-1"><span class="size-1.5 rounded-full bg-warn" aria-hidden="true"></span>{{ t('beta.parts.count.retake', { count: groups.retakes }) }}</span>
                             <span v-if="groups.coming.length" class="flex items-center gap-1.5 rounded-full border border-line px-3 py-1"><span class="size-1.5 rounded-full bg-muted" aria-hidden="true"></span>{{ t('beta.parts.count.coming', { count: groups.coming.length }) }}</span>

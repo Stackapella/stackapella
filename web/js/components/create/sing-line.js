@@ -41,7 +41,7 @@ export const SingStep = {
     template: `
         <section class="space-y-6">
             <div>
-                <h2 class="text-4xl font-extrabold tracking-tight text-cream">{{ t('create.sing.title') }}</h2>
+                <h2 class="text-4xl font-bold tracking-tight text-cream">{{ t('create.sing.title') }}</h2>
                 <p class="mt-2 text-muted">{{ t('create.sing.hint') }}</p>
             </div>
 
@@ -77,10 +77,10 @@ export const SingStep = {
                     <span class="text-sm text-muted tabular-nums">{{ t('create.sing.sungOf', { done: sungCount, total: draft.lines.length }) }}</span>
                 </div>
                 <div class="relative space-y-4">
-                    <p v-if="state === 'counting'" class="text-4xl font-extrabold text-cream" role="status"><CountIn :beat="countBeat" /></p>
+                    <p v-if="state === 'counting'" class="text-4xl font-bold text-cream" role="status"><CountIn :beat="countBeat" /></p>
                     <p v-else-if="state === 'recording'" class="text-lg font-bold" :style="{ color: paintInk(COLOR) }" role="status">{{ beat < perBar ? t('create.sing.pickupNow') : t('create.sing.singNow') }}</p>
                     <p v-else class="text-xs font-bold uppercase tracking-widest text-muted">{{ t('create.sing.lineOf', { number: formatNumber(index + 1), total: formatNumber(draft.lines.length) }) }}</p>
-                    <p translate="no" class="text-4xl font-extrabold leading-tight tracking-tight text-cream md:text-6xl">{{ line ? (draft.noWords ? t('create.sing.onOo') : joinSyllables(line.syllables.map((text) => ({ text })))) : '' }}</p>
+                    <p translate="no" class="text-4xl font-bold leading-tight tracking-tight text-cream md:text-6xl">{{ line ? (draft.noWords ? t('create.sing.onOo') : joinSyllables(line.syllables.map((text) => ({ text })))) : '' }}</p>
                     <p v-if="next && !draft.noWords" translate="no" class="text-xl font-bold text-cream/40 md:text-3xl">{{ joinSyllables(next.syllables.map((text) => ({ text }))) }}</p>
                     <Roll v-if="state === 'recording' || state === 'counting'" :parts="[]" :live="live" :beats-per-bar="perBar" :pickup-beats="perBar" :end-beat="liveEnd" :zoom="40" :playhead="liveAt" :label="t('create.sing.liveLabel')" />
                     <Roll v-else-if="line?.notes?.length" :parts="[{ key: 'tune', color: paint(COLOR), notes: shownNotes }]" :beats-per-bar="perBar" :pickup-beats="perBar" :end-beat="lineEnd" :zoom="40" :to-check="unsureHere" :label="t('create.sing.notesLabel', { count: line.notes.length })" />

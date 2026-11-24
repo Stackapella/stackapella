@@ -118,7 +118,7 @@ export const ChordsStep = {
     template: `
         <section class="space-y-6">
             <div>
-                <h2 class="text-3xl font-extrabold tracking-tight text-cream">{{ t('create.chords.title') }}</h2>
+                <h2 class="text-3xl font-bold tracking-tight text-cream">{{ t('create.chords.title') }}</h2>
                 <p class="mt-1 text-muted">{{ t('create.chords.hint') }}</p>
             </div>
             <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
@@ -235,7 +235,7 @@ export const ChordsKeyStep = {
     template: `
         <section class="space-y-6">
             <div>
-                <h2 class="text-3xl font-extrabold tracking-tight text-cream">{{ t('create.chords.keyTitle') }}</h2>
+                <h2 class="text-3xl font-bold tracking-tight text-cream">{{ t('create.chords.keyTitle') }}</h2>
                 <p class="mt-1 text-muted">{{ t('create.chords.keyHint') }}</p>
             </div>
             <div class="grid items-start gap-4 md:grid-cols-2">
@@ -252,7 +252,7 @@ export const ChordsKeyStep = {
                         <div class="flex flex-wrap items-end justify-between gap-3">
                             <div>
                                 <p class="text-sm text-muted">{{ t('create.chords.key') }}</p>
-                                <p class="text-3xl font-extrabold tracking-tight text-cream" role="status" data-key>{{ shownKey }}</p>
+                                <p class="text-3xl font-bold tracking-tight text-cream" role="status" data-key>{{ shownKey }}</p>
                             </div>
                             <div class="flex items-center gap-2">
                                 <button type="button" class="glass-bubble grid size-11 place-items-center rounded-full text-cream" :aria-label="t('create.chords.lower')" :disabled="!lower" @click="setKey(lower)"><Icon name="chevron" :size="18" /></button>
@@ -283,7 +283,7 @@ export const ChordsKeyStep = {
                         <div class="flex flex-wrap items-center gap-3">
                             <div class="flex items-center gap-2">
                                 <button type="button" class="glass-bubble grid size-11 place-items-center rounded-full text-cream" :aria-label="t('create.tempo.slower')" @click="setTempo(draft.template.tempo - 1)"><Icon name="minus" :size="18" /></button>
-                                <label><span class="sr-only">{{ t('create.tempo.bpm') }}</span><input type="number" min="40" max="200" class="w-16 bg-transparent text-center text-2xl font-extrabold text-cream tabular-nums outline-none [appearance:textfield] focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-accent [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" :value="draft.template.tempo" @change="setTempo($event.target.value)" /></label>
+                                <label><span class="sr-only">{{ t('create.tempo.bpm') }}</span><input type="number" min="40" max="200" class="w-16 bg-transparent text-center text-2xl font-bold text-cream tabular-nums outline-none [appearance:textfield] focus-visible:rounded-lg focus-visible:ring-2 focus-visible:ring-accent [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" :value="draft.template.tempo" @change="setTempo($event.target.value)" /></label>
                                 <button type="button" class="glass-bubble grid size-11 place-items-center rounded-full text-cream" :aria-label="t('create.tempo.faster')" @click="setTempo(draft.template.tempo + 1)"><Icon name="plus" :size="18" /></button>
                             </div>
                             <span class="text-sm text-muted">{{ t('create.chords.perMinute') }}</span>
@@ -432,12 +432,12 @@ export const HumStep = {
     template: `
         <section class="space-y-6">
             <div>
-                <h2 class="text-3xl font-extrabold tracking-tight text-cream">{{ t('create.chords.humTitle') }}</h2>
+                <h2 class="text-3xl font-bold tracking-tight text-cream">{{ t('create.chords.humTitle') }}</h2>
                 <p class="mt-1 text-muted">{{ t('create.chords.humHint', { times: formatNumber(loops) }) }}</p>
             </div>
             <div class="card space-y-5 p-5 md:p-8">
                 <ChordChart :bars="draft.progression.bars" :key-of="{ tonic: key.tonic, mode: draft.progression.mode }" :current="currentBar" />
-                <p v-if="state === 'counting' && countBeat" class="text-4xl font-extrabold text-cream" role="status"><CountIn :beat="countBeat" /></p>
+                <p v-if="state === 'counting' && countBeat" class="text-4xl font-bold text-cream" role="status"><CountIn :beat="countBeat" /></p>
                 <p v-else-if="state === 'recording'" class="text-lg font-bold text-cream" role="status">{{ t('create.chords.roundOf', { round: formatNumber(round), times: formatNumber(loops) }) }}</p>
                 <Roll v-if="state === 'recording' || state === 'counting'" :parts="[]" :live="live" :beats-per-bar="4" :pickup-beats="0" :end-beat="loopBeats * loops" :zoom="20" :playhead="playhead" :label="t('create.sing.liveLabel')" />
                 <Roll v-else-if="melodyNotes.length" :parts="[{ key: 'tune', color: paint(COLOR), notes: melodyNotes }]" :beats-per-bar="4" :pickup-beats="0" :end-beat="loopBeats * loops" :zoom="20" :label="t('create.sing.notesLabel', { count: melodyNotes.length })" />

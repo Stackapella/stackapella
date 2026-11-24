@@ -32,7 +32,7 @@ export const PartsStep = {
     template: `
         <section class="space-y-6">
             <div>
-                <h2 class="text-4xl font-extrabold tracking-tight text-cream">{{ t('create.parts.title') }}</h2>
+                <h2 class="text-4xl font-bold tracking-tight text-cream">{{ t('create.parts.title') }}</h2>
                 <p class="mt-2 text-muted">{{ t('create.parts.hint') }}</p>
             </div>
             <div class="grid gap-3" role="radiogroup" :aria-label="t('create.parts.how')">
@@ -40,11 +40,11 @@ export const PartsStep = {
                     class="radio-card items-center gap-4 p-4 md:p-5" @click="o.pick()">
                     <span class="radio-mark" aria-hidden="true"></span>
                     <span class="min-w-0 flex-1">
-                        <span class="flex flex-wrap items-center gap-2 font-bold text-cream">{{ t(o.title) }}<span v-if="o.recommended" class="text-xs font-bold uppercase tracking-widest text-accent">{{ t('create.parts.recommended') }}</span></span>
+                        <span class="flex flex-wrap items-center gap-2 font-bold text-cream">{{ t(o.title) }}<span v-if="o.recommended" class="chip-tag">{{ t('create.parts.recommended') }}</span></span>
                         <span class="block text-sm text-muted">{{ t(o.hint) }}</span>
                     </span>
                     <span class="hidden shrink-0 gap-1.5 sm:flex" aria-hidden="true">
-                        <span v-for="(part, i) in chipParts" :key="part.key" class="grid size-7 place-items-center rounded-lg text-xs font-extrabold"
+                        <span v-for="(part, i) in chipParts" :key="part.key" class="grid size-7 place-items-center rounded-lg text-xs font-bold"
                             :style="o.only && !part.melody ? null : { background: 'var(--color-part-' + (i % 8 + 1) + ')', color: 'var(--color-part-text-' + (i % 8 + 1) + ')' }" :class="o.only && !part.melody ? 'bg-raised text-muted' : ''">{{ templatePartName(part).slice(0, 1) }}</span>
                     </span>
                 </button>

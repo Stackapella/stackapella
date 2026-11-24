@@ -97,10 +97,14 @@ if __name__ == "__main__":
 Run it with `tool/flows.sh tell_hillel`. It runs at both sizes and prints `ok` or `FAIL` with the
 step that timed out; the screenshot of the failure is in `tests/flows/shots/`.
 
-- **Against the real server** (the integration check at the end of a milestone): start Laravel on
-  :8000 (the backend's README), then `API=http://127.0.0.1:8000 tool/flows.sh <name>`. `serve.php`
-  forwards `/api` and the server's own pages on the same origin, so cookies and CSRF behave as in
-  production. `tests/flows/admin_integration.py` is the M1 example.
+- **Against the real server** (the integration check at the end of a milestone): start Laravel on a
+  free port (the backend's README; port 8000 may be another project's server on this Mac), then
+  `FLOW_SERVER=<that checkout>/server API=http://127.0.0.1:<port> tool/flows.sh <name>`. Both must
+  point at the same Stackapella server: the `*_integration` flows make their accounts with
+  `php artisan tinker` in `FLOW_SERVER` (default `~/Code/stackapella-backend/server`), so another
+  checkout's database gives a 401 at sign-in. `serve.php` forwards `/api` and the server's own pages
+  on the same origin, so cookies and CSRF behave as in production. `tests/flows/admin_integration.py`
+  is the M1 example.
 - **The pseudo-language:** `tests/flows/pseudo_language.py` opens each screen with `?lang=pseudo`
   and fails on any text that didn't come through `t()`. Add new screens to it.
 - **Audio in a flow:** `(await import('/js/audio.js')).engine.setLoopback(true)` after

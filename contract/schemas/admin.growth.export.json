@@ -1,0 +1,31 @@
+{
+    "$id": "admin.growth.export.json",
+    "title": "A Growth page's numbers as CSV",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "filename",
+                "csv",
+                "rows"
+            ],
+            "properties": {
+                "filename": {
+                    "type": "string"
+                },
+                "csv": {
+                    "type": "string"
+                },
+                "rows": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
+}

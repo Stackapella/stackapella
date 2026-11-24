@@ -5822,12 +5822,9 @@
                 "noisyNear": "Hay un zumbido constante en la sala, como un ventilador o una nevera. Apágalo o aléjate de él y vuelve a cantar."
             },
             "lead": {
-                "take": "Con esa toma no pudimos hacer una voz.",
-                "ours": "Algo falló por nuestra parte.",
-                "gone": "No pudimos hacer esa canción."
+                "take": "Con esa toma no pudimos hacer una voz."
             },
             "ours": {
-                "kept": "Tu voz está guardada, así que no hace falta cantar.",
                 "lost": "Tu grabación no nos llegó entera. Cántala una vez más, por favor.",
                 "twice": "Pasó dos veces seguidas. Vuelve a la canción por ahora, o inténtalo una vez más."
             },
@@ -5846,7 +5843,28 @@
                 "body": "Usaremos la voz de tu grabación del {date}."
             },
             "back": "Volver a {song}",
-            "onceMore": "Intentarlo una vez más"
+            "onceMore": "Intentarlo una vez más",
+            "title": {
+                "ours": "No pudimos hacer tu coro",
+                "take": "Con esa toma no pudimos hacer una voz",
+                "gone": "No pudimos hacer esa canción"
+            },
+            "why": "Fue un problema por nuestra parte, no de cómo cantaste.",
+            "savedBody": "No hace falta volver a cantar.",
+            "step": {
+                "title": "El coro no salió bien",
+                "body": "Al intentarlo de nuevo usamos la grabación que ya hiciste."
+            },
+            "retrying": {
+                "title": "Intentándolo de nuevo…",
+                "body": "Estamos haciendo tu coro con la grabación que ya hiciste.",
+                "step": "Haciendo el coro"
+            },
+            "worked": {
+                "body": "Esta vez funcionó. Gracias por tu paciencia.",
+                "step": "Tu coro está listo",
+                "listen": "Escuchar"
+            }
         },
         "listen": {
             "title": "{song}, con una voz como la tuya",

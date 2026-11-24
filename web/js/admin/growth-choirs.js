@@ -6,7 +6,7 @@
 
 import { api } from '../api.js';
 import { formatDate, formatNumber, t, tk } from '../i18n.js';
-import { change, LoadFailed, zoneName } from './common.js';
+import { change, CsvLink, LoadFailed, zoneName } from './common.js';
 
 export const CHOIR_PERIODS = ['7d', '30d'];
 const PERIOD_WORDS = { '7d': tk('admin.growth.choirs.period.7d'), '30d': tk('admin.growth.choirs.period.30d') };
@@ -29,7 +29,7 @@ const minutes = (n) => formatNumber(Math.round(n * 10) / 10);
 const pct = (rate) => `${formatNumber(Math.round(rate * 1000) / 10)}%`;
 
 export const GrowthChoirs = {
-    components: { LoadFailed },
+    components: { CsvLink, LoadFailed },
     // `period`: the page's (today, 7d, 28d, month, 12w): 7 days for today or a week, else 30, until the singer picks.
     props: { period: { type: String, default: '30d' } },
     data() {
@@ -42,6 +42,7 @@ export const GrowthChoirs = {
                     <h2 id="growth-choirs-h" class="text-lg font-semibold text-cream">{{ t('admin.growth.choirs.title') }}</h2>
                     <p class="t-hint">{{ report ? t('admin.growth.choirs.sub', { from: day(report.from), to: day(report.to), zone: zoneName(report.timezone) }) : t('admin.growth.choirs.subLoading') }}</p>
                 </div>
+                <CsvLink page="choirs" :params="{ period: shown }" class="ms-auto" />
                 <div class="seg seg-inset" role="radiogroup" :aria-label="t('admin.growth.choirs.period.label')">
                     <button v-for="p in CHOIR_PERIODS" :key="p" type="button" role="radio" class="seg-option" :aria-checked="shown === p ? 'true' : 'false'" :data-choirs-period="p" @click="pick(p)">{{ t(PERIOD_WORDS[p]) }}</button>
                 </div>

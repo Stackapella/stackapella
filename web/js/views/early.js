@@ -29,7 +29,7 @@ export const EarlyView = {
                 <p v-if="failed" class="text-lg text-cream" role="alert">{{ t('early.failed') }}</p>
                 <p v-else-if="!status" class="text-muted" role="status">{{ t('create.loading') }}</p>
                 <template v-else>
-                    <h1 class="text-2xl font-extrabold tracking-tight text-cream">{{ t(WORDS[kind].closedTitle) }}</h1>
+                    <h1 class="text-2xl font-bold tracking-tight text-cream">{{ t(WORDS[kind].closedTitle) }}</h1>
                     <p class="text-muted">{{ t(WORDS[kind].closedHint) }}</p>
                     <button type="button" class="btn-secondary" @click="navigate('/')">{{ t('early.look') }}</button>
                 </template>

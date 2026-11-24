@@ -89,7 +89,7 @@ export const EditorStep = {
     template: `
         <section class="space-y-4">
             <div>
-                <h2 class="text-3xl font-extrabold tracking-tight text-cream">{{ t('create.edit.title') }}</h2>
+                <h2 class="text-3xl font-bold tracking-tight text-cream">{{ t('create.edit.title') }}</h2>
                 <p class="mt-1 text-muted">{{ phone ? t('create.edit.phoneHint') : t('create.edit.hint') }}</p>
             </div>
             <!-- The toolbar card (Hillel's 60.png): the tools on the left, help and Play all on the right. -->
@@ -125,7 +125,7 @@ export const EditorStep = {
                         <div class="flex items-center gap-2">
                             <span class="gem size-3.5 shrink-0 rounded-full" :style="{ '--gem': colorOf(part.key) }" aria-hidden="true"></span>
                             <button type="button" class="min-w-0 flex-1 truncate text-start font-bold text-cream" :aria-pressed="part.key === focus" @click.stop="setFocus(part.key)">{{ templatePartName(part) }}</button>
-                            <span v-if="part.key === focus && !phone" class="text-[10px] font-bold uppercase tracking-[0.14em] text-accent-strong">{{ t('create.edit.editing') }}</span>
+                            <span v-if="part.key === focus && !phone" class="chip-tag">{{ t('create.edit.editing') }}</span>
                         </div>
                         <template v-if="!phone">
                         <p class="mt-1 tabular-nums text-xs text-muted" translate="no">{{ part.guide.notes.length ? t('create.edit.rangeCount', { low: midiName(part.range.low), high: midiName(part.range.high), count: part.guide.notes.length }) : t('create.edit.empty') }}</p>
@@ -172,7 +172,7 @@ export const EditorStep = {
                 <!-- The selected note's details stay when the help is hidden (Hide help hides only the how-to). -->
                 <aside v-if="!phone && (helpOpen || note)" class="card space-y-3 self-start p-5" :aria-label="note ? t('create.edit.inspector') : t('create.edit.help')">
                     <template v-if="note">
-                        <p class="text-2xl font-extrabold text-cream" translate="no">{{ midiName(note.pitch) }}</p>
+                        <p class="text-2xl font-bold text-cream" translate="no">{{ midiName(note.pitch) }}</p>
                         <div class="flex gap-2">
                             <button type="button" class="btn-secondary btn-sm" :aria-label="t('create.check.upLabel')" @click="nudgePitch(1)"><Icon name="plus" :size="16" /></button>
                             <button type="button" class="btn-secondary btn-sm" :aria-label="t('create.check.downLabel')" @click="nudgePitch(-1)"><Icon name="minus" :size="16" /></button>

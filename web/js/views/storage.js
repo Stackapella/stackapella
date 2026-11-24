@@ -45,7 +45,7 @@ export const StorageView = {
                         <div class="flex flex-wrap items-start justify-between gap-3">
                             <div class="min-w-0">
                                 <p class="text-sm text-muted">{{ usage.plan === 'plus' ? t('settings.plan.plusName') : t('settings.plan.freeName') }}</p>
-                                <p class="text-3xl font-extrabold tracking-tight text-cream">{{ usage.projects.limit !== null ? t('cloud.storage.songsOf', { used: usage.projects.used, limit: usage.projects.limit }) : t('cloud.storage.songsCount', { count: usage.projects.used }) }}</p>
+                                <p class="text-3xl font-bold tracking-tight text-cream">{{ usage.projects.limit !== null ? t('cloud.storage.songsOf', { used: usage.projects.used, limit: usage.projects.limit }) : t('cloud.storage.songsCount', { count: usage.projects.used }) }}</p>
                                 <p v-if="usage.projects.limit !== null" class="text-sm text-cream/85">{{ t('settings.plan.songsLeft', { count: Math.max(0, usage.projects.limit - usage.projects.used) }) }}</p>
                             </div>
                             <a v-if="usage.plan !== 'plus' && !selfHosted()" href="/plus?from=storage_limit" class="btn-primary btn-sm shrink-0" @click.prevent="navigate('/plus?from=storage_limit')">{{ t('cloud.storage.moreRoom') }}</a>

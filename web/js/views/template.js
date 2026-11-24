@@ -77,9 +77,9 @@ export const TemplateView = {
                     <a :href="signUpFor('template', '/t/' + id)" class="link tap-44 text-sm" @click.prevent="navigate(signUpFor('template', '/t/' + id))">{{ t('wrap.makeAccount') }}</a>
                 </div>
             </div>
-            <p v-else-if="missing" class="card p-6 text-cream" role="alert">{{ t('template.missing') }}</p>
+            <p v-else-if="missing" class="alert-inline text-[15px]" style="--alert-c: var(--color-bad)" role="alert"><span>{{ t('template.missing') }}</span></p>
             <PrivateNote v-else-if="plusNeeded" />
-            <p v-else-if="failed" class="card p-6 text-cream" role="alert">{{ failed }}</p>
+            <p v-else-if="failed" class="alert-inline text-[15px]" style="--alert-c: var(--color-bad)" role="alert"><span>{{ failed }}</span></p>
             <p v-else-if="!template" class="text-muted" role="status">{{ t('create.loading') }}</p>
             <!-- From 900 px (Hillel's width design; he agreed for this screen, 2026-11-11): the part picker at left,
                  60%, with the song's line, its facts and credits (and a choir song's sharing) at right. Placed by the grid,
@@ -99,7 +99,7 @@ export const TemplateView = {
 
                 <!-- A choir's own song (an import, private to you and your groups): sharing it with the choir comes first, since that's the only way it reaches the singers (docs/agents/handoff-frontend2.md, choir tracks stage 1) -->
                 <section v-if="choirSong" class="card space-y-3 p-5 md:p-6 min-[900px]:col-start-2 min-[900px]:row-start-2 min-[900px]:self-start" aria-labelledby="choir-heading" data-share-choir>
-                    <h2 id="choir-heading" class="text-xl font-extrabold tracking-tight text-cream">{{ t('template.choir.title') }}</h2>
+                    <h2 id="choir-heading" class="text-xl font-bold tracking-tight text-cream">{{ t('template.choir.title') }}</h2>
                     <p class="text-sm text-muted">{{ t('template.choir.hint') }}</p>
                     <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                         <a v-for="g in directed" :key="g.id" :href="'/groups/' + g.id + '?share=' + id" class="btn-primary" translate="no" @click.prevent="navigate('/groups/' + g.id + '?share=' + id)">{{ t('template.choir.shareWith', { name: g.name }) }}</a>
@@ -109,7 +109,7 @@ export const TemplateView = {
 
                 <section class="card space-y-4 p-5 md:p-6 min-[900px]:col-start-1 min-[900px]:row-span-2 min-[900px]:row-start-1 min-[900px]:self-start" aria-labelledby="pick-heading">
                     <div class="flex flex-wrap items-center justify-between gap-3">
-                        <h2 id="pick-heading" class="text-xl font-extrabold tracking-tight text-cream">{{ t('template.pick') }}</h2>
+                        <h2 id="pick-heading" class="text-xl font-bold tracking-tight text-cream">{{ t('template.pick') }}</h2>
                         <div v-if="singerOptions(template).length > 1" class="flex items-center gap-2">
                             <span id="singers-label" class="text-sm text-muted">{{ t('template.singers') }}</span>
                             <div class="seg flex" role="radiogroup" aria-labelledby="singers-label">

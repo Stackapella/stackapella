@@ -62,7 +62,7 @@ export const MicHelpHost = {
                     <div v-if="advice.showSteps || chosen" class="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                         <ol class="space-y-3" :aria-label="t('micHelp.stepsFor', { name: t(shown.name) })">
                             <li v-for="(step, i) in shown.steps" :key="step" class="flex items-start gap-3 text-cream">
-                                <span class="grid size-7 shrink-0 place-items-center rounded-full bg-cream text-sm font-extrabold text-ink" aria-hidden="true">{{ i + 1 }}</span>
+                                <span class="grid size-7 shrink-0 place-items-center rounded-full bg-cream text-sm font-bold text-ink" aria-hidden="true">{{ i + 1 }}</span>
                                 <span class="pt-0.5"><span v-for="(part, k) in boldParts(t(step, { browser: shown.browser ?? '' }))" :key="k" :class="part.bold ? 'font-bold' : ''">{{ part.text }}</span></span>
                             </li>
                         </ol>

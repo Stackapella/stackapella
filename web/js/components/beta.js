@@ -201,14 +201,14 @@ export const BetaReport = {
                 <section class="flex items-start gap-3 rounded-2xl border p-4" :class="VERDICT[verdictIs].box" aria-live="polite">
                     <Icon :name="VERDICT[verdictIs].icon" :size="28" class="mt-0.5 shrink-0" :class="VERDICT[verdictIs].tone" />
                     <div>
-                        <h3 class="text-xl font-extrabold text-cream">{{ t(VERDICT[verdictIs].title) }}</h3>
+                        <h3 class="text-xl font-bold text-cream">{{ t(VERDICT[verdictIs].title) }}</h3>
                         <p class="mt-1 text-cream">{{ unheard ? t('beta.verdict.unheardBody') : t(VERDICT[verdictIs].body) }}</p>
                     </div>
                 </section>
                 <dl v-if="!unheard" class="grid grid-cols-2 gap-3">
                     <div v-for="score in shownScores" :key="score.key" class="rounded-2xl bg-raised p-4">
                         <dt class="text-sm font-semibold text-muted">{{ t(score.label) }}</dt>
-                        <dd class="mt-1 flex items-center gap-2 text-3xl font-extrabold tabular-nums text-cream">
+                        <dd class="mt-1 flex items-center gap-2 text-3xl font-bold tabular-nums text-cream">
                             {{ score.value === null ? '–' : t('beta.report.percent', { percent: score.value }) }}
                             <Icon v-if="score.value !== null" :name="score.met ? 'check' : 'alert'" :size="20" :class="score.met ? 'text-good' : 'text-warn'" :aria-label="score.met ? t('beta.report.meets') : t('beta.report.under')" />
                         </dd>

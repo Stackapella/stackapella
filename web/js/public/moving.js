@@ -65,7 +65,7 @@ const el = (tag, attrs = {}, ...children) => {
 /** The page's one panel, redrawn for each moment. */
 function show({ title, body = [], actions = [], status = false }) {
     const parts = [
-        el('h1', { className: 'text-3xl font-extrabold tracking-tight text-cream' }, title),
+        el('h1', { className: 'text-3xl font-bold tracking-tight text-cream' }, title),
         ...body.map((text) => el('p', { className: 'text-muted' }, text)),
         status ? el('p', { className: 'text-sm text-muted', role: 'status' }, status) : null,
         actions.length ? el('div', { className: 'flex flex-wrap gap-3 pt-2' }, ...actions) : null,

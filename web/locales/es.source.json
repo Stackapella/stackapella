@@ -5822,12 +5822,9 @@
                 "noisyNear": "There's a steady hum in the room, like a fan or fridge. Turn it off or move away from it, then sing again."
             },
             "lead": {
-                "take": "That take couldn't make a voice.",
-                "ours": "Something went wrong on our side.",
-                "gone": "That song couldn't be made."
+                "take": "That take couldn't make a voice."
             },
             "ours": {
-                "kept": "Your voice is saved, so there's nothing to sing.",
                 "lost": "Your recording didn't reach us in one piece. Please sing it once more.",
                 "twice": "It happened twice in a row. Go back to the song for now, or try once more."
             },
@@ -5846,7 +5843,28 @@
                 "body": "We'll use the voice from your recording on {date}."
             },
             "back": "Back to {song}",
-            "onceMore": "Try once more"
+            "onceMore": "Try once more",
+            "title": {
+                "ours": "We couldn't build your choir",
+                "take": "That take couldn't make a voice",
+                "gone": "That song couldn't be made"
+            },
+            "why": "That was a problem on our side, not with your singing.",
+            "savedBody": "No need to sing again.",
+            "step": {
+                "title": "The choir didn't come out",
+                "body": "Trying again uses the recording you already made."
+            },
+            "retrying": {
+                "title": "Trying again…",
+                "body": "We're building your choir from the recording you already made.",
+                "step": "Building the choir"
+            },
+            "worked": {
+                "body": "It worked this time. Thanks for sticking with it.",
+                "step": "Your choir is ready",
+                "listen": "Listen"
+            }
         },
         "listen": {
             "title": "{song}, in a voice like yours",

@@ -247,7 +247,7 @@ export function mountSatbVoicer(root, { words = {}, keySlot = null, onShared = n
         const upper = shown.filter((p) => p === 'soprano' || p === 'alto').length;
         $('[data-staff]').replaceChildren(grandStaff(columns, { names, upper, label: fill(w('staffLabel'), { n: columns.length }) }));
         // The parts by name, chord by chord.
-        const head = [Object.assign(document.createElement('th'), { className: 'text-start text-xs font-bold tracking-[0.08em] text-muted uppercase', textContent: '' }), ...names.map((n) => Object.assign(document.createElement('th'), { className: 'text-start font-extrabold text-cream', textContent: n }))];
+        const head = [Object.assign(document.createElement('th'), { className: 'text-start text-xs font-bold tracking-[0.08em] text-muted uppercase', textContent: '' }), ...names.map((n) => Object.assign(document.createElement('th'), { className: 'text-start font-bold text-cream', textContent: n }))];
         $('[data-head]').replaceChildren(...head);
         $('[data-rows]').replaceChildren(...(parts ? PARTS.map((p) => {
             const tr = document.createElement('tr');

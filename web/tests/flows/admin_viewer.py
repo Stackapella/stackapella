@@ -9,7 +9,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from flow import run  # noqa: E402
 
-ALLOWED = ["admin.me", "admin.growth.show", "admin.growth.choirs", "admin.funnel.show", "admin.dropoffs.show", "admin.sources.show", "admin.reach.show"]
+ALLOWED = ["admin.me", "admin.growth.show", "admin.growth.choirs", "admin.growth.export", "admin.funnel.show", "admin.dropoffs.show", "admin.sources.show", "admin.reach.show"]
 CALLS = "(globalThis.mockCalls ?? []).filter((op) => op.startsWith('admin.'))"
 
 
@@ -31,6 +31,14 @@ def journey(f):
     f.wait("document.querySelector('[data-growth-choirs] [data-n]')", what="the AI choirs")
     assert not f.js("document.querySelector('[data-home-growth], [data-growth-site]')"), "a card a viewer can't open"
     f.wait("document.querySelector('[data-reach-chart]')", what="the reach chart, theirs to read")
+    # The numbers as CSV (Hillel, for Saul): a viewer may take them, the chart's for the period shown.
+    # Only a download is caught: every other link's click goes through (the nav's links come next).
+    f.run("window.saved = []; const real = HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click = function () { if (this.download) window.saved.push(this.download); else real.call(this); };")
+    f.run("document.querySelector('[data-csv=growth]').click()")
+    f.wait("window.saved.length === 1", what="the chart's CSV")
+    assert f.js("window.saved[0]").endswith(".csv"), f.js("window.saved[0]")
+    f.run("document.querySelector('[data-csv=choirs]').click()")
+    f.wait("window.saved.length === 2", what="the AI choirs' CSV")
     f.no_sideways("a viewer's Growth")
     f.shot("growth")
     # A page that isn't theirs: Growth, and the address says so.
@@ -39,6 +47,9 @@ def journey(f):
     for path, ready in (("/admin/funnel", "#funnel-h"), ("/admin/dropoffs", "[data-dropoffs]"), ("/admin/sources", "[data-sources]")):
         f.run(f"document.querySelector('[data-nav-sections] a[href=\"{path}\"]').click()")
         f.wait(f"location.pathname === '{path}' && document.querySelector('{ready}')", what=path)
+        before = f.js("window.saved?.length ?? 0")
+        f.run("document.querySelector('[data-csv]').click()")
+        f.wait(f"(window.saved?.length ?? 0) === {before} + 1", what=f"{path}'s CSV")
     f.shot("sources")
     extra = [op for op in asked(f) if op not in ALLOWED]
     assert not extra, f"a viewer's admin asked for {extra}"

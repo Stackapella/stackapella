@@ -38,6 +38,7 @@ use App\Http\Controllers\Api\Admin\GalleryController as AdminGallery;
 use App\Http\Controllers\Api\Admin\GiveSongController;
 use App\Http\Controllers\Api\Admin\GroupsController as AdminGroups;
 use App\Http\Controllers\Api\Admin\GrowthController as AdminGrowth;
+use App\Http\Controllers\Api\Admin\GrowthExportController as AdminGrowthExport;
 use App\Http\Controllers\Api\Admin\IdeasController as AdminIdeas;
 use App\Http\Controllers\Api\Admin\LibraryController as AdminLibrary;
 use App\Http\Controllers\Api\Admin\LimitsController;
@@ -680,6 +681,7 @@ Route::middleware(['auth', 'editor', 'second-factor'])->prefix('admin')->name('a
         Route::get('/pulse', [AdminLive::class, 'pulse'])->name('pulse.show');
         Route::get('/growth', [AdminGrowth::class, 'overview'])->name('growth.show');
         Route::get('/growth/choirs', AdminChoirGrowth::class)->name('growth.choirs');
+        Route::get('/growth/export', AdminGrowthExport::class)->name('growth.export');
         Route::get('/sources', [AdminGrowth::class, 'sources'])->name('sources.show');
         Route::get('/active', [AdminGrowth::class, 'active'])->name('active.show');
         Route::get('/reach', [AdminGrowth::class, 'reach'])->name('reach.show');

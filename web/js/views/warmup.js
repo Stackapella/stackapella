@@ -41,7 +41,7 @@ export const WarmupView = {
             <template v-else>
                 <section class="card mt-2 space-y-3 p-5" data-warmup-card>
                     <p class="text-xs font-bold uppercase tracking-[0.14em] text-muted">{{ t('warmup.from') }}</p>
-                    <h2 class="text-2xl font-extrabold leading-tight tracking-tight text-cream" :translate="warmup.name ? 'no' : null" data-warmup-name>{{ warmup.name || t('warmup.untitled') }}</h2>
+                    <h2 class="text-2xl font-bold leading-tight tracking-tight text-cream" :translate="warmup.name ? 'no' : null" data-warmup-name>{{ warmup.name || t('warmup.untitled') }}</h2>
                     <p class="text-cream">{{ t('warmup.about', { sound: t(SOUND_NAMES[warmup.sound]), rounds: rounds.length, minutes }) }}</p>
                     <p class="text-sm text-muted" data-warmup-safety>{{ t('warmup.safety') }}</p>
                 </section>

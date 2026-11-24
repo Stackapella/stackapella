@@ -310,7 +310,7 @@ export const Exercise = {
                  you're off; a big line under it; Hear the note and Start over. -->
             <template v-if="mode === 'try'">
                 <ol class="flex flex-wrap gap-2" :aria-label="t('course.wait.notes')" data-wait-pills>
-                    <li v-for="(n, i) in laid.guide" :key="i" class="flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-extrabold" :class="pillDone(i) ? 'border-transparent' : i === waitIndex && running ? 'border-accent text-cream' : 'border-edge text-muted'" :style="pillDone(i) ? { background: color, color: paintText(color) } : null" translate="no">
+                    <li v-for="(n, i) in laid.guide" :key="i" class="flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-bold" :class="pillDone(i) ? 'border-transparent' : i === waitIndex && running ? 'border-accent text-cream' : 'border-edge text-muted'" :style="pillDone(i) ? { background: color, color: paintText(color) } : null" translate="no">
                         <Icon v-if="pillDone(i)" name="check" :size="12" />{{ name(n.pitch) }}
                     </li>
                 </ol>
@@ -319,7 +319,7 @@ export const Exercise = {
                         <!-- The dashed guide from your voice to the note. -->
                         <svg v-if="running && liveWait !== null" class="pointer-events-none absolute inset-0 size-full" aria-hidden="true"><line :x1="beadX + '%'" :x2="beadX + '%'" :y1="waitY(liveWait)" :y2="waitY(waitNote.pitch)" stroke="var(--color-cream)" stroke-opacity="0.6" stroke-width="2" stroke-dasharray="4 4" /></svg>
                         <Gems :bricks="waitBricks" />
-                        <div class="absolute flex items-center px-4 text-base font-extrabold" :style="{ left: '8%', width: '84%', top: (waitY(waitNote.pitch) - 24) + 'px', height: '48px', color: fill > 0.12 ? gemInk(color) : 'var(--color-cream)' }">
+                        <div class="absolute flex items-center px-4 text-base font-bold" :style="{ left: '8%', width: '84%', top: (waitY(waitNote.pitch) - 24) + 'px', height: '48px', color: fill > 0.12 ? gemInk(color) : 'var(--color-cream)' }">
                             <span class="relative" translate="no">{{ name(waitNote.pitch) }}</span>
                         </div>
                         <div v-if="running && liveWait !== null" class="gem absolute size-5 -translate-x-1/2 -translate-y-1/2 rounded-full" :style="{ left: beadX + '%', top: waitY(liveWait) + 'px', '--gem': 'var(--color-cream)' }" aria-hidden="true"></div>
@@ -328,12 +328,12 @@ export const Exercise = {
                         </p>
                     </template>
                     <div v-else-if="waitDone" class="absolute inset-0 grid place-items-center text-center" role="status" data-wait-done>
-                        <div><p class="text-2xl font-extrabold text-cream">{{ t('course.wait.allMatched', { count: laid.guide.length }) }}</p><p class="mt-1 text-sm text-muted">{{ t('course.wait.next', { count: laid.guide.length }) }}</p></div>
+                        <div><p class="text-2xl font-bold text-cream">{{ t('course.wait.allMatched', { count: laid.guide.length }) }}</p><p class="mt-1 text-sm text-muted">{{ t('course.wait.next', { count: laid.guide.length }) }}</p></div>
                     </div>
                 </div>
                 <!-- Matched, the stage above says so: the result said once (design rules). -->
                 <div v-if="!waitDone" class="text-center" aria-live="polite">
-                    <p class="text-xl font-extrabold text-cream">{{ waitHeadline }}</p>
+                    <p class="text-xl font-bold text-cream">{{ waitHeadline }}</p>
                     <p class="text-sm text-muted">{{ waitLine }}</p>
                 </div>
             </template>
@@ -349,7 +349,7 @@ export const Exercise = {
                 <span v-for="p in labelled ? [] : rows" :key="'r' + p" class="absolute inset-x-0 h-px" :class="p % 12 === 0 ? 'bg-cream/10' : 'bg-cream/[0.04]'" :style="{ top: y(p - 0.5) + 'px' }" aria-hidden="true"></span>
                 <span v-for="(s, i) in specks" :key="'s' + i" class="lane-speck" :style="s" aria-hidden="true"></span>
                 <Gems :bricks="laneBricks" />
-                <template v-for="(n, i) in shown" :key="i"><div v-if="drawn(n, i) === 'full'" class="absolute flex items-center gap-1 text-sm font-extrabold" :class="wide(n) ? 'px-3' : labelled ? 'justify-center px-0 text-xs' : 'justify-center px-1'" :style="bar(n, i)" :data-lane-note="brickState(n, i).ghost ? 'guide' : 'sung'">
+                <template v-for="(n, i) in shown" :key="i"><div v-if="drawn(n, i) === 'full'" class="absolute flex items-center gap-1 text-sm font-bold" :class="wide(n) ? 'px-3' : labelled ? 'justify-center px-0 text-xs' : 'justify-center px-1'" :style="bar(n, i)" :data-lane-note="brickState(n, i).ghost ? 'guide' : 'sung'">
                     <span v-if="labelFits(n)" class="truncate" translate="no">{{ noteWord(n) }}</span>
                     <Icon v-if="litNow(i) && wide(n)" name="check" :size="14" class="ms-auto shrink-0" />
                 </div></template>

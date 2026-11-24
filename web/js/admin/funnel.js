@@ -7,7 +7,7 @@
 import { api } from '../api.js';
 import { formatDate, formatNumber, t, tk } from '../i18n.js';
 import { Notice } from '../components/form.js';
-import { LoadFailed, loadInto, remembers } from './common.js';
+import { CsvLink, LoadFailed, loadInto, remembers } from './common.js';
 
 const RANGES = [7, 30, 90];
 const ARRIVALS = ['f_arrive', 'f_arrive_start'];
@@ -97,7 +97,7 @@ export function lostBetween(before, after) {
 
 export const FunnelSection = {
     mixins: [remembers('funnel', { days: RANGES }, (vm) => vm.fixed === null)],
-    components: { LoadFailed, Notice },
+    components: { CsvLink, LoadFailed, Notice },
     // fixed: one experiment's steps alone, inside the Experiments page (its own card says the rest).
     props: { me: { type: Object, required: true }, fixed: { type: String, default: null } },
     emits: ['report'],
@@ -111,6 +111,7 @@ export const FunnelSection = {
                     <p class="mt-1 max-w-prose text-muted">{{ t('admin.funnel.intro') }}</p>
                 </div>
                 <div class="flex flex-wrap items-end gap-3">
+                    <CsvLink page="funnel" :params="experiment ? { experiment } : { days }" class="order-last" />
                     <label class="space-y-1 text-sm text-muted">
                         <span class="block">{{ t('admin.funnel.show') }}</span>
                         <select class="input w-auto" :value="experiment ?? ''" data-funnel-experiments @change="choose($event.target.value || null)">

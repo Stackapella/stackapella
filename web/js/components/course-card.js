@@ -24,7 +24,7 @@ export const CourseCard = {
                 <!-- Not yet in the person's language (docs/languages-plan.md): its English, said plainly, never half translated. -->
                 <span v-if="english" class="chip" :class="preview ? '' : 'ms-auto'" data-in-english>{{ t('courses.inEnglish') }}</span>
             </span>
-            <span class="text-lg font-extrabold leading-snug tracking-tight text-cream" translate="no" :lang="english ? 'en' : null">{{ localized(entry.title) }}</span>
+            <span class="text-lg font-bold leading-snug tracking-tight text-cream" translate="no" :lang="english ? 'en' : null">{{ localized(entry.title) }}</span>
             <span class="line-clamp-2 text-sm text-muted" translate="no" :lang="english ? 'en' : null">{{ localized(entry.line) }}</span>
             <span v-if="summary.started" class="mt-1 flex items-center gap-3" data-course-progress>
                 <span class="h-1.5 flex-1 overflow-hidden rounded-full bg-raised" aria-hidden="true"><span class="block h-full rounded-full" :style="{ width: percent + '%', backgroundColor: colour }"></span></span>

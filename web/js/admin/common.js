@@ -2,10 +2,11 @@
 // change goes through (a reason, the sudo note, the server's field messages).
 
 import { reactive } from 'vue';
-import { ApiError } from '../api.js';
+import { api, ApiError } from '../api.js';
 import { formatDate, formatNumber, t } from '../i18n.js';
 import { Field, Notice } from '../components/form.js';
 import { Modal, toast } from '../components/ui.js';
+import { Icon } from '../components/icon.js';
 import { explain, inSudo, sendToSignIn } from './auth.js';
 import { local } from '../storage.js';
 
@@ -155,3 +156,38 @@ export function zoneName(zone) {
     }
     return zone.split('/').at(-1).replaceAll('_', ' ');
 }
+
+/**
+ * A Growth page's numbers as a CSV file (admin.growth.export; Hillel, 2026-11-23, for Saul): exactly the page's own
+ * anonymous totals, built by the server. Saved here with a BOM so a spreadsheet reads it as UTF-8.
+ */
+export async function downloadCsv(page, params = {}) {
+    const { data } = await api.admin.growth.export({ page, ...params });
+    const url = URL.createObjectURL(new Blob(['\ufeff' + data.csv], { type: 'text/csv;charset=utf-8' }));
+    const a = Object.assign(document.createElement('a'), { href: url, download: data.filename });
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000); // a page timer for a file, never audio
+}
+
+/** "Download CSV": one quiet 44 px link with its icon, by a page's period control (an admin or a growth viewer). */
+export const CsvLink = {
+    components: { Icon },
+    props: { page: { type: String, required: true }, params: { type: Object, default: () => ({}) }, label: { type: String, default: '' } },
+    data: () => ({ busy: false }),
+    template: `<button type="button" class="link inline-flex min-h-11 items-center gap-1.5 text-sm" :disabled="busy" :aria-busy="busy ? 'true' : null" :data-csv="page" @click="save"><Icon name="download" :size="16" />{{ label || t('admin.csv.download') }}</button>`,
+    methods: {
+        async save() {
+            this.busy = true;
+            try {
+                await downloadCsv(this.page, this.params);
+            } catch (error) {
+                console.warn('The CSV was not made', error);
+                toast(t('admin.csv.failed'), { tone: 'error' });
+            } finally {
+                this.busy = false;
+            }
+        },
+    },
+};

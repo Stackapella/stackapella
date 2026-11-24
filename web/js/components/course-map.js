@@ -40,7 +40,7 @@ export const CourseMap = {
                     <span class="flex items-start justify-between gap-3">
                         <span class="min-w-0">
                             <span class="block tabular-nums text-xs font-bold uppercase tracking-[0.14em]" :style="{ color: paintInk(colorOf(unit)) }">{{ t('course.unit', { number: u + 1 }) }}</span>
-                            <span class="block text-xl font-extrabold tracking-tight" :class="open(u) ? 'text-cream' : 'text-muted'" translate="no">{{ localized(unit.title) }}</span>
+                            <span class="block text-xl font-bold tracking-tight" :class="open(u) ? 'text-cream' : 'text-muted'" translate="no">{{ localized(unit.title) }}</span>
                         </span>
                         <span class="flex shrink-0 items-center gap-2">
                             <span v-if="bossOf(unit)?.beaten" class="chip inline-flex items-center gap-1" data-unit-mastered><Icon name="shield" :size="14" /> {{ t('boss.map.mastered') }}</span>
@@ -71,7 +71,7 @@ export const CourseMap = {
                     <!-- The picked lesson's card (Hillel's 98.png), the one you're on at first, so Start lesson stays one tap from the map. -->
                     <div v-if="pickedLesson(u)" class="mt-6 rounded-2xl border border-line bg-raised/40 p-5 outline-none" tabindex="-1" role="group" :aria-label="localized(pickedLesson(u).title)" data-picked-lesson>
                         <p class="tabular-nums text-xs font-bold uppercase tracking-[0.14em] text-muted">{{ t('course.lessonNumber', { number: lessonIndex(u) + 1 }) }}</p>
-                        <p class="mt-1 text-xl font-extrabold tracking-tight text-cream" translate="no">{{ localized(pickedLesson(u).title) }}</p>
+                        <p class="mt-1 text-xl font-bold tracking-tight text-cream" translate="no">{{ localized(pickedLesson(u).title) }}</p>
                         <p v-if="lineOf(pickedLesson(u))" class="mt-2 text-sm text-muted" translate="no">{{ localized(lineOf(pickedLesson(u))) }}</p>
                         <p class="mt-3 tabular-nums text-xs text-muted">{{ t('course.aboutMin', { minutes: lessonMinutes(pickedLesson(u)) }) }} · {{ t('course.exercises', { count: exercisesIn(pickedLesson(u)) }) }}</p>
                         <p v-if="!open(u)" class="mt-4 text-sm text-muted" data-lesson-locked>{{ game() ? t('course.locked') : t('course.lockedSerious') }}</p>

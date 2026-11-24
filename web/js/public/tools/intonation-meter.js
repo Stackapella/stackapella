@@ -79,7 +79,7 @@ const VALID = {
 
 const HERO = `
 <div class="grid justify-items-center gap-1 pt-2 [@media(max-height:640px)]:pt-0">
-  <p class="text-xl font-extrabold text-cream" data-ui="intonation-tone" data-tone-name></p>
+  <p class="text-xl font-bold text-cream" data-ui="intonation-tone" data-tone-name></p>
   <p class="flex items-baseline gap-1.5 tabular-nums" translate="no"><span class="text-[clamp(4rem,22vw,6.5rem)] font-black leading-none tracking-tight text-muted [@media(max-height:640px)]:text-[3.5rem]" data-ui="intonation-cents" data-cents>–</span><span class="text-base font-bold text-muted" data-unit></span></p>
   <p class="text-sm font-semibold text-muted" data-pure-note></p>
 </div>`;
@@ -182,7 +182,7 @@ export function mountIntonationMeter(root, { words = {}, keySlot = null, onLesso
             b.dataset.tone = String(semis);
             b.dataset.ui = 'intonation-tone-tile';
             b.setAttribute('aria-label', `${w('hearTone')} ${w(`tone${semis}`)}`);
-            const name = Object.assign(document.createElement('span'), { className: 'font-extrabold', textContent: w(`tone${semis}`) });
+            const name = Object.assign(document.createElement('span'), { className: 'font-bold', textContent: w(`tone${semis}`) });
             const offset = Object.assign(document.createElement('span'), { className: 'text-sm font-semibold tabular-nums opacity-80', textContent: semis ? `${pure > 0 ? '+' : '−'}${Math.abs(pure).toFixed(1)}¢` : '0¢' });
             b.append(name, offset);
             return b;

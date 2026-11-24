@@ -35,7 +35,7 @@ export const HumTuneStep = {
     template: `
         <section class="space-y-6" data-hum-tune :data-state="state">
             <div>
-                <h2 class="text-3xl font-extrabold tracking-tight text-cream">{{ t('create.hum.title') }}</h2>
+                <h2 class="text-3xl font-bold tracking-tight text-cream">{{ t('create.hum.title') }}</h2>
                 <p class="mt-1 text-muted">{{ t('create.hum.hint', { seconds: formatNumber(MOST_SECONDS) }) }}</p>
             </div>
             <div class="card space-y-5 p-5 md:p-8">

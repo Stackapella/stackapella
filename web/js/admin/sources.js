@@ -6,7 +6,7 @@
 
 import { api } from '../api.js';
 import { formatDate, formatNumber, t, tk } from '../i18n.js';
-import { LoadFailed, remembers, zoneName } from './common.js';
+import { CsvLink, LoadFailed, remembers, zoneName } from './common.js';
 import { isTag, sortSources, sourceName } from './growth.js';
 
 const RANGES = [7, 30, 90];
@@ -27,7 +27,7 @@ const day = (date) => (date ? formatDate(`${date}T12:00:00Z`, { month: 'short', 
 
 export const SourcesSection = {
     mixins: [remembers('sources', { days: RANGES, sortBy: COLUMNS.map((c) => c.key) })],
-    components: { LoadFailed },
+    components: { CsvLink, LoadFailed },
     props: { me: { type: Object, required: true } },
     data: () => ({ days: 7, report: null, failed: false, sortBy: 'arrivals' }),
     setup: () => ({ zoneName, RANGES, COLUMNS, formatNumber, isTag, sourceName }),
@@ -41,6 +41,7 @@ export const SourcesSection = {
                 <div class="seg flex" role="radiogroup" :aria-label="t('admin.usage.range')">
                     <button v-for="d in RANGES" :key="d" type="button" role="radio" :aria-checked="days === d" class="seg-option" @click="setDays(d)">{{ t('admin.usage.days', { count: d }) }}</button>
                 </div>
+                <CsvLink page="sources" :params="{ days }" />
             </div>
             <LoadFailed v-if="failed" :message="failed" @retry="load" />
             <p v-else-if="!report" class="text-muted" role="status">{{ t('admin.loading') }}</p>

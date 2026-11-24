@@ -116,7 +116,7 @@ export function stringsOf(instrument, tuning = 'standard') {
 const HERO = `
 <div class="grid w-full grid-cols-[1fr_auto_1fr] items-center pt-2 [@media(max-height:640px)]:pt-0" translate="no">
   <span class="grid justify-items-start gap-0.5 transition-opacity" data-prev-block>
-    <span class="text-[1.75rem] font-extrabold transition-colors" data-prev data-ui="tuner-neighbours"></span>
+    <span class="text-[1.75rem] font-bold transition-colors" data-prev data-ui="tuner-neighbours"></span>
     <span class="text-[0.6875rem] font-semibold tracking-[0.06em] text-muted uppercase" data-w="lowerNote"></span>
   </span>
   <!-- The note is a button: a tap plays it (the tools review, 2026-11-14: a singer wants to hear the target). -->
@@ -124,12 +124,12 @@ const HERO = `
     <span class="my-8 block h-3 w-32 rounded-full bg-raised md:my-12" aria-hidden="true" data-placeholder></span>
     <span class="text-[clamp(5.5rem,30vw,9.375rem)] font-black tracking-[-0.05em] text-cream [@media(max-height:640px)]:text-[5.5rem]" data-name></span>
     <span class="mb-1 ms-1 flex flex-col items-start leading-none">
-      <span class="text-[2.25rem] font-extrabold text-cream [@media(max-height:640px)]:text-2xl" data-acc></span>
-      <span class="text-[2.25rem] font-extrabold tabular-nums text-muted [@media(max-height:640px)]:text-2xl" data-octave></span>
+      <span class="text-[2.25rem] font-bold text-cream [@media(max-height:640px)]:text-2xl" data-acc></span>
+      <span class="text-[2.25rem] font-bold tabular-nums text-muted [@media(max-height:640px)]:text-2xl" data-octave></span>
     </span>
   </button>
   <span class="grid justify-items-end gap-0.5 transition-opacity" data-next-block>
-    <span class="text-[1.75rem] font-extrabold transition-colors" data-next data-ui="tuner-neighbours"></span>
+    <span class="text-[1.75rem] font-bold transition-colors" data-next data-ui="tuner-neighbours"></span>
     <span class="text-[0.6875rem] font-semibold tracking-[0.06em] text-muted uppercase" data-w="higherNote"></span>
   </span>
 </div>
@@ -147,7 +147,7 @@ const READOUT = `
   </div>
   <div class="grid min-h-9 grid-cols-[1fr_auto_1fr] items-baseline tabular-nums">
     <span class="justify-self-start text-[0.8125rem] font-semibold text-muted" aria-hidden="true" translate="no">−50¢ ♭</span>
-    <span class="flex items-baseline gap-2.5"><span class="text-[0.8125rem] font-semibold text-muted" aria-hidden="true" data-zero>0</span><b class="min-w-[4.5rem] text-end text-[1.75rem] font-extrabold empty:hidden" data-cents></b><span class="text-[0.9375rem] font-semibold text-muted empty:hidden" data-hz></span></span>
+    <span class="flex items-baseline gap-2.5"><span class="text-[0.8125rem] font-semibold text-muted" aria-hidden="true" data-zero>0</span><b class="min-w-[4.5rem] text-end text-[1.75rem] font-bold empty:hidden" data-cents></b><span class="text-[0.9375rem] font-semibold text-muted empty:hidden" data-hz></span></span>
     <span class="justify-self-end text-[0.8125rem] font-semibold text-muted" aria-hidden="true" translate="no">♯ +50¢</span>
   </div>
 </div>
@@ -448,7 +448,7 @@ export function mountTuner(root, { words = {}, keySlot = null, onError = null, o
         meter.setAttribute('aria-valuenow', String(Math.max(-50, Math.min(50, cents))));
         meter.setAttribute('aria-valuetext', shown ? `${note.name}${note.octave} ${fill(w('cents'), { cents: signed(cents) })}` : '');
         $('[data-cents]').textContent = shown ? fill(w('cents'), { cents: signed(cents) }) : '';
-        $('[data-cents]').className = `min-w-[4.5rem] text-end text-[1.75rem] font-extrabold empty:hidden ${colour}`;
+        $('[data-cents]').className = `min-w-[4.5rem] text-end text-[1.75rem] font-bold empty:hidden ${colour}`;
         // Paused, the reading and the meter step back.
         $('[data-meter-block]').style.opacity = listening ? '1' : '0.45';
         $('[data-hz]').textContent = shown ? fill(w('hz'), { hz: view.hz.toFixed(1) }) : '';
@@ -473,7 +473,7 @@ export function mountTuner(root, { words = {}, keySlot = null, onError = null, o
         if (share !== null) {
             const [before, after = ''] = w('inTuneShare').split(':percent');
             const number = document.createElement('b');
-            number.className = 'font-extrabold text-good';
+            number.className = 'font-bold text-good';
             const pct = after.startsWith('%') ? '%' : '';
             number.textContent = `${share}${pct}`;
             stat = document.createElement('span');

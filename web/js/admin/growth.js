@@ -13,7 +13,7 @@ import { api } from '../api.js';
 import { formatDate, formatNumber, t, tk } from '../i18n.js';
 import { navigate } from '../router.js';
 import { local } from '../storage.js';
-import { change, FEW, LoadFailed, remembers, zoneName } from './common.js';
+import { change, CsvLink, FEW, LoadFailed, remembers, zoneName } from './common.js';
 
 export { change };
 import { ReachChart } from './reach.js';
@@ -76,7 +76,7 @@ export function sortSources(rows, by, rate = false) {
 
 export const OverviewSection = {
     mixins: [remembers('growth', { period: PERIODS, sortBy: Object.keys(COLUMNS) })],
-    components: { LoadFailed, ReachChart, SiteSectionsCard, MetricCard, TrackingPanel, HourChart, ColumnChart, CountStrip, GrowthChoirs },
+    components: { CsvLink, LoadFailed, ReachChart, SiteSectionsCard, MetricCard, TrackingPanel, HourChart, ColumnChart, CountStrip, GrowthChoirs },
     props: { me: { type: Object, required: true } },
     data: () => ({ period: 'today', showHow: false, growth: null, sources: null, funnel: null, failed: false, sortBy: 'day2', updatedAt: null, now: Date.now(), refreshing: false, staleSince: null }),
     setup: () => ({ zoneName, PERIODS, PERIOD_NAMES, METRIC_NAMES, FEW, TILES, STEPS, COLUMNS, SHORT, ARM_COLORS, formatNumber, pct, day, navigate, HOUR_MARGINS, COLUMN_MARGINS }),
@@ -109,6 +109,8 @@ export const OverviewSection = {
                         <option v-for="p in PERIODS" :key="p" :value="p">{{ t(PERIOD_NAMES[p]) }}</option>
                     </select>
                 </div>
+                <!-- The chart's numbers as CSV (admin.growth.export; Hillel, for Saul), for the period shown. -->
+                <CsvLink page="growth" :params="{ period: shownPeriod }" :label="t('admin.csv.chart')" class="sm:float-end" />
                 <div class="hidden sm:block">
                     <div class="seg flex w-fit max-w-full overflow-x-auto" role="radiogroup" :aria-label="t('admin.growth.periods.label')" data-growth-periods>
                         <button v-for="p in PERIODS" :key="p" type="button" role="radio" :aria-checked="shownPeriod === p" class="seg-option whitespace-nowrap" :data-period="p" @click="setPeriod(p)">{{ t(PERIOD_NAMES[p]) }}</button>

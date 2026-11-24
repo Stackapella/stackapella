@@ -213,13 +213,13 @@ export const ClassJoinView = {
             <div class="my-auto">
                 <section class="card space-y-5 p-6 md:p-8">
                     <template v-if="joined">
-                        <h1 class="text-2xl font-extrabold tracking-tight text-cream" data-joined>{{ t('school.join.done') }}</h1>
+                        <h1 class="text-2xl font-bold tracking-tight text-cream" data-joined>{{ t('school.join.done') }}</h1>
                         <p class="text-cream">{{ t('school.join.doneUntil', { date: formatDate(joined) }) }}</p>
                         <p class="text-sm text-muted">{{ t('school.join.doneAfter') }}</p>
                         <button type="button" class="btn-primary w-full sm:w-auto" @click="navigate('/')">{{ t('school.join.start') }}</button>
                     </template>
                     <template v-else>
-                        <h1 class="text-2xl font-extrabold tracking-tight text-cream">{{ t('school.join.heading') }}</h1>
+                        <h1 class="text-2xl font-bold tracking-tight text-cream">{{ t('school.join.heading') }}</h1>
                         <p class="text-cream">{{ t('school.join.what') }}</p>
                         <p class="text-sm text-muted">{{ t('school.join.terms') }}</p>
                         <p v-if="schools === false" class="text-muted" role="status" data-schools-off>{{ t('school.join.off') }}</p>

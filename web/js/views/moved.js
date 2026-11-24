@@ -20,17 +20,17 @@ export const MovedView = {
             <div class="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center gap-6 px-6 pb-16">
             <section class="card space-y-4 p-6 md:p-8" aria-live="polite">
                 <template v-if="stage === 'waiting' || stage === 'receiving'">
-                    <h1 class="text-3xl font-extrabold tracking-tight text-cream">{{ t('moved.arriving') }}</h1>
+                    <h1 class="text-3xl font-bold tracking-tight text-cream">{{ t('moved.arriving') }}</h1>
                     <p class="text-muted" role="status">{{ received ? t('moved.received', { count: received }) : t('moved.waiting') }}</p>
                 </template>
                 <template v-else-if="stage === 'done'">
-                    <h1 class="text-3xl font-extrabold tracking-tight text-cream">{{ t('moved.here') }}</h1>
+                    <h1 class="text-3xl font-bold tracking-tight text-cream">{{ t('moved.here') }}</h1>
                     <p class="text-muted">{{ added ? t('moved.hereBody') : t('moved.nothingNew') }}</p>
                     <p class="text-sm text-muted">{{ t('moved.install') }}</p>
                     <a href="/" class="btn-primary" @click.prevent="open">{{ t('moved.open') }} <Icon name="arrow" :size="18" /></a>
                 </template>
                 <template v-else>
-                    <h1 class="text-3xl font-extrabold tracking-tight text-cream">{{ t('moved.fileTitle') }}</h1>
+                    <h1 class="text-3xl font-bold tracking-tight text-cream">{{ t('moved.fileTitle') }}</h1>
                     <p class="text-muted">{{ t('moved.fileBody') }}</p>
                     <Notice v-if="error" tone="bad">{{ error }}</Notice>
                     <label class="btn-primary cursor-pointer">{{ t('moved.chooseFile') }}<input type="file" class="sr-only" accept=".stackapella,application/octet-stream" @change="fromFile" /></label>

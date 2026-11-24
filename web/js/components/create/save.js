@@ -58,7 +58,7 @@ export const SaveStep = {
         <section class="space-y-6">
             <PrivatePlus v-if="linkPlus" kind="link" @close="linkPlus = false" />
             <div>
-                <h2 class="text-4xl font-extrabold tracking-tight text-cream">{{ t('create.save.title') }}</h2>
+                <h2 class="text-4xl font-bold tracking-tight text-cream">{{ t('create.save.title') }}</h2>
                 <p class="mt-2 text-muted">{{ t('create.save.hint') }}</p>
             </div>
             <div class="grid items-start gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
@@ -138,7 +138,7 @@ export const SaveStep = {
                             </g>
                         </svg>
                         <div class="space-y-3 p-5">
-                            <p class="text-xl font-extrabold" :class="draft.template.title.trim() ? 'text-cream' : 'text-muted'" translate="no">{{ draft.template.title.trim() || t('create.untitled') }}</p>
+                            <p class="text-xl font-bold" :class="draft.template.title.trim() ? 'text-cream' : 'text-muted'" translate="no">{{ draft.template.title.trim() || t('create.untitled') }}</p>
                             <p class="text-sm" :class="draft.template.description.trim() ? 'text-cream' : 'text-muted'" translate="no">{{ draft.template.description.trim() || t('create.save.noLine') }}</p>
                             <p class="text-sm text-muted" translate="no">{{ creditLine || t('create.save.noCredits') }}</p>
                             <div class="flex flex-wrap gap-1.5">

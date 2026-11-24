@@ -53,7 +53,7 @@ export const Choose = {
                 </div>
             </template>
             <div v-else class="space-y-2 rounded-2xl border border-edge bg-panel p-4" role="status" data-choose-done>
-                <p class="text-xl font-extrabold text-cream">{{ t('choose.score', { right: right, total: rounds.length }) }}</p>
+                <p class="text-xl font-bold text-cream">{{ t('choose.score', { right: right, total: rounds.length }) }}</p>
                 <p class="text-sm text-muted">{{ right === rounds.length ? t('choose.allRight') : t('choose.again') }}</p>
                 <button type="button" class="btn-secondary btn-sm" @click="restart">{{ t('choose.playAgain') }}</button>
             </div>

@@ -100,7 +100,7 @@ const SEARCH = `
 const HERO = `
 <div class="grid justify-items-center gap-1" translate="no">
   <p class="${BIG_NOTE}" data-ui="frequency-note" data-note></p>
-  <p class="flex items-baseline gap-1.5 tabular-nums"><span class="text-[2rem] font-extrabold leading-none text-cream [@media(max-height:640px)]:text-2xl" data-ui="frequency-hz" data-hz></span><span class="text-base font-bold text-muted" data-unit></span></p>
+  <p class="flex items-baseline gap-1.5 tabular-nums"><span class="text-[2rem] font-bold leading-none text-cream [@media(max-height:640px)]:text-2xl" data-ui="frequency-hz" data-hz></span><span class="text-base font-bold text-muted" data-unit></span></p>
   <p class="text-sm font-semibold tabular-nums text-muted" data-sub></p>
 </div>`;
 

@@ -70,7 +70,7 @@ const ChangeRange = {
                         <span class="text-sm text-muted">{{ end === 'low' ? t('voice.lowest') : t('voice.highest') }}</span>
                         <span class="flex items-center gap-1">
                             <button type="button" class="btn-ghost btn-sm" :aria-label="t('voice.change.lower', { end: end === 'low' ? t('voice.lowest') : t('voice.highest') })" :disabled="!can(end, -1)" @click="step(end, -1)"><Icon name="minus" :size="16" /></button>
-                            <span class="w-12 text-center text-xl font-extrabold tabular-nums text-cream" translate="no" :data-range-end="end">{{ name(end === 'low' ? low : high) }}</span>
+                            <span class="w-12 text-center text-xl font-bold tabular-nums text-cream" translate="no" :data-range-end="end">{{ name(end === 'low' ? low : high) }}</span>
                             <button type="button" class="btn-ghost btn-sm" :aria-label="t('voice.change.higher', { end: end === 'low' ? t('voice.lowest') : t('voice.highest') })" :disabled="!can(end, 1)" @click="step(end, 1)"><Icon name="plus" :size="16" /></button>
                         </span>
                     </div>
@@ -258,8 +258,8 @@ export const VoiceView = {
                 <section class="app-split space-y-4 min-[900px]:gap-y-4 min-[900px]:space-y-0" aria-labelledby="range-heading" data-voice-range>
                     <div class="flex flex-wrap items-end justify-between gap-4 min-[900px]:col-start-2 min-[900px]:row-start-1 min-[900px]:flex-col min-[900px]:items-start min-[900px]:justify-start">
                         <div class="min-w-0 max-w-xl">
-                            <p id="range-heading" class="text-xs font-bold tracking-widest text-accent uppercase">{{ t('voice.range') }}</p>
-                            <p v-if="range" class="mt-1 text-5xl font-extrabold tracking-tight text-cream">{{ t('voice.rangeBig', { low: name(range.low), high: name(range.high) }) }}</p>
+                            <p id="range-heading" class="t-section">{{ t('voice.range') }}</p>
+                            <p v-if="range" class="mt-1 text-5xl font-bold tracking-tight text-cream">{{ t('voice.rangeBig', { low: name(range.low), high: name(range.high) }) }}</p>
                             <p v-if="range && rangeFrom" class="mt-1 text-sm text-muted" data-range-source>{{ rangeFrom }}</p>
                             <p v-if="type" class="mt-2 text-muted">{{ t(SUITS[type]) }} {{ t('voice.suitsNote') }}</p>
                             <p v-else-if="!range" class="mt-2 text-muted">{{ t('voice.noRangeHint') }}</p>
@@ -277,7 +277,7 @@ export const VoiceView = {
                     <dl v-if="range" class="grid grid-cols-2 gap-3 min-[640px]:grid-cols-4 min-[900px]:col-start-2 min-[900px]:grid-cols-2">
                         <div v-for="tile in tiles" :key="tile.label" class="card p-4">
                             <dt class="text-xs text-muted">{{ tile.label }}</dt>
-                            <dd class="mt-1 text-xl font-extrabold text-cream">{{ tile.value }}</dd>
+                            <dd class="mt-1 text-xl font-bold text-cream">{{ tile.value }}</dd>
                         </div>
                     </dl>
                     <button v-if="type" type="button" class="btn-primary self-start min-[900px]:col-start-2 min-[900px]:justify-self-start" @click="navigate('/')">{{ t(FIND[type]) }} <Icon name="arrow" :size="16" /></button>
@@ -286,7 +286,7 @@ export const VoiceView = {
                 <!-- Badges are game mode's: still earned, shown only there (docs/skins-plan.md row 6). -->
                 <section v-if="game()" class="space-y-4" aria-labelledby="badges-heading">
                     <div class="flex flex-wrap items-center justify-between gap-3">
-                        <h2 id="badges-heading" class="text-2xl font-extrabold tracking-tight text-cream">{{ t('voice.badges') }} <span class="ms-1 tabular-nums text-sm font-normal text-muted">{{ t('voice.badgeCount', { earned: earnedCount, total: BADGES.length }) }}</span></h2>
+                        <h2 id="badges-heading" class="text-2xl font-bold tracking-tight text-cream">{{ t('voice.badges') }} <span class="ms-1 tabular-nums text-sm font-normal text-muted">{{ t('voice.badgeCount', { earned: earnedCount, total: BADGES.length }) }}</span></h2>
                         <div class="seg flex max-w-full overflow-x-auto" role="radiogroup" :aria-label="t('voice.badgeFilter')">
                             <button v-for="g in ['all', ...GROUPS]" :key="g" type="button" role="radio" :aria-checked="group === g ? 'true' : 'false'" class="seg-option shrink-0" @click="group = g">{{ g === 'all' ? t('voice.allBadges') : t(GROUP_WORDS[g]) }}</button>
                         </div>

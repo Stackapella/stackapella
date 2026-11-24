@@ -9,7 +9,7 @@ import { api } from '../api.js';
 import { formatDate, formatNumber, t } from '../i18n.js';
 import { navigate } from '../router.js';
 import { StatusChip } from '../components/form.js';
-import { LoadFailed } from './common.js';
+import { CsvLink, LoadFailed } from './common.js';
 
 /** A pass-through as people read it: 36%. */
 export const pct = (x) => (typeof x === 'number' ? formatNumber(x, { style: 'percent', maximumFractionDigits: 0 }) : '');
@@ -36,7 +36,7 @@ export function lastWeekOf(previous, path, step) {
 }
 
 export const DropoffsSection = {
-    components: { DropoffLine, LoadFailed, StatusChip },
+    components: { CsvLink, DropoffLine, LoadFailed, StatusChip },
     props: { me: { type: Object, required: true } },
     data: () => ({ report: null, failed: false }),
     setup: () => ({ pct, formatNumber, dropPath, lastWeekOf, anchor }),
@@ -45,6 +45,7 @@ export const DropoffsSection = {
             <div>
                 <h1 id="dropoffs-h" class="text-2xl font-bold text-cream">{{ t('admin.nav.dropoffs') }}</h1>
                 <p class="mt-1 max-w-prose text-sm text-muted">{{ latest ? t('admin.dropoffs.intro', { from: day(latest.weekStart), to: day(latest.weekEnd), floor: latest.floor }) : t('admin.dropoffs.introNone') }}</p>
+                <CsvLink page="dropoffs" />
             </div>
             <LoadFailed v-if="failed" :message="t('admin.dropoffs.failed')" @retry="load" />
             <p v-else-if="!report" class="text-muted" role="status">{{ t('admin.loading') }}</p>

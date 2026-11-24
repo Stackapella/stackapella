@@ -32,7 +32,7 @@ export const MoreCourses = {
     template: `
         <section v-if="open.length" class="space-y-5" :aria-label="t('courses.more')" data-more-courses>
             <div>
-                <h2 class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xl font-extrabold tracking-tight text-cream">{{ t('courses.more') }}<span v-if="preview" class="chip text-sm font-semibold tracking-normal" data-courses-preview>{{ t('courses.preview') }}</span></h2>
+                <h2 class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xl font-bold tracking-tight text-cream">{{ t('courses.more') }}<span v-if="preview" class="chip text-sm font-semibold tracking-normal" data-courses-preview>{{ t('courses.preview') }}</span></h2>
                 <p class="text-sm text-muted">{{ t('courses.moreLine') }}</p>
             </div>
             <!-- Yours: started courses, with how far you got. -->

@@ -43,7 +43,7 @@ export const PlusCourseView = {
                 <p v-if="course.headphones === 'needed'" class="mb-4 flex items-center gap-2 text-sm text-muted" data-best-headphones><Icon name="headphones" :size="16" class="shrink-0" />{{ t('course.bestWithHeadphones') }}</p>
                 <section v-if="next" class="card p-6" :aria-label="t('course.hub.upNext')" data-up-next>
                     <p class="tabular-nums text-xs font-bold uppercase tracking-[0.14em]" :style="{ color: paintInk(colour) }">{{ t('course.hub.upNextUnit', { number: next.unitIndex + 1 }) }}</p>
-                    <h2 class="mt-1 text-3xl font-extrabold tracking-tight text-cream" translate="no">{{ localized(next.lesson.title) }}</h2>
+                    <h2 class="mt-1 text-3xl font-bold tracking-tight text-cream" translate="no">{{ localized(next.lesson.title) }}</h2>
                     <p v-if="line" class="mt-1 max-w-md text-muted" translate="no">{{ localized(line) }}</p>
                     <div class="mt-5 flex flex-wrap items-center gap-4">
                         <button v-if="!needsAccount" type="button" class="btn-primary btn-lg" @click="navigate('/learn/' + next.lesson.id)"><Icon name="play" :size="16" /> {{ t('course.startLesson') }}</button>

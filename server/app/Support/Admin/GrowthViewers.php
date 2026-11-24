@@ -19,6 +19,8 @@ final class GrowthViewers
         'admin.me',
         'admin.growth.show',
         'admin.growth.choirs',
+        // The same pages' numbers as CSV (Hillel, 2026-11-23), audit-logged.
+        'admin.growth.export',
         // The Growth page's chart of devices: counts only. Not admin.counts.show, whose countries aren't folded.
         'admin.reach.show',
         'admin.funnel.show',

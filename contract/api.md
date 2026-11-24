@@ -594,6 +594,7 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `admin.outreach.replies.create` | `POST /api/admin/outreach/{id}/replies` | An admin | L |
 | `admin.growth.show` | `GET /api/admin/growth` | An admin, or a growth viewer | L |
 | `admin.growth.choirs` | `GET /api/admin/growth/choirs` | An admin, or a growth viewer | L |
+| `admin.growth.export` | `GET /api/admin/growth/export` | An admin, or a growth viewer | L |
 | `admin.sources.show` | `GET /api/admin/sources` | An admin, or a growth viewer | L |
 | `admin.active.show` | `GET /api/admin/active` | An admin | L |
 | `admin.groups.list` | `GET /api/admin/groups` | An admin | L |
@@ -641,8 +642,8 @@ sends the person to `/admin/sign-in?intended=<the admin page they were on>`.
 - **`role`** is `admin`, `editor` or `viewer`. An editor works the queues; money, bans, deletes, settings and
   switches are the admin's (`docs/operations-plan.md`, "A moderator role").
 - **A growth viewer** (`viewer`; Hillel, 2026-11-23: an advisor who reads the numbers) sees only anonymous totals:
-  `admin.me`, `admin.growth.show`, `admin.growth.choirs`, `admin.reach.show`, `admin.funnel.show`,
-  `admin.dropoffs.show` and `admin.sources.show` (not `admin.counts.show`, whose countries aren't folded). Every other
+  `admin.me`, `admin.growth.show`, `admin.growth.choirs`, `admin.growth.export`, `admin.reach.show`,
+  `admin.funnel.show`, `admin.dropoffs.show` and `admin.sources.show` (not `admin.counts.show`, whose countries aren't folded). Every other
   admin operation answers a viewer `403 not_admin`, the server's own allow-list, so
   never a person's account, email, group, request, refund, setting or any action. A viewer signs in as an admin does
   (Google, freshly, then a passkey or the code), with three checks: the address granted from a console
@@ -6864,6 +6865,25 @@ now, and over the period `current`, `previous` and `weekAgo`, each cut at the sa
 | Status | Code | Schema | Example |
 |---|---|---|---|
 | 200 | | `admin.growth.show.json` | `admin.growth.show.200.json` |
+
+#### `admin.growth.export`
+
+A page's numbers as CSV (Hillel, 2026-11-23: "please enable Saul to export data as CSV"), for an admin or a growth
+viewer: exactly the anonymous totals the page shows, built by the same code, nothing more (no person, no per-country
+count). **Request:** `?page=` `growth` (the overview's chart: one row a slot, the hour, day or week, with each metric's
+`_now` and `_before`; `?period=` as `admin.growth.show`), `funnel` (each step by arm: guest, account, total, rate;
+`?days=` and `?experiment=` as `admin.funnel.show`), `dropoffs` (the latest week's steps: entered, passed, pass-through,
+the week before, too few, a drop, lost), `sources` (a row a source, the page's columns; `?days=` as `admin.sources.show`)
+or `choirs` (a row a day, as `admin.growth.choirs`; `?period=`). **Answer:** `filename`
+(`stackapella-growth-<page>-<from>_<to>.csv`), `csv` (UTF-8 text, a header row first, ISO dates, `\n` line ends; a text
+cell that would start a spreadsheet formula, `=`, `+`, `-`, `@`, has a `'` put before it, as tags come from links anyone
+can make) and `rows` (not counting the header). The app saves it as a file. Each download is audit-logged
+(`admin.growth.export`: who, the page and its period).
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.growth.export.json` | `admin.growth.export.200.json` |
+| 422 | `validation_failed` | `error.json` | `admin.growth.export.validation_failed.json` |
 
 #### `admin.growth.choirs`
 

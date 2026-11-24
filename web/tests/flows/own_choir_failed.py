@@ -2,11 +2,14 @@
 likely won't work the second time; the link should be the main action"). The way on follows what went wrong:
 - the take's own problem (quiet, loud, noisy, notes, edge, short): Sing again with its one fix, step 1 a number (not a
   check), "Use my earlier voice instead" only with an older voice, which opens it retitled with its date;
-- ours with the voice saved: Try again from the saved voice, Sing again instead the link;
+- ours with the voice saved (Hillel's choir error design, 2026-11-24): its own title, "a problem on our side, not with
+  your singing", step 1 Your voice is saved (a check), step 2 The choir didn't come out (!) with Try again and Sing again
+  instead; Try again shows Trying again (step 2 a spinner), then It worked this time with Listen;
 - ours with nothing kept, or the saved voice gone first: Sing again only;
 - the second take problem in a row: the next fix (headphones, else another tune) and Contact us;
 - ours twice in a row: Back to the song, Try once more the link.
-The language's inline alert (a dot, the bold lead, no box), what it cost only where it didn't count, and no quota line.
+Each failure is said by the page's title and the line under it (no alert box), what it cost only where it didn't count,
+and no quota line.
 """
 import json
 import sys
@@ -38,6 +41,10 @@ def alert(f):
     return f.js("document.querySelector('[data-choir-failed]').innerText")
 
 
+def page_title(f):
+    return f.js("document.querySelector('#app h1').textContent.trim()")
+
+
 def step(f):
     return f.js("document.querySelector('[data-choir-step-state]').dataset.choirStepState")
 
@@ -46,13 +53,14 @@ def journey(f):
     f.go("/?api=mock&scenario=&as=member", "document.querySelector('h1')")
     clear_projects(f)
 
-    # A take problem (edge): its lead and one fix, no box; Sing again the one main action, step 1 a number; the older
+    # A take problem (edge): its title and one fix, no box; Sing again the one main action, step 1 a number; the older
     # voice a quiet link; what it cost; no quota line, and never "deleted" beside "saved".
     failed(f, detail="edge")
     assert f.js("document.querySelector('[data-choir-failed]').dataset.choirFailKind") == "take"
-    assert f.js("document.querySelector('[data-choir-failed]').classList.contains('alert-inline')"), "the alert isn't the language's inline one"
+    assert not f.js("document.querySelector('[data-choir-failed]').closest('.card, .alert-inline')"), "the failure is in a box"
+    assert page_title(f) == t(f, "ownChoir.failed.title.take"), page_title(f)
     words = alert(f)
-    assert t(f, "ownChoir.failed.lead.take") in words and t(f, "ownChoir.failed.detail.edge") in words, words
+    assert t(f, "ownChoir.failed.detail.edge") in words, words
     assert f.js("!!document.querySelector('[data-choir-fail-cost]')"), "what it cost isn't said"
     assert step(f) == "sing", f"step 1 is {step(f)}"
     assert f.js("!document.querySelector('[data-choir-step=\"1\"] [data-ui=step-dot] svg')"), "step 1 is a check after a failed take"
@@ -113,14 +121,35 @@ def journey(f):
     assert not f.js("document.querySelector('[data-choir-use-earlier]')"), "the older voice offered the second time"
     f.shot("take-twice")
 
-    # Ours, the voice saved: Try again from it (a check), Sing again instead the link.
+    # Ours, the voice saved (Hillel's choir error design): its title and why; step 1 saved (a check), step 2 didn't come
+    # out (!) with Try again, Sing again instead and the help link; what it cost.
     failed(f, failure="render_failed")
     assert f.js("document.querySelector('[data-choir-failed]').dataset.choirFailKind") == "oursKept"
-    assert t(f, "ownChoir.failed.lead.ours") in alert(f) and t(f, "ownChoir.failed.ours.kept") in alert(f), alert(f)
+    assert page_title(f) == t(f, "ownChoir.failed.title.ours"), page_title(f)
+    assert t(f, "ownChoir.failed.why") + " " in alert(f) and (t(f, "ownChoir.failed.cost.free") in alert(f) or t(f, "ownChoir.failed.cost.minutes") in alert(f)), alert(f)
     assert step(f) == "saved"
+    assert f.js("!!document.querySelector('[data-choir-step=\"1\"] [data-ui=step-dot] svg')"), "step 1 isn't a check"
+    assert f.js("document.querySelector('[data-choir-step=\"2\"]').dataset.choirStepState") == "failed"
+    assert f.js("document.querySelector('[data-choir-step=\"2\"] [data-step-body]').textContent.trim()") == t(f, "ownChoir.failed.step.body")
     assert f.js("document.querySelector('[data-choir-again]').textContent.trim()") == t(f, "common.tryAgain")
-    assert f.js("!!document.querySelector('[data-choir-resing]')"), "no Sing again instead"
+    assert f.js("document.querySelector('[data-choir-resing]').textContent.trim()") == t(f, "ownChoir.voice.record")
+    assert f.js("!!document.querySelector('[data-choir-step=\"2\"] [data-choir-help-failed]')"), "no help link under the actions"
+    f.no_sideways("ours with the voice saved")
     f.shot("ours-kept")
+    # Try again: Trying again while it's made (step 2 a spinner), then It worked this time with Listen, then the song.
+    f.run("sessionStorage.setItem('stackapella.mockChoirMaking', '1'); document.querySelector('[data-choir-again]').click()")
+    f.wait("document.querySelector('[data-choir-step=\"2\"]')?.dataset.choirStepState === 'building'", what="Trying again")
+    assert page_title(f) == t(f, "ownChoir.failed.retrying.title"), page_title(f)
+    assert f.js("document.querySelector('[data-choir-retry]').textContent.trim()") == t(f, "ownChoir.failed.retrying.body")
+    assert f.js("!document.querySelector('[data-choir-failed]')"), "still said as failed while trying again"
+    f.shot("ours-retrying")
+    f.run("sessionStorage.removeItem('stackapella.mockChoirMaking')")
+    f.wait("document.querySelector('[data-choir-step=\"2\"]')?.dataset.choirStepState === 'done'", timeout=30, what="It worked this time")
+    assert page_title(f) == t(f, "ownChoir.title"), page_title(f)
+    assert f.js("document.querySelector('[data-choir-retry]').textContent.trim()") == t(f, "ownChoir.failed.worked.body")
+    f.shot("ours-worked")
+    f.run("document.querySelector('[data-choir-listen]').click()")
+    f.wait("document.querySelector('[data-choir-play]')", what="the song, after Listen")
 
     # Ours twice in a row: back to the song, once more the link.
     failed(f, failure="render_failed", run_of="ours")

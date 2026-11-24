@@ -90,13 +90,13 @@ const HERO = `
   <p class="mx-auto mt-1 max-w-prose text-sm font-semibold text-warn" data-strain hidden></p>
   <div class="mt-3 flex items-end justify-center leading-[0.8]" data-ui="range-live">
     <span class="text-[clamp(5rem,26vw,8rem)] font-black tracking-[-0.04em] text-cream [@media(max-height:640px)]:text-[4.5rem]" translate="no" data-live-name>·</span>
-    <span class="mb-1 ms-1 text-[2.25rem] font-extrabold tabular-nums text-muted" translate="no" data-live-octave></span>
+    <span class="mb-1 ms-1 text-[2.25rem] font-bold tabular-nums text-muted" translate="no" data-live-octave></span>
   </div>
   <div class="mx-auto mt-3 h-1.5 w-40 overflow-hidden rounded-full bg-raised" aria-hidden="true"><div class="h-full rounded-full bg-good transition-[width] duration-100" style="width:0%" data-hold></div></div>
   <div class="mt-3 flex justify-center" data-step-buttons hidden><button type="button" class="btn-secondary min-h-11 rounded-full" data-again data-ui="range-again" data-w="again"></button></div>
 </section>
 <section data-panel="check" hidden>
-  <p class="text-2xl font-extrabold text-cream" data-heard data-ui="range-heard"></p>
+  <p class="text-2xl font-bold text-cream" data-heard data-ui="range-heard"></p>
   <div class="mt-3 flex flex-wrap justify-center gap-2">
     <button type="button" class="btn-secondary min-h-11 rounded-full" data-play-found data-w="playIt"></button>
     <button type="button" class="btn-secondary min-h-11 rounded-full" data-retry data-ui="range-retry" data-w="tryAgain"></button>

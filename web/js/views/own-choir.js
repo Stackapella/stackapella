@@ -62,13 +62,15 @@ function failRunOf(id, kind) {
 // sung quietly beside the room, the easier fix first (sing louder or closer); close to passing, a steady hum like a fan.
 const NOISY_HINTS = { quietSinger: tk('ownChoir.failed.detail.noisyQuiet'), near: tk('ownChoir.failed.detail.noisyNear') };
 // The second take problem in a row: the next fix, headphones if they sang without, else another tune.
+// The failure's title, by kind (Hillel's choir error design, 2026-11-24).
+const FAIL_TITLES = { take: tk('ownChoir.failed.title.take'), gone: tk('ownChoir.failed.title.gone'), ours: tk('ownChoir.failed.title.ours') };
 const NEXT_FIX = { headphones: tk('ownChoir.failed.next.headphones'), tune: tk('ownChoir.failed.next.tune') };
 const FAILURES = { clip_unusable: tk('ownChoir.failed.clip_unusable'), bad_clip: tk('ownChoir.failed.bad_clip'), gates_failed: tk('ownChoir.failed.gates_failed'), render_failed: tk('ownChoir.failed.render_failed'), expired: tk('ownChoir.failed.expired'), reference_gone: tk('ownChoir.failed.reference_gone') };
 
 export const OwnChoirView = {
     components: { Segmented, Agreement, AppScreen, ChoirSettings, ClipChoice, FirstNoteStep, HeadphonesPick, Icon, PlusMoment, TurnstileBox },
     props: { id: { type: String, required: true } },
-    data: () => ({ failRun: null, useEarlier: false, resing: false, listenTo: 'choir', plusSettings: false, shift: null, hearingClip: false, firstNote: null, leftNames: [], plusFriends: false, sentInvite: null, copied: false, plusFor: false, emailSent: false, sending: false, checkToken: null, checkRound: 0, state: 'loading', offReason: 'unavailable', canStart: false, template: null, terms: null, busy: false, playing: false, loadingTrack: false, hum: null, own: false }),
+    data: () => ({ failRun: null, retried: false, useEarlier: false, resing: false, listenTo: 'choir', plusSettings: false, shift: null, hearingClip: false, firstNote: null, leftNames: [], plusFriends: false, sentInvite: null, copied: false, plusFor: false, emailSent: false, sending: false, checkToken: null, checkRound: 0, state: 'loading', offReason: 'unavailable', canStart: false, template: null, terms: null, busy: false, playing: false, loadingTrack: false, hum: null, own: false }),
     setup: () => ({ rememberedHeadphones, isPlus, ownChoir, account, isOpen, templatePartName, savedVoice, formatNumber, navigate }),
     computed: {
         /** Back here from the Plus page, once Plus is on. */
@@ -91,7 +93,33 @@ export const OwnChoirView = {
         },
         /** The start: nothing made yet, or it failed (not on its way, not ready). */
         intro() {
-            return this.request?.status !== 'ready' && !isOpen(this.request);
+            return (this.request?.status !== 'ready' && !isOpen(this.request)) || !!this.retryPhase;
+        },
+        /**
+         * After Try again on our failure (Hillel's choir error design, 2026-11-24): `building` while the new song is made,
+         * `done` once it's ready, until Listen; on this page only (a reload shows the usual wait or the song).
+         */
+        retryPhase() {
+            if (!this.retried || !this.request) return null;
+            if (isOpen(this.request)) return 'building';
+            return this.request.status === 'ready' ? 'done' : null;
+        },
+        /** Hillel's choir error design: our failure with the voice saved, and the try again after it. */
+        oursScreen() {
+            return !!this.retryPhase || (this.failKind === 'oursKept' && !this.resing);
+        },
+        /** The page's title: the failure's own (the design), Trying again, or the usual. */
+        pageTitle() {
+            if (this.retryPhase === 'building') return t('ownChoir.failed.retrying.title');
+            if (this.retryPhase || !this.failKind || this.resing) return t('ownChoir.title');
+            return t(FAIL_TITLES[this.failKind] ?? FAIL_TITLES.ours);
+        },
+        /** The line under the title: what happened and what to do (no alert box: the design). */
+        pageLead() {
+            if (this.retryPhase === 'building') return t('ownChoir.failed.retrying.body');
+            if (this.retryPhase === 'done') return t('ownChoir.failed.worked.body');
+            if (!this.failKind || this.resing) return '';
+            return this.failKind === 'oursKept' ? t('ownChoir.failed.why') : this.failure;
         },
         /** While it's being made: each part's real state from the server (ready, making, waiting); never an estimate. */
         progress() {
@@ -184,12 +212,6 @@ export const OwnChoirView = {
         earlierDate() {
             const at = savedVoice()?.savedAt;
             return at ? formatDate(at, { day: 'numeric', month: 'long' }) : '';
-        },
-        /** The alert's bold lead. */
-        failLead() {
-            if (this.failKind === 'take') return t('ownChoir.failed.lead.take');
-            if (this.failKind === 'gone') return t('ownChoir.failed.lead.gone');
-            return t('ownChoir.failed.lead.ours');
         },
         /**
          * "It didn't count", only when it didn't: the server's `counted` (false when given back: before any GPU work, or ours,
@@ -326,13 +348,13 @@ export const OwnChoirView = {
             if (this.failKind === 'take') return t(this.fixKey);
             if (this.failKind === 'gone') return t(FAILURES.reference_gone);
             if (this.failRepeat) return t('ownChoir.failed.ours.twice');
-            return this.failKind === 'oursKept' ? t('ownChoir.failed.ours.kept') : t('ownChoir.failed.ours.lost');
+            return this.failKind === 'oursKept' ? t('ownChoir.failed.step.body') : t('ownChoir.failed.ours.lost');
         },
     },
     template: `
         <!-- The start (and what comes before it) in Hillel's one 520 px column, its header on that column too: the song
              over the title. A song on its way or ready keeps the app's bar. -->
-        <AppScreen :title="t('ownChoir.title')" :back="'/?song=' + encodeURIComponent(id)" :column="columnHead && !firstNote ? 'max-w-[520px]' : null" :eyebrow="columnHead && !firstNote ? song || null : null" eyebrow-is-content :measure="columnHead ? 'max-w-[520px]' : 'max-w-2xl'" :compact="state === 'ready' && !columnHead && !!request && (request.status === 'ready' || isOpen(request))">
+        <AppScreen :title="pageTitle" :back="'/?song=' + encodeURIComponent(id)" :column="columnHead && !firstNote ? 'max-w-[520px]' : null" :eyebrow="columnHead && !firstNote ? song || null : null" eyebrow-is-content :measure="columnHead ? 'max-w-[520px]' : 'max-w-2xl'" :compact="state === 'ready' && !columnHead && !!request && (request.status === 'ready' || isOpen(request))">
             <p v-if="state === 'loading'" class="text-muted" role="status">{{ t('common.loading') }}</p>
             <!-- Why it can't open, each in its own words: signed out (sign in), offline (Try again), or not open to them. -->
             <div v-else-if="state === 'off'" class="card space-y-3 p-5" :data-choir-off="offReason">
@@ -355,7 +377,53 @@ export const OwnChoirView = {
                 <p v-if="!intro && request?.status !== 'ready'" class="eyebrow" translate="no">{{ song }}</p>
                 <!-- Ready: the finished track first (Hillel: "some people will just want a finished track"): play it here and
                      download it, labelled AI; learning a part is one quiet option, never the main button. -->
-                <template v-if="request?.status === 'ready'">
+<!-- Our failure with the voice saved, and trying again (Hillel's choir error design, 2026-11-24): the title and the line
+                     under it, then two steps: the voice saved, and the choir (didn't come out with Try again, being made, or ready). -->
+                <template v-if="oursScreen">
+                    <!-- Said under its title (Hillel's choir error design, 2026-11-24): what happened, then what it cost only
+                         where we know it didn't count. No alert box. -->
+                    <div v-if="pageLead" class="-mt-4 flex flex-col gap-1" :role="failKind && !retryPhase ? 'alert' : 'status'" :data-choir-failed="failKind && !retryPhase ? '' : null" :data-choir-failed-reason="failKind && !retryPhase ? (request.failureDetail || request.failure || null) : null" :data-choir-fail-kind="retryPhase ? null : failKind" :data-choir-fail-repeat="failRepeat && !retryPhase ? '' : null" :data-choir-retry="retryPhase">
+                        <p class="text-[18px] leading-normal text-muted [text-wrap:pretty]"><span data-choir-fail-fix>{{ pageLead }}</span><template v-if="costLine && !retryPhase">{{ ' ' }}<span data-choir-fail-cost>{{ costLine }}</span></template></p>
+                        <a v-if="failKind && !oursScreen" :href="helpUrl + '#if-a-song-doesnt-come-out'" target="_blank" rel="noopener" class="link mt-2 inline-flex min-h-11 items-center self-start" data-choir-help-failed>{{ t('ownChoir.help.failed') }}</a>
+                    </div>
+                    <ol class="mt-4" data-choir-steps data-choir-ours>
+                        <li class="grid grid-cols-[44px_minmax(0,1fr)] gap-x-4" data-choir-step="1" data-choir-step-state="saved">
+                            <span class="flex flex-col items-center" aria-hidden="true">
+                                <span :class="bigDot('done')" data-ui="step-dot"><Icon name="check" :size="20" /></span>
+                                <span class="my-1.5 w-px flex-1 bg-line"></span>
+                            </span>
+                            <div class="min-w-0 pb-9">
+                                <h2 class="text-[22px] font-semibold leading-[44px] text-cream">{{ t('ownChoir.voice.savedTitle') }}</h2>
+                                <p class="text-base leading-normal text-muted" data-step-body>{{ t('ownChoir.failed.savedBody') }}</p>
+                            </div>
+                        </li>
+                        <li class="grid grid-cols-[44px_minmax(0,1fr)] gap-x-4" data-choir-step="2" :data-choir-step-state="retryPhase || 'failed'">
+                            <span class="flex flex-col items-center" aria-hidden="true">
+                                <span v-if="retryPhase === 'building'" class="grid size-11 place-items-center" data-ui="step-dot"><span class="size-10 animate-spin rounded-full border-2 border-line border-t-accent motion-reduce:[animation-duration:2.4s]"></span></span>
+                                <span v-else-if="retryPhase === 'done'" :class="bigDot('done')" data-ui="step-dot"><Icon name="check" :size="20" /></span>
+                                <span v-else :class="bigDot('warn')" data-ui="step-dot">!</span>
+                            </span>
+                            <div class="min-w-0">
+                                <h2 class="text-[22px] font-semibold leading-[44px] text-cream">{{ retryPhase === 'building' ? t('ownChoir.failed.retrying.step') : retryPhase === 'done' ? t('ownChoir.failed.worked.step') : t('ownChoir.failed.step.title') }}</h2>
+                                <p class="text-base leading-normal text-muted [text-wrap:pretty]" data-step-body>{{ retryPhase ? t('ownChoir.intro.buildBody', { song: choirSong }) : failure }}</p>
+                                <div v-if="retryPhase === 'done'" class="mt-5 flex">
+                                    <button type="button" class="btn-primary h-[60px] px-[30px] text-[18px] font-semibold" data-choir-listen @click="listen">{{ t('ownChoir.failed.worked.listen') }}</button>
+                                </div>
+                                <!-- Ours twice in a row: back to the song is the way on, once more the other (the coordinator's spec). -->
+                                <div v-else-if="!retryPhase && failRepeat" class="mt-5 flex flex-wrap items-center gap-3">
+                                    <button type="button" class="btn-primary h-[60px] px-[30px] text-[18px] font-semibold max-sm:w-full" data-choir-back @click="backToSong">{{ t('ownChoir.failed.back', { song }) }}</button>
+                                    <button type="button" class="btn-secondary h-[60px] px-[26px] text-[17px] font-medium max-sm:w-full" :disabled="busy" data-choir-again @click="act('retry', retry)">{{ t('ownChoir.failed.onceMore') }}</button>
+                                </div>
+                                <div v-else-if="!retryPhase" class="mt-5 flex flex-wrap items-center gap-3">
+                                    <button type="button" class="btn-primary h-[60px] px-[30px] text-[18px] font-semibold max-sm:w-full" :disabled="busy" :aria-busy="busy ? 'true' : null" data-choir-again @click="act('retry', retry)">{{ t('common.tryAgain') }}</button>
+                                    <button type="button" class="btn-secondary h-[60px] px-[26px] text-[17px] font-medium max-sm:w-full" :disabled="busy" data-choir-resing @click="resing = true">{{ t('ownChoir.voice.record') }}</button>
+                                </div>
+                                <a v-if="!retryPhase" :href="helpUrl + '#if-a-song-doesnt-come-out'" target="_blank" rel="noopener" class="mt-3 inline-flex min-h-11 items-center self-start text-base text-muted underline decoration-accent underline-offset-[5px] hover:text-cream" data-choir-help-failed>{{ t('ownChoir.help.failed') }}</a>
+                            </div>
+                        </li>
+                    </ol>
+                </template>
+                <template v-else-if="request?.status === 'ready'">
                     <p v-for="name in leftNames" :key="name" class="card p-4 text-cream" role="status" data-choir-left>{{ t('ownChoir.together.friendLeft', { name, song }) }}</p>
                     <h1 class="t-title text-cream">{{ t('ownChoir.listen.title', { song }) }} <span class="chip-tag align-middle" data-ai-voice="tag">{{ t('ownChoir.together.who.ai') }}</span></h1>
                     <div class="card space-y-4 p-5" data-choir-track>
@@ -449,15 +517,11 @@ export const OwnChoirView = {
                     <!-- After Start singing: the first note they'd like (Hillel), in place of the steps; then Sing, in that key. -->
                     <FirstNoteStep v-if="firstNote" :first="firstNote.pitch" :song="firstNote.song" @go="record($event, rememberedHeadphones() === 'no')" />
                     <template v-else>
-                    <!-- The language's inline alert, per the coordinator's failure spec: an amber dot, the bold lead, the one fix, what it
-                         cost only where we know it didn't count, and the help page's section. No box. -->
-                    <div v-if="failKind" class="alert-inline text-[15px]" role="alert" data-choir-failed :data-choir-failed-reason="request.failureDetail || request.failure || null" :data-choir-fail-kind="failKind" :data-choir-fail-repeat="failRepeat ? '' : null">
-                        <div class="flex min-w-0 flex-col gap-1">
-                            <p><strong>{{ failLead }}</strong> <span data-choir-fail-fix>{{ failure }}</span></p>
-                            <p v-if="costLine" data-choir-fail-cost>{{ costLine }}</p>
-                            <!-- More help when a song doesn't come out (ai-marketing's help page, /help/your-choir). -->
-                            <a :href="helpUrl + '#if-a-song-doesnt-come-out'" target="_blank" rel="noopener" class="link inline-flex min-h-11 items-center self-start" data-choir-help-failed>{{ t('ownChoir.help.failed') }}</a>
-                        </div>
+                    <!-- The failure said under its title (Hillel's choir error design, 2026-11-24): what happened, then what it cost only
+                         where we know it didn't count. No alert box. -->
+                    <div v-if="pageLead" class="-mt-4 flex flex-col gap-1" :role="failKind && !retryPhase ? 'alert' : 'status'" :data-choir-failed="failKind && !retryPhase ? '' : null" :data-choir-failed-reason="failKind && !retryPhase ? (request.failureDetail || request.failure || null) : null" :data-choir-fail-kind="retryPhase ? null : failKind" :data-choir-fail-repeat="failRepeat && !retryPhase ? '' : null" :data-choir-retry="retryPhase">
+                        <p class="text-[18px] leading-normal text-muted [text-wrap:pretty]"><span data-choir-fail-fix>{{ pageLead }}</span><template v-if="costLine && !retryPhase">{{ ' ' }}<span data-choir-fail-cost>{{ costLine }}</span></template></p>
+                        <a v-if="failKind && !oursScreen" :href="helpUrl + '#if-a-song-doesnt-come-out'" target="_blank" rel="noopener" class="link mt-2 inline-flex min-h-11 items-center self-start" data-choir-help-failed>{{ t('ownChoir.help.failed') }}</a>
                     </div>
                     <ol data-choir-steps>
                         <li class="grid grid-cols-[32px_minmax(0,1fr)] gap-x-3.5" data-choir-step="1">
@@ -492,13 +556,8 @@ export const OwnChoirView = {
                                     <button type="button" class="btn-primary self-start" data-choir-plus @click="getPlus">{{ t('plus.subscribe') }}</button>
                                 </div>
                                 <!-- A voice kept from before (Hillel: "store a model to make it easier"): one tap; singing again is the quiet link. -->
-                                <!-- Ours twice in a row: back to the song is the way on, once more the quiet link (the coordinator's spec). -->
-                                <div v-else-if="savedStep && failKind === 'oursKept' && failRepeat" class="flex flex-wrap items-center gap-x-5 gap-y-2">
-                                    <button type="button" class="btn-primary h-[52px] px-[26px] text-[17px] font-bold max-sm:w-full" data-choir-back @click="backToSong">{{ t('ownChoir.failed.back', { song }) }}</button>
-                                    <button type="button" class="link inline-flex min-h-11 items-center py-3 text-[15px] font-medium" :disabled="busy" data-choir-again @click="act('retry', again)">{{ t('ownChoir.failed.onceMore') }}</button>
-                                </div>
                                 <div v-else-if="savedStep" class="flex flex-wrap items-center gap-x-5 gap-y-2">
-                                    <button type="button" class="btn-primary h-[52px] px-[26px] text-[17px] font-bold max-sm:w-full" :disabled="busy" :aria-busy="busy ? 'true' : null" data-choir-again @click="act(useEarlier ? 'earlier' : 'retry', again)">{{ failKind === 'oursKept' ? t('common.tryAgain') : t('ownChoir.voice.again') }}</button>
+                                    <button type="button" class="btn-primary h-[52px] px-[26px] text-[17px] font-bold max-sm:w-full" :disabled="busy" :aria-busy="busy ? 'true' : null" data-choir-again @click="act(useEarlier ? 'earlier' : 'retry', again)">{{ t('ownChoir.voice.again') }}</button>
                                     <button v-if="useEarlier" type="button" class="link inline-flex min-h-11 items-center py-3 text-[15px] font-medium" :disabled="busy" data-choir-resing @click="useEarlier = false">{{ t('ownChoir.record.again') }}</button>
                                     <button v-else type="button" class="link inline-flex min-h-11 items-center py-3 text-[15px] font-medium" :disabled="busy" data-choir-resing @click="resing = true">{{ wordlessNote ? t('ownChoir.songs.wordlessGo') : t('ownChoir.voice.record') }}</button>
                                 </div>
@@ -533,7 +592,8 @@ export const OwnChoirView = {
                 </template>
                 <!-- The intro's quiet footer: the quota (only when it matters) and Stop. Stop is not on a ready song (the
                      coordinator for Hillel: a destructive account action stays off a celebratory screen). -->
-                <footer v-if="intro && !firstNote" class="flex flex-col gap-3.5 border-t border-line pt-5" data-choir-foot>
+                <!-- The failure and trying again (Hillel's choir error design): the two links on one row, spread apart. -->
+                <footer v-if="intro && !firstNote" class="flex border-t border-line pt-5" :class="oursScreen ? 'flex-row flex-wrap items-center justify-between gap-x-6 gap-y-2 [&>a]:text-base [&>button]:text-base' : 'flex-col gap-3.5'" data-choir-foot>
                     <p v-if="quotaLine" class="text-sm leading-normal text-muted" data-choir-quota><strong v-if="quotaLine.lead" class="font-semibold text-cream">{{ quotaLine.lead }}</strong>{{ quotaLine.rest }}</p>
                     <!-- How it works, and the questions (ai-marketing's help page on the site), opened beside the app. -->
                     <a :href="helpUrl" target="_blank" rel="noopener" class="inline-flex min-h-11 items-center self-start text-sm text-muted underline underline-offset-4 hover:text-cream" data-choir-help>{{ t('ownChoir.help.link') }}</a>
@@ -551,6 +611,10 @@ export const OwnChoirView = {
         this.stopClip();
     },
     watch: {
+        // Failed again after Try again: the failure screen again (its second-time words), not Trying again.
+        'request.status'(status) {
+            if (status === 'failed') this.retried = false;
+        },
         'request.id': {
             immediate: true,
             handler(id) {
@@ -624,6 +688,11 @@ export const OwnChoirView = {
     },
     methods: {
         /** A step's dot: the first filled with the accent, the rest ringed (game: its chips, the first its accent chip). */
+        /** The choir error design's 44 px dots: done (filled with the accent, a tick) or warn (an amber ring, !); game: its chips. */
+        bigDot(kind) {
+            if (this.game) return kind === 'done' ? 'chip-accent size-11 justify-center p-0' : 'chip size-11 justify-center p-0 text-warn';
+            return kind === 'done' ? 'flex size-11 items-center justify-center rounded-full bg-accent text-accent-ink' : 'flex size-11 items-center justify-center rounded-full border-[1.5px] border-warn text-[20px] font-bold text-warn';
+        },
         dotClass(i) {
             if (this.game) return i === 0 ? 'chip-accent size-8 justify-center p-0 tabular-nums' : 'chip size-8 justify-center p-0 tabular-nums';
             return i === 0 ? 'flex size-8 items-center justify-center rounded-full bg-accent text-[14px] font-bold text-accent-ink tabular-nums' : 'flex size-8 items-center justify-center rounded-full border-[1.5px] border-line text-[14px] font-semibold text-muted tabular-nums';
@@ -851,6 +920,16 @@ export const OwnChoirView = {
         backToSong() {
             count('choir_failure_action_back');
             navigate('/?song=' + encodeURIComponent(this.id));
+        },
+        /** Try again after our failure: the same as again(), then this page says Trying again until it's made (the design). */
+        async retry() {
+            await this.again();
+            if (this.request && this.request.status !== 'failed') this.retried = true;
+        },
+        /** It worked this time: Listen takes the page to the song, playing. */
+        listen() {
+            this.retried = false;
+            this.$nextTick(() => this.togglePlay());
         },
         /** The song from the saved voice: one tap, then the page says it's on its way. */
         async again() {

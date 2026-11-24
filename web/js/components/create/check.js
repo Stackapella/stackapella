@@ -26,7 +26,7 @@ export const CheckStep = {
         <section class="space-y-6">
             <div class="flex flex-wrap items-end justify-between gap-4">
                 <div class="min-w-0">
-                    <h2 class="text-4xl font-extrabold tracking-tight text-cream">{{ t('create.check.title') }}</h2>
+                    <h2 class="text-4xl font-bold tracking-tight text-cream">{{ t('create.check.title') }}</h2>
                     <p class="mt-2 text-muted">{{ t('create.check.hint') }}</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
@@ -66,7 +66,7 @@ export const CheckStep = {
 
             <div v-if="selected !== null && note" class="card space-y-4 p-5">
                 <div class="flex flex-wrap items-baseline gap-3">
-                    <p class="text-2xl font-extrabold text-cream" translate="no">{{ midiName(note.pitch) }}<span v-if="note.lyric" class="ms-2 text-muted">{{ note.lyric }}</span></p>
+                    <p class="text-2xl font-bold text-cream" translate="no">{{ midiName(note.pitch) }}<span v-if="note.lyric" class="ms-2 text-muted">{{ note.lyric }}</span></p>
                     <p v-if="toCheck.includes(selected)" class="text-sm font-semibold text-warn">{{ t('create.check.unsure', { done: checkedCount + 1, total: checkedCount + toCheck.length }) }}</p>
                 </div>
                 <p v-if="fixHere" class="text-sm text-muted">{{ fixHere.reason === 'octave' ? t('create.check.whyOctave') : t('create.check.whyKey', { key: keyLabel(draft.template.key) }) }}</p>

@@ -43,14 +43,14 @@ export const InviteCard = {
                     <slot name="top">
                         <div v-if="from" class="flex items-center gap-3">
                             <img v-if="avatar" :src="avatar" alt="" class="size-11 shrink-0 rounded-full object-cover" data-avatar />
-                            <span v-else class="bubble grid size-11 shrink-0 place-items-center text-sm font-extrabold" style="--bubble: var(--color-part-4); --bubble-ink: var(--color-part-text-4)" aria-hidden="true" data-avatar>{{ initials }}</span>
+                            <span v-else class="bubble grid size-11 shrink-0 place-items-center text-sm font-bold" style="--bubble: var(--color-part-4); --bubble-ink: var(--color-part-text-4)" aria-hidden="true" data-avatar>{{ initials }}</span>
                             <span class="min-w-0">
                                 <span class="block font-bold text-cream" translate="no">{{ t('invite.from', { name: from }) }}</span>
                                 <span v-if="kind" class="block text-sm text-muted">{{ kind }}</span>
                             </span>
                         </div>
                         <div>
-                            <h1 class="text-3xl font-extrabold tracking-tight text-cream">{{ t('invite.headline') }}</h1>
+                            <h1 class="text-3xl font-bold tracking-tight text-cream">{{ t('invite.headline') }}</h1>
                             <p v-if="lead" class="mt-2 text-muted">{{ lead }}</p>
                         </div>
                         <div v-if="rows.length" class="relative space-y-1.5 rounded-2xl border border-line bg-ink/40 p-4" aria-hidden="true">
