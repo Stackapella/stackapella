@@ -50,10 +50,15 @@ export const RehearseView = {
                                 <span v-else-if="d.now && d.minutes" class="t-hint block">{{ t('rehearse.minutes', { minutes: formatNumber(d.minutes) }) }}</span>
                             </span>
                             <Icon v-if="d.doneAt" name="check" :size="18" class="shrink-0 text-muted" :aria-label="t('rehearse.done')" />
-                            <button v-else-if="d.now" type="button" class="btn-primary shrink-0" :disabled="busy" data-rehearse-start @click="start(d)">{{ t('rehearse.start') }}</button>
+                            <button v-else-if="d.now && !plan.readyAt" type="button" class="btn-primary shrink-0" :disabled="busy" data-rehearse-start @click="start(d)">{{ t('rehearse.start') }}</button>
                         </li>
                     </ol>
-                    <p v-if="plan.readyAt" class="mt-4 text-cream" role="status" data-rehearse-ready>{{ t('rehearse.readyFor', { day: weekday }) }}</p>
+                    <!-- Ready (the ready check passed; the coordinator, 2026-11-24): the days go quiet, one line and one way to keep it fresh. -->
+                    <div v-if="plan.readyAt" class="mt-4 space-y-1" role="status" data-rehearse-ready>
+                        <p class="text-cream">{{ t('rehearse.readyFor', { day: weekday }) }}</p>
+                        <p class="text-sm text-muted">{{ t('rehearse.readyKeep') }}</p>
+                        <button type="button" class="link tap-44 text-sm" :disabled="busy" data-rehearse-sing-through @click="knowIt">{{ t('rehearse.singThrough') }}</button>
+                    </div>
                     <!-- The two that help today, then the plan's housekeeping as one quiet row (the coordinator: five stacked links was a lot). -->
                     <div class="mt-6 flex flex-col items-start gap-1">
                         <button v-if="!plan.readyAt && hasPhraseDays" type="button" class="link tap-44 text-sm" data-rehearse-know @click="knowIt">{{ t('rehearse.knowIt') }}</button>

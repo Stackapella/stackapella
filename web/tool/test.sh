@@ -27,6 +27,7 @@ python3 -I tool/i18n_check.py
 python3 -I tool/offline_check.py
 python3 -I tool/api_check.py
 python3 -I tool/dialog_check.py
+python3 -I tool/counts_check.py
 python3 -I tool/component_keys_check.py
 python3 -I tool/template_names_check.py
 python3 -I tool/public_imports_check.py

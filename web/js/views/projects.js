@@ -22,7 +22,7 @@ import { guideKey, keepAhead } from '../recorded-guides.js';
 import { defineAsyncComponent, markRaw, toRaw } from 'vue';
 import { createProject, deleteProject, loadProjects, projects, saveProject, shownTitle, startFromTemplate } from '../stores/projects.js';
 import { ideas, ideasOpen } from '../stores/ideas.js';
-import { learning } from '../stores/learning.js';
+import { learning, loadLearning } from '../stores/learning.js';
 import { account, loadAccount, loadAuthConfig } from '../stores/account.js';
 import { canStart, lengthBeats, linkedTemplate, listTemplates, loadTemplate, onDraftsChange, partsFor, singerOptions, templatePartName } from '../templates.js';
 import { asVersion, entryFor, keepVersion, startingVersion, versionsOf } from '../song-versions.js';
@@ -554,10 +554,13 @@ export const ProjectsView = {
     created() {
         // Today's challenge (docs/daily-challenge-plan.md): game mode's module with its board and stamps, serious mode the
         // shared pick only (it never loads game mode's modules); in the first week only once it may be offered.
-        if (dailyOpen()) {
+        // Asked once the progress is known: on a cold start Home is made before it loads, and dailyOpen() read too early
+        // said no (game_integration against a real server, 2026-11-24: no challenge on Home at all).
+        loadLearning().then(() => {
+            if (!dailyOpen()) return;
             if (effect('daily')) loadDaily();
             else if (!game()) loadPick();
-        }
+        }).catch((error) => console.warn('Today\'s challenge was not asked for', error));
         loadProjects();
         // The storage meter's numbers, on the free plan only (one read; Plus has room to spare).
         if (account.me && account.me.plan !== 'plus') api.usage.show().then(({ data }) => (this.storageUsage = data), (error) => console.warn('Storage not read', error));

@@ -48,7 +48,9 @@ your line when the tune pulls you away.
 Record with headphones on, so the microphone only hears your voice and not the parts playing back.
 Every part has to start and end with the others: a word that comes in late or a note held too long
 shows at once when the parts are stacked. Count in, breathe where the others breathe, and take a
-part again if one phrase drifts.
+part again if one phrase drifts. The guide to
+[recording vocal harmonies at home](/guides/record-vocal-harmonies-at-home) has the setup in detail:
+the mic, the room, the timing check and the mix.
 
 ## 6. Listen, then share it
 

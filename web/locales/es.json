@@ -6494,6 +6494,12 @@
         "shareText": "Mi plan de ensayo para {title}",
         "soon": "¿Lo ensayas pronto?",
         "homeDays": "Faltan {days} días para el ensayo",
-        "homeLine": "{when} · {what}"
+        "homeLine": "{when} · {what}",
+        "nearlyOne": "Casi: repasa la frase {phrases}.",
+        "nearlyMany": "Casi: repasa las frases {phrases}.",
+        "goOver": "Repasar la frase {n}",
+        "readyNote": "Todas las frases están. Disfruta del ensayo.",
+        "readyKeep": "Ya la tienes. Cántala entera una vez el día antes para tenerla fresca.",
+        "singThrough": "Cantarla entera"
     }
 }

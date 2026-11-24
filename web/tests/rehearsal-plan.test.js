@@ -58,3 +58,13 @@ test('rehearsal plan: two devices merge by the newer plan, done days and ready k
     assert(removed[0].removedAt === 40, 'a later removal lost');
     assert(upsertPlan([a, { ...a, partKey: 'bass' }], { ...a, madeAt: 50 }).length === 2, 'the same part twice');
 });
+
+test('rehearsal plan: the ready check is ready when every phrase heard is close, else the phrases to go over', async () => {
+    const { readyVerdict, READY_PERCENT } = await import('/js/rehearsal-plan.js');
+    const review = (percents) => percents.map((percent, index) => ({ index, percent, troubles: [] }));
+    const ok = readyVerdict(review([95, 88, READY_PERCENT, 100]));
+    assert(ok.ready && ok.phrases.length === 0, JSON.stringify(ok));
+    const nearly = readyVerdict(review([95, 40, 90, 69, null]));
+    assert(!nearly.ready && JSON.stringify(nearly.phrases) === '[1,3]', JSON.stringify(nearly));
+    assert(!readyVerdict([]).ready, 'nothing heard is never ready');
+});

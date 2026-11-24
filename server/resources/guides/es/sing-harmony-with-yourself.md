@@ -48,7 +48,9 @@ línea cuando la melodía tira de ti.
 Graba con auriculares, para que el micrófono solo oiga tu voz y no las voces que suenan. Cada voz
 tiene que empezar y terminar con las demás: una palabra que entra tarde o una nota que se alarga se
 nota enseguida al superponerlas. Cuenta antes de entrar, respira donde respiran las demás y repite
-una voz si una frase se desvía.
+una voz si una frase se desvía. La guía para
+[grabar armonías vocales en casa](/guides/record-vocal-harmonies-at-home) explica la preparación con
+detalle: el micrófono, la sala, la latencia y la mezcla.
 
 ## 6. Escucha y compártela
 

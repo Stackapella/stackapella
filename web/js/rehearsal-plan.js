@@ -12,6 +12,16 @@ import { MAX_PLANS } from './rehearsal-merge.js';
 export { MAX_PLANS, mergeRehearsals } from './rehearsal-merge.js';
 
 export const MAX_DAYS = 5; // practice days in a plan at most (and calendar entries)
+export const READY_PERCENT = 70; // a phrase sung "close" or better (two stars and up) is ready; under it, one to go over
+
+/**
+ * The ready check's verdict from a whole take's phrase review (report.js phraseReview): ready when every phrase heard is
+ * close or better, else the phrases to go over, in the song's order. Never a score, never "not ready". Pure.
+ */
+export function readyVerdict(review = []) {
+    const phrases = review.filter((p) => p.percent !== null && p.percent < READY_PERCENT).map((p) => p.index).sort((a, b) => a - b);
+    return { ready: review.length > 0 && phrases.length === 0, phrases };
+}
 
 const addDays = (date, n) => new Date(date.getFullYear(), date.getMonth(), date.getDate() + n);
 const midnight = (date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());

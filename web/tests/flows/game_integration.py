@@ -61,7 +61,18 @@ def journey(f):
     f.go("/?api=real", "document.querySelector('#app header')")
     f.run(STARTED.format(days=8))  # past a new singer's first week
     f.go("/?api=real", "document.querySelector('#app header')")
-    f.wait(TAG, timeout=20, what="today's challenge on its card")
+    try:
+        f.wait(TAG, timeout=20, what="today's challenge on its card")
+    except AssertionError:
+        # What stands between the pick and its tag (a full catalogue, unlike the mock's): said with the failure.
+        print("     daily state:", f.js("""(async () => {
+            const { daily } = await import('/js/game/daily.js'); const { effect } = await import('/js/game/effects.js');
+            const { inFirstWeek } = await import('/js/components/voice-care.js'); const { learning } = await import('/js/stores/learning.js');
+            const { catalogue } = await import('/js/stores/catalogue.js'); const id = daily.today?.templateId ?? null;
+            return JSON.stringify({ effect: effect('daily'), firstWeek: inFirstWeek(), startedAt: learning.progress?.startedAt ?? null,
+                pick: id, listed: !!catalogue.list.find((s) => s.id === id), songs: catalogue.list.length,
+                cards: [...document.querySelectorAll('[data-song-card]')].length }); })()"""))
+        raise
     pick = f.js("JSON.parse(JSON.stringify((await import('/js/game/daily.js')).daily.today))")
     assert pick["date"] == f.js("new Date().toISOString().slice(0, 10)"), f"today's date: {pick['date']}"
     # Yesterday's challenge, taken (a score on its board): the server's `days` stamps it.

@@ -7,7 +7,7 @@
 // timing, trim the ends), and the parts across the top. Two columns on a computer, stacked on a
 // phone. When every part is yours: the celebration, Share and the studio.
 
-import { formatNumber, t, tk } from '../../i18n.js';
+import { formatList, formatNumber, t, tk } from '../../i18n.js';
 import { hzToMidi } from '../../dsp.js';
 import { oneThing, phraseReview } from '../../report.js';
 import { formatTime } from '../../theme.js';
@@ -234,10 +234,11 @@ export const JustRecorded = {
         voice: { type: Object, default: null }, // Be the voice's invitation (js/be-the-voice.js): { part, guest }, or null
         choir: { type: Object, default: null }, // a choir project's take (js/own-choir.js): { seconds, busy, error }, or null
         aiCard: { type: Object, default: null }, // AI optional's card (components/ai-card.js): { song, busy }, or null
+        readyCheck: { type: Object, default: null }, // a rehearsal plan's ready check: { ready, day, phrases: [index] }, or null
     },
-    emits: ['hear', 'mute', 'again', 'next', 'nudge', 'nudged', 'line-up', 'studio', 'resing', 'trim', 'polish', 'share', 'hear-phrase', 'voice-share', 'voice-later', 'choir-make', 'choir-force', 'choir-listen', 'ai-try', 'ai-not', 'ai-close'],
+    emits: ['hear', 'mute', 'again', 'next', 'nudge', 'nudged', 'line-up', 'studio', 'resing', 'trim', 'polish', 'share', 'hear-phrase', 'voice-share', 'voice-later', 'choir-make', 'choir-force', 'choir-listen', 'ai-try', 'ai-not', 'ai-close', 'ready-phrase'],
     data: () => ({ nudging: false, picked: null }),
-    setup: () => ({ MAX_NUDGE_MS, CHART, formatNumber, formatTime, sk }),
+    setup: () => ({ MAX_NUDGE_MS, CHART, formatList, formatNumber, formatTime, sk }),
     template: `
         <ChoirReview v-if="choir" ref="choirReview" :choir="choir" :stack="stack" :color="color" :hearing="hearing" :position="position" :length-seconds="lengthSeconds" @hear="$emit('hear', $event)" @again="$emit('again')" @make="$emit('choir-make', $event)" @force="$emit('choir-force', $event)" @listen="$emit('choir-listen')" />
         <section v-else class="flex min-h-full w-full flex-col" aria-labelledby="recorded-title" data-take-review>
@@ -346,6 +347,15 @@ export const JustRecorded = {
                     <p v-else-if="!score && notes.length" class="text-sm text-muted" role="status">{{ t('report.working') }}</p>
                     <p v-else-if="score && score.status !== 'scored'" class="text-sm text-cream" role="status">{{ sk('report.unheardSerious', 'report.unheard') }}</p>
                 </div>
+                <!-- A rehearsal plan's ready check (docs/rehearsal-ready-plan.md): ready for the day, or the phrases to go over,
+                     each one tap into Coach. Kind words only: never a score, never "not ready". -->
+                <section v-if="readyCheck" class="card space-y-3 p-4" aria-labelledby="ready-check-title" data-ready-check :data-ready="readyCheck.ready ? '' : null">
+                    <h2 id="ready-check-title" class="font-bold text-cream">{{ readyCheck.ready ? t('rehearse.readyFor', { day: readyCheck.day }) : readyCheck.phrases.length === 1 ? t('rehearse.nearlyOne', { phrases: formatNumber(readyCheck.phrases[0] + 1) }) : t('rehearse.nearlyMany', { phrases: formatList(readyCheck.phrases.map((i) => formatNumber(i + 1))) }) }}</h2>
+                    <p v-if="readyCheck.ready" class="text-sm text-muted">{{ t('rehearse.readyNote') }}</p>
+                    <div v-else class="flex flex-wrap gap-2">
+                        <button v-for="i in readyCheck.phrases" :key="i" type="button" class="btn-secondary btn-sm" :data-ready-phrase="i" @click="$emit('ready-phrase', i)">{{ t('rehearse.goOver', { n: formatNumber(i + 1) }) }}</button>
+                    </div>
+                </section>
                 <!-- Be the voice (Hillel, 2026-11-12): a usable take of a part no one has given a real voice, one calm card after the take's own checks. -->
                 <BeTheVoice v-if="voice" :part="voice.part" :guest="voice.guest" @share="$emit('voice-share')" @later="$emit('voice-later')" />
                 <!-- AI optional's way in (docs/ai-optional-plan.md): under the take's result, never over it; one ask at a time. -->

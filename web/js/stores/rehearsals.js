@@ -72,6 +72,17 @@ export async function refreshPlan(plan) {
     return next;
 }
 
+/**
+ * The ready check passed: the plan says so (readyAt). A later check that isn't ready can't take it back yet: two devices'
+ * copies merge by the later readyAt (rehearsal-merge.js), so that waits on a field of its own in the contract.
+ */
+export async function markReady(songId, partKey, at = Date.now()) {
+    await loadLearning();
+    const plan = livePlans(learning.progress?.rehearsals ?? []).find((p) => p.songId === songId && p.partKey === partKey);
+    if (!plan || plan.readyAt) return;
+    await setRehearsals(upsertPlan(learning.progress?.rehearsals ?? [], { ...plan, readyAt: at }));
+}
+
 /** Start: the day's first phrase in Sing's Coach; the whole part's day (and "I know most of it"), the whole song. */
 export async function startDay(plan, day = dayNow(plan)) {
     const template = await loadTemplate(plan.songId);

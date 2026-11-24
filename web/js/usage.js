@@ -23,9 +23,30 @@ const ASKED = ['install', 'account', 'name', 'share', 'goal', 'remind', 'nudge',
 for (const kind of [...FUNNEL, ...ASKED]) KINDS.add(kind);
 // Be the voice (js/be-the-voice.js; the engagement review's section 5): the pool, the invitation, its answers, the
 // guest's run back and where a send stopped. Mirrors server/config/counts.php; take_sent and guide_published are the server's.
-for (const kind of ['bv_sung', 'bv_shown', 'bv_later', 'bv_share_tap:guest', 'bv_share_tap:member', 'bv_resume', 'bv_stop:age', 'bv_stop:email', 'bv_stop:check', 'bv_stop:upload', 'bv_sheet_tap']) KINDS.add(kind);
+for (const kind of ['bv_sung', 'bv_shown', 'bv_later', 'bv_share_tap:guest', 'bv_share_tap:member', 'bv_resume', 'bv_stop:age', 'bv_stop:email', 'bv_stop:check', 'bv_stop:upload', 'bv_stop:beta', 'bv_sheet_tap']) KINDS.add(kind);
 // AI voices (docs/ai-voices-build-plan.md, phase 1): a playback start in which at least one AI part sings (js/ai-voices.js).
 KINDS.add('ai_heard');
+// Kinds the server allows (server/config/counts.php) that the app sends but this list was missing until 2026-11-24, so
+// they were dropped on the device: Hear yourself as a choir's steps, Ready by rehearsal, take-away tracks, lesson 1's live
+// chord, the boot reset, a challenge accepted and the boards viewed. tool/counts_check.py now fails a count no list knows.
+for (const kind of [
+    'choir_failure_action_back', 'choir_failure_action_earlier', 'choir_failure_action_retry',
+    'choir_failure_action_sing', 'choir_failure_repeat_edge', 'choir_failure_repeat_length',
+    'choir_failure_repeat_loud', 'choir_failure_repeat_noisy', 'choir_failure_repeat_notes',
+    'choir_failure_repeat_other', 'choir_failure_repeat_quiet', 'choir_failure_repeat_short',
+    'choir_failure_seen_edge', 'choir_failure_seen_length', 'choir_failure_seen_loud', 'choir_failure_seen_noisy',
+    'choir_failure_seen_notes', 'choir_failure_seen_other', 'choir_failure_seen_quiet', 'choir_failure_seen_short',
+    'choir_first_note_done', 'choir_first_note_skipped', 'choir_headphones_no', 'choir_headphones_yes',
+    'choir_intro_seen', 'choir_level_loud', 'choir_level_low', 'choir_level_ok', 'choir_listen_played',
+    'choir_plus_sheet_choir_download', 'choir_plus_sheet_choir_friends', 'choir_plus_sheet_choir_settings',
+    'choir_ready_seen', 'choir_settings_opened_locked', 'choir_settings_opened_plus', 'choir_song_amazing_grace',
+    'choir_song_joy_to_the_world', 'choir_song_silent_night', 'choir_song_voice_capture', 'choir_take_sent',
+    'choir_take_started', 'choir_take_warned_clipped', 'choir_take_warned_edge', 'choir_take_warned_quiet',
+    'choir_take_warned_short', 'choir_teaser', 'choir_try_again', 'choir_view_full', 'choir_view_recording',
+    'choir_view_with_choir', 'chord_live_heard', 'chord_live_start', 'rr_cal_add', 'rr_day_done', 'rr_page_pick',
+    'rr_plan_made', 'rr_ready_check', 'tracks_made:louder', 'tracks_made:without', 'tracks_take', 'boot_reset',
+    'challenge_accepted', 'leaderboard_viewed',
+]) KINDS.add(kind);
 // Hear yourself as a choir (track B; js/own-choir.js): its parts heard, Learn your part, and a real take replacing one.
 for (const kind of ['own_choir_heard', 'own_choir_sing', 'own_choir_replaced', 'own_choir_download', 'own_choir_shared']) KINDS.add(kind);
 // What's been built since (Hillel: "update the admin usage page with all of the new stuff, ie

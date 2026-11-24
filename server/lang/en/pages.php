@@ -353,7 +353,7 @@ return [
         'groups' => [
             ['The basics', ['what-is-harmony', 'how-to-hear-harmony', 'what-is-a-cappella', 'satb-explained', 'choir-voicings', 'what-is-a-descant', 'find-your-voice-type']],
             ['Learn your part', ['find-your-part', 'find-your-starting-note', 'hold-your-part', 'practise-a-choir-part', 'a-round-for-beginners', 'sing-harmony-with-yourself', 'free-satb-learning-tracks']],
-            ['Skills', ['ear-training', 'sight-reading-for-singers', 'singing-in-tune', 'how-to-sing-with-vibrato', 'breathing-basics', 'arranging-a-cappella', 'vocal-percussion']],
+            ['Skills', ['ear-training', 'sight-reading-for-singers', 'singing-in-tune', 'how-to-sing-with-vibrato', 'breathing-basics', 'arranging-a-cappella', 'record-vocal-harmonies-at-home', 'vocal-percussion']],
             ['Singing together', ['how-to-blend-in-a-choir', 'how-to-run-a-sectional', 'how-to-start-an-a-cappella-group', 'barbershop-tags', 'choir-audition-tips', 'hanukkah-songs-for-choir', 'easy-christmas-carols-for-choir']],
         ],
         // A panel of the four choir parts' usual ranges, each to hear (site._guide-ranges, js/public/guide-ranges.js),

@@ -65,6 +65,9 @@ final class DocumentPagesController extends Controller
         'how-to-hear-harmony',
         // "what is a cappella" / "a cappella meaning" (2026-11-23): a large search, and a way into hearing harmony.
         'what-is-a-cappella',
+        // "how to record vocal harmonies at home" (2026-11-24), answered by DAW and gear blogs: the setup, the timing,
+        // the order and a simple mix, in the browser, for the Singers' page.
+        'record-vocal-harmonies-at-home',
     ];
 
     /**

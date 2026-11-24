@@ -9700,6 +9700,12 @@
         "shareText": "My rehearsal plan for {title}",
         "soon": "Rehearsing this soon?",
         "homeDays": "{days} days to rehearsal",
-        "homeLine": "{when} · {what}"
+        "homeLine": "{when} · {what}",
+        "nearlyOne": "Nearly: go over phrase {phrases}.",
+        "nearlyMany": "Nearly: go over phrases {phrases}.",
+        "goOver": "Go over phrase {n}",
+        "readyNote": "Every phrase is there. Enjoy the rehearsal.",
+        "readyKeep": "You're ready. Sing it through once the day before to keep it fresh.",
+        "singThrough": "Sing it through"
     }
 }

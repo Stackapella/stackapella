@@ -9,7 +9,7 @@ import { game } from '../skin.js';
 import { defineAsyncComponent, toRefs } from 'vue';
 import { audio, closeMic, engine, latencyNow, openMic } from '../audio.js';
 import { follow, hintStep, voiceFollower } from '../livevoice.js';
-import { formatList, localized, t, tk } from '../i18n.js';
+import { formatDate, formatList, localized, t, tk } from '../i18n.js';
 import { aiBand, aiChosen, aiOptional, cardAllowed, cardShows, chooseAi, firstDay, noteCardShown } from '../ai-choice.js';
 import { screenLoading } from '../components/screen-loading.js';
 import { BACKING, DRONE, GUIDE_LEVELS, guideId, hasTake } from '../practice.js';
@@ -76,7 +76,9 @@ import { ShareSheet } from '../components/share.js';
 import { lockReason } from '../stores/plan.js';
 import { paint } from '../colors.js';
 import { appearance } from '../stores/appearance.js';
-import { phraseBests, scoreSummary, sinceLast } from '../report.js';
+import { phraseBests, phraseReview, scoreSummary, sinceLast } from '../report.js';
+import { readyVerdict } from '../rehearsal-plan.js';
+import { localDate } from '../rehearsal.js';
 import { bleedCheck } from '../quality.js';
 import * as db from '../db.js';
 import { SONG_USED_SECONDS, counted as countDone, findLesson, learning, loadLearning, loadPlusCourses, pickRange, remember } from '../stores/learning.js';
@@ -109,7 +111,7 @@ export const SingView = {
     components: { SingShell: screenLoading(), ShareVoice: defineAsyncComponent(() => import('../components/share-voice.js').then((m) => m.ShareVoice)), DailyShare, RingMeter, VoiceCareLine, TimingLine, PopupSlot, TakeBest, IdeaVoice, PhraseStage, Chooser, Stage, RecordingStage, Lane, NowCard, Coach, StepDone, JustRecorded, LineBar, ModeBar, SingHeader, Transport, TurnBand, PartSheet, SettingsSheet, HeadphonesDialog, TimingDialog, RangeDialog, Icon, VoiceNote, ResingSheet, ResungCard, TrimSheet, WhatsNext, LockedBanner, ShareSheet },
     props: { id: { type: String, required: true } },
     setup: () => ({ ...toRefs(session), audio, formatTime, shownTitle, prefs, game, effect, aiCtaOpen }),
-    data: () => ({ clipReady: false, aiCardFor: null, aiCardDone: null, aiCardBusy: false, tasteAsked: false, crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null, ring: null, ringChord: '', lessonStep: null, lessonOpening: false, voiceAt: 0, voicePartId: null, choirSending: false, choirError: '', choirSent: null, choirCheck: null }),
+    data: () => ({ readyCountedFor: null, clipReady: false, aiCardFor: null, aiCardDone: null, aiCardBusy: false, tasteAsked: false, crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null, ring: null, ringChord: '', lessonStep: null, lessonOpening: false, voiceAt: 0, voicePartId: null, choirSending: false, choirError: '', choirSent: null, choirCheck: null }),
     template: `
         <div class="flex h-dvh flex-col bg-ink" :data-paused="paused ? '' : null">
             <p class="sr-only" aria-live="polite">{{ said }}</p>
@@ -168,7 +170,7 @@ export const SingView = {
                         <JustRecorded v-else-if="recorded" class="m-auto" :outcome="recorded" :part-name="nameOf(recorded.part)" :next-name="recorded.next ? nameOf(recorded.next) : ''" :hearing="playing"
                             :nudge-ms="nudgeMsOf(recorded.part)" :lining="lining" :lined="lined" :can-resing="phraseRows.length > 1" :color="paint(recorded.part.color)" :stack="recordedStack"
                             :score="recorded.report?.score ?? null" :notes="reportNotes" :track="recorded.report?.track ?? null" :beat-seconds="fullBeatSeconds" :offset-seconds="recorded.part.offsetSeconds + (recorded.part.nudgeSeconds || 0)"
-                            :phrases="reportPhrases" :phrase-labels="phraseRows.map((p) => p.label)" :position="position" :length-seconds="lengthSeconds" :bleed="!!recorded.report?.bleed" :sung-by="sungBy" :voice="voiceInvite" :choir="choirTake" :ai-card="aiCard" @ai-try="aiTry" @ai-not="aiNot" @ai-close="aiClose" @choir-make="makeChoir" @choir-force="(token) => makeChoir(token, { force: true })" @choir-listen="listenToChoir"
+                            :phrases="reportPhrases" :phrase-labels="phraseRows.map((p) => p.label)" :position="position" :length-seconds="lengthSeconds" :bleed="!!recorded.report?.bleed" :sung-by="sungBy" :voice="voiceInvite" :choir="choirTake" :ready-check="readyReport" @ready-phrase="readyPhrase" :ai-card="aiCard" @ai-try="aiTry" @ai-not="aiNot" @ai-close="aiClose" @choir-make="makeChoir" @choir-force="(token) => makeChoir(token, { force: true })" @choir-listen="listenToChoir"
                             @hear="hearTake($event)" @mute="toggleHearing" @again="recordPart" @next="nextPart" @nudge="nudge" @nudged="nudged" @line-up="lineUp" @studio="openStudio" @resing="resingFrom" @trim="openTrim" :polished="prefs.hearPolished" @polish="hearPolished" @share="dialog = 'share'" @hear-phrase="hearPhrase" @voice-share="voiceShare" @voice-later="voiceLater">
                             <template #report>
                                 <!-- The part's leaderboard (components/boards.js): your best, or why it didn't count; never a lesson's song -->
@@ -331,6 +333,24 @@ export const SingView = {
             return 60 / (this.project.bpm || 90);
         },
         /** How it went's chart: the recorded part's notes in the key sung, and the phrases. */
+        /**
+         * A rehearsal plan's ready check (docs/rehearsal-ready-plan.md, "The ready check"; Sing opened with ?ready=): under the
+         * whole part's take, "Ready for Thursday." or "Nearly: go over phrases 5 and 8", each one tap into Coach. Only for
+         * the plan's song and part, a whole take that was heard. Never a score, never "not ready".
+         */
+        readyReport() {
+            const rec = this.recorded;
+            if (!rec?.report?.score || rec.report.score.status !== 'scored' || this.way !== 'whole') return null;
+            let check = null;
+            try {
+                check = JSON.parse(tabStorage.get('stackapella.readyCheck') || 'null');
+            } catch (error) {
+                console.info('The ready check was unreadable', error?.message ?? error);
+            }
+            if (!check || check.songId !== this.project?.template?.id || check.partKey !== rec.part?.templatePartKey) return null;
+            const verdict = readyVerdict(phraseReview(rec.report.score, this.reportNotes, this.reportPhrases));
+            return { ...verdict, day: formatDate(localDate(check.date), { weekday: 'long' }) };
+        },
         reportNotes() {
             const notes = this.recorded ? sessionStore.templatePart(this.recorded.part)?.guide.notes ?? [] : [];
             return notes.map((n) => ({ ...n, pitch: n.pitch + (this.project.transpose || 0) }));
@@ -754,6 +774,13 @@ export const SingView = {
                 count(`ai_card:closed:${aiBand()}`);
                 this.aiCardDone = this.aiCardFor;
             }
+        },
+        // The ready check done (counted once a take), and a ready part's plan says so (readyAt).
+        readyReport(report) {
+            if (!report || this.readyCountedFor === this.recorded) return;
+            this.readyCountedFor = this.recorded;
+            count('rr_ready_check');
+            if (report.ready) import('../stores/rehearsals.js').then((m) => m.markReady(this.project.template.id, this.recorded.part.templatePartKey)).catch((error) => console.warn('The plan was not marked ready', error));
         },
         clipTake: {
             immediate: true,
@@ -1498,6 +1525,13 @@ export const SingView = {
             // This song's part only: a known range stays as it is.
             if (slot) this.keepPicked(slot);
             this.recorded = null;
+        },
+        /** The ready check's phrase to go over: Coach on it, part by part (the review closes). */
+        readyPhrase(index) {
+            const part = this.recorded?.part;
+            if (!part) return;
+            this.choose({ way: 'parts', slotId: part.id });
+            sessionStore.selectPhrase(index);
         },
         async play() {
             this.recorded = null;
