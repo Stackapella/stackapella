@@ -49,9 +49,10 @@ export async function encodeMp3(channels, sampleRate, { comment = null, aiMark =
     const end = encoder.flush();
     if (end.length) parts.push(new Uint8Array(end));
     // The real voices' credits, as an ID3 comment players show (as the WAV's ICMT); a file holding an AI voice is marked
-    // (EU AI Act Article 50): its text first in the comment, and TXXX AI_GENERATED / AI_GENERATOR.
+    // (EU AI Act Article 50): its text first in the comment, and TXXX AI_GENERATED / AI_GENERATOR / DIGITAL_SOURCE_TYPE.
     const text = [aiMark?.text, comment].filter(Boolean).join('\n');
-    if (text) parts.unshift(id3Tag(text, aiMark?.text ? { AI_GENERATED: 'true', AI_GENERATOR: aiMark.generator ?? 'Stackapella' } : {}));
+    const machine = aiMark?.text ? { AI_GENERATED: 'true', AI_GENERATOR: aiMark.generator ?? 'Stackapella', ...(aiMark.digitalSourceType ? { DIGITAL_SOURCE_TYPE: aiMark.digitalSourceType } : {}) } : {};
+    if (text) parts.unshift(id3Tag(text, machine));
     return new Blob(parts, { type: 'audio/mpeg' });
 }
 

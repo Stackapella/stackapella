@@ -70,6 +70,8 @@ def journey(f):
     f.run("document.querySelector('[data-choir-hold]').scrollIntoView({ block: 'center' })")
     f.shot("auto-hold")
     f.run("document.querySelector('[data-choir-start-now]').click()")
+    # Started at once by the server (ownChoir.requests.start), not just the hold running out on its own (10 s).
+    f.wait("(async () => (await import('/js/own-choir.js')).ownChoir.data.requests[0]?.holdUntil === null)()", timeout=3, what="the start sent to the server")
     f.wait("!document.querySelector('[data-choir-hold]')", timeout=10, what="started at once")
     f.run("document.querySelector('[data-choir-email-off]').click()")
     f.wait("document.querySelector('[data-choir-email-done]')", what="the email turned off")

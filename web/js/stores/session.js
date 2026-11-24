@@ -1837,6 +1837,7 @@ export async function shareMix({ room = null, partId = null } = {}) {
     const tracks = [];
     const guides = [];
     const choirParts = [];
+    let ai = false; // an AI voice is heard in the mix (an AI guide, or a part made from the singer's own singing)
     for (const part of session.parts) {
         const take = all.get(part.id);
         const guide = all.get(guideId(part.id));
@@ -1849,9 +1850,10 @@ export async function shareMix({ room = null, partId = null } = {}) {
             // as AI made from their singing; every other published voice as `guides`.
             const voice = session.guideVoices[part.id];
             if (voice?.kind === 'real') (voice.choir ? choirParts : guides).push(...(voice.ids ?? []));
+            if (voice?.kind === 'real' && (voice.ai || voice.choir)) ai = true;
         }
     }
-    return { ...rendered, tracks: tracks.slice(0, 12), guides: guides.slice(0, 16), choirParts: choirParts.slice(0, 16), beatZeroSeconds: session.project.template ? 0 : null };
+    return { ...rendered, ai, tracks: tracks.slice(0, 12), guides: guides.slice(0, 16), choirParts: choirParts.slice(0, 16), beatZeroSeconds: session.project.template ? 0 : null };
 }
 
 /**

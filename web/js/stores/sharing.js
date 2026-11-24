@@ -7,6 +7,7 @@
 import { api, serverReachable, uploadTo } from '../api.js';
 import * as db from '../db.js';
 import { encodeWav } from '../wav.js';
+import { aiMark } from '../ai-mark.js';
 import { session, shareMix } from './session.js';
 import { cloud, syncNow } from './cloud.js';
 import { count, tried } from '../usage.js';
@@ -44,7 +45,9 @@ export async function shareProject({ title, visibility = 'unlisted', partId = nu
     }
     onStep('mixing');
     const mix = await shareMix({ room, partId });
-    const wav = encodeWav(mix.channels, mix.sampleRate);
+    // A mix an AI voice sings in is marked inside the file (EU AI Act Article 50; auth.config's wording, js/ai-mark.js), as
+    // the export marks it; a mix of real voices only carries nothing.
+    const wav = encodeWav(mix.channels, mix.sampleRate, { aiMark: mix.ai ? aiMark() : null });
     onStep('sending');
     const sha256 = hex(await crypto.subtle.digest('SHA-256', await wav.arrayBuffer()));
     const asked = JSON.stringify({ projectId, partId, title: title.trim(), visibility, sha256, replaces });

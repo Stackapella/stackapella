@@ -7,5 +7,5 @@ import { account } from './stores/account.js';
 /** The marking to write into an export that holds an AI voice, or null. */
 export function aiMark() {
     const mark = account.config?.aiMark;
-    return mark?.text ? { text: mark.text, generator: mark.generator ?? 'Stackapella' } : null;
+    return mark?.text ? { text: mark.text, generator: mark.generator ?? 'Stackapella', digitalSourceType: mark.digitalSourceType ?? null } : null;
 }

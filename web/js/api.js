@@ -1220,6 +1220,9 @@ export const api = {
             create: (clip) => call('ownChoir.requests.create', { body: clip }),
             complete: (id) => call('ownChoir.requests.complete', { params: { id } }),
             seen: (id) => call('ownChoir.requests.seen', { params: { id } }),
+            // The choir wait: held 5 s more while they listen back, or started at once (409 claimed once it's begun).
+            hold: (id) => call('ownChoir.requests.hold', { params: { id } }),
+            start: (id) => call('ownChoir.requests.start', { params: { id } }),
             // Download's full-quality parts (Plus): `403 plus_required` otherwise.
             download: (id) => call('ownChoir.requests.download', { params: { id } }),
             sound: (id, sound) => call('ownChoir.requests.sound', { params: { id }, body: { sound } }),
@@ -1283,7 +1286,8 @@ for (const operation of Object.keys(OPERATIONS)) {
     const path = operation.split('.');
     let node = api;
     for (const part of path.slice(0, -1)) node = node[part] ??= {};
-    node[path.at(-1)] ??= op(operation);
+    // Marked `plain`: the tests check every call to one passes { params, query, body } (tests/api.test.js).
+    node[path.at(-1)] ??= Object.assign(op(operation), { plain: true });
 }
 
 /**

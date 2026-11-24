@@ -3,15 +3,17 @@
 /**
  * Interleaves `channels` (Float32Arrays of equal length) into a 16-bit PCM WAV Blob. A `comment`
  * (the real voices' credits) goes in a LIST/INFO chunk as ICMT, which players show as the comment.
- * `aiMark` ({ text, generator }, auth.config's, EU AI Act Article 50) marks a file holding an AI voice, machine-readably:
- * ICMT starts with its text, ISFT is its generator, and a bext chunk carries the text as its description.
+ * `aiMark` ({ text, generator, digitalSourceType }, auth.config's, EU AI Act Article 50) marks a file holding an AI voice,
+ * machine-readably, as the server and the voices worker do (ai-modal's table, 2026-11-24): ICMT starts with its text,
+ * ISFT is "Stackapella", an iXML chunk holds NOTE (the text) and USER ("ai_generated=true;digital_source_type=…;
+ * generator=…"), and a bext chunk carries the text as its description.
  */
 export function encodeWav(channels, sampleRate, { comment = null, aiMark = null } = {}) {
     const frames = channels[0].length;
     const count = channels.length;
     const dataBytes = frames * count * 2;
     const icmt = [aiMark?.text, comment].filter(Boolean).join('\n');
-    const info = concat(icmt ? infoChunk(icmt, aiMark?.generator ?? null) : new Uint8Array(0), aiMark?.text ? bextChunk(aiMark.text) : new Uint8Array(0));
+    const info = concat(icmt ? infoChunk(icmt, aiMark?.text ? 'Stackapella' : null) : new Uint8Array(0), aiMark?.text ? concat(ixmlChunk(aiMark), bextChunk(aiMark.text)) : new Uint8Array(0));
     const view = new DataView(new ArrayBuffer(44 + dataBytes + info.length));
     const text = (at, value) => {
         for (let i = 0; i < value.length; i++) {
@@ -68,6 +70,15 @@ function infoChunk(comment, software = null) {
     const z = (value) => new TextEncoder().encode(`${value}\0`);
     const fields = concat(subChunk('ICMT', z(comment)), software ? subChunk('ISFT', z(software)) : new Uint8Array(0));
     return subChunk('LIST', concat(new TextEncoder().encode('INFO'), fields));
+}
+
+const xml = (value) => String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+/** An iXML chunk with NOTE (the mark's text) and USER (its machine fields), UTF-8. */
+function ixmlChunk(mark) {
+    const user = `ai_generated=true;digital_source_type=${mark.digitalSourceType ?? ''};generator=${mark.generator ?? 'Stackapella'}`;
+    const body = `<?xml version="1.0" encoding="UTF-8"?>\n<BWFXML><IXML_VERSION>1.61</IXML_VERSION><NOTE>${xml(mark.text)}</NOTE><USER>${xml(user)}</USER></BWFXML>`;
+    return subChunk('iXML', new TextEncoder().encode(body));
 }
 
 /**

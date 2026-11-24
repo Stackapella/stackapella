@@ -204,3 +204,25 @@ test("peaks8: the contract's worked example decodes, and a take without it keeps
     assert(asked.every((url) => url.includes('peaks=8')), asked.join(' '));
     useTransport(mockFetch);
 });
+
+test('api: every api.<name>(…) the app calls exists, and a plain one is given { params, query, body }', async () => {
+    // A route in OPERATIONS without its function in `api` (the choir wait's hold and start, 2026-11-24) only failed at
+    // run time, quietly. Every app module is in sw.js's offline list (tool/offline_check.py keeps it whole).
+    const sw = await (await fetch('/sw.js')).text();
+    const modules = [...new Set([...sw.matchAll(/'(\/js\/[^']+\.js)'/g)].map((m) => m[1]))].filter((p) => p !== '/js/api.js' && p !== '/js/api-mock.js');
+    assert(modules.length > 100, `${modules.length} modules listed`);
+    const missing = [];
+    for (const path of modules) {
+        const source = await (await fetch(path)).text();
+        // Only modules that import api.js's `api` (game-toggle.js has an `api` of its own).
+        if (!/import\s*\{[^}]*\bapi\b[^}]*\}\s*from\s*'[^']*\/api\.js'/.test(source)) continue;
+        for (const [, chain, first] of source.matchAll(/\bapi\.([a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)*)\(\s*(\S)/g)) {
+            const fn = chain.split('.').reduce((at, key) => at?.[key], api);
+            if (typeof fn !== 'function') missing.push(`${path}: api.${chain} (none)`);
+            // A generated function (no hand-written one yet) takes call's own options: an id or a body alone won't do.
+            else if (fn.plain && first !== '{' && first !== ')') missing.push(`${path}: api.${chain}(…) is given something other than { params, query, body }`);
+        }
+    }
+    assert(!missing.length, `wrong api calls: ${[...new Set(missing)].join('; ')}`);
+});
+

@@ -5,7 +5,7 @@ import { encodeWav } from '/js/wav.js';
 import { id3Tag } from '/js/mp3.js';
 import { assert, test } from './harness.js';
 
-const MARK = { text: 'AI-generated singing voice (synthetic). Made by Stackapella.', generator: 'Stackapella voices' };
+const MARK = { text: 'AI-generated voice (Stackapella, SoulX-Singer)', generator: 'Stackapella voices (SoulX-Singer)', digitalSourceType: 'http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia' };
 
 /** A WAV's chunks after "WAVE": [{ id, bytes }], and the INFO fields inside a LIST. */
 function chunks(buffer) {
@@ -37,7 +37,11 @@ test('ai mark: a WAV holding an AI voice carries the marking in INFO (ICMT, ISFT
     assert(all.some((c) => c.id === 'data') && all.some((c) => c.id === 'fmt '), 'still a playable WAV');
     const fields = info(all.find((c) => c.id === 'LIST').bytes);
     assert(fields.ICMT === `${MARK.text}\nReal voices: Sarah K.`, `ICMT: ${JSON.stringify(fields.ICMT)}`);
-    assert(fields.ISFT === MARK.generator, `ISFT: ${fields.ISFT}`);
+    assert(fields.ISFT === 'Stackapella', `ISFT: ${fields.ISFT}`);
+    // iXML (the voices worker's and the server's table): NOTE the text, USER the machine fields.
+    const ixml = new TextDecoder().decode(all.find((c) => c.id === 'iXML')?.bytes ?? new Uint8Array(0));
+    assert(ixml.includes(`<NOTE>${MARK.text}</NOTE>`), ixml);
+    assert(ixml.includes(`<USER>ai_generated=true;digital_source_type=${MARK.digitalSourceType};generator=${MARK.generator}</USER>`), ixml);
     const bext = all.find((c) => c.id === 'bext');
     assert(bext && bext.bytes.length === 602, 'a bext chunk');
     assert(new TextDecoder().decode(bext.bytes.slice(0, 256)).replace(/\0+$/, '') === MARK.text, 'bext Description is the marking');
@@ -45,14 +49,14 @@ test('ai mark: a WAV holding an AI voice carries the marking in INFO (ICMT, ISFT
 
 test('ai mark: a WAV without an AI voice is not marked', async () => {
     const all = chunks(await encodeWav([new Float32Array(480)], 48000, { comment: 'Real voices: Sarah K.' }).arrayBuffer());
-    assert(!all.some((c) => c.id === 'bext'), 'no bext');
+    assert(!all.some((c) => c.id === 'bext') && !all.some((c) => c.id === 'iXML'), 'no bext or iXML');
     const fields = info(all.find((c) => c.id === 'LIST').bytes);
     assert(fields.ICMT === 'Real voices: Sarah K.' && !fields.ISFT, JSON.stringify(fields));
     assert(!chunks(await encodeWav([new Float32Array(480)], 48000).arrayBuffer()).some((c) => c.id === 'LIST'), 'no credits, no LIST');
 });
 
-test('ai mark: an MP3 holding an AI voice carries ID3 COMM and TXXX AI_GENERATED / AI_GENERATOR', () => {
-    const tag = id3Tag(MARK.text, { AI_GENERATED: 'true', AI_GENERATOR: MARK.generator });
+test('ai mark: an MP3 holding an AI voice carries ID3 COMM and TXXX AI_GENERATED / AI_GENERATOR / DIGITAL_SOURCE_TYPE', () => {
+    const tag = id3Tag(MARK.text, { AI_GENERATED: 'true', AI_GENERATOR: MARK.generator, DIGITAL_SOURCE_TYPE: MARK.digitalSourceType });
     const size = (tag[6] << 21) | (tag[7] << 14) | (tag[8] << 7) | tag[9];
     assert(size === tag.length - 10, 'its size is its frames');
     const frames = [];
@@ -62,7 +66,7 @@ test('ai mark: an MP3 holding an AI voice carries ID3 COMM and TXXX AI_GENERATED
         frames.push({ id, body: tag.slice(at + 10, at + 10 + n) });
         at += 10 + n;
     }
-    assert(frames.map((f) => f.id).join() === 'COMM,TXXX,TXXX', frames.map((f) => f.id).join());
+    assert(frames.map((f) => f.id).join() === 'COMM,TXXX,TXXX,TXXX', frames.map((f) => f.id).join());
     const utf = (bytes) => new TextDecoder('utf-16le').decode(bytes.slice(2)).replace(/\0+$/, '');
     assert(utf(frames[0].body.slice(8)) === MARK.text, 'the comment is the marking');
     const txxx = frames.slice(1).map((f) => {
@@ -71,5 +75,5 @@ test('ai mark: an MP3 holding an AI voice carries ID3 COMM and TXXX AI_GENERATED
         while (end + 1 < body.length && !(body[end] === 0 && body[end + 1] === 0)) end += 2;
         return [utf(body.slice(0, end)), utf(body.slice(end + 2))];
     });
-    assert(JSON.stringify(txxx) === JSON.stringify([['AI_GENERATED', 'true'], ['AI_GENERATOR', MARK.generator]]), JSON.stringify(txxx));
+    assert(JSON.stringify(txxx) === JSON.stringify([['AI_GENERATED', 'true'], ['AI_GENERATOR', MARK.generator], ['DIGITAL_SOURCE_TYPE', MARK.digitalSourceType]]), JSON.stringify(txxx));
 });
