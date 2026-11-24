@@ -32,7 +32,9 @@ def journey(f):
     f.shot("ideas")
 
     # Your voice with no range: the keys take the width.
+    # The member's own history: never the signed-out sample first (Your voice waits for the account).
     f.go("/voice?api=mock&as=member", "document.querySelector('[data-history-chart]')")
+    assert f.js("!document.querySelector('[data-history-chart].opacity-60')"), "the signed-out sample shown to a member"
     f.run(f"const l = {LEARNING}; await l.loadLearning();")
     if not f.js(f"!!{LEARNING}.learning.progress.range"):
         gap = f.js("(() => { const svg = document.querySelector('svg[role=img][viewBox^=\"0 0 \"][aria-label]'); const box = svg.parentElement.parentElement.getBoundingClientRect(); return Math.round(svg.getBoundingClientRect().left - box.left); })()")

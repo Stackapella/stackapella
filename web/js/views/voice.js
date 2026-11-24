@@ -22,6 +22,9 @@ import { CourseStats } from '../components/home.js';
 import { AppScreen } from '../components/page.js';
 import { Icon, Logo } from '../components/icon.js';
 import { game } from '../skin.js';
+import { change, rangeChange, rolling } from '../progress-measures.js';
+import { inFirstWeek } from '../components/voice-care.js';
+import { count } from '../usage.js';
 
 const LOW = 36; // C2
 const HIGH = 84; // C6
@@ -201,8 +204,96 @@ const RangeKeyboard = {
 };
 
 /**
- * On pitch over time: the percents oldest to newest, a dot for each, on a scale from 0 to 100% marked at the left, with
- * the first and last dates under it (the finish-line audit: a lone line with no scale read as nothing).
+ * Your range over time (Brief F; progress.rangeHistory): a band from each day's lowest note to its highest, oldest to
+ * newest, the notes named at the left and the first and last dates under it. Shown with two ranges or more.
+ */
+const WIDE = '(min-width: 768px)'; // a wide card draws a wider band, so it fills the card and its notes stay readable
+const RangeBand = {
+    props: { history: { type: Array, required: true } },
+    data: () => ({ wide: matchMedia(WIDE).matches }),
+    setup: () => ({ midiName }),
+    template: `
+        <section class="card space-y-3 p-6" aria-labelledby="range-band-heading" data-range-band>
+            <h2 id="range-band-heading" class="text-lg font-bold text-cream">{{ t('voice.rangeOverTime') }}</h2>
+            <p v-if="widened" class="text-sm text-cream" data-range-change>{{ widened }}</p>
+            <svg :viewBox="'0 0 ' + box.width + ' 116'" class="block w-full" role="img" :aria-label="label">
+                <g v-for="m in marks" :key="m">
+                    <line :x1="box.left" :x2="box.right" :y1="yOf(m)" :y2="yOf(m)" class="stroke-line" stroke-width="0.5" />
+                    <text :x="box.left - 6" :y="yOf(m) + 3" text-anchor="end" class="fill-muted text-[9px]" aria-hidden="true" translate="no">{{ midiName(m) }}</text>
+                </g>
+                <polygon :points="shape" class="fill-part-2" opacity="0.18" />
+                <polyline :points="edge('high')" fill="none" class="stroke-part-2" stroke-width="2" stroke-linejoin="round" />
+                <polyline :points="edge('low')" fill="none" class="stroke-part-2" stroke-width="2" stroke-linejoin="round" />
+                <text :x="box.left" y="112" class="fill-muted text-[9px]" aria-hidden="true">{{ dateOf(history[0]) }}</text>
+                <text :x="box.right" y="112" text-anchor="end" class="fill-muted text-[9px]" aria-hidden="true">{{ dateOf(history.at(-1)) }}</text>
+            </svg>
+        </section>`,
+    mounted() {
+        this.media = matchMedia(WIDE);
+        this.onMedia = () => (this.wide = this.media.matches);
+        this.media.addEventListener('change', this.onMedia);
+    },
+    unmounted() {
+        this.media?.removeEventListener('change', this.onMedia);
+    },
+    computed: {
+        box() {
+            const width = this.wide ? 640 : 320;
+            return { width, left: 34, right: width - 4, top: 8, bottom: 96 };
+        },
+        lowest() {
+            return Math.min(...this.history.map((r) => r.low)) - 2;
+        },
+        highest() {
+            return Math.max(...this.history.map((r) => r.high)) + 2;
+        },
+        /** Every C and G in view, for the scale. */
+        marks() {
+            const out = [];
+            for (let m = Math.ceil(this.lowest); m <= this.highest; m++) if (m % 12 === 0 || m % 12 === 7) out.push(m);
+            return out;
+        },
+        shape() {
+            return [...this.history.map((r, i) => this.at(i, r.high)), ...[...this.history].reverse().map((r, j) => this.at(this.history.length - 1 - j, r.low))].join(' ');
+        },
+        /** "Up a whole step at the top since Nov 19": a widening of a whole step or more at an end (progress-measures.js). */
+        widened() {
+            const change = rangeChange(this.history);
+            if (!change) return '';
+            const date = this.dateOf({ date: change.since });
+            const by = (n) => (n === 2 ? t('voice.rangeChange.wholeStep') : t('voice.rangeChange.halfSteps', { count: n }));
+            if (change.top && change.bottom) return t('voice.rangeChange.widerBoth', { top: by(change.top), bottom: by(change.bottom), date });
+            return change.top ? t('voice.rangeChange.upTop', { by: by(change.top), date }) : t('voice.rangeChange.downBottom', { by: by(change.bottom), date });
+        },
+        label() {
+            const first = this.history[0];
+            const last = this.history.at(-1);
+            return t('voice.rangeOverTimeLabel', { from: t('voice.rangeSpan', { low: midiName(first.low), high: midiName(first.high) }), to: t('voice.rangeSpan', { low: midiName(last.low), high: midiName(last.high) }) });
+        },
+    },
+    methods: {
+        x(i) {
+            const n = this.history.length;
+            return this.box.left + 3 + (n > 1 ? (i / (n - 1)) * (this.box.right - this.box.left - 6) : 0);
+        },
+        yOf(midi) {
+            return this.box.bottom - ((midi - this.lowest) / (this.highest - this.lowest)) * (this.box.bottom - this.box.top);
+        },
+        at(i, midi) {
+            return `${this.x(i).toFixed(1)},${this.yOf(midi).toFixed(1)}`;
+        },
+        edge(side) {
+            return this.history.map((r, i) => this.at(i, r[side])).join(' ');
+        },
+        dateOf: (entry) => formatDate(`${entry.date}T12:00:00`, { month: 'short', day: 'numeric' }),
+    },
+};
+
+/**
+ * On pitch over time: the percents oldest to newest, on a scale from 0 to 100% marked at the left, with the first and
+ * last dates under it (the finish-line audit: a lone line with no scale read as nothing). Made honest (Brief F): the
+ * line is the rolling average of the last 5 takes, each take a faint dot behind it, and a change is said in words only
+ * when it's large and well counted (js/progress-measures.js change).
  */
 const PLOT = { left: 34, right: 316, top: 6, bottom: 96 }; // in the 320 by 116 drawing
 const HistoryChart = {
@@ -214,8 +305,8 @@ const HistoryChart = {
                 <line :x1="PLOT.left" :x2="PLOT.right" :y1="yOf(y)" :y2="yOf(y)" class="stroke-line" stroke-width="0.5" />
                 <text :x="PLOT.left - 6" :y="yOf(y) + 3" text-anchor="end" class="fill-muted text-[9px] tabular-nums" aria-hidden="true">{{ y }}%</text>
             </g>
-            <polyline v-if="ordered.length > 1" :points="points" fill="none" class="stroke-part-4" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />
-            <circle v-for="(p, i) in dots" :key="i" :cx="p.x" :cy="p.y" r="3" class="fill-part-4" />
+            <circle v-for="(p, i) in dots" :key="i" :cx="p.x" :cy="p.y" r="2.5" class="fill-part-4" opacity="0.3" data-history-dot />
+            <polyline v-if="ordered.length > 1" :points="points" fill="none" class="stroke-part-4" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" data-history-line />
             <template v-if="ordered.length">
                 <text :x="PLOT.left" y="112" class="fill-muted text-[9px]" aria-hidden="true">{{ dateOf(ordered[0]) }}</text>
                 <text v-if="ordered.length > 1" :x="PLOT.right" y="112" text-anchor="end" class="fill-muted text-[9px]" aria-hidden="true">{{ dateOf(ordered.at(-1)) }}</text>
@@ -231,7 +322,8 @@ const HistoryChart = {
             return this.ordered.map((s, i) => ({ x: PLOT.left + 3 + (n > 1 ? (i / (n - 1)) * span : span / 2), y: this.yOf(s.summary.pitchPercent) }));
         },
         points() {
-            return this.dots.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+            const average = rolling(this.ordered.map((s) => s.summary.pitchPercent));
+            return this.dots.map((p, i) => `${p.x.toFixed(1)},${this.yOf(average[i]).toFixed(1)}`).join(' ');
         },
         label() {
             const list = this.ordered;
@@ -246,13 +338,17 @@ const HistoryChart = {
 };
 
 export const VoiceView = {
-    components: { AppScreen, CourseStats, ChangeRange, Icon, Logo, RangeDialog, RangeKeyboard, HistoryChart },
+    components: { AppScreen, CourseStats, ChangeRange, Icon, Logo, RangeDialog, RangeKeyboard, HistoryChart, RangeBand },
     data: () => ({ history: null, failed: false, titles: {}, group: 'all', measuring: false, changing: false }),
     setup: () => ({ learning, account, navigate, goBack, BADGES, GROUPS, GROUP_WORDS, GROUP_COLORS, SUITS, FIND, SAMPLE, formatDate, formatNumber, game }),
     template: `
         <AppScreen :title="t('voice.title')" back="/learn" measure="" content-class="gap-6 pt-4 md:gap-8" data-ui="screen" class="bg-ink">
             <template v-if="game()" #aside><span class="tabular-nums text-sm text-muted">{{ t('voice.levelXp', { level: level.level, xp: formatNumber(xp) }) }}</span></template>
 
+                <!-- Progress you can see (Brief F): a beginner (week one) sees the singing line first; the range, the badges and the
+                     course's numbers wait under one fold. Everyone else sees the page as it was. -->
+                <component :is="beginner ? 'details' : 'div'" :class="beginner ? 'group order-last rounded-2xl border border-line [&[open]]:space-y-6 [&[open]]:px-4 [&[open]]:pb-4' : 'contents'" data-all-measures @toggle="measuresToggled">
+                <summary v-if="beginner" class="tap-44 flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 group-open:px-0 font-semibold text-cream [&::-webkit-details-marker]:hidden">{{ t('voice.allMeasures') }}<Icon name="chevron" :size="18" class="text-muted transition-transform group-open:rotate-180" /></summary>
                 <!-- From 900 px (Hillel's width design): the keyboard at left; your range, its line and the ways to change it at
                      right, the four numbers under them. A phone keeps this order: range, keyboard, numbers. -->
                 <section class="app-split space-y-4 min-[900px]:gap-y-4 min-[900px]:space-y-0" aria-labelledby="range-heading" data-voice-range>
@@ -283,6 +379,7 @@ export const VoiceView = {
                     <button v-if="type" type="button" class="btn-primary self-start min-[900px]:col-start-2 min-[900px]:justify-self-start" @click="navigate('/')">{{ t(FIND[type]) }} <Icon name="arrow" :size="16" /></button>
                 </section>
 
+                <RangeBand v-if="rangeHistory.length >= 2" :history="rangeHistory" />
                 <!-- Badges are game mode's: still earned, shown only there (docs/skins-plan.md row 6). -->
                 <section v-if="game()" class="space-y-4" aria-labelledby="badges-heading">
                     <div class="flex flex-wrap items-center justify-between gap-3">
@@ -319,6 +416,12 @@ export const VoiceView = {
                     </template>
                 </section>
 
+                <section v-if="beginner" class="card p-6" aria-labelledby="progress-heading-all">
+                    <h2 id="progress-heading-all" class="mb-4 text-lg font-bold text-cream">{{ t('voice.progress') }}</h2>
+                    <CourseStats editable />
+                </section>
+                </component>
+
                 <!-- Your history and Your progress side by side from 900 px. -->
                 <div class="flex flex-col gap-6 md:gap-8 min-[900px]:grid min-[900px]:grid-cols-2 min-[900px]:items-start min-[900px]:gap-6" data-voice-pair>
                 <section class="card space-y-4 p-6" aria-labelledby="history-heading">
@@ -328,6 +431,7 @@ export const VoiceView = {
                         <p v-if="!history.length" class="text-sm text-muted">{{ t('voice.history.empty') }}</p>
                         <template v-else>
                             <HistoryChart :scores="history" />
+                            <p v-if="pitchChange" class="text-sm text-cream" data-pitch-change :data-dir="pitchChange.dir">{{ pitchChange.dir === 'up' ? t('voice.history.changeUp', { from: pitchChange.from, to: pitchChange.to }) : t('voice.history.changeDown', { from: pitchChange.from, to: pitchChange.to }) }}</p>
                             <p v-if="lean" class="text-sm text-cream">{{ lean }}</p>
                             <h3 class="text-sm font-semibold text-muted">{{ t('voice.history.highlights') }}</h3>
                             <ul class="space-y-1 text-sm text-cream">
@@ -336,7 +440,8 @@ export const VoiceView = {
                         </template>
                     </template>
                     <p v-else-if="signedIn && failed" class="text-sm text-muted">{{ failed === 'offline' ? t('common.offline') : t('voice.history.notLoaded') }}</p>
-                    <p v-else-if="signedIn" class="text-sm text-muted" role="status">{{ t('settings.loading') }}</p>
+                    <!-- Loading until the account is known too: a signed-in singer never sees the signed-out sample first. -->
+                    <p v-else-if="signedIn || !account.loaded" class="text-sm text-muted" role="status">{{ t('settings.loading') }}</p>
                     <template v-else>
                         <p class="text-sm text-muted">{{ t('voice.history.sample') }}</p>
                         <HistoryChart :scores="SAMPLE" sample />
@@ -344,7 +449,7 @@ export const VoiceView = {
                     </template>
                 </section>
 
-                <section class="card p-6" aria-labelledby="progress-heading">
+                <section v-if="!beginner" class="card p-6" aria-labelledby="progress-heading">
                     <h2 id="progress-heading" class="mb-4 text-lg font-bold text-cream">{{ t('voice.progress') }}</h2>
                     <CourseStats editable />
                 </section>
@@ -354,6 +459,9 @@ export const VoiceView = {
         </AppScreen>`,
     computed: {
         range: () => learning.progress.range,
+        /** A beginner (the first week): the singing line first, the rest under All your measures. */
+        beginner: () => inFirstWeek(),
+        rangeHistory: () => learning.progress.rangeHistory ?? [],
         /** Where the range came from: "Measured on 28 Oct" (sung), or "Chosen by you" (set here, or a part picked). */
         rangeFrom() {
             const { rangeSource: source, rangeAt: at } = learning.progress;
@@ -390,6 +498,11 @@ export const VoiceView = {
         earnedCount: () => BADGES.filter((b) => learning.progress.badges?.[b.id]).length,
         byGroup: () => Object.fromEntries(GROUPS.map((group) => [group, BADGES.filter((b) => b.group === group)])),
         /** The way you lean, from the recent takes: said only past 5 cents. */
+        /** "Up from 61% to 74% across your takes": only for a change that's large and well counted. */
+        pitchChange() {
+            const values = [...(this.history ?? [])].reverse().map((s) => s.summary?.pitchPercent).filter((v) => typeof v === 'number');
+            return change(values);
+        },
         lean() {
             const values = (this.history ?? []).map((s) => s.summary?.tendency).filter((v) => typeof v === 'number');
             if (values.length < 3) return '';
@@ -409,16 +522,33 @@ export const VoiceView = {
             immediate: true,
         },
     },
+    unmounted() {
+        this.left = true; // the history's pages stop being read
+    },
+    mounted() {
+        count('prog_view');
+    },
     created() {
         loadLearning();
         // From a result's "Check my range again" (the consultant's UX review, item 3): the range check opens at once.
         if (new URLSearchParams(location.search).get('measure') === '1') this.measuring = true;
     },
     methods: {
+        /** All your measures opened (a beginner's fold): counted each time it opens. */
+        measuresToggled(event) {
+            if (event.target?.open) count('prog_all_open');
+        },
         async loadHistory() {
             try {
-                this.history = (await api.scores.list()).data;
+                // Every page of the history (Brief F: the chart read only the first hundred): the first draws at once, the
+                // rest follow, newest first as the server sends them.
+                let page = await api.scores.list();
+                this.history = page.data;
                 this.titles = Object.fromEntries((await listTemplates()).map((tpl) => [tpl.id, tpl.title]));
+                for (let cursor = page.meta?.nextCursor; cursor && !this.left; cursor = page.meta?.nextCursor) {
+                    page = await api.scores.list({ cursor });
+                    this.history = [...this.history, ...page.data];
+                }
             } catch (error) {
                 console.warn('History not loaded', error);
                 this.failed = error?.code === 'offline' ? 'offline' : true;

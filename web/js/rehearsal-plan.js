@@ -8,6 +8,7 @@ import { phrases as templatePhrases } from './templates.js';
 import { daysUntil, isoDate, localDate } from './rehearsal.js';
 import { STEPS } from './sing.js';
 import { MAX_PLANS } from './rehearsal-merge.js';
+export { isReady } from './rehearsal-merge.js';
 
 export { MAX_PLANS, mergeRehearsals } from './rehearsal-merge.js';
 

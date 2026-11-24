@@ -83,3 +83,12 @@ test('rehearsal plan: a group part follows its group\'s date, never touching the
     const weekly = groupPlanStep({ rehearsal: { date: '2026-11-17', weekly: true }, groupId: 7 }, today);
     assert(weekly?.date === '2026-11-24', `a weekly rehearsal steps on to its next: ${weekly?.date}`);
 });
+
+test('rehearsal plan: a later "Nearly" takes a plan back from ready, and two devices keep the later of each', async () => {
+    const { isReady, mergeRehearsals } = await import('/js/rehearsal-plan.js');
+    assert(isReady({ readyAt: 200 }) && isReady({ readyAt: 200, nearlyAt: 100 }), 'ready');
+    assert(!isReady({ readyAt: 100, nearlyAt: 200 }) && !isReady({}), 'nearly after ready');
+    const plan = { songId: 's', partKey: 'alto', date: '2026-12-01', madeAt: 1, days: [] };
+    const merged = mergeRehearsals([{ ...plan, readyAt: 100 }], [{ ...plan, readyAt: 100, nearlyAt: 300 }]);
+    assert(merged[0].readyAt === 100 && merged[0].nearlyAt === 300 && !isReady(merged[0]), JSON.stringify(merged[0]));
+});

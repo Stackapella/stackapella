@@ -2732,18 +2732,26 @@ kept warm-ups (docs/warmup-builder-plan.md): `[{ code, name, keptAt, removedAt? 
 merged by the app by `code`, the newest of `keptAt` and `removedAt` winning; starting the course
 over keeps them.
 `progress.rehearsals` (since 2026-11-23, docs/rehearsal-ready-plan.md) is a part's plan for a rehearsal date:
-`[{ songId, partKey, date: "YYYY-MM-DD", madeAt, removedAt?, groupId?, readyAt?, days: [{ date, phrases: [first, last],
+`[{ songId, partKey, date: "YYYY-MM-DD", madeAt, removedAt?, groupId?, readyAt?, nearlyAt?, days: [{ date, phrases: [first, last],
 whole?, doneAt? }] }]` (the times in milliseconds, as `warmups`), at most 20 (each at most 60 days): each practice day's phrases (0-based indexes, inclusive, kept as made even if the
 song's phrasing changes) and `whole: true` on the last day (the whole part with the others); `groupId` when it came from
 a choir group's date (it follows that date, and goes when the group's date does). Merged by the app by `songId` and
 `partKey`: the newest of `madeAt` and `removedAt` wins the plan (its days and phrases with it), a day's `doneAt` kept
-when either side has it, `readyAt` the later. The date is the singer's own: never sent anywhere but here.
+when either side has it, `readyAt` the later, and `nearlyAt` (optional, since 2026-11-24: a later ready check that wasn't
+ready, in milliseconds) the later; the plan is ready while `readyAt` is set and later than any `nearlyAt`, so a plan goes
+back to its days after a check that isn't ready, on every device. The date is the singer's own: never sent anywhere but here.
 `progress.chordAgain` (since 2026-11-23, docs/first-week-plan.md change 2) is the first week's "your note inside the
 chord": `[{ date: "YYYY-MM-DD", inTuneSeconds, centsOff }]`, day one's included, at most 14, numbers only (seconds in
 tune of 5, 0 to 5; the mean cents off, 0 to 1200), never audio. Merged by the app keeping every date from both sides,
 one entry a date (the same date on both keeps the greater `inTuneSeconds`). The server refuses either key malformed
 (`422`).
-Starting the course over keeps both.
+`progress.rangeHistory` (since 2026-11-24, docs/practice-plan.md, "What has to start being kept") is the range each time
+it changes, for Your voice's range over time: `[{ date: "YYYY-MM-DD", low, high, how, at }]`, `low` and `high` MIDI
+notes (0 to 127, `low` not above `high`), `how` either `measured` (sung) or `chosen` (set on Your voice), never a part
+picked or a range cleared, `at` in milliseconds, at most 120 (the app keeps the newest), one entry a date. Merged by the
+app keeping every date from both sides (the same date on both keeps the later `at`). Settings' Clear my range keeps it.
+The server refuses it malformed (`422`).
+Starting the course over keeps all three.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -3004,6 +3012,10 @@ The same `id` again answers `200` as it is; the same `id` with another body is a
 **Request:** `{ "id": "<uuid>", "lesson": "u4.l2.ex1", "templateId": null, "templateVersion": null,
 "partKey": null, "recordedAt": "...", "summary": {...} }` (`summary` at most 16 KB, as the app
 keeps it).
+A summary carries the same numbers as a take's (since 2026-11-24, so a lesson step reads like a take): `pitchPercent`,
+`stars`, `level`, and the lean and timing: `tendency` (the signed mean cents off, rounded: below 0 flat, above sharp),
+`entryMs` (the median entry, negative early, positive late, `null` without a timed entry) and `timingPercent` (the
+share of entries on time, 0 to 100, or `null`).
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -3012,7 +3024,8 @@ keeps it).
 
 #### `scores.list`
 
-The history (take reports and exercises), newest first, 100 a page, for every account. **Request:**
+The history (take reports and exercises), newest first, 100 a page, for every account. A chart across
+the whole history reads on while `meta.nextCursor` isn't `null`. **Request:**
 `?templateId=&partKey=&lesson=&since=&cursor=`, all optional (`since`: kept after that time, for a
 device catching up).
 

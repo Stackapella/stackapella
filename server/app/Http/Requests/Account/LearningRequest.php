@@ -30,13 +30,15 @@ final class LearningRequest extends FormRequest
             'progress' => ['present', 'array', new JsonSize(256)],
             // A part's plan for a rehearsal date (docs/rehearsal-ready-plan.md): its shape only; the app merges it.
             'progress.rehearsals' => ['sometimes', 'array', 'list', 'max:20'],
-            'progress.rehearsals.*' => ['array:songId,partKey,date,madeAt,removedAt,groupId,readyAt,days'],
+            'progress.rehearsals.*' => ['array:songId,partKey,date,madeAt,removedAt,groupId,readyAt,nearlyAt,days'],
             'progress.rehearsals.*.songId' => ['required', 'string', 'max:120'],
             'progress.rehearsals.*.partKey' => ['required', 'string', 'max:40'],
             'progress.rehearsals.*.date' => ['required', 'date_format:Y-m-d'],
             'progress.rehearsals.*.madeAt' => ['required', 'integer', 'min:0'],
             'progress.rehearsals.*.removedAt' => ['sometimes', 'nullable', 'integer', 'min:0'],
             'progress.rehearsals.*.readyAt' => ['sometimes', 'nullable', 'integer', 'min:0'],
+            // A later ready check that wasn't ready: the plan goes back to its days (2026-11-24).
+            'progress.rehearsals.*.nearlyAt' => ['sometimes', 'nullable', 'integer', 'min:0'],
             'progress.rehearsals.*.groupId' => ['sometimes', 'nullable', 'string', 'max:40'],
             'progress.rehearsals.*.days' => ['required', 'array', 'list', 'max:60'],
             'progress.rehearsals.*.days.*' => ['array:date,phrases,whole,doneAt'],
@@ -51,6 +53,14 @@ final class LearningRequest extends FormRequest
             'progress.chordAgain.*.date' => ['required', 'date_format:Y-m-d', 'distinct'],
             'progress.chordAgain.*.inTuneSeconds' => ['required', 'numeric', 'between:0,5'],
             'progress.chordAgain.*.centsOff' => ['required', 'numeric', 'between:0,1200'],
+            // The range each time it changes (docs/practice-plan.md, "What has to start being kept"): sung or set, never picked.
+            'progress.rangeHistory' => ['sometimes', 'array', 'list', 'max:120'],
+            'progress.rangeHistory.*' => ['array:date,low,high,how,at'],
+            'progress.rangeHistory.*.date' => ['required', 'date_format:Y-m-d', 'distinct'],
+            'progress.rangeHistory.*.low' => ['required', 'integer', 'between:0,127', 'lte:progress.rangeHistory.*.high'],
+            'progress.rangeHistory.*.high' => ['required', 'integer', 'between:0,127'],
+            'progress.rangeHistory.*.how' => ['required', 'string', 'in:measured,chosen'],
+            'progress.rangeHistory.*.at' => ['required', 'integer', 'min:0'],
         ];
     }
 

@@ -10,7 +10,7 @@ import { AppScreen } from '../components/page.js';
 import { confirmAction } from '../components/confirm.js';
 import { Icon } from '../components/icon.js';
 import { loadLearning } from '../stores/learning.js';
-import { daysLeft, dayNow } from '../rehearsal-plan.js';
+import { daysLeft, dayNow, isReady } from '../rehearsal-plan.js';
 import { isoDate, localDate } from '../rehearsal.js';
 import { loadTemplate, phrases as templatePhrases } from '../templates.js';
 import { addToCalendar, planFor, planTitle, refreshPlan, removePlan, sendPlanLink, startDay, startPlan } from '../stores/rehearsals.js';
@@ -50,18 +50,18 @@ export const RehearseView = {
                                 <span v-else-if="d.now && d.minutes" class="t-hint block">{{ t('rehearse.minutes', { minutes: formatNumber(d.minutes) }) }}</span>
                             </span>
                             <Icon v-if="d.doneAt" name="check" :size="18" class="shrink-0 text-muted" :aria-label="t('rehearse.done')" />
-                            <button v-else-if="d.now && !plan.readyAt" type="button" class="btn-primary shrink-0" :disabled="busy" data-rehearse-start @click="start(d)">{{ t('rehearse.start') }}</button>
+                            <button v-else-if="d.now && !ready" type="button" class="btn-primary shrink-0" :disabled="busy" data-rehearse-start @click="start(d)">{{ t('rehearse.start') }}</button>
                         </li>
                     </ol>
                     <!-- Ready (the ready check passed; the coordinator, 2026-11-24): the days go quiet, one line and one way to keep it fresh. -->
-                    <div v-if="plan.readyAt" class="mt-4 space-y-1" role="status" data-rehearse-ready>
+                    <div v-if="ready" class="mt-4 space-y-1" role="status" data-rehearse-ready>
                         <p class="text-cream">{{ t('rehearse.readyFor', { day: weekday }) }}</p>
                         <p class="text-sm text-muted">{{ t('rehearse.readyKeep') }}</p>
                         <button type="button" class="link tap-44 text-sm" :disabled="busy" data-rehearse-sing-through @click="knowIt">{{ t('rehearse.singThrough') }}</button>
                     </div>
                     <!-- The two that help today, then the plan's housekeeping as one quiet row (the coordinator: five stacked links was a lot). -->
                     <div class="mt-6 flex flex-col items-start gap-1">
-                        <button v-if="!plan.readyAt && hasPhraseDays" type="button" class="link tap-44 text-sm" data-rehearse-know @click="knowIt">{{ t('rehearse.knowIt') }}</button>
+                        <button v-if="!ready && hasPhraseDays" type="button" class="link tap-44 text-sm" data-rehearse-know @click="knowIt">{{ t('rehearse.knowIt') }}</button>
                         <button type="button" class="link tap-44 text-sm" data-rehearse-calendar @click="calendar">{{ t('rehearse.calendar') }}</button>
                     </div>
                     <div class="mt-3 flex flex-wrap items-center gap-x-5 border-t border-line pt-2">
@@ -85,6 +85,10 @@ export const RehearseView = {
             if (left <= 0) return t('rehearse.whenToday');
             if (left === 1) return t('rehearse.whenTomorrow', { day: this.weekday });
             return t('rehearse.when', { day: this.weekday, days: formatNumber(left) });
+        },
+        /** Ready, and no later check said "Nearly" (rehearsal-merge.js isReady). */
+        ready() {
+            return isReady(this.plan);
         },
         hasPhraseDays() {
             return this.plan.days.some((d) => d.phrases && !d.doneAt);

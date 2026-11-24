@@ -6125,7 +6125,9 @@
             "sharp": "You tend to sing a little sharp, by about {cents} cents. Relaxing on the high notes helps.",
             "centred": "You sing right in the middle of the notes.",
             "sample": "A sample of what this shows:",
-            "withAccount": "Make a free account and your history fills in as you sing."
+            "withAccount": "Make a free account and your history fills in as you sing.",
+            "changeUp": "On pitch: up from {from}% to {to}% across your takes.",
+            "changeDown": "On pitch: {to}% lately, from {from}% at first. A dip is normal when the songs get harder."
         },
         "suits": {
             "soprano": "That suits a soprano part.",
@@ -6166,7 +6168,18 @@
         "badgeFilter": "Which badges",
         "allBadges": "All",
         "stillToEarn": "Still to earn",
-        "goal": "{have} / {need}"
+        "goal": "{have} / {need}",
+        "allMeasures": "All your measures",
+        "rangeOverTime": "Your range over time",
+        "rangeOverTimeLabel": "Your range over time: {from} at first, {to} now.",
+        "rangeSpan": "{low} to {high}",
+        "rangeChange": {
+            "wholeStep": "a whole step",
+            "halfSteps": "{count, plural, one {a half step} other {# half steps}}",
+            "upTop": "Up {by} at the top since {date}.",
+            "downBottom": "Down {by} at the bottom since {date}.",
+            "widerBoth": "{top} higher at the top and {bottom} lower at the bottom since {date}."
+        }
     },
     "warmup": {
         "title": "Warm-up",

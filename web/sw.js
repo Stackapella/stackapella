@@ -232,6 +232,7 @@ const SHELL = [
     '/js/components/choir-panel.js',
     '/js/ai-voices.js',
     '/js/ai-choice.js',
+    '/js/progress-measures.js',
     '/js/ai-counts.js',
     '/js/components/ai-off.js',
     '/js/components/ai-card.js',

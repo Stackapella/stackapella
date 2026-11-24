@@ -568,7 +568,11 @@ export function knownRange(progress = learning.progress) {
 /** A range check's answer, or Your voice's Change it ('chosen'): the singer's range from now on. */
 export async function setRange(low, high, { source = 'measured' } = {}) {
     await loadLearning();
-    await save({ ...learning.progress, range: { low: Math.round(low), high: Math.round(high) }, rangeSource: source, rangeAt: Date.now() });
+    const at = Date.now();
+    const range = { low: Math.round(low), high: Math.round(high) };
+    // The range over time (Brief F; js/progress-measures.js): a measured or chosen range kept by its day.
+    const { withRange } = await import('../progress-measures.js');
+    await save({ ...learning.progress, range, rangeSource: source, rangeAt: at, rangeHistory: withRange(learning.progress.rangeHistory, range, source, at) });
 }
 
 /** Settings' Clear my range: no range until they check it again (dated, so another device's older one never wins back). */

@@ -129,6 +129,7 @@
         '/js/mic-level.js',
         '/js/stores/prefs.js',
         '/js/rehearsal-merge.js',
+        '/js/progress-measures.js',
         '/js/warmup.js',
         '/engine/clock.js',
         '/js/listen.js',

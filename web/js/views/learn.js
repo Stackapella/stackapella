@@ -1071,7 +1071,9 @@ export const LearnView = {
             if (this.entry?.boss && result.percent !== null) this.bossSaid = t('boss.said', { round: this.bossRound, percent: formatNumber(Math.round((this.bossScored / Math.max(1, this.bossTotal)) * 100)), pass: formatNumber(BOSS_PASS) });
             remember(result).catch((error) => console.error('Not remembered', error)); // for the workout's weak spot
             // The history (scores.create): the exercise's numbers, by lesson and step.
-            if (result.percent !== null) keepScore({ lesson: `${this.id}.${this.step}`, summary: { pitchPercent: result.percent, stars: this.starsOf(result), insights: result.insights ?? [] } }).catch((error) => console.error('Score not kept', error));
+            // The lean and the entry timing, as a take's summary keeps them (Brief F: the lean line covers lessons too).
+            const lean = { tendency: typeof result.tendency === 'number' ? Math.round(result.tendency) : null, entryMs: result.entryMs ?? null, timingPercent: result.timingPercent ?? null };
+            if (result.percent !== null) keepScore({ lesson: `${this.id}.${this.step}`, summary: { pitchPercent: result.percent, stars: this.starsOf(result), insights: result.insights ?? [], ...lean } }).catch((error) => console.error('Score not kept', error));
         },
         /** A registered step's end: a scored one's result, or an unscored one done. */
         registeredDone(result) {

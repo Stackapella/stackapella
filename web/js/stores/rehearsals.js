@@ -8,7 +8,7 @@ import { localized, t } from '../i18n.js';
 import { navigate } from '../router.js';
 import { count } from '../usage.js';
 import { daysUntil, isoDate, localDate, rehearsalDates } from '../rehearsal.js';
-import { dayNow, livePlans, makePlan, phrasesDone, replan, upsertPlan } from '../rehearsal-plan.js';
+import { dayNow, isReady, livePlans, makePlan, phrasesDone, replan, upsertPlan } from '../rehearsal-plan.js';
 import { progressOf } from '../sing.js';
 import { loadTemplate, templatePartName } from '../templates.js';
 import { songTitle } from '../song-titles.js';
@@ -73,14 +73,14 @@ export async function refreshPlan(plan) {
 }
 
 /**
- * The ready check passed: the plan says so (readyAt). A later check that isn't ready can't take it back yet: two devices'
- * copies merge by the later readyAt (rehearsal-merge.js), so that waits on a field of its own in the contract.
+ * A ready check's verdict on the plan: ready stamps readyAt; "Nearly" on a ready plan stamps nearlyAt, so it goes back to
+ * its days (both merge as the later of two devices': rehearsal-merge.js isReady).
  */
-export async function markReady(songId, partKey, at = Date.now()) {
+export async function markReady(songId, partKey, ready = true, at = Date.now()) {
     await loadLearning();
     const plan = livePlans(learning.progress?.rehearsals ?? []).find((p) => p.songId === songId && p.partKey === partKey);
-    if (!plan || plan.readyAt) return;
-    await setRehearsals(upsertPlan(learning.progress?.rehearsals ?? [], { ...plan, readyAt: at }));
+    if (!plan || isReady(plan) === ready) return;
+    await setRehearsals(upsertPlan(learning.progress?.rehearsals ?? [], ready ? { ...plan, readyAt: at } : { ...plan, nearlyAt: at }));
 }
 
 const GROUP_DAYS = 60; // a plan's rehearsal at most this far ahead (the contract)

@@ -26,6 +26,8 @@ for (const kind of [...FUNNEL, ...ASKED]) KINDS.add(kind);
 for (const kind of ['bv_sung', 'bv_shown', 'bv_later', 'bv_share_tap:guest', 'bv_share_tap:member', 'bv_resume', 'bv_stop:age', 'bv_stop:email', 'bv_stop:check', 'bv_stop:upload', 'bv_stop:beta', 'bv_sheet_tap']) KINDS.add(kind);
 // AI voices (docs/ai-voices-build-plan.md, phase 1): a playback start in which at least one AI part sings (js/ai-voices.js).
 KINDS.add('ai_heard');
+// Progress you can see (Brief F): Your voice viewed, and a beginner's All your measures opened.
+for (const kind of ['prog_view', 'prog_all_open']) KINDS.add(kind);
 // Kinds the server allows (server/config/counts.php) that the app sends but this list was missing until 2026-11-24, so
 // they were dropped on the device: Hear yourself as a choir's steps, Ready by rehearsal, take-away tracks, lesson 1's live
 // chord, the boot reset, a challenge accepted and the boards viewed. tool/counts_check.py now fails a count no list knows.

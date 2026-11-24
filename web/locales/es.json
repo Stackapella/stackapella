@@ -2894,7 +2894,9 @@
             "sharp": "Sueles pasarte un poco por encima de la nota, unos {cents} cents. Relajarte en los agudos ayuda.",
             "centred": "Cantas justo en el centro de las notas.",
             "sample": "Un ejemplo de lo que muestra:",
-            "withAccount": "Crea una cuenta gratis y tu historial se irá llenando mientras cantas."
+            "withAccount": "Crea una cuenta gratis y tu historial se irá llenando mientras cantas.",
+            "changeUp": "Afinación: de {from}% a {to}% en tus tomas.",
+            "changeDown": "Afinación: {to}% últimamente, desde {from}% al principio. Bajar un poco es normal cuando las canciones son más difíciles."
         },
         "suits": {
             "soprano": "Eso encaja con una voz de soprano.",
@@ -2935,7 +2937,18 @@
         "badgeFilter": "Qué insignias",
         "allBadges": "Todas",
         "stillToEarn": "Por conseguir",
-        "goal": "{have} / {need}"
+        "goal": "{have} / {need}",
+        "allMeasures": "Todas tus medidas",
+        "rangeOverTime": "Tu tesitura con el tiempo",
+        "rangeOverTimeLabel": "Tu tesitura con el tiempo: {from} al principio, {to} ahora.",
+        "rangeSpan": "{low} a {high}",
+        "rangeChange": {
+            "wholeStep": "un tono",
+            "halfSteps": "{count, plural, one {un semitono} other {# semitonos}}",
+            "upTop": "{by} más arriba en lo alto desde el {date}.",
+            "downBottom": "{by} más abajo en lo grave desde el {date}.",
+            "widerBoth": "{top} más arriba en lo alto y {bottom} más abajo en lo grave desde el {date}."
+        }
     },
     "warmup": {
         "title": "Calentamiento",

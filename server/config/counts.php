@@ -31,6 +31,8 @@ return [
         'app_open', 'lesson_start', 'lesson_done', 'unit_done', 'song_created', 'take_recorded', 'share_created', 'harmonise_used', 'export_done', 'sign_up', 'result_shared', 'leaderboard_viewed', 'challenge_accepted',
         // Lesson 1's live chord (2026-11-23, Hillel's "I just sang harmony"): asked to hear their note in a chord, and the chord sounded round it.
         'chord_live_start', 'chord_live_heard',
+        // Your voice as the progress page (build plan Brief F): opened, and All your measures opened.
+        'prog_view', 'prog_all_open',
         // Engagement by AI choice and age band, from signed-in devices (docs/ai-optional-plan.md).
         ...AiChoice::deviceKinds(),
         // The choir wait (2026-11-24): started by itself, held, started now, stopped after the claim, the banner, the email opened.
@@ -200,7 +202,8 @@ return [
     // Fixed id lists for detailed kinds (counts.detailed's sources not read from the courses or the tools).
     'lists' => [
         'bv_share' => ['guest', 'member'],
-        'bv_stops' => ['age', 'email', 'check', 'upload'],
+        // `beta`: a beta singer, who records their parts through the beta instead (share-voice.js).
+        'bv_stops' => ['age', 'email', 'check', 'upload', 'beta'],
         'library_filters' => ['all', 'search', 'part:soprano', 'part:alto', 'part:tenor', 'part:bass', 'more', ...array_keys(SongCollections::GROUPS)],
     ],
 

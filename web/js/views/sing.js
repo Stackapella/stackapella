@@ -791,12 +791,12 @@ export const SingView = {
                 this.aiCardDone = this.aiCardFor;
             }
         },
-        // The ready check done (counted once a take), and a ready part's plan says so (readyAt).
+        // The ready check done (counted once a take); the plan follows its verdict (readyAt, or nearlyAt back to its days).
         readyReport(report) {
             if (!report || this.readyCountedFor === this.recorded) return;
             this.readyCountedFor = this.recorded;
             count('rr_ready_check');
-            if (report.ready) import('../stores/rehearsals.js').then((m) => m.markReady(this.project.template.id, this.recorded.part.templatePartKey)).catch((error) => console.warn('The plan was not marked ready', error));
+            import('../stores/rehearsals.js').then((m) => m.markReady(this.project.template.id, this.recorded.part.templatePartKey, report.ready)).catch((error) => console.warn('The plan was not marked', error));
         },
         clipTake: {
             immediate: true,

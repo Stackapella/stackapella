@@ -1203,7 +1203,7 @@ export const Exercise = {
                 this.heardFirst = false;
                 // The percent itself is held under the top score, so the number and the score agree in both skins.
                 const shownPercent = heardFirst && percent !== null ? Math.min(percent, HEARD_FIRST_MOST) : percent;
-                this.$emit('done', { maxStars: heardFirst ? 2 : null, heardFirst, offerGuide: this.weakTakes >= 2, percent: shownPercent, word: score.word, tips: own?.tip ? [own.tip, ...(score.tips ?? [])] : score.tips ?? [], insights: score.insights ?? [], tendency: score.tendency ?? null, comboBonus: this.bonus, sung, chart, vibrato, harmony: this.harmonyOf(track, notes, ownLine), take: { samples: take.samples, sampleRate: take.sampleRate }, personal: own?.personal ?? null, line: own?.line ?? timed?.line ?? null, label: own?.label ?? timed?.label ?? null, minStars, foldSaid: sayFoldOnce(whistled) });
+                this.$emit('done', { maxStars: heardFirst ? 2 : null, heardFirst, offerGuide: this.weakTakes >= 2, percent: shownPercent, word: score.word, tips: own?.tip ? [own.tip, ...(score.tips ?? [])] : score.tips ?? [], insights: score.insights ?? [], tendency: score.tendency ?? null, entryMs: score.entryMs ?? null, timingPercent: score.timingPercent ?? null, comboBonus: this.bonus, sung, chart, vibrato, harmony: this.harmonyOf(track, notes, ownLine), take: { samples: take.samples, sampleRate: take.sampleRate }, personal: own?.personal ?? null, line: own?.line ?? timed?.line ?? null, label: own?.label ?? timed?.label ?? null, minStars, foldSaid: sayFoldOnce(whistled) });
             } catch (error) {
                 console.error('Scoring failed', error);
                 this.$emit('done', { percent: null, sung });

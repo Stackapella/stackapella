@@ -5,6 +5,7 @@
 
 import { tk } from './i18n.js';
 import { mergeRehearsals } from './rehearsal-merge.js';
+import { mergeRangeHistory } from './progress-measures.js';
 import { mergeCourses } from './courses.js';
 import { mergeWarmups } from './warmup.js';
 
@@ -280,6 +281,8 @@ export function mergeProgress(mine, theirs) {
         ...(mine.warmups || theirs.warmups ? { warmups: mergeWarmups(mine.warmups, theirs.warmups) } : {}),
         // Rehearsal plans (docs/rehearsal-ready-plan.md; the contract's merge rule), only once either side has one.
         ...(mine.rehearsals || theirs.rehearsals ? { rehearsals: mergeRehearsals(mine.rehearsals, theirs.rehearsals) } : {}),
+        // The range over time (js/progress-measures.js): every date from both, the later `at` on the same date.
+        ...(mine.rangeHistory || theirs.rangeHistory ? { rangeHistory: mergeRangeHistory(mine.rangeHistory, theirs.rangeHistory) } : {}),
         keys: { ...theirs.keys, ...mine.keys },
         testedOut: [...new Set([...(mine.testedOut ?? []), ...(theirs.testedOut ?? [])])],
         xp: { total: Math.max(mine.xp?.total ?? 0, theirs.xp?.total ?? 0, sum), days },
