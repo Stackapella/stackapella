@@ -20,6 +20,12 @@ final class ChoirSettings
 
     public const ROOMS = ['dry', 'small', 'hall', 'chapel'];
 
+    /** Whether the singer saved a room for the song: until then the app plays it in their remembered room. */
+    public static function soundSaved(OwnChoirRequest $song): bool
+    {
+        return in_array(((array) ($song->sound ?? []))['room'] ?? null, self::ROOMS, true);
+    }
+
     /**
      * The song's mix, every part in its balance (0 dB unless set).
      *
@@ -40,7 +46,8 @@ final class ChoirSettings
         $doubled = $song->voicing === 'full' ? array_merge(...array_map(static fn (string $k): array => str_ends_with($k, '-low') ? [$k, substr($k, 0, -4)] : [], $keys)) : [];
 
         return [
-            'room' => in_array($saved['room'] ?? null, self::ROOMS, true) ? (string) $saved['room'] : 'hall',
+            // Small room unless they chose one (Hillel, 2026-11-24: "small room should be the default reverb").
+            'room' => in_array($saved['room'] ?? null, self::ROOMS, true) ? (string) $saved['room'] : 'small',
             // Both octaves: each doubled pair 3 dB down, so tenor and bass aren't buried.
             'balance' => array_map(static fn (string $key): array => ['partKey' => $key, 'db' => $levels[$key] ?? (in_array($key, $doubled, true) ? -3.0 : 0.0)], $keys),
             'leadBlend' => isset($saved['leadBlend']) ? (float) $saved['leadBlend'] : null,

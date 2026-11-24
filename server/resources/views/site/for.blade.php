@@ -23,7 +23,7 @@
         <section class="s-wrap s-featurehead" aria-labelledby="page-h">
             <div @class(['s-split', 's-solo' => empty($page['pic'])])>
                 <div>
-                    <x-site.crumbs :trail="[[__('pages.site.who_crumb'), '/features#who-h'], [$page['name']]]" :ld="true" />
+                    <x-site.crumbs :trail="[[__('pages.site.who_crumb'), '/for'], [$page['name']]]" :ld="true" />
                     @if ($signup)
                         <p class="s-soonpill"><span class="s-soon s-open">{{ __('pages.site.coach_signup_pill') }}</span></p>
                     @elseif ($page['slug'] === 'coaches' && \App\Support\Site\SitePages::soon('coaching'))

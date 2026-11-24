@@ -21,6 +21,31 @@ use Illuminate\Support\Facades\Lang;
  */
 final class ForPagesController extends Controller
 {
+    /**
+     * Who it's for (/for; Hillel, 2026-11-24: "add a new whos it for page under products which covers all 3 for pages"):
+     * the home's three ways in, each a card in its part's colour with a real picture and a link to its page, then the
+     * other audiences the site has a page for, and the first lesson. The footer's one way to them.
+     */
+    public function index(Request $request): Response
+    {
+        $title = SitePages::title((string) __('site.for.index.title'));
+
+        return response()->view('site.for-index', [
+            'title' => $title,
+            'meta' => ['title' => $title, 'description' => (string) __('site.for.index.description'), 'url' => Hosts::publicUrl().'/for'],
+            'area' => 'for',
+            'links' => Landing::links(Landing::ref($request->query('ref'))),
+            // The three paths in the home's order and colours (learn, make, lead), each to its page.
+            'paths' => [
+                ['key' => 'learn', 'n' => 1, 'name' => (string) __('pages.nav.learners'), 'url' => '/for/learners', 'shot' => PathPages::shot('learners')],
+                ['key' => 'make', 'n' => 3, 'name' => (string) __('pages.nav.singers'), 'url' => '/for/singers', 'shot' => PathPages::shot('singers')],
+                ['key' => 'lead', 'n' => 4, 'name' => (string) __('pages.nav.for_choirs'), 'url' => '/for/choir-directors', 'shot' => null],
+            ],
+            // Everyone else with a page of their own, as /features lists them.
+            'who' => array_values(array_filter(SitePages::who(), static fn (array $page): bool => ! in_array($page['url'], ['/for/learners', '/for/singers', '/for/choir-directors'], true))),
+        ], 200, SongPagesController::headers());
+    }
+
     public function show(Request $request, string $who, Languages $languages): Response
     {
         if (! in_array($who, SitePages::FOR_PAGES, true)) {

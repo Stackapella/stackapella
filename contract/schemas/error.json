@@ -36,9 +36,14 @@
             "enum": [
                 "limit",
                 "private_shared",
-                "seat_needed"
+                "seat_needed",
+                "not_ready",
+                "not_library",
+                "together",
+                "ai_off",
+                "share"
             ],
-            "description": "A 403 project_read_only: why it's read-only (limit: beyond a plan's project limit, where an install sets one). A 403 plus_required: `private_shared` when it's a shared private arrangement needing the person's own Plus (the plus_private switch, Hillel 2026-11-17), so the app words its Plus sheet for that. `seat_needed` when it's a choir group's song or practice and the person has no seat in it (the choir_seats switch, docs/choir-seats-plan.md): the app shows \"Ask your director to add your seat\", nothing to buy."
+            "description": "A 403 project_read_only: why it's read-only (limit: beyond a plan's project limit, where an install sets one). A 403 plus_required: `private_shared` when it's a shared private arrangement needing the person's own Plus (the plus_private switch, Hillel 2026-11-17), so the app words its Plus sheet for that. `seat_needed` when it's a choir group's song or practice and the person has no seat in it (the choir_seats switch, docs/choir-seats-plan.md): the app shows \"Ask your director to add your seat\", nothing to buy. A 409 not_eligible from ownChoir.gallery.add (the choir gallery): not_ready, not_library, together or ai_off, as the song's galleryCan says, or share when harmonyId isn't the owner's own live share of the song with only their own voice."
         },
         "usedBytes": {
             "type": "integer",

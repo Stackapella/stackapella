@@ -178,6 +178,8 @@ return Application::configure(basePath: dirname(__DIR__))
             // The integrations (IntegrationPagesController): the hub and a page for each other app.
             Route::get('/integrations', [IntegrationPagesController::class, 'index'])->middleware(['nexus', 'throttle:public-pages'])->name('integrations.index');
             Route::get('/integrations/{slug}', [IntegrationPagesController::class, 'show'])->where('slug', '[a-z0-9-]{1,40}')->middleware(['nexus', 'throttle:public-pages'])->name('integrations.page');
+            // Who it's for (Hillel, 2026-11-24): the page for the three audiences, before any one of them.
+            Route::get('/for', [ForPagesController::class, 'index'])->middleware(['nexus', 'throttle:public-pages'])->name('for.index');
             Route::get('/for/{who}', [ForPagesController::class, 'show'])->where('who', '[a-z0-9-]{1,40}')->middleware(['nexus', 'throttle:public-pages'])->name('for.page');
             // Free tools for musicians (docs/tools-plan.md): the hub and one page per tool.
             Route::get('/tools', [ToolPagesController::class, 'index'])->middleware(['nexus', 'throttle:public-pages'])->name('tools.index');

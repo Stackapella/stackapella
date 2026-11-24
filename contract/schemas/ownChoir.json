@@ -287,7 +287,9 @@
                 "costMinutes",
                 "failureHints",
                 "leadTake",
-                "canUseRecordingAsLead"
+                "canUseRecordingAsLead",
+                "gallery",
+                "galleryCan"
             ],
             "properties": {
                 "id": {
@@ -472,7 +474,8 @@
                     "additionalProperties": false,
                     "required": [
                         "sound",
-                        "sung"
+                        "sung",
+                        "soundSaved"
                     ],
                     "description": "Choir settings (Plus to change): the mix, applied at once, and how it is sung, applied by a remake.",
                     "properties": {
@@ -481,6 +484,10 @@
                         },
                         "sung": {
                             "$ref": "#/$defs/sung"
+                        },
+                        "soundSaved": {
+                            "type": "boolean",
+                            "description": "Whether the singer saved a mix for this song: false while `sound` is the defaults (a small room), so the app can play it in the singer's remembered room instead."
                         }
                     }
                 },
@@ -571,21 +578,33 @@
                     "description": "Why its clip couldn't be used (with failure clip_unusable), for its singer alone; null otherwise."
                 },
                 "holdUntil": {
-                    "type": ["string", "null"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "format": "date-time",
                     "description": "A song the app started by itself waits this long before the renderer may take it (10 s, held up to 2 minutes while they listen back; null once taken or started)."
                 },
                 "claimedAt": {
-                    "type": ["string", "null"],
+                    "type": [
+                        "string",
+                        "null"
+                    ],
                     "format": "date-time",
                     "description": "When the renderer first took it; from then a stop still counts toward the singer's songs or minutes."
                 },
                 "queuePosition": {
-                    "type": ["integer", "null"],
+                    "type": [
+                        "integer",
+                        "null"
+                    ],
                     "description": "Its place in line while it waits for the renderer (1 is next); null once taken, while held, or on a busy day's wait."
                 },
                 "etaMinutes": {
-                    "type": ["integer", "null"],
+                    "type": [
+                        "integer",
+                        "null"
+                    ],
                     "description": "Roughly how many minutes until it's made, while it waits or is being made; null when about to start or not on its way."
                 },
                 "slow": {
@@ -657,6 +676,22 @@
                 "canUseRecordingAsLead": {
                     "type": "boolean",
                     "description": "Their recording covers this whole song, so it can be the lead (You + choir, the lead blend); else the app offers Record the lead."
+                },
+                "gallery": {
+                    "$ref": "#/$defs/galleryEntryOrNull",
+                    "description": "Its place in the choir gallery (behind choir_gallery), the owner's alone: null when never added."
+                },
+                "galleryCan": {
+                    "enum": [
+                        "not_library",
+                        "together",
+                        "not_ready",
+                        "ai_off",
+                        "limit_day",
+                        "limit_live",
+                        null
+                    ],
+                    "description": "Why it can't be added now; null when it can (the owner's alone; null for others too)."
                 }
             }
         },
@@ -806,7 +841,7 @@
                 },
                 "balance": {
                     "type": "array",
-                    "description": "Each part's level in dB (−12 to 6), in the song's order.",
+                    "description": "Each part's level in dB (\u221212 to 6), in the song's order.",
                     "items": {
                         "type": "object",
                         "additionalProperties": false,
@@ -836,7 +871,7 @@
                         "number",
                         "null"
                     ],
-                    "description": "Their original clip mixed under the choir, in dB (−24 to 0); null off."
+                    "description": "Their original clip mixed under the choir, in dB (\u221224 to 0); null off."
                 }
             }
         },
@@ -909,6 +944,149 @@
                         "subtle",
                         "wide"
                     ]
+                }
+            }
+        },
+        "galleryEntry": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "harmonyId",
+                "status",
+                "reason",
+                "reasonText",
+                "hiddenBecause",
+                "addedAt",
+                "decidedAt"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "harmonyId": {
+                    "type": "string",
+                    "description": "The share it shows (/h/<id>): the exact mix staff hear."
+                },
+                "status": {
+                    "enum": [
+                        "pending",
+                        "approved",
+                        "declined",
+                        "held",
+                        "removed"
+                    ],
+                    "description": "pending: waiting for staff to listen; held: after a report, until staff look; removed: taken off by them or by staff."
+                },
+                "reason": {
+                    "enum": [
+                        "noise",
+                        "broken",
+                        "not_own",
+                        "not_library",
+                        "other",
+                        null
+                    ],
+                    "description": "Why declined or taken off; the app says it in the singer's words (not_own covers a child's or a well-known voice)."
+                },
+                "reasonText": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "Staff's own sentence, with reason other only."
+                },
+                "hiddenBecause": {
+                    "enum": [
+                        "ai_off",
+                        "changed",
+                        null
+                    ],
+                    "description": "Approved but not shown: their AI features are off, or the song changed (a remake) since it was added."
+                },
+                "addedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "decidedAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                }
+            }
+        },
+        "galleryEntryOrNull": {
+            "type": [
+                "object",
+                "null"
+            ],
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "harmonyId",
+                "status",
+                "reason",
+                "reasonText",
+                "hiddenBecause",
+                "addedAt",
+                "decidedAt"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "harmonyId": {
+                    "type": "string",
+                    "description": "The share it shows (/h/<id>): the exact mix staff hear."
+                },
+                "status": {
+                    "enum": [
+                        "pending",
+                        "approved",
+                        "declined",
+                        "held",
+                        "removed"
+                    ],
+                    "description": "pending: waiting for staff to listen; held: after a report, until staff look; removed: taken off by them or by staff."
+                },
+                "reason": {
+                    "enum": [
+                        "noise",
+                        "broken",
+                        "not_own",
+                        "not_library",
+                        "other",
+                        null
+                    ],
+                    "description": "Why declined or taken off; the app says it in the singer's words (not_own covers a child's or a well-known voice)."
+                },
+                "reasonText": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "Staff's own sentence, with reason other only."
+                },
+                "hiddenBecause": {
+                    "enum": [
+                        "ai_off",
+                        "changed",
+                        null
+                    ],
+                    "description": "Approved but not shown: their AI features are off, or the song changed (a remake) since it was added."
+                },
+                "addedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "decidedAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
                 }
             }
         }

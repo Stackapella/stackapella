@@ -1,0 +1,16 @@
+{
+    "$id": "ownChoir.gallery.list.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "$ref": "choirGallery.item.json"
+            }
+        }
+    }
+}

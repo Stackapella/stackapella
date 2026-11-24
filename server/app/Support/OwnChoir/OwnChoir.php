@@ -369,7 +369,7 @@ final class OwnChoir
     }
 
     /** What a song shown reads (OwnChoir::request), loaded afresh for it, or for all of a page's songs at once. */
-    public const SHOWN = ['templateVersion.template', 'parts', 'user', 'members.user', 'members.job.parts', 'friendJobs.parts'];
+    public const SHOWN = ['templateVersion.template', 'parts', 'user', 'members.user', 'members.job.parts', 'friendJobs.parts', 'galleryItem.harmony', 'galleryItem.user', 'galleryItem.request.parts'];
 
     /** And for many songs at once: the tune each clip sang (a single song reads it only when it's needed). */
     public const SHOWN_MANY = [...self::SHOWN, 'clipTemplateVersion'];
@@ -545,10 +545,13 @@ final class OwnChoir
             // Their own recording as the lead (2026-11-23), theirs alone.
             'leadTake' => self::leadTake($request, $viewer),
             'canUseRecordingAsLead' => $viewer->id === $request->user_id && $request->lead !== null,
+            // The choir gallery (docs/choir-gallery-plan.md): its place there, and why it can't be added now (the owner's).
+            'gallery' => $viewer->id === $request->user_id && $request->parent_request_id === null ? ChoirGallery::entry($request->galleryItem) : null,
+            'galleryCan' => $viewer->id === $request->user_id && $request->parent_request_id === null && ChoirGallery::on($viewer) ? ChoirGallery::cannot($request, $viewer) : null,
             // "Arranged for a low voice" (2026-11-23).
             'voicing' => $request->voicing,
             // Plus's choir settings (2026-11-23): the mix, how it's sung, what a remake would use, and one on its way.
-            'settings' => ['sound' => ChoirSettings::sound($request), 'sung' => ChoirSettings::sung($request)],
+            'settings' => ['sound' => ChoirSettings::sound($request), 'soundSaved' => ChoirSettings::soundSaved($request), 'sung' => ChoirSettings::sung($request)],
             'remakeMinutes' => [
                 'standard' => ChoirSettings::remakeMinutes($request, 'standard', $remakeParts = ChoirSettings::remakeParts($request)),
                 'fine' => ChoirSettings::remakeMinutes($request, 'fine', $remakeParts),

@@ -68,6 +68,12 @@
             "storageBytes": 53687091200
         },
         "aiOptional": false,
-        "choirEmail": false
+        "choirEmail": false,
+        "singingTest": false,
+        "singingTestBoards": false,
+        "choirGallery": {
+            "on": false,
+            "consentVersion": 1
+        }
     }
 }

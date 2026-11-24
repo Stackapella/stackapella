@@ -1,0 +1,19 @@
+{
+    "data": [
+        {
+            "id": "6f1c2b9e-3d4a-4b8f-9a61-2f0c7d5e8b13",
+            "person": {
+                "id": "u_7Qk2",
+                "name": "Ada Lovelace"
+            },
+            "testVersion": 1,
+            "total": 93,
+            "reasons": [
+                "jump",
+                "flat"
+            ],
+            "takenAt": "2026-11-24T18:05:00Z",
+            "holdEndsAt": "2026-11-26T18:05:00Z"
+        }
+    ]
+}

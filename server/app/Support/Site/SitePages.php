@@ -755,7 +755,7 @@ final class SitePages
         $courses = self::courses();
         $how = self::hasHowItWorks() ? ['/how-it-works'] : [];
 
-        return ['/features', ...array_map(static fn (string $s): string => '/features/'.$s, self::FEATURES), ...array_map(static fn (string $s): string => '/for/'.$s, self::FOR_PAGES),
+        return ['/features', ...array_map(static fn (string $s): string => '/features/'.$s, self::FEATURES), '/for', ...array_map(static fn (string $s): string => '/for/'.$s, self::FOR_PAGES),
             ...(self::hubLive() ? ['/tools'] : []), ...(self::embedLive() ? ['/tools/embed'] : []), ...array_map(static fn (string $s): string => '/tools/'.$s, [...self::TOOLS, ...self::variants()]),
             ...($courses === [] ? [] : ['/courses', ...array_map(static fn (string $s): string => '/courses/'.$s, $courses)]), '/about', ...$how, '/press', '/whats-new', '/guides',
             '/integrations', ...array_map(static fn (string $s): string => '/integrations/'.$s, self::INTEGRATIONS)];

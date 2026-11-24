@@ -778,7 +778,7 @@ body { margin: 0; background: var(--ground); }
 .lnf-foot-wrap .s-foot-brand p { margin: 8px 0 0; max-width: 28em; color: var(--mute); } .lnf-foot-wrap .s-foot-xmas { font-weight: 600; }
 .lnf-foot-wrap .s-social { display: flex; gap: 8px; margin-top: 16px; }
 .lnf-foot-wrap .s-iconbtn { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 99px; background: var(--panel); border: 1px solid var(--edge); }
-.lnf-foot-wrap .s-foot-cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px 32px; } /* seven columns: four and three */
+.lnf-foot-wrap .s-foot-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 32px; } /* six columns: two rows of three */
 .lnf-foot-wrap .s-foot-h { margin: 0 0 6px; font-size: 12.5px; font-weight: 700; line-height: 1.3; letter-spacing: .14em; text-transform: uppercase; color: var(--mute); }
 .lnf-foot-wrap ul { margin: 0; padding: 0; list-style: none; }
 .lnf-foot-wrap .s-flink { display: inline-flex; align-items: center; min-height: 36px; color: color-mix(in srgb, var(--ink) 88%, transparent); } .lnf-foot-wrap .s-flink:hover { text-decoration: underline; text-underline-offset: 4px; }
@@ -910,3 +910,61 @@ body { margin: 0; background: var(--ground); }
 :root:not([data-skin='game']) .lnf-stage .lnf-play { background: transparent; }
 :root:not([data-skin='game']) :is(.lnf-glass, .lnf-lesson) { border-radius: 22px; }
 @media (min-width: 900px) { :root:not([data-skin='game']) .lnf-path a { border-radius: 22px; } }
+
+/* ---------- Hillel's 2026-11-24 home design ----------
+   The first screen in two columns (the promise and its two ways in, the three paths stacked beside it, each path's
+   colour on its eyebrow and dot, never a stripe); the four steps as cards, each its picture over its words; free to
+   learn beside lesson 1; choir directors as a band with the director's view; then the plans and the close. */
+.lnf-path .lnf-who::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+:root:not([data-skin='game']) .lnf-path .lnf-who { color: var(--c); }
+:root:not([data-skin='game']) .lnf-path b { color: var(--ink); }
+.lnf-steps { display: grid; gap: 16px; padding: clamp(72px, 12svh, 140px) var(--pad) 0; }
+.lnf-steps-h { display: grid; gap: 10px; justify-items: start; margin-bottom: 14px; }
+.lnf-steps-h .lnf-h2 { margin: 0; }
+.lnf-stage .lnf-steps .lnf-story { grid-template-columns: minmax(0, 1fr); grid-template-areas: "pic" "seg" "cap"; align-content: start; gap: 14px; padding: 0 0 22px; border-radius: 22px; background: var(--panel); border: 1px solid var(--edge); overflow: hidden; }
+.lnf-steps .lnf-story .lnf-cap { padding: 0 22px; gap: 10px; }
+.lnf-steps .lnf-story .lnf-seg { padding: 0 22px; }
+.lnf-steps .lnf-story .lnf-pic { width: 100%; border-radius: 0; border: 0; box-shadow: none; background: color-mix(in srgb, var(--c1) 12%, var(--panel)); }
+.lnf-steps .lnf-story:nth-of-type(3) .lnf-pic { background: color-mix(in srgb, var(--c2) 14%, var(--panel)); }
+.lnf-steps .lnf-story:nth-of-type(4) .lnf-pic { background: color-mix(in srgb, var(--c3) 14%, var(--panel)); }
+.lnf-steps .lnf-story .lnf-share { width: 100%; padding: 22px; transform: none; justify-self: stretch; background: color-mix(in srgb, var(--c4) 14%, var(--panel)); }
+.lnf-steps .lnf-mini { height: 176px; }
+.lnf-steps .lnf-story .lnf-kick { font-size: 0; } /* the step's bars say which of four; the heading over the cards says the rest */
+.lnf-steps .lnf-story .lnf-h2 { font-size: clamp(26px, 2.3vw, 34px); }
+.lnf-steps .lnf-story .lnf-say { font-size: 15.5px; }
+.lnf-more { margin-inline-start: 6px; }
+.lnf-dirband { margin: 0 var(--pad); border-radius: 28px; background: color-mix(in srgb, var(--c4) 15%, var(--panel)); }
+.lnf-tail .lnf-sc.lnf-dirband { padding: clamp(32px, 5vw, 56px); }
+.lnf-dirband .lnf-cap { grid-template-columns: minmax(0, 1fr); gap: 14px; align-items: start; }
+.lnf-dirband .lnf-h2 { margin: 0; } .lnf-dirband .lnf-h2 em { color: var(--c4); }
+.lnf-board { margin: 0; padding: 20px; border-radius: 22px; }
+.lnf-board-h { margin: 0 0 12px; font-size: 18px; }
+.lnf-board-parts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.lnf-board-parts > div { display: grid; align-content: start; gap: 8px; padding: 10px; border-radius: 14px; background: color-mix(in srgb, var(--c) 16%, var(--panel)); }
+.lnf-board-parts > div > b { font-size: 13px; color: var(--c); }
+.lnf-board-parts span { display: grid; gap: 2px; padding: 8px 10px; border-radius: 10px; background: var(--panel); font-size: 12.5px; color: var(--mute); } .lnf-board-parts span b { font-size: 13.5px; color: var(--ink); }
+.lnf-board-parts .lnf-board-none { background: none; border: 1px dashed var(--c); } .lnf-board-none span { background: none; padding: 0; }
+.lnf-board figcaption { margin-top: 12px; font-size: 12.5px; color: var(--mute); }
+@media (min-width: 900px) {
+    .lnf-stage [data-s="0"] .lnf-cap { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); grid-template-areas: "h paths" "go paths"; align-items: start; gap: 22px 64px; }
+    [data-s="0"] .lnf-cap > .lnf-hgroup { grid-area: h; }
+    [data-s="0"] .lnf-cap > div:not(.lnf-hgroup) { grid-area: go; }
+    [data-s="0"] .lnf-paths { grid-area: paths; grid-column: auto; align-self: center; }
+    [data-s="0"] .lnf-paths ul { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+    [data-s="0"] .lnf-path a { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 16px; padding: 14px 18px; }
+    [data-s="0"] .lnf-path a > :not(em) { grid-column: 1; }
+    [data-s="0"] .lnf-path em { grid-column: 2; grid-row: 1 / span 3; align-self: center; margin: 0; padding: 0; font-size: 0; text-decoration: none; } /* the arrow says it; its words stay for a screen reader */
+    [data-s="0"] .lnf-path em svg { width: 18px; height: 18px; }
+    .lnf-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .lnf-steps-h { grid-column: 1 / -1; }
+    #lnf-s5 { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); grid-template-areas: "cap lesson" "slabs lesson" "go lesson"; column-gap: 64px; align-items: center; }
+    #lnf-s5 > .lnf-cap { grid-area: cap; } #lnf-s5 > .lnf-slabs { grid-area: slabs; gap: 12px; } #lnf-s5 > .lnf-lessonrow { grid-area: lesson; display: block; } #lnf-s5 > .lnf-after { grid-area: go; margin: 0; justify-content: flex-start; } #lnf-s5 > .lnf-floor { grid-column: 1 / -1; }
+    .lnf-dirband { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 48px; }
+    .lnf-tail .lnf-sc.lnf-dirband { min-height: 0; }
+    #lnf-s5 > .lnf-cap { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+    #lnf-s5 .lnf-slab { transform: none !important; padding: 20px 20px 18px; }
+    #lnf-s5 .lnf-slab strong { font-size: clamp(40px, 3.6vw, 54px); }
+    #lnf-s5 > .lnf-after { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
+    #lnf-s5 .lnf-carols { flex-basis: 100%; justify-content: flex-start; text-align: start; margin: 0; }
+    .lnf-board-parts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}

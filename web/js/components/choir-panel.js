@@ -5,7 +5,7 @@
 // it sits in the course card's side column (`side`: no card of its own); on a phone, its own card after the course.
 
 import { t } from '../i18n.js';
-import { aiOn } from '../ai-choice.js';
+import { aiOn, aiYes } from '../ai-choice.js';
 import { navigate } from '../router.js';
 import { clipSongs, isOpen, ownChoir, ownChoirOn, readyUnseen, togetherOn } from '../own-choir-state.js';
 
@@ -27,15 +27,22 @@ export function choirReady() {
     return [...ready, ...left.filter((r) => !ready.includes(r))];
 }
 
+/**
+ * Whether Home shows the panel: a song to hear, or the choir on and either a real yes to AI (ai-choice.js aiYes) or songs
+ * already asked for (they used it). Until then the contextual AI card after a kept part is the way in.
+ */
+export function choirPanelShown() {
+    if (choirReady().length) return true;
+    return ownChoirOn() && (aiYes() || (ownChoir.data?.requests ?? []).length > 0);
+}
+
 export const ChoirPanel = {
     props: { side: Boolean },
     computed: {
         rows: () => choirReady(),
         /** A song on its way (the newest), when nothing is waiting to be heard. */
         making: () => (ownChoirOn() ? (ownChoir.data?.requests ?? []).filter((r) => isOpen(r)).at(-1) ?? null : null),
-        shown() {
-            return ownChoirOn() || this.rows.length > 0;
-        },
+        shown: () => choirPanelShown(),
         state() {
             return this.rows.length ? 'ready' : this.making ? 'making' : 'try';
         },

@@ -1,0 +1,244 @@
+{
+    "$id": "singingTest.json",
+    "title": "One singing test, numbers only (docs/singing-test-v1.md)",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "testVersion",
+        "scoringVersion",
+        "takenAt",
+        "anchor",
+        "device",
+        "warmUp",
+        "status",
+        "scores",
+        "total",
+        "band",
+        "match",
+        "back",
+        "hold"
+    ],
+    "properties": {
+        "id": {
+            "type": "string",
+            "description": "The device's uuid for the test."
+        },
+        "testVersion": {
+            "type": "integer",
+            "description": "The items, reference tone, tempo, tolerances and events it was taken with. Charts compare within one."
+        },
+        "scoringVersion": {
+            "type": "integer",
+            "description": "The server's scoring it was scored with now: a new one re-scores every kept test."
+        },
+        "takenAt": {
+            "type": "string"
+        },
+        "anchor": {
+            "type": "number",
+            "description": "The test's anchor note (MIDI, one decimal)."
+        },
+        "device": {
+            "enum": [
+                "phone",
+                "computer"
+            ]
+        },
+        "warmUp": {
+            "type": "boolean"
+        },
+        "status": {
+            "enum": [
+                "counted",
+                "warmup",
+                "practice"
+            ],
+            "description": "practice: too few items heard, kept but never counted."
+        },
+        "scores": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "match",
+                "back",
+                "hold"
+            ],
+            "properties": {
+                "match": {
+                    "type": [
+                        "number",
+                        "null"
+                    ],
+                    "description": "Match a note's points, of 45, to 1 decimal; null when none heard."
+                },
+                "back": {
+                    "type": [
+                        "number",
+                        "null"
+                    ],
+                    "description": "Sing it back's points, of 40."
+                },
+                "hold": {
+                    "type": [
+                        "number",
+                        "null"
+                    ],
+                    "description": "Hold it's points, of 15."
+                }
+            }
+        },
+        "total": {
+            "type": [
+                "integer",
+                "null"
+            ],
+            "description": "Out of 100; null for practice."
+        },
+        "band": {
+            "enum": [
+                "finding",
+                "closer",
+                "nearly",
+                "inTune",
+                "precise",
+                null
+            ],
+            "description": "Null for practice. finding shows words, never a number."
+        },
+        "match": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "target",
+                    "centsOff",
+                    "octave",
+                    "landingMs",
+                    "jitterCents",
+                    "startAfterPromptMs"
+                ],
+                "properties": {
+                    "target": {
+                        "type": "integer"
+                    },
+                    "centsOff": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "octave": {
+                        "enum": [
+                            -1,
+                            0,
+                            1
+                        ]
+                    },
+                    "landingMs": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "jitterCents": {
+                        "type": [
+                            "number",
+                            "null"
+                        ],
+                        "description": "The pitch's spread inside the steady middle, vibrato kept; null when unheard or the steady middle is under 0.15 s."
+                    },
+                    "startAfterPromptMs": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "back": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "pattern",
+                    "notes",
+                    "startOffsetCents",
+                    "startAfterPromptMs"
+                ],
+                "properties": {
+                    "pattern": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    },
+                    "notes": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "centsOff",
+                                "jitterCents"
+                            ],
+                            "properties": {
+                                "centsOff": {
+                                    "type": [
+                                        "number",
+                                        "null"
+                                    ]
+                                },
+                                "jitterCents": {
+                                    "type": [
+                                        "number",
+                                        "null"
+                                    ],
+                                    "description": "As a match note's: null when unheard or under 0.15 s steady."
+                                }
+                            }
+                        }
+                    },
+                    "startOffsetCents": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "startAfterPromptMs": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "hold": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "target",
+                    "spreadCents",
+                    "driftCents"
+                ],
+                "properties": {
+                    "target": {
+                        "type": "integer"
+                    },
+                    "spreadCents": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    },
+                    "driftCents": {
+                        "type": [
+                            "number",
+                            "null"
+                        ]
+                    }
+                }
+            }
+        }
+    }
+}

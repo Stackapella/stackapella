@@ -1,0 +1,157 @@
+{
+    "$id": "singingTests.boards.show.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "board",
+                "scope",
+                "month",
+                "endsAt",
+                "testVersion",
+                "threshold",
+                "entries",
+                "you",
+                "onGlobal"
+            ],
+            "properties": {
+                "board": {
+                    "enum": [
+                        "improved",
+                        "best"
+                    ]
+                },
+                "scope": {
+                    "enum": [
+                        "global",
+                        "friends"
+                    ]
+                },
+                "month": {
+                    "type": "string",
+                    "description": "YYYY-MM, UTC."
+                },
+                "endsAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "testVersion": {
+                    "type": "integer"
+                },
+                "threshold": {
+                    "type": "number",
+                    "description": "Points within which entries share a place."
+                },
+                "entries": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "rank",
+                            "name",
+                            "initials",
+                            "score",
+                            "tests",
+                            "you"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string",
+                                "description": "The singer's season on this board (stable within the month)."
+                            },
+                            "rank": {
+                                "type": "integer",
+                                "description": "1 + the entries more than `threshold` points above: within it, a shared place."
+                            },
+                            "name": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "initials": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            },
+                            "score": {
+                                "type": "number",
+                                "description": "Best: the season score (the mean of the best 3 of the month's first 4 counted tests, 1 decimal). Most improved: points over their baseline, at most 30."
+                            },
+                            "tests": {
+                                "type": "integer",
+                                "description": "Counted tests in the season (at most 4)."
+                            },
+                            "you": {
+                                "type": "boolean"
+                            }
+                        }
+                    }
+                },
+                "you": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "score",
+                        "rank",
+                        "tests",
+                        "days",
+                        "needs"
+                    ],
+                    "properties": {
+                        "score": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "rank": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ]
+                        },
+                        "tests": {
+                            "type": "integer"
+                        },
+                        "days": {
+                            "type": "integer"
+                        },
+                        "needs": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "tests",
+                                "days"
+                            ],
+                            "properties": {
+                                "tests": {
+                                    "type": "integer"
+                                },
+                                "days": {
+                                    "type": "integer"
+                                }
+                            },
+                            "description": "More counted tests and more days still needed to appear (0 and 0 once on it)."
+                        }
+                    }
+                },
+                "onGlobal": {
+                    "type": "boolean"
+                }
+            }
+        }
+    }
+}

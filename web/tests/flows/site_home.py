@@ -16,7 +16,7 @@ def journey(f):
     f.go("/?api=mock&scenario=&as=member", "document.querySelector('h1')")
     f.run("localStorage.removeItem('stackapella.fromSite')")
     # As members see it now: own_choir on, so Home carries its Hear yourself as a choir panel (the coordinator's review).
-    f.run("sessionStorage.setItem('stackapella.mockOwnChoir', '1'); sessionStorage.setItem('stackapella.mockChoirState', 'fresh'); sessionStorage.removeItem('stackapella.mockChoir');")
+    f.run("sessionStorage.setItem('stackapella.mockOwnChoir', '1'); sessionStorage.setItem('stackapella.mockChoirState', 'fresh'); sessionStorage.removeItem('stackapella.mockChoir'); sessionStorage.setItem('stackapella.mockAiFeatures', '1'); sessionStorage.setItem('stackapella.mockAiSource', 'card');")
     f.go("/?api=mock&scenario=&as=member", "document.querySelector('[data-lead]')")
     assert not f.js(f"!!({LINK})"), "the link for someone who didn't come from the site"
     # Came from the site (the referrer is the site's own host, remembered at start).
@@ -34,7 +34,7 @@ def journey(f):
     assert f.js("document.querySelector('[data-settings-site-home]').getAttribute('href')") == site
     f.run("document.querySelector('[data-legal]').scrollIntoView({ block: 'center' })")
     f.shot("settings")
-    f.run("localStorage.removeItem('stackapella.fromSite'); sessionStorage.removeItem('stackapella.mockOwnChoir'); sessionStorage.removeItem('stackapella.mockChoirState');")
+    f.run("localStorage.removeItem('stackapella.fromSite'); sessionStorage.removeItem('stackapella.mockOwnChoir'); sessionStorage.removeItem('stackapella.mockChoirState'); sessionStorage.removeItem('stackapella.mockAiFeatures'); sessionStorage.removeItem('stackapella.mockAiSource');")
 
 
 if __name__ == "__main__":

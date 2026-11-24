@@ -7,6 +7,7 @@ namespace Tests\Feature\Site;
 use App\Actions\Templates\SyncOfficialTemplates;
 use App\Support\Flags;
 use App\Support\Legal\LegalText;
+use App\Support\Site\PathPages;
 use App\Support\Site\SitePages;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -26,17 +27,17 @@ final class PathPagesTest extends TestCase
         $html = (string) $this->get('/for/learners')->assertOk()->getContent();
 
         $this->inOrder($html, [
-            '<h1 id="page-h">'.e(__('site.for.pages.learners.h1')).'</h1>',
+            '<h1 id="page-h" class="s-aud-kick">'.e(__('site.for.pages.learners.h1')).'</h1>',
             '/learn/1-comfortable?ref=for-learners',
-            e(__('site.for.pages.learners.heads.hear')),
+            e(PathPages::split((string) __('site.for.pages.learners.heads.hear'))[1]),
             'href="/songs/amazing-grace"',
             'href="/guides/what-is-harmony"',
-            e(__('site.for.pages.learners.heads.sing')),
+            e(PathPages::split((string) __('site.for.pages.learners.heads.sing'))[1]),
             'href="/features/course"',
             'href="/courses/perfect-your-pitch"',
             'href="/tools/vocal-range-test"',
             'href="/guides/sing-harmony-with-yourself"',
-            e(__('site.for.pages.learners.heads.better')),
+            e(PathPages::split((string) __('site.for.pages.learners.heads.better'))[1]),
             'href="/for/beginners"',
             'id="faq-h"',
             'id="end-h"',
@@ -52,17 +53,17 @@ final class PathPagesTest extends TestCase
         $html = (string) $this->get('/for/singers')->assertOk()->getContent();
 
         $this->inOrder($html, [
-            '<h1 id="page-h">'.e(__('site.for.pages.singers.h1')).'</h1>',
+            '<h1 id="page-h" class="s-aud-kick">'.e(__('site.for.pages.singers.h1')).'</h1>',
             '/t/amazing-grace?ref=for-singers',
-            e(__('site.for.pages.singers.heads.pick')),
+            e(PathPages::split((string) __('site.for.pages.singers.heads.pick'))[1]),
             'href="/songs"',
-            e(__('site.for.pages.singers.heads.record')),
+            e(PathPages::split((string) __('site.for.pages.singers.heads.record'))[1]),
             'href="/features/studio"',
             'href="/courses/sight-singing"',
-            e(__('site.for.pages.singers.heads.mix')),
+            e(PathPages::split((string) __('site.for.pages.singers.heads.mix'))[1]),
             'href="/tools/audio-latency-test"',
             'href="/guides/record-vocal-harmonies-at-home"',
-            e(__('site.for.pages.singers.heads.share')),
+            e(PathPages::split((string) __('site.for.pages.singers.heads.share'))[1]),
             'href="/features/share"',
             'href="/for/friends-and-family"',
             'href="/pricing"',
@@ -102,7 +103,7 @@ final class PathPagesTest extends TestCase
             $this->assertStringNotContainsString('/your-choir', $html, $path);
             $this->assertStringNotContainsString(e(__('plus.items.choir.0')), $html, $path);
         }
-        $this->get('/es/for/learners')->assertSee('<html lang="es"', false)->assertSee('<h1 id="page-h">Para aprendices</h1>', false);
+        $this->get('/es/for/learners')->assertSee('<html lang="es"', false)->assertSee('<h1 id="page-h" class="s-aud-kick">Para aprendices</h1>', false);
     }
 
     public function test_a_visitors_own_ref_stays_theirs(): void
@@ -119,14 +120,20 @@ final class PathPagesTest extends TestCase
             $this->assertStringContainsString('href="'.$href.'"', $home);
         }
 
-        // And every page's foot, under Who it's for.
+        // And every page's foot leads to them through Who it's for (/for, which links all three).
         foreach (['/pricing', '/for/learners'] as $path) {
-            $foot = (string) $this->get($path)->getContent();
-            $this->assertStringContainsString('<li><a href="/for/learners" class="s-flink">'.e(__('pages.nav.learners')).'</a></li>', $foot, $path);
-            $this->assertStringContainsString('<li><a href="/for/singers" class="s-flink">'.e(__('pages.nav.singers')).'</a></li>', $foot, $path);
+            $this->assertStringContainsString('<li><a href="/for" class="s-flink">'.e(__('pages.nav.who_for')).'</a></li>', (string) $this->get($path)->getContent(), $path);
         }
+        $hub = (string) $this->get('/for')->assertOk()->getContent();
+        foreach (['/for/learners', '/for/singers', '/for/choir-directors'] as $href) {
+            $this->assertStringContainsString('href="'.$href.'"', $hub);
+        }
+        $this->assertStringNotContainsString('AI', strip_tags($hub));
+        app(Flags::class)->set('lang_es', 'on', null, 'Spanish checked');
+        $this->get('/es/for')->assertOk()->assertSee('<html lang="es"', false);
 
         $sitemap = (string) $this->get('/sitemap.xml')->getContent();
+        $this->assertMatchesRegularExpression('#<loc>[^<]*/for</loc>#', $sitemap);
         $this->assertMatchesRegularExpression('#<loc>[^<]*/for/learners</loc>#', $sitemap);
         $this->assertMatchesRegularExpression('#<loc>[^<]*/for/singers</loc>#', $sitemap);
         $this->assertNotContains('/for/learners', array_column(SitePages::who(), 'url'));

@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
@@ -175,6 +176,16 @@ final class OwnChoirRequest extends Model
     public function friendJobs(): HasMany
     {
         return $this->hasMany(OwnChoirRequest::class, 'parent_request_id');
+    }
+
+    /**
+     * Its place in the choir gallery, if it was ever added.
+     *
+     * @return HasOne<ChoirGalleryItem, $this>
+     */
+    public function galleryItem(): HasOne
+    {
+        return $this->hasOne(ChoirGalleryItem::class);
     }
 
     /**

@@ -22,6 +22,8 @@ final class AppRoutes
         'warmup', 'start-fresh', 'ideas', 'ideas/*', 'requests', 'voices', 'notices',
         // Ready by rehearsal's plan for a song's part (web/js/router.js `rehearse`).
         'rehearse/*',
+        // The singing test and How it's scored, on Your voice (web/js/router.js; docs/singing-test-v1.md).
+        'voice/test', 'voice/test/how',
         // Signing in and the emails' links (the router's auth pages and HostRouting's redirected ones).
         'signin', 'signin/*', 'verify', 'reset', 'email/*', 'notice', 'auth/*', 'preview/*', 'teacher/*', 'connect/*',
     ];

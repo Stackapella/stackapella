@@ -13,6 +13,7 @@ use App\Models\BetaFeedback;
 use App\Models\BetaSinger;
 use App\Models\BetaSubmission;
 use App\Models\Block;
+use App\Models\ChoirGalleryItem;
 use App\Models\ChoirVoice;
 use App\Models\CoachProfile;
 use App\Models\Comment;
@@ -214,6 +215,7 @@ final class AppServiceProvider extends ServiceProvider
             'idea' => Idea::class,
             'idea_voice' => IdeaVoice::class,
             'choir_voice' => ChoirVoice::class,
+            'choir_gallery_item' => ChoirGalleryItem::class,
             'song_request' => SongRequest::class,
             'part_score' => PartScore::class,
             'experiment' => Experiment::class,

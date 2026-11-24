@@ -40,7 +40,8 @@
         "tried",
         "aiFeatures",
         "ageBand",
-        "choirEmail"
+        "choirEmail",
+        "aiFeaturesSource"
     ],
     "properties": {
         "id": {
@@ -452,6 +453,16 @@
         "choirEmail": {
             "type": "boolean",
             "description": "Email me when my choir is ready (on by default): one email a choir song, only if it isn't heard yet."
+        },
+        "aiFeaturesSource": {
+            "enum": [
+                "card",
+                "settings",
+                "ai-singing",
+                "existing",
+                null
+            ],
+            "description": "Where the AI features choice came from (docs/ai-optional-plan.md v2): existing for an account made before the choice, kept on but never chosen, so the app can tell it from a real yes; null while unchosen."
         }
     },
     "title": "The signed-in person's own account"

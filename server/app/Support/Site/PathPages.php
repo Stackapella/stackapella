@@ -136,7 +136,7 @@ final class PathPages
      *
      * @param  list<string>  $levels
      * @param  list<string>  $first
-     * @return list<array{name: string, summary: string, url: string, soon: bool}>
+     * @return list<array{name: string, summary: string, url: string, soon: bool, level?: string}>
      */
     private static function songs(array $levels, array $first): array
     {
@@ -148,8 +148,29 @@ final class PathPages
         return array_values($songs->map(static fn (array $song): array => [
             'name' => $song['title'],
             'summary' => (string) __('site.carols.levels.'.$song['difficulty']),
+            'level' => (string) $song['difficulty'],
             'url' => '/songs/'.$song['slug'],
             'soon' => false,
         ])->all());
+    }
+
+    /**
+     * A heading in two tones, as Hillel's 2026-11-24 design draws them: its words after a comma, else its last two words,
+     * in the accent ("Discover harmony, | even on your own.", "Hear | each part.", "This song | is yours."). In any language.
+     *
+     * @return array{0: string, 1: string} what's said plainly, then what's in the accent
+     */
+    public static function split(string $text): array
+    {
+        $text = trim($text);
+        if (preg_match('/^(.+?,)\s+(.+)$/u', $text, $m) === 1) {
+            return [$m[1], $m[2]];
+        }
+        $words = preg_split('/\s+/u', $text) ?: [];
+        if (count($words) < 3) {
+            return ['', $text];
+        }
+
+        return [implode(' ', array_slice($words, 0, -2)), implode(' ', array_slice($words, -2))];
     }
 }

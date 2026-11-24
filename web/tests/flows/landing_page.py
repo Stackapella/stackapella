@@ -555,7 +555,8 @@ def still(base, size):
         shown = f.js("[...document.querySelectorAll('[data-s]')].every((s) => getComputedStyle(s).opacity === '1' && s.getBoundingClientRect().height > 40)")
         assert shown, "every scene shows, in the page's flow"
         tops = f.js("[...document.querySelectorAll('[data-s]')].map((s) => Math.round(s.getBoundingClientRect().top + scrollY))")
-        assert tops == sorted(tops) and len(set(tops)) == len(tops), f"the scenes come one after another: {tops}"
+        # In order down the page; the step cards (1 to 3) share a row on a wide screen (Hillel's 2026-11-24 design).
+        assert tops == sorted(tops), f"the scenes come one after another: {tops}"
         f.no_sideways("the still page")
         f.run("document.querySelector('[data-lnf-play]').click()")
         f.wait("document.getElementById('lnf').hasAttribute('data-playing')", timeout=40, what="the song playing, still")

@@ -72,6 +72,8 @@ final class AccountResource extends JsonResource
             'birthGiven' => Age::given($user),
             // AI features (docs/ai-optional-plan.md): true, false or null (not asked); the band kept for the app's counts.
             'aiFeatures' => $user->ai_features,
+            // Where it came from: `existing` is an older account kept on, never a choice (2026-11-24).
+            'aiFeaturesSource' => $user->ai_features_source,
             'ageBand' => $user->age_band,
             // Email me when my choir is ready: on unless they turned it off.
             'choirEmail' => (bool) ($user->getAttributes()['choir_email'] ?? true),

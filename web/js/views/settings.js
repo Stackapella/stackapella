@@ -699,7 +699,7 @@ export const SettingsView = {
         /** AI features on or off for the account (account.update `aiFeatures`; the server counts the change). */
         async setAi(on) {
             if (await this.run('ai', () => api.account.update({ aiFeatures: on }))) {
-                account.me = { ...account.me, aiFeatures: on };
+                account.me = { ...account.me, aiFeatures: on, aiFeaturesSource: 'settings' };
                 toast(t('settings.saved'));
                 if (!on) loadOwnChoir({ force: true }).catch((error) => console.warn('The kept AI songs were not counted', error));
             }

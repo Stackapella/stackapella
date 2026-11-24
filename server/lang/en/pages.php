@@ -262,6 +262,8 @@ return [
         'learners' => 'Learners',
         'singers' => 'Singers',
         'features' => 'Features',
+        // The footer's one way to the audiences (Hillel, 2026-11-24): /for, the page for all three.
+        'who_for' => 'Who it\'s for',
         'how' => 'How it works',
         'pricing' => 'Pricing',
         'help' => 'Help',

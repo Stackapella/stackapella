@@ -39,8 +39,10 @@ use App\Support\AiVoices\AiMark;
 use App\Support\Flags;
 use App\Support\Languages\Languages;
 use App\Support\Media\Instruments;
+use App\Support\OwnChoir\ChoirGallery;
 use App\Support\OwnChoir\OwnChoir;
 use App\Support\Rights\RightsHere;
+use App\Support\SingingTest\SingingTests;
 use App\Support\Site\PlusFeatures;
 use App\Support\Templates\SheetImport;
 use App\Support\Trust\Blocklist;
@@ -137,6 +139,11 @@ final class AuthController extends Controller
             'aiOptional' => AiChoice::on(),
             // The choir ready email, and the app's words promising it, come on together (the choir_email switch).
             'choirEmail' => $flags->on('choir_email'),
+            // The singing test and its boards (docs/singing-test-v1.md), for this account first.
+            'singingTest' => SingingTests::on($request->user() instanceof User ? $request->user() : null),
+            // The choir gallery (docs/choir-gallery-plan.md): its switch for this account, and the sheet's version.
+            'choirGallery' => ['on' => ChoirGallery::on($request->user() instanceof User ? $request->user() : null), 'consentVersion' => ChoirGallery::consentVersion()],
+            'singingTestBoards' => SingingTests::boardsOn($request->user() instanceof User ? $request->user() : null),
             // Song requests (the song_requests switch); staff see them before (account.songRequests).
             'songRequests' => $flags->on('song_requests'),
             'schools' => $flags->on('schools'),

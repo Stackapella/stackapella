@@ -1,0 +1,50 @@
+{
+    "data": {
+        "board": "best",
+        "scope": "global",
+        "month": "2026-11",
+        "endsAt": "2026-12-01T00:00:00Z",
+        "testVersion": 1,
+        "threshold": 8,
+        "entries": [
+            {
+                "id": "st_a81p",
+                "rank": 1,
+                "name": "Grace Hopper",
+                "initials": null,
+                "score": 84.0,
+                "tests": 3,
+                "you": false
+            },
+            {
+                "id": "st_k3x9",
+                "rank": 2,
+                "name": null,
+                "initials": "A.L.",
+                "score": 71.3,
+                "tests": 4,
+                "you": true
+            },
+            {
+                "id": "st_q20m",
+                "rank": 2,
+                "name": "Ada Byron",
+                "initials": null,
+                "score": 66.7,
+                "tests": 4,
+                "you": false
+            }
+        ],
+        "you": {
+            "score": 71.3,
+            "rank": 2,
+            "tests": 4,
+            "days": 3,
+            "needs": {
+                "tests": 0,
+                "days": 0
+            }
+        },
+        "onGlobal": true
+    }
+}

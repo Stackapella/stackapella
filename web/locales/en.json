@@ -1,4 +1,160 @@
 {
+    "singingTest": {
+        "boards": {
+            "title": "Singing test boards",
+            "improved": "Most improved",
+            "best": "Best",
+            "friends": "Friends",
+            "global": "Everyone",
+            "scope": "Who's on it",
+            "failed": "The board didn't load.",
+            "empty": "No one on this board yet this month.",
+            "needsTests": "{count, plural, one {# more test} other {# more tests}} to join this month's board",
+            "needsDays": "{count, plural, one {Tests on # more day} other {Tests on # more days}} to join this month's board"
+        },
+        "row": {
+            "match": "{cents} cents off on average",
+            "back": "{cents} cents off on average, in your key",
+            "hold": "wavered about {cents} cents",
+            "unheard": "not heard"
+        },
+        "title": "The singing test",
+        "part": "Part {n} of {count}",
+        "early": "Early version. This test is new, and its scoring will get more accurate as we check it against real singers. Small changes between tests can just be a different day.",
+        "event": {
+            "match": "Match a note",
+            "back": "Sing it back",
+            "hold": "Hold it"
+        },
+        "how": {
+            "match": "You'll hear a note, then sing it back on “oo”. One practice note, then twelve.",
+            "back": "You'll hear four notes, then sing them back on “oo”. In your own key is fine. One practice pattern, then six.",
+            "hold": "You'll hear a note, then hold it on “oo” for 4 seconds. Twice.",
+            "link": "How it's scored"
+        },
+        "band": {
+            "finding": "Finding your notes",
+            "closer": "Getting closer",
+            "nearly": "Nearly in tune",
+            "inTune": "In tune",
+            "precise": "Precise"
+        },
+        "bandLine": {
+            "finding": "Most people who sing out of tune can hear the difference fine: matching notes is a skill, and it grows with practice.",
+            "closer": "You're near the notes more often than not. Short, regular practice moves this quickly.",
+            "nearly": "Most of your notes land close. The last few cents come from listening as you hold.",
+            "inTune": "Your notes land in tune. A choir would hear you as right on.",
+            "precise": "Your notes land very close to the centre, and steadily."
+        },
+        "measure": {
+            "match": "Your notes were {cents} cents off on average.",
+            "back": "Your patterns were {cents} cents off on average, in your own key.",
+            "hold": "Your held notes wavered about {cents} cents."
+        },
+        "lesson": {
+            "match": "Match a note",
+            "back": "Sing back five notes",
+            "hold": "Hold a note"
+        },
+        "say": {
+            "listen": "Listen",
+            "sing": "Your turn: sing it back on “oo”",
+            "hold": "Your turn: hold it on “oo”",
+            "heard": "Heard",
+            "again": "We didn't catch that. Once more.",
+            "missed": "Not heard. On to the next one."
+        },
+        "practiceItem": "Practice",
+        "itemOf": "{n} of {count}",
+        "warmup": {
+            "title": "Warm up",
+            "lead": "Glide along with the tone on “oo”, low to high and back. Nothing is measured.",
+            "say": "Glide along on oo",
+            "skip": "Skip the warm-up"
+        },
+        "note": {
+            "title": "Find your note",
+            "lead": "Sing “oo” on a note that feels easy, and hold it for a few seconds. The test is built around it.",
+            "moved": "Your note has moved since your first tests, so the test moves with it."
+        },
+        "eventStart": "Start",
+        "map": {
+            "label": "{heard} of {count} heard: each dot is where you sang against the line of the note",
+            "caption": "{heard} of {count} heard. Dots above the line were sharp, below it flat; rings weren't heard.",
+            "lead": "Here's how that part went.",
+            "done": "{name} done."
+        },
+        "seeResult": "See your result",
+        "nextEvent": "Next: {name}",
+        "result": {
+            "title": "Your result",
+            "practice": "Let's try that somewhere quieter. Too little was heard to score this test, so it's kept as practice.",
+            "said": "Your result: {band}",
+            "improved": "You've improved since last time.",
+            "same": "About the same as last time.",
+            "breakdown": "Your score, part by part",
+            "wellTitle": "What went well",
+            "workTitle": "One thing to work on",
+            "lesson": "The lesson “{lesson}” trains it",
+            "warmUp": "That one was a warm-up: don't count it",
+            "countIt": "Count it after all",
+            "done": "Done"
+        },
+        "start": {
+            "lead": "About 4 minutes, in your own range, on “oo”. No words to sing, and nothing to prepare.",
+            "parts": "The five parts",
+            "quiet": "Somewhere quiet helps. Nothing plays while you sing, so speakers or headphones are both fine.",
+            "begin": "Begin",
+            "part": {
+                "warmup": "Warm up",
+                "note": "Find your note",
+                "match": "Match a note",
+                "back": "Sing it back",
+                "hold": "Hold it"
+            },
+            "partHint": {
+                "warmup": "a 20-second glide",
+                "note": "a few seconds",
+                "match": "hear a note, sing it back, 12 times",
+                "back": "four-note patterns, 6 times",
+                "hold": "4 seconds, twice"
+            }
+        },
+        "card": {
+            "title": "Singing test",
+            "none": "How well you match notes, sing them back and hold them, in about 4 minutes.",
+            "history": "Earlier tests",
+            "seam": "A new version of the test starts here.",
+            "warmUp": "warm-up",
+            "again": "Take it again",
+            "take": "Take the singing test"
+        },
+        "howPage": {
+            "title": "How it's scored",
+            "lead": "Three parts are scored, each against fixed limits, so your result never depends on anyone else's. The warm-up and finding your note aren't scored.",
+            "eventsTitle": "The scored parts",
+            "points": "{n} points",
+            "measures": {
+                "match": "How far each note was from its target, over its steady middle. A note an octave away counts as right.",
+                "back": "How far each note was from the pattern, in the key you sang it in, so one wrong note counts once.",
+                "hold": "How much a held note wavered (vibrato doesn't count) and how far it drifted."
+            },
+            "range": "Full marks at {full} cents or closer, none at {none} or further.",
+            "bandsTitle": "The bands",
+            "bandsLead": "From how far your notes were on average, across Match a note and Sing it back.",
+            "under": "under {cents} cents",
+            "between": "{from} to {to} cents",
+            "over": "{cents} cents or more",
+            "fairTitle": "Fair to every voice",
+            "fair": {
+                "range": "Every note sits within a fifth of your own comfortable note, so low and high voices sing equally hard tests.",
+                "octave": "Singing in another octave is never counted against you.",
+                "unheard": "A note lost to noise is offered again, never scored as wrong.",
+                "quiet": "If too little is heard, the test is kept as practice instead of scored."
+            },
+            "versions": "Test version {test}, scoring version {scoring}. When the scoring improves, every kept test is scored again, so your history moves together."
+        }
+    },
     "choirWait": {
         "hold": {
             "starts": "Your choir starts in {n} s",
@@ -868,6 +1024,24 @@
         }
     },
     "admin": {
+        "singingTests": {
+            "lead": "Tests held off the global singing test board for a look. A hold ends by itself after 48 hours; the singer and their friends still see their result meanwhile.",
+            "none": "No tests are held.",
+            "failed": "The held tests didn't load.",
+            "someone": "Someone",
+            "until": "Held until {date}",
+            "looksFine": "Looks fine",
+            "hide": "Hide from the boards",
+            "hideConfirm": "Hide it",
+            "reasonLabel": "Why (for the audit log)",
+            "cleared": "Back on the board.",
+            "hidden": "Kept off the boards.",
+            "reason": {
+                "jump": "A jump far past their own history",
+                "flat": "Notes too flat for a voice",
+                "duplicate": "The same as another test"
+            }
+        },
         "reasonTold": "They read this as their notice's note, and the audit log keeps it, so write it to them.",
         "reasonToldLabel": "Your note to them",
         "appeals": {
@@ -1011,7 +1185,9 @@
             "experiments": "Experiments",
             "experimentsHint": "A/B tests: what each one changes, how it is read, and the verdict once it can be read.",
             "choir": "Choir",
-            "choirHint": "Hear yourself as a choir: the funnel, why clips fail, each capture song and part, day by day."
+            "choirHint": "Hear yourself as a choir: the funnel, why clips fail, each capture song and part, day by day.",
+            "choirGallery": "Choir gallery",
+            "choirGalleryHint": "AI choir songs singers added, heard before anyone else"
         },
         "reach": {
             "title": "People using the app",
@@ -1286,7 +1462,8 @@
                 "switches": "Emergency switches",
                 "limits": "Limits",
                 "blocklist": "Blocklist",
-                "events": "Security events"
+                "events": "Security events",
+                "singingTests": "Singing tests"
             }
         },
         "switches": {
@@ -1344,7 +1521,10 @@
             "coaching": "Coaching",
             "event_schedule": "Event Schedule",
             "ai_optional": "AI optional",
-            "choir_email": "Choir ready emails"
+            "choir_email": "Choir ready emails",
+            "singing_test": "Singing test",
+            "singing_test_boards": "Singing test boards",
+            "choir_gallery": "Choir gallery"
         },
         "flagHint": {
             "growth_fresh_start": "Every growth view and the export count only from the start of the day (Jerusalem time) this was turned on. Saving it on again keeps that day; off shows all history again. Nothing is deleted.",
@@ -1392,7 +1572,10 @@
             "coaching": "Opens coaches' profiles and checkout.",
             "event_schedule": "Opens connecting Event Schedule accounts.",
             "ai_optional": "Each account chooses AI features on or off (Settings), and a guest sees AI only after /ai-singing. Off: AI shows for everyone as before.",
-            "choir_email": "Email a singer when their choir is ready or couldn't be made, once a choir, only if unheard. On only once the app tells them first."
+            "choir_email": "Email a singer when their choir is ready or couldn't be made, once a choir, only if unheard. On only once the app tells them first.",
+            "singing_test": "The singing test on Your voice and its results kept by the server. Staff first (per account), then everyone.",
+            "singing_test_boards": "The singing test's Most improved and Best boards in game mode, opt-in, adults. Off until enough singers have counted tests.",
+            "choir_gallery": "Singers can add a ready choir song to the AI choir gallery, heard by staff first (Admin, Choir gallery). Off: no row on the choir page, and the gallery's pages answer not found."
         },
         "flagValue": {
             "off": "Off",
@@ -3805,6 +3988,42 @@
             "download": "Download CSV",
             "chart": "Download the chart as CSV",
             "failed": "The CSV wasn't made. Try again."
+        },
+        "choirGallery": {
+            "intro": "Every song a singer adds is heard here before it's public. Listen to the whole mix, then approve it or decline it with a reason. The singer reads a kind sentence for the reason in their own language.",
+            "statusLabel": "Show",
+            "status": {
+                "pending": "Waiting",
+                "held": "Held by a report",
+                "approved": "In the gallery",
+                "declined": "Declined"
+            },
+            "checksTitle": "Decline it if",
+            "checks": {
+                "child": "It sounds like a child's voice (reason: not their own voice).",
+                "known": "It sounds like someone well known (reason: not their own voice).",
+                "library": "It isn't a song from our library.",
+                "noise": "There's a lot of noise, or the choir didn't come out right."
+            },
+            "none": "Nothing here.",
+            "added": "Added {when}, {parts} parts",
+            "changed": "Changed since it was approved",
+            "report": "Reported: {reason}, {when}",
+            "decided": "Last decision: {status} {reason} ({when})",
+            "reasonLabel": "Reason the singer reads",
+            "reasonText": "Your sentence to the singer",
+            "reasons": {
+                "noise": "Room noise",
+                "broken": "The choir didn't come out cleanly",
+                "not_own": "Not their own voice (a child, someone well known)",
+                "not_library": "Not a library song",
+                "other": "Other (write it)"
+            },
+            "approve": "Approve",
+            "decline": "Decline",
+            "release": "Release it",
+            "takedown": "Take it down",
+            "cancel": "Cancel"
         }
     },
     "styleguideGame": {
@@ -9506,6 +9725,49 @@
             "not": "Not for me",
             "try": "Try it",
             "note": "You can change this any time in Settings."
+        },
+        "gallery": {
+            "row": "Add to the gallery",
+            "rowHint": "Anyone can hear it in Stackapella's AI choir gallery.",
+            "sheet": {
+                "title": "Add {song} to the AI choir gallery?",
+                "shown": "Anyone can hear its title, its parts and this choir as you hear it now. It plays on the page with no download button, from \"A singer\", never your name.",
+                "label": "It's labelled \"AI choir made from one singer's voice\" on its page, its player and its link preview, and the file carries an AI mark.",
+                "whose": "Only add your own voice. Not a friend's, a family member's or anyone else's.",
+                "next": "A person at Stackapella listens first, usually within a day, and it appears once approved. If you change the song later, we listen again before it's back.",
+                "remove": "Turn it off any time and it's gone from the gallery at once. Links you shared yourself stay until you stop sharing or delete the song.",
+                "confirm": "It's my own voice. Add it",
+                "cancel": "Cancel",
+                "adding": "Getting {song} ready for a listen..."
+            },
+            "status": {
+                "pending": "Waiting for a listen, usually within a day.",
+                "approved": "In the gallery.",
+                "declined": "{reason} The song stays yours.",
+                "held": "Paused while we look at a report. We'll tell you what we decide.",
+                "aiOff": "Hidden while AI features are off.",
+                "changed": "Hidden: you changed the song since we listened.",
+                "resend": "Send the new version for a listen"
+            },
+            "reason": {
+                "noise": "We didn't add {song}: the recording has a lot of room noise. Singing somewhere quieter usually fixes it.",
+                "broken": "We didn't add {song}: the choir didn't come out cleanly. Making it again often fixes it.",
+                "notOwn": "We didn't add {song}: the gallery takes only your own voice, and we couldn't be sure of it here.",
+                "notLibrary": "We didn't add {song}: the gallery takes library songs for now.",
+                "plain": "We didn't add {song}."
+            },
+            "remove": {
+                "title": "Remove {song} from the gallery?",
+                "body": "It leaves the gallery at once. The song stays yours.",
+                "confirm": "Remove it"
+            },
+            "error": {
+                "limitDay": "You can add 3 songs a day. Try again tomorrow.",
+                "limitLive": "You have 20 songs in the gallery, the most for now. Remove one to add another.",
+                "notLibrary": "Only songs from our library can go in the gallery for now.",
+                "together": "Songs with a friend's voice in them can't go in the gallery yet.",
+                "failed": "It wasn't added. Check your connection and try again."
+            }
         }
     },
     "aiVoice": {

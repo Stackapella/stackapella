@@ -210,6 +210,13 @@
                 {{-- 1 to 4, the story: the app's four steps, in its own words. --}}
                 @php($steps = [1 => ['hear', __('landing.hear.body')], 2 => ['sing', __('pages.landing.steps.voice.body')], 3 => ['record', __('pages.landing.steps.record.body')], 4 => ['share', __('pages.landing.steps.share.body')]])
                 @php($first = $stage['lanes'][0] ?? null)
+                {{-- Hillel's 2026-11-24 design: the four steps as cards, each its picture over its words, under one heading. --}}
+                <div class="lnf-steps">
+                <div class="lnf-steps-h">
+                    <p class="lnf-kick">{{ __('landing.solo_scene.kick') }}</p>
+                    <h2 class="lnf-h2">{{ __('landing.solo_scene.title_before') }} <em>{{ __('landing.solo_scene.title_em') }}</em></h2>
+                    <a href="/for/singers" class="lnf-arrow"><span>{{ __('landing.paths.make.go') }}</span><x-site.icon name="arrow" size="16" /></a>
+                </div>
                 @foreach ($steps as $n => [$key, $body])
                     <section class="lnf-sc lnf-story" id="lnf-s{{ $n }}" data-s="{{ $n }}" aria-labelledby="lnf-h{{ $n }}">
                         <div class="lnf-cap">
@@ -276,6 +283,7 @@
                         @endif
                     </section>
                 @endforeach
+                </div>
             </div>
 
             {{-- Then free, the plans and the questions, the finale. --}}
@@ -314,20 +322,49 @@
                             <figcaption>{{ __('landing.lesson.caption') }}</figcaption>
                         @endif
                     </figure>
+                    </div>
                     <div class="lnf-go lnf-after"><a href="{{ $links['start'] }}" class="lnf-prim" data-funnel-start>{{ __('landing.free.start') }} <small class="lnf-app">{{ __('landing.paths.app') }}</small> <x-site.icon name="arrow" size="18" /></a>
                         {{-- The landing's one seasonal line (Hillel, 2026-11-10), quiet; it hides by itself after 26 December
                              (Carols::linked). --}}
                         @if (\App\Support\Pages\Carols::linked())
                             <a href="{{ \App\Support\Pages\Carols::PATH }}" class="lnf-arrow lnf-carols"><span>{{ __('pages.landing.carols') }}</span></a>
                         @endif
-                    </div>
+                        <a href="/for/learners" class="lnf-arrow lnf-more"><span>{{ __('landing.paths.learn.go') }}</span><x-site.icon name="arrow" size="16" /></a>
                     </div>
                     {{-- (No Game mode card: the top line's switch is the one way in, Hillel, 2026-11-24.) --}}
                     <div class="lnf-floor" aria-hidden="true"><span><i></i><i></i><i></i><i></i></span></div>
                 </section>
 
-                {{-- (Choirs have their way in among the three in the first screen and their own page, /for/choir-directors:
-                     the home's choir section folded into those, 2026-11-23, the consultant: "radically shorter".) --}}
+                {{-- 6, choir directors (Hillel's 2026-11-24 design): the promise, their way in, and the director's view as a
+                     picture (made-up singers, said so; their parts and how far each has got). --}}
+                @php([$dPlain, $dAccent] = \App\Support\Site\PathPages::split((string) __('site.for_directors.headline')))
+                <section class="lnf-sc lnf-dirband" id="lnf-s6" data-s="6" aria-labelledby="lnf-h6">
+                    <div class="lnf-cap">
+                        <p class="lnf-kick">{{ __('landing.paths.lead.eyebrow') }}</p>
+                        <h2 id="lnf-h6" class="lnf-h2">{{ $dPlain }} <em>{{ $dAccent }}</em></h2>
+                        <p class="lnf-say">{{ __('landing.paths.lead.what') }} {{ \App\Support\Site\Teams::text('site.for_directors.note') }}</p>
+                        <div class="lnf-go"><a href="/for/choir-directors?ref=for-choirs-landing" class="lnf-prim">{{ __('landing.paths.lead.who') }} <x-site.icon name="arrow" size="18" /></a></div>
+                    </div>
+                    <figure class="lnf-glass lnf-board">
+                        <div aria-hidden="true">
+                            <p class="lnf-board-h"><b>{{ $song }}</b></p>
+                            <div class="lnf-board-parts">
+                                @foreach (['soprano', 'alto', 'tenor', 'bass'] as $part)
+                                    @php($member = collect((array) \Illuminate\Support\Facades\Lang::get('pages.site.choir_demo.members'))->first(static fn (array $m): bool => $m[1] === $part))
+                                    <div @class(['lnf-v'.$loop->iteration, 'lnf-board-none' => $member === null])>
+                                        <b>{{ __('pages.landing.hero.parts.'.$part) }}</b>
+                                        @if ($member !== null)
+                                            <span><b>{{ $member[0] }}</b>{{ __('pages.site.choir_demo.status.'.$member[2]) }}</span>
+                                        @else
+                                            <span>{{ __('site.for_directors.view.nobody') }}</span>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                        <figcaption>{{ __('site.for_directors.view.caption') }}</figcaption>
+                    </figure>
+                </section>
 
                 {{-- 7, the plans and four questions: the landing's own prices, lists and answers. --}}
                 <section class="lnf-sc" id="lnf-s7" data-s="7" aria-labelledby="lnf-h7">

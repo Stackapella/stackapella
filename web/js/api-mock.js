@@ -237,6 +237,9 @@ async function stateful(operation, params, body, cases, query = {}) {
         const lendVoice = tabStorage.get('stackapella.mockLendVoice') === '1' || !!data.lendVoice;
         // The choir email's switch (choir_email): on here unless a flow turns it off (stackapella.mockChoirEmailSwitch '0').
         const choirEmail = tabStorage.get('stackapella.mockChoirEmailSwitch') !== '0';
+        // The singing test's switches (stackapella.mockSingingTest / mockSingingTestBoards, this tab: '1' on).
+        const singingTest = tabStorage.get('stackapella.mockSingingTest') === '1';
+        const singingTestBoards = tabStorage.get('stackapella.mockSingingTestBoards') === '1';
         // A self-hosted install, for this tab (`stackapella.mockSelfHosted`): the licence's credit shows.
         const selfHosted = tabStorage.get('stackapella.mockSelfHosted') === '1' || !!data.selfHosted;
         // Songs withheld where the visitor is, for a flow (stackapella.mockWithheld, this tab): js/withheld.js swaps them.
@@ -252,7 +255,9 @@ async function stateful(operation, params, body, cases, query = {}) {
         const ownChoirTogether = tabStorage.get('stackapella.mockTogether') === '1' || !!data.ownChoirTogether;
         // AI optional's release switch (docs/ai-optional-plan.md): off unless a flow turns it on for the tab.
         const aiOptional = tabStorage.get('stackapella.mockAiOptional') === '1' || !!data.aiOptional;
-        return respond(200, { data: { ...data, ideas: !scenarios().includes('ideas.list:not_found'), experiments, aiOptional, lendVoice, choirEmail, selfHosted, withheldSongs, aiVoices, ownChoir, ownChoirSongs, turnstileSiteKey, ownChoirTogether } });
+        // The choir gallery's switch (choir_gallery), on for a flow (stackapella.mockChoirGallery, this tab).
+        const choirGallery = { ...data.choirGallery, on: tabStorage.get('stackapella.mockChoirGallery') === '1' || !!data.choirGallery?.on };
+        return respond(200, { data: { ...data, choirGallery, ideas: !scenarios().includes('ideas.list:not_found'), experiments, aiOptional, lendVoice, choirEmail, singingTest, singingTestBoards, selfHosted, withheldSongs, aiVoices, ownChoir, ownChoirSongs, turnstileSiteKey, ownChoirTogether } });
     }
     // A share's body as sent (Update that link's `replaces` among it), for the flows; the example answers as before.
     if (operation === 'harmonies.create') globalThis.mockShareBody = body;
@@ -278,6 +283,8 @@ async function stateful(operation, params, body, cases, query = {}) {
         // AI features, as this tab last chose them (account.update `aiFeatures`); not asked: null.
         const ai = tabStorage.get('stackapella.mockAiFeatures');
         data.aiFeatures = ai === null ? (data.aiFeatures ?? null) : ai === '1';
+        // Where that choice came from (stackapella.mockAiSource: card, settings, ai-singing, or existing for an older account).
+        data.aiFeaturesSource = tabStorage.get('stackapella.mockAiSource') ?? (data.aiFeatures === null ? null : 'settings');
         // Fields a flow sets for this tab (`stackapella.mockAccount`, JSON: createdAt, isAdult and the like).
         Object.assign(data, JSON.parse(tabStorage.get('stackapella.mockAccount') || '{}'));
         // `plus` and `singerPlus` are on Plus; `singer` and `singerPlus` are beta singers; `editor` is
@@ -302,6 +309,34 @@ async function stateful(operation, params, body, cases, query = {}) {
         const json = await example('beta.invite.show.200.json');
         return respond(200, { data: { ...json.data, status: 'accepted' } });
     }
+    // The singing test (docs/singing-test-v1.md): the account's tests kept for the tab, scored by the same rule as the
+    // server's (js/singing-test/score.js, pinned by contract/singing-test/scoring-v1.json); the same id again answers as it
+    // is; only the first counted test may become a warm-up.
+    if (operation.startsWith('singingTests.') && !operation.startsWith('singingTests.boards')) {
+        if (as === 'signedOut') return signedOut();
+        if (tabStorage.get('stackapella.mockSingingTest') !== '1') return respond(404, { message: 'not_found', code: 'not_found' });
+        const kept = JSON.parse(tabStorage.get('stackapella.mockSingingTests') || '[]');
+        const save = (list) => tabStorage.set('stackapella.mockSingingTests', JSON.stringify(list));
+        const { result } = await import('./singing-test/score.js');
+        if (operation === 'singingTests.list') return respond(200, { data: kept });
+        if (operation === 'singingTests.create') {
+            const same = kept.find((x) => x.id === body.id);
+            if (same) return respond(200, { data: same });
+            const { score, ...test } = body;
+            const scored = { ...test, ...result(test), scoringVersion: 1 };
+            save([scored, ...kept]);
+            return respond(201, { data: scored });
+        }
+        if (operation === 'singingTests.update') {
+            const test = kept.find((x) => x.id === params.id);
+            if (!test) return respond(404, { message: 'not_found', code: 'not_found' });
+            const first = [...kept].reverse().find((x) => x.status !== 'practice');
+            if (first?.id !== test.id) return respond(422, { message: 'not_first', code: 'not_first' });
+            const changed = { ...test, warmUp: !!body.warmUp, ...result({ ...test, warmUp: !!body.warmUp }) };
+            save(kept.map((x) => (x.id === test.id ? changed : x)));
+            return respond(200, { data: changed });
+        }
+    }
     if (operation === 'account.show') {
         if (as === 'signedOut') return signedOut();
         // An email not confirmed yet, for a flow (stackapella.mockUnverified, this tab).
@@ -311,6 +346,7 @@ async function stateful(operation, params, body, cases, query = {}) {
     }
     if (operation === 'account.update' && typeof body?.aiFeatures === 'boolean' && as !== 'signedOut') {
         tabStorage.set('stackapella.mockAiFeatures', body.aiFeatures ? '1' : '0');
+        tabStorage.set('stackapella.mockAiSource', body.aiFeaturesSource ?? 'settings');
         return respond(200, await accountAs(as));
     }
     if (operation === 'account.update' && typeof body?.choirEmail === 'boolean' && as !== 'signedOut') {
@@ -520,6 +556,14 @@ async function stateful(operation, params, body, cases, query = {}) {
             return save(respond(204, null));
         }
         if (operation === 'ownChoir.show') {
+            // The gallery's hiding is worked out when read, as on the server: hidden while AI features are off (a flow's
+            // stackapella.mockGalleryAiOff), back as it was when they're on.
+            const aiOff = tabStorage.get('stackapella.mockGalleryAiOff') === '1';
+            for (const r of choir.requests) {
+                if (!r.gallery || r.gallery.status === 'removed') continue;
+                if (aiOff && r.gallery.status !== 'hidden') Object.assign(r.gallery, { was: r.gallery.status, status: 'hidden', hiddenBecause: 'ai_off' });
+                if (!aiOff && r.gallery.hiddenBecause === 'ai_off') Object.assign(r.gallery, { status: r.gallery.was, hiddenBecause: null, was: undefined });
+            }
             // A friend's parts on their way are made by the next look, as a song is.
             for (const m of choir.members) if (m.status === 'on_its_way') m.status = 'ready';
             for (const j of choir.joined) {
@@ -596,6 +640,18 @@ async function stateful(operation, params, body, cases, query = {}) {
         }
         const request = choir.requests.find((r) => r.id === params.id);
         if (!request) return caseFor('not_found');
+        // The choir gallery (docs/choir-gallery-plan.md): an add is pending until the flow decides it (admin.choirGallery).
+        if (operation === 'ownChoir.gallery.add') {
+            if (scenarios().some((x) => x.startsWith('ownChoir.gallery.add:'))) return caseFor(scenarios().find((x) => x.startsWith('ownChoir.gallery.add:')).split(':')[1]);
+            globalThis.mockGalleryAdd = body; // what the flows read
+            request.gallery = { id: `cg_${request.id}`, harmonyId: body?.harmonyId, status: 'pending', reason: null, reasonText: null, hiddenBecause: null, addedAt: now, decidedAt: null };
+            return save(respond(201, { data: request.gallery }));
+        }
+        if (operation === 'ownChoir.gallery.remove') {
+            if (!request.gallery) return caseFor('not_found');
+            request.gallery = null;
+            return save(respond(204, null));
+        }
         if (operation === 'ownChoir.requests.complete') {
             if (request.status === 'uploading') Object.assign(request, { status: 'queued', progress: shown.requests[0].parts.map((p) => ({ partKey: p.partKey, status: 'waiting' })) });
             return save(respond(200, { data: request }));
@@ -684,6 +740,19 @@ async function stateful(operation, params, body, cases, query = {}) {
         const changed = chosen.filter(({ part }) => part.status === 'pending');
         changed.forEach(({ part }) => Object.assign(part, { status: 'approved', reviewedAt: now, reviewedBy: { id: ME.id, name: ME.name } }));
         return respond(200, { data: { approved: changed.length } });
+    }
+    // The choir gallery's review: the example's items, their decisions kept for the tab, filtered by ?status=. The mix is on
+    // a CDN the mock can't reach: the local 3-second fixture.
+    if (operation.startsWith('admin.choirGallery.') && !scenarios().some((x) => x.startsWith(operation + ':'))) {
+        state.choirGallery ??= (await example('admin.choirGallery.list.200.json')).data.map((item) => ({ ...item, mixUrl: `${location.origin}/tests/fixtures/guide-48000.m4a` }));
+        if (operation === 'admin.choirGallery.list') return respond(200, { data: state.choirGallery.filter((i) => i.status === (query.status || 'pending')) });
+        const item = state.choirGallery.find((i) => i.id === params.id);
+        if (!item) return respond(404, { message: 'not_found', code: 'not_found' });
+        const status = { approve: 'approved', release: 'approved', decline: 'declined', takedown: 'removed' }[body?.decision];
+        if (!status || ((body.decision === 'decline' || body.decision === 'takedown') && !body.reason)) return respond(422, { message: 'validation_failed', code: 'validation_failed', errors: { reason: ['required'] } }); // i18n-ignore: the server's
+        Object.assign(item, { status, decision: { status, reason: body.reason ?? null, reasonText: body.reasonText ?? null, at: now } });
+        globalThis.mockGalleryDecision = body; // what the flows read
+        return respond(200, { data: item });
     }
     // Admin's AI voices: a withdrawn voice stays withdrawn for the tab's kept state, its guides gone, as on the server.
     if (operation === 'admin.aiVoices.list' && !scenarios().some((s) => s.startsWith(operation + ':'))) {

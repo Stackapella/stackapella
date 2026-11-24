@@ -23,6 +23,7 @@ use App\Support\Errors\ScrubEvent;
 use App\Support\Flags;
 use App\Support\Ids;
 use App\Support\Legal\LegalText;
+use App\Support\OwnChoir\ChoirSettings;
 use App\Support\OwnChoir\OwnChoir;
 use App\Support\Sharing\HarmonyFacts;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -636,6 +637,9 @@ final class ChoirTogetherTest extends TestCase
 
     public function test_choir_settings_mix_is_plus_and_saved_at_once(): void
     {
+        // Nothing saved yet: a small room (Hillel, 2026-11-24).
+        $this->assertSame('small', ChoirSettings::sound($this->song->fresh() ?? $this->song)['room']);
+        $this->assertFalse(ChoirSettings::soundSaved($this->song->fresh() ?? $this->song));
         $this->as($this->ben);
         $this->assertMatchesContract($this->patchJson("/api/own-choir/requests/{$this->song->sqid()}/sound", ['sound' => ['room' => 'chapel']]), 'ownChoir.requests.sound', 404);
 
@@ -648,7 +652,7 @@ final class ChoirTogetherTest extends TestCase
         $this->assertMatchesContract($this->patchJson("/api/own-choir/requests/{$this->song->sqid()}/sound", ['sound' => ['room' => 'cave']]), 'ownChoir.requests.sound', 422);
         $saved = $this->patchJson("/api/own-choir/requests/{$this->song->sqid()}/sound", ['sound' => ['room' => 'chapel', 'balance' => [['partKey' => 'bass', 'db' => -3]], 'leadBlend' => 0.5, 'recordingLevel' => null]]);
         $this->assertMatchesContract($saved, 'ownChoir.requests.sound', 200);
-        $saved->assertJsonPath('data.settings.sound.room', 'chapel')->assertJsonPath('data.settings.sound.balance.3', ['partKey' => 'bass', 'db' => -3])->assertJsonPath('data.settings.sound.balance.0.db', 0);
+        $saved->assertJsonPath('data.settings.soundSaved', true)->assertJsonPath('data.settings.sound.room', 'chapel')->assertJsonPath('data.settings.sound.balance.3', ['partKey' => 'bass', 'db' => -3])->assertJsonPath('data.settings.sound.balance.0.db', 0);
         $this->assertSame(0, (int) OwnChoirRequest::query()->where('parent_request_id', $this->song->id)->count(), 'Free: nothing rendered.');
     }
 

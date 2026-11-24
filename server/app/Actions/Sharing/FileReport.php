@@ -13,6 +13,7 @@ use App\Actions\Templates\Library;
 use App\Enums\SecurityEventType;
 use App\Exceptions\Refusal;
 use App\Models\Choir;
+use App\Models\ChoirGalleryItem;
 use App\Models\ChoirVoice;
 use App\Models\Comment;
 use App\Models\CourseClip;
@@ -29,6 +30,7 @@ use App\Support\AiVoices\AiGuides;
 use App\Support\Gallery\Gallery;
 use App\Support\Http\Hosts;
 use App\Support\Ids;
+use App\Support\OwnChoir\ChoirGallery;
 use App\Support\Sharing\HarmonyFiles;
 use App\Support\Templates\Catalogue;
 use App\Support\Trust\IpHash;
@@ -52,7 +54,7 @@ final class FileReport
     public function __construct(private readonly SecurityLog $securityLog, private readonly HarmonyFiles $files, private readonly TrustLevel $trust, private readonly Notices $notices) {}
 
     /**
-     * @param  array{boardEntryId?: string|null, harmonyId?: string|null, commentId?: string|null, handle?: string|null, templateId?: string|null, ideaId?: string|null, choirVoiceId?: string|null, requestId?: string|null, reason: string, note?: string|null, website?: mixed}  $data
+     * @param  array{boardEntryId?: string|null, harmonyId?: string|null, commentId?: string|null, handle?: string|null, templateId?: string|null, ideaId?: string|null, choirVoiceId?: string|null, choirGalleryId?: string|null, requestId?: string|null, reason: string, note?: string|null, website?: mixed}  $data
      */
     public function handle(?User $user, array $data, string $ip): void
     {
@@ -119,7 +121,7 @@ final class FileReport
      * account, one of them signed in and verified), waits for review in the gallery's queue, out
      * of sight.
      *
-     * @param  array{boardEntryId?: string|null, commentId?: string|null, handle?: string|null, templateId?: string|null, ideaId?: string|null, choirVoiceId?: string|null, requestId?: string|null, reason: string, note?: string|null, website?: mixed}  $data
+     * @param  array{boardEntryId?: string|null, commentId?: string|null, handle?: string|null, templateId?: string|null, ideaId?: string|null, choirVoiceId?: string|null, choirGalleryId?: string|null, requestId?: string|null, reason: string, note?: string|null, website?: mixed}  $data
      */
     private function other(?User $user, array $data, string $ip): void
     {
@@ -143,6 +145,12 @@ final class FileReport
 
         if (($data['choirVoiceId'] ?? null) !== null) {
             $this->choirVoice($user, $data, $ip);
+
+            return;
+        }
+
+        if (($data['choirGalleryId'] ?? null) !== null) {
+            $this->choirGallery($user, $data, $ip);
 
             return;
         }
@@ -330,7 +338,7 @@ final class FileReport
      * A voice in a virtual choir (N6): reports from enough people (the page rule) take it out of
      * the next mix until Hillel looks.
      *
-     * @param  array{choirVoiceId?: string|null, requestId?: string|null, reason: string, note?: string|null, website?: mixed}  $data
+     * @param  array{choirVoiceId?: string|null, choirGalleryId?: string|null, requestId?: string|null, reason: string, note?: string|null, website?: mixed}  $data
      */
     private function choirVoice(?User $user, array $data, string $ip): void
     {
@@ -362,6 +370,46 @@ final class FileReport
         });
 
         $this->securityLog->record(SecurityEventType::Report, $user, $ip, ['choirVoice' => $voice->uuid, 'reason' => $data['reason']]);
+    }
+
+    /**
+     * A choir in the choir gallery (docs/choir-gallery-plan.md): "this is my voice" holds it at once; other reasons hold
+     * it by the page rule, until staff look; once staff released it, only "this is my voice" holds it again.
+     *
+     * @param  array{choirGalleryId?: string|null, reason: string, note?: string|null, website?: mixed}  $data
+     */
+    private function choirGallery(?User $user, array $data, string $ip): void
+    {
+        $item = ChoirGallery::on() ? ChoirGalleryItem::query()->with(['user', 'harmony', 'request.parts'])->whereSqid((string) ($data['choirGalleryId'] ?? ''))->first() : null;
+
+        if ($item === null || ! ChoirGallery::visible($item)) {
+            throw new Refusal(404, 'not_found');
+        }
+
+        if ((($data['website'] ?? null) !== null && $data['website'] !== '') || $user?->id === $item->user_id) {
+            return;
+        }
+
+        $report = new Report(['reason' => $data['reason'], 'note' => trim((string) ($data['note'] ?? ''))]);
+        $report->forceFill([
+            'reportable_type' => $item->getMorphClass(),
+            'reportable_id' => $item->id,
+            'reporter_id' => $user?->id,
+            'reporter_key' => $user !== null ? hash_hmac('sha256', 'user|'.$user->id, (string) config('app.key')) : IpHash::of($ip),
+            'ip_hash' => IpHash::of($ip),
+            'status' => Report::OPEN,
+        ]);
+
+        DB::transaction(function () use ($report, $item, $data): void {
+            $filed = Report::query()->insertOrIgnore([array_merge($report->getAttributes(), ['created_at' => now(), 'updated_at' => now()])]) > 0;
+            $holds = $data['reason'] === 'my_voice' || ($item->released_at === null && $this->hides($item));
+
+            if ($filed && $holds) {
+                ChoirGalleryItem::query()->whereKey($item->id)->where('status', ChoirGalleryItem::APPROVED)->update(['status' => ChoirGalleryItem::HELD, 'updated_at' => now()]);
+            }
+        });
+
+        $this->securityLog->record(SecurityEventType::Report, $user, $ip, ['choirGallery' => $item->sqid(), 'reason' => $data['reason']]);
     }
 
     /**
@@ -402,7 +450,7 @@ final class FileReport
      * hasn't verified its email), and one of them signed in and verified. Reports from signed-out
      * networks alone go to Hillel's queue but never hide a page (three networks are cheap).
      */
-    private function hides(Harmony|Comment|Template|Idea|ChoirVoice|SongRequest $subject, ?int $needed = null): bool
+    private function hides(Harmony|Comment|Template|Idea|ChoirVoice|SongRequest|ChoirGalleryItem $subject, ?int $needed = null): bool
     {
         $counted = Report::query()
             ->with('reporter')

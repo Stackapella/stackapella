@@ -40,11 +40,23 @@ export const OPERATIONS = {
     'ownChoir.requests.create': ['POST', '/api/own-choir/requests'],
     'ownChoir.requests.complete': ['POST', '/api/own-choir/requests/{id}/complete'],
     'ownChoir.requests.seen': ['POST', '/api/own-choir/requests/{id}/seen'],
+    'singingTests.list': ['GET', '/api/singing-tests'],
+    'singingTests.create': ['POST', '/api/singing-tests'],
+    'singingTests.update': ['PATCH', '/api/singing-tests/{id}'],
+    'singingTests.boards.show': ['GET', '/api/singing-tests/boards'],
+    'admin.singingTests.flags.list': ['GET', '/api/admin/singing-tests/flags'],
+    'admin.singingTests.review': ['POST', '/api/admin/singing-tests/{id}/review'],
+    'admin.singingTests.hide': ['DELETE', '/api/admin/singing-tests/{id}'],
     'ownChoir.requests.hold': ['POST', '/api/own-choir/requests/{id}/hold'],
     'ownChoir.requests.start': ['POST', '/api/own-choir/requests/{id}/start'],
     'ownChoir.requests.download': ['GET', '/api/own-choir/requests/{id}/download'],
     'ownChoir.requests.sound': ['PATCH', '/api/own-choir/requests/{id}/sound'],
     'ownChoir.requests.remake': ['POST', '/api/own-choir/requests/{id}/remake'],
+    // The choir gallery (docs/choir-gallery-plan.md, behind choir_gallery): a ready song's share, heard by staff first.
+    'ownChoir.gallery.add': ['POST', '/api/own-choir/requests/{id}/gallery'],
+    'ownChoir.gallery.remove': ['DELETE', '/api/own-choir/requests/{id}/gallery'],
+    'ownChoir.gallery.list': ['GET', '/api/own-choir/gallery'], // the site's (public)
+    'ownChoir.gallery.show': ['GET', '/api/own-choir/gallery/{id}'], // the site's (public)
     // A choir with friends (docs/choir-together-plan.md, behind own_choir_together).
     'ownChoir.invites.create': ['POST', '/api/own-choir/requests/{id}/invites'],
     'ownChoir.invites.delete': ['DELETE', '/api/own-choir/invites/{id}'],
@@ -202,6 +214,8 @@ export const OPERATIONS = {
     'admin.aiGuides.list': ['GET', '/api/admin/ai-guides'],
     'admin.aiGuides.approve': ['POST', '/api/admin/ai-guides/approve'],
     'admin.aiGuides.reject': ['POST', '/api/admin/ai-guides/reject'],
+    'admin.choirGallery.list': ['GET', '/api/admin/choir-gallery'],
+    'admin.choirGallery.decide': ['POST', '/api/admin/choir-gallery/{id}'],
     'admin.beta.clips.delete': ['DELETE', '/api/admin/beta/clips/{slot}'],
     'admin.beta.feedback.list': ['GET', '/api/admin/beta/feedback'],
     'admin.beta.feedback.read': ['POST', '/api/admin/beta/feedback/{id}/read'],
@@ -840,6 +854,10 @@ export const api = {
             approve: ({ ids }) => call('admin.aiGuides.approve', { body: { ids } }),
             reject: ({ ids, note }) => call('admin.aiGuides.reject', { body: { ids, note } }),
         },
+        choirGallery: {
+            list: ({ status = 'pending' } = {}) => call('admin.choirGallery.list', { query: { status } }),
+            decide: (id, { decision, reason = null, reasonText = null }) => call('admin.choirGallery.decide', { params: { id }, body: { decision, reason, reasonText } }),
+        },
         beta: {
             removeClip: (slot, body) => call('admin.beta.clips.delete', { params: { slot }, body }),
             // The course clips beta singers record (web/course/plus/clips.json), for the admin.
@@ -1209,10 +1227,20 @@ export const api = {
         },
     },
     // Hear yourself as a choir (track B, behind own_choir; docs/own-choir-app-plan.md).
+    // The singing test (docs/singing-test-v1.md): its history, a finished test kept (the server scores it), the first marked a warm-up.
+    singingTests: {
+        list: () => call('singingTests.list'),
+        create: (test) => call('singingTests.create', { body: test }),
+        update: (id, body) => call('singingTests.update', { params: { id }, body }),
+    },
     ownChoir: {
         show: () => call('ownChoir.show'),
         consent: ({ version }) => call('ownChoir.consent', { body: { version, adult: true } }),
         delete: () => call('ownChoir.delete'),
+        gallery: {
+            add: (id, body) => call('ownChoir.gallery.add', { params: { id }, body }),
+            remove: (id) => call('ownChoir.gallery.remove', { params: { id } }),
+        },
         voice: {
             delete: () => call('ownChoir.voice.delete'), // the voice kept for their next songs; songs made stay
         },

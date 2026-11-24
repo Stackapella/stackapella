@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "ownVoice": [
+            "The own voice field must be accepted."
+        ]
+    }
+}

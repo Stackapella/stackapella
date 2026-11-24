@@ -13,6 +13,7 @@ use App\Support\Gallery\Gallery;
 use App\Support\Gallery\GalleryViews;
 use App\Support\Http\Hosts;
 use App\Support\Moderation\TextFilter;
+use App\Support\OwnChoir\ChoirGallery;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -86,6 +87,11 @@ final class HarmonyFacts
 
     public function names(Harmony $harmony): string
     {
+        // In the choir gallery (docs/choir-gallery-plan.md, version 1): never a name, on its page or in its preview.
+        if (ChoirGallery::lists($harmony->id)) {
+            return __('sharing.a_singer');
+        }
+
         $names = array_column($this->singers($harmony), 'name');
         $last = array_pop($names);
 
@@ -108,7 +114,7 @@ final class HarmonyFacts
         // Made from the sharer's own singing: named as the page names them (none when their profile is hidden or their
         // name can't be shown, and the label is the plain "AI voice").
         $sharer = $harmony->user;
-        $named = $sharer instanceof User && ! Gallery::hidden($sharer) && ! TextFilter::hasLink($sharer->name) && ! TextFilter::holds($sharer->name) ? $sharer->name : null;
+        $named = $sharer instanceof User && ! ChoirGallery::lists($harmony->id) && ! Gallery::hidden($sharer) && ! TextFilter::hasLink($sharer->name) && ! TextFilter::holds($sharer->name) ? $sharer->name : null;
         $own = array_map(static fn (string $part): array => ['name' => null, 'part' => $part, 'ai' => true, 'aiBasedOn' => $named, 'ownVoice' => true], array_values(array_filter((array) $harmony->own_voice_parts, 'is_string')));
         // A friend's parts (choir together): their first name only if they chose to show it, else the page's "a friend".
         $own = [...$own, ...array_map(static fn (array $f): array => ['name' => null, 'part' => (string) ($f['part'] ?? ''), 'ai' => true, 'aiBasedOn' => is_string($f['name'] ?? null) && $f['name'] !== '' ? $f['name'] : null, 'ownVoice' => true, 'friend' => true], array_values(array_filter((array) $harmony->own_voice_friends, 'is_array')))];
@@ -150,7 +156,7 @@ final class HarmonyFacts
     {
         $real = (array) ($harmony->real_voice ?? []);
         $sharer = $harmony->user;
-        $named = $sharer instanceof User && ! Gallery::hidden($sharer) && ! TextFilter::hasLink($sharer->name) && ! TextFilter::holds($sharer->name) ? $sharer->name : null;
+        $named = $sharer instanceof User && ! ChoirGallery::lists($harmony->id) && ! Gallery::hidden($sharer) && ! TextFilter::hasLink($sharer->name) && ! TextFilter::holds($sharer->name) ? $sharer->name : null;
 
         if ($named === null || $real === []) {
             return null;

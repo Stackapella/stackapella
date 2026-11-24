@@ -18,6 +18,8 @@ const routes = [
     { name: 'settings', pattern: /^\/settings\/?$/, keys: [] },
     { name: 'storage', pattern: /^\/storage\/?$/, keys: [] },
     { name: 'voice', pattern: /^\/voice\/?$/, keys: [] },
+    { name: 'singing-test', pattern: /^\/voice\/test\/?$/, keys: [] },
+    { name: 'singing-test-how', pattern: /^\/voice\/test\/how\/?$/, keys: [] },
     { name: 'workout', pattern: /^\/workout\/?$/, keys: [] },
     // Ready by rehearsal: a part's plan (docs/rehearsal-ready-plan.md).
     { name: 'rehearse', pattern: /^\/rehearse\/([\w-]+)\/([\w-]+)\/?$/, keys: ['song', 'part'] },

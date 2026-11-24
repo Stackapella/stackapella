@@ -382,8 +382,10 @@ final class OwnChoirRequests
 
     public static function dropVoices(User $user): void
     {
-        // Their voice gone: their parts in every choir they joined go with it (the owners' play again).
+        // Their voice gone: their parts in every choir they joined go with it (the owners' play again), and their songs
+        // leave the choir gallery.
         ChoirTogether::leaveAll($user);
+        ChoirGalleryItems::voiceGone($user->id);
 
         // Their own recordings go with it: each song's lead, and every share that carried their real voice.
         self::dropLeads($user);

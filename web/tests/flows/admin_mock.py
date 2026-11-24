@@ -33,7 +33,7 @@ def journey(f):
     assert tiles == {"signUps": "40", "upgrades": "6", "activeSingers": "85", "finished": "12", "secondSongs": "3"}, tiles
     f.shot("home")
     f.click_t("admin.nav.safety")
-    f.wait("document.querySelectorAll('[role=tab]').length === 4", what="the tabs")
+    f.wait("document.querySelectorAll('[role=tab]').length === 5", what="the tabs")  # the singing test's held results the fifth
     f.wait_text(f.js(f"{I18N}.t('admin.flag.shield_mode')"))
     f.shot("switches")
     # Safety keeps the emergency controls only; the features (Gallery in the example) are on Switches.
@@ -86,7 +86,7 @@ def journey(f):
     f.go("/admin/audit?api=mock&scenario=unauthenticated", "location.pathname === '/admin/sign-in'")
     assert "intended=%2Fadmin%2Faudit" in f.js("location.search"), f.js("location.search")
     # Every admin screen in the pseudo-language: every word through t().
-    for path in ("/admin", "/admin/switches", "/admin/safety?tab=switches", "/admin/safety?tab=limits", "/admin/safety?tab=blocklist", "/admin/safety?tab=events", "/admin/audit"):
+    for path in ("/admin", "/admin/switches", "/admin/safety?tab=switches", "/admin/safety?tab=limits", "/admin/safety?tab=blocklist", "/admin/safety?tab=events", "/admin/safety?tab=singingTests", "/admin/audit"):
         f.go(f"{path}{'&' if '?' in path else '?'}lang=pseudo&scenario=", "document.querySelector('main h1') && !document.querySelector('[role=status]')")
         left = f.js(UNTRANSLATED)
         assert not left, f"{path}: not translated: {left}"

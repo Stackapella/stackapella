@@ -121,6 +121,14 @@ return [
     // choir_email: the "your choir is ready" email (docs/decisions.md 2026-11-24). Off until the app's take review says
     // "We'll email you" with its Don't email me, so no one gets one they weren't told of.
     'choir_email' => ['kind' => 'feature', 'values' => ['off', 'on']],
+    // The singing test (docs/singing-test-v1.md): singing_test, the test on Your voice and its results kept here, staff
+    // first (per account) then everyone; singing_test_boards, its boards in game mode, off until enough singers have
+    // counted tests that a board isn't empty.
+    'singing_test' => ['kind' => 'feature', 'values' => ['off', 'on']],
+    // The choir gallery (docs/choir-gallery-plan.md): singers add an AI choir song, staff hear it first, anyone listens.
+    // Off until the community rules are up and a first few items are approved.
+    'choir_gallery' => ['kind' => 'feature', 'values' => ['off', 'on']],
+    'singing_test_boards' => ['kind' => 'feature', 'values' => ['off', 'on']],
     // Hear yourself as a choir on a singer's own songs from the creator (hummed, or with words they typed; Hillel,
     // 2026-11-20: "they could hum it and have their voice replace their humming", "definiety allow typed words").
     'own_choir_songs' => ['kind' => 'feature', 'values' => ['off', 'on']],

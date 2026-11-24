@@ -31,6 +31,11 @@ return [
         'app_open', 'lesson_start', 'lesson_done', 'unit_done', 'song_created', 'take_recorded', 'share_created', 'harmonise_used', 'export_done', 'sign_up', 'result_shared', 'leaderboard_viewed', 'challenge_accepted',
         // Lesson 1's live chord (2026-11-23, Hillel's "I just sang harmony"): asked to hear their note in a chord, and the chord sounded round it.
         'chord_live_start', 'chord_live_heard',
+        // The singing test (docs/singing-test-v1.md): started, finished, kept as practice (too few heard), each event
+        // finished, and the boards opted into.
+        // The choir gallery (docs/choir-gallery-plan.md): the sheet confirmed or closed; the site's page, a play, an item's page.
+        'gallery_add', 'gallery_cancel', 'gallery_view', 'gallery_play', 'gallery_item_view',
+        'st_start', 'st_done', 'st_practice', 'st_event:match', 'st_event:back', 'st_event:hold', 'st_board_optin',
         // Your voice as the progress page (build plan Brief F): opened, and All your measures opened.
         'prog_view', 'prog_all_open',
         // Engagement by AI choice and age band, from signed-in devices (docs/ai-optional-plan.md).
@@ -226,6 +231,10 @@ return [
     // a browser, and someone who came from it making a first song or finishing a lesson (Hillel,
     // 2026-10-29: "Anonymous totals").
     'server_kinds' => [
+        // The singing test: the device's score wasn't the server's (docs/singing-test-v1.md; the server's is kept).
+        'st_mismatch',
+        // A singing test held for a look before the boards show it (a jump, flat notes, the same items as another).
+        'st_held',
         // Be the voice's ladder (docs/open-guide-voices-plan.md): a volunteer's take sent, a guide published, a take not chosen.
         'take_sent', 'guide_published', 'guide_not_chosen', 'mudeo_visit', 'mudeo_used', 'plus_started',
         // A real take that retired an AI guide (App\Support\AiVoices\AiGuides).

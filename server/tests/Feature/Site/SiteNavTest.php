@@ -29,7 +29,7 @@ final class SiteNavTest extends TestCase
         $this->assertStringContainsString('aria-current="page" >'.e(__('pages.nav.pricing')).'</a>', str_replace('aria-current="page">', 'aria-current="page" >', $nav[1] ?? ''));
         // Open the app is the bar's one primary (Hillel's open source design).
         $this->assertMatchesRegularExpression('#class="btn-primary">'.preg_quote(e(__('pages.nav.open_app')), '#').'</a>#', $html);
-        $this->assertStringContainsString('href="/for/choir-directors?ref=for-choirs-footer"', $html);
+        $this->assertStringContainsString('<a href="/for" class="s-flink">'.e(__('pages.nav.who_for')).'</a>', $html);
 
         // A director who came by a lead-in starts their group counted by that place.
         $this->get('/for/choir-directors?ref=for-choirs-songs')->assertOk()->assertSee('ref=for-choirs-songs', false);
@@ -70,13 +70,12 @@ final class SiteNavTest extends TestCase
         preg_match('#<nav class="s-foot-cols".*?</nav>#s', $html, $foot);
         preg_match_all('#<ul>(.*?)</ul>#s', $foot[0], $columns);
 
-        // Who it's for first, exactly the home's three paths; Product three since Choir directors moved there; the rest four
-        // (the even-columns rule bends there rather than pad either: docs/design-rules.md).
-        $this->assertCount(7, $columns[1]);
-        $this->assertSame([3, 4, 4, 3, 4, 4, 4], array_map(static fn (string $col): int => substr_count($col, '<li>'), $columns[1]));
-        preg_match_all('#href="([^"]+)"#', $columns[1][0], $who);
-        $this->assertSame(['/for/learners', '/for/singers', '/for/choir-directors?ref=for-choirs-footer'], $who[1]);
-        $this->assertSame(1, substr_count($html, 'href="/for/choir-directors?ref=for-choirs-footer"'), 'Choir directors once');
+        // Six columns of four (Hillel, 2026-11-24: the audiences are one page, Who it's for, under Product).
+        $this->assertCount(6, $columns[1]);
+        $this->assertSame([4, 4, 4, 4, 4, 4], array_map(static fn (string $col): int => substr_count($col, '<li>'), $columns[1]));
+        preg_match_all('#href="([^"]+)"#', $columns[1][2], $product);
+        $this->assertSame(['/features', '/for', '/how-it-works', '/pricing'], $product[1]);
+        $this->assertStringNotContainsString('href="/for/learners" class="s-flink"', $foot[0]);
     }
 
     public function test_the_landing_shows_free_courses_and_free_tools_after_how_it_works(): void

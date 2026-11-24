@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "reasonText": [
+            "The reason text field is required when reason is other."
+        ]
+    }
+}

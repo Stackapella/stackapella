@@ -78,6 +78,8 @@ return [
     // What an unusable take's measures say about fixing it (OwnChoir::failureHints; worker.choir.jobs.finish's
     // detailNumbers, signed margins: the measure less its threshold, negative missed). The singer's app shows the hint,
     // never the numbers (ai-modal, 2026-11-23): near passing, or noise with quiet singing (louder or closer may fix it).
+    // The choir gallery (docs/choir-gallery-plan.md): the sheet's version (a new wording is a new number), and the limits.
+    'gallery' => ['consent_version' => 1, 'adds_a_day' => 3, 'live' => 20],
     'failure_hints' => [
         ['detail' => 'noisy', 'hint' => 'near', 'measure' => 'noiseMargin', 'atLeast' => -6.0],
         ['detail' => 'noisy', 'hint' => 'quietSinger', 'measure' => 'levelDb', 'below' => -30.0],

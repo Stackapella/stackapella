@@ -1,0 +1,77 @@
+{
+    "$id": "admin.singingTests.flags.list.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "id",
+                    "person",
+                    "testVersion",
+                    "total",
+                    "reasons",
+                    "takenAt",
+                    "holdEndsAt"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "The test's id."
+                    },
+                    "person": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "name"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "testVersion": {
+                        "type": "integer"
+                    },
+                    "total": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
+                    "reasons": {
+                        "type": "array",
+                        "items": {
+                            "enum": [
+                                "jump",
+                                "flat",
+                                "duplicate"
+                            ]
+                        },
+                        "description": "jump: 25+ over their best before; flat: most notes without a voice's natural wobble; duplicate: the same items as another test."
+                    },
+                    "takenAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "holdEndsAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "When its season shows on the global board anyway, if nobody looks."
+                    }
+                }
+            }
+        }
+    }
+}

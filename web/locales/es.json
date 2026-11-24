@@ -1,4 +1,160 @@
 {
+    "singingTest": {
+        "boards": {
+            "title": "Clasificaciones de la prueba de canto",
+            "improved": "Más mejora",
+            "best": "Mejor",
+            "friends": "Amistades",
+            "global": "Todo el mundo",
+            "scope": "Quién aparece",
+            "failed": "La clasificación no se ha cargado.",
+            "empty": "Nadie en esta clasificación este mes todavía.",
+            "needsTests": "{count, plural, one {# prueba más} other {# pruebas más}} para entrar en la clasificación de este mes",
+            "needsDays": "{count, plural, one {Pruebas en # día más} other {Pruebas en # días más}} para entrar en la clasificación de este mes"
+        },
+        "row": {
+            "match": "{cents} cents de desviación de media",
+            "back": "{cents} cents de desviación de media, en tu tonalidad",
+            "hold": "osciló unos {cents} cents",
+            "unheard": "no se oyó"
+        },
+        "title": "La prueba de canto",
+        "part": "Parte {n} de {count}",
+        "early": "Versión preliminar. Esta prueba es nueva y su puntuación será más precisa a medida que la comprobemos con cantantes reales. Las pequeñas diferencias entre pruebas pueden deberse simplemente a un día distinto.",
+        "event": {
+            "match": "Iguala una nota",
+            "back": "Repite la melodía",
+            "hold": "Mantén la nota"
+        },
+        "how": {
+            "match": "Oirás una nota y luego la cantarás en “u”. Una nota de práctica y después doce.",
+            "back": "Oirás cuatro notas y luego las cantarás en “u”. Vale en tu propia tonalidad. Una melodía de práctica y después seis.",
+            "hold": "Oirás una nota y luego la mantendrás en “u” durante 4 segundos. Dos veces.",
+            "link": "Cómo se puntúa"
+        },
+        "band": {
+            "finding": "Encontrando tus notas",
+            "closer": "Cada vez más cerca",
+            "nearly": "Casi afinado",
+            "inTune": "Afinado",
+            "precise": "Preciso"
+        },
+        "bandLine": {
+            "finding": "La mayoría de las personas que desafinan oyen bien la diferencia: igualar notas es una habilidad y crece con la práctica.",
+            "closer": "Estás cerca de las notas más veces que no. Practicar poco y a menudo lo mejora rápido.",
+            "nearly": "La mayoría de tus notas caen cerca. Los últimos cents se consiguen escuchando mientras mantienes la nota.",
+            "inTune": "Tus notas caen afinadas. Un coro te oiría justo en la nota.",
+            "precise": "Tus notas caen muy cerca del centro, y con estabilidad."
+        },
+        "measure": {
+            "match": "Tus notas se desviaron de media {cents} cents.",
+            "back": "Tus melodías se desviaron de media {cents} cents, en tu propia tonalidad.",
+            "hold": "Tus notas mantenidas oscilaron unos {cents} cents."
+        },
+        "lesson": {
+            "match": "Iguala una nota",
+            "back": "Repite cinco notas",
+            "hold": "Mantén una nota"
+        },
+        "say": {
+            "listen": "Escucha",
+            "sing": "Tu turno: cántala en “u”",
+            "hold": "Tu turno: mantenla en “u”",
+            "heard": "Oída",
+            "again": "No la hemos oído. Otra vez.",
+            "missed": "No se ha oído. Pasamos a la siguiente."
+        },
+        "practiceItem": "Práctica",
+        "itemOf": "{n} de {count}",
+        "warmup": {
+            "title": "Calentamiento",
+            "lead": "Deslízate con el tono en “u”, de grave a agudo y de vuelta. No se mide nada.",
+            "say": "Deslízate en u",
+            "skip": "Saltar el calentamiento"
+        },
+        "note": {
+            "title": "Encuentra tu nota",
+            "lead": "Canta “u” en una nota que te resulte cómoda y mantenla unos segundos. La prueba se construye a su alrededor.",
+            "moved": "Tu nota ha cambiado desde tus primeras pruebas, así que la prueba cambia con ella."
+        },
+        "eventStart": "Empezar",
+        "map": {
+            "label": "{heard} de {count} oídas: cada punto es dónde cantaste respecto a la línea de la nota",
+            "caption": "{heard} de {count} oídas. Los puntos sobre la línea estaban altos y los de debajo bajos; los círculos no se oyeron.",
+            "lead": "Así fue esta parte.",
+            "done": "{name}: terminado."
+        },
+        "seeResult": "Ver tu resultado",
+        "nextEvent": "Siguiente: {name}",
+        "result": {
+            "title": "Tu resultado",
+            "practice": "Probemos en un sitio más tranquilo. Se oyó demasiado poco para puntuar esta prueba, así que se guarda como práctica.",
+            "said": "Tu resultado: {band}",
+            "improved": "Has mejorado desde la última vez.",
+            "same": "Más o menos igual que la última vez.",
+            "breakdown": "Tu puntuación, parte por parte",
+            "wellTitle": "Lo que salió bien",
+            "workTitle": "Algo para trabajar",
+            "lesson": "La lección “{lesson}” lo entrena",
+            "warmUp": "Esa fue de calentamiento: no la cuentes",
+            "countIt": "Contarla al final",
+            "done": "Hecho"
+        },
+        "start": {
+            "lead": "Unos 4 minutos, en tu propio registro, en “u”. Sin letra que cantar y sin nada que preparar.",
+            "parts": "Las cinco partes",
+            "quiet": "Ayuda un sitio tranquilo. No suena nada mientras cantas, así que valen altavoces o auriculares.",
+            "begin": "Empezar",
+            "part": {
+                "warmup": "Calentamiento",
+                "note": "Encuentra tu nota",
+                "match": "Iguala una nota",
+                "back": "Repite la melodía",
+                "hold": "Mantén la nota"
+            },
+            "partHint": {
+                "warmup": "un deslizamiento de 20 segundos",
+                "note": "unos segundos",
+                "match": "oye una nota y repítela, 12 veces",
+                "back": "melodías de cuatro notas, 6 veces",
+                "hold": "4 segundos, dos veces"
+            }
+        },
+        "card": {
+            "title": "Prueba de canto",
+            "none": "Lo bien que igualas notas, las repites y las mantienes, en unos 4 minutos.",
+            "history": "Pruebas anteriores",
+            "seam": "Aquí empieza una versión nueva de la prueba.",
+            "warmUp": "calentamiento",
+            "again": "Hacerla otra vez",
+            "take": "Hacer la prueba de canto"
+        },
+        "howPage": {
+            "title": "Cómo se puntúa",
+            "lead": "Se puntúan tres partes, cada una con límites fijos, así que tu resultado nunca depende del de otras personas. El calentamiento y encontrar tu nota no se puntúan.",
+            "eventsTitle": "Las partes que se puntúan",
+            "points": "{n} puntos",
+            "measures": {
+                "match": "Cuánto se alejó cada nota de su objetivo, en su parte estable. Una nota una octava más arriba o abajo cuenta como correcta.",
+                "back": "Cuánto se alejó cada nota de la melodía, en la tonalidad en que la cantaste, así que una nota equivocada cuenta una sola vez.",
+                "hold": "Cuánto osciló una nota mantenida (el vibrato no cuenta) y cuánto se desvió."
+            },
+            "range": "Puntuación completa a {full} cents o menos, ninguna a {none} o más.",
+            "bandsTitle": "Los niveles",
+            "bandsLead": "Según cuánto se alejaron tus notas de media, en Iguala una nota y Repite la melodía.",
+            "under": "menos de {cents} cents",
+            "between": "de {from} a {to} cents",
+            "over": "{cents} cents o más",
+            "fairTitle": "Justa con cada voz",
+            "fair": {
+                "range": "Cada nota está a una quinta como mucho de tu nota cómoda, así que las voces graves y agudas hacen pruebas igual de difíciles.",
+                "octave": "Cantar en otra octava nunca cuenta en tu contra.",
+                "unheard": "Una nota perdida por el ruido se ofrece otra vez y nunca se puntúa como fallo.",
+                "quiet": "Si se oye demasiado poco, la prueba se guarda como práctica en vez de puntuarse."
+            },
+            "versions": "Versión de la prueba {test}, versión de la puntuación {scoring}. Cuando la puntuación mejora, se vuelven a puntuar todas las pruebas guardadas, así que tu historial avanza a la vez."
+        }
+    },
     "choirWait": {
         "hold": {
             "starts": "Tu coro empieza en {n} s",
@@ -6275,6 +6431,49 @@
             "not": "No es para mí",
             "try": "Probar",
             "note": "Puedes cambiarlo cuando quieras en Ajustes."
+        },
+        "gallery": {
+            "row": "Añadir a la galería",
+            "rowHint": "Cualquiera puede oírla en la galería de coros con IA de Stackapella.",
+            "sheet": {
+                "title": "¿Añadir {song} a la galería de coros con IA?",
+                "shown": "Cualquiera podrá oír su título, sus voces y este coro tal como lo oyes ahora. Suena en la página sin botón de descarga, como \"Alguien que canta\", nunca con tu nombre.",
+                "label": "Lleva la etiqueta \"Coro con IA hecho con la voz de una sola persona\" en su página, su reproductor y su vista previa, y el archivo lleva una marca de IA.",
+                "whose": "Añade solo tu propia voz. No la de una amistad, un familiar ni nadie más.",
+                "next": "Alguien de Stackapella lo escucha antes, normalmente en un día, y aparece cuando lo aprobamos. Si cambias la canción después, la volvemos a escuchar antes de que vuelva.",
+                "remove": "Desactívalo cuando quieras y saldrá de la galería al momento. Los enlaces que hayas compartido tú siguen ahí hasta que dejes de compartirlos o borres la canción.",
+                "confirm": "Es mi propia voz. Añadir",
+                "cancel": "Cancelar",
+                "adding": "Preparando {song} para que la escuchemos..."
+            },
+            "status": {
+                "pending": "Esperando a que lo escuchemos, normalmente en un día.",
+                "approved": "En la galería.",
+                "declined": "{reason} La canción sigue siendo tuya.",
+                "held": "En pausa mientras revisamos un aviso. Te diremos qué decidimos.",
+                "aiOff": "Oculto mientras las funciones de IA están desactivadas.",
+                "changed": "Oculto: cambiaste la canción desde que la escuchamos.",
+                "resend": "Enviar la nueva versión para que la escuchemos"
+            },
+            "reason": {
+                "noise": "No añadimos {song}: la grabación tiene mucho ruido de la sala. Cantar en un sitio más tranquilo suele arreglarlo.",
+                "broken": "No añadimos {song}: el coro no salió limpio. Volver a hacerlo suele arreglarlo.",
+                "notOwn": "No añadimos {song}: la galería solo admite tu propia voz, y aquí no pudimos estar seguros.",
+                "notLibrary": "No añadimos {song}: por ahora la galería solo admite canciones de la biblioteca.",
+                "plain": "No añadimos {song}."
+            },
+            "remove": {
+                "title": "¿Quitar {song} de la galería?",
+                "body": "Sale de la galería al momento. La canción sigue siendo tuya.",
+                "confirm": "Quitar"
+            },
+            "error": {
+                "limitDay": "Puedes añadir 3 canciones al día. Vuelve a intentarlo mañana.",
+                "limitLive": "Tienes 20 canciones en la galería, el máximo por ahora. Quita una para añadir otra.",
+                "notLibrary": "Por ahora, solo las canciones de nuestra biblioteca pueden ir a la galería.",
+                "together": "Las canciones con la voz de una amistad aún no pueden ir a la galería.",
+                "failed": "No se añadió. Revisa tu conexión y vuelve a intentarlo."
+            }
         }
     },
     "aiVoice": {

@@ -16,7 +16,7 @@ import { betaWaiting, homeBands, sangThisWeek } from '../home.js';
 import { aiPartsOf, creditsFor, loadCatalogue, recordingFor } from '../stores/catalogue.js';
 import { AiVoiceLabel } from '../ai-voices.js';
 import { loadOwnChoir, ownChoirOn } from '../own-choir-state.js';
-import { ChoirPanel, choirReady } from '../components/choir-panel.js';
+import { ChoirPanel, choirPanelShown } from '../components/choir-panel.js';
 import { JoinedChoirs } from '../components/joined-choirs.js';
 import { guideKey, keepAhead } from '../recorded-guides.js';
 import { defineAsyncComponent, markRaw, toRaw } from 'vue';
@@ -368,7 +368,7 @@ export const ProjectsView = {
     computed: {
         /** The choir panel in the course card's side column: a wide screen, once the course has loaded, when there's a panel. */
         choirInLead() {
-            return this.wide && learning.loaded && !learning.failed && (ownChoirOn() || choirReady().length > 0);
+            return this.wide && learning.loaded && !learning.failed && choirPanelShown();
         },
         /** Make your own's ways in, each with its own icon; Hum a tune only for staff or once the server switches it on. */
         makeWays() {

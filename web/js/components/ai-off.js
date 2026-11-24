@@ -23,7 +23,7 @@ export const AiOffNotice = {
             try {
                 if (account.me) {
                     await api.account.update({ aiFeatures: true });
-                    account.me = { ...account.me, aiFeatures: true };
+                    account.me = { ...account.me, aiFeatures: true, aiFeaturesSource: 'settings' };
                 } else {
                     local.set(AI_KEY, 'on');
                 }

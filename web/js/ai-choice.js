@@ -34,10 +34,21 @@ export function aiOn() {
     return deviceAi() === 'on';
 }
 
-/** Whether a choice has been made here: the account's, else this device's. */
+/**
+ * A real yes to AI (Hillel, 2026-11-24: "the 'Hear yourself as a choir' should be hidden from top of home page until we
+ * know if they use AI or not"): the account's AI features on by its own choice (not `existing`, set on for every account
+ * made before AI was optional), else a guest's device on. Whatever the release switch says.
+ */
+export function aiYes() {
+    const me = account.me;
+    if (me) return me.aiFeatures === true && me.aiFeaturesSource !== 'existing';
+    return deviceAi() === 'on';
+}
+
+/** Whether a choice has been made here: the account's, else this device's. An `existing` account's on wasn't a choice. */
 export function aiChosen() {
     const me = account.me;
-    if (me) return typeof me.aiFeatures === 'boolean';
+    if (me) return typeof me.aiFeatures === 'boolean' && me.aiFeaturesSource !== 'existing';
     return deviceAi() === 'on' || deviceAi() === 'off';
 }
 
@@ -84,7 +95,7 @@ export async function syncDeviceAi() {
     if (!aiOptional() || !me || me.aiFeatures !== null || !('aiFeatures' in choice)) return;
     const { api } = await import('./api.js');
     await api.account.update(choice);
-    account.me = { ...account.me, aiFeatures: choice.aiFeatures };
+    account.me = { ...account.me, aiFeatures: choice.aiFeatures, aiFeaturesSource: choice.aiFeaturesSource ?? 'settings' };
 }
 
 /** The band the counts carry: the account's stored one, `unknown` without one, `guest` signed out. */
@@ -107,7 +118,7 @@ export async function chooseAi(on) {
     if (account.me) {
         const { api } = await import('./api.js');
         await api.account.update({ aiFeatures: on, aiFeaturesSource: 'card' });
-        account.me = { ...account.me, aiFeatures: on };
+        account.me = { ...account.me, aiFeatures: on, aiFeaturesSource: 'card' };
     } else {
         setDeviceAi(on);
     }

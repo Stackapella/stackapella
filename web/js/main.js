@@ -78,6 +78,8 @@ const ChoirTogetherJoinView = screen(() => import('./views/choir-together.js').t
 const SettingsView = screen(() => import('./views/settings.js').then((m) => m.SettingsView), { title: tk('settings.title') });
 const StorageView = screen(() => import('./views/storage.js').then((m) => m.StorageView), { title: tk('cloud.storage.title') });
 const VoiceView = screen(() => import('./views/voice.js').then((m) => m.VoiceView), { title: tk('voice.title') });
+const SingingTestView = screen(() => import('./views/singing-test.js').then((m) => m.SingingTestView), { title: tk('singingTest.title') });
+const SingingTestHowView = screen(() => import('./views/singing-test.js').then((m) => m.SingingTestHowView), { title: tk('singingTest.howPage.title') });
 const WorkoutView = screen(() => import('./views/workout.js').then((m) => m.WorkoutView));
 const RehearseView = screen(() => import('./views/rehearse.js').then((m) => m.RehearseView));
 const PlusView = screen(() => import('./views/plus.js').then((m) => m.PlusView), { title: tk('plus.title') });
@@ -114,7 +116,7 @@ const IdeaView = screen(() => import('./views/ideas.js').then((m) => m.IdeaView)
 const FIRST_INSTALL_WAIT_MS = 15000; // a timer for when to install, never for audio
 
 const App = {
-    components: { LaunchCredit, RequestsView, ReadLinesView, ProjectsView, StudioView, SingView, PrintView, ScoreSheetView, OwnChoirView, ChoirTogetherJoinView, AuthView, SettingsView, StorageView, VoiceView, WorkoutView, RehearseView, PlusView, RemindersView, ClassesView, ClassJoinView, CloudConflicts, LearnView, CourseView, PlusCourseView, BirthHost, NewVersion, AdminView, StyleguideView, StyleguideGameView, BetaView, CreateView, TemplateView, JoinView, EarlyView, GroupsView, GroupView, ChoirJoinView, MovedView, ContactView, NoticesView, NoticeView, WarmupView, IdeasView, IdeaView, VoicesView, ResetView, Toasts, ConfirmHost, MicHelpHost, MicCheckHost, ChallengeView },
+    components: { LaunchCredit, RequestsView, ReadLinesView, ProjectsView, StudioView, SingView, PrintView, ScoreSheetView, OwnChoirView, ChoirTogetherJoinView, AuthView, SettingsView, SingingTestView, SingingTestHowView, StorageView, VoiceView, WorkoutView, RehearseView, PlusView, RemindersView, ClassesView, ClassJoinView, CloudConflicts, LearnView, CourseView, PlusCourseView, BirthHost, NewVersion, AdminView, StyleguideView, StyleguideGameView, BetaView, CreateView, TemplateView, JoinView, EarlyView, GroupsView, GroupView, ChoirJoinView, MovedView, ContactView, NoticesView, NoticeView, WarmupView, IdeasView, IdeaView, VoicesView, ResetView, Toasts, ConfirmHost, MicHelpHost, MicCheckHost, ChallengeView },
     setup: () => ({ route, COOL_DOWN }),
     template: `
         <!-- A self-hosted install's credit, as the licence asks, on whichever screen the app opens (components/credit.js). -->
@@ -154,6 +156,8 @@ const App = {
         <SettingsView v-else-if="route.name === 'settings'" />
         <StorageView v-else-if="route.name === 'storage'" />
         <VoiceView v-else-if="route.name === 'voice'" />
+        <SingingTestView v-else-if="route.name === 'singing-test'" />
+        <SingingTestHowView v-else-if="route.name === 'singing-test-how'" />
         <WorkoutView v-else-if="route.name === 'workout'" />
         <RehearseView v-else-if="route.name === 'rehearse'" :key="route.params.song + '/' + route.params.part" :song="route.params.song" :part="route.params.part" />
         <PlusView v-else-if="route.name === 'plus'" />

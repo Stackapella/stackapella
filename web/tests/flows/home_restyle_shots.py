@@ -31,7 +31,7 @@ def journey(f):
     f.go("/?api=mock&scenario=&as=signedOut", "document.querySelector('[data-lead] h1')")
     full_page(f, out, "01-guest")
     # A member a month in, the choir on: the lead with its week, the choir panel, the workout, the picks, Your songs.
-    f.run("sessionStorage.setItem('stackapella.mockOwnChoir', '1'); sessionStorage.setItem('stackapella.mockChoirState', 'fresh');")
+    f.run("sessionStorage.setItem('stackapella.mockOwnChoir', '1'); sessionStorage.setItem('stackapella.mockChoirState', 'fresh'); sessionStorage.setItem('stackapella.mockAiFeatures', '1'); sessionStorage.setItem('stackapella.mockAiSource', 'card');")
     f.run("const db = await import('/js/db.js'); const { emptyProgress } = await import('/js/course.js'); await db.put('learning', { ...emptyProgress(), startedAt: Date.now() - 30 * 86400000, lessons: { '1-comfortable': { stars: 3, at: Date.now() - 86400000 }, '1-match': { stars: 2, at: Date.now() - 86400000 } }, home: 57, range: { low: 50, high: 67 } }, 'progress');")
     f.go("/?api=mock&scenario=&as=member", "document.querySelector('[data-lead] h1') && document.querySelector('[data-choir-panel]')")
     full_page(f, out, "02-member")

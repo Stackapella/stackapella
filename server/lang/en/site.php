@@ -778,8 +778,8 @@ return [
         // so a line about them follows the switches instead of going stale.
         'languages' => ['only' => 'English only', 'names' => ['en' => 'English', 'es' => 'Spanish', 'de' => 'German'], 'list' => ':first and :last'],
         'index' => [
-            'title' => 'Who Stackapella is for',
-            'description' => 'Beginners, choir singers and directors, a cappella singers, songwriters, players and families: how Stackapella helps each one sing harmony.',
+            'title' => 'Learners, Singers and Choir Directors',
+            'description' => 'Stackapella is for learners discovering harmony, singers recording every part themselves and choir directors getting a choir ready, and for a cappella groups, songwriters and families too.',
             'headline' => 'For anyone who wants to sing harmony',
             'lead' => 'Whether you\'ve never sung a harmony or you lead a choir, the same simple idea works: learn one part, then the next.',
         ],
@@ -1548,6 +1548,42 @@ return [
         // Questions: always (tune), and with own_choir_together (friends).
         'faq_tune' => ['Which song do I sing?', 'Happy Birthday twice through, or about 30 seconds of Silent Night, Amazing Grace or Joy to the World: whichever you know best. Your free choir is the song you sing.'],
         'faq_friends' => ['Do my friends need an account?', 'Yes, a free one, and they must be 18 or over. Joining costs them nothing: their parts count against your minutes, never theirs.'],
+    ],
+    // The AI choir gallery (docs/choir-gallery-plan.md; marketing's words, 2026-11-24): /ai-harmony-singing/gallery, its
+    // items (the share page, listed) and the report sheet. Every item reads "A singer" in version 1, never a name.
+    'choir_gallery' => [
+        'title' => 'AI Choir Examples from Real Singers',
+        'description' => 'AI choir examples from real singers: each one a singer\'s own 30 seconds, sung by AI into every part of a real choir arrangement. Listen, then make your own.',
+        'name' => 'Gallery',
+        'eyebrow' => 'AI harmony singing',
+        'headline' => 'Hear what singers made.',
+        'lead' => 'Each choir here is one singer\'s own voice, sung by AI into every part of a real arrangement. They chose to share it, and a person at Stackapella listened first.',
+        'singer' => 'A singer',
+        'label' => 'AI choir made from one singer\'s voice',
+        'play' => 'Play :song',
+        'stop' => 'Stop',
+        'empty' => 'The first choirs are on their way.',
+        'make' => 'Make your own choir',
+        'make_line' => 'Sing 30 seconds and hear yourself as a whole choir.',
+        'listed' => 'In Stackapella\'s AI choir gallery',
+        'see' => 'See the gallery',
+        'removed' => 'This choir isn\'t in the gallery any more.',
+        'held' => 'Not available right now.',
+        'report' => [
+            'open' => 'Report',
+            'title' => 'What\'s wrong with this choir?',
+            'email' => 'Your email, if you\'d like to hear back',
+            'email_note' => 'Optional. We delete it when the report is closed.',
+            'send' => 'Send report',
+            'done' => 'Thanks. A person at Stackapella will look at it.',
+            'reasons' => [
+                'not_theirs' => 'It isn\'t the singer\'s own voice',
+                'mine' => 'This is my voice, used without my consent',
+                'offensive' => 'It\'s offensive',
+                'copyright' => 'It uses something I own the rights to',
+                'other' => 'Something else',
+            ],
+        ],
     ],
 
     // About AI voices (/about/ai-voices; docs/ai-voices-build-plan.md, marketing item 2): unlisted and noindex until the

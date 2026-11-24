@@ -229,6 +229,8 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `admin.aiGuides.list` | `GET /api/admin/ai-guides` | An admin or editor | AI voices |
 | `admin.aiGuides.approve` | `POST /api/admin/ai-guides/approve` | An admin | AI voices |
 | `admin.aiGuides.reject` | `POST /api/admin/ai-guides/reject` | An admin, in sudo | AI voices |
+| `admin.choirGallery.list` | `GET /api/admin/choir-gallery` | An admin | Choir gallery |
+| `admin.choirGallery.decide` | `POST /api/admin/choir-gallery/{id}` | An admin | Choir gallery |
 | `ownChoir.show` | `GET /api/own-choir` | Anyone signed in | Own choir |
 | `ownChoir.consent` | `POST /api/own-choir/consent` | Anyone signed in | Own choir |
 | `ownChoir.requests.create` | `POST /api/own-choir/requests` | Anyone signed in | Own choir |
@@ -246,6 +248,10 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `ownChoir.members.complete` | `POST /api/own-choir/members/{id}/complete` | The member | Own choir |
 | `ownChoir.members.delete` | `DELETE /api/own-choir/members/{id}` | The member, or the song's owner | Own choir |
 | `ownChoir.requests.delete` | `DELETE /api/own-choir/requests/{id}` | Anyone signed in, their own | Own choir |
+| `ownChoir.gallery.add` | `POST /api/own-choir/requests/{id}/gallery` | Anyone signed in, their own song | Choir gallery |
+| `ownChoir.gallery.remove` | `DELETE /api/own-choir/requests/{id}/gallery` | Anyone signed in, their own song | Choir gallery |
+| `ownChoir.gallery.list` | `GET /api/own-choir/gallery` | Anyone (signed out too) | Choir gallery |
+| `ownChoir.gallery.show` | `GET /api/own-choir/gallery/{id}` | Anyone (signed out too) | Choir gallery |
 | `ownChoir.delete` | `DELETE /api/own-choir` | Anyone signed in | Own choir |
 | `ownChoir.voice.delete` | `DELETE /api/own-choir/voice` | Anyone signed in | Own choir |
 | `admin.beta.feedback.list` | `GET /api/admin/beta/feedback` | An admin or editor | M2 |
@@ -317,6 +323,10 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `projects.editable.update` | `PUT /api/projects/editable` | Anyone signed in | M5 |
 | `scores.create` | `POST /api/scores` | A Plus account | M5 |
 | `scores.list` | `GET /api/scores` | A Plus account | M5 |
+| `singingTests.list` | `GET /api/singing-tests` | Anyone signed in, with the singing test on | Singing test |
+| `singingTests.create` | `POST /api/singing-tests` | Anyone signed in, with the singing test on | Singing test |
+| `singingTests.update` | `PATCH /api/singing-tests/{id}` | The test's singer | Singing test |
+| `singingTests.boards.show` | `GET /api/singing-tests/boards` | Anyone signed in, with the test's boards on | Singing test |
 | `reminders.show` | `GET /api/reminders` | Anyone signed in | M5 |
 | `reminders.update` | `PUT /api/reminders` | Anyone signed in | M5 |
 | `reminders.devices.create` | `POST /api/reminders/devices` | Anyone signed in | M5 |
@@ -505,6 +515,9 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `admin.boards.scores.review` | `POST /api/admin/boards/scores/{id}/review` | An admin | L |
 | `admin.boards.scores.delete` | `DELETE /api/admin/boards/scores/{id}` | An admin, in sudo | L |
 | `admin.boards.reset` | `POST /api/admin/people/{id}/boards/reset` | An admin, in sudo | L |
+| `admin.singingTests.flags.list` | `GET /api/admin/singing-tests/flags` | An admin | Singing test |
+| `admin.singingTests.review` | `POST /api/admin/singing-tests/{id}/review` | An admin | Singing test |
+| `admin.singingTests.hide` | `DELETE /api/admin/singing-tests/{id}` | An admin, in sudo | Singing test |
 | `library.list` | `GET /api/library` | Anyone | N3 |
 | `templates.publish` | `PUT /api/templates/{id}/publication` | The owner | N3 |
 | `templates.unpublish` | `DELETE /api/templates/{id}/publication` | The owner | N3 |
@@ -1789,7 +1802,9 @@ the arm label on the device (never an id). `experiment` stays onb1's until it en
 **Request:** none.
 
 `aiOptional` (since 2026-11-23, the `ai_optional` switch, docs/ai-optional-plan.md): while on, the app honours each
-account's `aiFeatures` and a guest's device key; off, AI shows for everyone as before. `choirEmail` (since 2026-11-24,
+account's `aiFeatures` and a guest's device key; off, AI shows for everyone as before. `choirGallery` (since 2026-11-24, the `choir_gallery` switch): `{ on, consentVersion }`, the gallery sheet's current
+version. `singingTest` and `singingTestBoards` (since 2026-11-24, the `singing_test` switch, staff first, and
+`singing_test_boards`): the singing test on Your voice and `singingTests.*`, and its boards in game mode. `choirEmail` (since 2026-11-24,
 the `choir_email` switch): while on, the choir ready email is sent, and the app shows the take review's "We'll email
 you" line and Settings' choir email row; off, none of the three, so the app never promises an email that won't come. `plusLimits` (since 2026-11-23): Plus's numbers as the site's Plus words give them, `{ "choirMinutes", "choirSongs",
 "storageBytes" }`: the AI choir's part-minutes a month, about how many songs that is (minutes over 4, at least 1), and
@@ -1996,6 +2011,9 @@ The signed-in account. **Request:** none. `admin` is true only for someone who p
 admin gate in this session (the database flag, a Google id on the admin list, and a verified Google
 sign-in now), for the app's Admin link; editors and everyone else get false. It's a convenience:
 `/admin` checks the gate itself.
+`aiFeaturesSource` (since 2026-11-24) says where `aiFeatures` came from: `card`, `settings`, `ai-singing`, or `existing`
+for an account made before the choice (kept on but never chosen), so the app can tell a real yes from it; null while
+unchosen.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -3036,6 +3054,75 @@ device catching up).
 |---|---|---|---|
 | 200 |  | `scores.list.json` | `scores.list.200.json` |
 
+#### `singingTests.list`
+
+The singing test's history (since 2026-11-24, docs/singing-test-v1.md; behind the `singing_test` switch, staff first,
+`404 not_found` while it's off for them): every test the account kept, newest first, each scored by the server's
+current `scoringVersion`, so a new scoring version moves the whole history together. Numbers only, never audio.
+Charts and "you've improved" compare within one `testVersion` only. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `singingTests.list.json` | `singingTests.list.200.json` |
+| 404 | `not_found` | `error.json` | `singingTests.list.not_found.json` |
+
+#### `singingTests.create`
+
+Keep a finished test (a guest's tests sync once they have an account). **Request:** `{ "id": "<uuid>", "testVersion":
+1, "scoringVersion": 1, "takenAt": "...", "anchor": 57.4, "device": "phone" | "computer", "warmUp": false, "match":
+[...], "back": [...], "hold": [...], "score": { "total", "match", "back", "hold", "band" } }`:
+- `match` (at most 12): `{ target (MIDI), centsOff (the steady middle against the target, after the octave fold; null
+  unheard), octave (-1, 0 or 1: sung an octave off, shown, never penalised), landingMs, jitterCents (the pitch's spread
+  inside the steady middle, vibrato kept; null unheard, or under 0.15 s steady, since 2026-11-24), startAfterPromptMs (the answer's start against the
+  prompt's end: the app reads answers from the prompt's end, so 0 or more) }`;
+- `back` (at most 6 patterns): `{ pattern: [4 MIDI notes], notes: [4 { centsOff, jitterCents }] (against the pattern in
+  the singer's fitted key), startOffsetCents (their fitted key against the pattern, reported apart), startAfterPromptMs }`;
+- `hold` (at most 2): `{ target, spreadCents (vibrato removed), driftCents (signed) }`;
+- the last try of each item only, and no practice items; `score` is the device's own.
+The server scores the test itself (contract/singing-test/scoring-v1.json is the rule and its shared cases, which the
+app's engine tests against too) and answers its own scores, which the device keeps: each event's points (Match a note of
+45, Sing it back of 40, Hold it of 15) between fixed ceilings and floors in cents, the total out of 100, the band
+(`finding`, `closer`, `nearly`, `inTune`, `precise`), and `status`: `practice` when too few items were heard (kept,
+never counted; no total or band), else `warmup` or `counted`. The same `id` again answers `200` as it is; another body
+under it is a `422` on `id`.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 201 |  | `singingTests.show.json` | `singingTests.create.201.json` |
+| 200 |  | `singingTests.show.json` | `singingTests.create.200.json` |
+| 404 | `not_found` | `error.json` | `singingTests.create.not_found.json` |
+| 422 | `validation_failed` | `error.json` | `singingTests.create.validation_failed.json` |
+
+#### `singingTests.update`
+
+Mark the first test a warm-up afterwards (it stays in the history, never counted). **Request:** `{ "warmUp": true }`
+(or `false` to count it again). Only the account's first counted test: any other answers `422 not_first`.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `singingTests.show.json` | `singingTests.update.200.json` |
+| 404 | `not_found` | `error.json` | `singingTests.update.not_found.json` |
+| 422 | `not_first` | `error.json` | `singingTests.update.not_first.json` |
+
+#### `singingTests.boards.show`
+
+The singing test's boards (since 2026-11-24, docs/singing-test-v1.md; behind `singing_test_boards`, `404 not_found`
+while it's off; the app shows them in game mode only). **Request:** `?board=improved|best&scope=global|friends&month=YYYY-MM`
+(this UTC month when left out). Who's on them is the part boards' rule: `global`, opted in (`boards.global.update`) and
+an adult; `friends`, the part boards' friends, under-18s by initials; suspended and blocked people left out. A season is
+a month of one `testVersion`: a singer appears after 3 counted tests on 2 or more days, and **Best** ranks the mean of
+the best 3 of the month's first 4 counted tests (later tests go to the history only), **Most improved** that score over
+their baseline (the better of their first two counted tests ever, in this `testVersion`), at most 30, shown first.
+Entries within `threshold` points share a place. `you` says where they stand, and what's still `needs`ed to appear. A
+test held for a look (`admin.singingTests.flags.list`) leaves its season off the global board for 48 hours or until
+it's cleared; its singer and friends still see it.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `singingTests.boards.show.json` | `singingTests.boards.show.200.json` |
+| 404 | `not_found` | `error.json` | `singingTests.boards.show.not_found.json` |
+| 422 | `validation_failed` | `error.json` | `singingTests.boards.show.validation_failed.json` |
+
 #### `reminders.show`
 
 The practice reminder (web push, opt-in; `docs/operations-plan.md`): the days and time, the
@@ -3329,6 +3416,82 @@ title). It's kept 7 days (`expiresAt`), then `expired`: make it again. `failed` 
 | 200 |  | `videos.show.json` | `videos.show.200.json` |
 | 404 | `not_found` | `error.json` | `videos.show.not_found.json` |
 
+#### `ownChoir.gallery.add`
+
+Add a choir song to the choir gallery (since 2026-11-24, docs/choir-gallery-plan.md; behind `choir_gallery`, `404
+not_found` while it's off): the item is the song's own share, `/h/<harmonyId>`, and staff listen to exactly that mix
+before anyone else hears it. **Request:** `{ "harmonyId": "...", "consentVersion": 1, "wordsHash": "<sha256 of the
+sheet's words as shown>", "locale": "en", "ownVoice": true }`; the version, the hash and the time are kept as the
+consent. The share must be the owner's own, live, of this song, with only their own voice in it, and the song a ready
+library song with AI features on (else `409 not_eligible` with `reason`, as `galleryCan` says, or `share` for a share that
+isn't such); an older sheet is `409
+agreement_changed`; 3 adds a day (`429 rate_limited`) and 20 live (`409 limit_reached`). Adding again (a new share
+after a remake) replaces the share and goes back to `pending`. Shown in "A singer"'s name only.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 201 |  | `ownChoir.gallery.add.json` | `ownChoir.gallery.add.201.json` |
+| 404 | `not_found` | `error.json` | `ownChoir.gallery.add.not_found.json` |
+| 409 | `agreement_changed` | `error.json` | `ownChoir.gallery.add.agreement_changed.json` |
+| 409 | `not_eligible` | `error.json` | `ownChoir.gallery.add.not_eligible.json` |
+| 409 | `limit_reached` | `error.json` | `ownChoir.gallery.add.limit_reached.json` |
+| 422 | `validation_failed` | `error.json` | `ownChoir.gallery.add.validation_failed.json` |
+| 429 | `rate_limited` | `error.json` | `ownChoir.gallery.add.rate_limited.json` |
+
+#### `ownChoir.gallery.remove`
+
+Take it out of the gallery at once (the share itself stays until they stop sharing). **Request:** none. Deleting the
+song, its share, the saved voice or the account takes it out too.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 204 |  |  |  |
+| 404 | `not_found` | `error.json` | `ownChoir.gallery.remove.not_found.json` |
+
+#### `ownChoir.gallery.list`
+
+The choir gallery, signed out too: approved choirs, newest first (up to 100), never a name; left out while their
+singer's AI features are off, after the song changed (until it's added again and heard), and where the song is withheld
+in the visitor's country. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `ownChoir.gallery.list.json` | `ownChoir.gallery.list.200.json` |
+
+#### `ownChoir.gallery.show`
+
+One choir in the gallery: `404 held` while a report holds it ("Not available right now"), `410 removed` once it's out
+("This choir isn't in the gallery any more", whoever removed it), `404 not_found` for anything else. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `ownChoir.gallery.show.json` | `ownChoir.gallery.show.200.json` |
+| 404 | `not_found` | `error.json` | `ownChoir.gallery.show.not_found.json` |
+| 404 | `held` | `error.json` | `ownChoir.gallery.show.held.json` |
+| 410 | `removed` | `error.json` | `ownChoir.gallery.show.removed.json` |
+
+#### `admin.choirGallery.list`
+
+The choir gallery's queue (Admin, a tab of the AI review): `?status=pending|held|approved|declined|removed` (pending
+when left out), oldest first, each with a 10-minute link to the exact mix and its reports. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `admin.choirGallery.list.json` | `admin.choirGallery.list.200.json` |
+
+#### `admin.choirGallery.decide`
+
+**Request:** `{ "decision": "approve" | "decline" | "takedown" | "release", "reason": "noise" | "broken" | "not_own" |
+"not_library" | "other", "reasonText": "..." }`: `reason` with decline and takedown, `reasonText` only with `other`.
+Approve and release show it; decline keeps it out; takedown removes it for good and upholds its reports (release
+dismisses them). Audited.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 |  | `admin.choirGallery.decide.json` | `admin.choirGallery.decide.200.json` |
+| 404 | `not_found` | `error.json` | `admin.choirGallery.decide.not_found.json` |
+| 422 | `validation_failed` | `error.json` | `admin.choirGallery.decide.validation_failed.json` |
+
 #### `reports.create`
 
 Report a shared harmony, with or without an account (the Report button on `/h/<id>`; the DSA's
@@ -3346,8 +3509,12 @@ notice route). **Request:** `{ "harmonyId": "<id>", "reason": "copyright", "note
   signed in only: `204` for a live entry (your own and repeats ignored), `404` otherwise; 2
   different people's reports hold it off the global board until an admin looks
   (`admin.boards.flags.list`, `reason: "reported"`);
+- or `choirGalleryId` (a choir in the choir gallery, `ownChoir.gallery.list` `id`; since 2026-11-24): reason
+  `my_voice` ("this is my voice, used without my consent") holds it at once; other reasons from 3 different networks hold
+  it, as for a page, until staff look; once staff have released it, only `my_voice` holds it again. `204` for a live
+  item, `404` otherwise;
 - `reason`: `copyright`, `offensive`, `spam`, `personal` (someone's private information, or a
-  recording of someone without their OK) or `other`; `note` 0 to 500 characters, plain text;
+  recording of someone without their OK), `my_voice` (a choir gallery item only) or `other`; `note` 0 to 500 characters, plain text;
 - `website` is the honeypot (left empty; a filled one is ignored), and in shield mode
   `turnstileToken` is needed (`403 turnstile_required`, `turnstile_failed`);
 - always `204` for a harmony whose page is live, even when the report is ignored (your own
@@ -5769,6 +5936,35 @@ Takes one score off the boards (audited). **Request:** `reason`.
 |---|---|---|---|
 | 204 | | | |
 
+#### `admin.singingTests.flags.list`
+
+Singing tests held for a look, newest first (up to 100), only those not yet looked at or taken off: `jump` (a total 25
+or more over the singer's best counted total before), `flat` (three quarters or more of its notes heard with a steady
+middle show under 1 cent of jitter, as a synth's would), `duplicate` (the same items as another kept test). Numbers
+only: no recording is ever asked for. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.singingTests.flags.list.json` | `admin.singingTests.flags.list.200.json` |
+
+#### `admin.singingTests.review`
+
+Looked at and fine: its season shows on the global board at once (audited). **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 204 | | | |
+| 404 | `not_found` | `error.json` | `admin.singingTests.review.not_found.json` |
+
+#### `admin.singingTests.hide`
+
+Takes one test off the boards (audited); it stays in its singer's history. **Request:** `reason`.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 204 | | | |
+| 404 | `not_found` | `error.json` | `admin.singingTests.hide.not_found.json` |
+
 #### `admin.boards.reset`
 
 Removes all of a person's scores (audited). **Request:** `reason`.
@@ -7951,7 +8147,10 @@ minutes, no GPU), applied by the app when it plays and exports the song. **Reque
 "small" | "hall" | "chapel", "balance": [{ "partKey", "db" }], "leadBlend": 0..1 | null, "recordingLevel": −24..0 | null
 } }`: `balance` one entry per part (−12 to 6 dB; a part left out is 0); `leadBlend` within You + choir, 0 their real
 take as the lead, 1 the AI tune, null as the view says; `recordingLevel` their original clip under the choir, null off.
-The song as it now is. `403 plus_required` without Plus; the owner's songs only (`404` otherwise).
+The song as it now is. `403 plus_required` without Plus; the owner's songs only (`404` otherwise). A song with no room
+saved plays in `small` (since 2026-11-24, Hillel: "small room should be the default reverb"; it was `hall`).
+`settings.soundSaved` (since 2026-11-24) is false while nothing was saved for the song, so the app can play it in the
+singer's remembered room (Hillel: "remember the users choice automatically") and save that.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|

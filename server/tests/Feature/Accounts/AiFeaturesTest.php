@@ -74,7 +74,7 @@ final class AiFeaturesTest extends TestCase
         $this->actingAs($arrived);
         $me = $this->getJson('/api/account');
         $this->assertMatchesContract($me, 'account.show', 200);
-        $me->assertJsonPath('data.aiFeatures', true)->assertJsonPath('data.ageBand', '25-34');
+        $me->assertJsonPath('data.aiFeatures', true)->assertJsonPath('data.aiFeaturesSource', 'ai-singing')->assertJsonPath('data.ageBand', '25-34');
     }
 
     public function test_every_account_made_before_keeps_ai_on_and_the_fill_runs_twice_safely(): void

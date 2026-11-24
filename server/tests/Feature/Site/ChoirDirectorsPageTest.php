@@ -6,6 +6,7 @@ namespace Tests\Feature\Site;
 
 use App\Support\Flags;
 use App\Support\Http\Hosts;
+use App\Support\Site\PathPages;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -26,17 +27,17 @@ final class ChoirDirectorsPageTest extends TestCase
         $page = (string) $this->get('/for/choir-directors')->assertOk()->getContent();
 
         $order = [
-            '<h1 id="page-h">'.e(__('site.for_directors.h1')).'</h1>',
-            e(__('site.for_directors.headline')),
+            '<h1 id="page-h" class="s-aud-kick">'.e(__('site.for_directors.h1')).'</h1>',
+            e(PathPages::split((string) __('site.for_directors.headline'))[1]),
             'data-choir-board',
-            e(__('site.for_directors.steps_title')),
+            e(PathPages::split((string) __('site.for_directors.steps_title'))[1]),
             e(__('site.for_directors.nogroup.title')),
             'id="faq-h"',
-            e(__('site.for_directors.end.title')),
+            e(PathPages::split((string) __('site.for_directors.end.title'))[1]),
         ];
         $at = -1;
         foreach ($order as $words) {
-            $next = strpos($page, $words);
+            $next = strpos($page, $words, $at + 1);
             $this->assertNotFalse($next, $words);
             $this->assertGreaterThan($at, $next, $words);
             $at = $next;

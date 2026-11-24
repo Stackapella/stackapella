@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\Admin\BlocklistController;
 use App\Http\Controllers\Api\Admin\BoardsController as AdminBoards;
 use App\Http\Controllers\Api\Admin\BooksController as AdminBooks;
 use App\Http\Controllers\Api\Admin\BreadthController as AdminBreadth;
+use App\Http\Controllers\Api\Admin\ChoirGalleryController as AdminChoirGallery;
 use App\Http\Controllers\Api\Admin\ChoirGrowthController as AdminChoirGrowth;
 use App\Http\Controllers\Api\Admin\ChoirInsightsController as AdminChoirInsights;
 use App\Http\Controllers\Api\Admin\ChoirLiveController as AdminChoirLive;
@@ -54,6 +55,7 @@ use App\Http\Controllers\Api\Admin\ReportsController as AdminReports;
 use App\Http\Controllers\Api\Admin\SchoolController as AdminSchool;
 use App\Http\Controllers\Api\Admin\SecurityEventsController;
 use App\Http\Controllers\Api\Admin\SharingController as AdminSharing;
+use App\Http\Controllers\Api\Admin\SingingTestFlagsController as AdminSingingTestFlags;
 use App\Http\Controllers\Api\Admin\SocialController as AdminSocial;
 use App\Http\Controllers\Api\Admin\SupportController as AdminSupport;
 use App\Http\Controllers\Api\Auth\AppAuthController;
@@ -98,6 +100,7 @@ use App\Http\Controllers\Api\Leagues\LeaguesController as LeaguesApi;
 use App\Http\Controllers\Api\Library\LibraryController as LibraryApi;
 use App\Http\Controllers\Api\Live\BeatController;
 use App\Http\Controllers\Api\OwnChoir\ChoirTogetherController as ChoirTogetherApi;
+use App\Http\Controllers\Api\OwnChoir\Gallery\ChoirGalleryController as ChoirGalleryApi;
 use App\Http\Controllers\Api\OwnChoir\OwnChoirController as OwnChoirApi;
 use App\Http\Controllers\Api\Projects\EditableController;
 use App\Http\Controllers\Api\Projects\PartsController as ProjectParts;
@@ -111,6 +114,8 @@ use App\Http\Controllers\Api\School\SchoolController as SchoolApi;
 use App\Http\Controllers\Api\Sharing\HarmoniesController;
 use App\Http\Controllers\Api\Sharing\ReportsController as SharingReports;
 use App\Http\Controllers\Api\Sharing\VideosController;
+use App\Http\Controllers\Api\SingingTest\SingingTestBoardsController;
+use App\Http\Controllers\Api\SingingTest\SingingTestsController;
 use App\Http\Controllers\Api\Support\SupportController;
 use App\Http\Controllers\Api\Templates\FinishersController;
 use App\Http\Controllers\Api\Templates\OwnTemplatesController;
@@ -217,6 +222,10 @@ Route::middleware('auth')->group(function (): void {
     Route::put('/projects/editable', [EditableController::class, 'update'])->name('projects.editable.update');
     Route::post('/scores', [ScoresController::class, 'store'])->name('scores.create');
     Route::get('/scores', [ScoresController::class, 'index'])->name('scores.list');
+    Route::get('/singing-tests', [SingingTestsController::class, 'index'])->name('singingTests.list');
+    Route::get('/singing-tests/boards', SingingTestBoardsController::class)->name('singingTests.boards.show');
+    Route::post('/singing-tests', [SingingTestsController::class, 'store'])->middleware('throttle:singing-tests')->name('singingTests.create');
+    Route::patch('/singing-tests/{test}', [SingingTestsController::class, 'update'])->name('singingTests.update');
     Route::get('/reminders', [RemindersController::class, 'show'])->name('reminders.show');
     Route::put('/reminders', [RemindersController::class, 'update'])->name('reminders.update');
     Route::post('/reminders/devices', [RemindersController::class, 'addDevice'])->middleware('throttle:push-devices')->name('reminders.devices.create');
@@ -489,7 +498,12 @@ Route::middleware('auth')->prefix('school')->name('school.')->group(function ():
 // A choir with friends' invite, opened signed in or not (choir together).
 Route::get('/own-choir/join/{token}', [ChoirTogetherApi::class, 'show'])->middleware('throttle:public-pages')->where('token', '[A-Za-z0-9]{24,32}')->name('ownChoir.invites.show');
 
+// The choir gallery, for anyone (docs/choir-gallery-plan.md; behind choir_gallery).
+Route::get('/own-choir/gallery', [ChoirGalleryApi::class, 'index'])->middleware('throttle:public-pages')->name('ownChoir.gallery.list');
+Route::get('/own-choir/gallery/{item}', [ChoirGalleryApi::class, 'show'])->middleware('throttle:public-pages')->name('ownChoir.gallery.show');
 Route::middleware('auth')->prefix('own-choir')->name('ownChoir.')->group(function (): void {
+    Route::post('/requests/{song}/gallery', [ChoirGalleryApi::class, 'add'])->middleware('throttle:choir-gallery-adds')->name('gallery.add');
+    Route::delete('/requests/{song}/gallery', [ChoirGalleryApi::class, 'remove'])->name('gallery.remove');
     Route::post('/requests/{song}/invites', [ChoirTogetherApi::class, 'invite'])->name('invites.create');
     Route::delete('/invites/{invite}', [ChoirTogetherApi::class, 'revoke'])->name('invites.delete');
     Route::post('/join/{token}', [ChoirTogetherApi::class, 'accept'])->middleware(['age', 'throttle:take-uploads', 'paused:uploads'])->where('token', '[A-Za-z0-9]{24,32}')->name('invites.accept');
@@ -605,6 +619,9 @@ Route::middleware(['auth', 'editor', 'second-factor'])->prefix('admin')->name('a
     Route::post('/ai-guides/approve', [AdminAiGuides::class, 'approve'])->middleware('admin')->name('aiGuides.approve');
     // Rejecting deletes the file and purges the CDN: in sudo, as withdrawing and retiring are.
     Route::post('/ai-guides/reject', [AdminAiGuides::class, 'reject'])->middleware(['admin', 'sudo'])->name('aiGuides.reject');
+    // The choir gallery's queue: editors see it; deciding is the admin's.
+    Route::get('/choir-gallery', [AdminChoirGallery::class, 'index'])->name('choirGallery.list');
+    Route::post('/choir-gallery/{item}', [AdminChoirGallery::class, 'decide'])->middleware('admin')->name('choirGallery.decide');
 
     // The trust and safety screen: the admin's alone; changes need a fresh second-factor check.
     Route::middleware('admin')->group(function (): void {
@@ -701,6 +718,9 @@ Route::middleware(['auth', 'editor', 'second-factor'])->prefix('admin')->name('a
         Route::get('/boards/flags', [AdminBoards::class, 'flags'])->name('boards.flags.list');
         Route::post('/boards/scores/{score}/review', [AdminBoards::class, 'review'])->name('boards.scores.review');
         Route::delete('/boards/scores/{score}', [AdminBoards::class, 'hide'])->middleware('sudo')->name('boards.scores.delete');
+        Route::get('/singing-tests/flags', [AdminSingingTestFlags::class, 'flags'])->name('singingTests.flags.list');
+        Route::post('/singing-tests/{test}/review', [AdminSingingTestFlags::class, 'review'])->name('singingTests.review');
+        Route::delete('/singing-tests/{test}', [AdminSingingTestFlags::class, 'hide'])->middleware('sudo')->name('singingTests.hide');
         Route::post('/people/{person}/boards/reset', [AdminBoards::class, 'reset'])->middleware('sudo')->name('boards.reset');
         Route::put('/network/{feature}', [AdminNetwork::class, 'update'])->middleware('sudo')->name('network.update');
         Route::get('/support', [AdminSupport::class, 'index'])->name('support.list');

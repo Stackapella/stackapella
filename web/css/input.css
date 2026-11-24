@@ -2136,8 +2136,8 @@ select:disabled {
 .s-card b { font-size: 17px; font-weight: 750; }
 .s-card span:not(.s-soon) { font-size: 15px; line-height: 1.45; color: var(--color-muted); }
 @media (min-width: 640px) {
-    /* Seven columns since Who it's for (2026-11-23): four across reads as two rows, four and three, never one alone. */
-    .s-foot-cols { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    /* Six columns of four (Who it's for is one link under Product, 2026-11-24): two even rows of three. */
+    .s-foot-cols { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .s-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (min-width: 900px) {
@@ -9906,6 +9906,115 @@ main.cp-pt2 ~ [data-lesson-pages] { display: none; }
 .s-dir-howto { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
 .s-dir-howto li { display: flex; align-items: flex-start; gap: 14px; padding: 16px 18px; background: var(--color-panel); border: 1px solid var(--color-line); border-radius: 20px; font-size: 16px; line-height: 1.5; }
 .s-dir-howto .s-disc { width: 32px; height: 32px; font-size: 15px; }
+/* The audience pages in Hillel's 2026-11-24 design (site/for-path, site/for-directors, site/for): the promise in two tones
+   beside a real screen, the steps as a numbered strip, each step a section (words and a small picture left, the site's own
+   cards right), the narrower page as a band, the questions, and the way in again under the four bars (one left edge). */
+.s-aud-head { display: grid; gap: 32px; align-items: center; padding-top: 40px; }
+.s-aud-h1, .s-aud-h2, .s-aud-end h2 { font-weight: 800; letter-spacing: -0.03em; line-height: 1.02; text-wrap: balance; }
+.s-aud-kick { margin-top: 18px; font-size: 13px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--ci, var(--color-part-ink-1)); }
+.s-aud-h1 { margin-top: 10px; font-size: clamp(40px, 10vw, 72px); }
+.s-aud-h1 em, .s-aud-h2 em, .s-aud-end h2 em { font-style: normal; color: var(--ci, var(--color-part-ink-1)); }
+.s-aud-head .s-lede { max-width: 34em; margin-top: 18px; }
+.s-aud-head .s-actions { margin-top: 26px; align-items: center; }
+.s-aud-shot { justify-self: center; width: min(100%, 26rem); }
+.s-aud-shot > * { border-radius: 24px; box-shadow: 0 30px 60px -30px rgb(40 24 12 / .35), 0 0 0 1px var(--color-line); }
+.s-aud-strip { margin-top: 48px; border-block: 1px solid var(--color-line); background: var(--color-panel); }
+.s-aud-strip ol { list-style: none; display: grid; gap: 0 24px; padding-block: 10px; }
+.s-aud-strip a { display: flex; align-items: center; gap: 12px; min-height: 48px; font-size: 15px; font-weight: 700; }
+.s-aud-strip b { font-size: 26px; font-weight: 800; line-height: 1; color: var(--ci); }
+.s-aud-step { display: grid; gap: 28px; padding-top: 80px; scroll-margin-top: 80px; }
+.s-aud-n { font-size: 15px; font-weight: 800; color: var(--ci); }
+.s-aud-h2 { margin-top: 6px; font-size: clamp(34px, 7vw, 52px); }
+.s-aud-say .s-lede { margin-top: 14px; }
+.s-aud-pic { display: grid; gap: 8px; margin-top: 22px; padding: 14px; max-width: 24rem; border-radius: 20px; background: color-mix(in srgb, var(--c) 16%, var(--color-panel)); }
+.s-aud-row { display: flex; gap: 8px; }
+.s-aud-row > * { flex: 1; }
+.s-aud-part { display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 6px 12px; border-radius: 12px; background: var(--color-panel); font-size: 14px; font-weight: 700; color: var(--ci, var(--color-muted)); }
+.s-aud-part small { margin-inline-start: auto; padding: 3px 10px; border-radius: 99px; background: var(--c); color: #fff; font-size: 12px; font-weight: 700; }
+.s-aud-wait { border: 1px dashed var(--color-line); background: transparent; color: var(--color-muted); font-weight: 500; }
+.s-aud-orb { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--c); color: #fff; font-size: 12px; font-style: normal; }
+.s-aud-rec { width: 10px; height: 10px; border-radius: 50%; background: var(--color-record, #d33); }
+.s-aud-what { display: grid; gap: 14px; align-content: start; }
+.s-aud-what .s-headrow + ul { margin-top: -2px; }
+.s-aud-what > ul + .s-headrow { margin-top: 22px; }
+.s-aud-songs, .s-aud-courses, .s-aud-tools, .s-aud-guides, .s-aud-cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.s-aud-songs a, .s-aud-courses a, .s-aud-tools a { display: flex; flex-direction: column; gap: 4px; height: 100%; padding: 14px 16px; border-radius: 16px; background: var(--color-panel); border: 1px solid var(--color-line); }
+.s-aud-songs a { display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-items: center; }
+.s-aud-disc { grid-row: span 2; display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--color-part-1); color: #fff; }
+.s-aud-songs b, .s-aud-courses b, .s-aud-tools b { font-size: 15.5px; font-weight: 750; }
+.s-aud-songs small { justify-self: start; font-size: 12.5px; color: var(--color-muted); }
+.s-aud-intermediate, .s-aud-advanced { padding: 1px 8px; border-radius: 99px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; font-size: 11px !important; }
+.s-aud-intermediate { background: color-mix(in srgb, var(--color-part-2) 20%, transparent); color: var(--color-part-ink-2) !important; }
+.s-aud-advanced { background: color-mix(in srgb, var(--color-part-1) 18%, transparent); color: var(--color-part-ink-1) !important; }
+.s-aud-courses span, .s-aud-tools span { font-size: 14px; line-height: 1.45; color: var(--color-muted); }
+.s-aud-first { grid-column: 1 / -1; }
+.s-aud-first a { position: relative; padding: 18px 56px 18px 20px; background: var(--color-cream); border-color: var(--color-cream); color: var(--color-ink); }
+.s-aud-first small { font-size: 11.5px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: color-mix(in srgb, var(--color-part-2) 70%, var(--color-ink)); }
+.s-aud-first b { font-size: 19px; }
+.s-aud-first span { color: color-mix(in srgb, var(--color-ink) 78%, var(--color-cream)) !important; }
+.s-aud-first i { position: absolute; inset-inline-end: 20px; top: 50%; translate: 0 -50%; }
+.s-aud-tools a { background: color-mix(in srgb, var(--c, var(--color-part-2)) 14%, var(--color-panel)); border-color: transparent; }
+.s-aud-guides { gap: 0; }
+.s-aud-guides a { display: grid; grid-template-columns: 1fr auto; gap: 2px 16px; padding: 14px 0; border-bottom: 1px solid var(--color-line); }
+.s-aud-guides b { font-size: 15.5px; font-weight: 750; }
+.s-aud-guides span { grid-column: 1; font-size: 14px; line-height: 1.45; color: var(--color-muted); }
+.s-aud-guides i { grid-row: 1 / span 2; grid-column: 2; align-self: center; color: var(--color-muted); }
+.s-aud-wide .s-aud-cards { grid-column: 1 / -1; }
+.s-aud-cards > li { display: flex; flex-direction: column; gap: 8px; padding: 0 0 20px; border-radius: 22px; overflow: hidden; background: var(--color-panel); border: 1px solid var(--color-line); }
+.s-aud-cards > li > :not(.s-aud-top) { margin-inline: 20px; }
+.s-aud-cards > li > b, .s-aud-cardlink b { margin-top: 4px; font-size: 18px; font-weight: 800; letter-spacing: -0.01em; }
+.s-aud-cards > li > span { font-size: 15px; line-height: 1.5; color: var(--color-muted); }
+.s-aud-top { display: grid; gap: 6px; align-content: center; height: 108px; padding: 0 20px; margin-bottom: 10px; background: color-mix(in srgb, var(--c) 18%, var(--color-panel)); }
+.s-aud-top b { height: 9px; border-radius: 9px; background: var(--c); }
+.s-aud-plus { padding: 22px !important; background: var(--color-cream) !important; border-color: var(--color-cream) !important; color: var(--color-ink); }
+.s-aud-plus > * { margin-inline: 0 !important; }
+.s-aud-plus .s-headrow b { font-size: 20px; font-weight: 800; color: inherit; }
+.s-aud-plus .s-arrow { color: var(--color-ink); }
+.s-aud-plus ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 10px; font-size: 14.5px; line-height: 1.45; }
+.s-aud-plus ul li { display: flex; gap: 8px; } .s-aud-plus svg { flex: none; margin-top: 3px; color: var(--color-part-2); }
+.s-aud-also { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 56px; padding: 22px 24px; border-radius: 20px; background: color-mix(in srgb, var(--color-part-1) 14%, var(--color-panel)); font-size: 17px; font-weight: 750; }
+.s-aud-also svg { flex: none; color: var(--color-part-ink-1); }
+.s-aud-end { display: grid; justify-items: center; gap: 0; margin-top: 80px; padding-block: 64px 80px; text-align: center; }
+.s-aud-end .s-stackbig { width: 150px; gap: 7px; margin-bottom: 26px; }
+.s-aud-end .s-stackbig b { height: 14px; }
+.s-aud-end h2 { font-size: clamp(36px, 8vw, 64px); max-width: 16ch; }
+.s-aud-end .s-final-btns { margin-top: 28px; }
+.s-aud-end > p:last-child { margin-top: 12px; font-size: 14.5px; color: var(--color-muted); }
+.s-aud-end h2 + p { margin-top: 14px; max-width: 36em; font-size: 16px; color: var(--color-muted); }
+.s-aud .s-sec > .s-aud-h2 { max-width: 20ch; }
+.s-aud-dsteps li { border-top: 5px solid var(--c); padding-top: 22px; }
+.s-aud-num { display: block; font-size: 44px; font-weight: 800; line-height: 1; color: var(--ci); }
+.s-aud-dsteps h3 { margin-top: 12px; }
+.s-aud-band { padding: 32px 24px; border-radius: 28px; background: color-mix(in srgb, var(--color-part-4) 16%, var(--color-panel)); }
+.s-aud-band .s-dir-howto li { border-color: transparent; }
+.s-aud-hubhead { grid-template-columns: minmax(0, 1fr) !important; } .s-aud-hubhead > div { max-width: 50rem; }
+.s-aud-hub ul { list-style: none; margin: 40px 0 0; padding: 0; display: grid; gap: 16px; }
+.s-aud-hub a { display: flex; flex-direction: column; gap: 8px; height: 100%; padding: 0 0 22px; border-radius: 24px; overflow: hidden; background: var(--color-panel); border: 1px solid var(--color-line); }
+.s-aud-hub a > :not(.s-aud-hubpic) { margin-inline: 22px; }
+.s-aud-hub .s-kick { display: flex; align-items: center; gap: 8px; margin-top: 6px; color: var(--ci); }
+.s-aud-hub b { font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
+.s-aud-hub span:not(.s-aud-hubpic, .s-aud-board, .s-aud-part) { font-size: 15px; line-height: 1.5; color: var(--color-muted); }
+.s-aud-hub em { margin-top: auto; padding-top: 8px; font-style: normal; font-weight: 750; color: var(--ci); display: inline-flex; align-items: center; gap: 6px; }
+.s-aud-hubpic { display: grid; place-items: center; height: 220px; padding: 18px; overflow: hidden; background: color-mix(in srgb, var(--c) 16%, var(--color-panel)); }
+.s-aud-hubpic img, .s-aud-hubpic picture { max-height: 200px; width: auto; border-radius: 14px; box-shadow: 0 18px 36px -24px rgb(40 24 12 / .4); }
+.s-aud-board { display: grid; gap: 7px; width: 100%; max-width: 18rem; }
+.s-aud-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--c); flex: none; }
+.s-aud-board .s-aud-part small { background: none; color: var(--color-muted); padding: 0; font-weight: 600; }
+@media (min-width: 640px) {
+    .s-aud-songs, .s-aud-courses { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .s-aud-tools, .s-aud-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (min-width: 900px) {
+    .s-aud-head { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 56px; padding-top: 56px; }
+    .s-aud-shot { rotate: 1.5deg; }
+    .s-aud-strip ol { grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); }
+    .s-aud-step { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 56px; padding-top: 104px; }
+    .s-aud-wide { grid-template-columns: minmax(0, 1fr); }
+    .s-aud-wide .s-aud-what:empty { display: none; }
+    .s-aud-dsteps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .s-aud-hub ul { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .s-aud-band { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 48px; padding: 48px 56px; }
+}
 :is(.s-dir-steps, .s-dir-howto) .gem { --gem: var(--c); --gem-ink: var(--ct); }
 /* The director's view in the first screen is the page's picture: crisp, never under the demo's veil, with its start
    as a button under the board and the frame fitted to the board (the coordinator's review, 2026-11-23). */

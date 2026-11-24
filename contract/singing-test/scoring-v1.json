@@ -1,0 +1,3870 @@
+{
+  "scoringVersion": 1,
+  "about": "The singing test's scoring, version 1, as the server (App\\Support\\SingingTest\\Scoring) and the app's engine compute it; both test against every case here. docs/decisions.md, 2026-11-24.",
+  "rules": {
+    "match": {
+      "weight": 45,
+      "ceilingCents": 10,
+      "floorCents": 150,
+      "error": "the mean |centsOff| over the heard match notes"
+    },
+    "back": {
+      "weight": 40,
+      "ceilingCents": 15,
+      "floorCents": 200,
+      "error": "the mean |centsOff| over every heard note of every pattern"
+    },
+    "hold": {
+      "weight": 15,
+      "ceilingCents": 8,
+      "floorCents": 80,
+      "error": "the mean over the heard holds of spreadCents + |driftCents| / 2"
+    },
+    "points": "weight x clamp((floor - error) / (floor - ceiling), 0, 1), kept unrounded; null when nothing in the event is heard",
+    "total": "round half up of the three events' unrounded points; null for practice",
+    "shown": "each event's points rounded half up to 1 decimal, never summed",
+    "band": "from p, the mean |centsOff| over every heard match note and back note: finding p >= 100, closer 60 <= p < 100, nearly 35 <= p < 60, inTune 15 <= p < 35, precise p < 15; null for practice",
+    "practice": "fewer than 8 match notes heard, fewer than 4 patterns with 3 or more notes heard, or no hold heard",
+    "status": "practice, else warmup when warmUp, else counted"
+  },
+  "cases": [
+    {
+      "name": "precise: 5 cents everywhere, full marks",
+      "test": {
+        "warmUp": false,
+        "match": [
+          {
+            "target": 60,
+            "centsOff": -5.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": 5.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 62,
+            "centsOff": -5.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 63,
+            "centsOff": 5.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 64,
+            "centsOff": -5.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 60,
+            "centsOff": 5.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": -5.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 62,
+            "centsOff": 5.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 63,
+            "centsOff": -5.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 64,
+            "centsOff": 5.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 60,
+            "centsOff": -5.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": 5.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          }
+        ],
+        "back": [
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 5.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -5.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 5.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -5.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 5.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -5.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 5.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -5.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 5.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -5.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 5.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -5.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 5.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -5.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 5.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -5.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 5.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -5.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 5.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -5.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 5.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -5.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 5.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -5.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          }
+        ],
+        "hold": [
+          {
+            "target": 60,
+            "spreadCents": 4.0,
+            "driftCents": 4.0
+          },
+          {
+            "target": 62,
+            "spreadCents": 4.0,
+            "driftCents": -4.0
+          }
+        ]
+      },
+      "expected": {
+        "status": "counted",
+        "scores": {
+          "match": 45.0,
+          "back": 40.0,
+          "hold": 15.0
+        },
+        "total": 100,
+        "band": "precise"
+      }
+    },
+    {
+      "name": "band edge: exactly 15 cents is inTune",
+      "test": {
+        "warmUp": false,
+        "match": [
+          {
+            "target": 60,
+            "centsOff": -15.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": 15.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 62,
+            "centsOff": -15.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 63,
+            "centsOff": 15.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 64,
+            "centsOff": -15.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 60,
+            "centsOff": 15.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": -15.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 62,
+            "centsOff": 15.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 63,
+            "centsOff": -15.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 64,
+            "centsOff": 15.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 60,
+            "centsOff": -15.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": 15.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          }
+        ],
+        "back": [
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 15.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -15.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 15.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -15.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 15.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -15.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 15.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -15.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 15.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -15.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 15.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -15.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 15.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -15.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 15.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -15.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 15.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -15.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 15.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -15.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 15.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -15.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 15.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -15.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          }
+        ],
+        "hold": [
+          {
+            "target": 60,
+            "spreadCents": 10.0,
+            "driftCents": -20.0
+          },
+          {
+            "target": 62,
+            "spreadCents": 10.0,
+            "driftCents": 20.0
+          }
+        ]
+      },
+      "expected": {
+        "status": "counted",
+        "scores": {
+          "match": 43.4,
+          "back": 40.0,
+          "hold": 12.5
+        },
+        "total": 96,
+        "band": "inTune"
+      }
+    },
+    {
+      "name": "band edge: exactly 35 cents is nearly",
+      "test": {
+        "warmUp": false,
+        "match": [
+          {
+            "target": 60,
+            "centsOff": -35.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": 35.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 62,
+            "centsOff": -35.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 63,
+            "centsOff": 35.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 64,
+            "centsOff": -35.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 60,
+            "centsOff": 35.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": -35.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 62,
+            "centsOff": 35.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 63,
+            "centsOff": -35.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 64,
+            "centsOff": 35.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 60,
+            "centsOff": -35.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": 35.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          }
+        ],
+        "back": [
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 35.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -35.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 35.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -35.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 35.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -35.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 35.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -35.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 35.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -35.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 35.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -35.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 35.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -35.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 35.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -35.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 35.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -35.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 35.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -35.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 35.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -35.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 35.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -35.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          }
+        ],
+        "hold": [
+          {
+            "target": 60,
+            "spreadCents": 20.0,
+            "driftCents": 10.0
+          },
+          {
+            "target": 62,
+            "spreadCents": 24.0,
+            "driftCents": -16.0
+          }
+        ]
+      },
+      "expected": {
+        "status": "counted",
+        "scores": {
+          "match": 37.0,
+          "back": 35.7,
+          "hold": 10.7
+        },
+        "total": 83,
+        "band": "nearly"
+      }
+    },
+    {
+      "name": "band edge: exactly 60 cents is closer",
+      "test": {
+        "warmUp": false,
+        "match": [
+          {
+            "target": 60,
+            "centsOff": -60.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": 60.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 62,
+            "centsOff": -60.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 63,
+            "centsOff": 60.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 64,
+            "centsOff": -60.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 60,
+            "centsOff": 60.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": -60.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 62,
+            "centsOff": 60.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 63,
+            "centsOff": -60.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 64,
+            "centsOff": 60.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 60,
+            "centsOff": -60.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": 60.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          }
+        ],
+        "back": [
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 60.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -60.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 60.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -60.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 60.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -60.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 60.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -60.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 60.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -60.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 60.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -60.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 60.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -60.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 60.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -60.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 60.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -60.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 60.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -60.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 60.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -60.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 60.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -60.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          }
+        ],
+        "hold": [
+          {
+            "target": 60,
+            "spreadCents": 30.0,
+            "driftCents": 30.0
+          },
+          {
+            "target": 62,
+            "spreadCents": 40.0,
+            "driftCents": -20.0
+          }
+        ]
+      },
+      "expected": {
+        "status": "counted",
+        "scores": {
+          "match": 28.9,
+          "back": 30.3,
+          "hold": 6.8
+        },
+        "total": 66,
+        "band": "closer"
+      }
+    },
+    {
+      "name": "band edge: exactly 100 cents is finding",
+      "test": {
+        "warmUp": false,
+        "match": [
+          {
+            "target": 60,
+            "centsOff": -100.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": 100.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 62,
+            "centsOff": -100.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 63,
+            "centsOff": 100.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 64,
+            "centsOff": -100.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 60,
+            "centsOff": 100.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": -100.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 62,
+            "centsOff": 100.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 63,
+            "centsOff": -100.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 64,
+            "centsOff": 100.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 60,
+            "centsOff": -100.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": 100.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          }
+        ],
+        "back": [
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 100.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -100.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 100.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -100.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 100.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -100.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 100.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -100.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 100.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -100.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 100.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -100.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 100.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -100.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 100.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -100.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 100.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -100.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 100.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -100.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 100.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -100.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 100.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -100.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          }
+        ],
+        "hold": [
+          {
+            "target": 60,
+            "spreadCents": 60.0,
+            "driftCents": 60.0
+          },
+          {
+            "target": 62,
+            "spreadCents": 70.0,
+            "driftCents": -50.0
+          }
+        ]
+      },
+      "expected": {
+        "status": "counted",
+        "scores": {
+          "match": 16.1,
+          "back": 21.6,
+          "hold": 0.0
+        },
+        "total": 38,
+        "band": "finding"
+      }
+    },
+    {
+      "name": "floors: 200 cents and an unsteady hold score nothing",
+      "test": {
+        "warmUp": false,
+        "match": [
+          {
+            "target": 60,
+            "centsOff": -200.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": 200.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 62,
+            "centsOff": -200.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 63,
+            "centsOff": 200.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 64,
+            "centsOff": -200.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 60,
+            "centsOff": 200.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": -200.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 62,
+            "centsOff": 200.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 63,
+            "centsOff": -200.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 64,
+            "centsOff": 200.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 60,
+            "centsOff": -200.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": 200.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          }
+        ],
+        "back": [
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 200.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -200.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 200.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -200.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 200.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -200.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 200.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -200.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 200.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -200.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 200.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -200.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 200.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -200.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 200.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -200.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 200.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -200.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 200.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -200.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 200.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -200.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 200.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -200.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          }
+        ],
+        "hold": [
+          {
+            "target": 60,
+            "spreadCents": 90.0,
+            "driftCents": 40.0
+          },
+          {
+            "target": 62,
+            "spreadCents": 100.0,
+            "driftCents": -60.0
+          }
+        ]
+      },
+      "expected": {
+        "status": "counted",
+        "scores": {
+          "match": 0.0,
+          "back": 0.0,
+          "hold": 0.0
+        },
+        "total": 0,
+        "band": "finding"
+      }
+    },
+    {
+      "name": "an octave answer, folded, isn't penalised",
+      "test": {
+        "warmUp": false,
+        "match": [
+          {
+            "target": 60,
+            "centsOff": -12.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": 12.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 62,
+            "centsOff": -12.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 63,
+            "centsOff": 12.0,
+            "octave": 1,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 64,
+            "centsOff": -12.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 60,
+            "centsOff": 12.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": -12.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 62,
+            "centsOff": 12.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 63,
+            "centsOff": -12.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 64,
+            "centsOff": 12.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 60,
+            "centsOff": -12.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": 12.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          }
+        ],
+        "back": [
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 12.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -12.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 12.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -12.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 12.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -12.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 12.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -12.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 12.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -12.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 12.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -12.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 12.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -12.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 12.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -12.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 12.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -12.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 12.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -12.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 12.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -12.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 12.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -12.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          }
+        ],
+        "hold": [
+          {
+            "target": 60,
+            "spreadCents": 6.0,
+            "driftCents": 2.0
+          },
+          {
+            "target": 62,
+            "spreadCents": 8.0,
+            "driftCents": -4.0
+          }
+        ]
+      },
+      "expected": {
+        "status": "counted",
+        "scores": {
+          "match": 44.4,
+          "back": 40.0,
+          "hold": 14.9
+        },
+        "total": 99,
+        "band": "precise"
+      }
+    },
+    {
+      "name": "a warm-up is scored, but marked",
+      "test": {
+        "warmUp": true,
+        "match": [
+          {
+            "target": 60,
+            "centsOff": -30.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": 30.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 62,
+            "centsOff": -30.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 63,
+            "centsOff": 30.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 64,
+            "centsOff": -30.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 60,
+            "centsOff": 30.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": -30.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 62,
+            "centsOff": 30.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 63,
+            "centsOff": -30.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 64,
+            "centsOff": 30.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 60,
+            "centsOff": -30.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": 30.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          }
+        ],
+        "back": [
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 30.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -30.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 30.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -30.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 30.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -30.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 30.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -30.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 30.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -30.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 30.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -30.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 30.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -30.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 30.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -30.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 30.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -30.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 30.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -30.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 30.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -30.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 30.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -30.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          }
+        ],
+        "hold": [
+          {
+            "target": 60,
+            "spreadCents": 12.0,
+            "driftCents": 6.0
+          },
+          {
+            "target": 62,
+            "spreadCents": 14.0,
+            "driftCents": -8.0
+          }
+        ]
+      },
+      "expected": {
+        "status": "warmup",
+        "scores": {
+          "match": 38.6,
+          "back": 36.8,
+          "hold": 13.2
+        },
+        "total": 89,
+        "band": "inTune"
+      }
+    },
+    {
+      "name": "seven match notes heard: practice, no total or band",
+      "test": {
+        "warmUp": false,
+        "match": [
+          {
+            "target": 60,
+            "centsOff": null,
+            "octave": 0,
+            "landingMs": null,
+            "jitterCents": null,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": null,
+            "octave": 0,
+            "landingMs": null,
+            "jitterCents": null,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 62,
+            "centsOff": null,
+            "octave": 0,
+            "landingMs": null,
+            "jitterCents": null,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 63,
+            "centsOff": null,
+            "octave": 0,
+            "landingMs": null,
+            "jitterCents": null,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 64,
+            "centsOff": null,
+            "octave": 0,
+            "landingMs": null,
+            "jitterCents": null,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 60,
+            "centsOff": 40.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": -40.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 62,
+            "centsOff": 40.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 63,
+            "centsOff": -40.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 64,
+            "centsOff": 40.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 60,
+            "centsOff": -40.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": 40.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          }
+        ],
+        "back": [
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -40.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -40.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -40.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -40.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -40.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -40.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          }
+        ],
+        "hold": [
+          {
+            "target": 60,
+            "spreadCents": 12.0,
+            "driftCents": 6.0
+          }
+        ]
+      },
+      "expected": {
+        "status": "practice",
+        "scores": {
+          "match": 35.4,
+          "back": 34.6,
+          "hold": 13.5
+        },
+        "total": null,
+        "band": null
+      }
+    },
+    {
+      "name": "three patterns with 3+ notes heard: practice, their notes still score",
+      "test": {
+        "warmUp": false,
+        "match": [
+          {
+            "target": 60,
+            "centsOff": -40.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": 40.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 62,
+            "centsOff": -40.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 63,
+            "centsOff": 40.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 64,
+            "centsOff": -40.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 60,
+            "centsOff": 40.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": -40.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 62,
+            "centsOff": 40.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 63,
+            "centsOff": -40.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 64,
+            "centsOff": 40.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 60,
+            "centsOff": -40.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": 40.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          }
+        ],
+        "back": [
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              },
+              {
+                "centsOff": -40.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              },
+              {
+                "centsOff": -40.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              },
+              {
+                "centsOff": -40.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 40.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          }
+        ],
+        "hold": [
+          {
+            "target": 60,
+            "spreadCents": 12.0,
+            "driftCents": 6.0
+          }
+        ]
+      },
+      "expected": {
+        "status": "practice",
+        "scores": {
+          "match": 35.4,
+          "back": 34.6,
+          "hold": 13.5
+        },
+        "total": null,
+        "band": null
+      }
+    },
+    {
+      "name": "nothing heard: practice, every event null",
+      "test": {
+        "warmUp": false,
+        "match": [
+          {
+            "target": 60,
+            "centsOff": null,
+            "octave": 0,
+            "landingMs": null,
+            "jitterCents": null,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": null,
+            "octave": 0,
+            "landingMs": null,
+            "jitterCents": null,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 62,
+            "centsOff": null,
+            "octave": 0,
+            "landingMs": null,
+            "jitterCents": null,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 63,
+            "centsOff": null,
+            "octave": 0,
+            "landingMs": null,
+            "jitterCents": null,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 64,
+            "centsOff": null,
+            "octave": 0,
+            "landingMs": null,
+            "jitterCents": null,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 60,
+            "centsOff": null,
+            "octave": 0,
+            "landingMs": null,
+            "jitterCents": null,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": null,
+            "octave": 0,
+            "landingMs": null,
+            "jitterCents": null,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 62,
+            "centsOff": null,
+            "octave": 0,
+            "landingMs": null,
+            "jitterCents": null,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 63,
+            "centsOff": null,
+            "octave": 0,
+            "landingMs": null,
+            "jitterCents": null,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 64,
+            "centsOff": null,
+            "octave": 0,
+            "landingMs": null,
+            "jitterCents": null,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 60,
+            "centsOff": null,
+            "octave": 0,
+            "landingMs": null,
+            "jitterCents": null,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": null,
+            "octave": 0,
+            "landingMs": null,
+            "jitterCents": null,
+            "startAfterPromptMs": 400
+          }
+        ],
+        "back": [
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": null,
+                "jitterCents": null
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": null,
+                "jitterCents": null
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": null,
+                "jitterCents": null
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": null,
+                "jitterCents": null
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": null,
+                "jitterCents": null
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": null,
+                "jitterCents": null
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              },
+              {
+                "centsOff": null,
+                "jitterCents": null
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          }
+        ],
+        "hold": [
+          {
+            "target": 60,
+            "spreadCents": null,
+            "driftCents": null
+          },
+          {
+            "target": 62,
+            "spreadCents": null,
+            "driftCents": null
+          }
+        ]
+      },
+      "expected": {
+        "status": "practice",
+        "scores": {
+          "match": null,
+          "back": null,
+          "hold": null
+        },
+        "total": null,
+        "band": null
+      }
+    },
+    {
+      "name": "one hold heard of two counts",
+      "test": {
+        "warmUp": false,
+        "match": [
+          {
+            "target": 60,
+            "centsOff": -80.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": 80.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 62,
+            "centsOff": -80.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 63,
+            "centsOff": 80.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 64,
+            "centsOff": -80.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 60,
+            "centsOff": 80.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": -80.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 62,
+            "centsOff": 80.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 63,
+            "centsOff": -80.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 64,
+            "centsOff": 80.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 60,
+            "centsOff": -80.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": 80.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          }
+        ],
+        "back": [
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 80.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -80.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 80.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -80.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 80.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -80.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 80.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -80.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 80.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -80.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 80.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -80.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 80.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -80.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 80.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -80.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 80.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -80.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 80.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -80.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 80.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -80.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 80.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -80.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          }
+        ],
+        "hold": [
+          {
+            "target": 60,
+            "spreadCents": null,
+            "driftCents": null
+          },
+          {
+            "target": 62,
+            "spreadCents": 30.0,
+            "driftCents": -12.0
+          }
+        ]
+      },
+      "expected": {
+        "status": "counted",
+        "scores": {
+          "match": 22.5,
+          "back": 25.9,
+          "hold": 9.2
+        },
+        "total": 58,
+        "band": "closer"
+      }
+    },
+    {
+      "name": "a total of exactly 71.5 rounds up to 72",
+      "test": {
+        "warmUp": false,
+        "match": [
+          {
+            "target": 60,
+            "centsOff": -52.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": 52.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 62,
+            "centsOff": -52.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 63,
+            "centsOff": 52.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 64,
+            "centsOff": -52.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 60,
+            "centsOff": 52.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": -52.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 62,
+            "centsOff": 52.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 63,
+            "centsOff": -52.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 64,
+            "centsOff": 52.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 60,
+            "centsOff": -52.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          },
+          {
+            "target": 61,
+            "centsOff": 52.0,
+            "octave": 0,
+            "landingMs": 300,
+            "jitterCents": 6.0,
+            "startAfterPromptMs": 400
+          }
+        ],
+        "back": [
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 10.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -10.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 10.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -10.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 10.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -10.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 10.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -10.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 10.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -10.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 10.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -10.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 10.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -10.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 10.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -10.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 10.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -10.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 10.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -10.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          },
+          {
+            "pattern": [
+              60,
+              62,
+              64,
+              62
+            ],
+            "notes": [
+              {
+                "centsOff": 10.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -10.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": 10.0,
+                "jitterCents": 6.0
+              },
+              {
+                "centsOff": -10.0,
+                "jitterCents": 6.0
+              }
+            ],
+            "startOffsetCents": 20.0,
+            "startAfterPromptMs": 350
+          }
+        ],
+        "hold": [
+          {
+            "target": 60,
+            "spreadCents": 80.0,
+            "driftCents": 0.0
+          },
+          {
+            "target": 62,
+            "spreadCents": 80.0,
+            "driftCents": 0.0
+          }
+        ]
+      },
+      "expected": {
+        "status": "counted",
+        "scores": {
+          "match": 31.5,
+          "back": 40.0,
+          "hold": 0.0
+        },
+        "total": 72,
+        "band": "inTune"
+      }
+    }
+  ]
+}

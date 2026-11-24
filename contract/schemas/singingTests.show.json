@@ -1,0 +1,13 @@
+{
+    "$id": "singingTests.show.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "singingTest.json"
+        }
+    }
+}

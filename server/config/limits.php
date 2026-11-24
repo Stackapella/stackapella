@@ -187,6 +187,15 @@ return [
     'board-scores' => [
         'account' => ['max' => 30, 'per' => 'minute', 'by' => 'account'],
     ],
+    // The singing test's results: a test takes about four minutes; a guest's history syncs at once when they sign up.
+    // The choir gallery's adds: a backstop on tries (refused ones too); the 3 songs added a day is counted by the gallery
+    // itself (docs/choir-gallery-plan.md).
+    'choir-gallery-adds' => [
+        'account' => ['max' => 10, 'per' => 'day', 'by' => 'account'],
+    ],
+    'singing-tests' => [
+        'account' => ['max' => 60, 'per' => 'hour', 'by' => 'account'],
+    ],
     'board-challenges' => [
         'account' => ['max' => 20, 'per' => 'hour', 'by' => 'account'],
     ],

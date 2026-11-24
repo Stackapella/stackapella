@@ -49,6 +49,8 @@
                 "slow": false,
                 "costMinutes": 4.0,
                 "failureHints": null,
+                "gallery": null,
+                "galleryCan": null,
                 "createdAt": "2026-11-21T09:00:00Z",
                 "readyAt": "2026-11-21T09:04:00Z",
                 "startsAfter": null,
@@ -174,6 +176,7 @@
                         "leadBlend": null,
                         "recordingLevel": null
                     },
+                    "soundSaved": false,
                     "sung": {
                         "vibrato": "natural",
                         "variation": "natural",
@@ -218,6 +221,8 @@
                 "slow": false,
                 "costMinutes": 4.0,
                 "failureHints": [],
+                "gallery": null,
+                "galleryCan": null,
                 "createdAt": "2026-11-20T18:00:00Z",
                 "readyAt": null,
                 "startsAfter": null,
@@ -254,6 +259,7 @@
                         "leadBlend": null,
                         "recordingLevel": null
                     },
+                    "soundSaved": false,
                     "sung": {
                         "vibrato": "natural",
                         "variation": "natural",

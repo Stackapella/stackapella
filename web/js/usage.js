@@ -47,12 +47,14 @@ for (const kind of [
     'choir_take_warned_short', 'choir_teaser', 'choir_try_again', 'choir_view_full', 'choir_view_recording',
     'choir_auto_started', 'choir_hold_listened', 'choir_hold_sang_again', 'choir_start_now', 'choir_stopped_after_claim', 'choir_email_opened',
     'choir_banner_closed', 'choir_banner_tap_queued', 'choir_banner_tap_tomorrow', 'choir_banner_tap_making', 'choir_banner_tap_slow', 'choir_banner_tap_ready', 'choir_banner_tap_failed',
+    'st_start', 'st_done', 'st_practice', 'st_event:match', 'st_event:back', 'st_event:hold',
     'choir_view_with_choir', 'chord_live_heard', 'chord_live_start', 'rr_cal_add', 'rr_day_done', 'rr_page_pick',
     'rr_plan_made', 'rr_ready_check', 'tracks_made:louder', 'tracks_made:without', 'tracks_take', 'boot_reset',
     'challenge_accepted', 'leaderboard_viewed',
 ]) KINDS.add(kind);
 // Hear yourself as a choir (track B; js/own-choir.js): its parts heard, Learn your part, and a real take replacing one.
 for (const kind of ['own_choir_heard', 'own_choir_sing', 'own_choir_replaced', 'own_choir_download', 'own_choir_shared']) KINDS.add(kind);
+for (const kind of ['gallery_add', 'gallery_cancel']) KINDS.add(kind); // the choir gallery's consent sheet (docs/choir-gallery-plan.md)
 // What's been built since (Hillel: "update the admin usage page with all of the new stuff, ie
 // courses, etc"): the skins, the Plus courses' extras, Hum a tune, the studio, the onboarding's
 // asks and Melody first. Still a number per kind per day; nothing about who.

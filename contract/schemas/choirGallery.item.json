@@ -1,0 +1,40 @@
+{
+    "$id": "choirGallery.item.json",
+    "title": "One choir in the gallery, as anyone sees it: no name",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "harmonyId",
+        "title",
+        "templateId",
+        "parts",
+        "addedAt"
+    ],
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "harmonyId": {
+            "type": "string",
+            "description": "Its page, /h/<id>, which shows \"A singer\", never a name."
+        },
+        "title": {
+            "type": "string"
+        },
+        "templateId": {
+            "type": "string"
+        },
+        "parts": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "description": "The parts' names as the song shows them."
+        },
+        "addedAt": {
+            "type": "string",
+            "format": "date-time"
+        }
+    }
+}

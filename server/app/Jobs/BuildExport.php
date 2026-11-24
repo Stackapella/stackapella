@@ -404,6 +404,10 @@ final class BuildExport implements ShouldQueue
 
         return [
             'pitch-history' => $lazy(DB::table('scores')->where('user_id', $id)->orderBy('id')->select(['take_uuid', 'template_slug', 'template_version', 'part_key', 'lesson', 'recorded_at', 'summary'])),
+            // The choir gallery: each song added, its consent and where it stands (docs/choir-gallery-plan.md).
+            'choir-gallery' => $lazy(DB::table('choir_gallery_items')->where('user_id', $id)->orderBy('id')->select(['own_choir_request_id', 'status', 'reason', 'reason_text', 'consent_version', 'words_hash', 'locale', 'added_at', 'decided_at'])),
+            // The singing test: each test's numbers as sent and its score (docs/singing-test-v1.md); never audio.
+            'singing-tests' => $lazy(DB::table('singing_tests')->where('user_id', $id)->orderBy('id')->select(['uuid', 'test_version', 'scored_version', 'taken_at', 'anchor', 'device', 'warm_up', 'status', 'match_points', 'back_points', 'hold_points', 'total', 'band', 'items'])),
             // Each message's reference is its Sqid, never our own number (which would say how many there are).
             'support-messages' => DB::table('support_messages')->where(fn ($query) => $query->where('user_id', $id)->when($user->email !== null, fn ($q) => $q->orWhere('email', $user->email)))->orderBy('id')->select(['id', 'email', 'category', 'body', 'context', 'status', 'answered_at', 'closed_at', 'created_at'])->lazy(500)
                 ->map(static fn (stdClass $m): array => ['id' => Ids::encode((int) $m->id), ...array_diff_key((array) $m, ['id' => true])]),

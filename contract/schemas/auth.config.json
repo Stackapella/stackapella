@@ -42,7 +42,10 @@
                 "aiMark",
                 "plusLimits",
                 "aiOptional",
-                "choirEmail"
+                "choirEmail",
+                "singingTest",
+                "singingTestBoards",
+                "choirGallery"
             ],
             "properties": {
                 "methods": {
@@ -345,6 +348,23 @@
                 "aiOptional": {
                     "type": "boolean",
                     "description": "The ai_optional switch (docs/ai-optional-plan.md): while on, the app honours each account's AI features setting and a guest's device key; off, AI shows for everyone as before."
+                },
+                "choirGallery": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["on", "consentVersion"],
+                    "properties": {
+                        "on": {"type": "boolean", "description": "The choir_gallery switch."},
+                        "consentVersion": {"type": "integer", "description": "The gallery sheet's version: ownChoir.gallery.add sends it back."}
+                    }
+                },
+                "singingTest": {
+                    "type": "boolean",
+                    "description": "The singing_test switch (docs/singing-test-v1.md), for this account (staff first): the test on Your voice and singingTests.*."
+                },
+                "singingTestBoards": {
+                    "type": "boolean",
+                    "description": "The singing_test_boards switch: the test's boards in game mode."
                 },
                 "choirEmail": {
                     "type": "boolean",

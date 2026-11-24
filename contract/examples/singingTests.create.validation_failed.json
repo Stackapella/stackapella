@@ -1,0 +1,9 @@
+{
+    "message": "Unprocessable Content.",
+    "code": "validation_failed",
+    "errors": {
+        "match.3.centsOff": [
+            "The match.3.centsOff field must be between -1200 and 1200."
+        ]
+    }
+}

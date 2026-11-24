@@ -13,6 +13,7 @@ use App\Support\Flags;
 use App\Support\Http\Hosts;
 use App\Support\Pages\MudeoArrival;
 use App\Support\Site\HelpGuide;
+use App\Support\Site\PathPages;
 use App\Support\Site\Prose;
 use App\Support\Site\SitePages;
 use App\Support\Site\WhatsNew;
@@ -108,7 +109,7 @@ final class SitePagesTest extends TestCase
             $this->get('/features/'.$slug)->assertSee((string) ($words['hero_title'] ?? $words['headline']));
         }
         foreach (SitePages::FOR_PAGES as $who) {
-            $this->get('/for/'.$who)->assertSee(__('site.for.pages.'.$who.'.headline'));
+            $this->get('/for/'.$who)->assertSee(PathPages::split((string) __('site.for.pages.'.$who.'.headline'))[1]);
         }
 
         $this->get('/features/teleport')->assertNotFound();

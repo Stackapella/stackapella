@@ -1,0 +1,24 @@
+{
+    "data": {
+        "id": "cg_4Kp2",
+        "title": "Silent Night",
+        "templateId": "silent-night",
+        "parts": [
+            "Soprano",
+            "Alto",
+            "Tenor",
+            "Bass"
+        ],
+        "mixUrl": "https://media.example.com/harmonies/x.m4a?X-Amz-Expires=600",
+        "addedAt": "2026-11-24T19:10:00Z",
+        "status": "approved",
+        "reports": [],
+        "changed": false,
+        "decision": {
+            "status": "approved",
+            "reason": null,
+            "reasonText": null,
+            "at": "2026-11-24T20:00:00Z"
+        }
+    }
+}

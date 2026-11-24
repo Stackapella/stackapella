@@ -11,6 +11,7 @@ import { EmptyState, Field, StatusChip } from '../components/form.js';
 import { Icon } from '../components/icon.js';
 import { toast } from '../components/ui.js';
 import { ChangeSheet, errorsFrom, LoadFailed, loadInto, refused, when } from './common.js';
+import { SingingTestHolds } from './singing-test-holds.js';
 
 const FLAGS = {
     shield_mode: tk('admin.flag.shield_mode'),
@@ -48,7 +49,10 @@ const FLAGS = {
     own_choir_songs: tk('admin.flag.own_choir_songs'),
     own_choir_together: tk('admin.flag.own_choir_together'),
     choir_email: tk('admin.flag.choir_email'),
+    singing_test: tk('admin.flag.singing_test'),
+    singing_test_boards: tk('admin.flag.singing_test_boards'),
     ai_optional: tk('admin.flag.ai_optional'),
+    choir_gallery: tk('admin.flag.choir_gallery'),
     choir_seats: tk('admin.flag.choir_seats'),
     schools: tk('admin.flag.schools'),
     compare_pages: tk('admin.flag.compare_pages'),
@@ -96,7 +100,10 @@ const FLAG_HINTS = {
     own_choir_songs: tk('admin.flagHint.own_choir_songs'),
     own_choir_together: tk('admin.flagHint.own_choir_together'),
     choir_email: tk('admin.flagHint.choir_email'),
+    singing_test: tk('admin.flagHint.singing_test'),
+    singing_test_boards: tk('admin.flagHint.singing_test_boards'),
     ai_optional: tk('admin.flagHint.ai_optional'),
+    choir_gallery: tk('admin.flagHint.choir_gallery'),
     choir_seats: tk('admin.flagHint.choir_seats'),
     schools: tk('admin.flagHint.schools'),
     compare_pages: tk('admin.flagHint.compare_pages'),
@@ -130,6 +137,8 @@ const TABS = [
     { name: 'limits', label: tk('admin.safety.tab.limits') },
     { name: 'blocklist', label: tk('admin.safety.tab.blocklist') },
     { name: 'events', label: tk('admin.safety.tab.events') },
+    // The singing test's held results (docs/singing-test-v1.md).
+    { name: 'singingTests', label: tk('admin.safety.tab.singingTests') },
 ];
 
 /** The flags, either Safety's emergency controls or the feature switches: each with its hint, its last change and why. */
@@ -409,7 +418,7 @@ const EventsTab = {
 
 /** The four tabs, as the ARIA tabs pattern: arrow keys move between them, Home and End to the ends. */
 export const SafetySection = {
-    components: { Icon, FlagsList, LimitsTab, BlocklistTab, EventsTab },
+    components: { Icon, FlagsList, LimitsTab, BlocklistTab, EventsTab, SingingTestHolds },
     props: { me: { type: Object, required: true } },
     data() {
         const asked = new URLSearchParams(location.search).get('tab');
@@ -428,6 +437,7 @@ export const SafetySection = {
                 <FlagsList v-if="tab === 'switches'" :me="me" which="emergency" />
                 <LimitsTab v-else-if="tab === 'limits'" :me="me" />
                 <BlocklistTab v-else-if="tab === 'blocklist'" :me="me" />
+                <SingingTestHolds v-else-if="tab === 'singingTests'" :me="me" />
                 <EventsTab v-else :me="me" />
             </div>
         </div>`,

@@ -1,0 +1,121 @@
+{
+    "$id": "admin.choirGallery.decide.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "id",
+                "title",
+                "templateId",
+                "parts",
+                "mixUrl",
+                "addedAt",
+                "status",
+                "reports",
+                "changed",
+                "decision"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "templateId": {
+                    "type": "string"
+                },
+                "parts": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "mixUrl": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "A 10-minute link to the share's mix, the exact file staff approve."
+                },
+                "addedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "status": {
+                    "enum": [
+                        "pending",
+                        "approved",
+                        "declined",
+                        "held",
+                        "removed"
+                    ]
+                },
+                "reports": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "reason",
+                            "at"
+                        ],
+                        "properties": {
+                            "reason": {
+                                "type": "string"
+                            },
+                            "at": {
+                                "type": "string",
+                                "format": "date-time"
+                            }
+                        }
+                    }
+                },
+                "changed": {
+                    "type": "boolean",
+                    "description": "The song's parts changed since it was added."
+                },
+                "decision": {
+                    "type": [
+                        "object",
+                        "null"
+                    ],
+                    "additionalProperties": false,
+                    "required": [
+                        "status",
+                        "reason",
+                        "reasonText",
+                        "at"
+                    ],
+                    "properties": {
+                        "status": {
+                            "type": "string"
+                        },
+                        "reason": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "reasonText": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        },
+                        "at": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -8,6 +8,7 @@ import { aiOn, aiUse } from '../ai-choice.js';
 import { AiOffNotice } from '../components/ai-off.js';
 import { loadPrices } from '../stores/plan.js';
 import { api } from '../api.js';
+import { mockWanted } from '../api-mode.js';
 import { count } from '../usage.js';
 import { local, session as tabStorage } from '../storage.js';
 import { formatDate, formatNumber, locale, t, tk } from '../i18n.js';
@@ -29,6 +30,10 @@ import { Segmented } from '../components/controls.js';
 import { isPlus } from '../stores/plan.js';
 import { inviteLine, inviteText, nameList, partList, togetherOn, whoSings, whoseList } from '../own-choir.js';
 import { Icon } from '../components/icon.js';
+import { ChoirGalleryRow } from '../components/choir-gallery-row.js';
+import { galleryConfig } from '../choir-gallery.js';
+import { openSession } from '../stores/session.js';
+import { shareProject } from '../stores/sharing.js';
 import { game as gameSkin } from '../stores/appearance.js';
 import { checkKey, choirOf, choirRefusal, countChoir, downloadParts, emailNeeded, songsLeft, deleteEverything, deleteSong, dropHum, hasWords, humFor, isOpen, loadOwnChoir, makeFromVoice, markSeen, ownChoir, ownChoirOn, ownChoirSongsOn, requestFor, savedVoice, sendClip, termsNeeded, tunePart } from '../own-choir.js';
 import { catalogue, loadCatalogue } from '../stores/catalogue.js';
@@ -73,10 +78,10 @@ const NEXT_FIX = { headphones: tk('ownChoir.failed.next.headphones'), tune: tk('
 const FAILURES = { clip_unusable: tk('ownChoir.failed.clip_unusable'), bad_clip: tk('ownChoir.failed.bad_clip'), gates_failed: tk('ownChoir.failed.gates_failed'), render_failed: tk('ownChoir.failed.render_failed'), expired: tk('ownChoir.failed.expired'), reference_gone: tk('ownChoir.failed.reference_gone') };
 
 export const OwnChoirView = {
-    components: { AiOffNotice, Segmented, Agreement, AppScreen, ChoirSettings, ClipChoice, FirstNoteStep, HeadphonesPick, Icon, PlusMoment, TurnstileBox },
+    components: { AiOffNotice, ChoirGalleryRow, Segmented, Agreement, AppScreen, ChoirSettings, ClipChoice, FirstNoteStep, HeadphonesPick, Icon, PlusMoment, TurnstileBox },
     props: { id: { type: String, required: true } },
     data: () => ({ failRun: null, retried: false, useEarlier: false, resing: false, listenTo: 'choir', plusSettings: false, shift: null, hearingClip: false, firstNote: null, leftNames: [], plusFriends: false, sentInvite: null, copied: false, plusFor: false, emailSent: false, sending: false, checkToken: null, checkRound: 0, state: 'loading', offReason: 'unavailable', canStart: false, template: null, terms: null, busy: false, playing: false, loadingTrack: false, hum: null, own: false }),
-    setup: () => ({ rememberedHeadphones, isPlus, ownChoir, account, isOpen, templatePartName, savedVoice, formatNumber, navigate }),
+    setup: () => ({ rememberedHeadphones, isPlus, ownChoir, account, isOpen, templatePartName, savedVoice, formatNumber, navigate, aiOn, galleryConfig }),
     computed: {
         /** Back here from the Plus page, once Plus is on. */
         here: () => location.pathname,
@@ -451,6 +456,8 @@ export const OwnChoirView = {
                         <button type="button" class="btn-secondary w-full justify-center" :disabled="busy" data-choir-share @click="share">{{ t('ownChoir.share.button') }}</button>
                         <p v-if="listenTo === 'recording'" class="t-hint" data-share-full>{{ t('ownChoir.share.fullOnly') }}</p>
                     </div>
+                    <!-- The choir gallery (docs/choir-gallery-plan.md, behind choir_gallery): one quiet row, heard by staff first. -->
+                    <ChoirGalleryRow :request="request" :song="song" :consent-version="galleryConfig(account.config)?.consentVersion ?? null" :ai="aiOn()" :share="galleryShare" @changed="(item) => (request.gallery = item)" />
                     <!-- Downloading is Plus's (Hillel, 2026-11-21); listening and sharing stay free. The server says who may. -->
                     <PlusMoment v-if="plusFor" :title="t('ownChoir.ready.download')" :text="t('plus.moment.choirDownload')" from="choir_download" :next="here" price @close="plusFor = false" />
                     <!-- Choir settings (the coordinator for Hillel): Sound at once, How it's sung by a remake; Plus's, shown to all. -->
@@ -1190,6 +1197,15 @@ export const OwnChoirView = {
             } finally {
                 this.loadingTrack = false;
             }
+        },
+        /** The gallery's share: unlisted, the song as Share would send it (You + choir when that's what they listen to). */
+        async galleryShare() {
+            // The mock can't share (cloud save is off there, stores/cloud.js): its flows stand in a share's id.
+            if (mockWanted()) return 'hMockGallery';
+            const lead = this.listenTo === 'withChoir' && !!this.request.leadTake;
+            const project = await this.choirProject(null, { lead });
+            await openSession(project.id);
+            return (await shareProject({ title: this.song, visibility: 'unlisted' })).id;
         },
         async share() {
             if (this.busy) return;

@@ -46,7 +46,7 @@ final class CrumbsTest extends TestCase
 
     public function test_help_guides_and_for_pages_lead_back_up_and_tell_search(): void
     {
-        foreach (['/help/settings' => '/help', '/guides/breathing-basics' => '/guides', '/for/choir-directors' => '/features#who-h'] as $path => $up) {
+        foreach (['/help/settings' => '/help', '/guides/breathing-basics' => '/guides', '/for/choir-directors' => '/for', '/for/learners' => '/for', '/for/beginners' => '/for'] as $path => $up) {
             $html = (string) $this->get($path)->assertOk()->getContent();
             $this->assertStringContainsString('<a href="'.$up.'"', $this->trail($html), $path);
             $this->assertStringContainsString('aria-current="page"', $this->trail($html), $path);

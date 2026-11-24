@@ -20,6 +20,7 @@ import { learning, loadLearning, setRange } from '../stores/learning.js';
 import { Modal } from '../components/ui.js';
 import { CourseStats } from '../components/home.js';
 import { AppScreen } from '../components/page.js';
+import { SingingTestCard } from '../components/singing-test-card.js';
 import { Icon, Logo } from '../components/icon.js';
 import { game } from '../skin.js';
 import { change, rangeChange, rolling } from '../progress-measures.js';
@@ -338,7 +339,7 @@ const HistoryChart = {
 };
 
 export const VoiceView = {
-    components: { AppScreen, CourseStats, ChangeRange, Icon, Logo, RangeDialog, RangeKeyboard, HistoryChart, RangeBand },
+    components: { AppScreen, CourseStats, ChangeRange, Icon, Logo, RangeDialog, RangeKeyboard, HistoryChart, RangeBand, SingingTestCard },
     data: () => ({ history: null, failed: false, titles: {}, group: 'all', measuring: false, changing: false }),
     setup: () => ({ learning, account, navigate, goBack, BADGES, GROUPS, GROUP_WORDS, GROUP_COLORS, SUITS, FIND, SAMPLE, formatDate, formatNumber, game }),
     template: `
@@ -421,6 +422,9 @@ export const VoiceView = {
                     <CourseStats editable />
                 </section>
                 </component>
+
+                <!-- The singing test (docs/singing-test-v1.md): take it, the latest result, its history; after the first week. -->
+                <SingingTestCard />
 
                 <!-- Your history and Your progress side by side from 900 px. -->
                 <div class="flex flex-col gap-6 md:gap-8 min-[900px]:grid min-[900px]:grid-cols-2 min-[900px]:items-start min-[900px]:gap-6" data-voice-pair>
