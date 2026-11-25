@@ -15,8 +15,9 @@ use Illuminate\Support\Facades\Schedule;
 | is drained here every minute, as iaw does; ffmpeg work has its own resident worker on `long`
 | (docs/conventions.md, "Two queues"). Slow tasks run in the background, so the minute's quick ones
 | (the heartbeat, the queue, coaching deadlines, posts) never wait behind them.
-| The hourly background tasks start in different minutes (:35, :37, :38, :41), never several at once:
-| each is a PHP process of 40 to 60 MB on the scheduler's 512 MB instance (2026-11-18).
+| Every task but the minute's quick ones has a minute of its own (2026-11-25, after restarts in the :35 burst): the
+| every-five-minutes ones at :x1 to :x4, each hourly and nightly task on a minute no other heavy one shares. Each is a
+| PHP process of 40 to 60 MB on the scheduler's 512 MB instance; ScheduleSpreadTest keeps any minute to 2 of them.
 |
 */
 
@@ -39,7 +40,7 @@ Schedule::command('app:heartbeat')
 Schedule::command('app:prune-security-events')
     ->onOneServer()
     ->name('prune-security-events')
-    ->dailyAt('03:10')
+    ->dailyAt('03:11')
     ->withoutOverlapping(30)
     ->runInBackground();
 
@@ -49,27 +50,27 @@ Schedule::command('app:check-cloudflare-ranges')
     ->onOneServer()
     ->name('check-cloudflare-ranges')
     ->when(static fn (): bool => config('selfhost.behind_cloudflare') === true)
-    ->weeklyOn(1, '04:20')
+    ->weeklyOn(1, '04:24')
     ->withoutOverlapping(10);
 
 Schedule::command('app:beta:prune-masters')
     ->onOneServer()
     ->name('beta-prune-masters')
-    ->hourlyAt(25)
+    ->hourlyAt(23)
     ->withoutOverlapping(30);
 
 // Hear yourself as a choir: clips never sent, and songs whose render tries ran out (PruneOwnChoir).
 Schedule::command('app:own-choir:prune')
     ->onOneServer()
     ->name('own-choir-prune')
-    ->hourlyAt(40)
+    ->hourlyAt(39)
     ->withoutOverlapping(30);
 
 // AI masters nobody needs: uploads never completed, failed ones, and retired AI guides' (PruneAiUploads).
 Schedule::command('app:ai-uploads:prune')
     ->onOneServer()
     ->name('ai-uploads-prune')
-    ->hourlyAt(35)
+    ->hourlyAt(33)
     ->withoutOverlapping(30);
 
 // Presigned uploads can't bind their size: anything bigger than declared goes at once, and every version at a
@@ -77,14 +78,14 @@ Schedule::command('app:ai-uploads:prune')
 Schedule::command('app:uploads:sweep')
     ->onOneServer()
     ->name('uploads-sweep')
-    ->everyFiveMinutes()
+    ->cron('1-59/5 * * * *')
     ->withoutOverlapping(10)
     ->runInBackground();
 
 Schedule::command('app:accounts:prune')
     ->onOneServer()
     ->name('accounts-prune')
-    ->dailyAt('03:30')
+    ->dailyAt('03:31')
     ->withoutOverlapping(30)
     ->runInBackground();
 
@@ -92,14 +93,14 @@ Schedule::command('app:accounts:prune')
 Schedule::command('app:code-watch:search')
     ->onOneServer()
     ->name('code-watch')
-    ->weeklyOn(1, '06:10')
+    ->weeklyOn(1, '06:11')
     ->withoutOverlapping(30)
     ->runInBackground();
 
 Schedule::command('app:search-console:sync')
     ->onOneServer()
     ->name('search-console')
-    ->dailyAt('05:40')
+    ->dailyAt('05:42')
     ->withoutOverlapping(30)
     ->runInBackground();
 
@@ -113,7 +114,7 @@ Schedule::command('app:counts:active-singers')
 Schedule::command('app:experiments:guard')
     ->onOneServer()
     ->name('experiments-guard')
-    ->dailyAt('04:20')
+    ->dailyAt('04:21')
     ->withoutOverlapping(30)
     ->runInBackground();
 
@@ -121,7 +122,7 @@ Schedule::command('app:experiments:guard')
 Schedule::command('app:voices:release')
     ->onOneServer()
     ->name('voices-release')
-    ->dailyAt('04:40')
+    ->dailyAt('04:42')
     ->withoutOverlapping(30)
     ->runInBackground();
 
@@ -129,14 +130,14 @@ Schedule::command('app:voices:release')
 Schedule::command('app:voices:release-held')
     ->onOneServer()
     ->name('voices-release-held')
-    ->everyFiveMinutes()
+    ->cron('2-59/5 * * * *')
     ->withoutOverlapping(10)
     ->runInBackground();
 
 Schedule::command('app:boards:prune-daily')
     ->onOneServer()
     ->name('boards-prune-daily')
-    ->dailyAt('03:40')
+    ->dailyAt('03:42')
     ->withoutOverlapping(30)
     ->runInBackground();
 
@@ -144,14 +145,14 @@ Schedule::command('app:leagues:weekly')
     ->onOneServer()
     ->name('leagues-weekly')
     // Daily, though a week's leagues form once: a missed Monday is caught the next day.
-    ->dailyAt('00:10')
+    ->dailyAt('00:11')
     ->withoutOverlapping(60)
     ->runInBackground();
 
 Schedule::command('app:choirs:mix')
     ->onOneServer()
     ->name('choirs-mix')
-    ->hourlyAt(45)
+    ->hourlyAt(44)
     ->withoutOverlapping(30);
 
 Schedule::command('app:coaches:refresh')
@@ -164,19 +165,19 @@ Schedule::command('app:coaches:refresh')
 Schedule::command('app:ideas:notify')
     ->onOneServer()
     ->name('ideas-notify')
-    ->hourlyAt(25)
+    ->hourlyAt(26)
     ->withoutOverlapping(30);
 
 Schedule::command('app:mudeo:prune')
     ->onOneServer()
     ->name('mudeo-prune')
-    ->dailyAt('03:55')
+    ->dailyAt('03:53')
     ->withoutOverlapping(30);
 
 Schedule::command('app:cache:prune')
     ->onOneServer()
     ->name('cache-prune')
-    ->dailyAt('03:50')
+    ->dailyAt('03:51')
     ->withoutOverlapping(30)
     ->runInBackground();
 
@@ -184,7 +185,7 @@ Schedule::command('app:cache:prune')
 Schedule::command('auth:clear-resets')
     ->onOneServer()
     ->name('clear-password-resets')
-    ->dailyAt('03:40')
+    ->dailyAt('03:43')
     ->withoutOverlapping(10);
 
 // Laravel's own: failed jobs (their payloads name people and things) after 30 days, as the privacy
@@ -192,7 +193,7 @@ Schedule::command('auth:clear-resets')
 Schedule::command('queue:prune-failed --hours=720')
     ->onOneServer()
     ->name('prune-failed-jobs')
-    ->dailyAt('03:45')
+    ->dailyAt('03:49')
     ->withoutOverlapping(10);
 
 Schedule::command('app:bin:purge')
@@ -207,7 +208,7 @@ Schedule::command('app:bin:purge')
 Schedule::command('app:outreach:autosend')
     ->onOneServer()
     ->name('outreach-autosend')
-    ->everyThirtyMinutes()
+    ->cron('25,55 * * * *')
     ->weekdays()
     ->between('9:00', '11:59')
     ->timezone(ReportDay::zone())
@@ -218,7 +219,7 @@ Schedule::command('app:outreach:autosend')
 Schedule::command('app:dropoffs')
     ->onOneServer()
     ->name('dropoffs')
-    ->weeklyOn(6, '00:30')
+    ->weeklyOn(6, '00:31')
     ->timezone(ReportDay::zone())
     ->withoutOverlapping(30)
     ->runInBackground();
@@ -232,7 +233,7 @@ Schedule::command('app:reminders:send')
 Schedule::command('app:sharing:prune')
     ->onOneServer()
     ->name('sharing-prune')
-    ->hourlyAt(45)
+    ->hourlyAt(46)
     ->withoutOverlapping(30)
     ->runInBackground();
 
@@ -247,8 +248,9 @@ Schedule::command('app:track-scores:prune')
 Schedule::command('app:coaching:deadlines')
     ->onOneServer()
     ->name('coaching-deadlines')
-    ->everyFiveMinutes()
-    ->withoutOverlapping(10);
+    ->cron('3-59/5 * * * *')
+    ->withoutOverlapping(10)
+    ->runInBackground();
 
 Schedule::command('app:event-schedule:reconcile')
     ->onOneServer()
@@ -260,7 +262,7 @@ Schedule::command('app:event-schedule:reconcile')
 Schedule::command('app:books:commission')
     ->onOneServer()
     ->name('books-commission')
-    ->monthlyOn(1, '06:10')
+    ->monthlyOn(1, '06:12')
     ->withoutOverlapping(60)
     ->runInBackground();
 
@@ -318,21 +320,21 @@ Schedule::command('app:digest')
 Schedule::command('app:backup:run')
     ->onOneServer()
     ->name('backup-database')
-    ->dailyAt('03:10')
+    ->dailyAt('03:12')
     ->withoutOverlapping(120)
     ->runInBackground();
 
 Schedule::command('app:backup:run --files')
     ->onOneServer()
     ->name('backup-files')
-    ->weeklyOn(0, '04:10')
+    ->weeklyOn(0, '04:13')
     ->withoutOverlapping(600)
     ->runInBackground();
 
 Schedule::command('app:backup:drill')
     ->onOneServer()
     ->name('backup-drill')
-    ->monthlyOn(2, '05:10')
+    ->monthlyOn(2, '05:13')
     ->withoutOverlapping(120)
     ->runInBackground();
 
@@ -340,7 +342,7 @@ Schedule::command('app:backup:drill')
 Schedule::command('app:sitemap:dates')
     ->onOneServer()
     ->name('sitemap-dates')
-    ->dailyAt('04:20')
+    ->dailyAt('04:22')
     ->withoutOverlapping(30)
     ->runInBackground();
 
@@ -350,7 +352,7 @@ Schedule::command('app:sitemap:dates')
 Schedule::command('app:sitemap:check --save')
     ->onOneServer()
     ->name('sitemap-check')
-    ->weeklyOn(3, '05:30')
+    ->weeklyOn(3, '05:31')
     // Our own public site only: a self-hosted install has no sitemap of ours to check.
     ->when(static fn (): bool => config('selfhost.enabled') !== true)
     ->withoutOverlapping(60)
@@ -362,7 +364,7 @@ Schedule::command('app:sitemap:check --save')
 Schedule::command('app:indexnow')
     ->onOneServer()
     ->name('indexnow')
-    ->hourlyAt(50)
+    ->hourlyAt(52)
     ->when(static fn (): bool => config('selfhost.enabled') !== true)
     ->withoutOverlapping(30)
     ->runInBackground();
@@ -372,7 +374,7 @@ Schedule::command('app:indexnow')
 Schedule::command('app:sitemap:dates --if-new-build')
     ->onOneServer()
     ->name('sitemap-dates-deploy')
-    ->everyFiveMinutes()
+    ->cron('4-59/5 * * * *')
     ->unlessBetween('04:15', '04:30')
     ->withoutOverlapping(30)
     ->runInBackground();
@@ -380,7 +382,7 @@ Schedule::command('app:sitemap:dates --if-new-build')
 Schedule::command('app:stats:nightly')
     ->onOneServer()
     ->name('stats-nightly')
-    ->dailyAt('03:40')
+    ->dailyAt('03:48')
     ->withoutOverlapping(60)
     ->runInBackground();
 
@@ -388,14 +390,14 @@ Schedule::command('app:stats:nightly')
 Schedule::command('app:counts:prune-hours')
     ->onOneServer()
     ->name('counts-prune-hours')
-    ->dailyAt('03:55')
+    ->dailyAt('03:54')
     ->withoutOverlapping(30);
 
 // Someone whose birth month and year now make them 18 becomes an adult on their own.
 Schedule::command('app:accounts:ages')
     ->onOneServer()
     ->name('accounts-ages')
-    ->dailyAt('00:20')
+    ->dailyAt('00:21')
     ->withoutOverlapping(30);
 
 // Sentry's cron monitors, only for the jobs config('sentry.cron_monitors') names (the plan allows

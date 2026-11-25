@@ -735,9 +735,16 @@ export class Engine {
             // The take covers everything heard until now: it ends a round trip after this frame.
             const atFrame = Math.ceil(this.ctx.currentTime * this.ctx.sampleRate) + playing.latencyFrames;
             this.recorder.port.postMessage({ cmd: 'end', id: this.capture.id, atFrame });
-            const take = await this.capture.promise;
-            this.stopSources();
-            return take;
+            try {
+                const take = await this.capture.promise;
+                this.stopSources();
+                return take;
+            } catch (error) {
+                // A new recording began before this take's end came back (the next exercise starting while this one's
+                // stop waits, slow on iOS: Sentry JAVASCRIPT-D): this take is gone, and the new run's sound plays on.
+                if (error?.code === 'replaced') return null;
+                throw error;
+            }
         }
         this.stopSources();
         return null;
@@ -815,7 +822,8 @@ export class Engine {
     // ---- Capture ------------------------------------------------------------------------------
 
     startCapture(fromFrame, toFrame, onChunk) {
-        this.capture?.reject(new Error('Replaced by a new recording'));
+        // An expected cancellation (code 'replaced'): a stop still waiting for the old take ends quietly (stop()).
+        this.capture?.reject(Object.assign(new Error('Replaced by a new recording'), { code: 'replaced' }));
         const id = ++this.captureId;
         const chunks = [];
         let resolve;

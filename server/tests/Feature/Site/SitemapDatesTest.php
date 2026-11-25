@@ -124,7 +124,7 @@ final class SitemapDatesTest extends TestCase
         // Both are on the schedule: daily, and every five minutes for a new build.
         $events = collect(app(Schedule::class)->events())->filter(static fn (Event $e): bool => str_contains((string) $e->command, 'app:sitemap:dates'))
             ->mapWithKeys(static fn (Event $e): array => [(str_contains((string) $e->command, '--if-new-build') ? 'deploy' : 'daily') => $e->expression])->sortKeys()->all();
-        $this->assertSame(['daily' => '20 4 * * *', 'deploy' => '*/5 * * * *'], $events);
+        $this->assertSame(['daily' => '22 4 * * *', 'deploy' => '4-59/5 * * * *'], $events);
     }
 
     public function test_a_song_page_is_its_current_versions_day_and_a_gone_page_is_forgotten(): void

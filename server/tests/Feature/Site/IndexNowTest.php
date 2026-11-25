@@ -158,7 +158,7 @@ final class IndexNowTest extends TestCase
         $event = collect(app(Schedule::class)->events())->first(static fn ($e): bool => str_contains((string) $e->command, 'app:indexnow'));
 
         $this->assertNotNull($event);
-        $this->assertSame('50 * * * *', $event->expression);
+        $this->assertSame('52 * * * *', $event->expression);
         $this->assertTrue($event->filtersPass(app()));
         config(['selfhost.enabled' => true]);
         $this->assertFalse($event->filtersPass(app()));

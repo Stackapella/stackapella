@@ -110,7 +110,7 @@ final class SitemapCheckTest extends TestCase
         $event = collect(app(Schedule::class)->events())->first(static fn ($e): bool => str_contains((string) $e->command, 'app:sitemap:check --save'));
 
         $this->assertNotNull($event);
-        $this->assertSame('30 5 * * 3', $event->expression);
+        $this->assertSame('31 5 * * 3', $event->expression);
         $this->assertTrue($event->filtersPass(app()));
         config(['selfhost.enabled' => true]);
         $this->assertFalse($event->filtersPass(app()));

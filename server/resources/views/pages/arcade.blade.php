@@ -22,9 +22,11 @@
     <x-site.header :app-url="$links['app']" />
     @php($facts = \App\Support\Pages\Landing::list('facts', [':free_songs' => (string) $plans['freeSongs']]))
     <main class="s-lv2 s-arcade-home">
-        <section class="s-wrap s-hero s-hero-home" aria-labelledby="hero-h">
+        <section class="s-wrap s-hero s-hero-home s-arcade-hero" aria-labelledby="hero-h">
+            <div class="s-arcade-cap">
             <div class="s-hero-split">
-                <h1 id="hero-h"><span>{{ __('pages.landing.headline') }}</span> <span class="s-hero-em">{{ __('pages.landing.headline_em') }}</span></h1>
+                {{-- The home's headline (Hillel: "lets go with sing harmony"), its second line in the cabinet's gradient type. --}}
+                <h1 id="hero-h"><span>{{ __('landing.hero.before') }}</span> <span class="s-hero-em">{{ __('landing.hero.em') }}</span></h1>
                 <div class="s-hero-go">
                     <p class="s-lead">{{ __('pages.landing.lead') }}</p>
                     <div class="s-hero-btns">
@@ -38,6 +40,25 @@
                     @php($chordTest = (($funnel['experiment']['id'] ?? null) === 'onb1') && ($funnel['experiment']['enrol'] ?? false))
                     <p class="s-hero-promise" @if ($chordTest) hidden data-variant-except="onb1-a" @endif>{{ __('pages.landing.chord_promise') }}</p>
                 </div>
+            </div>
+                {{-- The three ways in, where the calm home has its Find your path (Hillel, 2026-11-24: "in game mode the 3 for
+                     paths should be above the play section like in serious, try to make them align"): its right column, in
+                     its grid and edges, so switching skins doesn't move them; the home's words, each its part's square. --}}
+                <nav class="s-arcade-paths" aria-labelledby="paths-h">
+                    <h2 id="paths-h" class="s-kick">{{ __('landing.paths.label') }}</h2>
+                    <ul>
+                        @foreach (['learn' => ['/for/learners', 1], 'make' => ['/for/singers', 3], 'lead' => ['/for/choir-directors?ref=for-choirs-landing', 4]] as $key => [$href, $n])
+                            <li class="s-v{{ $n }}">
+                                <a href="{{ $href }}" class="s-apath">
+                                    <small><i aria-hidden="true"></i>{{ __('landing.paths.'.$key.'.eyebrow') }}</small>
+                                    <b>{{ __('landing.paths.'.$key.'.who') }}</b>
+                                    <span>{{ __('landing.paths.'.$key.'.what') }}</span>
+                                    <em>{{ __('landing.paths.'.$key.'.go') }} <x-site.icon name="arrow" size="16" /></em>
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </nav>
             </div>
             @if ($hero !== null)
                 {{-- The cabinet: the app's own Sing lane singing the melody, the soprano, its HUD, play, words and time drawn

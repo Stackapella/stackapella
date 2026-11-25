@@ -398,3 +398,31 @@
 /* The cabinet's own dark under its gradient, as a solid colour too, so whatever reads the colour behind its words (a
    contrast check, a forced-colours mode) finds the dark it shows, in game mode's light themes as in its dark. */
 .s-cabinet { background-color: #0e0c19; }
+/* The hero in the calm home's grid (Hillel, 2026-11-24: "in game mode the 3 for paths should be above the play section like
+   in serious, try to make them align"): the home's side padding and its two columns, the headline with its line and
+   buttons on the left and the three ways in stacked on the right, so switching skins leaves the paths where they were;
+   one column on a phone, its 18 px sides. The paths are framed panels in the cabinet's square style, each its part's
+   colour on a small square and its eyebrow, never a side stripe. */
+.s-wrap.s-arcade-hero { max-width: none; padding-inline: max(20px, calc((100vw - 1240px) / 2 + 20px)); }
+.s-arcade-cap { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px 72px; align-items: end; }
+.s-arcade-cap .s-hero-split { display: grid; gap: 18px; }
+.s-arcade-cap #hero-h { margin-top: 0; font-size: clamp(40px, 4.4vw, 68px); line-height: 1; }
+.s-lv2 .s-arcade-cap .s-hero-go { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 0; }
+.s-lv2 .s-arcade-cap .s-hero-go > * { grid-column: 1; grid-row: auto; }
+.s-lv2 .s-arcade-cap .s-hero-go .s-lead { max-width: 44ch; margin: 0; }
+.s-arcade-paths { min-width: 0; }
+.s-arcade-paths .s-kick { margin: 4px 0 10px; }
+.s-arcade-paths ul { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.s-apath { display: grid; align-content: start; gap: 4px; padding: 14px 18px; border: 2px solid var(--arc-line, var(--color-line)); background: var(--arc-panel, var(--color-panel)); color: var(--color-cream); text-decoration: none; }
+.s-apath:hover, .s-apath:focus-visible { border-color: var(--p); }
+.s-v1 .s-apath { --p: var(--color-part-1); } .s-v3 .s-apath { --p: var(--color-part-3); } .s-v4 .s-apath { --p: var(--color-part-4); }
+.s-apath small { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--p); }
+.s-apath small i { width: 10px; height: 10px; background: var(--p); }
+.s-apath b { font-size: 18px; line-height: 1.25; }
+.s-apath span { font-size: 14.5px; line-height: 1.4; color: var(--color-muted); }
+.s-apath em { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; font-style: normal; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
+@media (max-width: 899px) {
+    .s-wrap.s-arcade-hero { padding-inline: 18px; }
+    .s-arcade-cap { grid-template-columns: 1fr; gap: 12px; }
+    .s-arcade-paths ul { gap: 6px; }
+}

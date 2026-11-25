@@ -298,7 +298,7 @@ export const Exercise = {
     // done: { percent, word, tips, sung } after a run (sung: the target notes lit, for the range);
     // practised: the seconds of a run with the mic, for the weekly goal.
     emits: ['done', 'practised', 'lower', 'higher', 'lit'],
-    data: () => ({ width: 0, running: false, scoring: false, position: 0, live: null, lit: new Set(), hitAt: {}, waitFoundAll: false, error: null, asking: false, speaker: listening() === 'speaker', waiting: null, cheer: null, combo: 0, bonus: 0, hud: popupQueue(), chosen: {}, revealed: false, weakTakes: 0, withGuide: false, lead: 0, heardFirst: false, hearing: false, ring: null }),
+    data: () => ({ width: 0, running: false, starting: false, scoring: false, position: 0, live: null, lit: new Set(), hitAt: {}, waitFoundAll: false, error: null, asking: false, speaker: listening() === 'speaker', waiting: null, cheer: null, combo: 0, bonus: 0, hud: popupQueue(), chosen: {}, revealed: false, weakTakes: 0, withGuide: false, lead: 0, heardFirst: false, hearing: false, ring: null }),
     template: `
         <div class="space-y-4">
             <!-- The lane (Hillel's arcade pass, ux-spec 5.7c): the exercise framed tight and centred, its
@@ -632,7 +632,7 @@ export const Exercise = {
     unmounted() {
         this.resize?.disconnect();
         cancelAnimationFrame(this.frame);
-        if (this.running) engine.stop();
+        if (this.running) engine.stop().catch((error) => console.warn('The exercise did not stop cleanly', error));
         [...engine.parts.keys()].filter((id) => id.startsWith('ex:')).forEach((id) => engine.removePart(id));
     },
     methods: {
@@ -950,12 +950,17 @@ export const Exercise = {
                 return;
             }
             this.speaker = listening() === 'speaker' || (this.mode === 'try' && !listening());
+            // A second tap while the mic opens (slow on iOS) would start a second run over the first (Sentry JAVASCRIPT-D).
+            if (this.starting) return;
+            this.starting = true;
             try {
                 await unlock();
                 if (this.mode !== 'listen' && !(await readyMic())) return;
             } catch (error) {
                 showMicHelp(error, () => this.start());
                 return;
+            } finally {
+                this.starting = false;
             }
             // Singing with the guide only once nothing can stop the take: a blocked start never leaves the next one guided.
             this.withGuide = guided && this.mode === 'play';

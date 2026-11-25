@@ -57,6 +57,28 @@ test('engine: a take recorded over two parts equals their mix, sample for sample
     engine.removePart('b');
 });
 
+test('engine: a stop still waiting for its take, replaced by a new recording, ends quietly and the new run plays on', async () => {
+    // Sentry JAVASCRIPT-D: a lesson's exercise left mid-take (its stop waits for the take's end) and the next one started
+    // recording first; the old take's promise rejected with nothing catching it, and its stop would have stopped the new run.
+    const sr = engine.sampleRate;
+    engine.setPart('a', new Float32Array(sr * 4).fill(0.1), sr, mix);
+    const first = engine.play({ fromSeconds: 0, bpm: 120, record: true, latencyFrames: 0 });
+    await untilAudioTime(first.startTime + 0.3);
+    const stopping = engine.stop();
+    const second = engine.play({ fromSeconds: 0, bpm: 120, record: true, latencyFrames: 0 });
+    let outcome;
+    try {
+        outcome = await stopping;
+    } catch (error) {
+        outcome = error;
+    }
+    assert(outcome === null, `the old stop: ${outcome?.message ?? outcome}`);
+    assert(engine.playing === second && engine.capture, 'the new run and its recording go on');
+    const take = await engine.stop();
+    assert(take?.samples?.length >= 0, 'the new run still ends with its take');
+    engine.removePart('a');
+});
+
 test('engine: recording from a later position lines up with the project timeline', async () => {
     const sr = engine.sampleRate;
     const a = harmonyPart(sr, { notes: [60, 62, 64], bpm: 120 });
