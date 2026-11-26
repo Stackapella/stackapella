@@ -8,6 +8,7 @@ use App\Models\AiVoice;
 use App\Models\BetaSinger;
 use App\Models\User;
 use App\Support\Accounts\Age;
+use App\Support\Accounts\AiChoice;
 use App\Support\AiVoices\AiLicence;
 use App\Support\Flags;
 use App\Support\Stats\ReportDay;
@@ -177,6 +178,44 @@ final class AiFeaturesTest extends TestCase
 
         $this->actingAs(User::factory()->create());
         $this->getJson('/api/admin/growth/ai')->assertForbidden();
+    }
+
+    public function test_ai_can_be_hidden_for_good_and_the_server_reads_it_as_on_unless_off_and_never_under_18(): void
+    {
+        // Hidden on a guest's device, carried into the account.
+        $hid = $this->signUp('hid@example.com', ['aiFeatures' => false, 'aiFeaturesSource' => 'hide']);
+        $this->assertSame([false, 'hide'], [$hid->ai_features, $hid->ai_features_source]);
+        $this->postJson('/api/auth/register', ['name' => 'Fay', 'email' => 'fay@example.com', 'password' => 'a-fine-long-passphrase-42', 'elapsedMs' => 45000, 'birthMonth' => 5, 'birthYear' => 1999, 'aiFeatures' => true, 'aiFeaturesSource' => 'hide'])->assertStatus(422);
+
+        // "Hide AI for good" in the app: off, and only ever with off.
+        $ana = $this->person(['age_band' => '25-34', 'ai_features' => null, 'ai_features_source' => null]);
+        $this->actingAs($ana);
+        $this->patchJson('/api/account', ['aiFeatures' => true, 'aiFeaturesSource' => 'hide'])->assertStatus(422);
+        $this->patchJson('/api/account', ['aiFeatures' => false, 'aiFeaturesSource' => 'hide'])->assertOk()->assertJsonPath('data.aiFeaturesSource', 'hide');
+        $this->assertFalse(AiChoice::aiOn($ana->refresh()));
+
+        // Not chosen, or kept on as an older account: on. Under 18: never.
+        $this->assertTrue(AiChoice::aiOn($this->person(['ai_features' => null, 'age_band' => '35-44'])));
+        $this->assertTrue(AiChoice::aiOn($this->person(['ai_features' => true, 'ai_features_source' => 'existing', 'age_band' => null])));
+        $this->assertFalse(AiChoice::aiOn($this->person(['ai_features' => true, 'age_band' => 'u18'])));
+        $this->assertFalse(AiChoice::aiOn($this->person(['ai_features' => null, 'age_band' => 'u18'])));
+    }
+
+    public function test_growth_shows_the_hides_by_where_beside_the_uses(): void
+    {
+        $count = static fn (string $kind, int $n) => DB::table('usage_counts')->insert(['day' => ReportDay::today(), 'kind' => $kind, 'audience' => 'account', 'country' => '', 'variant' => '', 'source' => '', 'count' => $n]);
+        $count('ai_hide:home_choir:25-34', 4);
+        $count('ai_hide:settings:25-34', 2);
+        $count('ai_hide:song_choir:guest', 5);
+        $this->assertContains('ai_hide:home_choir:guest', (array) config('counts.kinds'));
+
+        $this->actingAsAdmin();
+        $shown = $this->getJson('/api/admin/growth/ai');
+        $this->assertMatchesContract($shown, 'admin.growth.ai', 200);
+        $bands = collect($shown->json('data.bands'))->keyBy('band');
+        // Two hides is too few to show.
+        $this->assertSame([4, null], [$bands['25-34']['hideHomeChoir'], $bands['25-34']['hideSettings']]);
+        $this->assertSame([5, 4], [$shown->json('data.total.hideSongChoir'), $shown->json('data.total.hideHomeChoir')]);
     }
 
     public function test_the_release_switch_reaches_the_app(): void

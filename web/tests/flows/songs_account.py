@@ -54,7 +54,7 @@ def journey(f):
     assert f.js(f"{CARD}.querySelector('[data-install-account]').classList.contains('btn-secondary')"), "Home's own action stays the one primary"
     f.run(f"{CARD}.scrollIntoView({{ block: 'center' }})")
     f.shot("songs-account")
-    f.click_t("install.later")
+    f.run("document.querySelector('[data-install] [data-install-later]').click()")  # the card's own Not now (a course wall may have one too)
     f.wait(f"!{CARD}", what="Not now")
     ledger = f.js("JSON.parse(localStorage.getItem('stackapella.asks'))")
     assert ledger["nots"] == 1 and "acct_songs" not in ledger["stopped"], ledger

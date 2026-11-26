@@ -5,12 +5,17 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
+use App\Models\Template;
 use App\Support\Http\Hosts;
 use App\Support\Languages\Languages;
 use App\Support\Pages\Landing;
 use App\Support\Pages\Prices;
+use App\Support\Pages\SongParts;
+use App\Support\Rights\RightsHere;
 use App\Support\Site\PathPages;
 use App\Support\Site\SitePages;
+use App\Support\Site\Teams;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Lang;
@@ -26,9 +31,48 @@ final class ForPagesController extends Controller
      * the home's three ways in, each a card in its part's colour with a real picture and a link to its page, then the
      * other audiences the site has a page for, and the first lesson. The footer's one way to them.
      */
-    public function index(Request $request): Response
+    /**
+     * The songs to play on /for, by audience, in order of preference (Hillel, 2026-11-26: "needs more content"; ai-marketing's
+     * picks, none withheld anywhere): the first of each that's open here, each song once on the page.
+     */
+    private const FOR_SONGS = [
+        'learners' => ['amazing-grace', 'silent-night', 'the-water-is-wide'],
+        'singers' => ['greensleeves', 'auld-lang-syne', 'joy-to-the-world'],
+        'choir-directors' => ['hallelujah-chorus', 'cantique-de-jean-racine', 'joy-to-the-world', 'amazing-grace'],
+    ];
+
+    /** How many songs each audience plays: two to learn, two to stack, one for a choir (with its part pages). */
+    private const FOR_SONG_COUNT = ['learners' => 2, 'singers' => 2, 'choir-directors' => 1];
+
+    public function index(Request $request, SongParts $songParts, RightsHere $rights): Response
     {
         $title = SitePages::title((string) __('site.for.index.title'));
+        $price = Prices::of(Prices::currency($request));
+        // Only open songs whose rights are the same everywhere, so the page is one page wherever it's read; each song
+        // once on the page, the first of each audience's list that's there.
+        $open = (new EloquentCollection($songParts->songs()->reject(static fn (Template $song): bool => $rights->variesByCountry($song))->values()->all()))
+            ->load('currentVersion')->keyBy('slug');
+        $used = [];
+        $songs = [];
+        foreach (self::FOR_SONGS as $who => $slugs) {
+            $songs[$who] = [];
+            foreach ($slugs as $slug) {
+                $template = $open->get($slug);
+                if ($template === null || count($songs[$who]) >= self::FOR_SONG_COUNT[$who] || in_array($slug, $used, true)) {
+                    continue;
+                }
+                $line = Landing::line($template);
+                if ($line !== null) {
+                    $songs[$who][] = $line;
+                    $used[] = $slug;
+                }
+            }
+        }
+        // The questions: the home's own answers where they fit (their prices in the visitor's currency), and one of its own.
+        $home = (array) Lang::get('pages.landing.faq');
+        $answers = array_combine(array_keys($home), array_slice(Landing::faq(count((array) config('templates.free')), $price), 0, count($home)));
+        $own = (array) Teams::words('site.for.index.faq');
+        $faq = [...array_map(static fn (string $key): array => (array) $answers[$key], ['free', 'read_music', 'headphones']), (array) $own['account'], (array) $own['whole_choir']];
 
         return response()->view('site.for-index', [
             'title' => $title,
@@ -41,7 +85,9 @@ final class ForPagesController extends Controller
                 ['key' => 'make', 'card' => 'singers', 'n' => 3, 'name' => (string) __('pages.nav.singers'), 'url' => '/for/singers', 'shot' => PathPages::shot('singers')],
                 ['key' => 'lead', 'card' => 'choir-directors', 'n' => 4, 'name' => (string) __('pages.nav.for_choirs'), 'url' => '/for/choir-directors', 'shot' => null],
             ],
-        ], 200, SongPagesController::headers());
+            'songs' => $songs,
+            'faq' => $faq,
+        ], 200, [...SongPagesController::headers(), 'Vary' => 'CF-IPCountry, Accept-Language']);
     }
 
     public function show(Request $request, string $who, Languages $languages): Response

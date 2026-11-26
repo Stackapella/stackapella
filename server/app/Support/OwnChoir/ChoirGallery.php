@@ -9,6 +9,7 @@ use App\Models\ChoirGalleryItem;
 use App\Models\OwnChoirPart;
 use App\Models\OwnChoirRequest;
 use App\Models\User;
+use App\Support\Accounts\AiChoice;
 use App\Support\Flags;
 
 /**
@@ -29,12 +30,10 @@ final class ChoirGallery
         return (int) config('own_choir.gallery.consent_version');
     }
 
-    /** AI features turned off (null, never chosen, isn't off). */
+    /** AI features off for them (turned off, hidden, or under 18): their items are hidden. */
     public static function aiOff(User $user): bool
     {
-        $value = $user->getAttributes()['ai_features'] ?? null;
-
-        return $value === false || $value === 0;
+        return ! AiChoice::aiOn($user);
     }
 
     /** The song's parts as they are, by their files' hashes: a remake changes it. */

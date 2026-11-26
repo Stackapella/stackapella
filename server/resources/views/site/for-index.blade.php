@@ -50,6 +50,13 @@
                     <p class="s-kick"><i class="s-aud-dot" aria-hidden="true"></i>{{ $path['name'] }}</p>
                     <h2 id="{{ $path['card'] }}-h">{{ __('landing.paths.'.$path['key'].'.who') }}</h2>
                     <p class="s-hub-who">{{ $card['who'] }}</p>
+                    {{-- How it works, in three steps true to the app. --}}
+                    <p class="s-hub-how">{{ __('pages.nav.how') }}</p>
+                    <ol class="s-hub-steps">
+                        @foreach ((array) \Illuminate\Support\Facades\Lang::get('site.for.index.steps.'.$path['card']) as $step)
+                            <li><b aria-hidden="true">{{ $loop->iteration }}</b><span>{{ $step }}</span></li>
+                        @endforeach
+                    </ol>
                     <ul class="s-aud-gets">
                         @foreach ((array) $card['gets'] as $get)
                             <li><x-site.icon name="check" size="16" />{{ $get }}</li>
@@ -59,6 +66,23 @@
                     <a href="{{ $path['url'] }}" class="s-hub-btn">{{ $card['action'] }} <x-site.icon name="arrow" size="16" /></a>
                 </div>
             </div>
+            {{-- Real songs to play here, in the site's own player (one plays at a time), each to its page. --}}
+            @if (($songs[$path['card']] ?? []) !== [])
+                <div class="s-hub-songs">
+                    <p class="s-kick">{{ __('site.for.index.songs.label') }}</p>
+                    <div class="s-hub-players">
+                        @foreach ($songs[$path['card']] as $song)
+                            <div>
+                                <x-site.mixer :song="$song" id="for-{{ $path['card'] }}-{{ $loop->iteration }}" />
+                                <a href="/songs/{{ $song['song'] }}" class="s-arrow">{{ $song['title'] }} <x-site.icon name="arrow" size="16" /></a>
+                            </div>
+                        @endforeach
+                        @if ($path['card'] === 'choir-directors')
+                            <p class="s-hub-parts">{{ __('site.for.index.songs.directors') }} <a href="/songs" class="s-arrow">{{ __('site.for_directors.nogroup.browse') }} <x-site.icon name="arrow" size="16" /></a></p>
+                        @endif
+                    </div>
+                </div>
+            @endif
             </section>
         @endforeach
 
@@ -77,6 +101,22 @@
             </ul>
         </section>
 
+        {{-- A few questions, short and true to what's live (the home's own answers where they fit). --}}
+        <section class="s-wrap s-sec" aria-labelledby="faq-h">
+            <div class="s-two">
+                <h2 id="faq-h" class="s-hub-h2">{{ __('pages.landing.faq_title') }}</h2>
+                <div class="s-faq s-faq-round">
+                    @foreach ($faq as [$question, $answer])
+                        <details>
+                            <summary>{{ $question }}<span class="s-faq-btn" aria-hidden="true"><span class="s-faq-plus"><x-site.icon name="plus" size="16" /></span><span class="s-faq-minus"><x-site.icon name="minus" size="16" /></span></span></summary>
+                            <p>{{ $answer }}</p>
+                        </details>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+        <x-site.json-ld :data="[['@context' => 'https://schema.org', '@type' => 'FAQPage', 'mainEntity' => array_map(static fn (array $qa): array => ['@type' => 'Question', 'name' => $qa[0], 'acceptedAnswer' => ['@type' => 'Answer', 'text' => $qa[1]]], $faq)]]" />
+
         <section class="s-wrap s-sec" aria-labelledby="end-h">
             <div class="s-hub-end">
                 {{-- The four bars as the logo has them: one left edge (design rules). --}}
@@ -87,4 +127,10 @@
         </section>
     </main>
     <x-site.footer />
+@endsection
+
+@section('scripts')
+    @if (collect($songs)->flatten(1)->isNotEmpty())
+        <script type="module" src="/js/public/mixer.js"></script>
+    @endif
 @endsection

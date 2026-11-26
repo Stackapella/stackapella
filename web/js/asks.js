@@ -8,9 +8,14 @@
 //   - an ask seen and left unanswered waits a week before it shows again (Hillel, 2026-11-02: "ask
 //     once"; the install card had shown on every Home through a singer's first week);
 //   - the Safari loss card (acct_risk) is the one exception: at most once in 30 days, even after
-//     three Not nows (Hillel, 2026-10-30), still one ask a day.
+//     three Not nows (Hillel, 2026-10-30), still one ask a day;
+//   - one account ask at a time: while a wall is on screen (the course wall, which asks for the account
+//     itself), no other account ask shows (the Safari loss card, the songs card). The wall wins, and isn't
+//     counted as the day's ask, so the other can show on a later visit. The plain install offer is another
+//     decision and still shows (docs/decisions.md, 2026-11-26).
 // Funnel counts stay in funnel.js (askShown, askYes); this only decides whether an ask may show.
 
+import { reactive } from 'vue';
 import { local, session } from './storage.js';
 
 const KEY = 'stackapella.asks';
@@ -100,8 +105,24 @@ export function askAllowed(name, ledger, now = Date.now()) {
     return true;
 }
 
-/** Whether the ask `name` may show now on this device. */
-export const askDue = (name, now = Date.now()) => askAllowed(name, readLedger(), now);
+/** The walls on screen now, by their own id: held in memory only, so nothing waits once they're gone. Reactive, so an ask hides as one comes. */
+const walls = reactive(new Set());
+
+/** A wall is on screen (its id): every other account ask waits while it's up. */
+export function wallUp(id) {
+    walls.add(id);
+}
+
+/** That wall is gone. */
+export function wallDown(id) {
+    walls.delete(id);
+}
+
+/** Whether a wall is on screen now. */
+export const wallShowing = () => walls.size > 0;
+
+/** Whether the ask `name` may show now on this device: within the caps, and an account ask only with no wall up. */
+export const askDue = (name, now = Date.now()) => !(isAccountAsk(name) && wallShowing()) && askAllowed(name, readLedger(), now);
 
 /** Pure: the ledger once `name` has shown. */
 export function withSeen(name, ledger, now = Date.now()) {

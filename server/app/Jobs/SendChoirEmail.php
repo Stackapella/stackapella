@@ -9,6 +9,7 @@ use App\Enums\OwnChoirStatus;
 use App\Mail\Account\ChoirReadyMail;
 use App\Models\EmailSuppression;
 use App\Models\OwnChoirRequest;
+use App\Support\Accounts\AiChoice;
 use App\Support\Flags;
 use App\Support\OwnChoir\ChoirWait;
 use App\Support\OwnChoir\OwnChoir;
@@ -58,7 +59,7 @@ final class SendChoirEmail implements ShouldQueue
         }
 
         // AI features turned off by then (docs/ai-optional-plan.md): no email, as no banner.
-        $aiOff = ($user->getAttributes()['ai_features'] ?? null) === false || ($user->getAttributes()['ai_features'] ?? null) === 0;
+        $aiOff = ! AiChoice::aiOn($user);
 
         if (! $user->choir_email || $aiOff || $user->email === null || $user->email_verified_at === null || EmailSuppression::isSuppressed((string) $user->email)) {
             return;

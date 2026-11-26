@@ -3,8 +3,8 @@
 // lesson and a course's page (`compact`). It says what comes with the account (their stars, their note,
 // their place in the course, every lesson of every course) and that it's free with no card, never a
 // price, a countdown or a second loud frame. Counted as the course's account ask, acct_course: shown once
-// a device, yes on any way in, and Back to the course (under Not now, since the UX review) as its Not now. A wall, not a nudge: the asks'
-// ledger isn't told.
+// a device, yes on any way in, and Back to the course (under Not now, since the UX review) as its Not now. A wall, not a nudge: it isn't the
+// ledger's ask of the day, but while it's up no other account ask shows (js/asks.js wallUp: one at a time).
 //
 // Google and Apple are on the wall itself, the email way a link to sign-up, so a guest is one tap from an account
 // rather than a page away (wall1's arm b, for everyone since Hillel's "Stop both, decide", 2026-11-12; docs/decisions.md).
@@ -20,6 +20,7 @@ import { game } from '../skin.js';
 import { addTomorrow, nextUpLine, sendMyselfTheLink } from '../next-up.js';
 import { countUnitSong, unitSongProject } from '../unit-song.js';
 import { toast } from './ui.js';
+import { wallDown, wallUp } from '../asks.js';
 
 const PROVIDERS = { google: tk('auth.google'), apple: tk('auth.apple') };
 
@@ -101,6 +102,13 @@ export const CourseWall = {
                 t('courses.wall.keepAll'),
             ];
         },
+    },
+    // Up from its first render, so an account ask further down the page waits rather than showing with it.
+    created() {
+        wallUp(this.uid);
+    },
+    unmounted() {
+        wallDown(this.uid);
     },
     mounted() {
         askShown('acct_course');

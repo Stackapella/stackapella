@@ -21,7 +21,10 @@ final class AiChoice
     public const GUEST = 'guest';
 
     /** Where a choice came from (users.ai_features_source); `existing` only from the migration. */
-    public const SOURCES = ['card', 'settings', 'ai-singing'];
+    public const SOURCES = ['card', 'settings', 'ai-singing', 'hide'];
+
+    /** Where the app offers "Hide AI for good" (Hillel, 2026-11-26), for the ai_hide counts. */
+    public const HIDE_WHERE = ['home_choir', 'song_choir', 'settings'];
 
     /** What the release switch is called. */
     public const SWITCH = 'ai_optional';
@@ -29,6 +32,17 @@ final class AiChoice
     public static function on(): bool
     {
         return app(Flags::class)->on(self::SWITCH);
+    }
+
+    /**
+     * Whether AI is on for this person wherever the server decides it (Hillel, 2026-11-26: "most new users see it, with
+     * the option to hide forever"): on unless they turned it off or hid it, and never for someone under 18.
+     */
+    public static function aiOn(User $user): bool
+    {
+        $value = $user->getAttributes()['ai_features'] ?? null;
+
+        return $value !== false && $value !== 0 && $user->age_band !== 'u18';
     }
 
     public static function band(User $user): string
@@ -76,6 +90,10 @@ final class AiChoice
 
             foreach (['choir_start', 'choir_heard', 'guide_heard'] as $use) {
                 $kinds[] = "ai_use:{$use}:{$band}";
+            }
+
+            foreach (self::HIDE_WHERE as $where) {
+                $kinds[] = "ai_hide:{$where}:{$band}";
             }
 
             foreach (['on', 'off', 'unset'] as $state) {

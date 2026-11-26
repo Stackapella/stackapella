@@ -56,7 +56,10 @@
                             "guideHeard",
                             "switchOnOff",
                             "switchOffOn",
-                            "engagement"
+                            "engagement",
+                            "hideHomeChoir",
+                            "hideSongChoir",
+                            "hideSettings"
                         ],
                         "properties": {
                             "band": {
@@ -211,6 +214,27 @@
                                         }
                                     }
                                 }
+                            },
+                            "hideHomeChoir": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ],
+                                "description": "Hide AI for good, from Home's choir card (null: too few)."
+                            },
+                            "hideSongChoir": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ],
+                                "description": "Hide AI for good, from a song's choir (null: too few)."
+                            },
+                            "hideSettings": {
+                                "type": [
+                                    "integer",
+                                    "null"
+                                ],
+                                "description": "Hide AI for good, from Settings (null: too few)."
                             }
                         }
                     }
@@ -230,7 +254,10 @@
                         "guideHeard",
                         "switchOnOff",
                         "switchOffOn",
-                        "engagement"
+                        "engagement",
+                        "hideHomeChoir",
+                        "hideSongChoir",
+                        "hideSettings"
                     ],
                     "properties": {
                         "cardShown": {
@@ -373,6 +400,27 @@
                                     }
                                 }
                             }
+                        },
+                        "hideHomeChoir": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "description": "Hide AI for good, from Home's choir card (null: too few)."
+                        },
+                        "hideSongChoir": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "description": "Hide AI for good, from a song's choir (null: too few)."
+                        },
+                        "hideSettings": {
+                            "type": [
+                                "integer",
+                                "null"
+                            ],
+                            "description": "Hide AI for good, from Settings (null: too few)."
                         }
                     }
                 }

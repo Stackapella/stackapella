@@ -80,7 +80,7 @@ export const InstallCard = {
             <div class="flex items-center gap-3">
                 <button v-if="form === 'keep' || form === 'account' || form === 'risk'" type="button" class="btn-secondary" data-install-account @click="makeAccount">{{ t('wrap.makeAccount') }}</button>
                 <button v-else-if="install.prompt" type="button" class="btn-secondary" @click="ask">{{ t('install.button') }}</button>
-                <button type="button" class="tap-44 btn-ghost btn-sm" @click="dismiss">{{ t('install.later') }}</button>
+                <button type="button" class="tap-44 btn-ghost btn-sm" data-install-later @click="dismiss">{{ t('install.later') }}</button>
             </div>
         </section>`,
     computed: {
@@ -112,6 +112,9 @@ export const InstallCard = {
         shown() {
             // Never on a brand-new guest's first home (the coordinator, 2026-11-08: Start singing and nothing competing):
             // once a lesson is done or a song is kept here, or signed in.
+            // Only once the account and the course are known: a member's or a walled guest's Home is settled then, so the
+            // course wall comes up in the same render and this card, an account ask, waits for it (js/asks.js wallUp).
+            if (!account.loaded || !learning.loaded) return false;
             const begun = !!account.me || this.starred > 0 || (this.here?.songs ?? 0) > 0;
             return begun && !!this.form && !this.answered && askDue(this.askName);
         },
@@ -121,17 +124,26 @@ export const InstallCard = {
         navigator.storage?.persisted?.().then((kept) => (this.persisted = kept), (error) => console.info('Storage persistence unknown', error?.message ?? error));
     },
     watch: {
-        // The funnel: the install ask, counted the first time this device sees it.
+        // The funnel: the install ask, counted the first time this device sees it. After the page has rendered, so a
+        // wall that comes up in the same render (the course wall on a walled guest's Home) is in the ledger first, and
+        // this card, put back for it, doesn't use up its day or start its month.
         shown: {
-            handler(shown) {
-                if (!shown) return;
-                askShown({ keep: 'account', account: 'acct_songs', risk: 'acct_risk' }[this.form] ?? 'install');
-                askSeen(this.askName);
+            handler() {
+                this.seen();
             },
-            immediate: true,
+            flush: 'post',
         },
     },
+    mounted() {
+        this.seen();
+    },
     methods: {
+        /** On screen: counted, and the ledger told (it keeps the day). */
+        seen() {
+            if (!this.shown) return;
+            askShown({ keep: 'account', account: 'acct_songs', risk: 'acct_risk' }[this.form] ?? 'install');
+            askSeen(this.askName);
+        },
         async ask() {
             const prompt = install.prompt;
             install.prompt = null;

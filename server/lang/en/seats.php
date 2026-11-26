@@ -50,4 +50,6 @@ return [
     'site.for_directors.faq' => [0 => [1 => 'Each singer needs a seat, which you buy for the choir from 10 seats; a singer with Plus already has one. Your first song\'s learning tracks are free.']],
     // /pricing's choir callout.
     'pages.pricing.choir_callout' => 'Leading a choir? Each singer needs a seat, which you buy for the choir from 10 seats, and your first song\'s learning tracks are on us.',
+    // Who it's for's question about a whole choir (ai-marketing, 2026-11-26).
+    'site.for.index.faq' => ['whole_choir' => [1 => 'Yes. Start a group and invite your singers by link. Each singer needs a seat, which you buy for the choir from 10 seats; a singer with Plus already has one. Give each singer a part and see who has started and who has recorded it. Groups are for singers 18 and over.']],
 ];

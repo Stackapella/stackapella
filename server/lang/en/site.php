@@ -801,6 +801,16 @@ return [
                 ['/for/organizations', 'Choirs, societies and school bodies: a free year of Plus for every member.'],
             ]],
             'unsure' => ['line' => 'Not sure? Lesson 1 needs no account.', 'action' => 'Start with lesson 1'],
+            // More on Who it's for (Hillel, 2026-11-26: "needs more content"; ai-marketing's words): each way in's three
+            // steps, the songs to play (and the directors' line to the part pages), and its own questions (whole_choir
+            // changes with teams.php and seats.php).
+            'steps' => [
+                'learners' => ['Start lesson 1, no account needed', 'Learn a part by ear from a guide voice', 'Sing it with the other parts, and hear how they fit'],
+                'singers' => ['Pick a song and a part to start with', 'Record each part over the others, with headphones on', 'Mix the parts and share the whole song'],
+                'choir-directors' => ['Start a group and invite your singers by link', 'Give each singer their part', 'See who has started and who has recorded it'],
+            ],
+            'songs' => ['label' => 'Try one now', 'directors' => 'Most songs have a page for each part, to send to each section.'],
+            'faq' => ['account' => ['Do I need an account?', 'Not to start: lesson 1, the free tools and every part page work without one. A free account, with no card, saves your progress and opens the rest.'], 'whole_choir' => ['Can my whole choir use it?', 'Yes. Start a group for free and invite your singers by link; they join free with a free account. Give each singer a part and see who has started and who has recorded it. Groups are for singers 18 and over.']],
         ],
         'pages' => [
             'beginners' => [

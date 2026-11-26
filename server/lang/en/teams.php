@@ -50,4 +50,6 @@ return [
     'site.for_directors.note' => 'Starting a group takes Plus. Your singers join free.',
     'site.for_directors.steps' => [0 => [1 => 'Starting a group takes Plus. Groups are for singers 18 and over.']],
     'site.for_directors.faq' => [0 => [1 => 'Your singers never pay. Starting the group takes Plus, and your first song\'s learning tracks are free.']],
+    // Who it's for's question about a whole choir (ai-marketing, 2026-11-26).
+    'site.for.index.faq' => ['whole_choir' => [1 => 'Yes. Start a group with Plus and invite your singers by link; they join free with a free account. Give each singer a part and see who has started and who has recorded it. Groups are for singers 18 and over.']],
 ];

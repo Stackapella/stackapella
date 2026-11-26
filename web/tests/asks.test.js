@@ -1,6 +1,6 @@
 // The ask ledger (js/asks.js, docs/account-nudges-plan.md section 3): one ask a day, an account ask
 // at most weekly, Not now puts them all away for 14 days, three stop them, the loss card monthly.
-import { askAllowed, dayGap, fromOldKeys, withNotNow, withSeen } from '/js/asks.js';
+import { askAllowed, askDue, dayGap, fromOldKeys, wallDown, wallShowing, wallUp, withNotNow, withSeen } from '/js/asks.js';
 import { assert, test } from './harness.js';
 
 const DAY = 86400000;
@@ -79,4 +79,14 @@ test('asks: the days away since the last visit, by local day', () => {
     assert(dayGap('2026-10-31', '2026-10-31') === 0, 'again today');
     assert(dayGap('2026-10-26', '2026-10-31') === 5, 'five days away');
     assert(dayGap('2026-03-27', '2026-04-01') === 5, 'across a clock change');
+});
+
+test('asks: one account ask at a time, so while a wall is up no other account ask shows, and it is back once the walls are gone', () => {
+    wallUp('wall-a');
+    wallUp('wall-b');
+    assert(wallShowing() && !askDue('acct_risk') && !askDue('acct_songs') && !askDue('account'), 'the wall wins');
+    wallDown('wall-a');
+    assert(wallShowing() && !askDue('acct_risk'), 'one wall still up');
+    wallDown('wall-b');
+    assert(!wallShowing(), 'no wall: the caps decide again');
 });

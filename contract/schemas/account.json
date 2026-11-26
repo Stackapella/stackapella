@@ -459,10 +459,11 @@
                 "card",
                 "settings",
                 "ai-singing",
+                "hide",
                 "existing",
                 null
             ],
-            "description": "Where the AI features choice came from (docs/ai-optional-plan.md v2): existing for an account made before the choice, kept on but never chosen, so the app can tell it from a real yes; null while unchosen."
+            "description": "Where the AI features choice came from (docs/ai-optional-plan.md v2): existing for an account made before the choice, kept on but never chosen, so the app can tell it from a real yes; null while unchosen. hide: \"Hide AI for good\" (2026-11-26), always with aiFeatures false."
         }
     },
     "title": "The signed-in person's own account"

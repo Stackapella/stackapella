@@ -33,7 +33,7 @@ final class AiChoiceGrowth
         $to = ReportDay::now()->startOfDay();
         $from = $to->copy()->subDays($days - 1);
         $counts = app(GrowthStart::class)->counts()->whereBetween('day', [$from->toDateString(), $to->toDateString()])
-            ->where(static fn ($q) => $q->where('kind', 'like', 'ai\\_card:%')->orWhere('kind', 'like', 'ai\\_use:%')->orWhere('kind', 'like', 'ai\\_switch:%')->orWhere('kind', 'like', 'aic:%'))
+            ->where(static fn ($q) => $q->where('kind', 'like', 'ai\\_card:%')->orWhere('kind', 'like', 'ai\\_use:%')->orWhere('kind', 'like', 'ai\\_switch:%')->orWhere('kind', 'like', 'ai\\_hide:%')->orWhere('kind', 'like', 'aic:%'))
             ->selectRaw('kind, sum(count) as n')->groupBy('kind')->pluck('n', 'kind')->map(static fn (mixed $n): int => (int) $n)->all();
 
         $bands = array_map(fn (string $band): array => ['band' => $band, ...$this->row($counts, [$band])], [...Age::BANDS, AiChoice::GUEST]);
@@ -89,6 +89,10 @@ final class AiChoiceGrowth
             'choirStart' => $shown($sum('ai_use:choir_start')),
             'choirHeard' => $shown($sum('ai_use:choir_heard')),
             'guideHeard' => $shown($sum('ai_use:guide_heard')),
+            // "Hide AI for good" (2026-11-26), where it was hidden, beside the uses.
+            'hideHomeChoir' => $shown($sum('ai_hide:home_choir')),
+            'hideSongChoir' => $shown($sum('ai_hide:song_choir')),
+            'hideSettings' => $shown($sum('ai_hide:settings')),
             'switchOnOff' => $shown($sum('ai_switch:on_off')),
             'switchOffOn' => $shown($sum('ai_switch:off_on')),
             'engagement' => $engagement,

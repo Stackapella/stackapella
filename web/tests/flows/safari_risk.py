@@ -1,7 +1,10 @@
-"""N4, the Safari loss card (docs/account-nudges-plan.md): a guest in Safari on an iPhone, with three
-lessons starred, back after five days away, sees Home's card say plainly that Safari may clear this:
-"It deletes a website's data after 7 days without a visit, and these are only here: 3 lessons." Make
+"""N4, the Safari loss card (docs/account-nudges-plan.md): a guest in Safari on an iPhone, with a song
+recorded here, back after five days away, sees Home's card say plainly that Safari may clear this:
+"It deletes a website's data after 7 days without a visit, and these are only here: 1 song." Make
 a free account opens sign-up for it; Not now puts it away for a month. Back after two days, nothing.
+
+One account ask at a time (js/asks.js): a guest past their open lessons, three starred, has the course
+wall on Home, which asks for the account itself, so the card waits, and isn't counted as the day's ask.
 """
 import json
 import sys
@@ -41,6 +44,23 @@ def journey(f):
     f.go(HOME, "document.querySelector('#app header')")
     f.run("""const db = await import('/js/db.js'); const { emptyProgress } = await import('/js/course.js'); const day = 86400000;
         await db.put('learning', { ...emptyProgress(), startedAt: Date.now() - 12 * day, home: 57, lessons: { '1-comfortable': { stars: 3, bestPercent: 95, at: Date.now() - 9 * day }, '1-match': { stars: 2, bestPercent: 80, at: Date.now() - 9 * day }, '1-high-low': { stars: 2, bestPercent: 80, at: Date.now() - 5 * day } } }, 'progress');""")
+    # Three lessons starred and the next one walled: the course wall on Home, and no card with it.
+    away(f, 5)
+    home(f)
+    f.wait("document.querySelector('main [data-needs-account]')", what="the course wall on Home")
+    f.js("new Promise((r) => setTimeout(r, 600))")
+    assert not f.js(f"!!{CARD}"), "the loss card beside the course wall: two asks at once"
+    assert f.js("document.querySelectorAll('[data-ask], [data-needs-account]').length") == 1, "one account ask on the page"
+    ledger = f.js("JSON.parse(localStorage.getItem('stackapella.asks'))") or {}  # nothing kept is nothing recorded
+    assert not ledger.get("today") and not ledger.get("riskAt"), f"the card, held back, kept no day and started no month: {ledger}"
+    f.run("document.querySelector('main [data-needs-account]').scrollIntoView({ block: 'center' })")
+    f.shot("walled-one-ask")
+    # A guest with a song recorded here and their open lesson still to sing: no wall, so the card.
+    f.run("""const db = await import('/js/db.js'); const { emptyProgress } = await import('/js/course.js');
+        await db.put('learning', { ...emptyProgress(), startedAt: Date.now() - 12 * 86400000, home: 57 }, 'progress');
+        const s = await import('/js/stores/projects.js'); const p = await s.createProject({ title: 'Only here' });
+        await s.savePart({ id: crypto.randomUUID(), projectId: p.id, name: 'Lead', color: '#f59e6b', order: 0, volume: 1, pan: 0, muted: false, solo: false,
+            offsetSeconds: 0, frames: 4800, sampleRate: 48000, peaks: [0.2, 0.4], createdAt: Date.now() }, new Float32Array(4800));""")
     away(f, 2)
     home(f)
     assert f.js(f"{CARD}?.dataset.form") != "risk", "the loss card after two days away"
@@ -48,7 +68,8 @@ def journey(f):
     home(f)
     f.wait(f"{CARD}?.dataset.form === 'risk'", what="the Safari loss card")
     text = f.js(f"{CARD}.textContent")
-    assert t(f, "install.riskTitle") in text and t(f, "install.risk", {"what": t(f, "install.riskLessons", {"count": 3})}) in text, text
+    assert t(f, "install.riskTitle") in text and t(f, "install.risk", {"what": t(f, "install.riskSongs", {"count": 1})}) in text, text
+    assert not f.js("!!document.querySelector('main [data-needs-account]')"), "no wall with the card"
     f.run(f"{CARD}.scrollIntoView({{ block: 'center' }})")
     f.shot("safari-risk")
     f.run(f"{CARD}.querySelector('[data-install-account]').click()")
@@ -56,7 +77,8 @@ def journey(f):
     f.wait_text(t(f, "auth.reason.risk"))
     home(f)
     f.wait(f"{CARD}?.dataset.form === 'risk'", what="the card again today")
-    f.click_t("install.later")
+    # The card's own Not now: a walled guest's Home has the course wall's Not now too, earlier on the page.
+    f.run(f"{CARD}.querySelector('[data-install-later]').click()")
     f.wait(f"!{CARD}", what="Not now")
     f.run("const l = JSON.parse(localStorage.getItem('stackapella.asks')); l.day = null; l.notAt -= 15 * 86400000; localStorage.setItem('stackapella.asks', JSON.stringify(l)); sessionStorage.removeItem('stackapella.daysAway');")
     home(f)

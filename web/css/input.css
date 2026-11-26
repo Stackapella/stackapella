@@ -10017,6 +10017,22 @@ main.cp-pt2 ~ [data-lesson-pages] { display: none; }
 .s-hub-end h2 { max-width: 16ch; font-size: clamp(28px, 4vw, 40px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.08; }
 .s-hub-white { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 24px; border-radius: 99px; background: #fff; color: #211a16; font-weight: 750; }
 :root:not([data-theme$="-light"]) .s-hub-end { border: 1px solid var(--color-edge); }
+.s-hub-how { margin-top: 6px; font-size: 12.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--color-muted); }
+.s-hub-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.s-hub-steps li { display: flex; align-items: baseline; gap: 10px; font-size: 15px; line-height: 1.45; }
+.s-hub-steps b { flex: none; display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: color-mix(in srgb, var(--c) 18%, var(--color-panel)); color: var(--ci); font-size: 13px; font-weight: 800; }
+.s-hub-songs { display: grid; gap: 10px; margin-top: 18px; }
+.s-hub-songs > .s-kick { margin: 0; }
+.s-hub-players .s-arrow { justify-self: start; margin-top: 0; }
+.s-hub-players .s-mixer { margin: 0; }
+.s-hub-players { display: grid; gap: 16px; align-items: start; }
+.s-hub-players > div { display: grid; gap: 8px; min-width: 0; }
+/* The site's player, compact here: play, the song and its time, and the line being sung; its parts are a tap away on
+   the song's own page (each card links it). */
+.s-hub-players .s-mix-lead, .s-hub-players .s-channels { display: none; }
+.s-hub-players .s-mix-words { margin-top: 10px; }
+.s-hub-parts { align-self: center; font-size: 15px; line-height: 1.5; color: var(--color-muted); }
+.s-hub-parts .s-arrow { margin-top: 8px; }
 .s-aud-gets { list-style: none; margin: 4px 22px 0; padding: 0; display: grid; gap: 6px; font-size: 14.5px; line-height: 1.4; }
 .s-aud-gets li { display: flex; gap: 8px; } .s-aud-gets svg { flex: none; margin-top: 2px; color: var(--ci); }
 .s-aud-cost { margin-top: 6px; font-size: 13.5px; line-height: 1.45; color: var(--color-muted); }
@@ -10039,6 +10055,7 @@ main.cp-pt2 ~ [data-lesson-pages] { display: none; }
     .s-hub-pic { min-height: 420px; }
     .s-hub-say { padding: 44px 48px; }
     .s-hub-also { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .s-hub-players { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .s-hub-also a { grid-template-columns: minmax(0, 11rem) minmax(0, 1fr) auto; }
     .s-hub-also span { grid-column: 2; } .s-hub-also svg { grid-column: 3; grid-row: 1; }
     .s-hub-end { grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 36px; padding: 48px 56px; }

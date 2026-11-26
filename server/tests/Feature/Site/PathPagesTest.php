@@ -87,6 +87,29 @@ final class PathPagesTest extends TestCase
         $this->assertStringContainsString(e(app(LegalText::class)->read('record-vocal-harmonies-at-home', 'es', 'guides')['title']), $singers);
     }
 
+    public function test_who_its_for_plays_real_songs_and_answers_its_questions(): void
+    {
+        app(SyncOfficialTemplates::class)->handle();
+
+        $response = $this->get('/for')->assertOk();
+        $html = (string) $response->getContent();
+        // Its own questions, in marketing's order, as structured data too (the free answer's prices vary by country).
+        $this->assertSame(5, substr_count($html, '<summary>'));
+        $this->assertSame(1, substr_count($html, '"@type":"FAQPage"'));
+        $this->assertStringContainsString('CF-IPCountry', (string) $response->headers->get('Vary'));
+        foreach (['account', 'whole_choir'] as $key) {
+            $this->assertStringContainsString(e(__('site.for.index.faq.'.$key.'.0')), $html);
+        }
+        // Each way in's three steps.
+        $this->assertSame(9, substr_count($html, '<li><b aria-hidden="true">'));
+        // The songs: the site's own player, each to its page, never one withheld somewhere.
+        if (substr_count($html, 'data-player') > 0) {
+            $this->assertStringContainsString('/js/public/mixer.js', $html);
+            $this->assertMatchesRegularExpression('#href="/songs/[a-z-]+" class="s-arrow"#', $html);
+        }
+        $this->assertStringNotContainsString('/songs/happy-birthday', $html);
+    }
+
     public function test_neither_says_a_word_about_ai_in_either_language(): void
     {
         app(SyncOfficialTemplates::class)->handle();

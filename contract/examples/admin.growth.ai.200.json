@@ -17,6 +17,9 @@
                 "choirStart": null,
                 "choirHeard": null,
                 "guideHeard": null,
+                "hideHomeChoir": null,
+                "hideSongChoir": null,
+                "hideSettings": null,
                 "switchOnOff": null,
                 "switchOffOn": null,
                 "engagement": [
@@ -66,6 +69,9 @@
                 "choirStart": null,
                 "choirHeard": null,
                 "guideHeard": null,
+                "hideHomeChoir": null,
+                "hideSongChoir": null,
+                "hideSettings": null,
                 "switchOnOff": null,
                 "switchOffOn": null,
                 "engagement": [
@@ -115,6 +121,9 @@
                 "choirStart": 6,
                 "choirHeard": 4,
                 "guideHeard": 5,
+                "hideHomeChoir": null,
+                "hideSongChoir": null,
+                "hideSettings": null,
                 "switchOnOff": null,
                 "switchOffOn": null,
                 "engagement": [
@@ -164,6 +173,9 @@
                 "choirStart": null,
                 "choirHeard": null,
                 "guideHeard": null,
+                "hideHomeChoir": null,
+                "hideSongChoir": null,
+                "hideSettings": null,
                 "switchOnOff": null,
                 "switchOffOn": null,
                 "engagement": [
@@ -213,6 +225,9 @@
                 "choirStart": null,
                 "choirHeard": null,
                 "guideHeard": null,
+                "hideHomeChoir": null,
+                "hideSongChoir": null,
+                "hideSettings": null,
                 "switchOnOff": null,
                 "switchOffOn": null,
                 "engagement": [
@@ -262,6 +277,9 @@
                 "choirStart": null,
                 "choirHeard": null,
                 "guideHeard": null,
+                "hideHomeChoir": null,
+                "hideSongChoir": null,
+                "hideSettings": null,
                 "switchOnOff": null,
                 "switchOffOn": null,
                 "engagement": [
@@ -311,6 +329,9 @@
                 "choirStart": null,
                 "choirHeard": null,
                 "guideHeard": null,
+                "hideHomeChoir": null,
+                "hideSongChoir": null,
+                "hideSettings": null,
                 "switchOnOff": null,
                 "switchOffOn": null,
                 "engagement": [
@@ -360,6 +381,9 @@
                 "choirStart": null,
                 "choirHeard": null,
                 "guideHeard": null,
+                "hideHomeChoir": null,
+                "hideSongChoir": null,
+                "hideSettings": null,
                 "switchOnOff": null,
                 "switchOffOn": null,
                 "engagement": [
@@ -409,6 +433,9 @@
             "choirStart": 11,
             "choirHeard": 7,
             "guideHeard": 9,
+            "hideHomeChoir": null,
+            "hideSongChoir": null,
+            "hideSettings": null,
             "switchOnOff": null,
             "switchOffOn": 3,
             "engagement": [

@@ -48,7 +48,14 @@ final class UpdateAccountRequest extends FormRequest
             'publicProfile' => ['sometimes', 'boolean'],
             // The AI features setting (docs/ai-optional-plan.md v2): chosen, never unset, and where (Settings by default).
             'aiFeatures' => ['sometimes', 'boolean'],
-            'aiFeaturesSource' => ['sometimes', 'in:card,settings,ai-singing'],
+            // hide: "Hide AI for good" (2026-11-26), only with aiFeatures false.
+            'aiFeaturesSource' => ['sometimes', 'in:card,settings,ai-singing,hide',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ($value === 'hide' && $this->input('aiFeatures') !== false) {
+                        $fail('Hiding AI turns it off.');
+                    }
+                },
+            ],
             // Email me when my choir is ready (the choir wait, 2026-11-24).
             'choirEmail' => ['sometimes', 'boolean'],
             // Hide profile: shown to others as "Anonymous" (docs/hide-profile-plan.md).

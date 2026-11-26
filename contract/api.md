@@ -1802,7 +1802,9 @@ the arm label on the device (never an id). `experiment` stays onb1's until it en
 **Request:** none.
 
 `aiOptional` (since 2026-11-23, the `ai_optional` switch, docs/ai-optional-plan.md): while on, the app honours each
-account's `aiFeatures` and a guest's device key; off, AI shows for everyone as before. `songPieces` (since 2026-11-26, the `song_pieces` switch, docs/song-snippets-plan.md): off, the app reads each
+account's `aiFeatures` and a guest's device key; off, AI shows for everyone as before. Since 2026-11-26 (Hillel: most new users see AI, with the option
+to hide it for good) the server treats an account as AI on unless `aiFeatures` is false, and never for someone under
+18. `songPieces` (since 2026-11-26, the `song_pieces` switch, docs/song-snippets-plan.md): off, the app reads each
 course without its `songPiece` steps. `practiceSet` (since 2026-11-26, the `practice_set` switch): Practise the set, for everyone once it's on, staff
 before. `choirGallery` (since 2026-11-24, the `choir_gallery` switch): `{ on, consentVersion }`, the gallery sheet's current
 version. `singingTest` and `singingTestBoards` (since 2026-11-24, the `singing_test` switch, staff first, and
@@ -1832,9 +1834,9 @@ that. **`signupKey`** (optional, 20 to 128 characters): an app's own secret for 
 "birthMonth": 5, "birthYear": 1990, "ref": "hn", "elapsedMs": 41250, "nickname": "",
 "invite": null, "turnstileToken": null }`:
 - `aiFeatures` (optional, since 2026-11-23, docs/ai-optional-plan.md v2): `true` or `false`, the device's AI features
-  choice when it holds one, with `aiFeaturesSource` (optional, `card` or `ai-singing`; else on is `ai-singing` and off
-  `card`); left out, it's null (not chosen: off for an account made from 2026-11-23, every account made before was set
-  on, source `existing`).
+  choice when it holds one, with `aiFeaturesSource` (optional, `card`, `ai-singing` or, since 2026-11-26, `hide` with `aiFeatures: false`; else on is `ai-singing` and off
+  `card`); left out, it's null (not chosen; read as on since 2026-11-26, never for someone under 18; every account made
+  before 2026-11-23 was set on, source `existing`).
   `account.json`'s `ageBand` is the band kept when the birth date was first given (`u18` to `65+`, null without one):
   the app's own engagement counts (`aic:*`) carry it, `unknown` while it's null.
 - `birthMonth` (1 to 12) and `birthYear`: when they were born ("When were you born?", month and
@@ -2024,8 +2026,9 @@ unchosen.
 #### `account.update`
 
 **Request:** any of `choirEmail` (`true` or `false`: email me when my choir is ready), `aiFeatures` (`true` or `false`, the AI features setting, docs/ai-optional-plan.md v2) with
-`aiFeaturesSource` (`card`: the card's Try it or Not for me; `settings`, the default; or `ai-singing`: a device's
-arrival carried into an account that hadn't chosen); only a change from `settings` is counted (`ai_switch`, by age band,
+`aiFeaturesSource` (`card`: the card's Try it or Not for me; `settings`, the default; `ai-singing`: a device's
+arrival carried into an account that hadn't chosen; or `hide`, since 2026-11-26: "Hide AI for good", only with
+`aiFeatures: false`, else `422`); only a change from `settings` is counted (`ai_switch`, by age band,
 never with who), `name` (1 to 80), `handle`, `bio` (up to 300), `tried` (breadth: features tried on this device, each with the day first used, `{ "record": "2026-11-11" }`,
 from config/counts.php `features`; merged with the account's, each keeping its earliest day, never taken away),
 `locale` (`en`, `es` or `de`, the

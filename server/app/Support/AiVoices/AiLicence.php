@@ -57,7 +57,7 @@ final class AiLicence
             return true;
         }
 
-        return $voice->consent_version === (string) self::current() && $voice->loadMissing('betaSinger.user')->betaSinger?->user?->ai_features !== false;
+        return $voice->consent_version === (string) self::current() && $voice->loadMissing('betaSinger.user')->betaSinger?->user?->ai_features !== false && $voice->betaSinger?->user?->age_band !== 'u18';
     }
 
     /**
