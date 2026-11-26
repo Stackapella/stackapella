@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Jobs\SubmitIndexNowBatch;
 use App\Support\Stats\ReportDay;
 use Illuminate\Support\Facades\Schedule;
 
@@ -361,13 +362,12 @@ Schedule::command('app:sitemap:check --save')
 // IndexNow (Hillel, 2026-11-09): hourly, our pages new to the sitemap or whose words changed, while
 // Admin's indexnow switch is on; after the sitemap's dating (04:20 and each deploy's), so a change is
 // seen within the hour. Never on a self-hosted install.
-Schedule::command('app:indexnow')
+// Queued for the long worker (1 GB): the batch reads every public page and takes ~165 MB, too much on the scheduler.
+Schedule::job(new SubmitIndexNowBatch)
     ->onOneServer()
     ->name('indexnow')
     ->hourlyAt(52)
-    ->when(static fn (): bool => config('selfhost.enabled') !== true)
-    ->withoutOverlapping(30)
-    ->runInBackground();
+    ->when(static fn (): bool => config('selfhost.enabled') !== true);
 
 // And within minutes of a deploy: a run only when this build has none (the deploy's job may not run it), never
 // alongside the daily one.

@@ -779,9 +779,28 @@ return [
         'languages' => ['only' => 'English only', 'names' => ['en' => 'English', 'es' => 'Spanish', 'de' => 'German'], 'list' => ':first and :last'],
         'index' => [
             'title' => 'Learners, Singers and Choir Directors',
-            'description' => 'Stackapella is for learners discovering harmony, singers recording every part themselves and choir directors getting a choir ready, and for a cappella groups, songwriters and families too.',
-            'headline' => 'For anyone who wants to sing harmony',
-            'lead' => 'Whether you\'ve never sung a harmony or you lead a choir, the same simple idea works: learn one part, then the next.',
+            'description' => 'Learn harmony by ear with a guide voice, record every part yourself, or give each choir singer their part. Lesson 1 needs no account.',
+            // ai-marketing's words for Who it's for (Hillel, 2026-11-24): the hero, each way in's card (who it suits, what they get,
+            // what it costs, its one step), everyone else with a page, and the first lesson for the unsure.
+            'hero' => ['eyebrow' => 'Who it\'s for', 'headline' => 'Discover harmony, even on your own', 'lead' => 'Harmony usually needs other people; here a guide voice sings with you, so you hear how the parts fit and find yours. Pick the way in closest to you.'],
+            'cards' => [
+                'learners' => ['who' => 'You\'ve never sung a harmony, or you want to hear the parts better.', 'gets' => ['Short lessons from your first note to four-part harmony', 'Learn each part by ear, no music reading needed', 'Your notes light up as you sing'], 'cost' => 'Lesson 1 needs no account. Every course is free with a free account.', 'action' => 'See the lessons'],
+                'singers' => ['who' => 'You want to sing every part of a song yourself.', 'gets' => ['Record each part while you hear the others, in time', 'Level, pan and trim each part, then polish the mix', 'Export WAV free, or share a link or video'], 'cost' => 'Recording every part and sharing are free. Plus adds MP3, each part as its own file, and 50 GB.', 'action' => 'Record your first part'],
+                'choir-directors' => ['who' => 'You lead a choir and want every section to know its part by rehearsal.', 'gets' => ['Invite singers by link and give each their part', 'See who\'s started and recorded, never their recordings', 'Ask for a song; we make part-by-part learning tracks'], 'cost' => 'Starting a group takes Plus. Singers join free, and your first song\'s tracks are free.', 'action' => 'Set up your choir'],
+            ],
+            'also' => ['heading' => 'Also built for', 'items' => [
+                ['/courses/learn-your-choir-part', 'Choir singers: learn your part at home, by ear, before rehearsal.'],
+                ['/for/beginners', 'Complete beginners: start from your first note, no music reading needed.'],
+                ['/songs/hymns', 'Worship teams: learn your harmony part at home for Sunday, hymns in four parts.'],
+                ['/for/music-teachers', 'Music teachers: pitch and harmony lessons students do alone, parts handed out by link.'],
+                ['/for/a-cappella', 'A cappella singers: record every part over the others, exactly in time.'],
+                ['/for/songwriters', 'Songwriters: sing or hum a melody and hear it in four-part harmony.'],
+                ['/for/instrumentalists', 'Singers who play: record ukulele, guitar, cello or beatbox beside your voice.'],
+                ['/for/voice-teachers', 'Voice teachers: make warm-ups and send them to students by link.'],
+                ['/for/friends-and-family', 'Friends and family: invite people to sing their parts on your song, with Plus.'],
+                ['/for/organizations', 'Choirs, societies and school bodies: a free year of Plus for every member.'],
+            ]],
+            'unsure' => ['line' => 'Not sure? Lesson 1 needs no account.', 'action' => 'Start with lesson 1'],
         ],
         'pages' => [
             'beginners' => [

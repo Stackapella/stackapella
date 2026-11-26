@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Site;
 
 use App\Actions\Site\SubmitToIndexNow;
+use App\Jobs\SubmitIndexNowBatch;
 use App\Models\IndexNowUrl;
 use App\Models\PageVersion;
 use App\Support\Flags;
@@ -15,6 +16,7 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 /**
@@ -155,10 +157,15 @@ final class IndexNowTest extends TestCase
 
     public function test_it_runs_hourly_and_never_self_hosted(): void
     {
-        $event = collect(app(Schedule::class)->events())->first(static fn ($e): bool => str_contains((string) $e->command, 'app:indexnow'));
+        // Queued for the long worker, never run on the scheduler's 512 MB.
+        $event = collect(app(Schedule::class)->events())->first(static fn ($e): bool => $e->description === 'indexnow');
 
         $this->assertNotNull($event);
         $this->assertSame('52 * * * *', $event->expression);
+        $this->assertNull($event->command);
+        Queue::fake();
+        $event->run(app());
+        Queue::assertPushedOn('long', SubmitIndexNowBatch::class);
         $this->assertTrue($event->filtersPass(app()));
         config(['selfhost.enabled' => true]);
         $this->assertFalse($event->filtersPass(app()));

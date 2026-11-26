@@ -37,12 +37,10 @@ final class ForPagesController extends Controller
             'links' => Landing::links(Landing::ref($request->query('ref'))),
             // The three paths in the home's order and colours (learn, make, lead), each to its page.
             'paths' => [
-                ['key' => 'learn', 'n' => 1, 'name' => (string) __('pages.nav.learners'), 'url' => '/for/learners', 'shot' => PathPages::shot('learners')],
-                ['key' => 'make', 'n' => 3, 'name' => (string) __('pages.nav.singers'), 'url' => '/for/singers', 'shot' => PathPages::shot('singers')],
-                ['key' => 'lead', 'n' => 4, 'name' => (string) __('pages.nav.for_choirs'), 'url' => '/for/choir-directors', 'shot' => null],
+                ['key' => 'learn', 'card' => 'learners', 'n' => 1, 'name' => (string) __('pages.nav.learners'), 'url' => '/for/learners', 'shot' => PathPages::shot('learners')],
+                ['key' => 'make', 'card' => 'singers', 'n' => 3, 'name' => (string) __('pages.nav.singers'), 'url' => '/for/singers', 'shot' => PathPages::shot('singers')],
+                ['key' => 'lead', 'card' => 'choir-directors', 'n' => 4, 'name' => (string) __('pages.nav.for_choirs'), 'url' => '/for/choir-directors', 'shot' => null],
             ],
-            // Everyone else with a page of their own, as /features lists them.
-            'who' => array_values(array_filter(SitePages::who(), static fn (array $page): bool => ! in_array($page['url'], ['/for/learners', '/for/singers', '/for/choir-directors'], true))),
         ], 200, SongPagesController::headers());
     }
 

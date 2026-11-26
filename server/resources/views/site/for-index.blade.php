@@ -9,17 +9,16 @@
     @include('pages._head')
 @endsection
 
-@php([$plain, $accent] = \App\Support\Site\PathPages::split((string) __('site.for.index.headline')))
-@php([$ePlain, $eAccent] = \App\Support\Site\PathPages::split((string) __('landing.hero.before').' '.__('landing.hero.em')))
+@php([$plain, $accent] = \App\Support\Site\PathPages::split((string) __('site.for.index.hero.headline')))
 
 @section('content')
     <x-site.header :app-url="$links['app']" />
     <main class="s-aud s-v1">
         <section class="s-wrap s-aud-head s-aud-hubhead" aria-labelledby="page-h">
             <div>
-                <h1 id="page-h" class="s-aud-kick">{{ __('pages.nav.who_for') }}</h1>
+                <h1 id="page-h" class="s-aud-kick">{{ __('site.for.index.hero.eyebrow') }}</h1>
                 <p class="s-aud-h1">{{ $plain }} <em>{{ $accent }}</em></p>
-                <p class="s-lede">{{ __('site.for.index.lead') }}</p>
+                <p class="s-lede">{{ __('site.for.index.hero.lead') }}</p>
             </div>
         </section>
 
@@ -42,27 +41,40 @@
                             </span>
                             <small class="s-kick"><i class="s-aud-dot" aria-hidden="true"></i>{{ $path['name'] }}</small>
                             <b>{{ __('landing.paths.'.$path['key'].'.who') }}</b>
-                            <span>{{ __('landing.paths.'.$path['key'].'.what') }}</span>
-                            <em>{{ __('landing.paths.'.$path['key'].'.go') }} <x-site.icon name="arrow" size="16" /></em>
+                            @php($card = (array) \Illuminate\Support\Facades\Lang::get('site.for.index.cards.'.$path['card']))
+                            <span>{{ $card['who'] }}</span>
+                            <ul class="s-aud-gets">
+                                @foreach ((array) $card['gets'] as $get)
+                                    <li><x-site.icon name="check" size="16" />{{ $get }}</li>
+                                @endforeach
+                            </ul>
+                            <small class="s-aud-cost">{{ $card['cost'] }}</small>
+                            <em>{{ $card['action'] }} <x-site.icon name="arrow" size="16" /></em>
                         </a>
                     </li>
                 @endforeach
             </ul>
         </section>
 
-        {{-- Everyone else the site has a page for, quietly. --}}
-        @if ($who !== [])
-            <section class="s-wrap s-sec">
-                @include('site._who', ['who' => $who, 'whoCompact' => true])
-            </section>
-        @endif
+        {{-- Everyone else with a page (or a place) of their own, each in a line. --}}
+        @php($also = (array) \Illuminate\Support\Facades\Lang::get('site.for.index.also'))
+        <section class="s-wrap s-sec" aria-labelledby="also-h">
+            <h2 id="also-h" class="s-kick">{{ $also['heading'] }}</h2>
+            <ul class="s-aud-also-list">
+                {{-- A collection page only while it's a page (enough open songs); worship teams have their own page otherwise. --}}
+                @php($collections = collect(app(\App\Support\Pages\SongCollections::class)->open())->pluck('path')->all())
+                @foreach ((array) $also['items'] as [$href, $line])
+                    @php($href = str_starts_with($href, '/songs/') && ! in_array($href, $collections, true) ? '/for/worship-teams' : $href)
+                    <li><a href="{{ $href }}">{{ $line }}<x-site.icon name="arrow" size="16" /></a></li>
+                @endforeach
+            </ul>
+        </section>
 
         <section class="s-wrap s-aud-end" aria-labelledby="end-h">
             {{-- The four bars as the logo has them: one left edge (design rules). --}}
             <span class="s-stackbig" aria-hidden="true">@foreach ([[1, 100], [2, 74], [3, 88], [4, 62]] as [$n, $w])<b class="s-v{{ $n }}" style="width: {{ $w }}%"></b>@endforeach</span>
-            <h2 id="end-h">{{ $ePlain }} <em>{{ $eAccent }}</em></h2>
-            <p class="s-final-btns"><a href="{{ $links['start'] }}" class="btn-primary btn-lg" data-funnel-start>{{ __('landing.hero.try') }} <x-site.icon name="arrow" size="18" /></a></p>
-            <p>{{ __('landing.hero.try_note') }}</p>
+            <h2 id="end-h">{{ __('site.for.index.unsure.line') }}</h2>
+            <p class="s-final-btns"><a href="{{ $links['start'] }}" class="btn-primary btn-lg" data-funnel-start>{{ __('site.for.index.unsure.action') }} <x-site.icon name="arrow" size="18" /></a></p>
         </section>
     </main>
     <x-site.footer />

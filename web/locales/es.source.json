@@ -6456,7 +6456,8 @@
                 "remove": "Turn it off any time and it's gone from the gallery at once. Links you shared yourself stay until you stop sharing or delete the song.",
                 "confirm": "It's my own voice. Add it",
                 "cancel": "Cancel",
-                "adding": "Getting {song} ready for a listen..."
+                "adding": "Getting {song} ready for a listen...",
+                "rules": "Read the gallery's rules"
             },
             "status": {
                 "pending": "Waiting for a listen, usually within a day.",

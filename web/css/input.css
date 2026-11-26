@@ -9988,7 +9988,7 @@ main.cp-pt2 ~ [data-lesson-pages] { display: none; }
 .s-aud-band { padding: 32px 24px; border-radius: 28px; background: color-mix(in srgb, var(--color-part-4) 16%, var(--color-panel)); }
 .s-aud-band .s-dir-howto li { border-color: transparent; }
 .s-aud-hubhead { grid-template-columns: minmax(0, 1fr) !important; } .s-aud-hubhead > div { max-width: 50rem; }
-.s-aud-hub ul { list-style: none; margin: 40px 0 0; padding: 0; display: grid; gap: 16px; }
+.s-aud-hub > ul { list-style: none; margin: 40px 0 0; padding: 0; display: grid; gap: 16px; }
 .s-aud-hub a { display: flex; flex-direction: column; gap: 8px; height: 100%; padding: 0 0 22px; border-radius: 24px; overflow: hidden; background: var(--color-panel); border: 1px solid var(--color-line); }
 .s-aud-hub a > :not(.s-aud-hubpic) { margin-inline: 22px; }
 .s-aud-hub .s-kick { display: flex; align-items: center; gap: 8px; margin-top: 6px; color: var(--ci); }
@@ -9998,6 +9998,12 @@ main.cp-pt2 ~ [data-lesson-pages] { display: none; }
 .s-aud-hubpic { display: grid; place-items: center; height: 220px; padding: 18px; overflow: hidden; background: color-mix(in srgb, var(--c) 16%, var(--color-panel)); }
 .s-aud-hubpic img, .s-aud-hubpic picture { max-height: 200px; width: auto; border-radius: 14px; box-shadow: 0 18px 36px -24px rgb(40 24 12 / .4); }
 .s-aud-board { display: grid; gap: 7px; width: 100%; max-width: 18rem; }
+.s-aud-gets { list-style: none; margin: 4px 22px 0; padding: 0; display: grid; gap: 6px; font-size: 14.5px; line-height: 1.4; }
+.s-aud-gets li { display: flex; gap: 8px; } .s-aud-gets svg { flex: none; margin-top: 2px; color: var(--ci); }
+.s-aud-cost { margin-top: 6px; font-size: 13.5px; line-height: 1.45; color: var(--color-muted); }
+.s-aud-also-list { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 0 32px; }
+.s-aud-also-list a { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--color-line); font-size: 15px; line-height: 1.45; }
+.s-aud-also-list svg { flex: none; color: var(--color-muted); }
 .s-aud-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--c); flex: none; }
 .s-aud-board .s-aud-part small { background: none; color: var(--color-muted); padding: 0; font-weight: 600; }
 @media (min-width: 640px) {
@@ -10012,7 +10018,8 @@ main.cp-pt2 ~ [data-lesson-pages] { display: none; }
     .s-aud-wide { grid-template-columns: minmax(0, 1fr); }
     .s-aud-wide .s-aud-what:empty { display: none; }
     .s-aud-dsteps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    .s-aud-hub ul { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .s-aud-hub > ul { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .s-aud-also-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .s-aud-band { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 48px; padding: 48px 56px; }
 }
 :is(.s-dir-steps, .s-dir-howto) .gem { --gem: var(--c); --gem-ink: var(--ct); }

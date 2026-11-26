@@ -57,6 +57,7 @@ def journey(f):
     for key in ["sheet.shown", "sheet.label", "sheet.whose", "sheet.next", "sheet.remove", "sheet.confirm"]:
         assert t(f, "ownChoir.gallery." + key) in sheet, key
     assert t(f, "ownChoir.gallery.sheet.title", {"song": "Silent Night"}) in sheet, "the title names the song"
+    assert f.js("document.querySelector('[data-gallery-rules]').getAttribute('href').endsWith('/legal/community-guidelines#the-ai-choir-gallery')"), "the rules link"
     f.shot("sheet")
     # Cancel leaves nothing.
     f.run("document.querySelector('[data-gallery-cancel]').click()")

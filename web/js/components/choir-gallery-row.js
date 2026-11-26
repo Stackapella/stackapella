@@ -7,6 +7,7 @@
 
 import { api } from '../api.js';
 import { t, tk } from '../i18n.js';
+import { publicSiteUrl } from '../hosts.js';
 import { count } from '../usage.js';
 import { confirmAction } from './confirm.js';
 import { Switch } from './controls.js';
@@ -30,6 +31,8 @@ export const ChoirGalleryRow = {
             <ul class="mt-2 space-y-3 text-cream" data-gallery-sheet>
                 <li v-for="key in lines" :key="key">{{ t(key) }}</li>
             </ul>
+            <!-- The gallery's rules (ai-marketing; the community guidelines' section, English only like every legal page). -->
+            <a :href="rulesUrl" target="_blank" rel="noopener" class="link-quiet mt-3 inline-flex min-h-11 items-center text-sm text-muted" data-gallery-rules>{{ t('ownChoir.gallery.sheet.rules') }}</a>
             <p v-if="adding" class="mt-4 t-hint" role="status" data-gallery-adding>{{ t('ownChoir.gallery.sheet.adding', { song }) }}</p>
             <p v-if="error" class="mt-4 text-sm text-record" role="alert" data-gallery-error>{{ error }}</p>
             <div class="mt-6 flex flex-col gap-2.5 sm:flex-row-reverse">
@@ -47,6 +50,10 @@ export const ChoirGalleryRow = {
         },
         on() {
             return switchedOn(this.item);
+        },
+        rulesUrl() {
+            const site = publicSiteUrl();
+            return new URL('/legal/community-guidelines#the-ai-choir-gallery', site.startsWith('/') ? location.origin : site).href;
         },
         line() {
             return this.item && this.item.status !== 'removed' ? statusLine(this.item, this.song) : '';

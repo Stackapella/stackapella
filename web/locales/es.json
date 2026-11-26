@@ -6456,7 +6456,8 @@
                 "remove": "Desactívalo cuando quieras y saldrá de la galería al momento. Los enlaces que hayas compartido tú siguen ahí hasta que dejes de compartirlos o borres la canción.",
                 "confirm": "Es mi propia voz. Añadir",
                 "cancel": "Cancelar",
-                "adding": "Preparando {song} para que la escuchemos..."
+                "adding": "Preparando {song} para que la escuchemos...",
+                "rules": "Lee las normas de la galería"
             },
             "status": {
                 "pending": "Esperando a que lo escuchemos, normalmente en un día.",
