@@ -9,8 +9,8 @@ import { game } from '../skin.js';
 import { defineAsyncComponent, toRefs } from 'vue';
 import { audio, closeMic, engine, latencyNow, openMic } from '../audio.js';
 import { follow, hintStep, voiceFollower } from '../livevoice.js';
-import { formatDate, formatList, localized, t, tk } from '../i18n.js';
-import { aiBand, aiChosen, aiOn, aiOptional, cardAllowed, cardShows, chooseAi, firstDay, noteCardShown } from '../ai-choice.js';
+import { formatDate, formatList, t, tk } from '../i18n.js';
+import { aiOn } from '../ai-choice.js';
 import { screenLoading } from '../components/screen-loading.js';
 import { BACKING, DRONE, GUIDE_LEVELS, guideId, hasTake } from '../practice.js';
 import { RecordSetup } from '../record-setup.js';
@@ -20,7 +20,6 @@ import { scoreTake } from '../scoring.js';
 import { trackFrame, trackInWorker, VOICED_CLARITY } from '../pitchtrack.js';
 import * as sessionStore from '../stores/session.js';
 import { account, loadAuthConfig } from '../stores/account.js';
-import { songTitle } from '../song-titles.js';
 import { claimInvitation, countVoice, later, needsVoice, saidLater, usableTake, voiceAskOpen } from '../be-the-voice.js';
 import { aiCredit, aiCtaOpen } from '../ai-voices.js';
 import { checkKey, choirRefusal, clipSecondsFor, clipSongs, deleteSong, holdChoir, joinFor, keepJoinClip, loadOwnChoir, MIN_SECONDS, ownChoir, ownChoirOn, sendClip, startChoir, takeLevel, takeProblem, tunePart } from '../own-choir.js';
@@ -113,7 +112,7 @@ export const SingView = {
     components: { SingShell: screenLoading(), ShareVoice: defineAsyncComponent(() => import('../components/share-voice.js').then((m) => m.ShareVoice)), DailyShare, RingMeter, VoiceCareLine, TimingLine, PopupSlot, TakeBest, IdeaVoice, PhraseStage, Chooser, Stage, RecordingStage, Lane, NowCard, Coach, StepDone, JustRecorded, LineBar, ModeBar, SingHeader, Transport, TurnBand, PartSheet, SettingsSheet, HeadphonesDialog, TimingDialog, RangeDialog, Icon, VoiceNote, ResingSheet, ResungCard, TrimSheet, WhatsNext, LockedBanner, ShareSheet },
     props: { id: { type: String, required: true } },
     setup: () => ({ ...toRefs(session), audio, formatTime, shownTitle, prefs, game, effect, aiCtaOpen }),
-    data: () => ({ readyCountedFor: null, clipReady: false, aiCardFor: null, aiCardDone: null, aiCardBusy: false, tasteAsked: false, crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null, ring: null, ringChord: '', lessonStep: null, lessonOpening: false, voiceAt: 0, voicePartId: null, choirSending: false, choirError: '', choirSent: null, choirCheck: null, choirClock: Date.now(), choirEmailOff: false }),
+    data: () => ({ readyCountedFor: null, clipReady: false, tasteAsked: false, crt: false, ghostTake: null, pendingGhost: null, hud: popupQueue(), viewPicked: false, readied: null, combo: 0, hintState: { hint: null }, voice: voiceFollower(), dialog: null, choosing: false, recorded: null, said: '', suggested: null, celebrated: null, lining: false, lined: null, resingPlanned: null, resung: null, takeNumbers: {}, fitSuggestion: null, ring: null, ringChord: '', lessonStep: null, lessonOpening: false, voiceAt: 0, voicePartId: null, choirSending: false, choirError: '', choirSent: null, choirCheck: null, choirClock: Date.now(), choirEmailOff: false }),
     template: `
         <div class="flex h-dvh flex-col bg-ink" :data-paused="paused ? '' : null">
             <p class="sr-only" aria-live="polite">{{ said }}</p>
@@ -172,7 +171,7 @@ export const SingView = {
                         <JustRecorded v-else-if="recorded" class="m-auto" :outcome="recorded" :part-name="nameOf(recorded.part)" :next-name="recorded.next ? nameOf(recorded.next) : ''" :hearing="playing"
                             :nudge-ms="nudgeMsOf(recorded.part)" :lining="lining" :lined="lined" :can-resing="phraseRows.length > 1" :color="paint(recorded.part.color)" :stack="recordedStack"
                             :score="recorded.report?.score ?? null" :notes="reportNotes" :track="recorded.report?.track ?? null" :beat-seconds="fullBeatSeconds" :offset-seconds="recorded.part.offsetSeconds + (recorded.part.nudgeSeconds || 0)"
-                            :phrases="reportPhrases" :phrase-labels="phraseRows.map((p) => p.label)" :position="position" :length-seconds="lengthSeconds" :bleed="!!recorded.report?.bleed" :sung-by="sungBy" :voice="voiceInvite" :choir="choirTake" :ready-check="readyReport" @ready-phrase="readyPhrase" :ai-card="aiCard" @ai-try="aiTry" @ai-not="aiNot" @ai-close="aiClose" @choir-make="makeChoir" @choir-force="(token) => makeChoir(token, { force: true })" @choir-listen="listenToChoir" @choir-start="choirStartNow" @choir-stop="choirStop" @choir-email-off="choirEmailStop"
+                            :phrases="reportPhrases" :phrase-labels="phraseRows.map((p) => p.label)" :position="position" :length-seconds="lengthSeconds" :bleed="!!recorded.report?.bleed" :sung-by="sungBy" :voice="voiceInvite" :choir="choirTake" :ready-check="readyReport" @ready-phrase="readyPhrase" @choir-make="makeChoir" @choir-force="(token) => makeChoir(token, { force: true })" @choir-listen="listenToChoir" @choir-start="choirStartNow" @choir-stop="choirStop" @choir-email-off="choirEmailStop"
                             @hear="hearTake($event)" @mute="toggleHearing" @again="recordPart" @next="nextPart" @nudge="nudge" @nudged="nudged" @line-up="lineUp" @studio="openStudio" @resing="resingFrom" @trim="openTrim" :polished="prefs.hearPolished" @polish="hearPolished" @share="dialog = 'share'" @hear-phrase="hearPhrase" @voice-share="voiceShare" @voice-later="voiceLater">
                             <template #report>
                                 <!-- The part's leaderboard (components/boards.js): your best, or why it didn't count; never a lesson's song -->
@@ -520,31 +519,6 @@ export const SingView = {
             return { part: this.nameOf(part), guest: !account.me };
         },
         /**
-         * AI optional's card under this take's review (docs/ai-optional-plan.md; its rules in ai-choice.js cardAllowed): the
-         * song's first recorded part, a song the choir can make, no choice yet, never with Be the voice's invitation.
-         */
-        aiCard() {
-            const rec = this.recorded;
-            if (!rec || this.voiceInvite || this.aiCardDone === rec) return null;
-            const song = this.project?.template ? songTitle(this.project.template) || localized(this.project.template.title) : '';
-            if (this.aiCardFor === rec) return { song, busy: this.aiCardBusy };
-            const project = this.project;
-            const template = project?.template;
-            const allowed = cardAllowed({
-                optional: aiOptional(),
-                choir: account.config?.ownChoir === true,
-                chosen: aiChosen(),
-                adult: account.me ? account.me.isAdult : true,
-                songOk: !!template?.id && (template.parts ?? []).some((p) => p.guide?.notes?.length) && !project.beta && !project.course && !project.choir && !project.shared,
-                firstPart: this.parts.filter(hasTake).length === 1,
-                heard: rec.report?.score?.status === 'scored' && !rec.report?.bleed,
-                firstDay: firstDay(),
-                shows: cardShows(),
-                askFree: askDue('ai_card'),
-            });
-            return allowed ? { song, busy: false } : null;
-        },
-        /**
          * A choir project's take, waiting to become the song in a voice like theirs (js/own-choir.js): its length and how the
          * sending goes; null once it's sent (the choir page says the rest), or anywhere else.
          */
@@ -783,14 +757,6 @@ export const SingView = {
         },
     },
     watch: {
-        // AI optional's card: counted and kept once it shows for a take; a take left with it unanswered is a close.
-        aiCard(card, before) {
-            if (card && this.aiCardFor !== this.recorded) this.aiCardShown(this.recorded);
-            if (!card && before && this.aiCardFor && this.aiCardDone !== this.aiCardFor) {
-                count(`ai_card:closed:${aiBand()}`);
-                this.aiCardDone = this.aiCardFor;
-            }
-        },
         // The ready check done (counted once a take); the plan follows its verdict (readyAt, or nearlyAt back to its days).
         readyReport(report) {
             if (!report || this.readyCountedFor === this.recorded) return;
@@ -1427,47 +1393,6 @@ export const SingView = {
             this.dialog = 'voice';
         },
         /** Not now: that part, 14 days. */
-        /** The card has shown for this take: once counted, its ask slot kept, its showing kept (twice, then never). */
-        aiCardShown(rec) {
-            this.aiCardFor = rec;
-            noteCardShown();
-            askSeen('ai_card');
-            count(`ai_card:shown:${aiBand()}`);
-        },
-        /** Try it: AI on, and Hear yourself as a choir's start for this song (the terms first, if not yet agreed). */
-        async aiTry() {
-            this.aiCardBusy = true;
-            try {
-                await chooseAi(true);
-                count(`ai_card:try:${aiBand()}`);
-                this.aiCardDone = this.recorded;
-                navigate(`/t/${encodeURIComponent(this.project.template.id)}/choir`);
-            } catch (error) {
-                console.warn('AI features were not turned on', error);
-                toast(t('settings.failed'), { tone: 'error' });
-            } finally {
-                this.aiCardBusy = false;
-            }
-        },
-        /** Not for me: AI off, and the card never shows again. */
-        async aiNot() {
-            this.aiCardBusy = true;
-            try {
-                await chooseAi(false);
-                count(`ai_card:not:${aiBand()}`);
-                this.aiCardDone = this.recorded;
-            } catch (error) {
-                console.warn('AI features were not turned off', error);
-                toast(t('settings.failed'), { tone: 'error' });
-            } finally {
-                this.aiCardBusy = false;
-            }
-        },
-        /** Closed without a choice: no answer (it may show once more, on a later recorded part). */
-        aiClose() {
-            if (this.aiCardFor && this.aiCardDone !== this.aiCardFor) count(`ai_card:closed:${aiBand()}`);
-            this.aiCardDone = this.recorded;
-        },
         voiceLater() {
             const part = this.recorded?.part;
             if (!part) return;

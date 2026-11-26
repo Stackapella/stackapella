@@ -24,7 +24,9 @@ export async function myGroupParts(meId, groups) {
     })));
     return shown.filter(Boolean).flatMap((group) => {
         const me = group.members.find((m) => m.id === meId);
-        return (me?.assignments ?? []).filter((a) => a.status !== 'recorded').map((a) => ({
+        // A song waiting for this singer's seat (choir seats) isn't one to open from Home: the group's page says why.
+        const waiting = new Set(group.songs.filter((s) => s.seat === 'needed').map((s) => s.templateId));
+        return (me?.assignments ?? []).filter((a) => a.status !== 'recorded' && !waiting.has(a.templateId)).map((a) => ({
             groupId: group.id,
             groupName: group.name,
             templateId: a.templateId,

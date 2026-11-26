@@ -15,7 +15,8 @@ const STATE_WORDS = { on: tk('admin.growth.ai.state.on'), off: tk('admin.growth.
 const CARD_COLUMNS = [
     ['cardShown', tk('admin.growth.ai.col.shown')], ['tryRate', tk('admin.growth.ai.col.try')], ['notRate', tk('admin.growth.ai.col.not')],
     ['cardClosed', tk('admin.growth.ai.col.closed')], ['choirStart', tk('admin.growth.ai.col.choirStart')], ['choirHeard', tk('admin.growth.ai.col.choirHeard')],
-    ['guideHeard', tk('admin.growth.ai.col.guideHeard')], ['switchOnOff', tk('admin.growth.ai.col.onOff')], ['switchOffOn', tk('admin.growth.ai.col.offOn')],
+    ['guideHeard', tk('admin.growth.ai.col.guideHeard')], ['hideHomeChoir', tk('admin.growth.ai.col.hideHome')], ['hideSongChoir', tk('admin.growth.ai.col.hideSong')],
+    ['switchOnOff', tk('admin.growth.ai.col.onOff')], ['switchOffOn', tk('admin.growth.ai.col.offOn')],
 ];
 const BACK_COLUMNS = [
     ['backD1', tk('admin.growth.ai.col.backD1')], ['backW1', tk('admin.growth.ai.col.backW1')], ['backD7', tk('admin.growth.ai.col.backD7')], ['backW4', tk('admin.growth.ai.col.backW4')],
@@ -107,6 +108,8 @@ export const GrowthAi = {
                 { key: 'shown', label: tk('admin.growth.ai.col.shown'), n: n(total.cardShown) },
                 { key: 'try', label: tk('admin.growth.ai.col.try'), n: r(total.tryRate), hint: total.cardTry === null ? '' : t('admin.growth.ai.ofShown', { n: formatNumber(total.cardTry) }) },
                 { key: 'not', label: tk('admin.growth.ai.col.not'), n: r(total.notRate), hint: total.cardNot === null ? '' : t('admin.growth.ai.ofShown', { n: formatNumber(total.cardNot) }) },
+                // Hide AI features (since 2026-11-26, when undecided became on): from Home's choir panel and the song sheet.
+                { key: 'hides', label: tk('admin.growth.ai.hides'), n: total.hideHomeChoir === null && total.hideSongChoir === null ? t('admin.growth.ai.few') : formatNumber((total.hideHomeChoir ?? 0) + (total.hideSongChoir ?? 0)), hint: t('admin.growth.ai.hidesHint') },
                 { key: 'switches', label: tk('admin.growth.ai.switches'), n: `${n(total.switchOffOn)} / ${n(total.switchOnOff)}`, hint: t('admin.growth.ai.switchesHint') },
             ];
         },

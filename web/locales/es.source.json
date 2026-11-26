@@ -2090,7 +2090,9 @@
             "kept": "Your {count, plural, one {AI choir song is} other {# AI choir songs are}} kept. Turn AI features on to hear {count, plural, one {it} other {them}}.",
             "linkOff": "This uses AI voices, and your AI features are off.",
             "turnOn": "Turn on AI features",
-            "hintOnMinor": "AI guide voices, where no one has recorded a part yet."
+            "hintOnMinor": "AI guide voices, where no one has recorded a part yet.",
+            "hideButton": "Not for me",
+            "hidden": "AI features are hidden. You can turn them back on in Settings."
         }
     },
     "version": {
@@ -3253,6 +3255,8 @@
         "warmUpOurs": "Today's usual"
     },
     "plus": {
+        "consentFirst": "To start Plus now, tick the box above.",
+        "startNow": "I want it to start now, and I understand that I lose my 14-day right to cancel for the time I've already used.",
         "next": {
             "choirDownload": "Back to your choir",
             "inviteFriend": "Back to your song",
@@ -4307,6 +4311,53 @@
         }
     },
     "groups": {
+        "seats": {
+            "title": "Seats",
+            "none": "Each singer needs a seat to practise this choir's songs. Singers with their own Plus don't use one of yours, and you don't need one yourself.",
+            "lapsed": "Your seats have ended. Singers without their own Plus can't practise this choir's songs until you buy seats again. Nothing is deleted.",
+            "price": "{price} a singer a year, from {min} seats.",
+            "howMany": "Seats",
+            "fewer": "One seat fewer",
+            "more": "One seat more",
+            "total": "{count, plural, one {# seat} other {# seats}}: {total} a year",
+            "buy": "Buy seats",
+            "buyAgain": "Buy seats again",
+            "settingUp": "Setting up your seats. This takes a moment.",
+            "ready": "Your seats are ready.",
+            "used": "{used} of {bought} seats used",
+            "trialEnds": "Free until {date}",
+            "waiting": "{count, plural, one {# singer needs a seat.} other {# singers need a seat.}} Add seats, or move one from another singer.",
+            "free": "{count, plural, one {# seat free: the next singer to join gets it.} other {# seats free: singers get one as they join.}}",
+            "pastDue": "Stripe couldn't take the last payment and will try again. Everyone keeps their seat meanwhile.",
+            "updatePayment": "Update payment",
+            "canceled": "Your seats end on {date} and won't renew.",
+            "keep": "Keep them",
+            "change": "Change seats",
+            "billing": "Billing",
+            "changeHint": "Stripe charges or credits the difference for the rest of the year.",
+            "drop": "{count, plural, one {The last singer given a seat loses it.} other {The last # singers given a seat lose theirs.}}",
+            "changed": "{count, plural, one {You have # seat now.} other {You have # seats now.}}",
+            "tag": {
+                "own": "Own Plus",
+                "seated": "Seat",
+                "needed": "Needs a seat"
+            },
+            "give": "Give a seat",
+            "giveTitle": "Give {name} a seat",
+            "giveFrom": "Take the seat from",
+            "giveHint": "You can move seats 3 times in 30 days.",
+            "giveGo": "Move the seat",
+            "moveWait": "You've moved 3 seats in the last 30 days. You can move one again on {date}.",
+            "moved": "{name} has a seat now.",
+            "ask": "To practise this choir's songs here, ask {name} to add your seat.",
+            "startHint": "Your singers join by a link you send them and learn the songs you share, and you see who has started and who has recorded their part.",
+            "startLine": "Choirs pay by the seat: {price} Starting the group is free, and you buy seats on its page once your singers join.",
+            "refused": {
+                "emailUnverified": "Confirm your email first: open the link we sent you, then buy seats.",
+                "paused": "Seats can't be bought just now. Try again later.",
+                "rateLimited": "That's a lot of tries. Wait a few minutes, then try again."
+            }
+        },
         "plusText": "Choir groups come with Plus: share songs, give each singer a part and see who's practising. Everyone you invite joins free.",
         "paused": {
             "title": "This choir is paused",
@@ -6475,13 +6526,6 @@
         "help": {
             "link": "How it works, and your questions",
             "failed": "What to do when a song doesn't come out"
-        },
-        "aiCard": {
-            "title": "Hear the other parts in your voice?",
-            "body": "An AI choir can sing the rest of {song} in a voice like yours. It's optional, and always marked as AI.",
-            "not": "Not for me",
-            "try": "Try it",
-            "note": "You can change this any time in Settings."
         },
         "gallery": {
             "row": "Add to the gallery",

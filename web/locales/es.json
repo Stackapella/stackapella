@@ -2090,7 +2090,9 @@
             "kept": "{count, plural, one {Tu canción de coro con IA sigue guardada} other {Tus # canciones de coro con IA siguen guardadas}}. Activa las funciones de IA para {count, plural, one {escucharla} other {escucharlas}}.",
             "linkOff": "Esto usa voces de IA, y tus funciones de IA están desactivadas.",
             "turnOn": "Activar funciones de IA",
-            "hintOnMinor": "Voces guía de IA, donde aún nadie ha grabado una voz."
+            "hintOnMinor": "Voces guía de IA, donde aún nadie ha grabado una voz.",
+            "hideButton": "No es para mí",
+            "hidden": "Las funciones de IA están ocultas. Puedes volver a activarlas en Ajustes."
         }
     },
     "version": {
@@ -3253,6 +3255,8 @@
         "warmUpOurs": "El habitual"
     },
     "plus": {
+        "consentFirst": "Para empezar Plus ahora, marca la casilla de arriba.",
+        "startNow": "Quiero que empiece ya, y entiendo que pierdo mi derecho de desistimiento de 14 días por el tiempo que ya haya usado.",
         "next": {
             "choirDownload": "Volver a tu coro",
             "inviteFriend": "Volver a tu canción",
@@ -4307,6 +4311,53 @@
         }
     },
     "groups": {
+        "seats": {
+            "title": "Plazas",
+            "none": "Cada cantante necesita una plaza para practicar las canciones de este coro. Quien tiene su propio Plus no usa ninguna de las tuyas, y tú no necesitas ninguna.",
+            "lapsed": "Tus plazas han terminado. Quien no tiene su propio Plus no puede practicar las canciones de este coro hasta que compres plazas de nuevo. No se borra nada.",
+            "price": "{price} por cantante al año, desde {min} plazas.",
+            "howMany": "Plazas",
+            "fewer": "Una plaza menos",
+            "more": "Una plaza más",
+            "total": "{count, plural, one {# plaza} other {# plazas}}: {total} al año",
+            "buy": "Comprar plazas",
+            "buyAgain": "Comprar plazas de nuevo",
+            "settingUp": "Preparando tus plazas. Tarda un momento.",
+            "ready": "Tus plazas están listas.",
+            "used": "{used} de {bought} plazas en uso",
+            "trialEnds": "Gratis hasta el {date}",
+            "waiting": "{count, plural, one {# cantante necesita una plaza.} other {# cantantes necesitan una plaza.}} Añade plazas o pasa una de otro cantante.",
+            "free": "{count, plural, one {# plaza libre: la recibe el próximo cantante que se una.} other {# plazas libres: los cantantes reciben una al unirse.}}",
+            "pastDue": "Stripe no pudo cobrar el último pago y lo volverá a intentar. Mientras tanto, todos conservan su plaza.",
+            "updatePayment": "Actualizar el pago",
+            "canceled": "Tus plazas terminan el {date} y no se renovarán.",
+            "keep": "Conservarlas",
+            "change": "Cambiar plazas",
+            "billing": "Facturación",
+            "changeHint": "Stripe cobra o abona la diferencia por lo que queda del año.",
+            "drop": "{count, plural, one {El último cantante que recibió una plaza la pierde.} other {Los últimos # cantantes que recibieron una plaza la pierden.}}",
+            "changed": "{count, plural, one {Ahora tienes # plaza.} other {Ahora tienes # plazas.}}",
+            "tag": {
+                "own": "Plus propio",
+                "seated": "Plaza",
+                "needed": "Necesita plaza"
+            },
+            "give": "Dar una plaza",
+            "giveTitle": "Dar una plaza a {name}",
+            "giveFrom": "Quitar la plaza a",
+            "giveHint": "Puedes pasar plazas 3 veces cada 30 días.",
+            "giveGo": "Pasar la plaza",
+            "moveWait": "Has pasado 3 plazas en los últimos 30 días. Podrás pasar otra el {date}.",
+            "moved": "{name} ya tiene plaza.",
+            "ask": "Para practicar aquí las canciones de este coro, pide a {name} que te añada una plaza.",
+            "startHint": "Tus cantantes se unen con un enlace que les envías y aprenden las canciones que compartes, y tú ves quién ha empezado y quién ha grabado su voz.",
+            "startLine": "Los coros pagan por plaza: {price} Crear el grupo es gratis, y compras las plazas en su página cuando se unan tus cantantes.",
+            "refused": {
+                "emailUnverified": "Primero confirma tu correo: abre el enlace que te enviamos y luego compra las plazas.",
+                "paused": "Ahora mismo no se pueden comprar plazas. Inténtalo más tarde.",
+                "rateLimited": "Son muchos intentos. Espera unos minutos y vuelve a intentarlo."
+            }
+        },
         "plusText": "Los grupos de coro vienen con Plus: comparte canciones, asigna una voz a cada cantante y ve quién está practicando. Todas las personas que invites se unen gratis.",
         "paused": {
             "title": "Este coro está en pausa",
@@ -6475,13 +6526,6 @@
         "help": {
             "link": "Cómo funciona y tus preguntas",
             "failed": "Qué hacer si una canción no sale bien"
-        },
-        "aiCard": {
-            "title": "¿Oír las demás voces con tu voz?",
-            "body": "Un coro con IA puede cantar el resto de {song} con una voz como la tuya. Es opcional, y siempre se señala como IA.",
-            "not": "No es para mí",
-            "try": "Probar",
-            "note": "Puedes cambiarlo cuando quieras en Ajustes."
         },
         "gallery": {
             "row": "Añadir a la galería",

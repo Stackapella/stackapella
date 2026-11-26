@@ -28,6 +28,8 @@ for (const kind of ['bv_sung', 'bv_shown', 'bv_later', 'bv_share_tap:guest', 'bv
 KINDS.add('ai_heard');
 // Practise the set (docs/practice-playlist-plan.md): a set started, and Repeat my part used.
 for (const kind of ['set_play', 'set_repeat']) KINDS.add(kind);
+// Choir seats (docs/choir-seats-plan.md): the director's seats offer shown and tapped, and an unseated singer shown the ask.
+for (const kind of ['seats_offer_shown', 'seats_offer_tap', 'seat_ask_shown']) KINDS.add(kind);
 // Progress you can see (Brief F): Your voice viewed, and a beginner's All your measures opened.
 for (const kind of ['prog_view', 'prog_all_open']) KINDS.add(kind);
 // Kinds the server allows (server/config/counts.php) that the app sends but this list was missing until 2026-11-24, so
@@ -137,9 +139,9 @@ const libraryFilter = (kind) => kind.startsWith('library_filter:') && LIBRARY_FI
 // band (js/ai-counts.js), and the card's events by band (views/sing.js).
 const BAND = '(?:u18|18-24|25-34|35-44|45-54|55-64|65\\+|unknown|guest)';
 const AIC = new RegExp(`^aic:(?:back_(?:d1|w1|d7|w4)|wk1_lessons):(?:on|off|unset):${BAND}(?::(?:0|1-2|3-5|6\\+))?$`);
-const AI_CARD = new RegExp(`^ai_card:(?:shown|try|not|closed):${BAND}$`);
+const AI_HIDE = new RegExp(`^ai_hide:(?:home_choir|song_choir):${BAND}$`); // Hide AI features, by where (ai-choice.js hideAi)
 const AI_USE = new RegExp(`^ai_use:(?:choir_start|choir_heard|guide_heard):${BAND}$`);
-const aic = (kind) => AI_CARD.test(kind) || AI_USE.test(kind) || (AIC.test(kind) && kind.startsWith('aic:wk1_lessons:') === (kind.split(':').length === 5));
+const aic = (kind) => AI_HIDE.test(kind) || AI_USE.test(kind) || (AIC.test(kind) && kind.startsWith('aic:wk1_lessons:') === (kind.split(':').length === 5));
 
 /** Counts one `kind` (an unknown one is ignored). */
 export function count(kind) {

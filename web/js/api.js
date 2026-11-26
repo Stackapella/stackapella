@@ -264,6 +264,9 @@ export const OPERATIONS = {
     'admin.sources.show': ['GET', '/api/admin/sources'],
     'admin.active.show': ['GET', '/api/admin/active'],
     'admin.groups.list': ['GET', '/api/admin/groups'],
+    // Choir seats for staff (docs/choir-seats-plan.md): a group's seats, and moving or syncing them in sudo with a reason.
+    'admin.groups.seats.show': ['GET', '/api/admin/groups/{id}/seats'],
+    'admin.groups.seats.update': ['POST', '/api/admin/groups/{id}/seats'],
     'admin.reach.show': ['GET', '/api/admin/reach'],
     'admin.revenue.show': ['GET', '/api/admin/revenue'],
     'admin.corrections.list': ['GET', '/api/admin/corrections'],
@@ -969,7 +972,14 @@ export const api = {
         },
         sources: { show: ({ days } = {}) => call('admin.sources.show', { query: { days } }) },
         active: { show: () => call('admin.active.show') },
-        groups: { list: () => call('admin.groups.list') },
+        groups: {
+            list: () => call('admin.groups.list'),
+            seats: {
+                show: (id) => call('admin.groups.seats.show', { params: { id } }),
+                // { action: 'move', from, to, reason } (no monthly limit for staff), or { action: 'sync', reason }.
+                update: (id, body) => call('admin.groups.seats.update', { params: { id }, body }),
+            },
+        },
         reach: { show: () => call('admin.reach.show') },
         revenue: { show: () => call('admin.revenue.show') },
         // Readers' "Suggest a correction" (docs/corrections-plan.md): the inbox, and a decision with its note.
@@ -1209,7 +1219,8 @@ export const api = {
         prices: () => call('billing.prices'),
         show: () => call('billing.show'),
         // No free trial (Hillel, 2026-11-21): the body never asks for one, so every Checkout from this app starts paid.
-        checkout: ({ interval, currency, moment = 'settings' }) => call('billing.checkout', { body: { interval, currency, moment } }),
+        // startNowConsent: the EU, EEA and UK consent to start at once, ticked (billing.prices says where it's needed).
+        checkout: ({ interval, currency, moment = 'settings', startNowConsent = false }) => call('billing.checkout', { body: { interval, currency, moment, startNowConsent } }),
         portal: () => call('billing.portal'),
     },
     scores: {

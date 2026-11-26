@@ -12,6 +12,7 @@ use App\Models\GroupMember;
 use App\Models\GroupSeat;
 use App\Models\User;
 use App\Services\Billing\BillingGateway;
+use App\Support\Billing\CheckoutCounts;
 use App\Support\Billing\Withdrawal;
 use App\Support\Groups\ChoirSeats;
 use App\Support\Ids;
@@ -37,6 +38,12 @@ final class ManageSeats
      * groups.seats.checkout: the Checkout page's address.
      */
     public function checkout(User $user, string $sqid, int $seats, string $currency, ?string $country = null, bool $startNowConsent = false): string
+    {
+        // Counted, started or refused and why (CheckoutCounts): the funnel in Admin.
+        return CheckoutCounts::counted('seats', fn (): string => $this->startCheckout($user, $sqid, $seats, $currency, $country, $startNowConsent));
+    }
+
+    private function startCheckout(User $user, string $sqid, int $seats, string $currency, ?string $country, bool $startNowConsent): string
     {
         $group = $this->groups->directed($user, $sqid);
 

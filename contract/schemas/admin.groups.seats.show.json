@@ -1,0 +1,193 @@
+{
+    "$id": "admin.groups.seats.show.json",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "group",
+                "status",
+                "bought",
+                "used",
+                "min",
+                "trialEndsAt",
+                "endsAt",
+                "startedAt",
+                "movesThisMonth",
+                "movesLeft",
+                "nextMoveAt",
+                "stripeUrl",
+                "holders",
+                "own",
+                "unseated"
+            ],
+            "properties": {
+                "group": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "id",
+                        "name",
+                        "director"
+                    ],
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "director": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "id",
+                                "name"
+                            ],
+                            "properties": {
+                                "id": {
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "status": {
+                    "enum": [
+                        "none",
+                        "free_trial",
+                        "trialing",
+                        "active",
+                        "past_due",
+                        "canceled",
+                        "lapsed"
+                    ],
+                    "description": "As the director's seat panel says."
+                },
+                "bought": {
+                    "type": "integer"
+                },
+                "used": {
+                    "type": "integer"
+                },
+                "min": {
+                    "type": "integer"
+                },
+                "trialEndsAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                },
+                "endsAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                },
+                "startedAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time"
+                },
+                "movesThisMonth": {
+                    "type": "integer",
+                    "description": "The director's seat moves in the last 30 days (staff's aren't counted)."
+                },
+                "movesLeft": {
+                    "type": "integer"
+                },
+                "nextMoveAt": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "format": "date-time",
+                    "description": "When the director may move a seat again; null while moves are left."
+                },
+                "stripeUrl": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "description": "The pack in Stripe's dashboard (its renewal date is there); null without one."
+                },
+                "holders": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "name",
+                            "since"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            },
+                            "since": {
+                                "type": "string",
+                                "format": "date-time"
+                            }
+                        }
+                    }
+                },
+                "own": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "name"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "description": "Members seated by their own Plus (or a code)."
+                },
+                "unseated": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "id",
+                            "name"
+                        ],
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            },
+                            "name": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

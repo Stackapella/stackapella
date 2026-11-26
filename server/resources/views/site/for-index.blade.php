@@ -30,8 +30,10 @@
             </div>
         </section>
 
+        {{-- The cards' words through Teams: the directors' cost line says what starting a group takes, as the questions do. --}}
+        @php($cards = (array) \App\Support\Site\Teams::words('site.for.index.cards'))
         @foreach ($paths as $path)
-            @php($card = (array) \Illuminate\Support\Facades\Lang::get('site.for.index.cards.'.$path['card']))
+            @php($card = (array) $cards[$path['card']])
             <section class="s-wrap s-hub-sec" id="{{ $path['card'] }}" aria-labelledby="{{ $path['card'] }}-h">
             <div class="s-hub-band s-v{{ $path['n'] }}">
                 <div class="s-hub-pic" aria-hidden="true">

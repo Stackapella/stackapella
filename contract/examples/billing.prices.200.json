@@ -45,6 +45,7 @@
             ]
         },
         "startNowConsent": false,
+        "startNowWords": null,
         "seats": {
             "min": 10,
             "trialDays": 14,

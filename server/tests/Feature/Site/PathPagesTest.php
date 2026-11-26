@@ -110,6 +110,21 @@ final class PathPagesTest extends TestCase
         $this->assertStringNotContainsString('/songs/happy-birthday', $html);
     }
 
+    public function test_who_its_for_says_what_a_group_takes_the_same_in_its_band_and_its_answer(): void
+    {
+        config(['flags.plus_teams' => ['kind' => 'feature', 'values' => ['off', 'on']], 'flags.choir_seats' => ['kind' => 'feature', 'values' => ['off', 'on']]]);
+
+        // Teaming up off, then on, then choir seats too: the directors band's cost line and the whole-choir answer agree.
+        foreach ([[[], 'Starting a group is free.', 'Start a group for free'], [['plus_teams'], 'Starting a group takes Plus. Singers join free', 'Start a group with Plus'], [['choir_seats'], 'Starting a group is free, and each singer needs a seat', 'Each singer needs a seat, which you buy']] as [$on, $band, $answer]) {
+            foreach ($on as $flag) {
+                app(Flags::class)->set($flag, 'on', null, 'test');
+            }
+            $html = (string) $this->get('/for')->assertOk()->getContent();
+            $this->assertStringContainsString($band, $html, implode(',', $on) ?: 'off');
+            $this->assertStringContainsString($answer, $html, implode(',', $on) ?: 'off');
+        }
+    }
+
     public function test_neither_says_a_word_about_ai_in_either_language(): void
     {
         app(SyncOfficialTemplates::class)->handle();

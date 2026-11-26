@@ -1,6 +1,6 @@
 """Home's "Hear yourself as a choir" panel (Hillel, 2026-11-22: "a main panel on the app page ... in the top right"): on a
 wide screen in the course card's side column (top right); on a phone its own card right after the course card, never
-above it. Fresh, after a real yes to AI (not undecided, not an older account's "existing" on), it offers Try it (to the free song's choir page); with a song ready and not yet heard, its row and
+above it. Fresh, it offers Try it; AI's first showing (only) carries a quiet Not for me (Hillel, 2026-11-26), which hides it for good, and Settings brings it back; chose off or under 18, nothing (to the free song's choir page); with a song ready and not yet heard, its row and
 Listen in the same panel, and no second ready card anywhere; off, nothing.
 """
 import sys
@@ -32,21 +32,20 @@ def journey(f):
     f.wait("(await import('/js/stores/account.js')).account.loaded", what="the account")
     assert not f.js(PANEL), "a panel while it's off"
 
-    # On, nothing made yet, but no yes to AI (Hillel, 2026-11-24: "hidden from top of home page until we know if they use AI
-    # or not"): undecided, or an older account's "existing" on, shows no panel; the AI card after a kept part asks instead.
-    f.run("sessionStorage.setItem('stackapella.mockOwnChoir', '1'); sessionStorage.removeItem('stackapella.mockAiFeatures'); sessionStorage.removeItem('stackapella.mockAiSource');")
-    for case, setup in (("undecided", ""), ("existing", "sessionStorage.setItem('stackapella.mockAiFeatures', '1'); sessionStorage.setItem('stackapella.mockAiSource', 'existing');")):
-        if setup:
-            f.run(setup)
-        f.go("/?api=mock&scenario=&as=member", "document.querySelector('[data-lead] h1')")
-        f.wait("(await import('/js/stores/account.js')).account.loaded && (await import('/js/own-choir-state.js')).ownChoir.loaded", what="the account and the choir")
-        assert not f.js(PANEL), f"a choir panel with no yes to AI ({case})"
-        assert f.js("(await import('/js/ai-choice.js')).aiChosen()") is False, f"{case} reads as chosen: the AI card wouldn't ask"
-
-    # A real yes (the card's Try it): the offer, Try it.
-    f.run("sessionStorage.setItem('stackapella.mockAiFeatures', '1'); sessionStorage.setItem('stackapella.mockAiSource', 'card');")
-    f.go("/?api=mock&scenario=&as=member", f"{PANEL}")
+    # On, nothing made yet, with AI optional's switch on (Hillel, 2026-11-26: "most new users to see it but have the option
+    # to hide forever", then: "When we first show a user the AI they can dismiss it. After that the option should only be
+    # in profile settings."): an older account's "existing" on, and undecided, both see the offer, Try it; only AI's first
+    # showing on this device carries the quiet Not for me.
+    f.run("sessionStorage.setItem('stackapella.mockOwnChoir', '1'); sessionStorage.setItem('stackapella.mockAiOptional', '1'); sessionStorage.setItem('stackapella.mockAiFeatures', '1'); sessionStorage.setItem('stackapella.mockAiSource', 'existing'); localStorage.removeItem('stackapella.aiFirstShown');")
+    f.go("/?api=mock&scenario=&as=member", f"{PANEL}?.querySelector('[data-ai-hide=home_choir]')")
     assert f.js(f"{PANEL}.dataset.choirPanelState") == "try"
+    f.run(f"{PANEL}.scrollIntoView({{ block: 'center' }})")
+    f.shot("first")
+    f.run("sessionStorage.removeItem('stackapella.mockAiFeatures'); sessionStorage.removeItem('stackapella.mockAiSource');")
+    f.go("/?api=mock&scenario=&as=member", f"{PANEL}")
+    f.js("new Promise((r) => setTimeout(r, 400))")
+    assert f.js(f"{PANEL}.dataset.choirPanelState") == "try", "undecided"
+    assert not f.js(f"!!{PANEL}.querySelector('[data-ai-hide]')"), "Not for me again after the first showing"
     assert t(f, "ownChoir.home.body") in f.js(f"{PANEL}.innerText")
     place(f)
     f.no_sideways("Home with the choir panel")
@@ -54,9 +53,41 @@ def journey(f):
     f.shot("try")
     f.run("document.querySelector('[data-choir-try]').click()")
     f.wait("location.pathname === '/t/happy-birthday/choir'", what="the free song's choir page")
+    # Not for me on a first showing: the panel goes at once, the toast says Settings brings it back, and it stays gone.
+    f.run("localStorage.removeItem('stackapella.aiFirstShown');")
+    f.go("/?api=mock&scenario=&as=member", f"{PANEL}?.querySelector('[data-ai-hide=home_choir]')")
+    f.run(f"{PANEL}.querySelector('[data-ai-hide=home_choir]').click()")
+    f.wait(f"!{PANEL}", what="the panel hidden")
+    f.wait_text(t(f, "settings.ai.hidden"))
+    f.shot("hidden")
+    assert f.js("sessionStorage.getItem('stackapella.mockAiSource')") == "hide", "the account's hide wasn't saved with its source"
+    f.go("/?api=mock&scenario=&as=member", "document.querySelector('[data-lead] h1')")
+    f.wait("(await import('/js/stores/account.js')).account.loaded && (await import('/js/own-choir-state.js')).ownChoir.loaded", what="the account and the choir")
+    assert not f.js(PANEL), "the panel back after a hide"
+    # Another device (nothing kept on it): the account's hide holds there too.
+    f.run("localStorage.removeItem('stackapella.ai'); localStorage.removeItem('stackapella.aiFrom');")
+    f.go("/?api=mock&scenario=&as=member", "document.querySelector('[data-lead] h1')")
+    f.wait("(await import('/js/stores/account.js')).account.loaded && (await import('/js/own-choir-state.js')).ownChoir.loaded", what="the account and the choir")
+    assert not f.js(PANEL), "the panel back on another device"
+    # Settings brings it back: the panel again, with no dismiss (Settings is the way now).
+    f.go("/settings?api=mock&scenario=&as=member", "document.querySelector('[data-ai-features] [role=switch]')")
+    f.run("document.querySelector('[data-ai-features] [role=switch]').click()")
+    f.wait("sessionStorage.getItem('stackapella.mockAiFeatures') === '1'", what="AI back on from Settings")
+    f.go("/?api=mock&scenario=&as=member", f"{PANEL}")
+    f.js("new Promise((r) => setTimeout(r, 400))")
+    assert not f.js(f"!!{PANEL}.querySelector('[data-ai-hide]')"), "a dismiss once Settings turned AI on"
+    # Chose off in Settings: no panel either. Under 18: never a panel.
+    f.run("sessionStorage.setItem('stackapella.mockAiSource', 'settings');")
+    f.go("/?api=mock&scenario=&as=member", "document.querySelector('[data-lead] h1')")
+    f.wait("(await import('/js/stores/account.js')).account.loaded", what="the account")
+    assert not f.js(PANEL), "a panel for someone who chose off"
+    f.run("sessionStorage.removeItem('stackapella.mockAiFeatures'); sessionStorage.removeItem('stackapella.mockAiSource');")
+    f.go("/?api=mock&scenario=&as=young", "document.querySelector('[data-lead] h1')")
+    f.wait("(await import('/js/stores/account.js')).account.loaded", what="the account")
+    assert not f.js(PANEL), "a panel for an account under 18"
 
     # The example's choir: Silent Night ready and not yet heard, in the panel, once; kept even with no yes on record.
-    f.run("sessionStorage.removeItem('stackapella.mockChoirState'); sessionStorage.removeItem('stackapella.mockChoir'); sessionStorage.removeItem('stackapella.mockAiFeatures'); sessionStorage.removeItem('stackapella.mockAiSource');")
+    f.run("sessionStorage.removeItem('stackapella.mockChoirState'); sessionStorage.removeItem('stackapella.mockChoir'); sessionStorage.removeItem('stackapella.mockAiFeatures'); sessionStorage.removeItem('stackapella.mockAiSource'); sessionStorage.removeItem('stackapella.mockAiOptional');")
     f.go("/?api=mock&scenario=&as=member", f"{PANEL}?.dataset.choirPanelState === 'ready' && {PANEL}")
     assert f.js("document.querySelectorAll('[data-choir-notice]').length") >= 1
     assert "Silent Night" in f.js(f"{PANEL}.innerText")

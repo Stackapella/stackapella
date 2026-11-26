@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 use App\Support\Accounts\AiChoice;
+use App\Support\Billing\CheckoutCounts;
 use App\Support\OwnChoir\ChoirCounts;
 use App\Support\OwnChoir\ChoirWait;
 use App\Support\Pages\SongCollections;
@@ -68,6 +69,8 @@ return [
         'app_day', 'app_week', 'app_month',
         // The practice playlist (docs/practice-playlist-plan.md): a set started, Repeat my part used.
         'set_play', 'set_repeat',
+        // Plus's sheet shown, and its button tapped (the funnel before Checkout, 2026-11-26).
+        'plus_sheet_shown', 'plus_sheet_tap',
         // The skins: app_open split by the skin in use, and the Game mode switch.
         'open_game', 'open_serious', 'game_on', 'game_off',
         // Plus extras.
@@ -235,6 +238,8 @@ return [
     'server_kinds' => [
         // The singing test: the device's score wasn't the server's (docs/singing-test-v1.md; the server's is kept).
         'st_mismatch',
+        // The Plus and seats checkouts: started, and refused by why (App\Support\Billing\CheckoutCounts).
+        ...CheckoutCounts::serverKinds(),
         // A singing test held for a look before the boards show it (a jump, flat notes, the same items as another).
         'st_held',
         // Be the voice's ladder (docs/open-guide-voices-plan.md): a volunteer's take sent, a guide published, a take not chosen.

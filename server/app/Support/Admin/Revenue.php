@@ -7,7 +7,9 @@ namespace App\Support\Admin;
 use App\Models\CheckoutSession;
 use App\Models\CoachingPayment;
 use App\Models\Engagement;
+use App\Models\GroupSeat;
 use App\Models\StoreSubscription;
+use App\Support\Groups\ChoirSeats;
 use App\Support\Stats\ReportDay;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -87,6 +89,7 @@ final class Revenue
             'subscribers' => $this->subscribers($web, $stores, $now),
             'months' => $months,
             'oneOff' => $this->oneOff($first),
+            'seats' => $this->seats(),
         ];
     }
 
@@ -206,6 +209,39 @@ final class Revenue
         ksort($cents);
 
         return array_values(array_map(fn (string $c, float $v): array => ['currency' => $c, 'cents' => (int) round($v)], array_keys($cents), $cents));
+    }
+
+    /**
+     * Choir seats (docs/choir-seats-plan.md), beside Plus: packs paid and valid, their seats bought and taken, and what
+     * they bill a year at the per-seat price, by the currency of the director's first Checkout (a pack whose currency
+     * isn't known is left out of `arr`).
+     *
+     * @return array{choirs: int, bought: int, used: int, arr: list<array{currency: string, cents: int}>}
+     */
+    private function seats(): array
+    {
+        $packs = DB::table('subscriptions')->where('type', 'like', ChoirSeats::PREFIX.'%')->whereIn('stripe_status', ['active', 'trialing', 'past_due'])
+            ->where(static fn ($q) => $q->whereNull('ends_at')->orWhere('ends_at', '>', now()))->get(['user_id', 'type', 'quantity']);
+        $currencies = CheckoutSession::query()->whereNotNull('completed_at')->whereIn('user_id', $packs->pluck('user_id'))->orderBy('id')->get(['user_id', 'currency'])
+            ->unique('user_id')->pluck('currency', 'user_id');
+        $groups = $packs->map(static fn (object $pack): ?int => ChoirSeats::groupIdOf((string) $pack->type))->filter()->values()->all();
+        $arr = [];
+
+        foreach ($packs as $pack) {
+            $currency = $currencies->get($pack->user_id);
+            $seat = is_string($currency) ? (int) config("billing.choir.amounts.{$currency}.seat") : 0;
+
+            if ($seat > 0) {
+                $arr[$currency] = ($arr[$currency] ?? 0) + $seat * (int) $pack->quantity;
+            }
+        }
+
+        return [
+            'choirs' => $packs->count(),
+            'bought' => (int) $packs->sum('quantity'),
+            'used' => $groups === [] ? 0 : GroupSeat::query()->whereIn('group_id', $groups)->count(),
+            'arr' => self::money($arr),
+        ];
     }
 
     /**

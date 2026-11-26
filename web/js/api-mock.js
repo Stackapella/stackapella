@@ -135,6 +135,70 @@ function listed(json, query) {
     return { ...json, data: query.cursor ? [] : data, meta: { ...json.meta, nextCursor: query.cursor ? null : json.meta.nextCursor } };
 }
 
+// Choir seats in the mock (contract/api.md, "Choir seats"): the example group, `extra` singers more, and its seats kept for
+// the tab (stackapella.mockSeats): `holders` hold the seats in join order, `moves` are when seats moved (3 in 30 days),
+// `pending` polls answer as before Stripe's webhook.
+const SEAT_SINGERS = ['Ari Moss', 'Bea Lund', 'Cal Reyes', 'Dee Hart', 'Eli Park', 'Fay Quinn', 'Gus Vale', 'Hana Ito', 'Ivo Brandt', 'Jo Marsh', 'Kai Doyle', 'Lea Frost', 'Max Ortiz', 'Nia Cole']; // i18n-ignore: made-up singers' names
+const SEATS_KEY = 'stackapella.mockSeats';
+const PAID = ['trialing', 'active', 'past_due', 'canceled'];
+const seatsKept = () => ({ status: 'none', bought: 0, extra: 0, holders: [], moves: [], pending: 0, ...JSON.parse(tabStorage.get(SEATS_KEY) || '{}') });
+const keepSeats = (state) => tabStorage.set(SEATS_KEY, JSON.stringify(state));
+
+async function seatsGroup(state) {
+    const json = await example('groups.show.200.json');
+    const group = json.data;
+    const kim = group.members.find((m) => m.seat === 'needed');
+    const extra = SEAT_SINGERS.slice(0, state.extra).map((name, i) => ({ ...kim, id: `mSeat${i}`, name, joinedAt: `2026-11-0${(i % 9) + 1}T12:00:00Z`, assignments: [] }));
+    const paid = PAID.includes(state.status);
+    const members = [...group.members, ...extra].map((m) => (m.role === 'director' || m.seat === 'own' ? { ...m, seat: 'own' } : { ...m, seat: paid && state.holders.includes(m.id) ? 'seated' : 'needed' }));
+    const endsAt = state.status === 'canceled' ? new Date(Date.now() + 40 * 86400000).toISOString() : null;
+    json.data = { ...group, members, memberCount: members.length, seat: 'seated', seats: { status: state.status, bought: state.bought, used: paid ? state.holders.length : 0, min: 10, trialEndsAt: null, endsAt } };
+    return json;
+}
+
+/** Seats filled in join order up to `bought` (more fill the next, fewer drop the last given). */
+async function fillSeats(state) {
+    const json = await seatsGroup({ ...state, status: 'active' });
+    const waiting = json.data.members.filter((m) => m.seat === 'needed').map((m) => m.id);
+    const holders = state.holders.slice(0, state.bought);
+    while (holders.length < state.bought && waiting.length) holders.push(waiting.shift());
+    return { ...state, holders };
+}
+
+async function mockSeats(operation, params, body) {
+    const state = seatsKept();
+    if (operation === 'groups.show') {
+        if (state.pending > 0) {
+            keepSeats({ ...state, pending: state.pending - 1 });
+            return respond(200, await seatsGroup({ ...state, status: 'none', bought: 0 }));
+        }
+        return respond(200, await seatsGroup(state));
+    }
+    if (operation === 'groups.seats.checkout') {
+        if (PAID.includes(state.status)) return respond(409, { message: 'seats_active', code: 'seats_active' });
+        if (!(body.seats >= 10 && body.seats <= 60)) return respond(422, { message: 'Unprocessable Content.', code: 'validation_failed', errors: { seats: ['Choose 10 to 60 seats.'] } }); // i18n-ignore: the server's words
+        keepSeats(await fillSeats({ ...state, status: 'active', bought: body.seats, pending: 1 }));
+        return respond(201, { data: { url: `/groups/${params.id}?seats=bought` } });
+    }
+    if (operation === 'groups.seats.update') {
+        if (!PAID.includes(state.status)) return respond(409, { message: 'no_subscription', code: 'no_subscription' });
+        const next = await fillSeats({ ...state, bought: body.seats });
+        keepSeats(next);
+        return respond(200, await seatsGroup(next));
+    }
+    if (operation === 'groups.seats.move') {
+        if (!PAID.includes(state.status)) return respond(409, { message: 'no_subscription', code: 'no_subscription' });
+        const month = 30 * 86400000;
+        const moves = state.moves.filter((at) => Date.now() - at < month);
+        if (moves.length >= 3) return respond(429, { message: 'Too Many Requests.', code: 'rate_limited', retryAfter: Math.ceil((moves[0] + month - Date.now()) / 1000) }); // i18n-ignore: the server's words
+        if (!state.holders.includes(body.from)) return respond(422, { message: 'Unprocessable Content.', code: 'validation_failed', errors: { from: ['That singer holds no seat.'] } }); // i18n-ignore: the server's words
+        const next = { ...state, holders: state.holders.map((id) => (id === body.from ? body.to : id)), moves: [...moves, Date.now()] };
+        keepSeats(next);
+        return respond(200, await seatsGroup(next));
+    }
+    return null;
+}
+
 function respond(status, json) {
     return new Response(status === 204 || json === null ? null : JSON.stringify(json), {
         status,
@@ -162,6 +226,8 @@ function matchPath(pattern, path) {
 
 /** The few operations that change something keep it, so the admin's lists stay true. */
 async function stateful(operation, params, body, cases, query = {}) {
+    // The server refusing a group's song for want of a seat (stackapella.mockSeatRefused, its template id), for a flow.
+    if (operation === 'templates.show' && params?.id && tabStorage.get('stackapella.mockSeatRefused') === params.id) return respond(403, { message: 'Forbidden.', code: 'plus_required', reason: 'seat_needed' }); // i18n-ignore: the server's words
     const caseFor = async (code) => {
         const known = cases.find((c) => c.code === code);
         return respond(known?.status ?? 422, known?.example ? await example(known.example) : { message: code, code });
@@ -258,10 +324,12 @@ async function stateful(operation, params, body, cases, query = {}) {
         // The choir gallery's switch (choir_gallery), on for a flow (stackapella.mockChoirGallery, this tab).
         // Practise the set's switch (practice_set; staff have it on), on for a flow (stackapella.mockPracticeSet, this tab).
         const practiceSet = tabStorage.get('stackapella.mockPracticeSet') === '1' || !!data.practiceSet;
+        // Choir seats' switch (choir_seats), on for a flow (stackapella.mockChoirSeats, this tab); the seats themselves below.
+        const choirSeats = tabStorage.get('stackapella.mockChoirSeats') === '1' || !!data.choirSeats;
         const choirGallery = { ...data.choirGallery, on: tabStorage.get('stackapella.mockChoirGallery') === '1' || !!data.choirGallery?.on };
         // Song pieces in lessons (song_pieces), on for a flow (stackapella.mockSongPieces, this tab).
         const songPieces = tabStorage.get('stackapella.mockSongPieces') === '1' || !!data.songPieces;
-        return respond(200, { data: { ...data, choirGallery, songPieces, ideas: !scenarios().includes('ideas.list:not_found'), practiceSet, experiments, aiOptional, lendVoice, choirEmail, singingTest, singingTestBoards, selfHosted, withheldSongs, aiVoices, ownChoir, ownChoirSongs, turnstileSiteKey, ownChoirTogether } });
+        return respond(200, { data: { ...data, choirGallery, songPieces, ideas: !scenarios().includes('ideas.list:not_found'), practiceSet, choirSeats, experiments, aiOptional, lendVoice, choirEmail, singingTest, singingTestBoards, selfHosted, withheldSongs, aiVoices, ownChoir, ownChoirSongs, turnstileSiteKey, ownChoirTogether } });
     }
     // A share's body as sent (Update that link's `replaces` among it), for the flows; the example answers as before.
     if (operation === 'harmonies.create') globalThis.mockShareBody = body;
@@ -283,7 +351,7 @@ async function stateful(operation, params, body, cases, query = {}) {
         // Initials on the boards, as this tab last set them; `young` is under 18 (initials only).
         const naming = JSON.parse(tabStorage.get('stackapella.mockInitials') || '{}');
         Object.assign(data, naming);
-        if (who === 'young') Object.assign(data, { isAdult: false, boardsName: 'initials' });
+        if (who === 'young') Object.assign(data, { isAdult: false, boardsName: 'initials', ageBand: 'u18' });
         // AI features, as this tab last chose them (account.update `aiFeatures`); not asked: null.
         const ai = tabStorage.get('stackapella.mockAiFeatures');
         data.aiFeatures = ai === null ? (data.aiFeatures ?? null) : ai === '1';
@@ -379,6 +447,21 @@ async function stateful(operation, params, body, cases, query = {}) {
         return respond(200, await accountAs(as));
     }
     if (operation.startsWith('account.') && as === 'signedOut') return signedOut();
+    // A buyer in the EU, EEA or UK, for a flow (stackapella.mockStartNow, this tab): billing.prices asks for the consent to
+    // start at once, with the server's words, and billing.checkout refuses without it.
+    if (tabStorage.get('stackapella.mockStartNow') === '1' && !scenarios().some((s) => s.startsWith(operation + ':'))) {
+        if (operation === 'billing.prices') {
+            const json = await example('billing.prices.200.json');
+            json.data = { ...json.data, startNowConsent: true, startNowWords: { version: 1, text: "I want it to start now, and I understand that I lose my 14-day right to cancel for the time I've already used." } }; // i18n-ignore: the server's words
+            return respond(200, json);
+        }
+        if (operation === 'billing.checkout' && body?.startNowConsent !== true) return respond(422, await example('billing.checkout.validation_failed.json'));
+    }
+    // Choir seats for the director (`plus`), with the switch on for the tab: js/components/choir-seats.js's flow drives them.
+    if (operation.startsWith('groups.') && tabStorage.get('stackapella.mockChoirSeats') === '1' && as === 'plus' && !scenarios().some((s) => s.startsWith(operation + ':'))) {
+        const answer = await mockSeats(operation, params, body);
+        if (answer) return answer;
+    }
     // A choir group as one of its members sees it, for a tab that asks (`stackapella.mockChoirMember`, the
     // groups flow; anyone but `plus`, who directs it): the examples' Kim Ode is the signed-in account, with
     // no link to copy. Other tabs keep the example, so Home has no parts to learn for every mock account.
@@ -386,6 +469,10 @@ async function stateful(operation, params, body, cases, query = {}) {
         const json = await example(`${operation}.200.json`);
         const me = (await example('account.show.200.json')).data.id;
         json.data = { ...json.data, role: 'member', link: null, members: json.data.members.map((m) => (m.name === 'Kim Ode' ? { ...m, id: me } : m)) };
+        // Choir seats on, and no seat for this member (stackapella.mockMemberSeat 'needed'): the group's own song waits for it.
+        if (tabStorage.get('stackapella.mockChoirSeats') === '1' && tabStorage.get('stackapella.mockMemberSeat') === 'needed') {
+            json.data = { ...json.data, seat: 'needed', seats: null, songs: json.data.songs.map((s) => (s.templateId === 'amazing-grace' ? s : { ...s, seat: 'needed' })) };
+        }
         return respond(200, json);
     }
     if (operation.startsWith('beta.') && !['beta.invite.show', 'beta.agreement.show'].includes(operation)) {

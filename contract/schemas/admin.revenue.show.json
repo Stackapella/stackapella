@@ -16,7 +16,8 @@
                 "subscribers",
                 "months",
                 "oneOff",
-                "ifAllConvert"
+                "ifAllConvert",
+                "seats"
             ],
             "properties": {
                 "mrr": {
@@ -261,6 +262,48 @@
                         }
                     },
                     "description": "MRR and ARR if every web trial running now goes on to pay, per currency."
+                },
+                "seats": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "choirs",
+                        "bought",
+                        "used",
+                        "arr"
+                    ],
+                    "properties": {
+                        "choirs": {
+                            "type": "integer",
+                            "description": "Packs paid and valid."
+                        },
+                        "bought": {
+                            "type": "integer"
+                        },
+                        "used": {
+                            "type": "integer"
+                        },
+                        "arr": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                    "currency",
+                                    "cents"
+                                ],
+                                "properties": {
+                                    "currency": {
+                                        "type": "string"
+                                    },
+                                    "cents": {
+                                        "type": "integer"
+                                    }
+                                }
+                            },
+                            "description": "Seats a year at the per-seat price, by the currency of the director's first Checkout; a pack whose currency isn't known is left out."
+                        }
+                    }
                 }
             }
         }

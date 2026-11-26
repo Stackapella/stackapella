@@ -25,6 +25,8 @@ final class BillingController extends Controller
     {
         $user = $request->user();
 
+        $consent = Withdrawal::needsConsent(Withdrawal::country($request)) || ($user instanceof User && Withdrawal::needsConsent($user->country));
+
         return response()->json(['data' => [
             'prices' => BillingState::prices(),
             'trial' => $state->trial($user instanceof User ? $user : null),
@@ -32,7 +34,9 @@ final class BillingController extends Controller
             'seats' => BillingState::seats(),
             // Ask for the consent to start at once (the EU, EEA and UK withdrawal right).
             // By the visitor's network, or the account's latest country (a VPN or travel), the same rule Checkout uses.
-            'startNowConsent' => Withdrawal::needsConsent(Withdrawal::country($request)) || ($user instanceof User && Withdrawal::needsConsent($user->country)),
+            'startNowConsent' => $consent,
+            // Its words, one source for Plus and seats alike, at the version Checkout records (in the request's language).
+            'startNowWords' => $consent ? ['version' => Withdrawal::version(), 'text' => __('billing.start_now_words')] : null,
         ]]);
     }
 

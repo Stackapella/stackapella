@@ -39,6 +39,7 @@ use App\Http\Controllers\Api\Admin\FunnelController as AdminFunnel;
 use App\Http\Controllers\Api\Admin\GalleryController as AdminGallery;
 use App\Http\Controllers\Api\Admin\GiveSongController;
 use App\Http\Controllers\Api\Admin\GroupsController as AdminGroups;
+use App\Http\Controllers\Api\Admin\GroupSeatsController as AdminGroupSeats;
 use App\Http\Controllers\Api\Admin\GrowthController as AdminGrowth;
 use App\Http\Controllers\Api\Admin\GrowthExportController as AdminGrowthExport;
 use App\Http\Controllers\Api\Admin\IdeasController as AdminIdeas;
@@ -634,6 +635,9 @@ Route::middleware(['auth', 'editor', 'second-factor'])->prefix('admin')->name('a
         Route::delete('/blocklist/{block}', [BlocklistController::class, 'destroy'])->middleware('sudo')->name('blocklist.delete');
         Route::get('/security-events', SecurityEventsController::class)->name('securityEvents.list');
         Route::get('/groups', [AdminGroups::class, 'index'])->name('groups.list');
+        // A choir's seats: staff see them; moving one or filling them again from Stripe is in sudo, with a reason.
+        Route::get('/groups/{group}/seats', [AdminGroupSeats::class, 'show'])->name('groups.seats.show');
+        Route::post('/groups/{group}/seats', [AdminGroupSeats::class, 'update'])->middleware('sudo')->name('groups.seats.update');
         Route::get('/audit', AuditController::class)->name('audit.list');
         Route::get('/billing/disputes', DisputesController::class)->name('billing.disputes.list');
         Route::get('/reports', [AdminReports::class, 'index'])->name('reports.list');

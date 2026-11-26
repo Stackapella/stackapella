@@ -1,8 +1,10 @@
 """AI optional (docs/ai-optional-plan.md): one choice behind every AI feature, behind its release switch (ai_optional).
 Before the switch nothing changes and Settings has no row. With it: a guest from / has AI off and one through
 /ai-harmony-singing (?ref=ai-harmony-singing) on; an account's Settings row turns it off, the AI guides give way to the practice voice,
-the choir page says it uses AI voices with the way to turn them on, and that button brings the choir page back. A new
-account (not chosen) starts with AI off. Both skins.
+the choir page says it uses AI voices with the way to turn them on, and that button brings the choir page back. Since
+Hillel's 2026-11-26 change ("most new users to see it but have the option to hide forever"): a new account (not chosen)
+and a guest from / start with AI on, an account under 18 never has it, and a guest's Hide sticks, even through the AI
+page. Both skins.
 """
 import sys
 from pathlib import Path
@@ -51,22 +53,31 @@ def journey(f):
     f.wait("document.querySelector('[data-choir-agree]') || document.querySelector('[data-choir-start]')", what="the choir page, AI on again")
     assert f.js(AI_ON) is True
 
-    # A new account, not chosen yet: AI off until the card or Settings.
-    f.run("sessionStorage.removeItem('stackapella.mockAiFeatures');")
+    # A new account, not chosen yet: AI on (Hillel, 2026-11-26), and Settings shows it on.
+    f.run("sessionStorage.removeItem('stackapella.mockAiFeatures'); sessionStorage.removeItem('stackapella.mockAiSource');")
     f.go(f"/settings{MEMBER}", "document.querySelector('[data-ai-features]')")
-    assert f.js(AI_ON) is False, "a new account starts with AI on"
-    assert f.js("document.querySelector('[data-ai-features] [role=switch]').getAttribute('aria-checked')") == "false"
+    assert f.js(AI_ON) is True, "a new account starts with AI off"
+    assert f.js("document.querySelector('[data-ai-features] [role=switch]').getAttribute('aria-checked')") == "true"
 
-    # Guests: off from /, on through /ai-harmony-singing (the device remembers it).
+    # Under 18: never, chosen or not.
+    f.go("/settings?api=mock&scenario=&as=young", "document.querySelector('h1')")
+    assert f.js(AI_ON) is False, "an account under 18 has AI"
+
+    # Guests: on from /; a guest's Hide sticks on the device, even through /ai-harmony-singing (Settings brings it back).
     f.go("/?api=mock&scenario=&as=signedOut", "document.querySelector('h1')")
-    f.run(SWITCH_ON + " localStorage.removeItem('stackapella.ai');")
+    f.run(SWITCH_ON + " localStorage.removeItem('stackapella.ai'); localStorage.removeItem('stackapella.aiFrom');")
     f.go("/?api=mock&scenario=&as=signedOut", "document.querySelector('h1')")
-    assert f.js(AI_ON) is False, "a guest from / has AI on"
+    assert f.js(AI_ON) is True, "a guest from / has AI off"
+    f.run("await (await import('/js/ai-choice.js')).hideAi('home_choir')")
+    f.go("/?api=mock&scenario=&as=signedOut&ref=ai-harmony-singing", "document.querySelector('h1')")
+    assert f.js("localStorage.getItem('stackapella.ai')") == "off", "the AI page undid a guest's Hide"
+    assert f.js(AI_ON) is False, "a guest's Hide didn't stick"
+    f.run("localStorage.removeItem('stackapella.ai'); localStorage.removeItem('stackapella.aiFrom');")
     f.go("/?api=mock&scenario=&as=signedOut&ref=ai-harmony-singing", "document.querySelector('h1')")
     assert f.js("localStorage.getItem('stackapella.ai')") == "on", "the /ai-harmony-singing arrival wasn't kept"
     assert f.js(AI_ON) is True, "a guest from /ai-harmony-singing has AI off"
 
-    f.run("localStorage.removeItem('stackapella.ai'); ['mockAiOptional', 'mockAiFeatures', 'mockAiVoices', 'mockOwnChoir'].forEach((k) => sessionStorage.removeItem('stackapella.' + k));")
+    f.run("localStorage.removeItem('stackapella.ai'); localStorage.removeItem('stackapella.aiFrom'); ['mockAiOptional', 'mockAiFeatures', 'mockAiSource', 'mockAiVoices', 'mockOwnChoir'].forEach((k) => sessionStorage.removeItem('stackapella.' + k));")
 
 
 if __name__ == "__main__":

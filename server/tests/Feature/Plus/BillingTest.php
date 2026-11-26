@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Support\Flags;
 use App\Support\Trust\TrustLevel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Tests\Support\Plus;
 use Tests\TestCase;
@@ -39,6 +40,7 @@ final class BillingTest extends TestCase
 
     public function test_checkout_starts_for_a_verified_account_and_remembers_the_moment(): void
     {
+        config(['counts.enabled' => true]);
         $this->actingAs($this->member(verified: false));
         $this->assertMatchesContract($this->postJson('/api/billing/checkout', ['interval' => 'year', 'currency' => 'usd', 'trial' => true, 'moment' => 'plus_song']), 'billing.checkout', 403);
 
@@ -67,6 +69,12 @@ final class BillingTest extends TestCase
         $this->assertMatchesContract($this->postJson('/api/billing/checkout', ['interval' => 'month', 'currency' => 'usd', 'trial' => true, 'moment' => 'x']), 'billing.checkout', 409);
         $this->postJson('/api/billing/checkout', ['interval' => 'month', 'currency' => 'usd', 'trial' => false, 'moment' => 'something-new'])->assertCreated();
         $this->assertSame('other', CheckoutSession::query()->latest('id')->value('moment'));
+
+        // The funnel, counted anonymously: three started, two refused and why.
+        $counts = DB::table('usage_counts')->where('kind', 'like', 'checkout\\_%')->pluck('count', 'kind')->map(static fn (mixed $n): int => (int) $n)->sortKeys()->all();
+        $this->assertSame(3, $counts['checkout_started:plus'] ?? 0);
+        $this->assertSame(1, $counts['checkout_refused:email_unverified'] ?? 0);
+        $this->assertSame(2, array_sum(array_filter($counts, static fn (string $kind): bool => str_starts_with($kind, 'checkout_refused:'), ARRAY_FILTER_USE_KEY)));
     }
 
     public function test_checkout_without_a_trial_field_starts_paid(): void
@@ -173,8 +181,9 @@ final class BillingTest extends TestCase
 
     public function test_in_the_eu_and_uk_plus_starts_at_once_only_with_consent_and_checkout_says_how_it_renews(): void
     {
-        $this->getJson('/api/billing/prices')->assertJsonPath('data.startNowConsent', false);
-        $this->withHeaders(['CF-IPCountry' => 'DE'])->getJson('/api/billing/prices')->assertJsonPath('data.startNowConsent', true);
+        $this->getJson('/api/billing/prices')->assertJsonPath('data.startNowConsent', false)->assertJsonPath('data.startNowWords', null);
+        $this->withHeaders(['CF-IPCountry' => 'DE'])->getJson('/api/billing/prices')->assertJsonPath('data.startNowConsent', true)
+            ->assertJsonPath('data.startNowWords', ['version' => 2, 'text' => "I want it to start now, and I understand that I lose my 14-day right to cancel for the time I've already used."]);
         $this->withHeaders(['CF-IPCountry' => 'GB'])->getJson('/api/billing/prices')->assertJsonPath('data.startNowConsent', true);
 
         $this->actingAs($this->member());
@@ -185,7 +194,7 @@ final class BillingTest extends TestCase
 
         $this->withHeaders(['CF-IPCountry' => 'FR'])->postJson('/api/billing/checkout', ['interval' => 'year', 'currency' => 'eur', 'trial' => true, 'moment' => 'settings', 'startNowConsent' => true])->assertCreated();
         $record = CheckoutSession::query()->sole();
-        $this->assertSame(['FR', 1], [$record->country, $record->start_now_consent_version]);
+        $this->assertSame(['FR', 2], [$record->country, $record->start_now_consent_version]);
         $this->assertNotNull($record->start_now_consent_at);
         // Stripe's page: the trial's end, then the renewal at its price, and how to cancel.
         $this->assertStringContainsString('Your free trial ends on '.now()->addDays(7)->isoFormat('LL'), $this->stripe->checkouts[0]['terms']);

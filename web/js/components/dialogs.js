@@ -29,6 +29,7 @@ import { SLOW_MS } from './screen-loading.js';
 import { pastFirstWeek, voiceAskOpen, voicelessParts } from '../be-the-voice.js';
 import { AiVoiceLabel, voiceCredit } from '../ai-voices.js';
 import { ownChoirOn } from '../own-choir-state.js';
+import { AiHide } from './ai-hide.js';
 import { versionsOf } from '../song-versions.js';
 
 // A song's pace in words for a new singer (no BPM: the design rules' first-week words).
@@ -874,7 +875,7 @@ export const RangeDialog = {
  * step under them, quiet, for anyone who may start it, never in a new singer's first week.
  */
 export const TemplateDialog = {
-    components: { AiVoiceLabel, Modal, Icon },
+    components: { AiVoiceLabel, Modal, Icon, AiHide },
     // locked: a guest on a song that needs a free account (the catalogue's summary: no notes): its clip, and the way to an account.
     // taste: a guest on a library song whose first phrase they may sing (templates.firstPhrase): Start sings that, the ask after.
     // load: the song's notes still coming ('loading'), or why they didn't ('failed', 'offline'); starting: Start was tapped.
@@ -922,7 +923,10 @@ export const TemplateDialog = {
                     <p v-if="aiParts.length" class="py-3.5 text-sm text-muted" data-song-ai-voices><AiVoiceLabel :parts="aiParts" :cta="voiceOpen" dot @voice="$emit('voice')" /></p>
                     <!-- Hear yourself as a choir (js/own-choir.js, behind own_choir): one row, its words and the way in. -->
                     <div v-if="choirShown" class="py-3.5" data-song-choir>
-                        <button type="button" class="link tap-44 font-semibold" data-song-choir-go @click="$emit('choir')">{{ t('ownChoir.entry.button') }}</button>
+                        <div class="flex flex-wrap items-center justify-between gap-x-5">
+                            <button type="button" class="link tap-44 font-semibold" data-song-choir-go @click="$emit('choir')">{{ t('ownChoir.entry.button') }}</button>
+                            <AiHide where="song_choir" />
+                        </div>
                         <p class="t-hint">{{ t('ownChoir.entry.line', { song: songTitle(template) }) }}</p>
                     </div>
                     <!-- Be the voice (be-the-voice.js): the parts no one has sung yet, past the first week, one quiet row. -->

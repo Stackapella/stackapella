@@ -46,10 +46,12 @@ return [
     'site.compare.pages.cyberbass-and-choralia' => ['faq' => [2 => [1 => 'Yes: every course and every song in the library, with a free account, and unlimited workouts, your history, and joining any song you\'re invited to. Plus, for :price_month a month or :price_year a year, lets you invite friends to sing, is your seat in any choir group, and adds more storage, MP3 and stems, and unlimited private arrangements.']]],
     // For choir directors (the new page).
     'site.for_directors.note' => 'Each singer needs a seat, which you buy for the choir from 10 seats. A singer with Plus already has one.',
-    'site.for_directors.steps' => [0 => [1 => 'Starting a group takes Plus, and each singer needs a seat, bought for the choir from 10 seats. Groups are for singers 18 and over.']],
+    'site.for_directors.steps' => [0 => [1 => 'Starting a group is free, and each singer needs a seat, bought for the choir from 10 seats. Groups are for singers 18 and over.']],
     'site.for_directors.faq' => [0 => [1 => 'Each singer needs a seat, which you buy for the choir from 10 seats; a singer with Plus already has one. Your first song\'s learning tracks are free.']],
     // /pricing's choir callout.
     'pages.pricing.choir_callout' => 'Leading a choir? Each singer needs a seat, which you buy for the choir from 10 seats, and your first song\'s learning tracks are on us.',
     // Who it's for's question about a whole choir (ai-marketing, 2026-11-26).
     'site.for.index.faq' => ['whole_choir' => [1 => 'Yes. Start a group and invite your singers by link. Each singer needs a seat, which you buy for the choir from 10 seats; a singer with Plus already has one. Give each singer a part and see who has started and who has recorded it. Groups are for singers 18 and over.']],
+    // Who it's for's directors band, its cost line (ai-marketing, 2026-11-26), as whole_choir says it.
+    'site.for.index.cards' => ['choir-directors' => ['cost' => 'Starting a group is free, and each singer needs a seat, bought for the choir from 10 seats. Your first song\'s tracks are free.']],
 ];

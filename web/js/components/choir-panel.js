@@ -5,7 +5,8 @@
 // it sits in the course card's side column (`side`: no card of its own); on a phone, its own card after the course.
 
 import { t } from '../i18n.js';
-import { aiOn, aiYes } from '../ai-choice.js';
+import { aiOn } from '../ai-choice.js';
+import { AiHide } from './ai-hide.js';
 import { navigate } from '../router.js';
 import { clipSongs, isOpen, ownChoir, ownChoirOn, readyUnseen, togetherOn } from '../own-choir-state.js';
 
@@ -28,15 +29,15 @@ export function choirReady() {
 }
 
 /**
- * Whether Home shows the panel: a song to hear, or the choir on and either a real yes to AI (ai-choice.js aiYes) or songs
- * already asked for (they used it). Until then the contextual AI card after a kept part is the way in.
+ * Whether Home shows the panel: a song to hear, or the choir on (AI on here: undecided counts, Hillel 2026-11-26, with Hide
+ * AI features on the panel itself).
  */
 export function choirPanelShown() {
-    if (choirReady().length) return true;
-    return ownChoirOn() && (aiYes() || (ownChoir.data?.requests ?? []).length > 0);
+    return choirReady().length > 0 || ownChoirOn();
 }
 
 export const ChoirPanel = {
+    components: { AiHide },
     props: { side: Boolean },
     computed: {
         rows: () => choirReady(),
@@ -81,7 +82,12 @@ export const ChoirPanel = {
             </template>
             <template v-else>
                 <p class="mt-1.5 text-sm text-muted">{{ t('ownChoir.home.body') }}</p>
-                <button type="button" class="btn-secondary btn-sm mt-4 min-h-11" data-choir-try @click="tryIt">{{ t('ownChoir.home.try') }}</button>
+                <!-- Not for me beside Try it, as the install card's Not now (AI's first showing only). -->
+                <div class="mt-4 flex flex-wrap items-center gap-3">
+                    <button type="button" class="btn-secondary btn-sm min-h-11" data-choir-try @click="tryIt">{{ t('ownChoir.home.try') }}</button>
+                    <AiHide where="home_choir" />
+                </div>
             </template>
+            <div v-if="rows.length || making" class="flex justify-end"><AiHide where="home_choir" /></div>
         </section>`,
 };

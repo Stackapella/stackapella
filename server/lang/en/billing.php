@@ -23,6 +23,9 @@ return [
     'start_now_consent_required' => 'Please confirm that Plus should start now.',
     // On every Stripe receipt and invoice once agreed (a durable copy of the consent; Stripe allows 40 and 140 characters).
     'start_now_receipt_name' => 'Plus started at once',
+    // The consent's words the app shows before Checkout (Plus and a choir's seats alike), at config
+    // billing.start_now_consent_version: marketing's wording 2026-11-26 (Hillel: "Ship it"); the lawyer confirms.
+    'start_now_words' => 'I want it to start now, and I understand that I lose my 14-day right to cancel for the time I\'ve already used.',
     'start_now_receipt' => 'On :date you asked for Plus to start at once and agreed that you lose the 14-day right to cancel for the time used.',
 
     // A choir's seats on Stripe's Checkout page (docs/choir-seats-plan.md), above the button.

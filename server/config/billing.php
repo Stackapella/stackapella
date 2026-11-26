@@ -50,7 +50,8 @@ return [
 
     // The EU, EEA and UK consent to start Plus at once (App\Support\Billing\Withdrawal): the
     // version of the words the app shows, moved on when the lawyer changes them.
-    'start_now_consent_version' => 1,
+    // 2 since 2026-11-26: marketing's words, after version 1's draft (a new number with every change of words).
+    'start_now_consent_version' => 2,
 
     // Stripe's own "I agree to the terms" box on Checkout: on once the terms' address is set in
     // Stripe's settings (Stripe refuses it before).

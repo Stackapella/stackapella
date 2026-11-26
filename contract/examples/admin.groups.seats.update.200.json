@@ -1,0 +1,42 @@
+{
+    "data": {
+        "group": {
+            "id": "g_8Hk2",
+            "name": "St Anne's Singers",
+            "director": {
+                "id": "u_3Rf9",
+                "name": "Grace Hopper"
+            }
+        },
+        "status": "active",
+        "bought": 12,
+        "used": 11,
+        "min": 10,
+        "trialEndsAt": null,
+        "endsAt": null,
+        "startedAt": "2026-11-20T10:00:00Z",
+        "movesThisMonth": 3,
+        "movesLeft": 0,
+        "nextMoveAt": "2026-12-19T09:30:00Z",
+        "stripeUrl": "https://dashboard.stripe.com/subscriptions/sub_1Example",
+        "holders": [
+            {
+                "id": "u_7Qk2",
+                "name": "Ada Lovelace",
+                "since": "2026-11-20T10:05:00Z"
+            }
+        ],
+        "own": [
+            {
+                "id": "u_9Lm4",
+                "name": "Alan Turing"
+            }
+        ],
+        "unseated": [
+            {
+                "id": "u_2Pz8",
+                "name": "Mary Somerville"
+            }
+        ]
+    }
+}

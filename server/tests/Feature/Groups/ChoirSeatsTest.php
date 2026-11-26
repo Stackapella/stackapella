@@ -472,4 +472,46 @@ final class ChoirSeatsTest extends TestCase
         $this->assertSame('free', OwnChoir::tier($sam), 'But AI songs need their own Plus.');
         $this->assertFalse(OwnChoir::quota($sam)['plus']);
     }
+
+    public function test_staff_see_a_choirs_seats_and_move_or_refill_them_in_sudo_with_a_reason(): void
+    {
+        $this->on();
+        $c = $this->choir();
+        // A pack of 2 for 3 singers: Sam and Kim, who joined first, hold the seats; Lee has none.
+        $this->seatsEvent('customer.subscription.created', $c['group'], 2)->assertOk();
+
+        $admin = $this->actingAsAdmin();
+        $shown = $this->getJson('/api/admin/groups/'.$c['id'].'/seats');
+        $this->assertMatchesContract($shown, 'admin.groups.seats.show', 200);
+        $shown->assertJsonPath('data.status', 'active')->assertJsonPath('data.bought', 2)->assertJsonPath('data.movesLeft', 3)->assertJsonPath('data.nextMoveAt', null);
+        $this->assertSame(['Sam', 'Kim'], array_column((array) $shown->json('data.holders'), 'name'));
+        $this->assertSame(['Lee'], array_column((array) $shown->json('data.unseated'), 'name'));
+        $this->assertStringContainsString('subscriptions/sub_choir_'.$c['group']->id, (string) $shown->json('data.stripeUrl'));
+
+        // Staff move Sam's seat to Lee: not counted against the director's three.
+        $moved = $this->postJson('/api/admin/groups/'.$c['id'].'/seats', ['action' => 'move', 'from' => $c['members']['Sam']->sqid(), 'to' => $c['members']['Lee']->sqid(), 'reason' => 'Sam asked support to give it to Lee.']);
+        $this->assertMatchesContract($moved, 'admin.groups.seats.update', 200);
+        $this->assertSame(['Kim', 'Lee'], array_column((array) $moved->json('data.holders'), 'name'));
+        $moved->assertJsonPath('data.movesLeft', 3);
+        $this->assertSame(1, AuditLog::query()->where('action', 'admin.groups.seat_moved')->where('actor_id', $admin->id)->count());
+
+        $this->assertMatchesContract($this->postJson('/api/admin/groups/'.$c['id'].'/seats', ['action' => 'move', 'from' => $c['members']['Lee']->sqid(), 'to' => $c['members']['Kim']->sqid(), 'reason' => 'Again.']), 'admin.groups.seats.update', 422);
+        $this->postJson('/api/admin/groups/'.$c['id'].'/seats', ['action' => 'sync'])->assertStatus(422);
+        $this->postJson('/api/admin/groups/'.$c['id'].'/seats', ['action' => 'sync', 'reason' => 'Stripe changed the pack by hand.'])->assertOk();
+        $this->assertMatchesContract($this->getJson('/api/admin/groups/nope/seats'), 'admin.groups.seats.show', 404);
+        $this->assertMatchesContract($this->postJson('/api/admin/groups/nope/seats', ['action' => 'sync', 'reason' => 'Nothing.']), 'admin.groups.seats.update', 404);
+
+        // Revenue shows the pack beside Plus.
+        $revenue = $this->getJson('/api/admin/revenue');
+        $this->assertMatchesContract($revenue, 'admin.revenue.show', 200);
+        $this->assertSame([1, 2, 2], [$revenue->json('data.seats.choirs'), $revenue->json('data.seats.bought'), $revenue->json('data.seats.used')]);
+
+        // A director's own moves are counted: after three, Admin says when the next may be.
+        foreach (range(1, 3) as $i) {
+            AuditLog::record('groups.seat_moved', null, $c['director'], after: ['group' => $c['group']->id, 'from' => 'a', 'to' => 'b']);
+        }
+
+        $this->getJson('/api/admin/groups/'.$c['id'].'/seats')->assertJsonPath('data.movesLeft', 0)->assertJsonPath('data.movesThisMonth', 3);
+        $this->assertNotNull($this->getJson('/api/admin/groups/'.$c['id'].'/seats')->json('data.nextMoveAt'));
+    }
 }

@@ -205,6 +205,17 @@
                     "cents": 35928
                 }
             ]
+        },
+        "seats": {
+            "choirs": 2,
+            "bought": 24,
+            "used": 21,
+            "arr": [
+                {
+                    "currency": "usd",
+                    "cents": 36000
+                }
+            ]
         }
     }
 }

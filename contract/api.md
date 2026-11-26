@@ -614,6 +614,8 @@ Each operation is one function in `web/js/api.js` named after it, and one route 
 | `admin.sources.show` | `GET /api/admin/sources` | An admin, or a growth viewer | L |
 | `admin.active.show` | `GET /api/admin/active` | An admin | L |
 | `admin.groups.list` | `GET /api/admin/groups` | An admin | L |
+| `admin.groups.seats.show` | `GET /api/admin/groups/{id}/seats` | An admin | Choir seats |
+| `admin.groups.seats.update` | `POST /api/admin/groups/{id}/seats` | An admin, in sudo | Choir seats |
 | `admin.reach.show` | `GET /api/admin/reach` | An admin, or a growth viewer | L |
 | `admin.revenue.show` | `GET /api/admin/revenue` | An admin | L |
 | `admin.live.show` | `GET /api/admin/live` | An admin | L |
@@ -2907,8 +2909,10 @@ library songs never need one.
 Plus's prices and the trial, for anyone (the pricing page, signed out). `seats` is a choir's seat price
 (docs/choir-seats-plan.md): each currency's amount a seat a year, `min` seats a pack, and `trialDays`. `startNowConsent` is true
 for a visitor in the EU, EEA or UK: the upgrade sheet then asks, before Checkout, for consent to
-start Plus at once, which affects their 14-day right of withdrawal (the words are the app's, at
-the version the server records; the lawyer confirms them). **Request:** none.
+start Plus at once, which affects their 14-day right of withdrawal. Since 2026-11-26 the words are the server's, one
+source for Plus and a choir's seats: `startNowWords` `{ version, text }` in the request's language whenever
+`startNowConsent` is true (null otherwise), shown by the tick box as they are; Checkout records that version, and the
+lawyer confirms the words. **Request:** none.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -7218,6 +7222,31 @@ from the anonymous daily counts only (`counts.create`; `guest` or `account` is t
 
 | 200 | | `admin.reach.show.json` | `admin.reach.show.200.json` |
 
+#### `admin.groups.seats.show`
+
+A choir's seats, for staff (since 2026-11-26, docs/choir-seats-plan.md): its status as the director's panel says,
+`bought`, `used` and `min`, when the pack started, the director's seat moves in the last 30 days (`movesLeft`, and
+`nextMoveAt` once none are), the pack's page in Stripe's dashboard (its renewal date is there), and every member as a
+seat holder (`since`), seated by their own Plus (`own`) or `unseated`. **Request:** none.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.groups.seats.show.json` | `admin.groups.seats.show.200.json` |
+| 404 | `not_found` | `error.json` | `admin.groups.seats.show.not_found.json` |
+
+#### `admin.groups.seats.update`
+
+**Request:** `{ "action": "move", "from": "<member id>", "to": "<member id>", "reason": "..." }` gives a seat to
+another member without the director's monthly limit (staff's moves aren't counted against it), or `{ "action":
+"sync", "reason": "..." }` fills the seats again from what Stripe says. In sudo, audited with the reason; answers as
+`admin.groups.seats.show`.
+
+| Status | Code | Schema | Example |
+|---|---|---|---|
+| 200 | | `admin.groups.seats.update.json` | `admin.groups.seats.update.200.json` |
+| 404 | `not_found` | `error.json` | `admin.groups.seats.update.not_found.json` |
+| 422 | `validation_failed` | `error.json` | `admin.groups.seats.update.validation_failed.json` |
+
 #### `admin.revenue.show`
 
 Admin > Growth's Revenue (docs/admin-analytics-plan.md, slice 2), from our own tables. **Request:**
@@ -7236,6 +7265,8 @@ currency with nothing in it is left out.
   `unpriced` at its end (now, for this month), `new` (subscriptions whose first payment came that
   month: a trial converting, or a store purchase) and `lost` (paid ones that ended that month).
   Past months are worked out from each subscription's start, trial end and end.
+- `seats` (since 2026-11-26): choir seats beside Plus: `choirs` (packs paid and valid), `bought`, `used`, and `arr`, what
+  they bill a year at the per-seat price by the currency of the director's first Checkout.
 - `oneOff`: coaching (`kind` `coaching`: reviews, lessons, packages) and pack sales (`packs`) by
   `month` and `currency`: `payments` (sales), `gross` (what singers paid, refunds taken off) and
   `ours` (our commission). A coach's backfilled sales are theirs, never counted.

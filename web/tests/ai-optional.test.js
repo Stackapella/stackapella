@@ -1,12 +1,12 @@
 // AI optional (docs/ai-optional-plan.md): one aiOn() behind the ai_optional switch, and the device's return counts by
 // choice and band (js/ai-counts.js).
 import { assert, test } from './harness.js';
-import { aiOn, AI_KEY, cardAllowed, noteAiArrival } from '../js/ai-choice.js';
+import { aiChosen, aiHideOffered, aiOn, AI_KEY, hideAi, noteAiArrival, noteFirstShown } from '../js/ai-choice.js';
 import { aiReturnKinds, lessonBucket, weekOneLessons } from '../js/ai-counts.js';
 import { account } from '../js/stores/account.js';
 import { local } from '../js/storage.js';
 
-test('ai optional: before the switch on for everyone; after it, the account\'s choice, else the device\'s key', () => {
+test('ai optional: before the switch on for everyone; after it, the account\'s choice (undecided: on), else the device\'s key', () => {
     const was = { me: account.me, config: account.config, key: local.get(AI_KEY) };
     try {
         account.config = { aiOptional: false };
@@ -14,13 +14,20 @@ test('ai optional: before the switch on for everyone; after it, the account\'s c
         assert(aiOn() === true, 'off before the switch');
         account.config = { aiOptional: true };
         assert(aiOn() === false, 'the account\'s off ignored');
-        account.me = { aiFeatures: null };
-        assert(aiOn() === false, 'not chosen should count as off (accounts from before were set on by the server)');
+        // Hillel, 2026-11-26: "most new users to see it but have the option to hide forever".
+        account.me = { aiFeatures: null, ageBand: '25-34' };
+        assert(aiOn() === true, 'undecided should count as on');
+        account.me = { aiFeatures: true, aiFeaturesSource: 'existing', ageBand: '35-44' };
+        assert(aiOn() === true && !aiChosen(), 'an older account is on, and still undecided');
+        account.me = { aiFeatures: null, ageBand: 'u18' };
+        assert(aiOn() === false, 'an undecided account under 18 has AI');
+        account.me = { aiFeatures: true, ageBand: 'u18', aiFeaturesSource: 'settings' };
+        assert(aiOn() === false, 'an account under 18 has AI (the server never gives it them)');
         account.me = { aiFeatures: true };
         assert(aiOn() === true, 'the account\'s on ignored');
         account.me = null;
         local.remove(AI_KEY);
-        assert(aiOn() === false, 'a guest from / has AI');
+        assert(aiOn() === true, 'a guest from / should see AI until they hide it');
         noteAiArrival('?ref=ai-harmony-singing', '');
         assert(aiOn() === true, 'a guest from /ai-harmony-singing has no AI');
         local.remove(AI_KEY);
@@ -56,14 +63,39 @@ test('ai optional: the return counts land on their days, each once, with the cho
     assert(weekOneLessons(progress, start) === 2, `week one lessons ${weekOneLessons(progress, start)}`);
 });
 
-test('ai optional: the card shows only when every rule holds', () => {
-    const yes = { optional: true, choir: true, chosen: false, adult: true, songOk: true, firstPart: true, heard: true, firstDay: false, shows: 0, askFree: true };
-    assert(cardAllowed(yes), 'all rules met, no card');
-    assert(cardAllowed({ ...yes, adult: undefined }), 'a guest should see it');
-    for (const [k, v] of [['optional', false], ['choir', false], ['chosen', true], ['adult', false], ['songOk', false], ['firstPart', false], ['heard', false], ['firstDay', true], ['shows', 2], ['askFree', false]]) {
-        assert(!cardAllowed({ ...yes, [k]: v }), `shown with ${k} = ${v}`);
+test('ai optional: Not for me is offered only on AI\'s first showing to someone undecided, and sticks', async () => {
+    const was = { me: account.me, config: account.config, key: local.get(AI_KEY), from: local.get('stackapella.aiFrom'), first: local.get('stackapella.aiFirstShown') };
+    try {
+        account.config = { aiOptional: true };
+        account.me = null;
+        local.remove(AI_KEY);
+        local.remove('stackapella.aiFirstShown');
+        assert(aiHideOffered(), 'an undecided guest should be offered Hide on the first showing');
+        noteFirstShown();
+        assert(!aiHideOffered(), 'offered again after the first showing (Hillel: after that, only in Settings)');
+        account.me = { id: 7, aiFeatures: null, ageBand: '25-34' };
+        assert(aiHideOffered(), 'an account\'s own first showing should be theirs, not the device guest\'s');
+        account.me = null;
+        await hideAi('home_choir');
+        assert(aiOn() === false && aiChosen() && !aiHideOffered(), 'a guest\'s hide did not stick');
+        assert(local.get('stackapella.aiFrom') === 'hide', 'the device keeps where it came from, for the account they make');
+        account.config = { aiOptional: false };
+        assert(!aiHideOffered(), 'offered before the switch');
+        account.config = { aiOptional: true };
+        account.me = { aiFeatures: true, aiFeaturesSource: 'settings' };
+        assert(!aiHideOffered(), 'offered to someone who chose on');
+        account.me = { aiFeatures: null, ageBand: 'u18' };
+        assert(!aiHideOffered(), 'offered where AI is already off');
+    } finally {
+        account.me = was.me;
+        account.config = was.config;
+        if (was.key === null) local.remove(AI_KEY);
+        else local.set(AI_KEY, was.key);
+        if (was.from === null) local.remove('stackapella.aiFrom');
+        else local.set('stackapella.aiFrom', was.from);
+        if (was.first === null) local.remove('stackapella.aiFirstShown');
+        else local.set('stackapella.aiFirstShown', was.first);
     }
-    assert(cardAllowed({ ...yes, shows: 1 }), 'closed once should show once more');
 });
 
 test('ai optional: AI use is counted once a day each, only behind the switch', async () => {

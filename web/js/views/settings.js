@@ -212,8 +212,9 @@ export const SettingsView = {
                     </div>
                 <!-- AI features (docs/ai-optional-plan.md, decision 3): one switch for every AI feature; off, real voices and the
                      practice voice only. Not asked yet counts as on. Off with AI choir songs kept: they're kept, and it says so. -->
+                <!-- Under 18 by the account's band: AI is never on (the server's AiChoice::aiOn), so the switch shows off and can't change. -->
                 <div v-if="aiOptional()" class="card py-3 pe-3 ps-5" data-ai-features>
-                    <Switch :on="aiOn()" :label="t('settings.ai.title')" :hint="!aiOn() ? t('settings.ai.hintOff') : account.me?.isAdult === false ? t('settings.ai.hintOnMinor') : t('settings.ai.hintOn')" :disabled="busy === 'ai'" @change="setAi" />
+                    <Switch :on="aiOn()" :label="t('settings.ai.title')" :hint="!aiOn() ? t('settings.ai.hintOff') : account.me?.isAdult === false ? t('settings.ai.hintOnMinor') : t('settings.ai.hintOn')" :disabled="busy === 'ai' || account.me?.ageBand === 'u18'" @change="setAi" />
                     <p v-if="!aiOn() && keptAiSongs" class="t-hint mt-2 pe-2" data-ai-kept>{{ t('settings.ai.kept', { count: keptAiSongs }) }}</p>
                 </div>
                 <!-- The choir wait (2026-11-24): one email when a choir made from their singing is ready, only if it's still unheard. -->

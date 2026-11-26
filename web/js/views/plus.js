@@ -84,7 +84,7 @@ const STATUS = { trialing: tk('plus.status.trialing'), active: tk('plus.status.a
 
 export const PlusView = {
     components: { AccountWall, AppScreen, Notice, Icon, Logo },
-    data: () => ({ interval: 'year', currency: guessCurrency(), busy: false, notice: null, failed: false, everything: false, next: keptNext() }),
+    data: () => ({ interval: 'year', currency: guessCurrency(), busy: false, notice: null, failed: false, everything: false, next: keptNext(), consent: false, consentAsked: false }),
     setup: () => ({ account, selfHosted, plan, navigate, goBack, MOMENTS, NEXT_WORDS, CARRY_ON, GROUPS, CURRENCIES, STATUS, formatDate, formatNumber }),
     template: `
         <AppScreen :title="t('plus.title')" back="/" measure="" content-class="gap-8 md:gap-12" data-ui="screen" class="bg-ink">
@@ -142,6 +142,9 @@ export const PlusView = {
                                 </label>
                             </div>
                             <p data-ui="facts" class="flex items-start gap-2 rounded-xl bg-accent/10 px-3 py-2.5 text-sm font-semibold text-cream"><Icon name="sparkle" :size="16" class="mt-0.5 shrink-0 text-accent" />{{ t('plus.launchPrice') }}</p>
+                            <!-- In the EU, EEA and UK, Plus starts at once only with this consent (the withdrawal right): the server's
+                                 versioned words (billing.prices' startNowWords), ticked before Checkout. -->
+                            <label v-if="consentNeeded" class="check-row" data-plus-consent><input v-model="consent" type="checkbox" class="checkbox" @change="notice = null" /><span class="text-sm">{{ consentWords }}</span></label>
                             <AccountWall v-if="notice?.signIn" reason="plus" />
                             <Notice v-else-if="notice" :tone="notice.tone">{{ notice.text }}</Notice>
                             <button type="button" class="btn-primary btn-lg w-full" :disabled="busy || failed || (!!account.me && !plan.loaded)" @click="start">{{ buyLabel }}</button>
@@ -182,6 +185,14 @@ export const PlusView = {
                 </section>
         </AppScreen>`,
     computed: {
+        /** The EU, EEA and UK consent to start at once: where billing.prices says so, or the server asked for it. */
+        consentNeeded() {
+            return this.consentAsked || !!plan.prices?.startNowConsent;
+        },
+        /** Its words: the server's, versioned (it records which); the same approved words here until they're served. */
+        consentWords() {
+            return plan.prices?.startNowWords?.text || t('plus.startNow');
+        },
         teamsOn: () => teams.on,
         billing: () => plan.billing,
         /** Plus's numbers, from the server's config (auth.config plusLimits; an older server: none, the lines without them). */
@@ -284,11 +295,19 @@ export const PlusView = {
                 this.notice = { signIn: true }; // the account wall, in the notice's place
                 return;
             }
+            if (this.consentNeeded && !this.consent) {
+                this.notice = { tone: 'warn', text: t('plus.consentFirst') };
+                return;
+            }
             this.busy = true;
             try {
-                await checkout({ interval: this.interval, currency: this.currency, moment: this.moment ?? 'settings' });
+                await checkout({ interval: this.interval, currency: this.currency, moment: this.moment ?? 'settings', startNowConsent: this.consentNeeded && this.consent });
             } catch (error) {
-                this.notice = { tone: 'bad', text: refusal(error) };
+                // The server asks for the consent where this page didn't know to (the account's country): the box, and why.
+                if (error?.code === 'validation_failed' && error.errors?.startNowConsent) {
+                    this.consentAsked = true;
+                    this.notice = { tone: 'warn', text: t('plus.consentFirst') };
+                } else this.notice = { tone: 'bad', text: refusal(error) };
             } finally {
                 this.busy = false;
             }

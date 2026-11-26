@@ -9,6 +9,7 @@ use App\Models\CheckoutSession;
 use App\Models\User;
 use App\Services\Billing\BillingGateway;
 use App\Support\Billing\BillingState;
+use App\Support\Billing\CheckoutCounts;
 use App\Support\Billing\Withdrawal;
 use App\Support\Pages\Prices;
 use App\Support\Trust\TrustLevel;
@@ -35,6 +36,15 @@ final class StartCheckout
      * @param  'month'|'year'  $interval
      */
     public function handle(User $user, string $interval, string $currency, bool $trial, string $moment, ?string $country = null, bool $startNowConsent = false): string
+    {
+        // Counted, started or refused and why (CheckoutCounts): the funnel in Admin.
+        return CheckoutCounts::counted('plus', fn (): string => $this->start($user, $interval, $currency, $trial, $moment, $country, $startNowConsent));
+    }
+
+    /**
+     * @param  'month'|'year'  $interval
+     */
+    private function start(User $user, string $interval, string $currency, bool $trial, string $moment, ?string $country, bool $startNowConsent): string
     {
         // Before Stripe is set up (no key, or no price), Checkout is simply off.
         if ((string) config('cashier.secret') === '' || (string) config('billing.prices.'.$interval) === '') {
