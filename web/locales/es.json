@@ -4485,6 +4485,45 @@
         "joinKind": "{name} · {count, plural, one {# cantante} other {# cantantes}}",
         "joinLead": "Únete a {name} y aprende las canciones que comparte quien dirige tu coro, cada una en la voz que te asigne."
     },
+    "practiceSet": {
+        "button": "Practica el repertorio",
+        "title": "Practica el repertorio",
+        "lead": "{count, plural, one {# canción} other {# canciones, una tras otra}}. Sigue sonando con el móvil bloqueado.",
+        "part": {
+            "title": "¿Qué parte cantas?",
+            "hint": "Te lo preguntamos una vez para este coro. Si tu director te dio una parte, el repertorio usa esa."
+        },
+        "making": "{count, plural, one {Preparando la canción} other {Preparando # canciones}}",
+        "makingHint": "Se prepara en este dispositivo, para que siga sonando con el móvil bloqueado.",
+        "failed": "No se pudo preparar el repertorio. Inténtalo de nuevo.",
+        "empty": "Aún no hay canciones para practicar. Aquí aparecen las que comparta tu director.",
+        "songOf": "Canción {n} de {total}",
+        "ai": "Voz de IA",
+        "allParts": "Todas las partes",
+        "previous": "Canción anterior",
+        "next": "Canción siguiente",
+        "play": "Reproducir",
+        "pause": "Pausar",
+        "sound": {
+            "label": "Cómo suena",
+            "louder": "Tu parte más fuerte",
+            "without": "Sin tu parte"
+        },
+        "songs": "El repertorio",
+        "confirm": {
+            "title": "¿Preparar el repertorio?",
+            "text": "Se prepara en este teléfono y se guarda dos semanas, para que se abra al momento la próxima vez: unos {mb} MB. Mejor con wifi.",
+            "go": "Prepararlo",
+            "notNow": "Ahora no"
+        },
+        "which": "Qué repertorio",
+        "allSongs": "Todas las canciones del coro",
+        "noneForEvent": "Aún no hay canciones elegidas para esta fecha, así que aquí están todas las del coro.",
+        "repeat": "Repetir mi parte",
+        "repeatOn": "Repitiendo tu parte de esta canción. Toca otra vez para todo el repertorio.",
+        "skipped": "{count, plural, one {# canción necesita una plaza en el coro, así que no está en el repertorio.} other {# canciones necesitan una plaza en el coro, así que no están en el repertorio.}}",
+        "lockLine": "{part} · {group}"
+    },
     "early": {
         "in": "Ya estás dentro: abre Stackapella",
         "start": "Empezar a cantar",

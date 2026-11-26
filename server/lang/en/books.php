@@ -11,6 +11,7 @@ return [
         'package' => 'Monthly coaching (:month): :title, for :singer',
         'pack' => 'Exercise pack: :title, for :singer',
         'plus' => 'Stackapella Plus',
+        'seats' => 'Stackapella choir seats',
         'plus_year' => 'Stackapella Plus, :months months',
         'commission' => 'Commission on coaching sales, :month',
         'commission_sale' => ':description (:amount)',

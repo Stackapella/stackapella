@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
+use App\Models\ChoirGalleryItem;
 use App\Models\Harmony;
 use App\Support\Http\Hosts;
+use App\Support\Pages\YourChoirStage;
 use App\Support\Sharing\HarmonyFacts;
 use App\Support\Sharing\SharedPage;
 use Illuminate\Http\Request;
@@ -25,10 +27,22 @@ final class HarmonyPageController extends Controller
     {
         $found = Harmony::query()->with('user', 'templateVersion.template')->where('public_id', $harmony)->first();
 
+        // A choir from the choir gallery (docs/choir-gallery-plan.md, 2): gone, it says it isn't in the gallery any more
+        // (the same words whoever removed it); held after a report, it's not available right now.
+        $gallery = $found !== null ? ChoirGalleryItem::query()->where('harmony_id', $found->id)->latest('id')->first() : null;
+        $back = ['app' => '/', 'gallery' => '/'.YourChoirStage::GALLERY['en']];
+
         if ($found === null || ! $found->isLive() || $found->media_audio_key === null) {
+            if ($gallery !== null) {
+                return response()->view('public.harmony-gone', ['reason' => 'gallery_removed', 'links' => $back], 410, self::HEADERS);
+            }
             $removed = $found !== null && $found->removed_at !== null;
 
             return response()->view('public.harmony-gone', ['reason' => $removed ? 'removed' : 'missing', 'links' => ['app' => '/']], $removed ? 410 : 404, self::HEADERS);
+        }
+
+        if ($gallery !== null && $gallery->status === ChoirGalleryItem::HELD) {
+            return response()->view('public.harmony-gone', ['reason' => 'gallery_held', 'links' => $back], 404, self::HEADERS);
         }
 
         // A shared song's page, opened (an anonymous count by surface: SharedPage). Cached five minutes at the edge,

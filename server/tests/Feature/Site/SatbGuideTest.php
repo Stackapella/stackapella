@@ -31,7 +31,7 @@ final class SatbGuideTest extends TestCase
     public function test_it_answers_the_question_plays_each_range_and_links_each_part(): void
     {
         $page = $this->get('/guides/satb-explained')->assertOk()
-            ->assertSee('<title>What is SATB? Soprano, alto, tenor and bass explained', false)
+            ->assertSee('<title>What Does SATB Mean? Soprano, Alto, Tenor and Bass Explained', false)
             ->assertSee('<strong>SATB</strong> stands for soprano, alto, tenor and bass', false)
             ->assertSee('/js/public/guide-ranges.js', false)
             ->assertSee('"@type":"FAQPage"', false)

@@ -164,6 +164,8 @@ return Application::configure(basePath: dirname(__DIR__))
             // landing (YourChoirStage::SLUGS: /ai-harmony-singing, /es/armonias-con-ia; Hillel, 2026-11-23: the home says nothing of AI); its first address, /your-choir,
             // moved there for good, a shared link's ?ref= kept.
             Route::get('/'.YourChoirStage::SLUGS['en'], [SitePagesController::class, 'yourChoir'])->middleware(['nexus', 'throttle:public-pages'])->name('ai-landing.page');
+            // The choir gallery's page (docs/choir-gallery-plan.md, 2): not found while choir_gallery is off.
+            Route::get('/'.YourChoirStage::GALLERY['en'], [SitePagesController::class, 'choirGallery'])->middleware(['nexus', 'throttle:public-pages'])->name('ai-gallery.page');
             Route::get('/your-choir', [SitePagesController::class, 'yourChoirMoved'])->middleware(['nexus', 'throttle:public-pages'])->name('your-choir.moved');
             Route::get('/ai-singing', [SitePagesController::class, 'yourChoirMoved'])->middleware(['nexus', 'throttle:public-pages'])->name('ai-singing.moved');
             // The home in game mode, the arcade (InfoPagesController::arcade): game mode turned on goes there from the home.

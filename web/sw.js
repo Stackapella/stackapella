@@ -148,6 +148,7 @@ const SHELL = [
     '/js/course-parts.js',
     '/js/sharpen.js',
     '/js/song-course.js',
+    '/js/song-pieces.js',
     '/js/course-clips.js',
     '/js/vibrato.js',
     '/js/pitch-skills.js',
@@ -289,6 +290,10 @@ const SHELL = [
     '/js/views/join.js',
     '/js/views/early.js',
     '/js/views/groups.js',
+    '/js/views/practice-set.js',
+    '/js/practice-set.js',
+    '/js/practice-set-render.js',
+    '/js/practice-set-store.js',
     '/js/group-songs.js',
     '/js/rehearsal.js',
     '/js/share-moment.js',
@@ -449,7 +454,7 @@ const SHELL = [
 
 // The app's own addresses (every route in router.js; tests/sw-routes.test.js keeps them in step);
 // every other page is the server's.
-const APP_ROUTE = /^\/(?:$|index\.html$|p\/[\w-]+(?:\/(?:sing|print))?\/?$|styleguide(?:\/game)?\/?$|beta(?:\/[\w-]*)?\/?$|signin(?:\/link)?\/?$|settings(?:\/(?:reminders|classes))?\/?$|class(?:\/[\w-]+)?\/?$|storage\/?$|voice(?:\/test(?:\/how)?)?\/?$|workout\/?$|rehearse\/[\w-]+\/[\w-]+\/?$|plus\/?$|learn(?:\/[cs])?(?:\/[\w-]+)?(?:\/lines)?\/?$|verify\/?$|reset\/?$|email\/(?:confirm|revert)\/?$|create(?:\/[\w-]+)?\/?$|t\/[\w-]+(?:\/(?:sheet|choir))?\/?$|(?:join|early|invite|choir|challenge)\/[\w-]+\/?$|choir\/join\/[\w-]+\/?$|groups(?:\/[\w-]+)?\/?$|ideas(?:\/[\w-]+)?\/?$|requests\/?$|voices\/?$|start-fresh\/?$|cooldown\/?$|warmup\/?$|moved\/?$|contact\/?$|notices?\/?$|admin(?:\/(?!sign-in|sign-out|second-factor)[\w-]+(?:\/[\w-]+)?)?\/?$)/;
+const APP_ROUTE = /^\/(?:$|index\.html$|p\/[\w-]+(?:\/(?:sing|print))?\/?$|styleguide(?:\/game)?\/?$|beta(?:\/[\w-]*)?\/?$|signin(?:\/link)?\/?$|settings(?:\/(?:reminders|classes))?\/?$|class(?:\/[\w-]+)?\/?$|storage\/?$|voice(?:\/test(?:\/how)?)?\/?$|workout\/?$|rehearse\/[\w-]+\/[\w-]+\/?$|plus\/?$|learn(?:\/[cs])?(?:\/[\w-]+)?(?:\/lines)?\/?$|verify\/?$|reset\/?$|email\/(?:confirm|revert)\/?$|create(?:\/[\w-]+)?\/?$|t\/[\w-]+(?:\/(?:sheet|choir))?\/?$|(?:join|early|invite|choir|challenge)\/[\w-]+\/?$|choir\/join\/[\w-]+\/?$|groups(?:\/[\w-]+(?:\/set)?)?\/?$|ideas(?:\/[\w-]+)?\/?$|requests\/?$|voices\/?$|start-fresh\/?$|cooldown\/?$|warmup\/?$|moved\/?$|contact\/?$|notices?\/?$|admin(?:\/(?!sign-in|sign-out|second-factor)[\w-]+(?:\/[\w-]+)?)?\/?$)/;
 
 /**
  * Caches every file of the app, or none: a file that fails (a folder the server doesn't serve, say)

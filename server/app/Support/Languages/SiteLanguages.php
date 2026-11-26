@@ -128,7 +128,10 @@ final class SiteLanguages
      */
     public static function ownPaths(): array
     {
-        return ['es' => ['/'.YourChoirStage::SLUGS['en'] => '/'.YourChoirStage::SLUGS['es']]];
+        return ['es' => [
+            '/'.YourChoirStage::SLUGS['en'] => '/'.YourChoirStage::SLUGS['es'],
+            '/'.YourChoirStage::GALLERY['en'] => '/'.YourChoirStage::GALLERY['es'],
+        ]];
     }
 
     /**

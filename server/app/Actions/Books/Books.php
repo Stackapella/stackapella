@@ -83,11 +83,12 @@ final class Books
 
     /**
      * A paid Plus invoice (Stripe's `invoice.paid`), in Stackapella's books: what was paid, its tax
-     * on a line of its own, and the charge and PaymentIntent it was paid by (to match refunds).
+     * on a line of its own, and the charge and PaymentIntent it was paid by (to match refunds). A choir's seats are
+     * booked the same way, under their own words.
      *
      * @param  array<string, mixed>  $invoice
      */
-    public function plusPaid(User $user, array $invoice): void
+    public function plusPaid(User $user, array $invoice, bool $seats = false): void
     {
         $connection = self::platformBooks();
         $id = $invoice['id'] ?? null;
@@ -102,9 +103,9 @@ final class Books
         $paidAt = $invoice['status_transitions']['paid_at'] ?? null;
 
         $this->note($connection, InvoiceNinjaRecord::PLUS, 'plus:'.$id, $cents, (string) ($invoice['currency'] ?? 'usd'), [
-            'description' => __('books.line.plus'),
+            'description' => __($seats ? 'books.line.seats' : 'books.line.plus'),
             'lines' => array_values(array_filter([
-                ['description' => __('books.line.plus'), 'cents' => $cents - $tax],
+                ['description' => __($seats ? 'books.line.seats' : 'books.line.plus'), 'cents' => $cents - $tax],
                 $tax > 0 ? ['description' => __('books.line.tax'), 'cents' => $tax] : null,
             ])),
             'name' => $user->name,

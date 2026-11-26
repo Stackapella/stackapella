@@ -99,6 +99,7 @@ const GroupsView = screen(() => import('./views/groups.js').then((m) => m.Groups
 const ChallengeView = screen(() => import('./views/challenge.js').then((m) => m.ChallengeView));
 const GroupView = screen(() => import('./views/groups.js').then((m) => m.GroupView));
 const ChoirJoinView = screen(() => import('./views/groups.js').then((m) => m.ChoirJoinView));
+const PracticeSetView = screen(() => import('./views/practice-set.js').then((m) => m.PracticeSetView));
 // Songs arriving from the old address (docs/app-subdomain-plan.md).
 const MovedView = screen(() => import('./views/moved.js').then((m) => m.MovedView));
 const NoticesView = screen(() => import('./views/notices.js').then((m) => m.NoticesView), { title: tk('notices.title') });
@@ -116,7 +117,7 @@ const IdeaView = screen(() => import('./views/ideas.js').then((m) => m.IdeaView)
 const FIRST_INSTALL_WAIT_MS = 15000; // a timer for when to install, never for audio
 
 const App = {
-    components: { LaunchCredit, RequestsView, ReadLinesView, ProjectsView, StudioView, SingView, PrintView, ScoreSheetView, OwnChoirView, ChoirTogetherJoinView, AuthView, SettingsView, SingingTestView, SingingTestHowView, StorageView, VoiceView, WorkoutView, RehearseView, PlusView, RemindersView, ClassesView, ClassJoinView, CloudConflicts, LearnView, CourseView, PlusCourseView, BirthHost, NewVersion, AdminView, StyleguideView, StyleguideGameView, BetaView, CreateView, TemplateView, JoinView, EarlyView, GroupsView, GroupView, ChoirJoinView, MovedView, ContactView, NoticesView, NoticeView, WarmupView, IdeasView, IdeaView, VoicesView, ResetView, Toasts, ConfirmHost, MicHelpHost, MicCheckHost, ChallengeView },
+    components: { LaunchCredit, RequestsView, ReadLinesView, ProjectsView, StudioView, SingView, PrintView, ScoreSheetView, OwnChoirView, ChoirTogetherJoinView, AuthView, SettingsView, SingingTestView, SingingTestHowView, StorageView, VoiceView, WorkoutView, RehearseView, PlusView, RemindersView, ClassesView, ClassJoinView, CloudConflicts, LearnView, CourseView, PlusCourseView, BirthHost, NewVersion, AdminView, StyleguideView, StyleguideGameView, BetaView, CreateView, TemplateView, JoinView, EarlyView, GroupsView, GroupView, PracticeSetView, ChoirJoinView, MovedView, ContactView, NoticesView, NoticeView, WarmupView, IdeasView, IdeaView, VoicesView, ResetView, Toasts, ConfirmHost, MicHelpHost, MicCheckHost, ChallengeView },
     setup: () => ({ route, COOL_DOWN }),
     template: `
         <!-- A self-hosted install's credit, as the licence asks, on whichever screen the app opens (components/credit.js). -->
@@ -140,6 +141,7 @@ const App = {
         <EarlyView v-else-if="route.name === 'invite'" :key="'i-' + route.params.code" :code="route.params.code" kind="invite" />
         <GroupsView v-else-if="route.name === 'groups'" />
         <GroupView v-else-if="route.name === 'group'" :key="'g-' + route.params.id" :id="route.params.id" />
+        <PracticeSetView v-else-if="route.name === 'groupSet'" :key="'gs-' + route.params.id" :id="route.params.id" />
         <ChoirTogetherJoinView v-else-if="route.name === 'choirTogether'" :key="'ct-' + route.params.token" :token="route.params.token" />
         <ChoirJoinView v-else-if="route.name === 'choir'" :key="'c-' + route.params.token" :token="route.params.token" />
         <MovedView v-else-if="route.name === 'moved'" />

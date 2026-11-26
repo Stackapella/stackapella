@@ -26,6 +26,8 @@ for (const kind of [...FUNNEL, ...ASKED]) KINDS.add(kind);
 for (const kind of ['bv_sung', 'bv_shown', 'bv_later', 'bv_share_tap:guest', 'bv_share_tap:member', 'bv_resume', 'bv_stop:age', 'bv_stop:email', 'bv_stop:check', 'bv_stop:upload', 'bv_stop:beta', 'bv_sheet_tap']) KINDS.add(kind);
 // AI voices (docs/ai-voices-build-plan.md, phase 1): a playback start in which at least one AI part sings (js/ai-voices.js).
 KINDS.add('ai_heard');
+// Practise the set (docs/practice-playlist-plan.md): a set started, and Repeat my part used.
+for (const kind of ['set_play', 'set_repeat']) KINDS.add(kind);
 // Progress you can see (Brief F): Your voice viewed, and a beginner's All your measures opened.
 for (const kind of ['prog_view', 'prog_all_open']) KINDS.add(kind);
 // Kinds the server allows (server/config/counts.php) that the app sends but this list was missing until 2026-11-24, so
@@ -54,7 +56,8 @@ for (const kind of [
 ]) KINDS.add(kind);
 // Hear yourself as a choir (track B; js/own-choir.js): its parts heard, Learn your part, and a real take replacing one.
 for (const kind of ['own_choir_heard', 'own_choir_sing', 'own_choir_replaced', 'own_choir_download', 'own_choir_shared']) KINDS.add(kind);
-for (const kind of ['gallery_add', 'gallery_cancel']) KINDS.add(kind); // the choir gallery's consent sheet (docs/choir-gallery-plan.md)
+for (const kind of ['gallery_add', 'gallery_cancel']) KINDS.add(kind);
+for (const kind of ['song_piece_shown', 'song_piece_done', 'song_piece_skipped']) KINDS.add(kind); // song pieces in lessons (docs/song-snippets-plan.md) // the choir gallery's consent sheet (docs/choir-gallery-plan.md)
 // What's been built since (Hillel: "update the admin usage page with all of the new stuff, ie
 // courses, etc"): the skins, the Plus courses' extras, Hum a tune, the studio, the onboarding's
 // asks and Melody first. Still a number per kind per day; nothing about who.

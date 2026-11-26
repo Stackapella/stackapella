@@ -28,8 +28,12 @@
 //                   visibility, libraryOptIn, savedVersion (the account's, 0 before the first
 //                   save), state, deleted, updatedAt }
 //   templateDrafts  the creator's drafts, autosaved: { id, step, template, lines, ..., updatedAt }
+// Version 6 (Practise the set; docs/practice-playlist-plan.md, slice 4):
+//   sets      a choir's practice set as made on this device, so it opens at once next time: { key ('<group>:<sound>'),
+//             sig (what it was made from), blob (the MP3), songs ([{ seconds, beatZero, ai }]), savedAt, bytes }. At most
+//             one per group and sound; cleared after 14 days or when the set changes. Never moved or synced.
 
-const VERSION = 5;
+const VERSION = 6;
 let name = 'stackapella';
 let opening = null;
 let deleted = false; // the whole database deleted (deleteDatabase): nothing opens it again until a reload
@@ -104,6 +108,7 @@ function upgrade(db, transaction, from) {
         db.createObjectStore('templates', { keyPath: 'id' });
         db.createObjectStore('templateDrafts', { keyPath: 'id' });
     }
+    if (from < 6) db.createObjectStore('sets', { keyPath: 'key' });
 }
 
 function done(request) {

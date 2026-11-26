@@ -18,7 +18,8 @@ import { askYes, first, goalMet } from '../funnel.js';
 import { courseLessons, courseOf, recordCourseLesson, restartedCourseProgress } from '../courses.js';
 import { recordBoss, unitOfBoss } from '../boss.js';
 import { coursePart, lessonForPart, partsOf } from '../course-parts.js';
-import { keepWithheld, withheldSongs, withholdCourse } from '../withheld.js';
+import { keepWithheld, withheldSongs, withholdCourse as withheldFrom } from '../withheld.js';
+import { songPieces } from '../song-pieces.js';
 
 /** Singing in a lesson's song this long does the step that uses it (the lesson's checkUse, and Sing's Back to the lesson). */
 export const SONG_USED_SECONDS = 20;
@@ -91,6 +92,12 @@ export function loadLearning() {
     return loading;
 }
 
+/** Song pieces on for this account (auth.config's `songPieces`, the song_pieces switch): off, lessons are read without them. */
+const piecesOn = () => !!account.config?.songPieces;
+
+/** A course as it's sung here: its song pieces only with their switch on, then the songs withheld here swapped or left out. */
+const withholdCourse = (course, withheld) => withheldFrom(songPieces(course, piecesOn()), withheld);
+
 // The courses as they came, so a change in what's withheld here (auth.config arriving, or a new list) reads them again
 // (js/withheld.js: a withheld song's step sings its altSong, or is left out).
 const raw = { course: null, courses: {}, applied: null };
@@ -98,7 +105,7 @@ const raw = { course: null, courses: {}, applied: null };
 /** The withheld songs the courses are read with now, remembered, so a config that says the same changes nothing. */
 function appliedWithheld() {
     const withheld = withheldSongs(account.config);
-    raw.applied = JSON.stringify([...withheld].sort());
+    raw.applied = JSON.stringify([[...withheld].sort(), piecesOn()]);
     return withheld;
 }
 
@@ -122,12 +129,12 @@ function keepCourse(id, data) {
 // list (an empty one, almost always) leaves them as they are, along with anything set on them since (a lesson's tests write
 // their own steps in; week_a11y's loop step lost its lesson to the re-read).
 watch(
-    () => JSON.stringify(account.config?.withheldSongs ?? null),
+    () => JSON.stringify([account.config?.withheldSongs ?? null, account.config?.songPieces ?? null]),
     () => {
         if (!account.config) return;
         keepWithheld(account.config);
         const withheld = withheldSongs(account.config);
-        const key = JSON.stringify([...withheld].sort());
+        const key = JSON.stringify([[...withheld].sort(), piecesOn()]);
         if (key === raw.applied) return;
         raw.applied = key;
         if (raw.course) learning.course = withholdCourse(raw.course, withheld);

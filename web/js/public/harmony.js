@@ -133,17 +133,19 @@ import { paint, token } from '../colors.js';
     }
 
     function setUpReport(dialog) {
-        const open = document.querySelector('[data-report-open]');
+        // One Report on the share page; on the gallery (/ai-harmony-singing/gallery) one on each item, each naming it.
+        const opens = [...document.querySelectorAll('[data-report-open]')];
         const form = dialog.querySelector('[data-report-form]');
         const remote = reportApi(form.dataset.api || null);
         const status = dialog.querySelector('[data-report-status]');
         const send = dialog.querySelector('[data-report-send]');
-        open.classList.remove('hidden');
+        for (const open of opens) open.classList.remove('hidden');
         const box = dialog.querySelector('[data-turnstile]');
         let token = null;
         let resetCheck = null; // set in shield mode: Send waits for Cloudflare's token
         const ready = () => (send.disabled = !!resetCheck && !token);
-        open.addEventListener('click', async () => {
+        const opened = async (open) => {
+            form.dataset.gallery = open.dataset.gallery ?? '';
             status.classList.add('hidden');
             send.disabled = false;
             dialog.showModal();
@@ -157,7 +159,8 @@ import { paint, token } from '../colors.js';
                 }).catch(() => null);
                 ready();
             }
-        });
+        };
+        for (const open of opens) open.addEventListener('click', () => opened(open));
         dialog.querySelector('[data-report-close]').addEventListener('click', () => dialog.close());
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -165,7 +168,7 @@ import { paint, token } from '../colors.js';
             const data = new FormData(form);
             let ok = false;
             try {
-                await remote.report({ harmonyId: form.dataset.harmony, reason: data.get('reason'), note: String(data.get('note') || '').slice(0, 500), website: String(data.get('website') || ''), ...(token ? { turnstileToken: token } : {}) });
+                await remote.report({ ...(form.dataset.gallery ? { choirGalleryId: form.dataset.gallery } : { harmonyId: form.dataset.harmony }), reason: data.get('reason'), note: String(data.get('note') || '').slice(0, 500), website: String(data.get('website') || ''), ...(token ? { turnstileToken: token } : {}) });
                 ok = true;
             } catch {
                 ok = false;

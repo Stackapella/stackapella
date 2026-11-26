@@ -45,7 +45,9 @@
                 "choirEmail",
                 "singingTest",
                 "singingTestBoards",
-                "choirGallery"
+                "choirGallery",
+                "practiceSet",
+                "songPieces"
             ],
             "properties": {
                 "methods": {
@@ -348,6 +350,14 @@
                 "aiOptional": {
                     "type": "boolean",
                     "description": "The ai_optional switch (docs/ai-optional-plan.md): while on, the app honours each account's AI features setting and a guest's device key; off, AI shows for everyone as before."
+                },
+                "songPieces": {
+                    "type": "boolean",
+                    "description": "The song_pieces switch (docs/song-snippets-plan.md): off, the app reads each course without its songPiece steps."
+                },
+                "practiceSet": {
+                    "type": "boolean",
+                    "description": "Practise the set (the practice_set switch): everyone once it's on, staff before."
                 },
                 "choirGallery": {
                     "type": "object",

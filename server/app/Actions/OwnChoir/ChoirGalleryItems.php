@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Storage;
  */
 final class ChoirGalleryItems
 {
-    private const EAGER = ['user', 'harmony', 'request.parts', 'request.templateVersion.template'];
+    private const EAGER = ['user', 'harmony.user', 'request.parts', 'request.templateVersion.template'];
 
     /**
      * ownChoir.gallery.add.

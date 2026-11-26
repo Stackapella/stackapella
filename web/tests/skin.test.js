@@ -50,6 +50,30 @@ test('skin: game unless serious is chosen, kept through other choices, and back 
     }
 });
 
+test('skin: a light or dark picked in the default game look stores no skin, so it is no choice of game mode', async () => {
+    const theme = await boot();
+    const kept = localStorage.getItem('stackapella.appearance');
+    try {
+        localStorage.removeItem('stackapella.appearance');
+        document.cookie = 'sa_theme=; path=/; max-age=0';
+        theme.apply();
+        theme.choose({ gameMode: 'light' });
+        assert(theme.chosen().skin === null && theme.chosen().gameMode === 'light', `light kept, no skin: ${JSON.stringify(theme.chosen())}`);
+        assert(document.documentElement.dataset.skin === 'game' && document.documentElement.dataset.theme.endsWith('-light'), 'still the game look, now light');
+        theme.choose({ mode: 'dark' });
+        assert(theme.chosen().skin === null && theme.chosen().gameMode === 'dark' && theme.chosen().mode === null, `a mode in the default look is game mode's own: ${JSON.stringify(theme.chosen())}`);
+        theme.choose({ skin: 'game' });
+        assert(theme.chosen().skin === 'game', 'turned on: chosen');
+        theme.choose({ gameMode: 'light' });
+        assert(theme.chosen().skin === 'game', 'and kept through a light or dark after');
+    } finally {
+        if (kept === null) localStorage.removeItem('stackapella.appearance');
+        else localStorage.setItem('stackapella.appearance', kept);
+        document.cookie = 'sa_theme=; path=/; max-age=0';
+        theme.apply();
+    }
+});
+
 test('appearance: signed in, a choice made since the device and the account last agreed wins; else the account', async () => {
     const { accountOrDevice } = await import('/js/stores/appearance.js');
     const serious = { skin: 'serious' };

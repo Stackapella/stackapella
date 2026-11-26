@@ -257,8 +257,8 @@ final class StripeWebhookController extends WebhookController
                 app(BillingEvents::class)->paid($user, $invoice);
             }
 
-            // Stackapella's own books (when Hillel has connected Invoice Ninja).
-            app(Books::class)->plusPaid($user, $invoice);
+            // Stackapella's own books (when Hillel has connected Invoice Ninja): a choir's seats under their own words.
+            app(Books::class)->plusPaid($user, $invoice, self::choirInvoice($payload));
         }
 
         return $this->successMethod();

@@ -264,8 +264,10 @@ export const GroupView = {
                 <!-- At left: the songs (what the group learns), and the director's tracks line under them. -->
                 <div class="space-y-8">
                 <section class="space-y-3" aria-labelledby="group-songs">
-                    <div class="flex items-center justify-between gap-3">
-                        <h2 id="group-songs" class="t-section">{{ t('groups.songsTitle') }}</h2>
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <h2 id="group-songs" class="t-section me-auto">{{ t('groups.songsTitle') }}</h2>
+                        <!-- Practise the set (docs/practice-playlist-plan.md, behind practice_set): the group's songs one after another. -->
+                        <button v-if="setOn" type="button" class="btn-secondary btn-sm" data-practice-set-open @click="navigate('/groups/' + id + '/set')"><Icon name="play" :size="16" />{{ t('practiceSet.button') }}</button>
                         <!-- A new group's first step is a song, so its singers find something to learn when they join: Share a song is the page's primary until there is one. -->
                         <button v-if="director && !paused" type="button" class="btn-sm" :class="group.songs.length || justMade ? 'btn-secondary' : 'btn-primary'" data-share-song @click="openShare"><Icon name="plus" :size="16" /> {{ t('groups.shareSong') }}</button>
                     </div>
@@ -496,6 +498,10 @@ export const GroupView = {
         /** The link to send: just made here, or the one the server keeps for the director. */
         shownLink() {
             return this.link ?? this.group?.link?.url ?? null;
+        },
+        /** Practise the set, when it's switched on here and a song is theirs to play. */
+        setOn() {
+            return !!account.config?.practiceSet && (this.group?.songs ?? []).some((s) => s.seat === 'seated');
         },
         /** The next rehearsal here (rehearsal.js: the server's, rolled on by weeks on this device), or null. */
         rehearsalNext() {

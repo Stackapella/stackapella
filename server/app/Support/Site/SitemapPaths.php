@@ -13,6 +13,7 @@ use App\Models\Template;
 use App\Models\TemplateVersion;
 use App\Support\Languages\Languages;
 use App\Support\Languages\SiteLanguages;
+use App\Support\OwnChoir\ChoirGallery;
 use App\Support\Pages\Carols;
 use App\Support\Pages\Lessons;
 use App\Support\Pages\PublicDomain;
@@ -68,6 +69,10 @@ final class SitemapPaths
         // The AI landing (Hillel, 2026-11-23), once hearing yourself as a choir is live.
         if (SongParts::switchedOn('own_choir')) {
             $paths[] = '/'.YourChoirStage::SLUGS['en'];
+        }
+        // The choir gallery's page, while it's open; its items' pages (their share pages) stay out (noindex).
+        if (ChoirGallery::on()) {
+            $paths[] = '/'.YourChoirStage::GALLERY['en'];
         }
         // The songs in the public domain, and the songs that will be.
         $paths[] = PublicDomain::PATH;

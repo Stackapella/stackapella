@@ -1,5 +1,15 @@
 [
     {
+        "date": "2026-11-26",
+        "title": "A new home, and who it's for",
+        "body": "The home page now starts with three ways in: Learners, Singers and Choir directors. Who it's for, linked from the foot of every page, says what each one gets and what it costs, with a line each for choir singers, worship teams, teachers, songwriters and more."
+    },
+    {
+        "date": "2026-11-26",
+        "title": "The singing test",
+        "body": "On Your voice, a short test of how well you match notes: match a note, sing four notes back, then hold one on “oo”. It says where you are, from Finding your notes to Precise, and what helps next. It's an early version, and its scoring will get more accurate as we check it against real singers."
+    },
+    {
         "date": "2026-11-20",
         "title": "A clearer song sheet",
         "body": "Open a song in the app and its sheet shows the level, key, tempo and length at a glance. Sing it fills the width, with Hear it and Edit beside it, the credits fold away until you want them, and the sheet closes with its own button or a drag on its handle."

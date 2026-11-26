@@ -17,6 +17,8 @@ const paths = {
     chevron: '<path d="m7 10 5 5 5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
     star: '<path d="m12 3.8 2.5 5.1 5.6.8-4 3.9 1 5.6-5.1-2.7-5.1 2.7 1-5.6-4-3.9 5.6-.8L12 3.8Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>',
     rewind: '<rect x="5" y="6" width="2.2" height="12" rx="1" fill="currentColor"/><path d="M19 6.8v10.4a.8.8 0 0 1-1.25.66L10.5 12.66a.8.8 0 0 1 0-1.32l7.25-5.2A.8.8 0 0 1 19 6.8Z" fill="currentColor"/>',
+    // Rewind's mirror: on to the next song (Practise the set).
+    skip: '<rect x="16.8" y="6" width="2.2" height="12" rx="1" fill="currentColor"/><path d="M5 6.8v10.4a.8.8 0 0 0 1.25.66l7.25-5.2a.8.8 0 0 0 0-1.32L6.25 6.14A.8.8 0 0 0 5 6.8Z" fill="currentColor"/>',
     undo: '<path d="M9 7 5 11l4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.5 11H14a5 5 0 0 1 0 10h-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
     redo: '<path d="m15 7 4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 11H10a5 5 0 0 0 0 10h3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
     starFilled: '<path d="m12 3.8 2.5 5.1 5.6.8-4 3.9 1 5.6-5.1-2.7-5.1 2.7 1-5.6-4-3.9 5.6-.8L12 3.8Z" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>',

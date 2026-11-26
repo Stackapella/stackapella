@@ -26,7 +26,7 @@ use Laravel\Cashier\Subscription;
 
 /**
  * A choir's seats, bought and managed by its leader (docs/choir-seats-plan.md; Hillel, 2026-11-18): Stripe Checkout
- * for a pack (from 10 seats, yearly, 14 days free for the whole choir on its first), more or fewer seats later (Stripe
+ * for a pack (from 10 seats, yearly, paid from the start since 2026-11-21), more or fewer seats later (Stripe
  * prorates; the portal can do the same), and a seat moved from one member to another. Behind the choir_seats switch.
  */
 final class ManageSeats

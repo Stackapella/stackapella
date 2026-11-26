@@ -9987,23 +9987,39 @@ main.cp-pt2 ~ [data-lesson-pages] { display: none; }
 .s-aud-dsteps h3 { margin-top: 12px; }
 .s-aud-band { padding: 32px 24px; border-radius: 28px; background: color-mix(in srgb, var(--color-part-4) 16%, var(--color-panel)); }
 .s-aud-band .s-dir-howto li { border-color: transparent; }
-.s-aud-hubhead { grid-template-columns: minmax(0, 1fr) !important; } .s-aud-hubhead > div { max-width: 50rem; }
-.s-aud-hub > ul { list-style: none; margin: 40px 0 0; padding: 0; display: grid; gap: 16px; }
-.s-aud-hub a { display: flex; flex-direction: column; gap: 8px; height: 100%; padding: 0 0 22px; border-radius: 24px; overflow: hidden; background: var(--color-panel); border: 1px solid var(--color-line); }
-.s-aud-hub a > :not(.s-aud-hubpic) { margin-inline: 22px; }
-.s-aud-hub .s-kick { display: flex; align-items: center; gap: 8px; margin-top: 6px; color: var(--ci); }
-.s-aud-hub b { font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
-.s-aud-hub span:not(.s-aud-hubpic, .s-aud-board, .s-aud-part) { font-size: 15px; line-height: 1.5; color: var(--color-muted); }
-.s-aud-hub em { margin-top: auto; padding-top: 8px; font-style: normal; font-weight: 750; color: var(--ci); display: inline-flex; align-items: center; gap: 6px; }
-.s-aud-hubpic { display: grid; place-items: center; height: 220px; padding: 18px; overflow: hidden; background: color-mix(in srgb, var(--c) 16%, var(--color-panel)); }
-.s-aud-hubpic img, .s-aud-hubpic picture { max-height: 200px; width: auto; border-radius: 14px; box-shadow: 0 18px 36px -24px rgb(40 24 12 / .4); }
 .s-aud-board { display: grid; gap: 7px; width: 100%; max-width: 18rem; }
+/* Who it's for in Hillel's 2026-11-26 design (site/for-index): the headline left, the lead and a jump to each audience
+   right; each audience a full-width band, its picture panel in its colour beside its words and a button in its colour
+   (the part's ink with the page's ground on it, AA in light and dark); everyone else as a table; the first lesson in a
+   dark panel with the bars on their left edge and a white button. */
+.s-hub-head { display: grid; gap: 22px; align-items: end; padding-top: 48px; }
+.s-hub-head .s-aud-h1 { margin-top: 10px; }
+.s-hub-chips { list-style: none; margin: 18px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+.s-hub-chips a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 99px; background: var(--color-panel); border: 1px solid var(--color-line); font-size: 14.5px; font-weight: 700; }
+.s-hub-sec { margin-top: 18px; scroll-margin-top: 90px; }
+.s-hub-head + .s-hub-sec { margin-top: 48px; }
+.s-hub-band { display: grid; border-radius: 26px; overflow: hidden; background: var(--color-panel); border: 1px solid var(--color-line); }
+.s-hub-pic { display: grid; place-items: center; min-height: 260px; padding: 32px 24px; background: color-mix(in srgb, var(--c) 16%, var(--color-panel)); }
+.s-hub-pic img, .s-hub-pic picture { max-height: 300px; width: auto; border-radius: 16px; box-shadow: 0 22px 44px -26px rgb(40 24 12 / .45); }
+.s-hub-say { display: grid; align-content: center; gap: 10px; padding: 28px 24px 32px; }
+.s-hub-say .s-kick { display: flex; align-items: center; gap: 8px; color: var(--color-muted); }
+.s-hub-say h2 { font-size: clamp(28px, 4vw, 38px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.08; }
+.s-hub-who { font-size: 16.5px; line-height: 1.5; color: var(--color-muted); }
+.s-hub-say .s-aud-gets { margin: 4px 0 0; font-size: 15.5px; }
+.s-hub-say .s-aud-cost { margin-top: 4px; }
+.s-hub-btn { justify-self: start; display: inline-flex; align-items: center; gap: 8px; min-height: 48px; margin-top: 10px; padding: 0 22px; border-radius: 99px; background: var(--ci); color: var(--color-ink); font-weight: 750; }
+.s-hub-h2 { font-size: clamp(28px, 4vw, 36px); font-weight: 800; letter-spacing: -0.02em; }
+.s-hub-also { list-style: none; margin: 18px 0 0; padding: 0; display: grid; gap: 0 40px; }
+.s-hub-also a { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 16px; align-items: start; padding: 16px 0; border-top: 1px solid var(--color-line); font-size: 15px; line-height: 1.45; }
+.s-hub-also b { font-weight: 750; } .s-hub-also span { grid-column: 1; color: var(--color-muted); } .s-hub-also svg { grid-column: 2; grid-row: 1 / span 2; margin-top: 3px; color: var(--color-muted); }
+.s-hub-end { display: grid; gap: 22px; justify-items: start; padding: 36px 28px; border-radius: 28px; background: #211a16; color: #faf5ee; }
+.s-hub-end .s-stackbig { width: 96px; gap: 7px; } .s-hub-end .s-stackbig b { height: 11px; }
+.s-hub-end h2 { max-width: 16ch; font-size: clamp(28px, 4vw, 40px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.08; }
+.s-hub-white { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 24px; border-radius: 99px; background: #fff; color: #211a16; font-weight: 750; }
+:root:not([data-theme$="-light"]) .s-hub-end { border: 1px solid var(--color-edge); }
 .s-aud-gets { list-style: none; margin: 4px 22px 0; padding: 0; display: grid; gap: 6px; font-size: 14.5px; line-height: 1.4; }
 .s-aud-gets li { display: flex; gap: 8px; } .s-aud-gets svg { flex: none; margin-top: 2px; color: var(--ci); }
 .s-aud-cost { margin-top: 6px; font-size: 13.5px; line-height: 1.45; color: var(--color-muted); }
-.s-aud-also-list { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 0 32px; }
-.s-aud-also-list a { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--color-line); font-size: 15px; line-height: 1.45; }
-.s-aud-also-list svg { flex: none; color: var(--color-muted); }
 .s-aud-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--c); flex: none; }
 .s-aud-board .s-aud-part small { background: none; color: var(--color-muted); padding: 0; font-weight: 600; }
 @media (min-width: 640px) {
@@ -10018,8 +10034,14 @@ main.cp-pt2 ~ [data-lesson-pages] { display: none; }
     .s-aud-wide { grid-template-columns: minmax(0, 1fr); }
     .s-aud-wide .s-aud-what:empty { display: none; }
     .s-aud-dsteps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    .s-aud-hub > ul { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    .s-aud-also-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .s-hub-head { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 56px; padding-top: 64px; }
+    .s-hub-band { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .s-hub-pic { min-height: 420px; }
+    .s-hub-say { padding: 44px 48px; }
+    .s-hub-also { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .s-hub-also a { grid-template-columns: minmax(0, 11rem) minmax(0, 1fr) auto; }
+    .s-hub-also span { grid-column: 2; } .s-hub-also svg { grid-column: 3; grid-row: 1; }
+    .s-hub-end { grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 36px; padding: 48px 56px; }
     .s-aud-band { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 48px; padding: 48px 56px; }
 }
 :is(.s-dir-steps, .s-dir-howto) .gem { --gem: var(--c); --gem-ink: var(--ct); }
@@ -10149,6 +10171,49 @@ main.cp-pt2 ~ [data-lesson-pages] { display: none; }
     0% { transform: scale(0.9); opacity: 0.6; }
     100% { transform: scale(1.16); opacity: 0; }
 }
+/* The choir gallery (/ai-harmony-singing/gallery; site/choir-gallery.blade.php; Hillel's design, 2026-11-26): the hero
+   with Make your own choir at its right (under it on a phone); three cards across, one on a phone, each its round Play,
+   its song and "A singer", its progress (a slider) and times, its parts, then the AI label and Report on a rule; a card
+   never changes size. The last tile is the dashed way to make your own. Colours are the theme's, so dark and game mode
+   follow; game mode squares the corners. */
+.s-cg-hero { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px 40px; }
+.s-cg-hero > div { flex: 1 1 420px; min-width: 0; }
+.s-cg-hero .s-lede { max-width: 36rem; }
+.s-cg-go { flex: none; }
+.s-wrap.s-cg-sec { padding-top: clamp(8px, 2vw, 20px); } /* the cards close under the hero, as the design has them */
+.s-cg-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
+@media (min-width: 900px) { .s-cg-list { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.s-cg-item { display: flex; flex-direction: column; gap: 16px; min-width: 0; padding: 22px; border: 1px solid var(--color-line); border-radius: 22px; background: var(--color-panel); }
+.s-cg-head { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.s-cg-disc { flex: none; display: grid; place-items: center; width: 52px; height: 52px; border: 0; border-radius: 50%; background: var(--color-cream); color: var(--color-ink); cursor: pointer; }
+.s-cg-disc > svg { grid-area: 1 / 1; } .s-cg-disc > svg:first-child { margin-left: 3px; }
+.s-cg-disc > svg:last-child, .s-cg-disc[aria-pressed="true"] > svg:first-child { visibility: hidden; }
+.s-cg-disc[aria-pressed="true"] > svg:last-child { visibility: visible; }
+.s-cg-disc:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
+.s-cg-name { min-width: 0; }
+.s-cg-title { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; }
+.s-cg-title a { color: inherit; text-decoration: none; } .s-cg-title a:hover, .s-cg-title a:focus-visible { text-decoration: underline; text-underline-offset: 4px; }
+.s-cg-singer { margin: 3px 0 0; font-size: 14px; color: var(--color-muted); }
+.s-cg-bar { position: relative; height: 4px; border-radius: 2px; background: var(--color-raised); cursor: pointer; touch-action: none; }
+.s-cg-bar::before { content: ""; position: absolute; inset: -12px 0; } /* a 28 px touch strip over the 4 px bar */
+.s-cg-bar > i { display: block; height: 100%; width: 0; border-radius: inherit; background: var(--color-cream); }
+.s-cg-bar:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 6px; }
+.s-cg-times { display: flex; justify-content: space-between; margin: 6px 0 0; font-size: 12px; color: var(--color-muted); font-variant-numeric: tabular-nums; }
+.s-cg-audio { width: 100%; }
+.s-cg-parts { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.s-cg-parts li { padding: 5px 11px; border-radius: 999px; background: var(--color-raised); font-size: 13px; font-weight: 500; }
+.s-cg-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; padding-top: 14px; border-top: 1px solid var(--color-line); }
+.s-cg-label { display: flex; align-items: center; gap: 8px; min-width: 0; margin: 0; font-size: 12.5px; line-height: 1.4; color: var(--color-muted); }
+.s-cg-ai { flex: none; padding: 2px 7px; border: 1px solid var(--color-line); border-radius: 999px; font-size: 10px; font-weight: 700; color: var(--color-cream); }
+.s-cg-report { flex: none; min-height: 32px; padding: 0 2px; border: 0; background: none; font-size: 13px; color: var(--color-muted); cursor: pointer; }
+.s-cg-report:hover, .s-cg-report:focus-visible { color: var(--color-cream); text-decoration: underline; text-underline-offset: 3px; }
+.s-cg-tile a { display: flex; flex-direction: column; justify-content: center; gap: 4px; height: 100%; min-height: 200px; padding: 22px; border: 1px dashed var(--color-line); border-radius: 22px; color: var(--color-cream); text-decoration: none; }
+.s-cg-tile b { display: inline-flex; align-items: center; gap: 8px; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+.s-cg-tile span { font-size: 14px; color: var(--color-muted); }
+.s-cg-tile a:hover b, .s-cg-tile a:focus-visible b { text-decoration: underline; text-underline-offset: 4px; }
+.s-cg-empty { display: grid; justify-items: start; gap: 6px; padding: 32px 28px; border: 1px dashed var(--color-line); border-radius: 22px; }
+.s-cg-empty p { margin: 0; color: var(--color-muted); } .s-cg-empty .s-cg-empty-h { font-size: 22px; font-weight: 700; color: var(--color-cream); }
+:root[data-skin="game"] body.s-arcade :is(.s-cg-item, .s-cg-tile a, .s-cg-empty, .s-cg-disc, .s-cg-ai, .s-cg-parts li, .s-cg-bar) { border-radius: 0; }
 /* Before the start, a scrim over the whole stage so the start reads as a cover, not a stray pill. */
 .s-demo:not([data-state="live"]) .s-demo-stage::after { content: ""; position: absolute; inset: 0; z-index: 1; border-radius: inherit; background: rgb(12 9 16 / .38); pointer-events: none; }
 .s-demo-start { z-index: 2; }

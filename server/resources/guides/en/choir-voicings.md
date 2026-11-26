@@ -1,6 +1,6 @@
 ---
-title: SSA, SSAA, TTBB and SAB: choir voicings explained
-description: What SSA, SSAA, TTBB, SAB and SATB mean on choir music: the parts each one has, who usually sings them, and how to pick one your choir can sing.
+title: What Do SSA, SSAA, TTBB and SAB Mean? Choir Voicings Explained
+description: Each letter is a part, top to bottom: SSA is soprano, soprano, alto. What SSA, SSAA, TTBB, SAB and SATB mean, who sings them, and which fits your choir.
 song: the-water-is-wide
 version: 1
 reviewed: false

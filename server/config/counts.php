@@ -35,6 +35,8 @@ return [
         // finished, and the boards opted into.
         // The choir gallery (docs/choir-gallery-plan.md): the sheet confirmed or closed; the site's page, a play, an item's page.
         'gallery_add', 'gallery_cancel', 'gallery_view', 'gallery_play', 'gallery_item_view',
+        // Song pieces in lessons (docs/song-snippets-plan.md): a piece shown, sung through, skipped.
+        'song_piece_shown', 'song_piece_done', 'song_piece_skipped',
         'st_start', 'st_done', 'st_practice', 'st_event:match', 'st_event:back', 'st_event:hold', 'st_board_optin',
         // Your voice as the progress page (build plan Brief F): opened, and All your measures opened.
         'prog_view', 'prog_all_open',

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Public;
 
+use App\Actions\OwnChoir\ChoirGalleryItems;
 use App\Http\Controllers\Controller;
+use App\Models\Harmony;
 use App\Models\Template;
 use App\Support\Admin\StaffDevice;
 use App\Support\Flags;
@@ -12,10 +14,12 @@ use App\Support\Http\Hosts;
 use App\Support\Languages\SiteLanguages;
 use App\Support\Languages\SongWords;
 use App\Support\Legal\LegalText;
+use App\Support\OwnChoir\ChoirGallery;
 use App\Support\Pages\Landing;
 use App\Support\Pages\MudeoArrival;
 use App\Support\Pages\Prices;
 use App\Support\Pages\YourChoirStage;
+use App\Support\Rights\RightsHere;
 use App\Support\Site\HelpGuide;
 use App\Support\Site\OpenSource;
 use App\Support\Site\SitePages;
@@ -25,6 +29,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
 
 /**
@@ -148,6 +153,8 @@ final class SitePagesController extends Controller
             'own' => self::switchedOn($flags, self::OWN_SONGS) ? self::forAi(Hosts::app('/create?'.http_build_query(['ref' => $ref]))) : null,
             // The library card's songs, each with its story's picture, as the songs hub shows them.
             'songs' => self::choirSongs(),
+            // The choir gallery, once it's open (docs/choir-gallery-plan.md, 2): See the gallery.
+            'gallery' => ChoirGallery::on() ? '/'.YourChoirStage::GALLERY['en'] : null,
             'toolsUrl' => SitePages::toolsHome(),
             // A choir with friends, once its switch is on (docs/choir-together-plan.md): its section and question.
             'together' => self::switchedOn($flags, 'own_choir_together'),
@@ -164,6 +171,42 @@ final class SitePagesController extends Controller
     private static function forAi(string $url): string
     {
         return $url.(str_contains($url, '?') ? '&' : '?').'for=ai';
+    }
+
+    /**
+     * The choir gallery (/ai-harmony-singing/gallery, /es/armonias-con-ia/galeria; docs/choir-gallery-plan.md, 2): the
+     * approved choirs, newest first, hidden where their song is withheld, each as "A singer" with its song, its parts, the
+     * AI label, its player and Report, never a name or a count; each item's own page is its share page. Not found while
+     * choir_gallery is off; with nothing approved yet it says the first choirs are on their way, and how to make your own.
+     */
+    public function choirGallery(Request $request, ChoirGalleryItems $gallery): Response
+    {
+        if (! ChoirGallery::on()) {
+            return response()->view('public.page-gone', ['links' => ['app' => '/']], 404, [...SongPagesController::headers(), 'Cache-Control' => 'no-store', 'X-Robots-Tag' => 'noindex']);
+        }
+
+        $items = $gallery->list(RightsHere::country($request));
+        // Each choir's own recording, as its share page plays it (its mix on the media disk), and its length.
+        $shares = Harmony::query()->whereIn('public_id', array_column($items, 'harmonyId'))->get(['public_id', 'media_audio_key', 'frames', 'sample_rate'])->keyBy('public_id');
+        $media = Storage::disk('media');
+        $items = array_values(array_filter(array_map(static function (array $item) use ($shares, $media): ?array {
+            $share = $shares->get($item['harmonyId']);
+            if ($share === null || ! filled($share->media_audio_key)) {
+                return null;
+            }
+            $seconds = (int) round($share->durationSeconds());
+
+            return [...$item, 'audioUrl' => $media->url((string) $share->media_audio_key), 'audioType' => 'audio/mp4', 'seconds' => $seconds, 'length' => intdiv($seconds, 60).':'.str_pad((string) ($seconds % 60), 2, '0', STR_PAD_LEFT)];
+        }, $items)));
+        $title = SitePages::title((string) __('site.choir_gallery.title'));
+
+        return response()->view('site.choir-gallery', [
+            'title' => $title,
+            'meta' => ['title' => $title, 'description' => (string) __('site.choir_gallery.description'), 'url' => Hosts::publicUrl().'/'.YourChoirStage::GALLERY['en']],
+            'links' => [...Landing::links(self::AI_REF), 'api' => Hosts::split() ? Hosts::appUrl() : null],
+            'items' => $items,
+            'make' => '/'.YourChoirStage::SLUGS['en'],
+        ], 200, [...SongPagesController::headers(), 'Vary' => 'CF-IPCountry, Accept-Language']);
     }
 
     /**

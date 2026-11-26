@@ -39,10 +39,10 @@ final class ReportRequest extends FormRequest
             'clipSlot' => ['required_without_all:harmonyId,commentId,handle,templateId,ideaId,choirVoiceId,requestId,boardEntryId,guideId,choirGalleryId', 'nullable', 'string', 'max:80'],
             // A choir in the choir gallery (docs/choir-gallery-plan.md).
             'choirGalleryId' => ['required_without_all:harmonyId,commentId,handle,templateId,ideaId,choirVoiceId,requestId,boardEntryId,guideId,clipSlot', 'nullable', 'string', 'max:32'],
-            // "This is my voice, used without my consent": a choir gallery item's alone.
-            'reason' => ['required', 'string', 'in:'.implode(',', [...Report::REASONS, 'my_voice']),
+            // "This is my voice, used without my consent" and "It isn't the singer's own voice": a choir gallery item's alone.
+            'reason' => ['required', 'string', 'in:'.implode(',', [...Report::REASONS, 'my_voice', 'not_own']),
                 function (string $attribute, mixed $value, \Closure $fail): void {
-                    if ($value === 'my_voice' && ! $this->filled('choirGalleryId')) {
+                    if (in_array($value, ['my_voice', 'not_own'], true) && ! $this->filled('choirGalleryId')) {
                         $fail('That reason is for a choir in the choir gallery.');
                     }
                 },

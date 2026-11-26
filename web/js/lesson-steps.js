@@ -48,6 +48,14 @@ export function isScored(kind) {
     return kind === 'play' || kind === 'record' || !!STEPS[kind]?.scored;
 }
 
+/**
+ * The step that gives a lesson its stars and starts its Sharpen up run: its last scored step, passing over a song piece
+ * (js/song-pieces.js: a real song's line at the end, never the measure). -1 with none.
+ */
+export function lastScoredAt(steps) {
+    return (steps ?? []).findLastIndex((s) => isScored(s.kind) && !s.songPiece);
+}
+
 /** Fetches ahead the step components `lesson` uses (its registered kinds, and the staff), once it opens. */
 export function prefetchSteps(lesson) {
     for (const step of lesson?.steps ?? []) {

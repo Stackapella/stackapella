@@ -256,8 +256,12 @@ async function stateful(operation, params, body, cases, query = {}) {
         // AI optional's release switch (docs/ai-optional-plan.md): off unless a flow turns it on for the tab.
         const aiOptional = tabStorage.get('stackapella.mockAiOptional') === '1' || !!data.aiOptional;
         // The choir gallery's switch (choir_gallery), on for a flow (stackapella.mockChoirGallery, this tab).
+        // Practise the set's switch (practice_set; staff have it on), on for a flow (stackapella.mockPracticeSet, this tab).
+        const practiceSet = tabStorage.get('stackapella.mockPracticeSet') === '1' || !!data.practiceSet;
         const choirGallery = { ...data.choirGallery, on: tabStorage.get('stackapella.mockChoirGallery') === '1' || !!data.choirGallery?.on };
-        return respond(200, { data: { ...data, choirGallery, ideas: !scenarios().includes('ideas.list:not_found'), experiments, aiOptional, lendVoice, choirEmail, singingTest, singingTestBoards, selfHosted, withheldSongs, aiVoices, ownChoir, ownChoirSongs, turnstileSiteKey, ownChoirTogether } });
+        // Song pieces in lessons (song_pieces), on for a flow (stackapella.mockSongPieces, this tab).
+        const songPieces = tabStorage.get('stackapella.mockSongPieces') === '1' || !!data.songPieces;
+        return respond(200, { data: { ...data, choirGallery, songPieces, ideas: !scenarios().includes('ideas.list:not_found'), practiceSet, experiments, aiOptional, lendVoice, choirEmail, singingTest, singingTestBoards, selfHosted, withheldSongs, aiVoices, ownChoir, ownChoirSongs, turnstileSiteKey, ownChoirTogether } });
     }
     // A share's body as sent (Update that link's `replaces` among it), for the flows; the example answers as before.
     if (operation === 'harmonies.create') globalThis.mockShareBody = body;

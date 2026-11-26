@@ -51,7 +51,7 @@ import { underLayers } from '../under-mix.js';
 import { realKeyFit } from '../real-key.js';
 import { countUnitSong, unitSongOffer, unitSongProject } from '../unit-song.js';
 import { experiment, lessonFor } from '../experiments.js';
-import { isScored, prefetchSteps, stepOf } from '../lesson-steps.js';
+import { isScored, lastScoredAt, prefetchSteps, stepOf } from '../lesson-steps.js';
 import { anyTitleSeen, clearMs, cue, lazyComponent, load, markTitleSeen, titleSeen } from '../game/modules.js';
 import { endSharpen, sharpenAt, sharpenOn, sharpenStart } from '../sharpen.js';
 import { courseRules, effect, setCourseRules } from '../game/effects.js';
@@ -633,7 +633,7 @@ export const LearnView = {
         registered: (vm) => (vm.current ? stepOf(vm.current.kind) : null),
         // A Plus course is beyond the beginner's units: standard unless a lesson says otherwise (the
         // free course's first four units are relaxed by their place, js/course.js strictnessFor).
-        strictness: (vm) => vm.entry?.lesson.strictness ?? (vm.entry?.course ? 'standard' : strictnessFor(vm.entry?.unitIndex ?? 0)),
+        strictness: (vm) => (vm.current?.songPiece ? 'relaxed' : null) ?? vm.entry?.lesson.strictness ?? (vm.entry?.course ? 'standard' : strictnessFor(vm.entry?.unitIndex ?? 0)),
         /** Learn and Use it go on at once; a sung step once it's been tried. */
         canGoOn() {
             const kind = this.current?.kind;
@@ -1010,6 +1010,12 @@ export const LearnView = {
                 this.songStep = { exercise, tonic: tonic + songTranspose(template, spec.part, knownRange(), learning.progress.home ?? null), minor };
             } catch (error) {
                 if (asked !== this.songKey) return;
+                // A song piece whose song can't load (offline: a library song isn't kept for it) is passed over quietly.
+                if (this.current?.songPiece) {
+                    console.info('The song piece was passed over', error?.code ?? error?.message ?? error);
+                    this.go(this.step + 1);
+                    return;
+                }
                 // A song this account may not open (plus_required, not_found) is a refusal, not a fault.
                 if (error instanceof ApiError && error.status < 500) console.info('The lesson song was refused', error.code);
                 else console.error('The lesson song could not open', error);
@@ -1022,6 +1028,12 @@ export const LearnView = {
         },
         /** Skip: on past a sung step. Skipping the scored one ends the lesson without stars (nothing lost). */
         skip() {
+            // A song piece's Skip goes straight to the lesson's end, and isn't a skipped lesson (the drill was its measure).
+            if (this.current?.songPiece) {
+                count('song_piece_skipped');
+                this.go(this.step + 1);
+                return;
+            }
             if ((this.current.kind === 'play' || (this.registered && isScored(this.current.kind))) && !this.result) this.skipped = true;
             this.go(this.step + 1);
         },
@@ -1045,6 +1057,7 @@ export const LearnView = {
             tabStorage.set(`stackapella.lesson.${this.id}`, String(step));
             if (this.current.kind === 'play' || (this.registered && isScored(this.current.kind))) this.skipped = false; // back on the sung step: a skip no longer stands
             if (this.current.kind === 'use') this.checkUse();
+            if (this.current.songPiece) count('song_piece_shown');
         },
         /**
          * A result's stars: from its percent, never under a generous first lesson's floor (`minStars`),
@@ -1069,6 +1082,11 @@ export const LearnView = {
                 noteSung(...(this.current?.exercise?.score === 'span' ? cappedWidening(learning.progress.range, sung) : sung));
             }
             if (this.entry?.boss && result.percent !== null) this.bossSaid = t('boss.said', { round: this.bossRound, percent: formatNumber(Math.round((this.bossScored / Math.max(1, this.bossTotal)) * 100)), pass: formatNumber(BOSS_PASS) });
+            // A song piece (js/song-pieces.js) is a song's line, not the drill: never a weak spot, never in the history.
+            if (this.current?.songPiece) {
+                count('song_piece_done');
+                return;
+            }
             remember(result).catch((error) => console.error('Not remembered', error)); // for the workout's weak spot
             // The history (scores.create): the exercise's numbers, by lesson and step.
             // The lean and the entry timing, as a take's summary keeps them (Brief F: the lean line covers lessons too).
@@ -1105,7 +1123,7 @@ export const LearnView = {
                 return;
             }
             const steps = this.entry.lesson.steps;
-            const scoredAt = steps.findLastIndex((s) => isScored(s.kind));
+            const scoredAt = lastScoredAt(steps); // a song piece after it never sets the stars (js/song-pieces.js)
             const scoredStep = scoredAt >= 0 ? steps[scoredAt] : null;
             // The last scored step's own result, kept by scored(): a step after it (a selfcheck, a learn card)
             // clears this.result as it opens, and the lesson's stars are still that step's.

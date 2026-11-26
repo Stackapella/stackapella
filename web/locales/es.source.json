@@ -4485,6 +4485,45 @@
         "joinKind": "{name} · {count, plural, one {# singer} other {# singers}}",
         "joinLead": "Join {name} and learn the songs your director shares, each on the part they give you."
     },
+    "practiceSet": {
+        "button": "Practise the set",
+        "title": "Practise the set",
+        "lead": "{count, plural, one {# song} other {# songs, one after another}}. It keeps playing when you lock your phone.",
+        "part": {
+            "title": "Which part do you sing?",
+            "hint": "Asked once for this choir. Where your director gave you a part, the set uses that one."
+        },
+        "making": "{count, plural, one {Getting the song ready} other {Getting # songs ready}}",
+        "makingHint": "Made on this device, so it plays on with your phone locked.",
+        "failed": "The set couldn't be made. Try again.",
+        "empty": "No songs to practise yet. Songs your director shares show here.",
+        "songOf": "Song {n} of {total}",
+        "ai": "AI voice",
+        "allParts": "All parts",
+        "previous": "Previous song",
+        "next": "Next song",
+        "play": "Play",
+        "pause": "Pause",
+        "sound": {
+            "label": "How it sounds",
+            "louder": "Your part louder",
+            "without": "Without your part"
+        },
+        "songs": "The set",
+        "confirm": {
+            "title": "Get the set ready?",
+            "text": "It's made on this phone and kept for two weeks, so it opens straight away next time: about {mb} MB. Best on Wi-Fi.",
+            "go": "Get it ready",
+            "notNow": "Not now"
+        },
+        "which": "Which set",
+        "allSongs": "All the choir's songs",
+        "noneForEvent": "No songs are picked for this one yet, so here are all the choir's songs.",
+        "repeat": "Repeat my part",
+        "repeatOn": "Going round your part in this song. Tap again for the whole set.",
+        "skipped": "{count, plural, one {# song needs a seat in the choir, so it isn't in the set.} other {# songs need a seat in the choir, so they aren't in the set.}}",
+        "lockLine": "{part} · {group}"
+    },
     "early": {
         "in": "You're in: open Stackapella",
         "start": "Start singing",

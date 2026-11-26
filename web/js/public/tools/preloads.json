@@ -327,6 +327,9 @@
   "/js/public/carols.js": [
     "/js/public/carols.js"
   ],
+  "/js/public/choir-gallery.js": [
+    "/js/public/choir-gallery.js"
+  ],
   "/js/public/choir-teaser.js": [
     "/js/public/choir-teaser.js",
     "/js/public/count.js",

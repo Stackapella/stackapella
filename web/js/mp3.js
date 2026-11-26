@@ -56,6 +56,39 @@ export async function encodeMp3(channels, sampleRate, { comment = null, aiMark =
     return new Blob(parts, { type: 'audio/mpeg' });
 }
 
+/** Hands the page back between blocks of a long encode, so its progress line moves (not audio: nothing is scheduled). */
+const breathe = () => new Promise((resolve) => {
+    const channel = new MessageChannel();
+    channel.port1.onmessage = () => resolve();
+    channel.port2.postMessage(0);
+});
+
+/**
+ * One MP3 written a piece at a time (Practise the set: a song is encoded and its samples let go before the next is
+ * rendered, so a whole set never sits in memory as raw audio). lamejs writes plain frames with no header, so the pieces
+ * are one continuous stream. `write(channels)`, then `end()` for the Blob.
+ */
+export async function mp3Writer(channelCount, sampleRate, kbps = KBPS) {
+    const lame = await loadLame();
+    const encoder = new lame.Mp3Encoder(channelCount, sampleRate, kbps);
+    const parts = [];
+    return {
+        async write(channels) {
+            const [left, right] = channels.map(toInt16);
+            for (let i = 0, n = 0; i < left.length; i += BLOCK, n++) {
+                const chunk = right ? encoder.encodeBuffer(left.subarray(i, i + BLOCK), right.subarray(i, i + BLOCK)) : encoder.encodeBuffer(left.subarray(i, i + BLOCK));
+                if (chunk.length) parts.push(new Uint8Array(chunk));
+                if (n % 400 === 399) await breathe();
+            }
+        },
+        end() {
+            const last = encoder.flush();
+            if (last.length) parts.push(new Uint8Array(last));
+            return new Blob(parts, { type: 'audio/mpeg' });
+        },
+    };
+}
+
 const utf16 = (text) => {
     const out = [0xff, 0xfe]; // UTF-16LE, with its BOM
     for (const unit of String(text)) for (let i = 0; i < unit.length; i++) out.push(unit.charCodeAt(i) & 0xff, unit.charCodeAt(i) >> 8);

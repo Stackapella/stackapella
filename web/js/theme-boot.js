@@ -200,9 +200,12 @@
     function choose(change) {
         const before = chosen();
         const pick = (name) => (change && name in change ? change[name] : before[name]) ?? null;
-        const choice = { mode: pick('mode'), gameMode: pick('gameMode'), colour: pick('colour'), accent: pick('accent'), customAccent: pick('customAccent'), skin: pick('skin') === 'serious' ? 'serious' : 'game', at: Date.now() };
+        const choice = { mode: pick('mode'), gameMode: pick('gameMode'), colour: pick('colour'), accent: pick('accent'), customAccent: pick('customAccent'), skin: ['serious', 'game'].includes(pick('skin')) ? pick('skin') : null, at: Date.now() };
+        // The skin is kept only once chosen (game mode turned on or off): a light or dark picked in a first visit's default
+        // game look is no choice of game mode, so the home's ArcadeHandoff and the part pages leave that visitor where they
+        // are (docs/decisions.md, 2026-11-18 and 2026-11-24); null shows as game, as before.
         // A light or dark chosen in game mode (the app's or the site's) is game mode's own: serious mode's stays as it was.
-        if (choice.skin === 'game' && change && 'mode' in change && !('gameMode' in change)) {
+        if (choice.skin !== 'serious' && change && 'mode' in change && !('gameMode' in change)) {
             choice.gameMode = change.mode;
             choice.mode = before.mode ?? null; // not chosen: Auto
         }

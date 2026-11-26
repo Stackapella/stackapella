@@ -175,6 +175,11 @@ final class ChoirGalleryTest extends TestCase
         $this->actingAs($reporter);
         // "This is my voice" is a gallery item's reason alone.
         $this->postJson('/api/reports', ['harmonyId' => $share->public_id, 'reason' => 'my_voice'])->assertStatus(422);
+        $this->postJson('/api/reports', ['harmonyId' => $share->public_id, 'reason' => 'not_own'])->assertStatus(422);
+        // "It isn't the singer's own voice" from one person: recorded, but not held (that takes 3 networks).
+        $this->postJson('/api/reports', ['choirGalleryId' => $item->sqid(), 'reason' => 'not_own'])->assertNoContent();
+        $this->assertSame(ChoirGalleryItem::APPROVED, $item->refresh()->status);
+        $this->actingAs(User::factory()->create());
         $this->postJson('/api/reports', ['choirGalleryId' => $item->sqid(), 'reason' => 'my_voice'])->assertNoContent();
         $this->assertSame(ChoirGalleryItem::HELD, $item->refresh()->status);
         $this->assertMatchesContract($this->getJson('/api/own-choir/gallery/'.$item->sqid()), 'ownChoir.gallery.show', 404);
@@ -182,7 +187,7 @@ final class ChoirGalleryTest extends TestCase
 
         $this->asStaff();
         $held = $this->getJson('/api/admin/choir-gallery?status=held');
-        $this->assertSame('my_voice', $held->json('data.0.reports.0.reason'));
+        $this->assertSame(['not_own', 'my_voice'], array_column((array) $held->json('data.0.reports'), 'reason'));
         $this->assertMatchesContract($this->postJson('/api/admin/choir-gallery/'.$item->sqid(), ['decision' => 'decline', 'reason' => 'other']), 'admin.choirGallery.decide', 422);
         $this->postJson('/api/admin/choir-gallery/'.$item->sqid(), ['decision' => 'takedown', 'reason' => 'not_own'])->assertOk()->assertJsonPath('data.status', 'removed');
         $this->assertMatchesContract($this->postJson('/api/admin/choir-gallery/nope', ['decision' => 'approve']), 'admin.choirGallery.decide', 404);

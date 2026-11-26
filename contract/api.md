@@ -1802,7 +1802,9 @@ the arm label on the device (never an id). `experiment` stays onb1's until it en
 **Request:** none.
 
 `aiOptional` (since 2026-11-23, the `ai_optional` switch, docs/ai-optional-plan.md): while on, the app honours each
-account's `aiFeatures` and a guest's device key; off, AI shows for everyone as before. `choirGallery` (since 2026-11-24, the `choir_gallery` switch): `{ on, consentVersion }`, the gallery sheet's current
+account's `aiFeatures` and a guest's device key; off, AI shows for everyone as before. `songPieces` (since 2026-11-26, the `song_pieces` switch, docs/song-snippets-plan.md): off, the app reads each
+course without its `songPiece` steps. `practiceSet` (since 2026-11-26, the `practice_set` switch): Practise the set, for everyone once it's on, staff
+before. `choirGallery` (since 2026-11-24, the `choir_gallery` switch): `{ on, consentVersion }`, the gallery sheet's current
 version. `singingTest` and `singingTestBoards` (since 2026-11-24, the `singing_test` switch, staff first, and
 `singing_test_boards`): the singing test on Your voice and `singingTests.*`, and its boards in game mode. `choirEmail` (since 2026-11-24,
 the `choir_email` switch): while on, the choir ready email is sent, and the app shows the take review's "We'll email
@@ -3510,11 +3512,12 @@ notice route). **Request:** `{ "harmonyId": "<id>", "reason": "copyright", "note
   different people's reports hold it off the global board until an admin looks
   (`admin.boards.flags.list`, `reason: "reported"`);
 - or `choirGalleryId` (a choir in the choir gallery, `ownChoir.gallery.list` `id`; since 2026-11-24): reason
-  `my_voice` ("this is my voice, used without my consent") holds it at once; other reasons from 3 different networks hold
+  `my_voice` ("this is my voice, used without my consent") holds it at once; `not_own` ("it isn't the singer's own voice",
+  since 2026-11-26) and other reasons from 3 different networks hold
   it, as for a page, until staff look; once staff have released it, only `my_voice` holds it again. `204` for a live
   item, `404` otherwise;
 - `reason`: `copyright`, `offensive`, `spam`, `personal` (someone's private information, or a
-  recording of someone without their OK), `my_voice` (a choir gallery item only) or `other`; `note` 0 to 500 characters, plain text;
+  recording of someone without their OK), `my_voice` and `not_own` (a choir gallery item only) or `other`; `note` 0 to 500 characters, plain text;
 - `website` is the honeypot (left empty; a filled one is ignored), and in shield mode
   `turnstileToken` is needed (`403 turnstile_required`, `turnstile_failed`);
 - always `204` for a harmony whose page is live, even when the report is ignored (your own

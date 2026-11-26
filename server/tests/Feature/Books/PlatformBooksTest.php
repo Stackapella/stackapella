@@ -62,6 +62,7 @@ final class PlatformBooksTest extends TestCase
         $books = $this->ninja->of($connection);
         $this->assertSame(['plus:in_plus_1'], array_column($books['invoices'], 'poNumber'));
         $this->assertSame([3999], array_column($books['payments'], 'cents'));
+        $this->assertSame('Stackapella Plus', array_values($books['invoices'])[0]['lines'][0]['description']);
 
         $this->stripeEvent('charge.refunded', ['id' => 'ch_plus_1', 'amount_refunded' => 1000])->assertOk();
         $this->stripeEvent('charge.refunded', ['id' => 'ch_plus_1', 'amount_refunded' => 1000])->assertOk();
@@ -76,6 +77,12 @@ final class PlatformBooksTest extends TestCase
         $this->assertMatchesContract($this->postJson('/api/admin/books/records/'.$failed->sqid().'/retry'), 'admin.books.records.retry', 200);
         $this->assertMatchesContract($this->postJson('/api/admin/books/records/nope/retry'), 'admin.books.records.retry', 404);
         $this->assertNotNull($user);
+
+        // A choir's seats are booked under their own words, never as Plus.
+        $this->stripeEvent('invoice.paid', ['id' => 'in_seats_1', 'customer' => 'cus_plus_1', 'amount_paid' => 15000, 'currency' => 'usd', 'charge' => 'ch_seats_1',
+            'subscription_details' => ['metadata' => ['type' => 'choir_1', 'kind' => 'choir_seats']]])->assertOk();
+        $seats = collect($this->ninja->of($connection)['invoices'])->firstWhere('poNumber', 'plus:in_seats_1');
+        $this->assertSame('Stackapella choir seats', $seats['lines'][0]['description'] ?? null);
     }
 
     public function test_on_the_first_each_coach_gets_one_invoice_for_last_months_commission(): void

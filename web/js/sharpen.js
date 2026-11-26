@@ -5,7 +5,7 @@
 // tests/sharpen.test.js.
 
 import { courseLessons, courseLessonsKept, lessonAccess } from './courses.js';
-import { isScored } from './lesson-steps.js';
+import { lastScoredAt } from './lesson-steps.js';
 import { session } from './storage.js';
 
 /** Lessons done before a course page offers Sharpen up. */
@@ -20,7 +20,7 @@ const KEY = 'stackapella.sharpen';
  */
 export function sharpenStart(lesson) {
     const steps = lesson?.steps ?? [];
-    let start = steps.findLastIndex((s) => isScored(s.kind));
+    let start = lastScoredAt(steps);
     if (start < 0 || ['record', 'use'].includes(steps[start].kind)) return null;
     for (let i = steps.length - 1; i >= start; i--) {
         const e = steps[i].exercise ?? {};

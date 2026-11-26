@@ -29,6 +29,14 @@ final class YourChoirStage
      */
     public const SLUGS = ['en' => 'ai-harmony-singing', 'es' => 'armonias-con-ia'];
 
+    /**
+     * The choir gallery's address under the AI landing, in each language (docs/choir-gallery-plan.md, 2:
+     * /ai-harmony-singing/gallery, /es/armonias-con-ia/galeria), named once here as SLUGS are.
+     *
+     * @var array{en: string, es: string}
+     */
+    public const GALLERY = ['en' => 'ai-harmony-singing/gallery', 'es' => 'armonias-con-ia/galeria'];
+
     /** The page's link cards, web/icons/og/<card>.png and es-<card>.png (server/tool/link_cards.py draws them). */
     public const CARD = 'ai-harmony-singing';
 

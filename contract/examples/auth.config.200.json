@@ -71,6 +71,8 @@
         "choirEmail": false,
         "singingTest": false,
         "singingTestBoards": false,
+        "practiceSet": false,
+        "songPieces": false,
         "choirGallery": {
             "on": false,
             "consentVersion": 1

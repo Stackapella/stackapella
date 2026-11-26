@@ -146,6 +146,10 @@ final class AuthController extends Controller
             'singingTestBoards' => SingingTests::boardsOn($request->user() instanceof User ? $request->user() : null),
             // Song requests (the song_requests switch); staff see them before (account.songRequests).
             'songRequests' => $flags->on('song_requests'),
+            // Practise the set (Brief H): everyone once the switch is on, staff before (Hillel's iPhone pass).
+            // Song pieces in lessons (docs/song-snippets-plan.md, phase 1).
+            'songPieces' => $flags->on('song_pieces'),
+            'practiceSet' => $flags->on('practice_set') || ($request->user() instanceof User && ($request->user()->is_admin || $request->user()->is_editor)),
             'schools' => $flags->on('schools'),
             // Teaming up is Plus (the plus_teams switch, docs/pricing-plan.md): the app asks for Plus before Start a group and
             // Invite singers, and shows paused songs and choirs, only while it's on.

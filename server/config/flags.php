@@ -103,9 +103,9 @@ return [
     // Choir seats (Hillel, 2026-11-18; docs/choir-seats-plan.md): every member of a choir group needs a seat, bought by its
     // leader at $15 a singer a year from 10 seats; a seat is Plus, so a member's own Plus counts, and learning alone stays
     // free. On, an unseated member sees the group but can't practise or record in it (403 plus_required, reason
-    // seat_needed), the leader's own Plus no longer covers the members, and groups made before the switch went on get
-    // 14 days free for the whole choir from that day. Off, today's rule (plus_teams). Off until the app's screens and the
-    // site say so; Hillel switches it on.
+    // seat_needed), and the leader's own Plus no longer covers the members. Paid from the start (Hillel, 2026-11-21: no
+    // free days; billing.choir.trial_days is 0, the trial code kept for later). Off, today's rule (plus_teams). Off until
+    // the app's screens and the site say so; Hillel switches it on.
     'choir_seats' => ['kind' => 'feature', 'values' => ['off', 'on']],
     // Growth's fresh start (Hillel, 2026-11-15; App\Support\Stats\GrowthStart): on, every growth view in Admin and the
     // growth export count only from the start of the day (Jerusalem time) it was turned on; nothing is deleted. Saving
@@ -128,6 +128,12 @@ return [
     // The choir gallery (docs/choir-gallery-plan.md): singers add an AI choir song, staff hear it first, anyone listens.
     // Off until the community rules are up and a first few items are approved.
     'choir_gallery' => ['kind' => 'feature', 'values' => ['off', 'on']],
+    // Practise the set (build plan Brief H): a group's songs played in order, your part louder. Off until Hillel's
+    // iPhone pass; staff see it before.
+    'practice_set' => ['kind' => 'feature', 'values' => ['off', 'on']],
+    // Song pieces in lessons, phase 1 (docs/song-snippets-plan.md): a real song's piece at a unit's end. Off, the app
+    // reads each course without its songPiece steps.
+    'song_pieces' => ['kind' => 'feature', 'values' => ['off', 'on']],
     'singing_test_boards' => ['kind' => 'feature', 'values' => ['off', 'on']],
     // Hear yourself as a choir on a singer's own songs from the creator (hummed, or with words they typed; Hillel,
     // 2026-11-20: "they could hum it and have their voice replace their humming", "definiety allow typed words").
