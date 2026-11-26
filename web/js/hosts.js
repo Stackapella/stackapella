@@ -15,39 +15,14 @@ export function publicSiteUrl() {
     return '/?landing';
 }
 
-const FROM_SITE = 'stackapella.fromSite';
-
 /**
- * Whether a referrer is the public site (the consultant's UX review, 2026-11-22: "a clear route back to the website"):
- * its origin is the site's, and the site lives on another host than the app. Pure, for its test.
+ * The website's home in the app's language (Hillel, 2026-11-26: "users can just click the app logo"): the site's root, or
+ * /es/ for Spanish; one host for both, the landing at /?landing.
  */
-export function siteReferrer(referrer, site = publicSiteUrl(), here = location.origin) {
-    if (!referrer || site.startsWith('/')) return false;
-    try {
-        const from = new URL(referrer).origin;
-        return from === new URL(site).origin && from !== here;
-    } catch {
-        return false;
-    }
-}
-
-/** At start: an arrival from the public site is remembered on this device, so Home offers the way back. */
-export function noteSiteArrival() {
-    if (!siteReferrer(document.referrer)) return;
-    try {
-        localStorage.setItem(FROM_SITE, '1');
-    } catch (error) {
-        console.info('The site arrival was not kept', error?.message ?? error);
-    }
-}
-
-/** Someone who came to the app from the public site (on this device). */
-export function cameFromSite() {
-    try {
-        return localStorage.getItem(FROM_SITE) === '1';
-    } catch {
-        return false; // storage blocked: the logo still goes there
-    }
+export function siteHomeUrl(lang = 'en') {
+    const site = publicSiteUrl();
+    if (site.startsWith('/')) return site;
+    return lang === 'es' ? `${site}es/` : site;
 }
 
 /**

@@ -25,6 +25,7 @@ def go(f, path):
     f.run(NAV.format(path=json.dumps(path)))
 
 
+SENT = "(async () => { (await import('/js/usage.js')).send(); return (globalThis.countsSent ?? []).flatMap((b) => b.events.map((e) => e.kind)); })()"
 TEAMS_ON = "await (await import('/js/stores/account.js')).loadAuthConfig(); (await import('/js/teams.js')).teams.on = true"
 
 
@@ -48,8 +49,11 @@ def journey(f):
     # Start a group, free: the Plus moment first, no form behind it, and never a free trial (Hillel, 2026-11-21), even
     # from an answer that still offers one (the mock's billing example is a Plus account's).
     f.run("const { api } = await import('/js/api.js'); api.billing.show = async () => ({ data: { plan: 'free', trial: { days: 7, intervals: ['year'] } } }); const { plan } = await import('/js/stores/plan.js'); plan.billing = null;")
+    f.run("globalThis.countsSent = []")
     f.click(f.js("(await import('/js/i18n.js')).t('groups.start')"))
     f.wait("document.querySelector('[data-plus-moment][data-moment=group_start]')", what="the Plus moment")
+    # The Plus funnel: the sheet shown, then Get Plus tapped (anonymous daily counts; the server counts the checkouts).
+    f.wait(f"{SENT}.then((k) => k.includes('plus_sheet_shown'))", what="the sheet counted as shown")
     assert not f.js("!!document.querySelector('[role=dialog] form')"), "no form before Plus"
     assert f.js("document.querySelector('[data-plus-moment]').textContent").find(t(f, "groups.plusText")) >= 0
     f.wait("document.querySelector('[data-plus-go]')", what="Get Plus")
@@ -58,6 +62,7 @@ def journey(f):
     f.shot("start-moment")
     f.run("document.querySelector('[data-plus-go]').click()")
     f.wait("location.pathname === '/plus' && location.search.includes('from=group_start')", what="the Plus page from the moment")
+    f.wait(f"{SENT}.then((k) => k.includes('plus_sheet_tap'))", what="Get Plus counted as tapped")
     f.wait(f"document.body.innerText.includes({json.dumps(t(f, 'plus.moment.groupStart'))})", what="why it's here")
     assert json.loads(f.js("sessionStorage.getItem('stackapella.plus.next')"))["path"] == "/groups?start=1"
     # Plus on (as Checkout would leave it): the way back, once, opens the start sheet.

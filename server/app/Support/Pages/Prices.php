@@ -45,6 +45,17 @@ final class Prices
     }
 
     /**
+     * A choir seat's yearly price in a currency, as the billing config says it (config/billing.php's choir amounts,
+     * which must match Stripe's), written as the page's language writes prices; null where the currency has none.
+     */
+    public static function seat(string $currency): ?string
+    {
+        $cents = config('billing.choir.amounts.'.$currency.'.seat');
+
+        return is_int($cents) ? self::format($cents, $currency) : null;
+    }
+
+    /**
      * @return array{currency: string, month: string, year: string, yearAsMonth: string, taxIncluded: bool}
      */
     public static function of(string $currency): array

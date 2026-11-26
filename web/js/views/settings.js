@@ -33,7 +33,7 @@ import { signInTo, signUpFor } from '../components/account-wall.js';
 import { ideas, ideasOpen } from '../stores/ideas.js';
 import { setNotes, voiceCare } from '../voice-day.js';
 import { local, session } from '../storage.js';
-import { publicSiteUrl } from '../hosts.js';
+import { publicSiteUrl, siteHomeUrl } from '../hosts.js';
 import { aiOn, aiOptional } from '../ai-choice.js';
 import { loadOwnChoir, ownChoir, ownChoirOn } from '../own-choir-state.js';
 import { count } from '../usage.js';
@@ -117,7 +117,7 @@ export const SettingsView = {
         editing: null, // 'email' or 'password': its change open under its row
         section: 'learning', // the group in view, marked in the sidebar
     }),
-    setup: () => ({ aiOn, aiOptional, ownChoirOn, publicSiteUrl, voiceCare, setNotes, ideas, learning, prefs, account, locale, noteNames, NAMINGS, LEGAL, chooseNaming, METHODS, HANDLE_REASONS, EXPORT, formatDate, formatBytes, SECTIONS, SECTION_WORDS, appearanceSummary, selfHosted, CREDIT_SITE, sk, game }),
+    setup: () => ({ aiOn, aiOptional, ownChoirOn, siteHomeUrl, voiceCare, setNotes, ideas, learning, prefs, account, locale, noteNames, NAMINGS, LEGAL, chooseNaming, METHODS, HANDLE_REASONS, EXPORT, formatDate, formatBytes, SECTIONS, SECTION_WORDS, appearanceSummary, selfHosted, CREDIT_SITE, sk, game }),
     template: `
         <AppScreen :title="t('settings.title')" back="/" measure="" data-ui="screen" class="bg-ink">
             <!-- How it looks is the header's Theme button, here as on every screen (Hillel's call). -->
@@ -420,7 +420,7 @@ export const SettingsView = {
                 </a>
                 </div>
                 <!-- The website, above the legal links (the consultant's UX review: a clear route back to the website). -->
-                <p class="text-center text-sm"><a :href="publicSiteUrl()" class="link-quiet inline-flex min-h-11 items-center text-muted" data-settings-site-home>{{ t('home.siteHome') }}</a></p>
+                <p class="text-center text-sm"><a :href="siteHomeUrl(locale.lang)" class="link-quiet inline-flex min-h-11 items-center text-muted" data-settings-site-home>{{ t('home.siteHome') }}</a></p>
                 <nav :aria-label="t('settings.legal.label')" class="flex flex-wrap justify-center gap-x-5 text-sm" data-legal>
                     <a v-for="page in LEGAL" :key="page.path" :href="siteUrl(page.path)" class="link-quiet inline-flex min-h-6 items-center text-muted">{{ t(page.word) }}</a>
                 </nav>

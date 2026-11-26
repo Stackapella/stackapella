@@ -1373,6 +1373,8 @@
             "failed": "Search didn't load."
         },
         "revenue": {
+            "seats": "Choir seats a year ({count, plural, one {# choir} other {# choirs}})",
+            "seatsUsed": "{used} of {bought} seats used. Not in Plus's figures above.",
             "title": "Revenue",
             "intro": "From our own subscription and payment records. Each currency stays as it is, never converted.",
             "mrr": "Monthly recurring revenue",
@@ -3801,6 +3803,42 @@
             }
         },
         "choirGroups": {
+            "seats": {
+                "open": "Seats",
+                "title": "Seats: {name}",
+                "failed": "The seats didn't load. Close this and try again.",
+                "used": "{used} of {bought} seats used",
+                "director": "Bought by {name}",
+                "since": "since {date}",
+                "ends": "ends {date}",
+                "moves": "{count, plural, one {# move by the director in 30 days} other {# moves by the director in 30 days}}, {left} left.",
+                "nextMove": "Next one on {date}.",
+                "stripe": "Open in Stripe (renewal date and invoices)",
+                "holders": "Seat holders ({count})",
+                "own": "Seated by their own Plus ({count})",
+                "unseated": "Waiting for a seat ({count})",
+                "nobody": "Nobody.",
+                "move": "Move a seat",
+                "moveTitle": "Move a seat",
+                "moveGo": "Move the seat",
+                "moveHint": "Staff moves don't count against the director's 3 in 30 days.",
+                "from": "Take it from",
+                "to": "Give it to",
+                "moved": "Seat moved.",
+                "sync": "Sync with Stripe",
+                "syncTitle": "Sync the seats with Stripe",
+                "syncGo": "Sync now",
+                "syncHint": "Reads the pack from Stripe again and fills the seats in join order.",
+                "synced": "Seats synced with Stripe.",
+                "status": {
+                    "none": "No seats",
+                    "trial": "Trial",
+                    "active": "Paid",
+                    "pastDue": "Payment retrying",
+                    "canceled": "Not renewing",
+                    "lapsed": "Lapsed"
+                }
+            },
             "pausedCount": "{count, plural, one {1 is paused (its leader's Plus ended).} other {# are paused (their leaders' Plus ended).}}",
             "paused": "Paused",
             "title": "Choir groups",
@@ -5981,7 +6019,6 @@
         },
         "accountLink": "{name}: your account and settings",
         "accountLinkPlus": "{name}, on Plus: your account and settings",
-        "toSite": "Stackapella: about, songs and help",
         "week": {
             "title": "Weekly goal",
             "goal": "{count, plural, one {Sing 1 day this week} other {Sing # days this week}}",

@@ -26,9 +26,11 @@ final class PlusFeatures
 
         return array_values(array_map(static function (string $key) use ($words): array {
             $item = (array) ($words[$key] ?? ['', '']);
-            $fact = $key === 'together' && Teams::seats() ? (string) Lang::get('plus.together_seats') : (string) ($item[1] ?? '');
+            $seated = $key === 'together' && Teams::seats();
+            $gain = $seated ? (string) Lang::get('plus.together_seats_gain') : (string) ($item[0] ?? '');
+            $fact = $seated ? (string) Lang::get('plus.together_seats') : (string) ($item[1] ?? '');
 
-            return [strtr((string) ($item[0] ?? ''), self::numbers()), strtr($fact, self::numbers())];
+            return [strtr($gain, self::numbers()), strtr($fact, self::numbers())];
         }, self::keys($ai)));
     }
 
@@ -68,11 +70,17 @@ final class PlusFeatures
         $flags = app(Flags::class);
         $on = static fn (string $flag): bool => $flags->exists($flag) && $flags->on($flag);
 
-        return array_values(array_filter(array_keys((array) Lang::get('plus.items', [], 'en')), static fn (string $key): bool => match ($key) {
+        $keys = array_values(array_filter(array_keys((array) Lang::get('plus.items', [], 'en')), static fn (string $key): bool => match ($key) {
             'choir' => $ai && $on('own_choir'),
             'together' => Teams::on(),
             default => true,
         }));
+
+        // With choir seats on, groups start free and are paid by the seat: Plus leads with a singer's own work, and
+        // singing with friends comes last.
+        return Teams::seats() && in_array('together', $keys, true)
+            ? [...array_values(array_diff($keys, ['together'])), 'together']
+            : $keys;
     }
 
     /**

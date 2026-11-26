@@ -13,6 +13,7 @@ import { account, selfHosted } from '../stores/account.js';
 import { session } from '../storage.js';
 import { Icon } from './icon.js';
 import { Modal } from './ui.js';
+import { count } from '../usage.js';
 
 /** Where the Plus page sends you back to once Plus is on: a path in this app, kept for the tab (Checkout leaves it). */
 export const NEXT_KEY = 'stackapella.plus.next';
@@ -77,6 +78,7 @@ export const PlusMoment = {
     },
     created() {
         if (selfHosted()) return;
+        count('plus_sheet_shown'); // the Plus funnel (anonymous, daily); the server counts the checkouts themselves
         // The price line's prices, and the account's own currency where it pays already.
         const unread = (error) => console.info('The prices were not read', error?.message ?? error);
         if (this.price) loadPrices().catch(unread);
@@ -84,6 +86,7 @@ export const PlusMoment = {
     },
     methods: {
         go() {
+            count('plus_sheet_tap');
             if (this.next) keepNext(this.next, this.from);
             navigate('/plus?from=' + encodeURIComponent(this.from));
         },

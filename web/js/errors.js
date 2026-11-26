@@ -22,7 +22,8 @@ const TOKEN_PATHS = [/^\/(invite|early|join|choir|teacher|beta)\/[^/]+/, /^\/(ve
 // (Sentry JAVASCRIPT-3: `window.__firefox__.reader` undefined, on the page's line 1, no frame of ours).
 // The last ones are scripts in-app browsers inject into the page: Firefox's and Chrome's on iPhones,
 // and a crypto wallet's browser setting window.ethereum.selectedAddress (Sentry JAVASCRIPT-4).
-const NOISE = [/ResizeObserver loop/i, /AbortError/, /The (user|operation) aborted/i, /Load failed$/, /^Script error\.?$/, /__firefox__|__gCrWeb/, /window\.ethereum|\bselectedAddress\b/];
+// NewerVersion (js/db.js): an old tab or build after an update met the newer data; the person is asked to reload.
+const NOISE = [/^NewerVersion:/, /ResizeObserver loop/i, /AbortError/, /The (user|operation) aborted/i, /Load failed$/, /^Script error\.?$/, /__firefox__|__gCrWeb/, /window\.ethereum|\bselectedAddress\b/];
 const EXTENSION = /(chrome|moz|safari(-web)?)-extension:\/\//;
 // Code of ours: this host, any stackapella.com address, or the pinned CDN (Vue and the libraries). A stack with frames
 // but none of these is an extension's or an injected script's, whatever it says (the coordinator, 2026-11-10).

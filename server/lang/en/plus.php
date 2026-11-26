@@ -14,7 +14,9 @@ return [
         'stems' => ['Every part as its own file.', 'Each voice as its own audio file, and the mix as MP3.'],
         'private' => ['Unlimited private arrangements.', 'Shared by link or with your choir.'],
     ],
-    // With choir seats on, a seat in any choir group comes with Plus (seats.php's words).
+    // With choir seats on, a group starts free and its singers pay by the seat, so singing together isn't Plus's lead:
+    // it comes last, as singing with friends, and Plus is also your seat in any choir group (seats.php's words).
+    'together_seats_gain' => 'Sing with friends.',
     'together_seats' => 'Invite friends to sing on your songs, and they join free. Plus is also your seat in any choir group.',
     'short' => [
         'choir' => 'about :songs songs a month in a voice like yours',

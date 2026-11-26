@@ -33,6 +33,9 @@ def journey(f):
     mrr = f.js("[...document.querySelectorAll('[data-tile=mrr] [data-currency]')].map((e) => e.dataset.currency + ' ' + e.textContent.trim())")
     assert mrr == ["gbp £8.98", "usd $46.58"], mrr
     assert t(f, "admin.revenue.unpriced", {"count": 2}) in f.js("document.querySelector('[data-unpriced]').textContent"), "the store subscriptions as a count"
+    # Choir seats beside Plus: the packs paid for, their yearly value, seats used of bought.
+    seats = f.js("document.querySelector('[data-tile=seats]')?.innerText ?? ''")
+    assert "$360.00" in seats and t(f, "admin.revenue.seatsUsed", {"used": "21", "bought": "24"}) in seats, seats
     assert f.js("document.querySelector('[data-by=\"state:paying\"]').textContent").strip().endswith("11"), f.js("document.querySelector('[data-by=\"state:paying\"]').textContent")
     assert f.js("document.querySelectorAll('[data-months] [data-month]').length") == 12, "12 months"
     assert f.js("document.querySelectorAll('[data-one-off-row]').length") == 2, "the one-off rows"

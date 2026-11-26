@@ -50,6 +50,26 @@ def journey(f):
     f.no_sideways("the choir groups")
     f.shot("choir-groups")
 
+    # A group's seats for staff (admin.groups.seats.show): the pack, who holds the seats, the director's moves; a staff
+    # move in sudo with a reason, not counted against the director's 3 in 30 days.
+    f.run(f"{row(f, 'Gp4rQs')}.querySelector('[data-admin-seats-open]').click()")
+    f.wait("document.querySelector('[data-admin-seats-status=active]')", what="the group's seats")
+    sheet = f.js("document.querySelector('[data-admin-seats]').innerText")
+    assert t(f, "admin.choirGroups.seats.used", {"used": "11", "bought": "12"}) in sheet, sheet
+    for name in ("Ada Lovelace", "Alan Turing", "Mary Somerville"):
+        assert name in sheet, f"{name} in the seats"
+    assert f.js("document.querySelector('[data-admin-seats-stripe]').target") == "_blank"
+    f.shot("seats")
+    f.run("window.mockCalls = []; document.querySelector('[data-admin-seats-move]').click()")
+    last = "[...document.querySelectorAll('[role=dialog]')].at(-1)"
+    f.wait(f"{last}?.querySelector('[data-admin-seats-from]')", what="the move sheet")
+    f.run(f"const r = {last}.querySelector('textarea'); r.value = 'The director asked by email'; r.dispatchEvent(new Event('input'));")
+    f.run(f"{last}.querySelector('button[type=submit]').click()")
+    f.wait("window.mockCalls.includes('admin.groups.seats.update')", what="the seat moved")
+    f.wait_text(t(f, "admin.choirGroups.seats.moved"))
+    f.press("Escape")
+    f.wait("!document.querySelector('[data-admin-seats]')", what="the seats closed")
+
     # No groups yet: said plainly.
     f.go("/admin/people?api=mock&as=admin", "document.querySelector('h1')")
     f.run("const { api } = await import('/js/api.js'); api.admin.groups.list = async () => ({ data: { groups: [], total: 0, timezone: 'UTC' } });")

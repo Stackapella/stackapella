@@ -14181,6 +14181,7 @@ a.cp-ll-block:focus-visible { outline: 3px solid var(--color-cream); outline-off
 .s-arrow-link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-weight: 700; color: inherit; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
 .s-callout { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; margin-top: 22px; padding: 16px 22px; border-radius: 20px; background: color-mix(in srgb, var(--color-cream) 5%, transparent); border: 1px solid var(--color-line); }
 .s-callout p { flex: 1 1 320px; margin: 0; font-size: 16px; line-height: 1.45; }
+.s-callout .s-seat-price { order: 1; flex: 1 1 100%; font-size: 15px; color: var(--color-muted); } .s-seat-price b { color: var(--color-cream); } /* choir seats' price, on its own row */
 :root[data-theme$="-light"] .s-callout { background: color-mix(in srgb, var(--color-ink) 4%, transparent); }
 .s-table-short { margin-top: 18px; }
 .s-every { margin-top: 18px; }

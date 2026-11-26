@@ -37,6 +37,29 @@ const VERSION = 6;
 let name = 'stackapella';
 let opening = null;
 let deleted = false; // the whole database deleted (deleteDatabase): nothing opens it again until a reload
+let newer = false; // a newer version of the app has this device's data (it upgraded it): this page must reload first
+let toldNewer = false; // the person told so once a page (storageEvents.replaced)
+
+/**
+ * This page's build is older than the data on this device: a newer version of the app opened it (in another tab, or
+ * before this old tab or a stale build came back; Sentry JAVASCRIPT-E). Expected, never a fault: the person is asked to
+ * reload once, and errors.js leaves it out of the reports.
+ */
+export class NewerVersion extends Error {
+    constructor() {
+        super('A newer version of the app has this device\'s data: reload'); // i18n-ignore: never shown, the toast says it
+        this.name = 'NewerVersion';
+    }
+}
+
+/** A newer version has the data: no more opening it at this version (that would throw VersionError), and Reload, once. */
+function stepAside() {
+    newer = true;
+    opening = null;
+    if (toldNewer) return;
+    toldNewer = true;
+    storageEvents.replaced?.();
+}
 
 /**
  * What the app shows when storage needs the person: `blocked` when another tab still has an older
@@ -49,10 +72,13 @@ export const storageEvents = { blocked: null, replaced: null };
 export function useDatabase(other) {
     name = other;
     opening = null;
+    newer = false;
+    toldNewer = false;
 }
 
 function open() {
     if (deleted) return Promise.reject(new Error('Storage on this device was deleted: reload'));
+    if (newer) return Promise.reject(new NewerVersion());
     opening ??= new Promise((resolve, reject) => {
         const request = indexedDB.open(name, VERSION);
         request.onupgradeneeded = (event) => upgrade(request.result, request.transaction, event.oldVersion);
@@ -61,8 +87,7 @@ function open() {
             // A newer version opening in another tab: step aside, and ask for a reload.
             db.onversionchange = () => {
                 db.close();
-                opening = null;
-                storageEvents.replaced?.();
+                stepAside();
             };
             // Safari can drop the connection while the app is in the background: open again.
             db.onclose = () => {
@@ -72,7 +97,12 @@ function open() {
         };
         request.onerror = () => {
             opening = null; // try again next time, rather than failing for the whole session
-            reject(request.error);
+            // Stored at a higher version than this build knows: a newer app has the data. Ask for the reload, and say so
+            // plainly to the caller, never as a fault.
+            if (request.error?.name === 'VersionError') {
+                stepAside();
+                reject(new NewerVersion());
+            } else reject(request.error);
         };
         // Another tab still has an older version open: this open waits until it closes.
         request.onblocked = () => storageEvents.blocked?.();

@@ -10,7 +10,7 @@ import { CreditLine } from '../components/credit.js';
 import { api } from '../api.js';
 import { StorageMeter } from '../components/cloud.js';
 import { formatNumber, locale, t, timeAgo, tk } from '../i18n.js';
-import { publicSiteUrl, cameFromSite } from '../hosts.js';
+import { siteHomeUrl } from '../hosts.js';
 import { navigate } from '../router.js';
 import { betaWaiting, homeBands, sangThisWeek } from '../home.js';
 import { aiPartsOf, creditsFor, loadCatalogue, recordingFor } from '../stores/catalogue.js';
@@ -102,18 +102,16 @@ const RehearsalPlans = defineAsyncComponent(() => import('../components/rehearsa
 
 export const ProjectsView = {
     components: { AiVoiceLabel, LibraryFilters, StorageMeter, CreditLine, PlayerChip, DailyTag, CardMenu, HomeCourses, ChoirPanel, ThemeSwitch, Icon, Logo, TemplateDialog, HomeLead, HomeBand, SongCover, InstallCard, WeekCard, WorkoutStrip, StatusChip, Modal, Notice, RemindAsk, FirstWeek, JoinedChoirs, RehearsalPlans },
-    setup: () => ({ aiOn, sungYet, GROUP_WORDS, templatePartName, ideas, mine, canStart, projects, account, learning, shownTitle, songTitle, formatTime, timeAgo, PART_COLORS, lengthBeats, partsFor, keyLabel, DIFFICULTY, creditsFor, aiPartsOf, navigate, BAND_COLORS, BETA_STATUS, publicSiteUrl, effect, dailyState }),
-    data: () => ({ fromSite: cameFromSite(), wide: WIDE.matches, storageUsage: null, locked: false, taste: false, clip: null, templates: [], openTemplate: null, singers: 4, previewing: false, preparingPreview: false, starting: false, groups: null, choirParts: [], startingChoir: null, betaParts: null, avatarFailed: false, making: false, importProblems: null, sheetScore: null, sheetSaving: false, sheetView: null, sessionStore: null, songsOpen: tabStorage.get('stackapella.songsOpen') === '1', libraryFilters: keptFilters(), lookedAt: lastLooked(), newsCounted: null, yoursOpen: false, songColumns: songColumns(), newing: false, showInfo: false, songLoad: null, songNotHere: null, previewOf: null, playingSong: null, renaming: null, newName: '' }),
+    setup: () => ({ aiOn, sungYet, GROUP_WORDS, templatePartName, ideas, mine, canStart, projects, account, learning, shownTitle, songTitle, formatTime, timeAgo, PART_COLORS, lengthBeats, partsFor, keyLabel, DIFFICULTY, creditsFor, aiPartsOf, navigate, BAND_COLORS, BETA_STATUS, siteHomeUrl, locale, effect, dailyState }),
+    data: () => ({ wide: WIDE.matches, storageUsage: null, locked: false, taste: false, clip: null, templates: [], openTemplate: null, singers: 4, previewing: false, preparingPreview: false, starting: false, groups: null, choirParts: [], startingChoir: null, betaParts: null, avatarFailed: false, making: false, importProblems: null, sheetScore: null, sheetSaving: false, sheetView: null, sessionStore: null, songsOpen: tabStorage.get('stackapella.songsOpen') === '1', libraryFilters: keptFilters(), lookedAt: lastLooked(), newsCounted: null, yoursOpen: false, songColumns: songColumns(), newing: false, showInfo: false, songLoad: null, songNotHere: null, previewOf: null, playingSong: null, renaming: null, newName: '' }),
     template: `
         <div class="min-h-dvh">
             <!-- The app's top bar on the site header's grid (app-wrap app-top): the logo where the site's is. -->
             <header class="app-wrap app-top justify-between">
-                <!-- The logo goes to the public site's landing page (Hillel's call); this page is the home. -->
+                <!-- The logo goes to the website, in the app's language (Hillel, 2026-11-26: "remove '< Stackapella website' from
+                     top of app, users can just click the app logo"); this page is the home. -->
                 <div class="flex min-w-0 items-center gap-1 sm:gap-3">
-                <a :href="publicSiteUrl()" class="-m-2 flex shrink-0 rounded-xl p-2" :aria-label="t('home.toSite')"><Logo /></a>
-                <!-- The way back to the website, said in words for someone who came from it (the consultant's UX review:
-                     the logo alone didn't read as a link there). -->
-                <a v-if="fromSite" :href="publicSiteUrl()" class="ms-2 hidden min-h-11 shrink-0 items-center gap-1 rounded-full px-2 text-sm text-muted hover:text-cream sm:inline-flex" data-site-home><Icon name="back" :size="16" class="rtl:-scale-x-100" />{{ t('home.siteHome') }}</a>
+                <a :href="siteHomeUrl(locale.lang)" class="-m-2 flex shrink-0 rounded-xl p-2" :aria-label="t('home.siteHome')" data-logo-site><Logo /></a>
                 </div>
                 <div class="flex min-w-0 items-center gap-2 sm:gap-3">
                 <ThemeSwitch v-if="account.loaded" />
@@ -138,8 +136,6 @@ export const ProjectsView = {
                  the cards share their edges at any width and any browser text size (Hillel, 2026-11-09: "the whole header is
                  narrower"; a 72rem column grew past the 1200 px bar with Chrome's text set larger). -->
             <div class="app-wrap pb-16 pt-4">
-                <!-- A phone's way back to the website, on its own line under the bar (beside the logo it crowded the bar's buttons). -->
-                <a v-if="fromSite" :href="publicSiteUrl()" class="-mt-2 mb-1 inline-flex min-h-11 items-center gap-1 text-sm text-muted hover:text-cream sm:hidden" data-site-home-phone><Icon name="back" :size="16" class="rtl:-scale-x-100" />{{ t('home.siteHome') }}</a>
 
                         <!-- Hillel's Home design: the course card, the workout and your songs share one width, so their edges line up. -->
             <div class="mt-2 space-y-5">

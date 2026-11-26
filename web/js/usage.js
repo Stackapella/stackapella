@@ -30,6 +30,8 @@ KINDS.add('ai_heard');
 for (const kind of ['set_play', 'set_repeat']) KINDS.add(kind);
 // Choir seats (docs/choir-seats-plan.md): the director's seats offer shown and tapped, and an unseated singer shown the ask.
 for (const kind of ['seats_offer_shown', 'seats_offer_tap', 'seat_ask_shown']) KINDS.add(kind);
+// The Plus sheet (components/plus-moment.js): shown, and Get Plus tapped. The server counts the checkouts started and refused.
+for (const kind of ['plus_sheet_shown', 'plus_sheet_tap']) KINDS.add(kind);
 // Progress you can see (Brief F): Your voice viewed, and a beginner's All your measures opened.
 for (const kind of ['prog_view', 'prog_all_open']) KINDS.add(kind);
 // Kinds the server allows (server/config/counts.php) that the app sends but this list was missing until 2026-11-24, so

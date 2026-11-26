@@ -2679,7 +2679,6 @@
         },
         "accountLink": "{name}: tu cuenta y ajustes",
         "accountLinkPlus": "{name}, con Plus: tu cuenta y ajustes",
-        "toSite": "Stackapella: información, canciones y ayuda",
         "week": {
             "title": "Meta semanal",
             "goal": "{count, plural, one {Canta 1 día esta semana} other {Canta # días esta semana}}",

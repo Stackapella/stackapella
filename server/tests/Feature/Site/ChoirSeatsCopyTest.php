@@ -70,4 +70,23 @@ final class ChoirSeatsCopyTest extends TestCase
             $this->assertTrue(Lang::has($key), $key.' changes words that no longer exist');
         }
     }
+
+    public function test_pricing_quotes_a_seat_from_the_billing_config_only_while_seats_are_on(): void
+    {
+        // Off: the callout as it is, no price for a seat.
+        $off = (string) $this->get('/pricing')->assertOk()->getContent();
+        $this->assertStringNotContainsString('s-seat-price', $off);
+        $this->assertStringNotContainsString(e(__('pages.pricing.seat_free')), $off);
+
+        // On: a seat's yearly price from config/billing.php in the visitor's currency, that a group starts free, what a
+        // seat covers, and the way to how groups work.
+        app(Flags::class)->set('choir_seats', 'on', null, 'test');
+        config(['billing.choir.amounts.usd.seat' => 1700, 'billing.choir.amounts.gbp.seat' => 1400]);
+        $on = (string) $this->get('/pricing')->assertOk()->getContent();
+        $this->assertStringContainsString(e(__('pages.pricing.seat_price', ['price' => '$17.00'])), $on);
+        $this->assertStringContainsString(e(__('pages.pricing.seat_free')), $on);
+        $this->assertStringContainsString(e(__('pages.pricing.faq_seat_choir')), $on);
+        $this->assertStringContainsString('href="/for/choir-directors?ref=for-choirs-pricing"', $on);
+        $this->assertStringContainsString('£14.00', (string) $this->get('/pricing?currency=gbp')->getContent());
+    }
 }

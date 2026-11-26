@@ -7,9 +7,10 @@
 // true) is tagged, and the paused are counted.
 
 import { api } from '../api.js';
-import { formatDate, formatNumber, t } from '../i18n.js';
-import { StatusChip } from '../components/form.js';
-import { LoadFailed, zoneName } from './common.js';
+import { formatDate, formatNumber, t, tk } from '../i18n.js';
+import { Field, StatusChip } from '../components/form.js';
+import { Modal, toast } from '../components/ui.js';
+import { ChangeSheet, errorsFrom, LoadFailed, refused, zoneName } from './common.js';
 
 const week = (date) => formatDate(`${date}T12:00:00Z`, { month: 'short', day: 'numeric', timeZone: 'UTC' });
 const sum = (weeks, key) => weeks.reduce((n, w) => n + (w[key] ?? 0), 0);
@@ -36,10 +37,119 @@ const WeekBars = {
     },
 };
 
+const SEAT_STATUS = {
+    none: { label: tk('admin.choirGroups.seats.status.none'), tone: 'muted' },
+    free_trial: { label: tk('admin.choirGroups.seats.status.trial'), tone: 'info' },
+    trialing: { label: tk('admin.choirGroups.seats.status.trial'), tone: 'info' },
+    active: { label: tk('admin.choirGroups.seats.status.active'), tone: 'good' },
+    past_due: { label: tk('admin.choirGroups.seats.status.pastDue'), tone: 'warn' },
+    canceled: { label: tk('admin.choirGroups.seats.status.canceled'), tone: 'warn' },
+    lapsed: { label: tk('admin.choirGroups.seats.status.lapsed'), tone: 'bad' },
+};
+
+/**
+ * A group's choir seats for staff (admin.groups.seats.show): the pack's state, who holds the seats, who is seated by
+ * their own Plus and who waits, the director's moves this month, and Stripe's page for the renewal date. Staff can move
+ * a seat (not counted against the director's 3 in 30 days) or fill the seats again from Stripe, each in sudo with a reason.
+ */
+const SeatsSheet = {
+    components: { ChangeSheet, Field, Modal, StatusChip },
+    props: { group: { type: Object, required: true }, me: { type: Object, required: true } },
+    emits: ['close'],
+    data: () => ({ seats: null, failed: false, acting: null, from: '', to: '', busy: false, errors: null }),
+    setup: () => ({ SEAT_STATUS, formatNumber }),
+    template: `
+        <Modal :title="t('admin.choirGroups.seats.title', { name: group.name })" @close="$emit('close')">
+            <div class="space-y-5" data-admin-seats>
+                <p v-if="failed" class="text-bad" role="alert">{{ t('admin.choirGroups.seats.failed') }}</p>
+                <p v-else-if="!seats" class="text-muted" role="status">{{ t('admin.loading') }}</p>
+                <template v-else>
+                    <div class="space-y-1">
+                        <p class="flex flex-wrap items-center gap-2"><StatusChip :tone="(SEAT_STATUS[seats.status] ?? SEAT_STATUS.none).tone" :label="t((SEAT_STATUS[seats.status] ?? SEAT_STATUS.none).label)" :data-admin-seats-status="seats.status" /><span class="font-semibold tabular-nums text-cream" data-admin-seats-used>{{ t('admin.choirGroups.seats.used', { used: formatNumber(seats.used), bought: formatNumber(seats.bought) }) }}</span></p>
+                        <p class="text-sm text-muted">{{ t('admin.choirGroups.seats.director', { name: seats.group.director?.name ?? '' }) }}<template v-if="seats.startedAt"> · {{ t('admin.choirGroups.seats.since', { date: day(seats.startedAt) }) }}</template><template v-if="seats.endsAt"> · {{ t('admin.choirGroups.seats.ends', { date: day(seats.endsAt) }) }}</template></p>
+                        <p class="text-sm text-muted" data-admin-seats-moves>{{ t('admin.choirGroups.seats.moves', { count: seats.movesThisMonth, left: seats.movesLeft }) }}<template v-if="seats.nextMoveAt">{{ ' ' + t('admin.choirGroups.seats.nextMove', { date: day(seats.nextMoveAt) }) }}</template></p>
+                        <a v-if="seats.stripeUrl" :href="seats.stripeUrl" target="_blank" rel="noopener noreferrer" class="link inline-flex min-h-11 items-center text-sm" data-admin-seats-stripe>{{ t('admin.choirGroups.seats.stripe') }}</a>
+                    </div>
+                    <div v-for="list in lists" :key="list.key" class="space-y-1.5" :data-admin-seats-list="list.key">
+                        <h3 class="eyebrow text-muted">{{ t(list.title, { count: list.people.length }) }}</h3>
+                        <ul v-if="list.people.length" class="divide-y divide-line rounded-xl border border-line text-sm">
+                            <li v-for="p in list.people" :key="p.id" class="flex items-center justify-between gap-3 px-3 py-2"><span class="min-w-0 truncate text-cream" translate="no">{{ p.name }}</span><span v-if="p.since" class="shrink-0 text-xs text-muted">{{ day(p.since) }}</span></li>
+                        </ul>
+                        <p v-else class="text-sm text-muted">{{ t('admin.choirGroups.seats.nobody') }}</p>
+                    </div>
+                    <div class="flex flex-wrap justify-end gap-3">
+                        <button type="button" class="btn-secondary btn-sm" data-admin-seats-sync @click="acting = 'sync'">{{ t('admin.choirGroups.seats.sync') }}</button>
+                        <button v-if="seats.holders.length && seats.unseated.length" type="button" class="btn-secondary btn-sm" data-admin-seats-move @click="openMove">{{ t('admin.choirGroups.seats.move') }}</button>
+                    </div>
+                </template>
+            </div>
+        </Modal>
+        <ChangeSheet v-if="acting" :title="acting === 'move' ? t('admin.choirGroups.seats.moveTitle') : t('admin.choirGroups.seats.syncTitle')" :me="me" :busy="busy" :errors="errors" :fields="['from', 'to']" :confirm-label="acting === 'move' ? t('admin.choirGroups.seats.moveGo') : t('admin.choirGroups.seats.syncGo')" @close="acting = null; errors = null" @confirm="act">
+            <template v-if="acting === 'move'">
+                <Field :label="t('admin.choirGroups.seats.from')" :error="errors?.from" required v-slot="f">
+                    <select :id="f.id" v-model="from" class="input" required data-admin-seats-from><option v-for="p in seats.holders" :key="p.id" :value="p.id" translate="no">{{ p.name }}</option></select>
+                </Field>
+                <Field :label="t('admin.choirGroups.seats.to')" :error="errors?.to" required v-slot="f">
+                    <select :id="f.id" v-model="to" class="input" required data-admin-seats-to><option v-for="p in seats.unseated" :key="p.id" :value="p.id" translate="no">{{ p.name }}</option></select>
+                </Field>
+                <p class="text-sm text-muted">{{ t('admin.choirGroups.seats.moveHint') }}</p>
+            </template>
+            <p v-else class="text-sm text-muted">{{ t('admin.choirGroups.seats.syncHint') }}</p>
+        </ChangeSheet>`,
+    computed: {
+        lists() {
+            const s = this.seats;
+            return [
+                { key: 'holders', title: tk('admin.choirGroups.seats.holders'), people: s.holders ?? [] },
+                { key: 'own', title: tk('admin.choirGroups.seats.own'), people: s.own ?? [] },
+                { key: 'unseated', title: tk('admin.choirGroups.seats.unseated'), people: s.unseated ?? [] },
+            ];
+        },
+    },
+    created() {
+        this.load();
+    },
+    methods: {
+        day: (iso) => formatDate(iso, { dateStyle: 'medium' }),
+        async load() {
+            try {
+                this.seats = (await api.admin.groups.seats.show(this.group.id)).data;
+            } catch (error) {
+                console.warn('The group seats did not load', error);
+                this.failed = true;
+            }
+        },
+        openMove() {
+            this.from = this.seats.holders[0]?.id ?? '';
+            this.to = this.seats.unseated[0]?.id ?? '';
+            this.acting = 'move';
+        },
+        async act(reason) {
+            this.busy = true;
+            this.errors = null;
+            try {
+                const body = this.acting === 'move' ? { action: 'move', from: this.from, to: this.to, reason } : { action: 'sync', reason };
+                this.seats = (await api.admin.groups.seats.update(this.group.id, body)).data;
+                toast(this.acting === 'move' ? t('admin.choirGroups.seats.moved') : t('admin.choirGroups.seats.synced'));
+                this.acting = null;
+            } catch (error) {
+                const fields = errorsFrom(error);
+                if (fields) this.errors = fields;
+                else {
+                    refused(error);
+                    this.errors = {};
+                }
+            } finally {
+                this.busy = false;
+            }
+        },
+    },
+};
+
 export const ChoirGroupsSection = {
-    components: { LoadFailed, StatusChip, WeekBars },
+    components: { LoadFailed, SeatsSheet, StatusChip, WeekBars },
     props: { me: { type: Object, required: true } },
-    data: () => ({ report: null, failed: false }),
+    data: () => ({ report: null, failed: false, seatsOf: null }),
     setup: () => ({ formatNumber, zoneName }),
     template: `
         <section class="space-y-6" aria-labelledby="choir-groups-h" data-choir-groups>
@@ -68,7 +178,7 @@ export const ChoirGroupsSection = {
                         </thead>
                         <tbody class="divide-y divide-line">
                             <tr v-for="g in groups" :key="g.id" :data-group="g.id">
-                                <th scope="row" class="py-2.5 pe-2 text-start font-normal"><span class="flex flex-wrap items-center gap-x-2 font-semibold text-cream">{{ g.name }}<StatusChip v-if="paused(g)" tone="muted" :label="t('admin.choirGroups.paused')" data-paused /></span><span class="block text-xs text-muted">{{ t('admin.choirGroups.started', { date: formatDate(g.createdAt, { dateStyle: 'medium' }) }) }}</span></th>
+                                <th scope="row" class="py-2.5 pe-2 text-start font-normal"><span class="flex flex-wrap items-center gap-x-2 font-semibold text-cream">{{ g.name }}<StatusChip v-if="paused(g)" tone="muted" :label="t('admin.choirGroups.paused')" data-paused /></span><span class="block text-xs text-muted">{{ t('admin.choirGroups.started', { date: formatDate(g.createdAt, { dateStyle: 'medium' }) }) }}</span><button type="button" class="link inline-flex min-h-11 items-center text-xs" :data-admin-seats-open="g.id" @click="seatsOf = g">{{ t('admin.choirGroups.seats.open') }}</button></th>
                                 <td class="px-2 py-2.5 text-cream">{{ g.director?.name ?? '' }}</td>
                                 <td class="px-2 py-2.5 text-end tabular-nums text-cream" data-col="members">{{ formatNumber(g.members) }}</td>
                                 <td class="px-2 py-2.5 text-end tabular-nums text-cream" data-col="songs">{{ formatNumber(g.songs) }}</td>
@@ -87,6 +197,7 @@ export const ChoirGroupsSection = {
                             <div class="min-w-0">
                                 <p class="flex flex-wrap items-center gap-x-2 font-semibold text-cream">{{ g.name }}<StatusChip v-if="paused(g)" tone="muted" :label="t('admin.choirGroups.paused')" data-paused /></p>
                                 <p class="text-sm text-muted">{{ g.director?.name ?? '' }} · {{ t('admin.choirGroups.started', { date: formatDate(g.createdAt, { dateStyle: 'medium' }) }) }}</p>
+                                <button type="button" class="link inline-flex min-h-11 items-center text-sm" :data-admin-seats-open="g.id" @click="seatsOf = g">{{ t('admin.choirGroups.seats.open') }}</button>
                             </div>
                             <WeekBars :group="g" />
                         </div>
@@ -101,6 +212,7 @@ export const ChoirGroupsSection = {
                 </ul>
                 <p class="text-xs text-muted">{{ t('admin.choirGroups.note') }}</p>
             </template>
+            <SeatsSheet v-if="seatsOf" :group="seatsOf" :me="me" @close="seatsOf = null" />
         </section>`,
     computed: {
         groups() {

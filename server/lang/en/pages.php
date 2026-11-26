@@ -1037,6 +1037,10 @@ return [
         'plus_note' => 'Opens the app. Cancel online any time.',
         'choir_callout' => 'Leading a choir? Your singers join free, and your first song\'s learning tracks are on us.',
         'choir_link' => 'See how choir groups work',
+        // While choir seats are on, under the callout: a seat's price from config/billing.php, and that a group starts free
+        // (ai-marketing, 2026-11-26; the callout above says "from 10 seats", so the price line doesn't).
+        'seat_price' => ':price a singer a year.',
+        'seat_free' => 'Starting a group is free.',
         'compare_short' => 'The difference, in short',
         'compare_all' => 'See every detail',
         'courses_browse' => 'Browse all courses',

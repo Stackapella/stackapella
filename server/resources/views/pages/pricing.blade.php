@@ -51,6 +51,11 @@
                      how groups work. Its words follow the live switches (plus_teams, choir_seats). --}}
                 <aside class="s-callout s-v4" aria-label="{{ __('pages.pricing.choir_link') }}">
                     <p>{{ \App\Support\Site\Teams::text('pages.pricing.choir_callout') }}</p>
+                    {{-- While choir seats are on (Hillel, through the coordinator, 2026-11-26): what a seat costs, in the
+                         visitor's currency from the billing config, that a group starts free, and what a seat covers. --}}
+                    @if (\App\Support\Site\Teams::seats() && ($seat = \App\Support\Pages\Prices::seat($price['currency'])) !== null)
+                        <p class="s-seat-price"><b>{{ __('pages.pricing.seat_price', ['price' => $seat]) }}</b> {{ __('pages.pricing.seat_free') }} {{ __('pages.pricing.faq_seat_choir') }}</p>
+                    @endif
                     <a href="/for/choir-directors?ref=for-choirs-pricing" class="s-arrow-link">{{ __('pages.pricing.choir_link') }} <x-site.icon name="arrow" size="16" /></a>
                 </aside>
             </section>

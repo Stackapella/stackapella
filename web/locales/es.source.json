@@ -2679,7 +2679,6 @@
         },
         "accountLink": "{name}: your account and settings",
         "accountLinkPlus": "{name}, on Plus: your account and settings",
-        "toSite": "Stackapella: about, songs and help",
         "week": {
             "title": "Weekly goal",
             "goal": "{count, plural, one {Sing 1 day this week} other {Sing # days this week}}",

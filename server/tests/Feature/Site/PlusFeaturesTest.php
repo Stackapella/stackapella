@@ -34,8 +34,13 @@ final class PlusFeaturesTest extends TestCase
         $this->assertSame('Plus adds about 15 songs a month in a voice like yours, singing together, more storage, each voice as its own file and private arrangements.', PlusFeatures::sentence());
         $this->assertSame('Every part of a song sung by AI in a voice like yours: 60 minutes a month, about 15 songs, each one yours to download.', PlusFeatures::items()[0][1]);
 
+        // With choir seats on, a group starts free: Plus leads with a singer's own work and singing together comes last.
         app(Flags::class)->set('choir_seats', 'on', null, 'test');
-        $this->assertStringContainsString('your seat in any choir group', PlusFeatures::items()[1][1]);
+        $this->assertSame(['choir', 'storage', 'stems', 'private', 'together'], PlusFeatures::keys());
+        $last = PlusFeatures::items()[4];
+        $this->assertSame('Sing with friends.', $last[0]);
+        $this->assertStringContainsString('your seat in any choir group', $last[1]);
+        $this->assertStringNotContainsString(e('Start choir groups.'), (string) $this->get('/pricing')->assertOk()->getContent());
     }
 
     public function test_in_spanish(): void

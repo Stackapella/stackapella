@@ -69,6 +69,13 @@ export const RevenueSection = {
                         <p v-for="a in report.arr" :key="a.currency" class="mt-2 text-3xl font-bold tabular-nums text-cream sm:text-4xl" :data-currency="a.currency">{{ money(a.cents, a.currency) }}</p>
                         <p class="mt-auto pt-4 text-sm text-muted">{{ t('admin.revenue.arrHow') }}</p>
                     </li>
+                    <!-- Choir seats (docs/choir-seats-plan.md), beside Plus: the packs paid for, seats used of bought, and their
+                         yearly value by currency; Plus's numbers above leave them out. -->
+                    <li v-if="report.seats?.choirs" class="card flex flex-col p-4 sm:col-span-2 sm:p-5" data-tile="seats">
+                        <p class="text-sm text-muted">{{ t('admin.revenue.seats', { count: report.seats.choirs }) }}</p>
+                        <p v-for="a in report.seats.arr" :key="a.currency" class="mt-2 text-3xl font-bold tabular-nums text-cream sm:text-4xl" :data-currency="a.currency">{{ money(a.cents, a.currency) }}</p>
+                        <p class="mt-auto pt-4 text-sm text-muted">{{ t('admin.revenue.seatsUsed', { used: formatNumber(report.seats.used), bought: formatNumber(report.seats.bought) }) }}</p>
+                    </li>
                 </ul>
 
                 <section class="card p-5 md:p-6" aria-labelledby="revenue-subs-h" data-subscribers>

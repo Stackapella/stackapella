@@ -93,3 +93,39 @@ test('db: an upgrade waits for an old tab, says so, and finishes when it closes'
     assert(Array.isArray(projects), 'the upgrade finished');
     db.useDatabase('stackapella-test');
 });
+
+test('db: a newer version of the data than this build knows asks for a reload once, and never reports a fault', async () => {
+    const name = 'stackapella-test-newer';
+    await done(indexedDB.deleteDatabase(name));
+    const later = await done(indexedDB.open(name, 99)); // stored by a later build
+    later.close();
+    let told = 0;
+    db.storageEvents.replaced = () => told++;
+    db.useDatabase(name);
+    const first = await db.all('projects').then(() => null, (error) => error);
+    const second = await db.get('projects', 'x').then(() => null, (error) => error);
+    db.storageEvents.replaced = null;
+    assert(first instanceof db.NewerVersion && second instanceof db.NewerVersion, `refused as a newer version: ${first?.name}, ${second?.name}`);
+    assert(told === 1, `Reload asked ${told} times`);
+    const { isNoise } = await import('/js/errors.js');
+    assert(isNoise(first), 'left out of the error reports');
+    db.useDatabase('stackapella-test');
+});
+
+test('db: a newer version upgrading in another tab closes this one cleanly, and it never reopens at the old version', async () => {
+    const name = 'stackapella-test-replaced';
+    await done(indexedDB.deleteDatabase(name));
+    let told = 0;
+    db.storageEvents.replaced = () => told++;
+    db.useDatabase(name);
+    await db.all('projects'); // this tab, open at this build's version
+    const upgrade = indexedDB.open(name, 99); // a newer tab upgrades: this one is asked to step aside
+    upgrade.onupgradeneeded = () => {};
+    const newerTab = await done(upgrade);
+    newerTab.close();
+    const after = await db.all('projects').then(() => null, (error) => error);
+    db.storageEvents.replaced = null;
+    assert(told === 1, `Reload asked ${told} times`);
+    assert(after instanceof db.NewerVersion, `not reopened at the old version: ${after?.name}`);
+    db.useDatabase('stackapella-test');
+});

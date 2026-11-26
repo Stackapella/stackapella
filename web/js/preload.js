@@ -69,7 +69,6 @@
         '/js/sw-update.js',
         '/js/components/install.js',
         '/js/components/controls.js',
-        '/js/hosts.js',
         '/js/ai-choice.js',
         '/js/stores/account.js',
         '/js/stores/cloud.js',
@@ -227,6 +226,7 @@
         '/js/vibrato.js',
         '/js/pitch-skills.js',
         '/js/just.js',
+        '/js/hosts.js',
     ];
     // preload_list.py: lesson end
     // Home's own view on a first visit that opens the app at "/" (written by tool/preload_list.py: views/projects.js and what
@@ -235,6 +235,7 @@
         // preload_list.py: home begin
     const HOME = [
         '/js/views/projects.js',
+        '/js/hosts.js',
         '/js/home.js',
         '/js/stores/catalogue.js',
         '/js/ai-voices.js',
