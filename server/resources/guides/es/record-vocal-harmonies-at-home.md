@@ -85,6 +85,8 @@ recortar los extremos o alinear todas las voces para que empiecen juntas; en Can
 a cantar una sola frase. Cada voz tiene su propio nivel y panorama, y **Pulido** iguala las voces y
 añade una sala. Exporta la canción entera en WAV, gratis, o compártela con un enlace.
 
+Las canciones para empezar, los cursos que ayudan y las herramientas para grabar están juntos en la [página para cantantes](/for/singers).
+
 ## Preguntas frecuentes
 
 **¿Necesito un DAW o un programa de música?** No. Puedes grabar, alinear y mezclar todas las voces

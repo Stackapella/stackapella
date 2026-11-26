@@ -53,3 +53,5 @@ Happy Birthday ("Cumpleaños feliz") es una buena primera canción para oír tod
 - Activa **Acordes de fondo** para oír los acordes sobre los que se construyen las voces.
 - Toca **Cantar a la vez** para cantar con la guía mientras entran las demás voces, y mira cómo se iluminan tus notas cuando las das.
 - Cuando te la sepas, toca **Grabar** para grabar tu voz con las demás; luego elige otra voz y añádela sobre tu propia grabación.
+
+¿Estás empezando? Las primeras lecciones, canciones y guías están juntas en la [página para aprendices](/for/learners).

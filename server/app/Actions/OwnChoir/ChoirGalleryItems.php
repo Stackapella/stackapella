@@ -13,6 +13,7 @@ use App\Models\Report;
 use App\Models\User;
 use App\Support\OwnChoir\ChoirGallery;
 use App\Support\Rights\RightsHere;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -100,15 +101,34 @@ final class ChoirGalleryItems
      */
     public function list(?string $country): array
     {
-        if (! ChoirGallery::on()) {
-            return [];
-        }
+        return ChoirGallery::on() ? $this->shownHere($this->visibleItems(), $country) : [];
+    }
 
-        return array_values(ChoirGalleryItem::query()->with(self::EAGER)->where('status', ChoirGalleryItem::APPROVED)->latest('decided_at')->latest('id')->limit(200)->get()
-            ->filter(fn (ChoirGalleryItem $item): bool => ChoirGallery::visible($item) && ! $this->withheld($item, $country))
-            ->take(100)
-            ->map(static fn (ChoirGalleryItem $item): array => ChoirGallery::shown($item))
-            ->all());
+    /**
+     * The gallery's page: its choirs for this visitor, and whether it's indexed, from one read.
+     *
+     * @return array{items: list<array<string, mixed>>, indexed: bool}
+     */
+    public function forPage(?string $country): array
+    {
+        $visible = ChoirGallery::on() ? $this->visibleItems() : new Collection;
+
+        return ['items' => $this->shownHere($visible, $country), 'indexed' => $this->anyPlayable($visible)];
+    }
+
+    /**
+     * Whether the gallery has a choir anyone can play somewhere (approved, shown, its mix on the media disk), whatever the
+     * visitor's country: while it has none its page is noindex and out of the sitemap, both by this one answer, so the
+     * sitemap never lists a page that says noindex (decisions 2026-11-26).
+     *
+     * @param  Collection<int, ChoirGalleryItem>|null  $visible
+     */
+    public function anyPlayable(?Collection $visible = null): bool
+    {
+        $visible ??= ChoirGallery::on() ? $this->visibleItems() : new Collection;
+        $ids = $visible->pluck('harmony_id')->all();
+
+        return $ids !== [] && Harmony::query()->whereKey($ids)->whereNotNull('media_audio_key')->where('media_audio_key', '!=', '')->exists();
     }
 
     /**
@@ -184,6 +204,29 @@ final class ChoirGalleryItems
     public static function voiceGone(int $userId): void
     {
         ChoirGalleryItem::query()->where('user_id', $userId)->where('status', '!=', ChoirGalleryItem::REMOVED)->update(['status' => ChoirGalleryItem::REMOVED, 'updated_at' => now()]);
+    }
+
+    /**
+     * The approved items anyone may see, newest first, whatever the country.
+     *
+     * @return Collection<int, ChoirGalleryItem>
+     */
+    private function visibleItems(): Collection
+    {
+        return ChoirGalleryItem::query()->with(self::EAGER)->where('status', ChoirGalleryItem::APPROVED)->latest('decided_at')->latest('id')->limit(200)->get()
+            ->filter(static fn (ChoirGalleryItem $item): bool => ChoirGallery::visible($item))->values();
+    }
+
+    /**
+     * Those not withheld in this country, as anyone sees them.
+     *
+     * @param  Collection<int, ChoirGalleryItem>  $visible
+     * @return list<array<string, mixed>>
+     */
+    private function shownHere(Collection $visible, ?string $country): array
+    {
+        return array_values($visible->reject(fn (ChoirGalleryItem $item): bool => $this->withheld($item, $country))->take(100)
+            ->map(static fn (ChoirGalleryItem $item): array => ChoirGallery::shown($item))->all());
     }
 
     private function song(User $user, string $song): OwnChoirRequest

@@ -127,3 +127,5 @@ Oírte dentro de un acorde es una de las formas más rápidas de aprender cómo 
 - Para ir más allá, **Improvisar una armonía** te enseña a inventar una voz por encima o por debajo de
   una melodía, y **Contrapunto**, a mantener tu propia línea mientras otras voces tiran de tu oído. Los
   dos son gratis.
+
+Las lecciones, canciones y guías para empezar están juntas en la [página para aprendices](/for/learners).

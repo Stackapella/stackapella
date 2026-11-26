@@ -177,7 +177,8 @@ final class SitePagesController extends Controller
      * The choir gallery (/ai-harmony-singing/gallery, /es/armonias-con-ia/galeria; docs/choir-gallery-plan.md, 2): the
      * approved choirs, newest first, hidden where their song is withheld, each as "A singer" with its song, its parts, the
      * AI label, its player and Report, never a name or a count; each item's own page is its share page. Not found while
-     * choir_gallery is off; with nothing approved yet it says the first choirs are on their way, and how to make your own.
+     * choir_gallery is off; with nothing approved yet it says the first choirs are on their way, and how to make your own, and
+     * is noindex (out of the sitemap too) until a choir anyone can play is in it.
      */
     public function choirGallery(Request $request, ChoirGalleryItems $gallery): Response
     {
@@ -185,7 +186,7 @@ final class SitePagesController extends Controller
             return response()->view('public.page-gone', ['links' => ['app' => '/']], 404, [...SongPagesController::headers(), 'Cache-Control' => 'no-store', 'X-Robots-Tag' => 'noindex']);
         }
 
-        $items = $gallery->list(RightsHere::country($request));
+        ['items' => $items, 'indexed' => $indexed] = $gallery->forPage(RightsHere::country($request));
         // Each choir's own recording, as its share page plays it (its mix on the media disk), and its length.
         $shares = Harmony::query()->whereIn('public_id', array_column($items, 'harmonyId'))->get(['public_id', 'media_audio_key', 'frames', 'sample_rate'])->keyBy('public_id');
         $media = Storage::disk('media');
@@ -206,7 +207,7 @@ final class SitePagesController extends Controller
             'links' => [...Landing::links(self::AI_REF), 'api' => Hosts::split() ? Hosts::appUrl() : null],
             'items' => $items,
             'make' => '/'.YourChoirStage::SLUGS['en'],
-        ], 200, [...SongPagesController::headers(), 'Vary' => 'CF-IPCountry, Accept-Language']);
+        ], 200, [...SongPagesController::headers(), 'Vary' => 'CF-IPCountry, Accept-Language', ...($indexed ? [] : ['X-Robots-Tag' => 'noindex'])]);
     }
 
     /**

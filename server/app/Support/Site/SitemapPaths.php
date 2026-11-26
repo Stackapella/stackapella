@@ -6,6 +6,7 @@ namespace App\Support\Site;
 
 use App\Actions\Choirs\Choirs;
 use App\Actions\Ideas\Ideas;
+use App\Actions\OwnChoir\ChoirGalleryItems;
 use App\Http\Controllers\Public\DocumentPagesController;
 use App\Models\Choir;
 use App\Models\PageVersion;
@@ -70,8 +71,9 @@ final class SitemapPaths
         if (SongParts::switchedOn('own_choir')) {
             $paths[] = '/'.YourChoirStage::SLUGS['en'];
         }
-        // The choir gallery's page, while it's open; its items' pages (their share pages) stay out (noindex).
-        if (ChoirGallery::on()) {
+        // The choir gallery's page, while it's open and has a choir to play (empty, it's noindex); its items' pages (their
+        // share pages) stay out (noindex).
+        if (ChoirGallery::on() && app(ChoirGalleryItems::class)->anyPlayable()) {
             $paths[] = '/'.YourChoirStage::GALLERY['en'];
         }
         // The songs in the public domain, and the songs that will be.

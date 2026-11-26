@@ -65,6 +65,8 @@ mientras se iluminan tus notas. Después graba cada voz sobre las demás, exacta
 mientras grabas, oyes tus tomas anteriores sonar contigo. Mézclala, expórtala en WAV o comparte un
 enlace. Es gratis, en el navegador, sin nada que instalar.
 
+Las canciones para empezar, los cursos que ayudan y las herramientas para grabar están juntos en la [página para cantantes](/for/singers).
+
 ## Preguntas frecuentes
 
 **¿Tengo que leer música?** No. Puedes aprender cada voz de oído, con una voz guía que la canta.

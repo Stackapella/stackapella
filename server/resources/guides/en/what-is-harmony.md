@@ -77,3 +77,5 @@ words, and the bass holds the root of each chord on "oo".
   you hit them.
 - When you know it, **Record** your part with the others, then choose another part and add it
   over your own voice.
+
+Just starting out? The first lessons, songs and guides are together on the [page for learners](/for/learners).

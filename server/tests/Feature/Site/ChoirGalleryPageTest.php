@@ -19,7 +19,8 @@ use Tests\TestCase;
 /**
  * The choir gallery's page (/ai-harmony-singing/gallery, /es/armonias-con-ia/galeria; docs/choir-gallery-plan.md, 2): the
  * approved choirs as "A singer", never a name, each with its song (to its share page), parts, the AI label, its player and
- * Report; empty, the first choirs are on their way and make your own. In the sitemap (its items aren't); See the gallery
+ * Report; empty, the first choirs are on their way and make your own, and it's noindex and out of the sitemap until a
+ * choir is in it (its items never are); See the gallery
  * on the AI landing; a choir's share page in the gallery's words once it's held or gone.
  */
 final class ChoirGalleryPageTest extends TestCase
@@ -42,8 +43,31 @@ final class ChoirGalleryPageTest extends TestCase
         $this->assertStringContainsString('href="/ai-harmony-singing" class="btn-primary btn-lg s-cg-go">'.e(__('site.choir_gallery.make')), $html);
         $this->assertStringNotContainsString('data-report', $html);
         $this->assertMatchesRegularExpression('#<link rel="canonical" href="[^"]*/ai-harmony-singing/gallery">#', $html);
-        $this->assertContains('/ai-harmony-singing/gallery', app(SitemapPaths::class)->all());
         $this->get('/es/armonias-con-ia/galeria')->assertOk()->assertSee('<html lang="es"', false);
+    }
+
+    public function test_empty_it_is_noindex_and_out_of_the_sitemap_and_with_a_choir_it_is_indexed_and_listed_again(): void
+    {
+        $this->on();
+        // Indexing on, and Spanish open to everyone: otherwise every page is noindex whatever the gallery holds.
+        config(['ops.indexing' => true]);
+        app(Flags::class)->set('lang_es', 'on', null, 'test');
+
+        foreach (['/ai-harmony-singing/gallery', '/es/armonias-con-ia/galeria'] as $path) {
+            $this->get($path)->assertOk()->assertHeader('X-Robots-Tag', 'noindex');
+        }
+        $this->assertNotContains('/ai-harmony-singing/gallery', app(SitemapPaths::class)->all());
+
+        [$item] = $this->approved();
+        foreach (['/ai-harmony-singing/gallery', '/es/armonias-con-ia/galeria'] as $path) {
+            $this->get($path)->assertOk()->assertHeaderMissing('X-Robots-Tag');
+        }
+        $this->assertContains('/ai-harmony-singing/gallery', app(SitemapPaths::class)->all());
+
+        // Held again, the gallery is empty again: out by itself.
+        $item->forceFill(['status' => ChoirGalleryItem::HELD])->save();
+        $this->get('/ai-harmony-singing/gallery')->assertOk()->assertHeader('X-Robots-Tag', 'noindex');
+        $this->assertNotContains('/ai-harmony-singing/gallery', app(SitemapPaths::class)->all());
     }
 
     public function test_an_approved_choir_shows_as_a_singer_with_its_song_parts_label_player_and_report(): void

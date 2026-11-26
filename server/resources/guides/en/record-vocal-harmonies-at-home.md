@@ -83,6 +83,8 @@ line up every part to start together; in Sing, you can re-sing just one phrase. 
 own level and pan, and **Polished** levels the parts and adds a room. Export the whole song as a WAV, free, or
 share it as a link.
 
+Songs to start with, the courses that help and the tools for recording are together on the [page for singers](/for/singers).
+
 ## Common questions
 
 **Do I need a DAW or music software?** No. You can record, line up and mix every part in your

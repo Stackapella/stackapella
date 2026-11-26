@@ -84,3 +84,5 @@ una voz para oírla sola, o con las demás; en la app, cántala sobre las otras 
 villancico, envía a tu cuerda [Silent Night](/songs/silent-night) (Noche de paz) y su
 [voz de contralto](/songs/silent-night/alto) antes del ensayo, para que pueda empezar desde la
 música y no desde las notas.
+
+Para dar a cada cantante su voz y ver quién la tiene lista, mira la [página para directores de coro](/for/choir-directors).

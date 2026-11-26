@@ -65,6 +65,8 @@ your notes light up. Then record each part over the others, exactly in time: whi
 hear your earlier takes play with you. Mix it, export it as a WAV, or share a link. It's free, in
 your browser, with nothing to install.
 
+Songs to start with, the courses that help and the tools for recording are together on the [page for singers](/for/singers).
+
 ## Common questions
 
 **Do I need to read music?** No. You can learn every part by ear, from a guide voice singing it.

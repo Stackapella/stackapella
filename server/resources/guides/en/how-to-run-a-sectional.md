@@ -78,3 +78,5 @@ hear it on its own, or hear it with the others; in the app, sing it over the oth
 carol, send your section [Silent Night](/songs/silent-night) and its
 [alto part](/songs/silent-night/alto) before you meet, so the sectional can start from the music
 rather than the notes.
+
+To give every singer their part and see who's ready, see the [page for choir directors](/for/choir-directors).
