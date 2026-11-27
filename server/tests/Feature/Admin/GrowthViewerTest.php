@@ -184,16 +184,18 @@ final class GrowthViewerTest extends TestCase
         Mail::assertQueuedCount(2);
     }
 
-    public function test_the_invite_says_who_asked_what_they_see_and_how_to_sign_in_with_no_images(): void
+    public function test_the_invite_says_who_asked_without_a_name_what_they_see_and_how_to_sign_in_with_no_images(): void
     {
         $html = (new GrowthViewerInvite(self::EMAIL, 'A line *as written*.'))->to(self::EMAIL)->render();
 
-        foreach (['Hillel at Stackapella', 'view-only', 'anonymous totals only', 'Sign in with Google', self::EMAIL, 'passkey', '/admin/sign-in', 'A line *as written*.'] as $words) {
+        foreach (['Stackapella has given you', 'view-only', 'anonymous totals only', 'Sign in with Google', self::EMAIL, 'passkey', '/admin/sign-in', 'A line *as written*.'] as $words) {
             $this->assertStringContainsString(e($words), $html);
         }
 
         $this->assertStringNotContainsString('<img', $html);
+        // Hillel's name is on the About page only (2026-11-27).
+        $this->assertStringNotContainsString('Hillel', $html);
         $this->assertStringNotContainsString(e('A line *as written*.').'</strong>', $html);
-        $this->assertSame('Hillel invited you to see Stackapella\'s growth numbers', (new GrowthViewerInvite(self::EMAIL))->envelope()->subject);
+        $this->assertSame('Stackapella invited you to see its growth numbers', (new GrowthViewerInvite(self::EMAIL))->envelope()->subject);
     }
 }

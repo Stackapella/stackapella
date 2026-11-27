@@ -74,3 +74,5 @@ says.
 
 The same page has songs for the Passover seder and for Shabbat, so a choir that learns these two has its
 next songs ready: [Jewish songs, part by part](/songs/jewish-songs).
+
+To give each singer their part in one place, and see who has started and who has recorded it, see the [page for choir directors](/for/choir-directors).

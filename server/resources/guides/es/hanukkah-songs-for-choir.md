@@ -76,3 +76,5 @@ fuera del rezo, como indica la página de cada canción.
 
 La misma página tiene canciones para el séder de Pésaj y para el sabbat, así que un coro que aprenda estas dos ya
 tiene sus próximas canciones: [canciones judías, voz por voz](/songs/jewish-songs).
+
+Para dar a cada cantante su voz en un solo sitio, y ver quién la ha empezado y quién la ha grabado, mira la [página para directores de coro](/for/choir-directors).

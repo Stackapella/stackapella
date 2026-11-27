@@ -148,5 +148,5 @@ saying what we did, why, under which rule, and whether it was automatic. It's in
 emailed to you if you're suspended and can't sign in.
 
 If you think we got it wrong, use **Ask for a review** on the notice, within 6 months. A person
-(Hillel or an Editor) looks at it and answers. If we change our mind, we undo what we can: the
+(our staff or an Editor) looks at it and answers. If we change our mind, we undo what we can: the
 harmony comes back, or the account is unsuspended.

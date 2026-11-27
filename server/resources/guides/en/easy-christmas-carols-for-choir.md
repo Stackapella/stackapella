@@ -70,3 +70,5 @@ together, word by word, and each verse uses the same tune. Every carol below is 
 
 All the carols are on the [Christmas carols](/songs/christmas-carols) page, with a filter for the
 part you sing.
+
+To give each singer their part in one place, and see who has started and who has recorded it, see the [page for choir directors](/for/choir-directors).

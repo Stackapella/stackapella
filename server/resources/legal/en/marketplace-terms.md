@@ -81,7 +81,7 @@ it, use "Report a problem".
 
 ## 7. When something goes wrong
 
-Use **Report a problem** on the coaching. Hillel looks at every report, and may refund you in full
+Use **Report a problem** on the coaching. A person at Stackapella looks at every report, and may refund you in full
 or in part. If you dispute a charge with your bank instead, it's handled under Stripe's rules;
 please tell us first, as it's usually quicker.
 

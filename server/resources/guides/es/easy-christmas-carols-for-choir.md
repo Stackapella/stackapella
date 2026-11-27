@@ -73,3 +73,5 @@ gratis para aprender de oído en su propia página.
 
 Todos los villancicos están en la página de [villancicos](/songs/christmas-carols), con un filtro
 para la voz que cantas.
+
+Para dar a cada cantante su voz en un solo sitio, y ver quién la ha empezado y quién la ha grabado, mira la [página para directores de coro](/for/choir-directors).
