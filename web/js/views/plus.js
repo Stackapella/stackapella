@@ -8,6 +8,7 @@
 // before anything is paid. On Plus: the plan as it stands, and Manage (Stripe's portal). Opened from
 // an upgrade moment (`?from=`), it says what led here first.
 
+import { ContactLink } from '../components/contact-link.js';
 import { AccountWall } from '../components/account-wall.js';
 import { AppScreen } from '../components/page.js';
 import { ApiError } from '../api.js';
@@ -83,7 +84,7 @@ const CURRENCIES = ['usd', 'eur', 'gbp'];
 const STATUS = { trialing: tk('plus.status.trialing'), active: tk('plus.status.active'), past_due: tk('plus.status.pastDue'), canceled: tk('plus.status.canceled'), pending: tk('plus.status.pending') };
 
 export const PlusView = {
-    components: { AccountWall, AppScreen, Notice, Icon, Logo },
+    components: { ContactLink, AccountWall, AppScreen, Notice, Icon, Logo },
     data: () => ({ interval: 'year', currency: guessCurrency(), busy: false, notice: null, failed: false, everything: false, next: keptNext(), consent: false, consentAsked: false }),
     setup: () => ({ account, selfHosted, plan, navigate, goBack, MOMENTS, NEXT_WORDS, CARRY_ON, GROUPS, CURRENCIES, STATUS, formatDate, formatNumber }),
     template: `
@@ -123,6 +124,7 @@ export const PlusView = {
                             <button v-if="next" type="button" class="btn-primary self-start" data-plus-next @click="goNext">{{ t(NEXT_WORDS[next.from] ?? CARRY_ON) }}</button>
                             <button v-if="billing?.subscription" type="button" class="btn-secondary self-start" :disabled="busy" @click="manage">{{ t('plus.manage') }}</button>
                             <p v-else-if="billing" class="text-sm text-muted">{{ t('plus.byInvoice') }}</p>
+                            <ContactLink v-if="billing && !billing.subscription" :moment="null" topic="account" :label="'contact.title'" />
                         </section>
 
                         <!-- Not on Plus: the price -->

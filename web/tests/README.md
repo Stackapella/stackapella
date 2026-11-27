@@ -68,10 +68,10 @@ A flow is a journey through the app, run at both sizes. It uses `tests/flows/flo
 | `f.shot(label)` | Saves a screenshot to `tests/flows/shots/` |
 | `f.expected_errors.append(text)` | A console error the journey causes on purpose (any other fails the flow) |
 
-**Example:** Tell Hillel refuses an empty note. Add `tests/flows/tell_hillel.py`:
+**Example:** Tell us refuses an empty note. Add `tests/flows/tell_us.py`:
 
 ```python
-"""Tell Hillel: an empty note is refused kindly, a real one is sent."""
+"""Tell us: an empty note is refused kindly, a real one is sent."""
 import sys
 from pathlib import Path
 
@@ -81,7 +81,7 @@ from flow import run  # noqa: E402
 
 def journey(f):
     f.go("/beta?api=mock", "document.querySelector('main')")
-    f.click_t("beta.tellHillel")
+    f.click_t("beta.tell.button")
     f.click_t("common.send")
     f.wait_text(f.js("(await import('/js/i18n.js')).t('beta.feedback.empty')"))
     f.shot("empty")
@@ -91,10 +91,10 @@ def journey(f):
 
 
 if __name__ == "__main__":
-    run("tell_hillel", journey)
+    run("tell_us", journey)
 ```
 
-Run it with `tool/flows.sh tell_hillel`. It runs at both sizes and prints `ok` or `FAIL` with the
+Run it with `tool/flows.sh tell_us`. It runs at both sizes and prints `ok` or `FAIL` with the
 step that timed out; the screenshot of the failure is in `tests/flows/shots/`.
 
 - **Against the real server** (the integration check at the end of a milestone): start Laravel on a

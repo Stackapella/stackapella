@@ -1007,7 +1007,7 @@
             "not_found": "Este enlace no funciona.",
             "expired": "Este enlace ha caducado.",
             "revoked": "Este enlace se ha sustituido.",
-            "askHillel": "Pídenos uno nuevo. Tus tomas y tus créditos están a salvo."
+            "askUs": "Pídenos uno nuevo. Tus tomas y tus créditos están a salvo."
         },
         "welcome": {
             "eyebrow": "La beta de Stackapella",
@@ -4813,7 +4813,14 @@
             "device": "Dispositivo",
             "page": "Página",
             "timing": "Prueba de sincronía",
-            "browser": "Navegador"
+            "account": "Tu cuenta",
+            "language": "Idioma",
+            "skin": "Modo juego",
+            "on": "Activado",
+            "off": "Desactivado",
+            "song": "Canción",
+            "choir": "Canción del coro",
+            "error": "Código de error"
         },
         "send": "Enviar mensaje",
         "sending": "Enviando",
@@ -4846,9 +4853,37 @@
         "sentNothing": "Solo van tu mensaje y tu correo, y nunca ningún audio.",
         "need": {
             "message": "Añade un mensaje para enviar",
-            "email": "Añade tu correo para que te respondamos"
+            "email": "Añade tu correo para que te respondamos",
+            "validEmail": "Revisa el correo, o déjalo vacío"
         },
-        "reference": "Referencia {id}"
+        "reference": "Referencia {id}",
+        "hint": "Preguntas, problemas o ideas: leemos todos los mensajes.",
+        "emailOptional": "Solo si quieres respuesta.",
+        "sentWith": "Va con el mensaje",
+        "summary": {
+            "page": "Esta página",
+            "version": "app {version}",
+            "gameOn": "Modo juego activado",
+            "gameOff": "Modo juego desactivado"
+        },
+        "device": {
+            "phone": "Teléfono",
+            "tablet": "Tableta",
+            "computer": "Computadora"
+        },
+        "noReply": "No necesito respuesta",
+        "sentDone": "Enviado. Gracias.",
+        "cantReply": "Sin un correo no podemos responderte.",
+        "sentNothingGuest": "Solo va tu mensaje, y nunca ningún audio.",
+        "sentNothingAccount": "Solo va tu mensaje, con tu cuenta, y nunca ningún audio.",
+        "choirIssue": {
+            "title": "¿Qué no suena bien?",
+            "voice": "Una voz suena rara",
+            "timing": "Va a destiempo",
+            "notes": "Notas equivocadas",
+            "other": "Otra cosa"
+        },
+        "tellUs": "Cuéntanos qué pasó"
     },
     "invite": {
         "closedTitle": "Este enlace ha caducado",
@@ -6569,6 +6604,12 @@
                 "together": "Las canciones con la voz de una amistad aún no pueden ir a la galería.",
                 "failed": "No se añadió. Revisa tu conexión y vuelve a intentarlo."
             }
+        },
+        "ask": {
+            "title": "¿Tu coro suena bien?",
+            "right": "Suena bien",
+            "off": "Algo no suena bien",
+            "thanks": "Gracias por decírnoslo."
         }
     },
     "aiVoice": {

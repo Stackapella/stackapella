@@ -5,9 +5,10 @@
 // - an 18+ feature refused with 403 adult_required to someone who never gave it: askBirth() opens
 //   it, saves it, and says whether they're 18 (the caller retries). Sign-up has the same fields.
 
+import { contactActions } from './contact-link.js';
 import { reactive } from 'vue';
 import { api, ApiError } from '../api.js';
-import { locale, t } from '../i18n.js';
+import { locale, t, tk } from '../i18n.js';
 import { navigate } from '../router.js';
 import { account, signOut } from '../stores/account.js';
 import { Icon } from './icon.js';
@@ -135,7 +136,7 @@ export const BirthHost = {
                 // Not deleted (too long since signing in, or offline): signed out here, and told so.
                 console.error('Deleting an under-13 account failed', error);
                 await signOut().catch((failed) => console.error('Signing out failed', failed));
-                toast(t('auth.ageCheck.notDeleted'), { tone: 'error', seconds: 15 });
+                toast(t('auth.ageCheck.notDeleted'), { tone: 'error', seconds: 20, actions: contactActions({ code: 'not_deleted', topic: 'account', from: '/' }, tk('contact.title')) });
             } finally {
                 account.me = null;
                 this.busy = false;

@@ -1,7 +1,7 @@
 """Fails on a count the app would drop (2026-11-24: Hear yourself as a choir, Ready by rehearsal, take-away tracks and
 lesson 1's live chord were counted on the page but never sent, as js/usage.js count() keeps only the kinds it knows).
 Every literal count('kind') (and countChoir, countVoice) in js/ must be a kind js/usage.js lists, a detailed kind
-(`<prefix>:<id>`, its DETAILED set), or one of its pattern families (library_filter:, sh:, aic:, ai_hide:, ai_use:).
+(`<prefix>:<id>`, its DETAILED set), or one of its pattern families (library_filter:, sh:, aic:, ai_hide:, ai_use:, fb_open:, fb_ask:).
 A kind the server's config/counts.php doesn't list is said as a warning (the server drops it), not a failure here.
 """
 import re
@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parent.parent
 USAGE = (ROOT / "js" / "usage.js").read_text()
 SERVER = ROOT.parent / "server" / "config" / "counts.php"
 CALL = re.compile(r"\b(?:count|countChoir|countVoice)\('([a-z0-9_:.\-]+)'\)")
-FAMILIES = ("library_filter:", "sh:", "aic:", "ai_hide:", "ai_use:")
+FAMILIES = ("library_filter:", "sh:", "aic:", "ai_hide:", "ai_use:", "fb_open:", "fb_ask:")
 
 listed = set(re.findall(r"'([a-z0-9_:.\-]+)'", USAGE))
 detailed = set(re.findall(r"'([a-z]+_[a-z])'", re.search(r"const DETAILED = new Set\(\[([^\]]*)\]\)", USAGE).group(1)))

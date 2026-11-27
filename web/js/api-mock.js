@@ -329,7 +329,9 @@ async function stateful(operation, params, body, cases, query = {}) {
         const choirGallery = { ...data.choirGallery, on: tabStorage.get('stackapella.mockChoirGallery') === '1' || !!data.choirGallery?.on };
         // Song pieces in lessons (song_pieces), on for a flow (stackapella.mockSongPieces, this tab).
         const songPieces = tabStorage.get('stackapella.mockSongPieces') === '1' || !!data.songPieces;
-        return respond(200, { data: { ...data, choirGallery, songPieces, ideas: !scenarios().includes('ideas.list:not_found'), practiceSet, choirSeats, experiments, aiOptional, lendVoice, choirEmail, singingTest, singingTestBoards, selfHosted, withheldSongs, aiVoices, ownChoir, ownChoirSongs, turnstileSiteKey, ownChoirTogether } });
+        // The new Contact us and its ways in (feedback2), on for a flow (stackapella.mockFeedback2, this tab).
+        const feedback2 = tabStorage.get('stackapella.mockFeedback2') === '1' || !!data.feedback2;
+        return respond(200, { data: { ...data, choirGallery, songPieces, feedback2, ideas: !scenarios().includes('ideas.list:not_found'), practiceSet, choirSeats, experiments, aiOptional, lendVoice, choirEmail, singingTest, singingTestBoards, selfHosted, withheldSongs, aiVoices, ownChoir, ownChoirSongs, turnstileSiteKey, ownChoirTogether } });
     }
     // A share's body as sent (Update that link's `replaces` among it), for the flows; the example answers as before.
     if (operation === 'harmonies.create') globalThis.mockShareBody = body;
@@ -813,6 +815,23 @@ async function stateful(operation, params, body, cases, query = {}) {
         return respond(200, { data: state.aiLicence });
     }
     if (operation === 'voices.join' && !scenarios().some((s) => s.startsWith('voices.join:'))) tabStorage.set('stackapella.mockVolunteer', '1');
+    // The support inbox (admin.support.*): the list filtered as the server does (?status=, ?category=, ?maybeSpam=1), and
+    // each row opening as itself: the show example for its own message, else the row with a body and no replies yet
+    // (a beta note's context its template, part and beat).
+    if ((operation === 'admin.support.list' || operation === 'admin.support.show') && !scenarios().some((s) => s.startsWith(operation + ':'))) {
+        const rows = (await example('admin.support.list.200.json')).data;
+        if (operation === 'admin.support.list') {
+            const status = query.status || 'open';
+            const data = rows.filter((m) => (status === 'all' || m.status === status) && (!query.category || m.category === query.category) && (!query.maybeSpam || m.maybeSpam));
+            return respond(200, { data: query.cursor ? [] : data, meta: { nextCursor: null } });
+        }
+        const full = (await example('admin.support.show.200.json')).data;
+        const row = rows.find((m) => m.id === params?.id);
+        if (!row || row.id === full.id) return respond(200, { data: full });
+        const context = row.category === 'beta' ? { templateId: 'amazing-grace', partKey: 'alto', beat: 33.5 } : null;
+        const account = row.from.account && { ...row.from.account, plan: { plus: false, source: null, until: null } };
+        return respond(200, { data: { ...row, from: { ...row.from, account }, body: row.preview, context, replies: [], savedReplies: full.savedReplies } });
+    }
     // The AI review (phase 1c): the example's parts, their decisions kept for the tab's state, filtered by ?status=.
     if (operation.startsWith('admin.aiGuides.') && !scenarios().some((s) => s.startsWith(operation + ':'))) {
         // Their audio is on a CDN the mock can't reach: the local 3-second fixture, as the catalogue's real voices are.

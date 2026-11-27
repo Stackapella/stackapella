@@ -1,4 +1,5 @@
 import { ReportVoice } from './report-voice.js';
+import { ContactLink } from './contact-link.js';
 import { audio, checkClaps, chooseMic, chooseRoute, checkTiming, currentMicId, engine, looksWireless, measuredFor, micChoices, openMic, ROUTES } from '../audio.js';
 import { CLAP_CLICKS, CLAP_GAP_SECONDS } from '../timing-check.js';
 import { styleOf } from '../band-style.js';
@@ -875,7 +876,7 @@ export const RangeDialog = {
  * step under them, quiet, for anyone who may start it, never in a new singer's first week.
  */
 export const TemplateDialog = {
-    components: { AiVoiceLabel, Modal, Icon, AiHide },
+    components: { AiVoiceLabel, Modal, Icon, AiHide, ContactLink },
     // locked: a guest on a song that needs a free account (the catalogue's summary: no notes): its clip, and the way to an account.
     // taste: a guest on a library song whose first phrase they may sing (templates.firstPhrase): Start sings that, the ask after.
     // load: the song's notes still coming ('loading'), or why they didn't ('failed', 'offline'); starting: Start was tapped.
@@ -947,7 +948,7 @@ export const TemplateDialog = {
                     <p v-if="load === 'loading' && slow" class="t-hint text-center" role="status" data-song-slow>{{ t('common.stillLoading') }}</p>
                     <!-- Not available where the singer is (geo rights): said calmly, with nothing to retry or buy. -->
                     <p v-else-if="load === 'withheld'" class="t-hint text-center" role="status" data-song-not-here>{{ notHere }}</p>
-                    <p v-else-if="load === 'failed' || load === 'offline'" class="alert-inline flex-wrap justify-center" role="alert" data-song-load-failed>{{ load === 'offline' ? t('common.offline') : t('templates.loadFailed') }} <button type="button" class="link tap-44" @click="$emit('retry')">{{ t('common.tryAgain') }}</button></p>
+                    <p v-else-if="load === 'failed' || load === 'offline'" class="alert-inline flex-wrap justify-center" role="alert" data-song-load-failed>{{ load === 'offline' ? t('common.offline') : t('templates.loadFailed') }} <button type="button" class="link tap-44" @click="$emit('retry')">{{ t('common.tryAgain') }}</button> <ContactLink v-if="load === 'failed'" code="song_load_failed" :template-id="template.id ?? null" /></p>
                     <!-- Hear it and Edit: two equal secondaries under the one primary (Hillel's design). -->
                     <div class="grid gap-2.5" :class="!fresh && !taste ? 'grid-cols-2' : 'grid-cols-1'">
                         <button type="button" :class="[secondary, 'w-full justify-center']" :aria-pressed="previewing ? 'true' : 'false'" data-song-play @click="$emit('preview')"><span class="inline-flex items-center gap-2"><Icon :name="previewing ? 'stop' : 'play'" :size="16" />{{ preparing ? t('templates.preparing') : previewing ? t('studio.stop') : t('templates.play') }}</span></button>

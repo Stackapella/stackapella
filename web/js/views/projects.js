@@ -127,7 +127,9 @@ export const ProjectsView = {
                      gate (its admin field; editors and everyone else get no trace of it). The server guards /admin. -->
                 <a v-if="account.me?.admin === true" href="/admin" class="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full px-2 text-sm text-muted hover:text-cream" :aria-label="t('home.admin')" :title="t('home.admin')" data-admin-link @click.prevent="navigate('/admin')"><Icon name="shield" :size="16" /><span class="hidden sm:inline">{{ t('home.admin') }}</span></a>
                 <template v-if="!account.me && account.loaded">
-                    <a href="/settings#look" class="hidden rounded-full p-1.5 text-muted hover:text-cream sm:block" :aria-label="t('appearance.title')" :title="t('appearance.title')" @click.prevent="navigate('/settings')"><Icon name="sliders" :size="18" /></a>
+                    <!-- Settings for a guest: from a phone too, so Contact us is reachable there (feedback2; docs/feedback-plan.md). -->
+                    <a v-if="feedback2" href="/settings" class="grid size-11 shrink-0 place-items-center rounded-full text-muted hover:text-cream" :aria-label="t('settings.title')" :title="t('settings.title')" data-guest-settings @click.prevent="navigate('/settings')"><Icon name="sliders" :size="18" /></a>
+                    <a v-else href="/settings#look" class="hidden rounded-full p-1.5 text-muted hover:text-cream sm:block" :aria-label="t('appearance.title')" :title="t('appearance.title')" @click.prevent="navigate('/settings')"><Icon name="sliders" :size="18" /></a>
                     <a href="/signin" class="link-quiet inline-flex min-h-11 items-center text-sm" @click.prevent="navigate('/signin')">{{ t('auth.signIn') }}</a>
                 </template>
                 </div>
@@ -362,6 +364,8 @@ export const ProjectsView = {
             </div>
         </div>`,
     computed: {
+        /** The guest's Settings icon on phones too (auth.config's feedback2). */
+        feedback2: () => !!account.config?.feedback2,
         /** The choir panel in the course card's side column: a wide screen, once the course has loaded, when there's a panel. */
         choirInLead() {
             return this.wide && learning.loaded && !learning.failed && choirPanelShown();

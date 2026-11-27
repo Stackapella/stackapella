@@ -1,5 +1,5 @@
 """When the app's modules can't load (Vue's CDN unreachable, a dropped line), the page says so calmly with Reload
-instead of staying blank (js/boot-watch.js; the coordinator, 2026-11-02). Vue's request is refused through the
+instead of staying blank, with an email to us and the site's help for when Reload doesn't fix it (js/boot-watch.js; the coordinator, 2026-11-02). Vue's request is refused through the
 harness's own interception (tool/cdp.py), then let through again: the message shows, Reload brings the app, and on a
 normal start nothing shows."""
 import sys
@@ -22,6 +22,11 @@ def journey(f):
     f.wait(FAILED, timeout=20, what="the calm couldn't-load message")
     assert "couldn't load" in f.js(f"{FAILED}.textContent"), f.js(f"{FAILED}.textContent")
     assert not f.js("document.querySelector('.app-splash').getClientRects().length"), "the waiting logo over the message"
+    # When Reload doesn't fix it: an email to us, the build in its subject when a worker served the page, and the help.
+    mail = f.js(f"decodeURIComponent({FAILED}.querySelector('[data-boot-mail]').href)")
+    assert mail.startswith("mailto:contact@stackapella.com?subject=Stackapella won't load"), mail
+    assert f.js(f"{FAILED}.querySelector('[data-boot-help]').href").endswith("/help"), "the site's help"
+    assert f.js(f"{FAILED}.querySelector('[data-boot-mail]').getBoundingClientRect().height") >= 44, "a 44 px target"
     f.shot("couldnt-load")
 
     # The line back: Reload brings the app, and no message.

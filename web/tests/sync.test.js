@@ -543,3 +543,23 @@ test("sync: a take over the day's upload cap stays waiting, and isn't tried agai
     await p.run();
     assert(!account.takes.get('t2'), 'tried again before the time asked');
 });
+
+// Sentry JAVASCRIPT-F: storage failing mid-sync (a connection closing on iOS) stops the run calmly: its own count of
+// what's waiting doesn't touch storage again and throw, so no one is left with an unhandled rejection.
+test('sync: storage failing stops the run calmly, the waiting count kept as it was', async () => {
+    const account = fakeAccount();
+    const device = fakeDevice();
+    const closing = async () => {
+        throw new DOMException('The database connection is closing.', 'InvalidStateError');
+    };
+    const states = [];
+    const s = sync(account, device, { db: { ...device.db, get: closing, all: closing, allBy: closing }, onState: (state) => states.push({ ...state }) });
+    const warn = console.warn;
+    console.warn = () => {};
+    try {
+        await s.run();
+    } finally {
+        console.warn = warn;
+    }
+    assert(states.length > 0 && !states.at(-1).offline, `reported, not offline (${JSON.stringify(states.at(-1))})`);
+});

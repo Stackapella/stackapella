@@ -177,7 +177,12 @@ import { paint, token } from '../colors.js';
             status.textContent = ok ? status.dataset.sent : status.dataset.failed;
             status.classList.remove('hidden');
             if (!ok) ready();
-            else setTimeout(() => dialog.close(), 1800);
+            else {
+                // The thanks stays until the reader closes the dialog, focused so a screen reader says it
+                // (docs/feedback-plan.md: no thanks that disappear on a timer).
+                status.tabIndex = -1;
+                status.focus();
+            }
         });
     }
 }

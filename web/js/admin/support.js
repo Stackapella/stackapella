@@ -1,6 +1,7 @@
-// The support inbox (contract/api.md, admin.support.*): what people sent from Contact us, open ones
-// first, then one in full: the message, the details that came with it, the answers sent, and a reply
-// (from a saved reply, or written) that's emailed to them, closing it if done. Close and Reopen.
+// The support inbox (contract/api.md, admin.support.*): what people sent from Contact us, and beta singers' notes, new
+// ones first, then one in full: the message, where it was opened from and what came with it (docs/feedback-plan.md),
+// the answers sent, and a reply (from a saved reply, or written) that's emailed to them, closing it if done; with no
+// reply address, only Close. Close and Reopen. Maybe spam (a guest's message full of links) stays listed, marked quietly.
 // A director's learning tracks request (category `tracks`, docs/choir-tracks-plan.md) shows its piece, its score's files,
 // the rights they confirmed, and Give this song: the arranger's file goes to their account, shared into their group,
 // with their confirmation as the rights record, and the request closes (admin.people.songs.create with trackRequest).
@@ -10,13 +11,69 @@ import { formatNumber, t, tk } from '../i18n.js';
 import { navigate, route } from '../router.js';
 import { EmptyState, Field, StatusChip } from '../components/form.js';
 import { toast } from '../components/ui.js';
-import { ChangeSheet, errorsFrom, LoadFailed, loadInto, refused, when } from './common.js';
+import { ChangeSheet, errorsFrom, LoadFailed, loadInto, refused, screen, when } from './common.js';
 import { readSheetFile } from '../sheet-import.js';
 import { SheetImport } from '../components/create/sheet-import.js';
 
+// The wire's open, answered and closed, worded New, Replied and Closed (docs/feedback-plan.md).
 const FILTERS = { open: tk('admin.support.filter.open'), answered: tk('admin.support.filter.answered'), closed: tk('admin.support.filter.closed'), all: tk('admin.support.filter.all') };
 const STATUS = { open: { tone: 'info', label: tk('admin.support.status.open') }, answered: { tone: 'good', label: tk('admin.support.status.answered') }, closed: { tone: 'muted', label: tk('admin.support.status.closed') } };
-const CATEGORY = { tracks: tk('admin.support.tracks.category'), recording: tk('contact.category.recording'), account: tk('contact.category.account'), payments: tk('contact.category.payments'), coaching: tk('contact.category.coaching'), other: tk('contact.category.other'), bug: tk('contact.category.bug'), idea: tk('contact.category.idea'), diagnostics: tk('admin.support.diagnostics') };
+const CATEGORY = { tracks: tk('admin.support.tracks.category'), beta: tk('admin.support.beta'), recording: tk('contact.category.recording'), account: tk('contact.category.account'), payments: tk('contact.category.payments'), coaching: tk('contact.category.coaching'), other: tk('contact.category.other'), bug: tk('contact.category.bug'), idea: tk('contact.category.idea'), diagnostics: tk('admin.support.diagnostics') };
+/** The category chips: one category at a time (admin.support.list ?category=). */
+const ONLY = { tracks: tk('admin.support.tracks.only'), beta: tk('admin.support.betaOnly') };
+const MOMENT = { settings: tk('admin.support.moment.settings'), help: tk('admin.support.moment.help'), error: tk('admin.support.moment.error'), choir_ask: tk('admin.support.moment.choir_ask'), mic: tk('admin.support.moment.mic'), own_choir: tk('admin.support.moment.own_choir'), boot: tk('admin.support.moment.boot'), site_404: tk('admin.support.moment.site_404') };
+const DEVICE = { phone: tk('admin.support.device.phone'), tablet: tk('admin.support.device.tablet'), computer: tk('admin.support.device.computer') };
+const BROWSER = { chrome: 'Chrome', safari: 'Safari', firefox: 'Firefox', edge: 'Edge', samsung: 'Samsung Internet', opera: 'Opera' }; // i18n-ignore: browser names
+const SKIN = { game: tk('admin.support.skin.game'), serious: tk('admin.support.skin.serious') };
+const CHOIR_ISSUE = { voice: tk('admin.support.choirIssue.voice'), timing: tk('admin.support.choirIssue.timing'), notes: tk('admin.support.choirIssue.notes'), other: tk('admin.support.choirIssue.other') };
+/** The context keys worded below; any other (an older app's) is shown as it came. */
+const WORDED = ['device', 'browser', 'language', 'skin', 'templateId', 'partKey', 'beat', 'choirRequestId', 'errorCode', 'choirIssue', 'timingCheck', 'audioErrors', 'appVersion', 'page', 'betaSinger'];
+
+const worded = (map, value) => (map[value] ? t(map[value]) : value);
+
+/** A language code as its name ("es" is Spanish), or the code when the browser can't say. */
+function languageName(code) {
+    try {
+        return new Intl.DisplayNames(['en'], { type: 'language' }).of(code) ?? code;
+    } catch {
+        return code;
+    }
+}
+
+/**
+ * What came with a message (docs/feedback-plan.md, Admin > Support): where it was opened from, then the device, the
+ * language and the look, the song and part (a beta note's beat), the choir song and what was wrong with it, an error's
+ * code, and the sound checks; `{ key, label, value, code }`, `code` for ids shown as they are.
+ */
+export function attached(message) {
+    const c = message.context ?? {};
+    const rows = [];
+    const add = (key, label, value, code = false) => value !== undefined && value !== null && value !== '' && rows.push({ key, label, value: String(value), code });
+    if (message.moment) add('moment', t('admin.support.with.moment'), worded(MOMENT, message.moment));
+    // "another browser" begins the line when no device kind came with it; an older app's "iPhone" stays as it came.
+    const other = t('admin.support.device.otherBrowser');
+    const browser = c.browser && (BROWSER[c.browser] ?? (c.browser === 'other' ? (c.device ? other : other.charAt(0).toUpperCase() + other.slice(1)) : c.browser));
+    add('device', t('admin.support.with.device'), [c.device && worded(DEVICE, c.device), browser].filter(Boolean).join(', '));
+    if (c.language) add('language', t('admin.support.with.language'), languageName(c.language));
+    if (c.skin) add('skin', t('admin.support.with.skin'), worded(SKIN, c.skin));
+    if (c.templateId || c.partKey) {
+        const song = [c.templateId, c.partKey].filter(Boolean).join(', ');
+        add('song', t('admin.support.with.song'), Number.isFinite(c.beat) ? t('admin.support.with.atBeat', { song, beat: formatNumber(c.beat) }) : song, true);
+    }
+    add('choirRequestId', t('admin.support.with.choirRequest'), c.choirRequestId, true);
+    if (c.choirIssue) add('choirIssue', t('admin.support.with.choirIssue'), worded(CHOIR_ISSUE, c.choirIssue));
+    add('errorCode', t('admin.support.with.errorCode'), c.errorCode, true);
+    if (c.timingCheck) add('timingCheck', t('admin.support.with.timingCheck'), Number.isFinite(c.timingCheck.latencyMs) ? formatNumber(c.timingCheck.latencyMs, { style: 'unit', unit: 'millisecond' }) : JSON.stringify(c.timingCheck), true);
+    if (c.audioErrors?.length) add('audioErrors', t('admin.support.with.audioErrors'), c.audioErrors.join('\n'), true);
+    add('appVersion', t('admin.support.with.appVersion'), c.appVersion, true);
+    add('page', t('admin.support.with.page'), c.page, true);
+    add('betaSinger', t('admin.support.with.betaSinger'), c.betaSinger, true);
+    for (const [key, value] of Object.entries(c)) if (!WORDED.includes(key)) add(key, key, typeof value === 'object' ? JSON.stringify(value) : value, true);
+    return rows;
+}
+
+/** Who wrote: the account's name, else the email they left, else Guest. */
+const sender = (m) => m.from.account?.name ?? m.from.email ?? t('admin.support.guest');
 
 const TRACK_STATUS = { received: { tone: 'warn', label: tk('admin.support.tracks.status.received') }, delivered: { tone: 'good', label: tk('admin.support.tracks.status.delivered') }, closed: { tone: 'muted', label: tk('admin.support.tracks.status.closed') } };
 const SCORE_KIND = { pdf: tk('admin.support.tracks.kind.pdf'), musicxml: tk('admin.support.tracks.kind.musicxml'), mxl: tk('admin.support.tracks.kind.mxl'), photo: tk('admin.support.tracks.kind.photo') };
@@ -224,21 +281,22 @@ const TracksRequest = {
 export const SupportSection = {
     components: { EmptyState, Field, LoadFailed, StatusChip, TracksRequest },
     props: { me: { type: Object, required: true } },
-    data: () => ({ messages: null, failed: false, cursor: null, loadingMore: false, filter: 'open', tracksOnly: false, open: null, reply: '', close: true, sending: false, errors: null }),
-    setup: () => ({ FILTERS, STATUS, CATEGORY, TRACK_STATUS, when, route }),
+    data: () => ({ messages: null, failed: false, cursor: null, loadingMore: false, filter: 'open', category: null, maybeSpam: false, open: null, reply: '', close: true, sending: false, errors: null }),
+    setup: () => ({ FILTERS, STATUS, CATEGORY, MOMENT, ONLY, TRACK_STATUS, attached, sender, when, route }),
     template: `
         <div class="space-y-6">
             <div class="flex flex-wrap items-end justify-between gap-3">
                 <h1 class="text-2xl font-bold text-cream">{{ t('admin.nav.support') }}</h1>
                 <div class="flex flex-wrap items-center gap-2">
                     <div class="seg flex" role="radiogroup" :aria-label="t('admin.support.show')">
-                        <button v-for="(word, key) in FILTERS" :key="key" type="button" role="radio" :aria-checked="filter === key ? 'true' : 'false'" class="seg-option" @click="pick(key)">{{ t(word) }}</button>
+                        <button v-for="(word, key) in FILTERS" :key="key" type="button" role="radio" :aria-checked="filter === key ? 'true' : 'false'" class="seg-option" :data-support-filter="key" @click="pick(key)">{{ t(word) }}</button>
                     </div>
-                    <!-- Directors' learning tracks requests alone (admin.support.list ?category=tracks). -->
-                    <button type="button" class="chip tap-44" :class="tracksOnly ? 'text-accent-strong' : 'hover:text-cream'" :aria-pressed="tracksOnly ? 'true' : 'false'" data-tracks-only @click="toggleTracks">{{ t('admin.support.tracks.only') }}</button>
+                    <!-- Directors' learning tracks requests or beta singers' notes alone (?category=), and Maybe spam (?maybeSpam=1). -->
+                    <button v-for="(word, key) in ONLY" :key="key" type="button" class="chip tap-44" :class="category === key ? 'text-accent-strong' : 'hover:text-cream'" :aria-pressed="category === key ? 'true' : 'false'" :data-tracks-only="key === 'tracks' ? '' : null" :data-support-only="key" @click="only(key)">{{ t(word) }}</button>
+                    <button type="button" class="chip tap-44" :class="maybeSpam ? 'text-accent-strong' : 'hover:text-cream'" :aria-pressed="maybeSpam ? 'true' : 'false'" data-maybe-spam-only @click="toggleSpam">{{ t('admin.support.maybeSpam') }}</button>
                 </div>
             </div>
-            <div class="grid gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
                 <div>
                     <LoadFailed v-if="failed" :message="failed" @retry="load()" />
                     <p v-else-if="!messages" class="text-muted" role="status">{{ t('admin.loading') }}</p>
@@ -246,10 +304,14 @@ export const SupportSection = {
                     <ul v-else class="space-y-2">
                         <li v-for="m in messages" :key="m.id">
                             <a :href="'/admin/support/' + m.id" class="card-interactive block p-4" :class="open?.id === m.id ? 'border-accent' : ''" @click.prevent="navigate('/admin/support/' + m.id)">
-                                <span class="flex items-center justify-between gap-2"><span class="truncate font-bold text-cream" translate="no">{{ m.from.account?.name ?? m.from.email }}</span><StatusChip :tone="STATUS[m.status].tone" :label="t(STATUS[m.status].label)" /></span>
+                                <span class="flex items-center justify-between gap-2"><span class="truncate font-bold text-cream" :translate="m.from.account || m.from.email ? 'no' : null">{{ sender(m) }}</span><StatusChip :tone="STATUS[m.status].tone" :label="t(STATUS[m.status].label)" /></span>
                                 <span class="mt-1 block truncate text-sm text-cream" translate="no">{{ m.preview }}</span>
                                 <span v-if="m.tracks" class="mt-1.5 flex flex-wrap items-center gap-2 text-xs" :data-tracks-row="m.id"><StatusChip :tone="TRACK_STATUS[m.tracks.status]?.tone ?? 'muted'" :label="t(TRACK_STATUS[m.tracks.status]?.label ?? TRACK_STATUS.received.label)" /><span class="truncate text-muted" translate="no">{{ m.tracks.group }}</span></span>
-                                <span class="mt-1 block text-xs text-muted">{{ t(CATEGORY[m.category] ?? CATEGORY.other) }} · {{ when(m.createdAt) }}</span>
+                                <span class="mt-1 block text-xs text-muted">{{ t(CATEGORY[m.category] ?? CATEGORY.other) }}<template v-if="MOMENT[m.moment]"> · {{ t(MOMENT[m.moment]) }}</template> · {{ when(m.createdAt) }}</span>
+                                <!-- Marked quietly: Maybe spam and No reply address stay in the list, in the muted words. -->
+                                <span v-if="m.maybeSpam || m.canReply === false" class="mt-1 block text-xs text-muted" :data-support-marks="m.id">
+                                    <span v-if="m.maybeSpam" data-maybe-spam>{{ t('admin.support.maybeSpam') }}</span><template v-if="m.maybeSpam && m.canReply === false"> · </template><span v-if="m.canReply === false" data-no-reply>{{ t('admin.support.noReply') }}</span>
+                                </span>
                             </a>
                         </li>
                     </ul>
@@ -258,24 +320,34 @@ export const SupportSection = {
                 <section v-if="open" class="card space-y-5 p-6" aria-labelledby="message-heading">
                     <div class="flex flex-wrap items-start justify-between gap-3">
                         <div>
-                            <h2 id="message-heading" class="text-lg font-bold text-cream" translate="no">{{ open.from.account?.name ?? open.from.email }}</h2>
-                            <p class="text-sm text-muted"><span translate="no">{{ open.from.email }}</span> · {{ t(CATEGORY[open.category] ?? CATEGORY.other) }} · {{ when(open.createdAt) }}</p>
+                            <h2 id="message-heading" class="text-lg font-bold text-cream" :translate="open.from.account || open.from.email ? 'no' : null">{{ sender(open) }}</h2>
+                            <p class="text-sm text-muted">
+                                <span v-if="open.canReply !== false && open.from.email" translate="no">{{ open.from.email }}</span><span v-else data-no-reply>{{ t('admin.support.noReply') }}</span>
+                                · {{ t(CATEGORY[open.category] ?? CATEGORY.other) }} · {{ when(open.createdAt) }}<template v-if="open.maybeSpam"> · <span data-maybe-spam>{{ t('admin.support.maybeSpam') }}</span></template>
+                            </p>
+                            <a v-if="open.from.account" :href="'/admin/people/' + open.from.account.id" class="link tap-44 text-sm" @click.prevent="navigate('/admin/people/' + open.from.account.id)">{{ t('admin.support.tracks.toAccount') }}</a>
                         </div>
                         <button v-if="open.status === 'closed'" type="button" class="btn-secondary btn-sm" @click="setStatus('open')">{{ t('admin.support.reopen') }}</button>
                         <button v-else type="button" class="btn-ghost btn-sm" @click="setStatus('closed')">{{ t('admin.support.close') }}</button>
                     </div>
                     <p class="whitespace-pre-line text-cream" translate="no">{{ open.body }}</p>
                     <TracksRequest v-if="open.tracks" :message="open" :me="me" @given="given" />
-                    <dl v-if="open.context" class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 rounded-2xl bg-raised p-3 text-xs text-muted">
-                        <template v-for="(value, key) in open.context" :key="key"><dt class="font-semibold" translate="no">{{ key }}</dt><dd class="min-w-0 break-words" translate="no">{{ typeof value === 'object' ? JSON.stringify(value) : value }}</dd></template>
-                    </dl>
+                    <!-- Sent with it: the moment and what the app attached, worded (ids and codes as they came). -->
+                    <section v-if="sentWith.length" class="space-y-2 rounded-2xl bg-raised p-4" aria-labelledby="sent-with-h" data-sent-with>
+                        <h3 id="sent-with-h" class="text-sm font-semibold text-cream">{{ t('admin.support.with.title') }}</h3>
+                        <dl class="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1.5 text-sm">
+                            <template v-for="row in sentWith" :key="row.key"><dt class="text-muted">{{ row.label }}</dt><dd class="min-w-0 whitespace-pre-line break-words text-cream" :translate="row.code ? 'no' : null" :data-sent="row.key">{{ row.value }}</dd></template>
+                        </dl>
+                    </section>
                     <ol v-if="open.replies.length" class="space-y-3">
                         <li v-for="(r, i) in open.replies" :key="i" class="rounded-2xl border border-edge p-4">
                             <p class="text-xs text-muted"><span translate="no">{{ r.by?.name }}</span> · {{ when(r.sentAt) }}</p>
                             <p class="mt-1 whitespace-pre-line text-cream" translate="no">{{ r.body }}</p>
                         </li>
                     </ol>
-                    <form class="space-y-3" @submit.prevent="send">
+                    <!-- No reply address (a guest who left none, or Don't reply to me): nothing to send, only Close. -->
+                    <p v-if="open.canReply === false" class="rounded-2xl border border-line p-4 text-sm text-muted" data-no-reply-note>{{ t('admin.support.noReplyNote') }}</p>
+                    <form v-else class="space-y-3" @submit.prevent="send">
                         <Field :label="t('admin.support.reply')" :help="t('admin.support.replyHelp')" :error="errors?.body" required v-slot="f">
                             <textarea :id="f.id" v-model="reply" rows="6" class="input" :aria-describedby="f.describedby" :aria-invalid="f.invalid"></textarea>
                         </Field>
@@ -299,22 +371,33 @@ export const SupportSection = {
             immediate: true,
         },
     },
+    computed: {
+        sentWith: (vm) => (vm.open ? attached(vm.open) : []),
+    },
     created() {
         this.load();
     },
     methods: {
         load(more = false) {
-            return loadInto(this, 'messages', () => api.admin.support.list({ query: { status: this.filter, category: this.tracksOnly ? 'tracks' : undefined, cursor: more ? this.cursor : undefined } }), { more });
+            const query = { status: this.filter, category: this.category ?? undefined, maybeSpam: this.maybeSpam ? 1 : undefined, cursor: more ? this.cursor : undefined };
+            return loadInto(this, 'messages', () => api.admin.support.list({ query }), { more });
+        },
+        reload() {
+            this.messages = null;
+            this.load();
         },
         pick(filter) {
             this.filter = filter;
-            this.messages = null;
-            this.load();
+            this.reload();
         },
-        toggleTracks() {
-            this.tracksOnly = !this.tracksOnly;
-            this.messages = null;
-            this.load();
+        /** Learning tracks or Beta notes alone; the same chip again shows every category. */
+        only(category) {
+            this.category = this.category === category ? null : category;
+            this.reload();
+        },
+        toggleSpam() {
+            this.maybeSpam = !this.maybeSpam;
+            this.reload();
         },
         /** A song given from a tracks request: the message (now delivered and closed) read again, here and in the list. */
         async given() {
@@ -329,6 +412,8 @@ export const SupportSection = {
                 this.open = (await api.admin.support.show({ params: { id } })).data;
                 this.reply = '';
                 this.errors = null;
+                // On a phone the message is under the list: brought into view, its heading first.
+                if (screen.phone) this.$nextTick(() => this.$el.querySelector?.('#message-heading')?.scrollIntoView({ block: 'start' }));
             } catch (error) {
                 refused(error);
             }

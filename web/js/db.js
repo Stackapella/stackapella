@@ -148,8 +148,25 @@ function done(request) {
     });
 }
 
+/**
+ * A store, in a transaction of its own. iOS Safari can leave the connection closing when the app comes back from the
+ * background, before onclose fires or without it (Sentry JAVASCRIPT-F: "The database connection is closing"): the
+ * cached connection is let go, and it's opened again and tried once more. A second failure rejects, as before.
+ */
 async function store(storeName, mode = 'readonly') {
-    return (await open()).transaction(storeName, mode).objectStore(storeName);
+    const db = await open();
+    try {
+        return db.transaction(storeName, mode).objectStore(storeName);
+    } catch (error) {
+        if (error?.name !== 'InvalidStateError') throw error;
+        if (opening && (await opening.catch(() => null)) === db) opening = null;
+        try {
+            db.close();
+        } catch (closing) {
+            console.info('The closing connection would not close', closing?.name);
+        }
+        return (await open()).transaction(storeName, mode).objectStore(storeName);
+    }
 }
 
 export async function all(storeName) {

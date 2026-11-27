@@ -45,4 +45,25 @@ final class HelpGuideFlagsTest extends TestCase
         $this->assertSame(1, $on[0]['blocks'][0]['start']);
         $this->assertStringContainsString('Hum it and we write it down.', implode(' ', array_column(HelpGuide::searchIndex(), 'text')));
     }
+
+    public function test_where_contact_us_is_follows_feedback2_in_english_and_spanish(): void
+    {
+        // feedback2 moves Contact us to the top of Settings (docs/feedback-plan.md): the help says where it is either way.
+        app(Flags::class)->set('lang_es', 'on', null, 'test');
+        $read = fn (string $path): string => html_entity_decode(strip_tags((string) $this->get($path)->assertOk()->getContent()), ENT_QUOTES | ENT_HTML5);
+        $choir = static fn (): string => (string) json_encode(HelpGuide::sections('your-choir'), JSON_UNESCAPED_UNICODE);
+
+        app(Flags::class)->set('feedback2', 'off', null, 'test');
+        $this->assertStringContainsString('Contact us is at the bottom of Settings.', $read('/help/settings'));
+        $this->assertStringContainsString('Contacto está al final de Ajustes.', $read('/es/help/settings'));
+        $this->assertStringNotContainsString('Contact us is at the top of Settings', $read('/help/settings'));
+        $this->assertStringContainsString('at the bottom of **Settings**', $choir());
+
+        app(Flags::class)->set('feedback2', 'on', null, 'test');
+        $this->assertStringContainsString('Contact us is at the top of Settings: on Home, tap Settings.', $read('/help/settings'));
+        $this->assertStringContainsString('Contacto está al principio de Ajustes: en la pantalla de inicio, toca Ajustes.', $read('/es/help/settings'));
+        $this->assertStringNotContainsString('Contact us is at the bottom of Settings', $read('/help/settings'));
+        $this->assertStringContainsString('Tap **Contact us** in **Settings**.', $choir());
+        $this->assertStringNotContainsString('at the bottom of **Settings**', $choir());
+    }
 }

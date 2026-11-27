@@ -1007,7 +1007,7 @@
             "not_found": "This link doesn't work.",
             "expired": "This link has expired.",
             "revoked": "This link has been replaced.",
-            "askHillel": "Ask us for a new one. Your takes and credit are safe."
+            "askUs": "Ask us for a new one. Your takes and credit are safe."
         },
         "welcome": {
             "eyebrow": "The Stackapella beta",
@@ -4813,7 +4813,14 @@
             "device": "Device",
             "page": "Page",
             "timing": "Timing check",
-            "browser": "Browser"
+            "account": "Your account",
+            "language": "Language",
+            "skin": "Game mode",
+            "on": "On",
+            "off": "Off",
+            "song": "Song",
+            "choir": "Choir song",
+            "error": "Error code"
         },
         "send": "Send message",
         "sending": "Sending",
@@ -4846,9 +4853,37 @@
         "sentNothing": "Only your message and your email go, and never any audio.",
         "need": {
             "message": "Add a message to send",
-            "email": "Add your email so we can reply"
+            "email": "Add your email so we can reply",
+            "validEmail": "Check the email, or leave it empty"
         },
-        "reference": "Reference {id}"
+        "reference": "Reference {id}",
+        "hint": "Questions, problems or ideas: we read every message.",
+        "emailOptional": "Only if you'd like a reply.",
+        "sentWith": "Sent with it",
+        "summary": {
+            "page": "This page",
+            "version": "app {version}",
+            "gameOn": "Game mode on",
+            "gameOff": "Game mode off"
+        },
+        "device": {
+            "phone": "Phone",
+            "tablet": "Tablet",
+            "computer": "Computer"
+        },
+        "noReply": "Don't reply to me",
+        "sentDone": "Sent. Thank you.",
+        "cantReply": "We can't reply without an email.",
+        "sentNothingGuest": "Only your message goes, and never any audio.",
+        "sentNothingAccount": "Only your message goes, with your account, and never any audio.",
+        "choirIssue": {
+            "title": "What's off?",
+            "voice": "A voice sounds strange",
+            "timing": "Out of time",
+            "notes": "Wrong notes",
+            "other": "Something else"
+        },
+        "tellUs": "Tell us what happened"
     },
     "invite": {
         "closedTitle": "This link has ended",
@@ -6569,6 +6604,12 @@
                 "together": "Songs with a friend's voice in them can't go in the gallery yet.",
                 "failed": "It wasn't added. Check your connection and try again."
             }
+        },
+        "ask": {
+            "title": "Does your choir sound right?",
+            "right": "Sounds right",
+            "off": "Something's off",
+            "thanks": "Thanks for telling us."
         }
     },
     "aiVoice": {

@@ -145,9 +145,13 @@ const AI_HIDE = new RegExp(`^ai_hide:(?:home_choir|song_choir):${BAND}$`); // Hi
 const AI_USE = new RegExp(`^ai_use:(?:choir_start|choir_heard|guide_heard):${BAND}$`);
 const aic = (kind) => AI_HIDE.test(kind) || AI_USE.test(kind) || (AIC.test(kind) && kind.startsWith('aic:wk1_lessons:') === (kind.split(':').length === 5));
 
+// Feedback (docs/feedback-plan.md, "What we'd measure"), as server/config/counts.php allows them: Contact us opened, by
+// where from (support.create's moments, or `direct`), and the choir ask shown and answered. (fb_sent is the server's.)
+const FB = /^(?:fb_open:(?:settings|help|error|choir_ask|mic|own_choir|boot|site_404|direct)|fb_ask:(?:shown|right|off))$/;
+
 /** Counts one `kind` (an unknown one is ignored). */
 export function count(kind) {
-    if (KINDS.has(kind) || detailed(kind) || libraryFilter(kind) || aic(kind)) enqueue(kind);
+    if (KINDS.has(kind) || detailed(kind) || libraryFilter(kind) || aic(kind) || FB.test(kind)) enqueue(kind);
 }
 
 // A share, counted as sh:<surface>.<method>: what was shared and how. The lists mirror server/config/counts.php

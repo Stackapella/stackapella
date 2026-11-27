@@ -55,12 +55,14 @@ const syncer = () => (made ??= import('../sync.js').then(({ createSync }) => cre
 })));
 /** A sync run: nothing to load or do signed out (sync.js's run returns at once then). */
 const run = () => (signedIn() ? syncer().then((sync) => sync.run()) : Promise.resolve());
+/** A run nobody waits for (a timer, coming back to the app): a failure is said in the console, never left unhandled. */
+const runQuietly = () => run().catch((error) => console.warn('The sync did not run', error));
 
 let soon = null;
 /** Runs the sync a moment after a change (several changes go together). */
 export function syncSoon() {
     clearTimeout(soon);
-    soon = setTimeout(() => run(), 1500);
+    soon = setTimeout(runQuietly, 1500);
 }
 
 /** Runs the sync now (Sync now, and after a restore so it comes back down). */
@@ -112,7 +114,7 @@ export function startSync() {
     // and nothing syncs: back online, or back in view, it's checked again first, then the outbox goes.
     const resume = async () => {
         if (!account.me && navigator.onLine) await loadAccount({ fresh: true });
-        run();
+        runQuietly();
         syncLearning().catch((error) => console.warn('Course progress did not sync', error));
     };
     window.addEventListener('online', () => resume().catch((error) => console.warn('Sync did not resume', error)));
@@ -120,7 +122,7 @@ export function startSync() {
         if (document.visibilityState !== 'visible') return;
         resume().catch((error) => console.warn('Sync did not resume', error));
     });
-    setInterval(() => document.visibilityState === 'visible' && run(), 60_000);
+    setInterval(() => document.visibilityState === 'visible' && runQuietly(), 60_000);
 }
 
 /**

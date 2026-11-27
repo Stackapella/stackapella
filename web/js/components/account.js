@@ -2,6 +2,7 @@
 // or Apple sign-in (which can't ask it on the provider's page), and what a sign-in that came back
 // from Google or Apple says (?signedIn= or ?authError=, then taken out of the address bar).
 
+import { contactActions } from './contact-link.js';
 import { api } from '../api.js';
 import { t, tk } from '../i18n.js';
 import { navigate } from '../router.js';
@@ -35,7 +36,9 @@ export async function cameBackFromSignIn() {
         toast(me ? t('auth.back.signedIn', { name: me.name }) : t('auth.back.failed'), { tone: me ? 'info' : 'error' });
         if (me?.betaSinger && location.pathname === '/') navigate('/beta');
     } else {
-        toast(t(AUTH_ERRORS[error] ?? AUTH_ERRORS.failed), { tone: 'error', seconds: 10 });
+        // A blocked or suspended account says to write to us: Contact us as its action (feedback2), as a guest.
+        const write = error === 'blocked' || error === 'suspended';
+        toast(t(AUTH_ERRORS[error] ?? AUTH_ERRORS.failed), { tone: 'error', seconds: write ? 20 : 10, actions: write ? contactActions({ code: error, topic: 'account', from: '/' }, tk('contact.title')) : [] });
     }
 }
 

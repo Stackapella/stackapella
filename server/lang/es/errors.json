@@ -13,5 +13,8 @@
     "Keep looking": "Seguir buscando",
     "Open the app": "Abrir la app",
     "Slow down a little": "Más despacio, por favor",
-    "{1} You can try again in a minute.|[2,*] You can try again in :minutes minutes.": "{1} Puedes volver a intentarlo en un minuto.|[2,*] Puedes volver a intentarlo en :minutes minutos."
+    "{1} You can try again in a minute.|[2,*] You can try again in :minutes minutes.": "{1} Puedes volver a intentarlo en un minuto.|[2,*] Puedes volver a intentarlo en :minutes minutos.",
+    "Expected something here?": "¿Esperabas algo aquí?",
+    "Tell us": "Avísanos",
+    "Email us at :email": "Escríbenos a :email"
 }

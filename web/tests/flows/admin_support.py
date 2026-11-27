@@ -16,9 +16,9 @@ def t(f, key, values=None):
 
 def journey(f):
     f.expected_errors = list(f.expected_errors) + ["no-such-score.mxl"]  # the tracks score whose link has run out, on purpose
-    f.go("/admin/support?api=mock&as=admin", "document.querySelector('main a[href^=\"/admin/support/\"]')")
-    f.run("document.querySelector('main a[href^=\"/admin/support/\"]').click()")
-    f.wait("document.querySelector('#message-heading') && document.querySelector('main dl')", what="the message, with its details")
+    f.go("/admin/support?api=mock&as=admin", "document.querySelector('main a[href=\"/admin/support/Sm4kP1\"]')")
+    f.run("document.querySelector('main a[href=\"/admin/support/Sm4kP1\"]').click()")
+    f.wait("document.querySelector('#message-heading') && document.querySelector('[data-sent-with] dl')", what="the message, with what was sent with it")
     f.click("The mic is silent", "button")
     f.wait("document.querySelector('main textarea').value.startsWith('Thanks for writing')", what="a saved reply to start from")
     f.shot("message")

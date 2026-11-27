@@ -22,7 +22,7 @@ import { ExportDialog, HeadphonesDialog, MicDialog, PartDialog, ProjectDialog, R
 import { Icon } from '../components/icon.js';
 import { NotesView } from '../components/notes.js';
 import { BetaBanner, BetaReport, SoundCheck } from '../components/beta.js';
-import { TellHillel } from './beta.js';
+import { TellUs } from './beta.js';
 import { betaBar, loadBar } from '../beta.js';
 import { alignedTake, describeDevice, enqueue, sendAll } from '../beta-outbox.js';
 import { RecordSetup } from '../record-setup.js';
@@ -75,7 +75,7 @@ const PAN_SIDE = { left: tk('studio.row.panLeft'), right: tk('studio.row.panRigh
 
 export const StudioView = {
     mixins: [RecordSetup],
-    components: { CountIn, LyricsLane, KaraokeLine, LineBar, Icon, Waveform, ProjectDialog, HeadphonesDialog, TimingDialog, ExportDialog, PartDialog, MicDialog, RangeDialog, NotesView, BetaBanner, BetaReport, SoundCheck, TellHillel, VoiceNote, TrimSheet, LockedBanner, ShareSheet, TogetherSheet, AddVoice, GhostRow, StudioNotice, SetupChoices, VoiceRow, MicLevel, PartsProgress },
+    components: { CountIn, LyricsLane, KaraokeLine, LineBar, Icon, Waveform, ProjectDialog, HeadphonesDialog, TimingDialog, ExportDialog, PartDialog, MicDialog, RangeDialog, NotesView, BetaBanner, BetaReport, SoundCheck, TellUs, VoiceNote, TrimSheet, LockedBanner, ShareSheet, TogetherSheet, AddVoice, GhostRow, StudioNotice, SetupChoices, VoiceRow, MicLevel, PartsProgress },
     props: { id: { type: String, required: true } },
     setup: () => ({ ...toRefs(session), sessionStore, audio, aiCtaOpen, defaultPartName, joinSyllables, formatTime, shownTitle, PART_COLORS, roundButton, hasTake, GUIDE_PEAKS_RATE, FRAMES_PER_PEAK, togglePlay, templatePart, prefs, betaBar, count }),
     data: () => ({
@@ -367,7 +367,7 @@ export const StudioView = {
             <BetaReport v-if="dialog === 'betaReport' && betaPart" :samples="betaTake" :sample-rate="betaPart.sampleRate" :notes="templatePart(betaPart).guide.notes" :beat-seconds="beatSeconds"
                 :start-seconds="0" :phrases="phraseList.map((p) => [p.startBeat, p.endBeat])" :syllables="betaSyllables" :timing="betaPart.recordedWith?.estimated ?? audio.latencyEstimated ? 'estimated' : 'measured'" :hearing="hearing" :busy="sending" :can-use-previous="!!previousTake" :bar="betaBar" :assignment-id="project.beta.assignmentId" @previous="usePreviousTake" @tell="dialog = 'tell'" @course="navigate('/learn')"
                 @close="closeReport" @again="recordAgain" @loop="loopFromReport" @hear="hearAsLearners" @send="sendTake" />
-            <TellHillel v-if="dialog === 'tell'" :context="tellContext" @close="dialog = null" />
+            <TellUs v-if="dialog === 'tell'" :context="tellContext" @close="dialog = null" />
             <MicDialog v-if="dialog === 'mic'" @close="dialog = null" @timing="openAudioDialog('timing')" />
             <ExportDialog v-if="dialog === 'export'" :library="librarySong" :start="exportStart" @account="takeAccount" :title="shownTitle(project)" :seconds="contentLength" :parts="exportParts" :default-name="exportName" :sample-rate="engine.sampleRate" @unmute="(id) => update(parts.find((p) => p.id === id), { muted: false })" :credits="voiceCredits" :credits-line="creditsLine" :choir-locked="choirLocked" :has-chords="!!project.template?.chords?.length" :score-parts="scoreParts" :busy="exporting" @close="dialog = null" @export="exportMix" @upgrade="navigate('/plus?from=' + $event)" />
             <PartDialog v-if="dialog === 'part' && dialogPart" :breaths="sessionStore.canSoftenBreaths(dialogPart)" :theirs="sessionStore.mine(dialogPart) ? null : (dialogPart.createdBy?.name ?? project.shared?.owner?.name ?? '')" :part="dialogPart" :shown-name="nameOf(dialogPart)" :color="paint(dialogPart.color)" :voice="guideVoices[dialogPart.id] ?? null" :recording="recording" @voice="chooseVoice(dialogPart, $event)" :slot="!!dialogPart.templatePartKey" :recorded="hasTake(dialogPart)" @close="dialog = null" @update="update(dialogPart, $event)" @rerecord="rerecord(dialogPart)" @delete="removePart(dialogPart)" @clear="clearTakeOf(dialogPart)" @practise="dialog = null; singPart(dialogPart)" :ai-cta="aiCtaOpen(project)" @be-voice="dialog = null; singPart(dialogPart)" @trim="openTrim(dialogPart)" :harmonise="!project.template && !project.beta && !project.shared" @harmonise="harmonise(dialogPart)" />

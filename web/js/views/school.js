@@ -7,6 +7,7 @@
 //   for a year, said plainly with its end date. Signed out, the account wall comes first.
 // Words for every refusal the server gives (adult_required, school_already_redeemed, ...).
 
+import { ContactLink } from '../components/contact-link.js';
 import { api, ApiError } from '../api.js';
 import { countShare, shareRef } from '../usage.js';
 import { formatDate, formatNumber, t, tk } from '../i18n.js';
@@ -22,6 +23,9 @@ import { confirmAction } from '../components/confirm.js';
 import { count } from '../usage.js';
 
 const MOST_SEATS = 60;
+// The refusals that say to write to us, with the way to Contact us beside them (feedback2; docs/feedback-plan.md).
+const WRITE_TO_US = ['school_too_many_codes', 'school_seat_allowance'];
+
 /** What a refusal means, said for the person (contract/api.md, "School codes"). */
 const REFUSALS = {
     adult_required: tk('school.error.adult'),
@@ -56,9 +60,9 @@ export function classState(c, now = Date.now()) {
 const STATES = { pending: tk('school.state.pending'), open: tk('school.state.open'), full: tk('school.state.full'), closed: tk('school.state.closed'), expired: tk('school.state.expired') };
 
 export const ClassesView = {
-    components: { AccountWall, AppScreen, Notice, Icon },
-    data: () => ({ classes: null, failed: false, name: '', seats: 30, making: false, error: null, editing: null, editName: '', editSeats: 0, saving: false, editError: null }),
-    setup: () => ({ account, MOST_SEATS, STATES, classState, formatNumber }),
+    components: { AccountWall, AppScreen, Notice, Icon, ContactLink },
+    data: () => ({ classes: null, failed: false, name: '', seats: 30, making: false, error: null, errorCode: null, editing: null, editName: '', editSeats: 0, saving: false, editError: null, editErrorCode: null }),
+    setup: () => ({ account, MOST_SEATS, STATES, classState, formatNumber, WRITE_TO_US }),
     template: `
         <AppScreen :title="t('school.classes.title')" back="/settings" :measure="account.me ? '' : 'max-w-3xl'" data-classes>
             <AccountWall v-if="account.loaded && !account.me" reason="settings" next="/settings/classes" />
@@ -79,6 +83,7 @@ export const ClassesView = {
                         </div>
                         <p class="text-sm text-muted">{{ t('school.classes.newHint') }}</p>
                         <p v-if="error" class="text-sm text-bad" role="alert">{{ error }}</p>
+                        <ContactLink v-if="error && WRITE_TO_US.includes(errorCode)" :code="errorCode" topic="account" :label="'contact.title'" />
                         <button type="submit" class="btn-primary" :disabled="making || !name" data-class-make>{{ making ? t('common.saving') : t('school.classes.make') }}</button>
                     </form>
 
@@ -103,6 +108,7 @@ export const ClassesView = {
                                     <label class="space-y-1.5"><span class="block text-sm font-semibold text-cream">{{ t('school.classes.name') }}</span><input v-model.trim="editName" required maxlength="80" class="input w-full"></label>
                                     <label class="space-y-1.5"><span class="block text-sm font-semibold text-cream">{{ t('school.classes.seats') }}</span><input v-model.number="editSeats" type="number" :min="leastSeats(c)" :max="MOST_SEATS" required inputmode="numeric" class="input w-full"></label>
                                     <p v-if="editError" class="text-sm text-bad sm:col-span-2" role="alert">{{ editError }}</p>
+                                    <ContactLink v-if="editError && WRITE_TO_US.includes(editErrorCode)" :code="editErrorCode" topic="account" :label="'contact.title'" />
                                     <div class="flex flex-wrap gap-3 sm:col-span-2">
                                         <button type="submit" class="btn-primary btn-sm" :disabled="saving">{{ saving ? t('common.saving') : t('common.save') }}</button>
                                         <button type="button" class="btn-secondary btn-sm" @click="editing = null">{{ t('common.cancel') }}</button>
@@ -152,6 +158,7 @@ export const ClassesView = {
                 toast(made.status === 'pending' ? t('school.classes.madePending', { code: made.code }) : t('school.classes.made', { code: made.code }));
             } catch (error) {
                 this.error = refusal(error);
+                this.errorCode = error?.code ?? null;
             } finally {
                 this.making = false;
             }
@@ -171,6 +178,7 @@ export const ClassesView = {
                 this.editing = null;
             } catch (error) {
                 this.editError = refusal(error);
+                this.editErrorCode = error?.code ?? null;
             } finally {
                 this.saving = false;
             }

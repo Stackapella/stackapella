@@ -239,6 +239,18 @@ final class FeedbackTest extends TestCase
         $this->assertNull($old->moment);
     }
 
+    public function test_the_apps_feedback_counts_are_allowed(): void
+    {
+        $kinds = (array) config('counts.kinds');
+
+        foreach (['fb_open:settings', 'fb_open:site_404', 'fb_open:direct', 'fb_ask:shown', 'fb_ask:right', 'fb_ask:off'] as $kind) {
+            $this->assertContains($kind, $kinds);
+        }
+
+        $this->assertNotContains('fb_open:home', $kinds);
+        $this->assertContains('fb_sent:none', (array) config('counts.server_kinds'));
+    }
+
     public function test_the_saved_replies_speak_as_we(): void
     {
         foreach (['en', 'es'] as $locale) {

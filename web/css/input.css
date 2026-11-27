@@ -2207,6 +2207,9 @@ select:disabled {
 .s-notice-actions > .btn-primary, .s-notice-actions > .btn-secondary { justify-self: start; }
 .s-notice-row { display: flex; flex-wrap: wrap; gap: 12px; }
 .s-notice-row .btn-secondary { white-space: normal; text-align: center; }
+/* The error pages' line under the buttons (the 404's Tell us, the 500's email): a sentence with its link underlined. */
+.s-notice-tell { font-size: 15px; color: var(--color-muted); }
+.s-notice-tell a { color: inherit; font-weight: 650; text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
 @media (min-width: 900px) {
     .s-notice { padding-block: 96px 0; max-width: 760px; text-align: start; }
     .s-notice .s-eyebrow { justify-content: flex-start; }

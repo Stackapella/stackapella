@@ -4,6 +4,7 @@
 // every screen has a way back. `?next=` is where to go afterwards (a path in the app), `?invite=` a
 // beta invite carried through a sign-up.
 
+import { ContactLink } from '../components/contact-link.js';
 import { count } from '../usage.js';
 import { registerAi } from '../ai-choice.js';
 import { CreditLine } from '../components/credit.js';
@@ -62,7 +63,7 @@ const PasswordInput = {
 };
 
 export const AuthView = {
-    components: { CreditLine, BirthDate, Field, InviteAccept, Notice, Icon, Logo, PasswordInput, TurnstileBox },
+    components: { ContactLink, CreditLine, BirthDate, Field, InviteAccept, Notice, Icon, Logo, PasswordInput, TurnstileBox },
     data() {
         const q = new URLSearchParams(location.search);
         // A beta invite waits in the tab (the beta page put it there); never in the address bar.
@@ -119,6 +120,7 @@ export const AuthView = {
                     <p class="text-sm text-muted">{{ t('auth.sent.spam') }}</p>
                     <TurnstileBox v-if="config?.turnstileSiteKey" :key="turnstileKey" :site-key="config.turnstileSiteKey" @token="turnstile = $event" @failed="turnstileFailed" />
                     <Notice v-if="refusal" tone="bad">{{ refusal }}</Notice>
+                    <ContactLink v-if="writeToUs" :code="refusalCode" topic="account" :label="'contact.title'" />
                     <div class="flex flex-wrap gap-3">
                         <button type="button" class="btn-secondary" :disabled="wait > 0 || busy" @click="resend">{{ wait > 0 ? t('auth.sent.resendIn', { wait: formatWait(wait) }) : t('auth.sent.resend') }}</button>
                         <button type="button" class="btn-ghost btn-sm" @click="sentTo = null">{{ t('auth.sent.wrongAddress') }}</button>
@@ -147,6 +149,7 @@ export const AuthView = {
                     </Field>
                     <BirthDate v-model:month="form.birthMonth" v-model:year="form.birthYear" :hint="t('auth.born.why')" :error="bornError || ''" />
                     <Notice v-if="refusal && refusalCode !== 'too_young'" tone="bad">{{ refusal }}</Notice>
+                    <ContactLink v-if="writeToUs" :code="refusalCode" topic="account" :label="'contact.title'" />
                     <button type="submit" class="btn-primary btn-lg w-full" :disabled="busy || !form.name.trim() || !(form.birthMonth && form.birthYear)">{{ busy ? t('auth.working') : t('auth.continue') }}</button>
                 </form>
                 <!-- Sign in by email: the link from the email, then (a new account) a bit about you -->
@@ -165,6 +168,7 @@ export const AuthView = {
                     <template v-else-if="refusal">
                         <h1 ref="heading" tabindex="-1" class="t-title text-cream outline-none">{{ t('auth.linkProblem') }}</h1>
                         <Notice tone="bad">{{ refusal }}</Notice>
+                        <ContactLink v-if="writeToUs" :code="refusalCode" topic="account" :label="'contact.title'" />
                         <button type="button" class="btn-secondary" @click="navigate('/signin')">{{ t('auth.signIn') }}</button>
                     </template>
                 </template>
@@ -177,12 +181,14 @@ export const AuthView = {
                         <p class="text-muted">{{ t(DONE[done].body, { email: revertedEmail ?? '' }) }}</p>
                         <TurnstileBox v-if="done === 'reverted' && config?.turnstileSiteKey" :key="turnstileKey" :site-key="config.turnstileSiteKey" @token="turnstile = $event" @failed="turnstileFailed" />
                         <Notice v-if="done === 'reverted' && refusal" tone="bad">{{ refusal }}</Notice>
+                        <ContactLink v-if="writeToUs" :code="refusalCode" topic="account" :label="'contact.title'" />
                         <button v-if="done === 'reverted'" type="button" class="btn-primary" :disabled="!revertedEmail || busy" @click="choosePassword">{{ t('auth.revert.choosePassword') }}</button>
                         <button v-else type="button" class="btn-primary" @click="go">{{ t('auth.continue') }}</button>
                     </template>
                     <template v-else-if="refusal">
                         <h1 ref="heading" tabindex="-1" class="t-title text-cream outline-none">{{ t('auth.linkProblem') }}</h1>
                         <Notice tone="bad">{{ refusal }}</Notice>
+                        <ContactLink v-if="writeToUs" :code="refusalCode" topic="account" :label="'contact.title'" />
                         <button type="button" class="btn-secondary" @click="navigate('/signin')">{{ t('auth.signIn') }}</button>
                     </template>
                 </template>
@@ -195,6 +201,7 @@ export const AuthView = {
                         <PasswordInput :id="f.id" v-model="form.password" autocomplete="new-password" :minlength="config?.passwordMinLength ?? 10" :describedby="f.describedby" :invalid="f.invalid" />
                     </Field>
                     <Notice v-if="refusal" tone="bad">{{ refusal }} <a v-if="refusalCode === 'link_expired'" href="/signin?mode=forgot" class="link" @click.prevent="mode = 'forgot'; navigate('/signin?mode=forgot')">{{ t('auth.forgot.again') }}</a></Notice>
+                    <ContactLink v-if="writeToUs" :code="refusalCode" topic="account" :label="'contact.title'" />
                     <button type="submit" class="btn-primary" :disabled="busy">{{ busy ? t('common.saving') : t('auth.reset.save') }}</button>
                 </form>
 
@@ -207,6 +214,7 @@ export const AuthView = {
                     </Field>
                     <TurnstileBox v-if="config?.turnstileSiteKey" :key="turnstileKey" :site-key="config.turnstileSiteKey" @token="turnstile = $event" @failed="turnstileFailed" />
                     <Notice v-if="refusal" tone="bad">{{ refusal }}</Notice>
+                    <ContactLink v-if="writeToUs" :code="refusalCode" topic="account" :label="'contact.title'" />
                     <button type="submit" class="btn-primary btn-lg w-full" :disabled="busy">{{ busy ? t('auth.working') : t('auth.forgot.send') }}</button>
                     <button type="button" class="link-quiet self-center text-sm" @click="setMode('signin')">{{ t('auth.backToSignIn') }}</button>
                 </form>
@@ -248,6 +256,7 @@ export const AuthView = {
                         <BirthDate v-if="mode === 'signup'" v-model:month="form.birthMonth" v-model:year="form.birthYear" :hint="t('auth.born.why')" :error="bornError || ''" />
                         <TurnstileBox v-if="config?.turnstileSiteKey && (mode === 'signup' || step === 'password')" :key="turnstileKey" :site-key="config.turnstileSiteKey" @token="turnstile = $event" @failed="turnstileFailed" />
                         <Notice v-if="refusal && refusalCode !== 'too_young'" tone="bad">{{ refusal }} <button v-if="refusalCode === 'email_unverified'" type="button" class="link" @click="resendVerification">{{ t('auth.sent.resend') }}</button></Notice>
+                        <ContactLink v-if="writeToUs" :code="refusalCode" topic="account" :label="'contact.title'" />
                         <button type="submit" class="btn-primary btn-lg w-full" :disabled="busy || (mode === 'signup' && !(form.birthMonth && form.birthYear))" :aria-busy="busy ? 'true' : 'false'">{{ busy ? t('auth.working') : mode === 'signup' ? t('auth.createAccount') : step === 'email' ? t('auth.continue') : t('auth.signIn') }}</button>
                     </form>
                     <p v-if="mode === 'signup'" class="text-center text-sm text-muted">{{ t('auth.haveAccountQ') }} <button type="button" class="link-quiet min-h-11 font-semibold text-cream underline underline-offset-4" @click="setMode('signin')">{{ t('auth.signIn') }}</button></p>
@@ -282,6 +291,10 @@ export const AuthView = {
         sentText: (vm) => (vm.sentKind === 'reset' ? tk('auth.sent.reset') : tk('auth.sent.verify')),
         refusalCode() {
             return this.refusalError?.code ?? null;
+        },
+        /** A refusal that says to write to us (a blocked or suspended account, maybe signed out): Contact us beside it. */
+        writeToUs() {
+            return ['blocked', 'suspended'].includes(this.refusalCode);
         },
         bornError() {
             const e = this.errors ?? {};

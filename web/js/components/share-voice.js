@@ -6,6 +6,7 @@
 // timing, or held until the email is confirmed; how it goes shows in Lend your voice (/voices). Signed in only: a guest
 // signs in first (Sing). Loaded when Share it is tapped (the agreement's view comes with it).
 
+import { ContactLink } from './contact-link.js';
 import { api } from '../api.js';
 import { t } from '../i18n.js';
 import { navigate } from '../router.js';
@@ -18,7 +19,7 @@ import { Modal } from './ui.js';
 const STOPS = { adult_required: 'age', volunteer_blocked: 'check', rate_limited: 'upload', not_found: 'upload', beta_singer: 'beta' };
 
 export const ShareVoice = {
-    components: { Modal, Agreement },
+    components: { Modal, Agreement, ContactLink },
     // `part`: the part's name; `song`: the song's; `saved`: the take is on the account; `send`: ({ credit, agreementVersion, adult }) => Promise.
     props: { part: { type: String, required: true }, song: { type: String, default: '' }, partKey: { type: String, default: '' }, saved: Boolean, send: { type: Function, required: true } },
     emits: ['close'],
@@ -61,6 +62,7 @@ export const ShareVoice = {
                 </fieldset>
                 <p v-if="!saved" class="text-sm text-muted" role="status" data-share-voice-saving>{{ t('voices.be.saving') }}</p>
                 <p v-if="state === 'failed'" class="text-sm text-warn" role="alert" data-share-voice-failed>{{ t('voices.be.failed') }}</p>
+                <ContactLink v-if="state === 'failed'" code="upload_failed" />
                 <p v-else-if="state === 'beta'" class="text-sm text-muted" role="status" data-share-voice-beta>{{ t('voices.be.betaSinger') }} <a href="/beta" class="link" @click.prevent="navigate('/beta')">{{ t('voices.be.myParts') }}</a></p>
                 <div class="flex flex-wrap gap-2">
                     <button type="button" class="btn-primary" :disabled="state === 'sending' || !agreement || !adult || !saved" data-share-voice-send @click="share">{{ state === 'sending' ? t('voices.be.sending') : t('voices.be.share') }}</button>

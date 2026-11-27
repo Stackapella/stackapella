@@ -1,6 +1,6 @@
 // Suggest a correction (components/site/correction.blade.php; docs/corrections-plan.md): opens the page's sheet, sends
 // the reader's correction to POST /api/corrections with the page's type, path, title and language, and says how it went
-// in the sheet: thanks (then it closes), a field's own message beside it (the server names the field on a 422), or a
+// in the sheet: thanks (focused, until the reader closes it), a field's own message beside it (the server names the field on a 422), or a
 // calm line when it's sent too many or the network fails. Nothing about the reader is sent.
 
 for (const sheet of document.querySelectorAll('[data-correction]')) {
@@ -78,7 +78,10 @@ for (const sheet of document.querySelectorAll('[data-correction]')) {
             if (response.status === 201) {
                 form.reset();
                 status.textContent = words.thanks ?? '';
-                setTimeout(() => sheet.close(), 2200);
+                // The thanks stays until the reader closes the sheet, with focus on it so a screen reader says it
+                // (docs/feedback-plan.md: no thanks that disappear on a timer).
+                status.tabIndex = -1;
+                status.focus();
                 return;
             }
             if (response.status === 422) {

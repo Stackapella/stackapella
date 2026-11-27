@@ -37,6 +37,7 @@ import { publicSiteUrl, siteHomeUrl } from '../hosts.js';
 import { aiOn, aiOptional } from '../ai-choice.js';
 import { loadOwnChoir, ownChoir, ownChoirOn } from '../own-choir-state.js';
 import { count } from '../usage.js';
+import { contactPath } from '../feedback.js';
 import { loadBilling, plan } from '../stores/plan.js';
 
 const AVATAR_BYTES = 2 * 1024 * 1024;
@@ -244,6 +245,12 @@ export const SettingsView = {
                 <!-- Account and device: the profile, sign-in, plan, your data, this device; the notices and Contact us. -->
                 <div v-if="account.loaded" id="settings-account" class="scroll-mt-6 space-y-6" data-section data-group="settings-account" aria-labelledby="settings-account-heading">
                     <h2 id="settings-account-heading" class="t-section">{{ t('settings.nav.accountDevice') }}</h2>
+                    <!-- Contact us first in the group (feedback2; docs/feedback-plan.md): the way to us, found without a scroll. -->
+                    <a v-if="feedback2" :href="contactHref" class="card-interactive flex items-center gap-4 p-5" data-contact-row data-contact-top @click.prevent="navigate(contactHref)">
+                        <span class="grid size-10 shrink-0 place-items-center rounded-full bg-raised text-cream" aria-hidden="true"><Icon name="info" :size="20" /></span>
+                        <span class="min-w-0 flex-1"><span class="block font-semibold text-cream">{{ t('contact.title') }}</span><span class="block text-sm text-muted">{{ t('contact.hint') }}</span></span>
+                        <Icon name="arrow" :size="18" class="text-muted" />
+                    </a>
                 <template v-if="account.me && profile">
                     <!-- Profile -->
                     <form id="profile" ref="profile" class="card scroll-mt-6 space-y-5 p-5 md:p-6" @submit.prevent="saveProfile" :aria-label="t('settings.nav.profile')">
@@ -413,7 +420,8 @@ export const SettingsView = {
                     <span class="min-w-0 flex-1"><span class="block font-semibold text-cream">{{ t('notices.title') }}</span><span class="block text-sm text-muted">{{ t('notices.settingsHint', { count: notices }) }}</span></span>
                     <Icon name="arrow" :size="18" class="text-muted" />
                 </a>
-                <a href="/contact?from=/settings" class="card-interactive flex items-center gap-4 p-5" data-contact-row @click.prevent="navigate('/contact?from=/settings')">
+                <!-- Contact us: here, last, with feedback2 off; at the top of the group with it on (docs/feedback-plan.md). -->
+                <a v-if="!feedback2" href="/contact?from=/settings" class="card-interactive flex items-center gap-4 p-5" data-contact-row @click.prevent="navigate('/contact?from=/settings')">
                     <span class="grid size-10 shrink-0 place-items-center rounded-full bg-raised text-cream" aria-hidden="true"><Icon name="info" :size="20" /></span>
                     <span class="min-w-0 flex-1"><span class="block font-semibold text-cream">{{ t('contact.title') }}</span><span class="block text-sm text-muted">{{ t('settings.contactHint') }}</span></span>
                     <Icon name="arrow" :size="18" class="text-muted" />
@@ -448,6 +456,9 @@ export const SettingsView = {
             <RangeDialog v-if="checkingRange" :template="{ key: 'C', parts: [] }" :parts="[]" @close="checkingRange = false" />
         </AppScreen>`,
     computed: {
+        /** The new Contact us and its place (auth.config's feedback2). */
+        feedback2: () => !!account.config?.feedback2,
+        contactHref: () => contactPath({ from: '/settings', moment: 'settings' }),
         /** AI choir songs kept while AI features are off (made, so they come back when it's turned on). */
         keptAiSongs: () => (ownChoir.data?.requests ?? []).filter((r) => r.status === 'ready').length,
         /** The range kept, in the naming in use, or that none is. */

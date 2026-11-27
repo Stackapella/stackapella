@@ -28,6 +28,13 @@ return [
     'home' => 'Back to the start',
     'onward' => 'Keep looking',
     'app' => 'Open the app',
+    // The 404's way to tell us (docs/feedback-plan.md): the app's form, carrying the page. The 500's email: the app
+    // may be down too.
+    'tell' => [
+        'lead' => 'Expected something here?',
+        'link' => 'Tell us',
+    ],
+    'email' => 'Email us at :email',
     'rate_limited' => [
         'title' => 'Slow down a little',
         'body' => '{1} You can try again in a minute.|[2,*] You can try again in :minutes minutes.',

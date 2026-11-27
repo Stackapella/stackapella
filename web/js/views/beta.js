@@ -1,6 +1,6 @@
 // The beta singers' pages (docs/beta-singers-plan.md, "The singer's experience"): the invite link
 // (/beta/<token>), signing up or in with it, the welcome, consent, and My parts (/beta), with Tell
-// Hillel from anywhere. Singers have accounts: an invite is accepted by the account that opens it
+// us from anywhere. Singers have accounts: an invite is accepted by the account that opens it
 // (contract/api.md, "Templates and the beta").
 
 import { api, ApiError } from '../api.js';
@@ -62,8 +62,8 @@ export const Agreement = {
         </div>`,
 };
 
-/** Tell Hillel: a note, with the song, part and place attached when there is one. */
-export const TellHillel = {
+/** Tell us: a note, with the song, part and place attached when there is one. */
+export const TellUs = {
     components: { Modal, Field, Notice },
     props: { context: { type: Object, default: () => ({}) } }, // { templateId, partKey, beat }
     emits: ['close'],
@@ -103,7 +103,7 @@ export const TellHillel = {
 };
 
 export const BetaView = {
-    components: { AiLicenceCard, AiLicenceTerms, Logo, Icon, Notice, StatusChip, EmptyState, Field, Agreement, TellHillel, Modal, Switch, BetaClip },
+    components: { AiLicenceCard, AiLicenceTerms, Logo, Icon, Notice, StatusChip, EmptyState, Field, Agreement, TellUs, Modal, Switch, BetaClip },
     props: { token: { type: String, default: null } },
     data: () => ({
         step: 'loading', // loading | retry | ended | invite | signin | notSinger | welcome | consent | parts | aiLicence
@@ -153,7 +153,7 @@ export const BetaView = {
                 <section v-else-if="step === 'ended'" class="card space-y-3 p-6 text-center">
                     <Icon name="alert" :size="32" class="mx-auto text-warn" />
                     <h1 class="text-xl font-bold text-cream">{{ t(LINK_ENDED[ended] ?? LINK_ENDED.invite_expired) }}</h1>
-                    <p class="text-muted">{{ t('beta.ended.askHillel') }}</p>
+                    <p class="text-muted">{{ t('beta.ended.askUs') }}</p>
                     <button v-if="!account.me" type="button" class="btn-secondary" @click="signIn('signin')">{{ t('beta.signIn.already') }}</button>
                 </section>
 
@@ -330,7 +330,7 @@ export const BetaView = {
                 </AiLicenceTerms>
             </div>
 
-            <TellHillel v-if="telling" @close="telling = false" />
+            <TellUs v-if="telling" @close="telling = false" />
             <Modal v-if="editingCredit" :title="t('beta.parts.creditModal')" @close="editingCredit = false">
                 <form class="space-y-4" @submit.prevent="saveCredit">
                     <fieldset class="space-y-3">

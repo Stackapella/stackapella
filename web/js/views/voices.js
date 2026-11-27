@@ -50,7 +50,7 @@ const day = (time) => (time ? formatDate(time, { month: 'short', day: 'numeric' 
 
 export const VoicesView = {
     components: { AccountWall, Agreement, Notice, AppScreen },
-    data: () => ({ state: 'loading', agreement: null, wanted: null, skills: [], claims: [], kind: 'all', skill: '', credit: 'name', busy: null, refusal: null }),
+    data: () => ({ state: 'loading', agreement: null, wanted: null, skills: [], claims: [], kind: 'all', skill: '', credit: 'name', busy: null, refusal: null, refusalCode: null }),
     setup: () => ({ KINDS, KIND_WORDS, EXPLAINER, account, day, navigate }),
     template: `
         <AppScreen :title="t('voices.title')" back="/settings" :measure="state === 'volunteer' ? '' : 'max-w-3xl'">
@@ -97,7 +97,7 @@ export const VoicesView = {
                     <label class="check-row"><input v-model="credit" type="radio" class="radio" value="name" /> {{ t('voices.creditName', { name: account.me?.name ?? '' }) }}</label>
                     <label class="check-row"><input v-model="credit" type="radio" class="radio" value="anonymous" /> {{ t('voices.creditAnonymous') }}</label>
                 </fieldset>
-                <Notice v-if="refusal" tone="bad" data-voices-refused>{{ refusal }}</Notice>
+                <Notice v-if="refusal" tone="bad" data-voices-refused>{{ refusal }} <a v-if="feedback2 && refusalCode === 'volunteer_blocked'" href="/notices" class="link" data-voices-appeal @click.prevent="navigate('/notices')">{{ t('notices.review.ask') }}</a></Notice>
                 <button type="button" class="btn-primary" :disabled="busy === 'join' || !agreement" data-voices-agree @click="join">{{ busy === 'join' ? t('auth.working') : t('voices.agree') }}</button>
             </section>
 
@@ -132,7 +132,7 @@ export const VoicesView = {
                             </select>
                         </div>
                     </div>
-                    <Notice v-if="refusal" tone="bad" data-voices-refused>{{ refusal }}</Notice>
+                    <Notice v-if="refusal" tone="bad" data-voices-refused>{{ refusal }} <a v-if="feedback2 && refusalCode === 'volunteer_blocked'" href="/notices" class="link" data-voices-appeal @click.prevent="navigate('/notices')">{{ t('notices.review.ask') }}</a></Notice>
                     <p v-if="wanted === null" class="text-muted" role="status">{{ t('common.loading') }}</p>
                     <p v-else-if="!wanted.length" class="card p-5 text-muted">{{ t('voices.none') }}</p>
                     <ul v-else class="space-y-2">
@@ -148,6 +148,8 @@ export const VoicesView = {
             </div>
         </AppScreen>`,
     computed: {
+        /** The ways to us on refusals (auth.config's feedback2). */
+        feedback2: () => !!account.config?.feedback2,
         /** Your kept takes of library songs' parts that still have no voice: { projectId, partKey, song, part }. */
         ready() {
             return projects.list
@@ -226,6 +228,7 @@ export const VoicesView = {
             } catch (error) {
                 if (error?.code === 'agreement_changed') this.agreement = (await api.beta.agreement.show({ for: 'volunteer' }).catch(() => null))?.data ?? this.agreement;
                 this.refusal = this.said(error);
+                this.refusalCode = error?.code ?? null;
             } finally {
                 this.busy = null;
             }
@@ -239,6 +242,7 @@ export const VoicesView = {
                 await Promise.all([this.loadClaims(), this.loadWanted()]);
             } catch (error) {
                 this.refusal = this.said(error);
+                this.refusalCode = error?.code ?? null;
                 if (error?.code === 'not_wanted') await this.loadWanted();
             } finally {
                 this.busy = null;

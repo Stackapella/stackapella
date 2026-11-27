@@ -129,3 +129,34 @@ test('db: a newer version upgrading in another tab closes this one cleanly, and 
     assert(after instanceof db.NewerVersion, `not reopened at the old version: ${after?.name}`);
     db.useDatabase('stackapella-test');
 });
+
+// Sentry JAVASCRIPT-F: back from the background, iOS Safari can hand back a connection that's already closing, before
+// onclose fires. The store is opened again and tried once more; a second failure rejects as before.
+test('db: a connection found closing is opened again and the read goes through; twice, it fails as before', async () => {
+    await fresh('stackapella-test-closing');
+    await db.put('meta', 'kept', 'note');
+    const real = IDBDatabase.prototype.transaction;
+    let fails = 1;
+    let calls = 0;
+    IDBDatabase.prototype.transaction = function (...args) {
+        calls++;
+        if (fails > 0) {
+            fails--;
+            this.close(); // closing, as Safari leaves it
+            throw new DOMException("Failed to execute 'transaction' on 'IDBDatabase': The database connection is closing.", 'InvalidStateError');
+        }
+        return real.apply(this, args);
+    };
+    try {
+        assert((await db.get('meta', 'note')) === 'kept', 'read after opening again');
+        assert(calls === 2, `tried twice (${calls})`);
+        assert((await db.get('meta', 'note')) === 'kept' && calls === 3, 'the new connection is kept for the next read');
+        fails = 2;
+        const error = await db.get('meta', 'note').then(() => null, (e) => e);
+        assert(error?.name === 'InvalidStateError', `a second failure rejects (${error?.name})`);
+    } finally {
+        IDBDatabase.prototype.transaction = real;
+    }
+    assert((await db.get('meta', 'note')) === 'kept', 'fine again once the connection is');
+    db.useDatabase('stackapella-test');
+});

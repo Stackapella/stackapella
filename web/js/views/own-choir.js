@@ -13,6 +13,8 @@ import { count } from '../usage.js';
 import { local, session as tabStorage } from '../storage.js';
 import { formatDate, formatNumber, locale, t, tk } from '../i18n.js';
 import { siteHelpUrl } from '../hosts.js';
+import { choirAskDue, contactPath } from '../feedback.js';
+import { wallShowing } from '../asks.js';
 import { navigate } from '../router.js';
 import { AppScreen } from '../components/page.js';
 import { confirmAction } from '../components/confirm.js';
@@ -71,6 +73,9 @@ function failRunOf(id, kind) {
 const NOISY_HINTS = { quietSinger: tk('ownChoir.failed.detail.noisyQuiet'), near: tk('ownChoir.failed.detail.noisyNear') };
 // The notes with no reference pitch (the server's `noReference`: the take sat between keys or drifted, ai-modal's rule):
 // sing along with the guide, which gives the starting note. Its key is also the next take's fix (views/sing.js guideFix).
+// The choir songs the choir ask has shown on, on this device (docs/feedback-plan.md: the first two, once each).
+const CHOIR_ASK_KEY = 'stackapella.choirAsk';
+
 export const NOTES_GUIDE = tk('ownChoir.failed.detail.notesGuide');
 // The second take problem in a row: the next fix, headphones if they sang without, else another tune.
 // The failure's title, by kind (Hillel's choir error design, 2026-11-24).
@@ -81,7 +86,7 @@ const FAILURES = { clip_unusable: tk('ownChoir.failed.clip_unusable'), bad_clip:
 export const OwnChoirView = {
     components: { AiOffNotice, ChoirGalleryRow, Segmented, Agreement, AppScreen, ChoirSettings, ClipChoice, FirstNoteStep, HeadphonesPick, Icon, PlusMoment, TurnstileBox },
     props: { id: { type: String, required: true } },
-    data: () => ({ at: 0, failRun: null, retried: false, useEarlier: false, resing: false, listenTo: 'choir', plusSettings: false, shift: null, hearingClip: false, firstNote: null, leftNames: [], plusFriends: false, sentInvite: null, copied: false, plusFor: false, emailSent: false, sending: false, checkToken: null, checkRound: 0, state: 'loading', offReason: 'unavailable', canStart: false, template: null, terms: null, busy: false, playing: false, loadingTrack: false, hum: null, own: false }),
+    data: () => ({ at: 0, failRun: null, retried: false, useEarlier: false, resing: false, listenTo: 'choir', plusSettings: false, shift: null, hearingClip: false, firstNote: null, leftNames: [], plusFriends: false, sentInvite: null, copied: false, plusFor: false, askState: null, emailSent: false, sending: false, checkToken: null, checkRound: 0, state: 'loading', offReason: 'unavailable', canStart: false, template: null, terms: null, busy: false, playing: false, loadingTrack: false, hum: null, own: false }),
     setup: () => ({ rememberedHeadphones, isPlus, ownChoir, account, isOpen, templatePartName, savedVoice, formatNumber, navigate, aiOn, galleryConfig }),
     computed: {
         /** Back here from the Plus page, once Plus is on. */
@@ -242,7 +247,17 @@ export const OwnChoirView = {
         earlierShown() {
             return this.failKind === 'take' && !!savedVoice();
         },
-        /** Contact us, from this page (the second take problem in a row). */
+        /** The new Contact us and its ways in (auth.config's feedback2). */
+        feedback2: () => !!account.config?.feedback2,
+        /** The choir ask, on screen: asked or thanked, while no other ask (a Plus moment) is up. */
+        askShown() {
+            return !!this.askState && this.request?.status === 'ready' && !this.plusFor && !this.plusSettings && !wallShowing();
+        },
+        /** Tell us what happened: Contact us about this choir song's failure, Something's broken, and back here. */
+        tellUsHref() {
+            return contactPath({ from: `/t/${this.id}/choir`, moment: 'own_choir', topic: 'broken', templateId: this.id, choirRequestId: this.request?.id ?? null, errorCode: this.request?.failure ?? null });
+        },
+        /** Contact us, from this page (the second take problem in a row; with feedback2, Tell us what happened instead). */
         contactHref() {
             return `/contact?from=${encodeURIComponent(`/t/${this.id}/choir`)}`;
         },
@@ -426,6 +441,8 @@ export const OwnChoirView = {
                     <div v-if="pageLead" class="-mt-4 flex flex-col gap-1" :role="failKind && !retryPhase ? 'alert' : 'status'" :data-choir-failed="failKind && !retryPhase ? '' : null" :data-choir-failed-reason="failKind && !retryPhase ? (request.failureDetail || request.failure || null) : null" :data-choir-fail-kind="retryPhase ? null : failKind" :data-choir-fail-repeat="failRepeat && !retryPhase ? '' : null" :data-choir-retry="retryPhase">
                         <p class="text-[18px] leading-normal text-muted [text-wrap:pretty]"><span data-choir-fail-fix>{{ pageLead }}</span><template v-if="costLine && !retryPhase">{{ ' ' }}<span data-choir-fail-cost>{{ costLine }}</span></template></p>
                         <a v-if="failKind && !oursScreen" :href="helpUrl + '#if-a-song-doesnt-come-out'" target="_blank" rel="noopener" class="link mt-2 inline-flex min-h-11 items-center self-start" data-choir-help-failed>{{ t('ownChoir.help.failed') }}</a>
+                        <!-- Tell us what happened, from the first failure, with the choir song (feedback2; docs/feedback-plan.md). -->
+                        <a v-if="feedback2 && failKind && !retryPhase" :href="tellUsHref" class="link inline-flex min-h-11 items-center self-start" data-choir-tell-us @click.prevent="navigate(tellUsHref)">{{ t('contact.tellUs') }}</a>
                     </div>
                     <ol class="mt-4" data-choir-steps data-choir-ours>
                         <li class="grid grid-cols-[44px_minmax(0,1fr)] gap-x-4" data-choir-step="1" data-choir-step-state="saved">
@@ -502,6 +519,18 @@ export const OwnChoirView = {
                         </div>
                         <p v-if="listenTo === 'recording'" class="t-hint" data-share-full>{{ t('ownChoir.share.fullOnly') }}</p>
                     </div>
+                    <!-- The choir ask (feedback2; docs/feedback-plan.md, section 4): after hearing one of their first two AI choir songs,
+                         once a song, inline here (never asks.js's daily slot, never a Not now), and not while another ask is up. -->
+                    <section v-if="askShown" class="card space-y-3 p-5" aria-labelledby="choir-ask-h" data-choir-ask>
+                        <template v-if="askState === 'asking'">
+                            <h2 id="choir-ask-h" class="text-lg font-semibold text-cream">{{ t('ownChoir.ask.title') }}</h2>
+                            <div class="grid gap-2.5 sm:grid-cols-2">
+                                <button type="button" class="btn-secondary min-h-11 w-full justify-center" data-choir-ask-right @click="askRight">{{ t('ownChoir.ask.right') }}</button>
+                                <button type="button" class="btn-secondary min-h-11 w-full justify-center" data-choir-ask-off @click="askOff">{{ t('ownChoir.ask.off') }}</button>
+                            </div>
+                        </template>
+                        <p v-else id="choir-ask-h" ref="askThanks" tabindex="-1" class="text-cream outline-none" role="status" data-choir-ask-thanks>{{ t('ownChoir.ask.thanks') }}</p>
+                    </section>
                     <!-- The choir gallery (docs/choir-gallery-plan.md, behind choir_gallery): one quiet row, heard by staff first. -->
                     <ChoirGalleryRow :request="request" :song="song" :consent-version="galleryConfig(account.config)?.consentVersion ?? null" :ai="aiOn()" :share="galleryShare" @changed="(item) => (request.gallery = item)" />
                     <!-- Downloading is Plus's (Hillel, 2026-11-21); listening and sharing stay free. The server says who may. -->
@@ -582,6 +611,8 @@ export const OwnChoirView = {
                     <div v-if="pageLead" class="-mt-4 flex flex-col gap-1" :role="failKind && !retryPhase ? 'alert' : 'status'" :data-choir-failed="failKind && !retryPhase ? '' : null" :data-choir-failed-reason="failKind && !retryPhase ? (request.failureDetail || request.failure || null) : null" :data-choir-fail-kind="retryPhase ? null : failKind" :data-choir-fail-repeat="failRepeat && !retryPhase ? '' : null" :data-choir-retry="retryPhase">
                         <p class="text-[18px] leading-normal text-muted [text-wrap:pretty]"><span data-choir-fail-fix>{{ pageLead }}</span><template v-if="costLine && !retryPhase">{{ ' ' }}<span data-choir-fail-cost>{{ costLine }}</span></template></p>
                         <a v-if="failKind && !oursScreen" :href="helpUrl + '#if-a-song-doesnt-come-out'" target="_blank" rel="noopener" class="link mt-2 inline-flex min-h-11 items-center self-start" data-choir-help-failed>{{ t('ownChoir.help.failed') }}</a>
+                        <!-- Tell us what happened, from the first failure, with the choir song (feedback2; docs/feedback-plan.md). -->
+                        <a v-if="feedback2 && failKind && !retryPhase" :href="tellUsHref" class="link inline-flex min-h-11 items-center self-start" data-choir-tell-us @click.prevent="navigate(tellUsHref)">{{ t('contact.tellUs') }}</a>
                     </div>
                     <ol data-choir-steps>
                         <li class="grid grid-cols-[32px_minmax(0,1fr)] gap-x-3.5" data-choir-step="1">
@@ -635,7 +666,7 @@ export const OwnChoirView = {
                                     <button type="button" class="btn-primary h-[52px] gap-2.5 px-[26px] text-[17px] font-bold max-sm:w-full" :disabled="busy" data-choir-start @click="failKind ? act('sing', start) : start()"><span class="size-2.5 shrink-0 rounded-full bg-current" aria-hidden="true"></span>{{ failKind ? t('ownChoir.record.again') : t('ownChoir.record.start') }}</button>
                                     <!-- After a failure: an older working voice (a take problem), the second take problem's Contact us, or none. -->
                                     <button v-if="failKind && earlierShown && !failRepeat" type="button" class="link inline-flex min-h-11 items-center py-3 text-[15px] font-medium" :disabled="busy" data-choir-use-earlier @click="useEarlier = true; resing = false">{{ t('ownChoir.failed.earlier.link') }}</button>
-                                    <a v-else-if="failKind === 'take' && failRepeat" :href="contactHref" class="link inline-flex min-h-11 items-center py-3 text-[15px] font-medium" data-choir-contact @click.prevent="navigate(contactHref)">{{ t('contact.title') }}</a>
+                                    <a v-else-if="!feedback2 && failKind === 'take' && failRepeat" :href="contactHref" class="link inline-flex min-h-11 items-center py-3 text-[15px] font-medium" data-choir-contact @click.prevent="navigate(contactHref)">{{ t('contact.title') }}</a>
                                     <button v-else-if="!failSings && resing && (savedVoice() || hum)" type="button" class="link inline-flex min-h-11 items-center py-3 text-[15px] font-medium" :disabled="busy" data-choir-use-saved @click="resing = false">{{ savedVoice() ? t('ownChoir.voice.useSaved') : t('ownChoir.songs.fromHum') }}</button>
                                 </div>
                             </div>
@@ -1195,6 +1226,7 @@ export const OwnChoirView = {
                 await playChoir(voices, sound, 0, { tune: tunePart(this.template) });
                 this.playing = true;
                 countChoir('own_choir_heard');
+                this.maybeAsk();
                 count('choir_listen_played');
                 this.watchEnd();
             } catch (error) {
@@ -1216,6 +1248,30 @@ export const OwnChoirView = {
                 return;
             }
             this.frame = requestAnimationFrame(() => this.watchEnd());
+        },
+        /** The choir ask, once heard: due on one of the first two AI choir songs (js/feedback.js), each once, then kept. */
+        maybeAsk() {
+            const id = this.request?.id;
+            if (this.askState || !this.feedback2 || !aiOn() || !id || this.plusFor || this.plusSettings || wallShowing()) return;
+            let asked = [];
+            try {
+                asked = JSON.parse(local.get(CHOIR_ASK_KEY) ?? '[]');
+            } catch (error) {
+                console.debug('The choir ask list was unreadable, so it starts again', error?.message ?? error);
+            }
+            if (!choirAskDue(asked, id)) return;
+            local.set(CHOIR_ASK_KEY, JSON.stringify([...(Array.isArray(asked) ? asked : []), id]));
+            this.askState = 'asking';
+            count('fb_ask:shown');
+        },
+        askRight() {
+            count('fb_ask:right');
+            this.askState = 'thanked';
+            this.$nextTick(() => this.$refs.askThanks?.focus());
+        },
+        askOff() {
+            count('fb_ask:off');
+            navigate(contactPath({ from: `/t/${this.id}/choir`, moment: 'choir_ask', ask: 'choir', templateId: this.id, choirRequestId: this.request?.id ?? null }));
         },
         stopTrack() {
             cancelAnimationFrame(this.frame);

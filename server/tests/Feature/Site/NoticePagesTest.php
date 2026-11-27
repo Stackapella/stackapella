@@ -40,6 +40,35 @@ final class NoticePagesTest extends TestCase
         $this->get('/unsubscribe/1')->assertForbidden()->assertSee(__('errors.forbidden.title'));
     }
 
+    public function test_a_missing_page_says_tell_us_into_the_apps_contact_form_on_the_apps_host(): void
+    {
+        // As production, two hosts: the site's 404 opens Contact us on the app's host, with where it came from and the
+        // missing page's path as text (never its query), and that address is the app's own page.
+        config(['app.url' => 'https://app.stackapella.test', 'hosts.public_url' => 'https://stackapella.test', 'app.is_nexus' => true]);
+        $tell = 'href="https://app.stackapella.test/contact?from=site-404&amp;page=%2Ffeatures%2Fteleport" data-tell-us>'.e(__('errors.tell.link')).'</a>';
+
+        $gone = (string) $this->get('https://stackapella.test/features/teleport?token=secret')->assertNotFound()->getContent();
+        $this->assertStringContainsString(e(__('errors.tell.lead')).' <a '.$tell, $gone);
+        $this->assertStringNotContainsString('secret', $gone);
+
+        $html = view('errors.404')->render();
+        $this->assertStringContainsString('data-tell-us>', $html);
+        $this->assertStringContainsString('https://app.stackapella.test/contact?from=site-404&amp;page=', $html);
+
+        $this->get('https://app.stackapella.test/contact?from=site-404&page=%2Ffeatures%2Fteleport')->assertOk()->assertSee('<div id="app"', false);
+
+        // In Spanish, the same link in its words.
+        $this->get('https://stackapella.test/es/features/teleport')->assertNotFound()->assertSee('¿Esperabas algo aquí? <a', false)->assertSee('>Avísanos</a>.', false);
+    }
+
+    public function test_the_500_page_offers_an_email_since_the_app_may_be_down_too(): void
+    {
+        config(['site.contact_email' => 'contact@example.com']);
+
+        $html = view('errors.500', ['exception' => new RuntimeException('secret detail')])->render();
+        $this->assertStringContainsString('Email us at <a href="mailto:contact@example.com" data-email-us>contact@example.com</a>', $html);
+    }
+
     public function test_the_gate_says_what_stackapella_is_and_how_invited_singers_get_in(): void
     {
         $html = view('coming-soon')->render();

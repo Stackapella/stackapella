@@ -599,7 +599,8 @@ export function createSync(deps) {
             } catch (error) {
                 if (error?.code !== 'offline') console.warn('The sync stopped', error);
                 state.offline = error?.code === 'offline';
-                state.pending = (await db.all('outbox')).length;
+                // Storage itself may be what failed (Sentry JAVASCRIPT-F): the count stays as it was, never a second error.
+                state.pending = await db.all('outbox').then((entries) => entries.length, () => state.pending);
                 report();
             } finally {
                 running = null;

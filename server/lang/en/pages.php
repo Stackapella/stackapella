@@ -1734,7 +1734,9 @@ return [
                         '**Delete my account** deletes your account, your songs and your recordings for good. Your privacy says what\'s deleted and what stays. Under **This device**, signed in or not, **Delete everything here**, then **Delete everything**, clears the songs, takes, course progress, drafts and settings kept in this browser, and signs you out here. Songs backed up to your account come back when you sign in again.',
                     ]],
                     ['Contact us', [
-                        '**Contact us** is at the bottom of Settings. We read every message.',
+                        // Where Contact us is follows feedback2, which moves it to the top of Settings (docs/feedback-plan.md).
+                        ['text' => '**Contact us** is at the bottom of Settings. We read every message.', 'unless' => 'feedback2'],
+                        ['text' => '**Contact us** is at the top of Settings: on Home, tap **Settings**. We read every message.', 'flag' => 'feedback2'],
                         'Choose what it\'s about (**Account or Plus** for anything about your account or paying), and say what happened: the box suggests what helps for that topic. For a recording problem, or something broken, **Include device details** is on; **See exactly what\'s sent** shows every detail, and never any audio. Tap **Send message**: We reply by email.',
                     ]],
                 ],
@@ -2014,7 +2016,8 @@ return [
                         'Sing again somewhere quiet, about a hand\'s width from the mic, at normal volume.',
                         'A loud breath just before a line, or moving after the last note, can stop it too: breathe a moment earlier, turned a little away from the mic.',
                         'A failure on our side doesn\'t count toward your songs or your minutes. If your recording can\'t be used, it usually doesn\'t count either: the app tells you when it didn\'t.',
-                        'Still stuck? Tap **Contact us** at the bottom of **Settings**.',
+                        ['text' => 'Still stuck? Tap **Contact us** at the bottom of **Settings**.', 'unless' => 'feedback2'],
+                        ['text' => 'Still stuck? Tap **Contact us** in **Settings**.', 'flag' => 'feedback2'],
                     ]],
                 ],
             ],

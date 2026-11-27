@@ -1,7 +1,8 @@
 // The app that never starts (Hillel's PH-eve check, 2026-11-02): when Vue or another of the app's modules can't load
 // (the CDN unreachable, a dropped connection), the module graph fails without a word and the page stays blank. main.js
 // marks itself started on its first line, which only runs once every import has loaded; if that hasn't happened a moment
-// after the page's load event, this says so, calmly, with Reload. A classic script in old JavaScript, its words English
+// after the page's load event, this says so, calmly, with Reload, and an email and the site's help
+// for when Reload doesn't fix it. A classic script in old JavaScript, its words English
 // only (the translations load with the app); an old browser without import maps is old-browser.js's to explain.
 (function () {
     var script = window.HTMLScriptElement;
@@ -66,10 +67,51 @@
                 .then(function (keys) { return Promise.all(keys.filter(function (k) { return k.indexOf('stackapella-') === 0; }).map(function (k) { return caches.delete(k); })); })
                 .then(function () { location.reload(); }, function () { location.reload(); });
         };
+        // The way to us when Reload doesn't fix it (docs/feedback-plan.md): an email, with the build in its subject, and the
+        // site's help. A link only, so a mail app or the help opens; nothing is sent from here.
+        var still = document.createElement('p');
+        still.style.cssText = 'font-size:1rem;margin:2rem 0 0;color:' + (dark ? '#cfcfcf' : '#5c5249');
+        var linkStyle = 'color:inherit;text-decoration:underline;text-underline-offset:3px;display:inline-block;padding:0.75rem 0';
+        var build = servedBuild();
+        var mail = document.createElement('a');
+        mail.setAttribute('data-boot-mail', '');
+        mail.href = 'mailto:contact@stackapella.com?subject=' + encodeURIComponent("Stackapella won't load" + (build ? ' (build ' + build + ')' : '')); // i18n-ignore: the app's translations never load here
+        mail.appendChild(document.createTextNode('Still not working? Email contact@stackapella.com')); // i18n-ignore: the app's translations never load here
+        mail.style.cssText = linkStyle;
+        var help = document.createElement('a');
+        help.setAttribute('data-boot-help', '');
+        help.href = siteBase() + '/help';
+        help.rel = 'noopener';
+        help.appendChild(document.createTextNode('Help')); // i18n-ignore: the app's translations never load here
+        help.style.cssText = linkStyle + ';margin-inline-start:1.5rem';
+        still.appendChild(mail);
+        still.appendChild(help);
         box.appendChild(title);
         box.appendChild(line);
         box.appendChild(button);
+        box.appendChild(still);
         document.body.appendChild(box);
+    }
+
+    // The build this page's files came from (its worker's sw.js?build=, as js/sw-update.js's servedBuild), or '' when
+    // the network served it.
+    function servedBuild() {
+        try {
+            var controller = navigator.serviceWorker && navigator.serviceWorker.controller;
+            var build = controller ? new URL(controller.scriptURL).searchParams.get('build') : null;
+            return build && build !== 'dev' ? build : '';
+        } catch (error) {
+            return '';
+        }
+    }
+    // The public site's address, as js/hosts.js's publicSiteUrl finds it: the shell's public-url meta, else the app host
+    // without its "app.", else this host (one host for both).
+    function siteBase() {
+        var meta = document.querySelector('meta[name="public-url"]');
+        if (meta && meta.content) return new URL(meta.content, location.href).origin;
+        var host = location.hostname;
+        if (host.indexOf('app.') === 0) return location.protocol + '//' + host.slice(4) + (location.port ? ':' + location.port : '');
+        return location.origin;
     }
 
     // A moment past the load event: a started app has set its mark well before then.
