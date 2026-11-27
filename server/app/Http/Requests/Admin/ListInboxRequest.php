@@ -26,7 +26,9 @@ final class ListInboxRequest extends FormRequest
         return [
             'status' => ['nullable', 'string', 'max:20'],
             // The support inbox's one kind of message (tracks: directors' learning tracks requests).
-            'category' => ['nullable', Rule::in([...SupportMessage::CATEGORIES, SupportMessage::TRACKS])],
+            'category' => ['nullable', Rule::in([...SupportMessage::CATEGORIES, SupportMessage::TRACKS, SupportMessage::BETA])],
+            // Only the Maybe spam ones (a guest's message with two or more links while Turnstile was off).
+            'maybeSpam' => ['nullable', 'boolean'],
             'cursor' => ['nullable', 'string', 'max:512'],
         ];
     }

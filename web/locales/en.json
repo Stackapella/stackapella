@@ -1528,7 +1528,8 @@
             "singing_test_boards": "Singing test boards",
             "choir_gallery": "Choir gallery",
             "practice_set": "Practise the set",
-            "song_pieces": "Song pieces in lessons"
+            "song_pieces": "Song pieces in lessons",
+            "feedback2": "Easier feedback"
         },
         "flagHint": {
             "growth_fresh_start": "Every growth view and the export count only from the start of the day (Jerusalem time) this was turned on. Saving it on again keeps that day; off shows all history again. Nothing is deleted.",
@@ -1581,7 +1582,8 @@
             "singing_test_boards": "The singing test's Most improved and Best boards in game mode, opt-in, adults. Off until enough singers have counted tests.",
             "choir_gallery": "Singers can add a ready choir song to the AI choir gallery, heard by staff first (Admin, Choir gallery). Off: no row on the choir page, and the gallery's pages answer not found.",
             "practice_set": "A choir group's songs as one set to practise, your part louder, playing on with the phone locked. Staff always have it. Off: no button on the group page.",
-            "song_pieces": "About eight lessons in units 1 to 3 end with a real song's line that sings the lesson's skill (never the stars; skipped where the song is withheld). Off: lessons end on their drill as before."
+            "song_pieces": "About eight lessons in units 1 to 3 end with a real song's line that sings the lesson's skill (never the stars; skipped where the song is withheld). Off: lessons end on their drill as before.",
+            "feedback2": "The new Contact us: no topic chosen for you, guests can send without an email, the choir ask after the first two AI choir songs, and Tell us what happened on error messages. Off: Contact us as before."
         },
         "flagValue": {
             "off": "Off",

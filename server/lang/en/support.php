@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-// Hillel's saved replies in the support inbox (docs/operations-plan.md, "Saved replies"), drafted
-// for him to edit before sending. Plain text; a blank line starts a new paragraph.
+// The saved replies in the support inbox (docs/operations-plan.md, "Saved replies"), drafted for staff to
+// edit before sending, always in "we" (docs/feedback-plan.md). Plain text; a blank line starts a new paragraph.
 return [
     // A director's learning tracks request, when they add no note of their own (the inbox's body).
     'tracks' => [
@@ -21,11 +21,11 @@ return [
     'saved' => [
         'silent_mic' => [
             'title' => 'The mic is silent',
-            'body' => "Thanks for writing. When the app can't hear you, it's usually one of three things: the browser hasn't been allowed to use the mic, another app is using it, or the wrong mic is picked.\n\nIn the app, open the mic picker on the recording screen, choose your mic, and sing a note: the level meter should move. On an iPhone, check Settings, then Safari, then Microphone.\n\nIf it still stays silent, reply with the device and browser you're using, and I'll look into it with you.",
+            'body' => "Thanks for writing. When the app can't hear you, it's usually one of three things: the browser hasn't been allowed to use the mic, another app is using it, or the wrong mic is picked.\n\nIn the app, open the mic picker on the recording screen, choose your mic, and sing a note: the level meter should move. On an iPhone, check Settings, then Safari, then Microphone.\n\nIf it still stays silent, reply with the device and browser you're using, and we'll look into it with you.",
         ],
         'out_of_time' => [
             'title' => 'Takes are out of time',
-            'body' => "Thanks for writing. Every device adds its own delay between what you hear and what's recorded, and the timing check measures it.\n\nPlease run the timing check again (from the menu on the recording screen), with headphones if you can, and record a short take. If it still sounds early or late, Nudge on the part moves it by a few milliseconds.\n\nIf that doesn't fix it, reply with the device and browser you're using, and I'll look at it with you.",
+            'body' => "Thanks for writing. Every device adds its own delay between what you hear and what's recorded, and the timing check measures it.\n\nPlease run the timing check again (from the menu on the recording screen), with headphones if you can, and record a short take. If it still sounds early or late, Nudge on the part moves it by a few milliseconds.\n\nIf that doesn't fix it, reply with the device and browser you're using, and we'll look at it with you.",
         ],
         'iphone' => [
             'title' => 'Installing on iPhone',
@@ -33,11 +33,11 @@ return [
         ],
         'refunds' => [
             'title' => 'Refunds',
-            'body' => "Thanks for writing. I've refunded your last payment for Plus; it reaches your card in 5 to 10 days, depending on your bank.\n\nThe refund policy is on our legal pages if you'd like the details.",
+            'body' => "Thanks for writing. We've refunded your last payment for Plus; it reaches your card in 5 to 10 days, depending on your bank.\n\nThe refund policy is on our legal pages if you'd like the details.",
         ],
         'refunds_store' => [
             'title' => 'Refunds for Plus bought in an app',
-            'body' => "Thanks for writing. Plus bought in the App Store is refunded by Apple rather than by us: ask at reportaproblem.apple.com, sign in with your Apple ID, and choose the Stackapella subscription. Apple decides, usually within a couple of days.\n\nIf you bought it in Google Play, I've refunded it there; it reaches you in a few days, depending on how you paid.",
+            'body' => "Thanks for writing. Plus bought in the App Store is refunded by Apple rather than by us: ask at reportaproblem.apple.com, sign in with your Apple ID, and choose the Stackapella subscription. Apple decides, usually within a couple of days.\n\nIf you bought it in Google Play, we've refunded it there; it reaches you in a few days, depending on how you paid.",
         ],
         'cancelling' => [
             'title' => 'Cancelling Plus',
@@ -45,11 +45,11 @@ return [
         ],
         'tracks_score' => [
             'title' => 'Learning tracks: send the score',
-            'body' => "Thanks for asking. I'd love to make learning tracks of this for your choir.\n\nPlease reply with the score: MusicXML is best (File, then Export, in MuseScore, Sibelius, Finale or Dorico), then a PDF of every page scanned flat, then phone photos, one page each, flat in daylight.\n\nAnd tell me which parts your choir sings, any repeats or cuts, your tempo and key if they differ from the page, and whether I may suggest breath marks.\n\nYou'll have the tracks in your account, ready to share with your group, within a working day of a good PDF or MusicXML.",
+            'body' => "Thanks for asking. We'd love to make learning tracks of this for your choir.\n\nPlease reply with the score: MusicXML is best (File, then Export, in MuseScore, Sibelius, Finale or Dorico), then a PDF of every page scanned flat, then phone photos, one page each, flat in daylight.\n\nAnd tell us which parts your choir sings, any repeats or cuts, your tempo and key if they differ from the page, and whether we may suggest breath marks.\n\nYou'll have the tracks in your account, ready to share with your group, within a working day of a good PDF or MusicXML.",
         ],
         'lost_account' => [
             'title' => 'A lost account',
-            'body' => "Thanks for writing. To make sure the account is yours, please reply with the email address on it, the titles of a couple of your songs, and if you pay for Plus, the date of a recent receipt.\n\nOnce I've checked, I'll add a way for you to sign in again and let you know.",
+            'body' => "Thanks for writing. To make sure the account is yours, please reply with the email address on it, the titles of a couple of your songs, and if you pay for Plus, the date of a recent receipt.\n\nOnce we've checked, we'll add a way for you to sign in again and let you know.",
         ],
     ],
 ];

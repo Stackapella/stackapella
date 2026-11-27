@@ -16,15 +16,18 @@ use Illuminate\Support\Carbon;
 
 /**
  * A "Contact us" or "Send diagnostics" message in the admin inbox (docs/operations-plan.md,
- * "Support"), with the app's context when the person chose to include it.
+ * "Support"), with the app's context when the person chose to include it, or a beta singer's note
+ * (docs/feedback-plan.md).
  *
  * @property int $id
  * @property int|null $user_id
  * @property string|null $email
  * @property string $category
+ * @property string|null $moment
  * @property string $body
  * @property array<string, mixed>|null $context
  * @property string $status
+ * @property bool $maybe_spam
  * @property string|null $ip_hash
  * @property Carbon|null $answered_at
  * @property Carbon|null $closed_at
@@ -48,6 +51,15 @@ final class SupportMessage extends Model
 
     public const CATEGORIES = ['account', 'payments', 'recording', 'coaching', 'other', 'diagnostics', 'bug', 'idea'];
 
+    /** A beta singer's note (beta.feedback.create, "Tell us"), with the template, part and beat it's about. */
+    public const BETA = 'beta';
+
+    /** Where Contact us was opened from (docs/feedback-plan.md). */
+    public const MOMENTS = ['settings', 'help', 'error', 'choir_ask', 'mic', 'own_choir', 'boot', 'site_404'];
+
+    /** The choir ask's chips: a voice sounds strange, out of time, wrong notes, something else. */
+    public const CHOIR_ISSUES = ['voice', 'timing', 'notes', 'other'];
+
     /** A director's learning tracks request (groups.tracks.create), never from the contact form. */
     public const TRACKS = 'tracks';
 
@@ -57,12 +69,13 @@ final class SupportMessage extends Model
 
     public const CLOSED = 'closed';
 
-    protected $fillable = ['category', 'body', 'context', 'email'];
+    protected $fillable = ['category', 'moment', 'body', 'context', 'email'];
 
     protected function casts(): array
     {
         return [
             'context' => 'array',
+            'maybe_spam' => 'boolean',
             'answered_at' => 'datetime',
             'closed_at' => 'datetime',
         ];

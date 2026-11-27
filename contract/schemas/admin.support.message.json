@@ -19,7 +19,10 @@
                 "body",
                 "context",
                 "replies",
-                "savedReplies"
+                "savedReplies",
+                "moment",
+                "maybeSpam",
+                "canReply"
             ],
             "properties": {
                 "id": {
@@ -36,7 +39,8 @@
                         "diagnostics",
                         "bug",
                         "idea",
-                        "tracks"
+                        "tracks",
+                        "beta"
                     ]
                 },
                 "status": {
@@ -393,6 +397,32 @@
                             }
                         }
                     }
+                },
+                "moment": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "enum": [
+                        "settings",
+                        "help",
+                        "error",
+                        "choir_ask",
+                        "mic",
+                        "own_choir",
+                        "boot",
+                        "site_404",
+                        null
+                    ],
+                    "description": "Where the form was opened from (support.create's moment); null when the app didn't say."
+                },
+                "maybeSpam": {
+                    "type": "boolean",
+                    "description": "A guest's message with two or more links, sent while Turnstile was off: Admin's Maybe spam filter. Still listed."
+                },
+                "canReply": {
+                    "type": "boolean",
+                    "description": "False when there's no reply address (a guest who left none, or Don't reply to me): Admin shows No reply address."
                 }
             }
         }

@@ -14,6 +14,9 @@
             "preview": "Learning tracks, please: O God, Our Help in Ages Past.",
             "createdAt": "2026-11-11T09:00:00Z",
             "answeredAt": null,
+            "moment": null,
+            "maybeSpam": false,
+            "canReply": true,
             "tracks": {
                 "groupId": "Gr0uP1",
                 "group": "Thursday Singers",
@@ -58,7 +61,43 @@
             },
             "preview": "My takes come out late on my phone.",
             "createdAt": "2026-11-02T10:00:00Z",
-            "answeredAt": null
+            "answeredAt": null,
+            "moment": null,
+            "maybeSpam": false,
+            "canReply": true
+        },
+        {
+            "id": "Bt7nQ2",
+            "category": "beta",
+            "status": "open",
+            "from": {
+                "email": "ben@example.com",
+                "account": {
+                    "id": "kT5mNpQr",
+                    "name": "Ben Ode"
+                }
+            },
+            "preview": "The alto comes in a beat early at the second verse.",
+            "createdAt": "2026-11-27T11:00:00Z",
+            "answeredAt": null,
+            "moment": null,
+            "maybeSpam": false,
+            "canReply": true
+        },
+        {
+            "id": "Gs3vW8",
+            "category": "other",
+            "status": "open",
+            "from": {
+                "email": null,
+                "account": null
+            },
+            "preview": "The alto is wrong in bar 12.",
+            "createdAt": "2026-11-27T12:00:00Z",
+            "answeredAt": null,
+            "moment": "site_404",
+            "maybeSpam": false,
+            "canReply": false
         }
     ],
     "meta": {

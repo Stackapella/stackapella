@@ -156,6 +156,8 @@ return [
     // Contact us and Send diagnostics (signed in or not).
     'support' => [
         'account' => ['max' => 5, 'per' => 'hour', 'by' => 'account'],
+        // A guest (by their network, hashed in the limiter's short-lived cache only): 20 a day too (docs/feedback-plan.md).
+        'guest_day' => ['max' => 20, 'per' => 'day', 'by' => 'ip', 'when' => 'signed_out'],
     ],
 
     // The score's files sent with a learning tracks request (a photo a page, up to 10 a request).

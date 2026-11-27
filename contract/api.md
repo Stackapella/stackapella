@@ -1387,8 +1387,10 @@ answers the take as it is. **Request:** none.
 
 #### `beta.feedback.create`
 
-Tell Hillel. **Request:** `{ "text": "...", "templateId": "amazing-grace", "partKey": "alto",
-"beat": 33.5 }`: `text` up to 2000 characters, the rest optional. Limited (`contact`).
+Tell us. **Request:** `{ "text": "...", "templateId": "amazing-grace", "partKey": "alto",
+"beat": 33.5 }`: `text` up to 2000 characters, the rest optional. Limited (`contact`). Since 2026-11-27 a note is kept
+as a support message of category `beta` (its `context` the template, part and beat), so it can be answered from Admin >
+Support; `id` is that message's. The old notes stay in `admin.beta.feedback.*`, read-only, until they're all read.
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -1803,7 +1805,8 @@ that differs first shows, if the device fits `audience` and isn't in one it `exc
 the arm label on the device (never an id). `experiment` stays onb1's until it ends.
 **Request:** none.
 
-`aiOptional` (since 2026-11-23, the `ai_optional` switch, docs/ai-optional-plan.md): while on, the app honours each
+`feedback2` (since 2026-11-27, the `feedback2` switch, docs/feedback-plan.md): while on, Contact us takes a guest's message without
+an email and the app offers the new ways in; off, a guest's email is required as before. `aiOptional` (since 2026-11-23, the `ai_optional` switch, docs/ai-optional-plan.md): while on, the app honours each
 account's `aiFeatures` and a guest's device key; off, AI shows for everyone as before. Since 2026-11-26 (Hillel: most new users see AI, with the option
 to hide it for good) the server treats an account as AI on unless `aiFeatures` is false, and never for someone under
 18. `songPieces` (since 2026-11-26, the `song_pieces` switch, docs/song-snippets-plan.md): off, the app reads each
@@ -5272,11 +5275,10 @@ unless it's live and its singer said yes. **Request:** none.
 
 ### Support, notices and refunds (L)
 
-- **Contact us and Send diagnostics** (`support.create`, signed in or not): a category, the message,
-  and, only when the person ticks "Include details about my device", the app's `context`
-  (`appVersion`, `browser`, `device`, `page`, `timingCheck` (the last result, as the app keeps it),
-  and for diagnostics `audioErrors`, the last few). Signed out, an `email` is needed for the
-  answer. Answers come by email from Hillel. `website` is the honeypot.
+- **Contact us and Send diagnostics** (`support.create`, signed in or not): the message, a topic if they chose one,
+  where it was opened from (`moment`), and, only while "Sent with it" is on, the app's `context` (each item can be
+  turned off). Signed out, an `email` is optional while the `feedback2` switch is on (required while it's off). Answers
+  come by email from Stackapella. `website` is the honeypot.
 - **Statements of reasons** (`notices.*`): when a shared harmony is hidden or taken down (by Hillel,
   by a copyright notice, or automatically after reports), when an account's sharing is limited or
   it's suspended, or when coaching is paused or suspended, the person gets a notice: `what` was
@@ -5293,11 +5295,32 @@ unless it's live and its singer said yes. **Request:** none.
 
 #### `support.create`
 
-**Request:** `{ "category": "recording", "message": "...", "email": "ana@example.com", "context":
-{ "appVersion": "...", "browser": "...", "device": "...", "page": "/sing", "timingCheck": {...},
-"audioErrors": ["..."] }, "website": "" }`. `category` is `account`, `payments`, `recording`,
-`coaching`, `other`, `diagnostics`, `bug` (something's broken) or `idea`. Limited (`support`); in shield mode it needs Turnstile's
-`turnstileToken`, as sign-up does (`403 turnstile_required` or `turnstile_failed`).
+**Request:** `{ "message": "...", "category": "recording", "moment": "mic", "email": "ana@example.com", "reply": true,
+"context": { "appVersion": "2026.11.27", "device": "phone", "browser": "safari", "language": "en", "skin": "serious",
+"page": "/sing", "timingCheck": {...}, "audioErrors": ["..."], "templateId": "amazing-grace", "partKey": "alto",
+"choirRequestId": "Cr8tYp", "errorCode": "a1b2c3d4", "choirIssue": "timing" }, "website": "", "turnstileToken": null }`.
+Only `message` (2 to 5000 characters) is required.
+- `category` (optional since 2026-11-27): `account`, `payments`, `recording`, `coaching`, `other`, `diagnostics`, `bug`
+  (something's broken) or `idea`; left out (no topic chosen), it's kept as `other`.
+- `email`: a guest's reply address. While the `feedback2` switch is on it's optional ("only if you'd like a reply");
+  while it's off, a guest needs one (`422`). An account's messages always use the account's own address.
+- `reply` (optional, since 2026-11-27, default true): `false` is "Don't reply to me": no reply address is kept, the
+  account's or the one typed. The message still carries the account, so staff can see the song asked about.
+- `moment` (optional, since 2026-11-27): where the form was opened from: `settings`, `help`, `error`, `choir_ask`,
+  `mic`, `own_choir`, `boot` or `site_404`.
+- `context` (optional, only what "Sent with it" lists):
+  - `appVersion`, `page` (up to 300), `language` (up to 12), `skin` (`game` or `serious`);
+  - `device`: since 2026-11-27 a device kind, `phone`, `tablet` or `computer`, and `browser` a family: `chrome`,
+    `safari`, `firefox`, `edge`, `samsung`, `opera` or `other`. Never the user agent: anything else sent (an older
+    app's) is reduced to its kind and family before it's kept;
+  - for sound topics, `timingCheck` (the last result, as the app keeps it) and `audioErrors` (this visit's, up to 20);
+  - only when the moment has one: `templateId` and `partKey` (the song and part), `choirRequestId` (the choir song),
+    `errorCode` (Sentry's code, where an error message is showing, up to 64), and from the choir ask, `choirIssue`
+    (`voice`: a voice sounds strange, `timing`: out of time, `notes`: wrong notes, or `other`).
+- Limited (`support`): 5 an hour (an account, or a guest's network), and for guests 20 a day too. In shield mode it
+  needs Turnstile's `turnstileToken`, as sign-up does (`403 turnstile_required` or `turnstile_failed`). A guest's
+  message with two or more links, sent while Turnstile is off, is kept and marked `maybeSpam` for Admin.
+- The server counts `fb_sent:<topic>` (the category, or `none` when no topic was chosen; never who sent it).
 
 | Status | Code | Schema | Example |
 |---|---|---|---|
@@ -5339,8 +5362,11 @@ months.
 
 #### `admin.support.list`
 
-**Request:** `?status=open` (the default), `answered`, `closed` or `all`; `?category=` (one of
-`support.create`'s, or `tracks`: directors' learning tracks requests); `?cursor=`. A `tracks` message
+**Request:** `?status=open` (the default), `answered`, `closed` or `all` (Admin words them New, Replied and Closed);
+`?category=` (one of `support.create`'s, `tracks`: directors' learning tracks requests, or since 2026-11-27 `beta`: a
+beta singer's note); `?maybeSpam=1` (since 2026-11-27: only the Maybe spam ones); `?cursor=`. Each row has, since
+2026-11-27, `moment` (support.create's, or null), `maybeSpam`, and `canReply` (false is "No reply address": a guest who
+left none, or Don't reply to me). A `tracks` message
 has `tracks`: `{groupId, group, piece, composer, voicing, rights, rightsConfirmedAt, rightsStatement,
 status, scores, song, deliveredAt, give}`, so Admin can give the song from the row
 (`admin.people.songs.create` to `from.account`, with `trackRequest` set to the message's `id` and
@@ -5355,7 +5381,8 @@ saved reply `tracks_score` asks for the score when none was sent.
 
 #### `admin.support.show`
 
-The message in full, with its `context`, the answers sent, and `savedReplies` to start from. Its
+The message in full, with its `context` (what was attached, as support.create lists it; a `beta` note's is its
+`templateId`, `partKey` and `beat`), the answers sent, and `savedReplies` to start from (in "we"). Its
 `from.account` (when it came from an account) adds their `plan`, as `admin.people.show` has it.
 **Request:** none.
 

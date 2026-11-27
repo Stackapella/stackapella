@@ -3,6 +3,7 @@
 declare(strict_types=1);
 use App\Support\Accounts\AiChoice;
 use App\Support\Billing\CheckoutCounts;
+use App\Support\Feedback\FeedbackCounts;
 use App\Support\OwnChoir\ChoirCounts;
 use App\Support\OwnChoir\ChoirWait;
 use App\Support\Pages\SongCollections;
@@ -32,6 +33,8 @@ return [
         'app_open', 'lesson_start', 'lesson_done', 'unit_done', 'song_created', 'take_recorded', 'share_created', 'harmonise_used', 'export_done', 'sign_up', 'result_shared', 'leaderboard_viewed', 'challenge_accepted',
         // Lesson 1's live chord (2026-11-23, Hillel's "I just sang harmony"): asked to hear their note in a chord, and the chord sounded round it.
         'chord_live_start', 'chord_live_heard',
+        // Feedback (docs/feedback-plan.md): Contact us opened, by where from, and the choir ask shown and answered.
+        ...FeedbackCounts::appKinds(),
         // The singing test (docs/singing-test-v1.md): started, finished, kept as practice (too few heard), each event
         // finished, and the boards opted into.
         // The choir gallery (docs/choir-gallery-plan.md): the sheet confirmed or closed; the site's page, a play, an item's page.
@@ -238,6 +241,8 @@ return [
     'server_kinds' => [
         // The singing test: the device's score wasn't the server's (docs/singing-test-v1.md; the server's is kept).
         'st_mismatch',
+        // Feedback: a message kept, by its topic (docs/feedback-plan.md).
+        ...FeedbackCounts::serverKinds(),
         // The Plus and seats checkouts: started, and refused by why (App\Support\Billing\CheckoutCounts).
         ...CheckoutCounts::serverKinds(),
         // A singing test held for a look before the boards show it (a jump, flat notes, the same items as another).

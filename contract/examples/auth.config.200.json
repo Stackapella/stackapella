@@ -67,6 +67,7 @@
             "choirSongs": 15,
             "storageBytes": 53687091200
         },
+        "feedback2": false,
         "aiOptional": false,
         "choirEmail": false,
         "singingTest": false,

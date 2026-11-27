@@ -1870,6 +1870,7 @@ return [
                             'When you\'re signed in, your songs and takes are saved to your account, so they\'re kept safe and open on your other devices.',
                             'When you share a harmony, its mix comes to us to make the link, and the video if you make one.',
                             'When you send a take to a coach or teacher, they get the take and its scores. A beta singer\'s take comes to us to review.',
+                            ['text' => 'When you write to us with **Contact us**, we get your message and only what **Sent with it** lists (you can change it before you send), never any audio. Signed in, it carries your account. Without an account, your email is optional: leave it only if you\'d like a reply.', 'flag' => 'feedback2'],
                         ],
                     ],
                     [

@@ -40,6 +40,7 @@
                 "choirSeats",
                 "ownChoirTogether",
                 "aiMark",
+                "feedback2",
                 "plusLimits",
                 "aiOptional",
                 "choirEmail",
@@ -346,6 +347,10 @@
                             "type": "integer"
                         }
                     }
+                },
+                "feedback2": {
+                    "type": "boolean",
+                    "description": "The feedback2 switch (docs/feedback-plan.md): while on, Contact us takes a guest's message without an email, and the app offers the new ways in (its moments); off, a guest's email is required as before."
                 },
                 "aiOptional": {
                     "type": "boolean",

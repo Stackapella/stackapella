@@ -121,6 +121,9 @@ return [
     // choir_email: the "your choir is ready" email (docs/decisions.md 2026-11-24). Off until the app's take review says
     // "We'll email you" with its Don't email me, so no one gets one they weren't told of.
     'choir_email' => ['kind' => 'feature', 'values' => ['off', 'on']],
+    // Contact us, made easier (docs/feedback-plan.md): a guest may send without an email, "Don't reply to me", and the
+    // app's new ways in. Off, a guest's email is required as before.
+    'feedback2' => ['kind' => 'feature', 'values' => ['off', 'on']],
     // The singing test (docs/singing-test-v1.md): singing_test, the test on Your voice and its results kept here, staff
     // first (per account) then everyone; singing_test_boards, its boards in game mode, off until enough singers have
     // counted tests that a board isn't empty.

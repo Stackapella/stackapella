@@ -13,6 +13,7 @@ use App\Models\BetaSinger;
 use App\Models\BetaSubmission;
 use App\Models\CourseClip;
 use App\Models\Report;
+use App\Models\SupportMessage;
 use App\Models\TemplateGuide;
 use App\Models\User;
 use App\Services\DigitalOcean\CdnPurge;
@@ -45,6 +46,8 @@ final class ForgetSinger
             }
 
             BetaFeedback::query()->where('beta_singer_id', $singer->id)->delete();
+            // Their notes since they moved to the support inbox (docs/feedback-plan.md).
+            SupportMessage::query()->where('category', SupportMessage::BETA)->where('context->betaSinger', $singer->sqid())->delete();
             // Hillel's "please record again" notes to them.
             $singer->assignments()->update(['asked_again_note' => null]);
 

@@ -28,7 +28,7 @@ final class SupportController extends Controller
             return response()->json(['data' => ['id' => 'received', 'receivedAt' => now()->utc()->toIso8601ZuluString()]], 201);
         }
 
-        /** @var array{email?: string|null, category: string, message: string, context?: array<string, mixed>|null} $data */
+        /** @var array{email?: string|null, reply?: bool, category?: string|null, moment?: string|null, message: string, context?: array<string, mixed>|null} $data */
         $data = $request->safe()->except('website');
         $message = $inbox->receive($user, $data, (string) $request->ip());
 

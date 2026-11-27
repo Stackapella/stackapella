@@ -9,7 +9,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 /**
- * beta.feedback.create: Tell Hillel.
+ * beta.feedback.create: Tell us.
  */
 final class FeedbackRequest extends FormRequest
 {

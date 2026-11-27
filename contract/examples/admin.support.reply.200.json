@@ -13,6 +13,9 @@
         "preview": "My takes come out late on my phone.",
         "createdAt": "2026-11-02T10:00:00Z",
         "answeredAt": "2026-11-02T12:00:00Z",
+        "moment": "mic",
+        "maybeSpam": false,
+        "canReply": true,
         "body": "My takes come out late on my phone.",
         "context": {
             "appVersion": "2026.11.1",
